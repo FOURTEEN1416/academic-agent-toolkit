@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:paperspine:open-release:plan:1.0",
+  "title": "PaperSpine Open Release Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "release_id", "project_root", "domain", "metadata", "artifacts", "selected_platforms", "permissions", "licenses", "access_evidence", "release_policy"],
+  "properties": {
+    "contract": {"const": "paperspine.open-release.plan"},
+    "schema_version": {"const": "1.0"},
+    "release_id": {"type": "string", "minLength": 1},
+    "project_root": {"type": "string", "minLength": 1},
+    "domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary"],
+      "properties": {
+        "primary": {"type": "string", "minLength": 1},
+        "subdomains": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "study_types": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "metadata": {"type": "object", "additionalProperties": true},
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "path", "roles", "sensitivity"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "roles": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "sensitivity": {"enum": ["none", "deidentified_human", "identifiable_human", "controlled_human", "confidential", "restricted", "unknown"]},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "description": {"type": "string"}
+        }
+      }
+    },
+    "selected_platforms": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "enabled", "mode", "artifact_ids", "metadata"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "enabled": {"type": "boolean"},
+          "mode": {"enum": ["agent_cli", "agent_api", "agent_browser", "guided_manual"]},
+          "artifact_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "metadata": {"type": "object", "additionalProperties": true}
+        }
+      }
+    },
+    "permissions": {"type": "object", "additionalProperties": {"type": ["boolean", "null"]}},
+    "licenses": {"type": "object", "additionalProperties": {"type": "string"}},
+    "access_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["platform", "capability", "status", "source"],
+        "properties": {
+          "platform": {"type": "string", "minLength": 1},
+          "capability": {"type": "string", "minLength": 1},
+          "status": {"enum": ["available", "missing", "unknown", "expired"]},
+          "source": {"enum": ["host_probe", "browser_probe", "user_attestation", "institutional_document", "platform_response"]},
+          "checked_at": {"type": "string"},
+          "evidence_note": {"type": "string"}
+        }
+      }
+    },
+    "release_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allow_partial_release"],
+      "properties": {"allow_partial_release": {"type": "boolean"}}
+    },
+    "notes": {"type": "array", "items": {"type": "string"}}
+  }
+}

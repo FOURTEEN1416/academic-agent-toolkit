@@ -1,0 +1,90 @@
+---
+title: "Pricing and usage"
+description: "What the workbench costs, how Ace uses your Wallet, and how to control spending."
+---
+
+The OpenScience workbench is free and open source. First-run setup requires a Synthetic Sciences account; Ace is optional. Choose how to pay for the models and services you use:
+
+| Model access | OpenScience account | How usage is paid |
+| --- | --- | --- |
+| Ace | Required | Pay as you go from the selected workspace's purchased funds or valid promotional credits. |
+| Your API key | Required for first-run setup | Billed by your provider under its own rates. |
+| Supported provider sign-in | Required for first-run setup | Subject to that provider account's access, limits, and terms. |
+| Local model | Required for first-run setup | Runs on your hardware without an Ace model charge. |
+
+Using your own key, provider sign-in, or local model does not charge your Ace Wallet for model usage. Separately requested managed search or other paid services can still have costs.
+
+## Ace terms
+
+Ace gives you access to managed models and research search without setting up individual provider keys.
+
+| Item | Amount |
+| --- | --- |
+| Enable Ace access | $0; does not authorize automatic card charges |
+| Monthly subscription | None |
+| Usage | Pay as you go |
+| Usage rate | The displayed Wallet rates for the selected model and speed; direct routes add no fee |
+| Optional automatic Wallet reload | Fixed $20 when purchased funds fall below $5, with separate consent and a saved card |
+| Card processing fee | Shown separately at checkout |
+
+A reload adds **$20 to your purchased Wallet balance**. The $20 is a funding amount, not a monthly plan or a promise of unlimited usage. Usage is calculated for the route that serves each request. Direct provider routes add no funding or service fee. OpenRouter routes include its funding fee (5.5% by default) once, already included in displayed Wallet rates; the card processing fee is shown separately at checkout. Review the current terms in [your billing account](https://app.syntheticsciences.ai/billing) before authorizing payment.
+
+Purchased funds and valid promotional credits can fund available managed models without automatic reloads or a saved card. Promotional credit is separate from purchased Wallet balance and may expire. Access still depends on workspace permissions, sufficient credit, and spending limits.
+
+In **Customize → Models**, **Ace** shows workspace access and **Auto-reload** shows the separate automatic-charge authorization. Ace can be on while auto-reload is off. Enabling access does not add credit or enroll a card in automatic charges.
+
+## Check model rates before a task
+
+Open **Customize → Models**, choose a model, and open **Rates and limits**. Prices are shown in USD per million tokens. Input, output, and cached input can have different rates; some models also have higher rates for long requests.
+
+Fixed schedules show exact rates. Variable schedules label input and output **Up to** and cached rates as estimates. Standard and Fast may have different hosting and fee schedules; read the selected speed's disclosure. A rate ceiling is not a guaranteed final request charge.
+
+The context window is how much material a model can handle in one request. A pricing threshold is where a different rate begins. They need not be the same number.
+
+For illustrative Wallet rates of $2 per million input tokens and $10 per million output tokens, 10,000 input tokens and 2,000 output tokens cost $0.04. Do not add another fee to displayed Wallet rates. This is an example, not an OpenScience model quote. Use the rates displayed for your selected model and the final Wallet entry for actual charges.
+
+Long conversations may send earlier context again. Larger inputs, longer outputs, extra research branches, and external searches can all increase a task's total cost. Selecting a local model removes the model usage charge from Ace; it does not make separately connected services free.
+
+## Research search and other services
+
+Managed research search uses the selected workspace's Wallet. A connected personal search account uses that service's access and billing instead. If search access is unavailable, OpenScience may return a limited fallback; check the response before assuming the search was complete.
+
+Compute and other services you connect have their own terms. Confirm the resources and budget before asking for a paid experiment. Ace model access does not include unlimited external services or compute.
+
+## Choose which Wallet pays
+
+Check **Customize → General → Funding workspace** before starting paid work. Workspaces have separate balances. OpenScience does not automatically switch to another workspace's Wallet when the selected one cannot fund a request.
+
+Changing the funding workspace applies to subsequent requests. A request already in progress keeps the workspace it started with.
+
+```bash
+openscience status
+openscience wallet show
+openscience wallet topup
+```
+
+`wallet topup` opens billing so you can review and confirm a payment.
+
+## Review and export usage
+
+Use **Customize → Usage** for date filters, source and model filters, daily activity, and **Export CSV**. Managed usage reports Wallet charges; API-key and subscription reports use saved device activity and do not include your subscription fee. Read [Usage reports and CSV exports](/openscience/usage) for scopes and reconciliation.
+
+## Control spending
+
+Open **Wallet** from **Customize → Models**, or visit [billing](https://app.syntheticsciences.ai/billing), to review funds, set a monthly usage limit, and turn off future reloads.
+
+The monthly managed-usage limit controls spend. The monthly automatic-charge limit controls card reloads, including the disclosed fee. They are independent; the reload amount and trigger remain $20 below $5. Turning off Ace access in the account stops new managed work and reloads while preserving credit, saved cards, and limits. An already submitted payment or reserved request can still settle.
+
+**Switching to Keys & subscriptions does not turn off Ace automatic reloads.** Manage the reload authorization in Wallet. Turning off future reloads does not reverse usage that has already occurred.
+
+Start expensive work with a small pilot. State a budget and ask for approval before expanding an experiment. Prompt instructions help scope the task; use account controls for spending limits.
+
+## Pending amounts and final charges
+
+Local session usage uses the gateway's calculated Wallet amount when available; this can appear before the final Wallet entry posts.
+
+A request may temporarily reserve Wallet funds. After usage is confirmed, the final charge is recorded and unused reserved funds are released. A pending amount can reduce the available balance before it becomes a completed charge.
+
+If a request fails or times out, review its partial output before retrying: work may already have occurred. Keep the request or operation identifier, time, and selected workspace when asking about an unexpected or pending charge through your account's support options.
+
+`openscience stats` shows local session usage. Treat it as a research usage summary; use Wallet or your provider's billing records to reconcile payments.

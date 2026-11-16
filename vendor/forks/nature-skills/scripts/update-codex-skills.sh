@@ -99,6 +99,8 @@ while [ "$#" -gt 0 ]; do
       ;;
     --dest=*)
       DST="${1#*=}"
+      # The shell only expands a leading ~ for a word that starts with it, not after "--dest=".
+      case "$DST" in "~") DST="$HOME" ;; "~/"*) DST="$HOME/${DST#\~/}" ;; esac
       ;;
     --help|-h)
       usage

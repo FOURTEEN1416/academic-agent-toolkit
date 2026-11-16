@@ -80,6 +80,8 @@ For detailed branch strategies and workflows, see `references/branching-strategi
 
 ## Workflows
 
+> ⚠️ **git add 纪律**：以下示例一律**逐文件/逐目录添加**，不使用 `git add .`。在本仓受 L1 审计钩子（`agent_audit_l1.py`）约束时，`git add .` / `-A` / `--all` 会被拒绝（deny exit 2）；在其他仓库也应遵循其 git 治理规则，避免误提交未预期文件。
+
 ### Daily Development Workflow
 
 ```bash
@@ -90,8 +92,8 @@ git pull origin develop
 # 2. Create feature branch
 git checkout -b feature/user-management
 
-# 3. Develop and commit
-git add .
+# 3. Develop and commit (逐文件添加，勿用 git add .)
+git add src/ tests/ README.md
 git commit -m "feat(user): add user list page"
 
 # 4. Push to remote
@@ -114,8 +116,8 @@ git checkout master
 git pull origin master
 git checkout -b hotfix/critical-bug
 
-# 2. Fix and commit
-git add .
+# 2. Fix and commit (逐文件添加，勿用 git add .)
+git add src/auth/ tests/test_auth.py
 git commit -m "fix(auth): fix authentication bypass vulnerability"
 
 # 3. Merge to master
@@ -139,8 +141,8 @@ git checkout -b release/v1.0.0
 
 # 2. Update version numbers and documentation
 
-# 3. Commit version update
-git add .
+# 3. Commit version update (逐文件添加，勿用 git add .)
+git add pyproject.toml CHANGELOG.md docs/
 git commit -m "chore(release): prepare release v1.0.0"
 
 # 4. Merge to master
@@ -445,23 +447,25 @@ git blame <file>              # Per-line author
 
 ## Additional Resources
 
+> ⚠️ 以下参考文件与示例**未随仓集成**（缺口已登记于本技能 `ASSET-GAP.md`）。当前以正文各节的标准与示例为准执行；下列文件仅供追踪补齐进度，勿直接按路径读取。
+
 ### Reference Files
 
 For detailed guidance on specific topics:
 
-- **`references/commit-conventions.md`** - Commit message detailed conventions and examples
-- **`references/branching-strategies.md`** - Comprehensive branch management strategies
-- **`references/merge-strategies.md`** - Merge, rebase, and conflict resolution strategies
-- **`references/conflict-resolution.md`** - Detailed conflict handling and prevention
-- **`references/advanced-usage.md`** - Git performance optimization, security, submodules, and advanced techniques
-- **`references/collaboration.md`** - Pull request and code review guidelines
-- **`references/gitignore-guide.md`** - .gitignore patterns and project-specific configurations
+- **`references/commit-conventions.md`** - Commit message detailed conventions and examples *(未随仓)*
+- **`references/branching-strategies.md`** - Comprehensive branch management strategies *(未随仓)*
+- **`references/merge-strategies.md`** - Merge, rebase, and conflict resolution strategies *(未随仓)*
+- **`references/conflict-resolution.md`** - Detailed conflict handling and prevention *(未随仓)*
+- **`references/advanced-usage.md`** - Git performance optimization, security, submodules, and advanced techniques *(未随仓)*
+- **`references/collaboration.md`** - Pull request and code review guidelines *(未随仓)*
+- **`references/gitignore-guide.md`** - .gitignore patterns and project-specific configurations *(未随仓)*
 
 ### Example Files
 
 Working examples in `examples/`:
-- **`examples/commit-messages.txt`** - Good commit message examples
-- **`examples/workflow-commands.sh`** - Common workflow command snippets
+- **`examples/commit-messages.txt`** - Good commit message examples *(未随仓)*
+- **`examples/workflow-commands.sh`** - Common workflow command snippets *(未随仓)*
 
 ## Summary
 

@@ -9,7 +9,7 @@ description: "Use when designing or auditing manuscript figures: one main claim 
 
 Use this skill when the bottleneck is no longer sentence writing but figure logic. The goal is to make each figure carry a defensible scientific job, keep the panel set coherent, and ensure that the legend and Results text tell the same story.
 
-This skill is narrower than `manuscript-optimizer`. Use `manuscript-optimizer` when the whole paper structure is unstable. Use `figure-planner` when the central issue is what each figure should prove and how each panel should function.
+This skill is narrower than whole-paper revision. When the whole paper structure is unstable, do a full-paper-level plan first (`paper-manuscript-optimize`); use this skill when the central issue is what each figure should prove and how each panel should function.
 
 ## When To Use
 
@@ -111,30 +111,7 @@ After the figure logic is stable, run one visual-hygiene pass:
 
 ## Nature-Style Enhancements
 
-### Matplotlib Figure Standards
-
-For figures targeting Nature or similar high-impact journals, apply the following `rcParams`:
-
-```python
-import matplotlib.pyplot as plt
-
-plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Arial']
-plt.rcParams['svg.fonttype'] = 'none'          # editable text in SVG/PDF
-plt.rcParams['font.size'] = 16                 # 24 for large bar panels
-plt.rcParams['axes.spines.right'] = False
-plt.rcParams['axes.spines.top'] = False
-plt.rcParams['axes.linewidth'] = 2.5           # 3 for big bars, 2 for compact
-plt.rcParams['legend.frameon'] = False
-```
-
-Use `text.usetex = True` only when LaTeX is installed and math-rich labels are required.
-
-### When to Use
-
-- Figures for **papers, slides, or reports** targeting Nature, NeurIPS, ICLR, or similar venues.
-- Requests involving **grouped bars, trend lines, heatmaps, radar plots, multi-panel grids**, or **PDF/SVG/high-DPI** output.
-- Any mention of "Nature style", "publication figure", "paper figure", or "high-quality scientific plot".
+For figures targeting Nature or similar high-impact journals (grouped bars, trend lines, heatmaps, radar plots, multi-panel grids, PDF/SVG/high-DPI output), style execution is delegated to `paper-figure-nature`: apply its rcParams/style baseline (fonts, spines, line widths, export settings) instead of re-declaring them here. This skill only decides figure logic — claims, panel roles, and legend consistency.
 
 ## Output Standard
 

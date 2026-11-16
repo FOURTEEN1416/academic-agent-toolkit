@@ -11,6 +11,7 @@ from time import time_ns
 from typing import Any
 
 from .config import load_config
+from .redesign_review import comparison_selection
 
 
 def _read_object(path: Path) -> dict[str, Any]:
@@ -743,11 +744,17 @@ def build_review(job_dir: str | Path, *, template_dir: str | Path | None = None)
                 "label": "已有图 · 升级前",
                 "path": existing_path,
                 "note": "来自原项目，作为内容、图位和改进基线。",
+                "sha256": figure.get("current_figure_sha256"),
             }
             original_metadata = figure.get("current_figure_metadata")
             if isinstance(original_metadata, dict):
                 original.update(original_metadata)
                 original["path"] = existing_path
+        redesign_comparison = (
+            comparison_selection(job, figure_id, write_missing_receipt=False)
+            if figure.get("decision") in {"redesign", "improve"}
+            else None
+        )
         figures.append(
             {
                 "figure_id": figure_id,
@@ -760,6 +767,9 @@ def build_review(job_dir: str | Path, *, template_dir: str | Path | None = None)
                     "note": "仅学习表达机制，禁止复制数值和结论。" if reference_supplied else "本案例不进行外部参考学习；相似度与参考学习标为不适用。",
                 },
                 "original": original,
+                "decision_mode": figure.get("decision"),
+                "original_selection_allowed": bool(original and figure.get("decision") in {"redesign", "improve"}),
+                "redesign_comparison": redesign_comparison,
                 "current": None,
                 "panel_pool": first_panels,
                 "candidates": candidates,
@@ -782,7 +792,19 @@ def build_review(job_dir: str | Path, *, template_dir: str | Path | None = None)
             else None
         ),
         "initial_decisions": {
-            figure["figure_id"]: {"selected_candidate": next(iter(figure["candidates"])), "confirmed": False, "notes": ""} for figure in figures
+            figure["figure_id"]: {
+                "selected_candidate": (
+                    figure["redesign_comparison"]["selection"]
+                    if isinstance(figure.get("redesign_comparison"), dict)
+                    else next(iter(figure["candidates"]))
+                ),
+                "confirmed": False,
+                "notes": "",
+                "selection_authority": "independent_comparison_recommendation"
+                if isinstance(figure.get("redesign_comparison"), dict)
+                else "unconfirmed",
+            }
+            for figure in figures
         },
     }
     (review_dir / "review-data.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

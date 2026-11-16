@@ -4,7 +4,13 @@ description: This skill should be used for time series machine learning tasks in
 category: data-engineering
 license: BSD-3-Clause license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/aeon
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # Aeon Time Series Machine Learning

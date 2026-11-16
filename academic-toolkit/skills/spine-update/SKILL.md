@@ -9,6 +9,19 @@ Use this skill when the user asks to update PaperSpine, check whether
 PaperSpine is the latest version, reinstall the local suite from GitHub, or
 upgrade the locally installed PaperSpine skill copies while preserving settings.
 
+## Repository Adaptation Notice
+
+The `academic-toolkit/skills/spine-*` copies in this repository are a deeply
+adapted fork of the upstream PaperSpine suite (skill renaming, R1 dead-path
+remediation, guard enhancements; provenance in `ASSET-GAP.md`). Updating a
+host-installed PaperSpine copy from GitHub `main` can overwrite those
+adaptations on the host side; port any upstream changes back into this
+repository by hand instead of letting the updater rewrite repo files.
+
+Inside this repository, do NOT run the updater with `--yes` against the
+repo's own skill files. Prefer `--check-only` to inspect drift, and let a
+human decide before any in-repo update.
+
 ## Required Behavior
 
 Run the bundled updater using the full path to the installed skill:

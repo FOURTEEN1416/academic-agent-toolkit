@@ -1,16 +1,18 @@
 ---
 name: kaggle-learner
-description: "Use when the user asks to ”learn from Kaggle”, ”study Kaggle solutions”, or ”analyze Kaggle winners”."
-version: 0.1.0
+description: "Kaggle competition solution knowledge structure and extraction standard. Use when the user asks to 'learn from Kaggle', 'study Kaggle solutions', or 'analyze Kaggle winners' — defines what to extract and how to organize it."
+version: 0.2.0
 ---
 
 # Kaggle Learner
 
-Extract and apply knowledge from Kaggle competition winning solutions. This skill provides access to a continuously updated knowledge base of techniques, code patterns, and best practices from top Kaggle competitors.
+> **本仓定位（收窄说明）**：本技能是**知识规范技能**——定义「从 Kaggle 获奖方案中提取什么、按什么结构组织」。知识库本体与自动提取 agent **未随仓集成**（见本目录 ASSET-GAP.md）；提取动作按本页 Knowledge Extraction Standard 由执行侧人工/脚本完成。本技能不承诺自动更新知识库。
+
+Extract and apply knowledge from Kaggle competition winning solutions. This skill defines the structure and extraction standard for a knowledge base of techniques, code patterns, and best practices from top Kaggle competitors.
 
 ## Overview
 
-Kaggle competitions are at the forefront of practical machine learning. Winning solutions often innovate with novel techniques, clever feature engineering, and optimized pipelines. This skill captures that knowledge and makes it accessible for your projects.
+Kaggle competitions are at the forefront of practical machine learning. Winning solutions often innovate with novel techniques, clever feature engineering, and optimized pipelines. This skill captures that knowledge structure and makes it accessible for your projects.
 
 ## When to Use
 
@@ -21,6 +23,8 @@ Use this skill when:
 - Want to learn from competition winners
 
 ## Knowledge Categories
+
+> **⚠️ 以下目录均未随仓集成（见 ASSET-GAP.md）**。表中目录为知识库的目标组织结构；集成前按该结构在本地工作区自建，或仅将本页作为提取规范使用。
 
 | Category | Focus | Directory |
 |----------|-------|-----------|
@@ -38,23 +42,19 @@ Use this skill when:
 
 ## Quick Reference
 
-**To learn from a competition:**
+**To learn from a competition（人工/脚本提取流程）:**
 1. Provide the Kaggle competition URL
-2. The kaggle-miner agent will extract the winning solution
-3. Knowledge is automatically added to the relevant category
-4. **前排方案详细技术分析** (Front-runner Detailed Technical Analysis) is automatically included
+2. 按下方 Knowledge Extraction Standard 从获奖方案（讨论区帖、公开 notebook、方案 write-up）中提取要点——本仓未集成 kaggle-miner 自动提取 agent，执行侧可用 WebSearch/WebFetch 辅助检索
+3. 按 Knowledge Categories 的目录结构归档为每竞赛一个 markdown 文件
+4. 必含 **前排方案详细技术分析** (Front-runner Detailed Technical Analysis)
 
 **To browse existing knowledge:**
-- 浏览相关 domain 目录：`references/knowledge/[domain]/`
+- 知识库未随仓集成（见 ASSET-GAP.md）。若已按上述结构自建，浏览对应 domain 目录：`references/knowledge/[domain]/`
 - 每个竞赛一个独立文件，包含：
   - Competition Brief (竞赛简介)
-  - **前排方案详细技术分析** (前排方案详细技术分析) ⭐
+  - **前排方案详细技术分析** ⭐
   - Code Templates (代码模板)
   - Best Practices (最佳实践)
-
-## Self-Evolving
-
-This skill automatically updates its knowledge base when the kaggle-miner agent processes new competitions. The more you use it, the smarter it becomes.
 
 ## Knowledge Extraction Standard
 
@@ -94,6 +94,8 @@ This skill automatically updates its knowledge base when the kaggle-miner agent 
 **建议覆盖 Top 20 方案，获取更多前排选手的创新技巧**
 
 ## Additional Resources
+
+> **⚠️ 以下目录与示例文件均未随仓集成（见 ASSET-GAP.md）**，此处仅作为知识库目标结构与内容形态示例。
 
 ### Knowledge Directories
 - **`references/knowledge/nlp/`** - NLP competition techniques

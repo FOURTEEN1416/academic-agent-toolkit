@@ -1,17 +1,20 @@
-# ASSET-GAP 资产缺口声明 — ip-patent-search
+# ASSET-GAP 资产缺口声明 — ip-patent-search（已销账）
 
-> 溯源不明/上游不可得：SKILL.md 集成时未带资产，可得上游渠道均未检索到对应仓库（2026-09-09 溯源）。
+> **销账结论（2026-11-16 复核）**：原声明缺失的 6 项资产已实测全部在盘（平铺于本技能根目录，SKILL.md 链接可达），本声明所称「资产缺失」状态失效。
 
-## 缺失资产清单（6 项，2026-09-09 审计）
+## 原缺失清单复核（6 项，2026-09-09 声明 → 2026-11-16 实测在盘）
 
-- `references/cpc_classification_canon.md`
-- `references/legal_disclaimer_discipline.md`
-- `references/sub_use_case_routing.md`
-- `scripts/citation_tracker.py`
-- `scripts/family_resolver.py`
-- `scripts/sub_use_case_router.py`
+| 原声明路径 | 实际在盘位置 |
+|------------|--------------|
+| `references/cpc_classification_canon.md` | `cpc_classification_canon.md`（技能根目录） |
+| `references/legal_disclaimer_discipline.md` | `legal_disclaimer_discipline.md`（技能根目录） |
+| `references/sub_use_case_routing.md` | `sub_use_case_routing.md`（技能根目录） |
+| `scripts/citation_tracker.py` | `citation_tracker.py`（技能根目录） |
+| `scripts/family_resolver.py` | `family_resolver.py`（技能根目录） |
+| `scripts/sub_use_case_router.py` | `sub_use_case_router.py`（技能根目录） |
 
 ## 处置口径
 
-- 本声明使上述断链显性化（audit 豁免），删除本文件前必须先补齐资产或登记新台账。
-- 若后续获得上游来源：按先 fork 后集成惯例拉取 → 补 UPSTREAM.md 台账 → 从 tools/asset_gap_register.json 删除对应条目 → 删除本声明。
+- 资产已恢复于技能根目录，原缺失声明失效，本技能不再享受 audit 豁免。
+- 本技能不在 `tools/asset_gap_register.json` 在册，无需回改登记册。
+- 若后续发现资产再次缺失，按治理流程重新登记。

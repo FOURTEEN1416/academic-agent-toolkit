@@ -9,13 +9,15 @@ metadata:
   task_type: open-ended
   related_skills:
     - comp-contest-research
-    - academic-paper-reviewer
-    - academic-pipeline
+    - academic-paper-reviewer   # 本仓未收编（上游技能，目录不存在）
+    - academic-pipeline         # 本仓未收编（上游技能，目录不存在）
 ---
 
 
 <!--ACAT-ADAPTED: 资产补齐自 franklee16/academic-research-skills@5debcd2efb68（academic-paper），正文未改；上游 research-lookup 类 API 依赖以当前会话可用的网页检索/抓取能力替代（工具名以实际环境为准）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Academic Paper — Academic Paper Writing Agent Team
+
+> **本仓运行口径（2026-11-16 写作族治理批）**：本文的 12-agent 编排、Material Passport、Bucket A/B、v3.9.2 Routing Discipline、v3.6.6 Generator-Evaluator 契约均为上游（franklee16/academic-research-skills）架构叙事，**不是本仓执行指令**。本仓由单一执行 Agent + 引擎（engine/ 会话编排与 finish 统一核验）承担全部阶段，下文 agent 分工表仅作职责参考。Mode A 所依赖的 `academic-pipeline`，以及 `academic-paper-reviewer`、`tw-hei-intelligence`、`report-to-website`、`notebooklm-slides-generator` 等技能**本仓未收编**（目录不存在）：文中涉及这些技能的跳转与协议均按上游语境理解，在本仓内不执行；上游内部路径（`AGENTS.md`、`shared/`、`docs/`、`agents/`、`templates/`、`examples/`）未随仓集成（见 ASSET-GAP.md）。
 
 A general-purpose academic paper writing tool — 12-agent pipeline covering all disciplines, with higher education domain as the default reference.
 
@@ -23,7 +25,7 @@ A general-purpose academic paper writing tool — 12-agent pipeline covering all
 - **Style Calibration** (intake Step 10, optional) — Provide 3+ past papers and the pipeline learns your writing voice (sentence rhythm, vocabulary preferences, citation integration style). Applied as a soft guide during drafting; discipline conventions always take priority. See `shared/style_calibration_protocol.md`.
 - **Writing Quality Check** (`references/writing_quality_check.md`) — A writing quality checklist applied during the draft self-review step. Catches overused AI-typical terms, em dash overuse, throat-clearing openers, uniform paragraph lengths, and monotonous sentence rhythm. These are good writing rules, not detection evasion.
 
-> **Routing discipline (v3.9.2):** see `AGENTS.md` "Routing Discipline (v3.9.2)" + `shared/references/intent_clarification_protocol.md` for cross-skill routing rules. This skill assumes routing has already settled — ambiguous cross-phase materials should have been clarified upstream.
+> **Routing discipline (v3.9.2):** see `AGENTS.md` "Routing Discipline (v3.9.2)" + `shared/references/intent_clarification_protocol.md` for cross-skill routing rules. This skill assumes routing has already settled — ambiguous cross-phase materials should have been clarified upstream. <!--ACAT-GOVERNANCE: 上游叙事——AGENTS.md/shared/ 均为上游仓路径未随仓集成；本仓跨技能路由以 academic-toolkit/AGENTS.md 与 capabilities/catalog.json 为准-->
 
 - **De-AI polish（反AI味，强制）**：正文/成稿定稿前必读 `cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rules.md` 的 `<de_ai_polish>` 段（工程/质检语汇泄漏、模板开头、AI 过渡词；中英文正文同样适用），并按其执行改写。
 
@@ -70,7 +72,7 @@ Activate `plan` mode when the user wants guidance, step-by-step planning, or exp
 |----------|-------------|
 | Deep research / fact-checking (not paper writing) | `comp-contest-research` |
 | Reviewing a paper (structured review) | `academic-paper-reviewer` |
-| Full research-to-paper pipeline | `academic-pipeline` |
+| Full research-to-paper pipeline | `academic-pipeline` <!--ACAT-GOVERNANCE: 本仓未收编，目录不存在；本仓内不执行该跳转--> |
 
 ### Distinction from `comp-contest-research`
 
@@ -144,13 +146,13 @@ Phase 7: FORMAT        -> [formatter]                  -> Final Output Package
 
 ---
 
-> **v3.4.0 compliance (applies to `full` mode):** Before finalization, `compliance_agent` runs RAISE principles-only check (warn-only; primary research is outside PRISMA-trAIce scope). Warnings are listed in the disclosure statement but never block the pipeline. See `shared/raise_framework.md §Scope disclaimer`.
+> **v3.4.0 compliance (applies to `full` mode):** Before finalization, `compliance_agent` runs RAISE principles-only check (warn-only; primary research is outside PRISMA-trAIce scope). Warnings are listed in the disclosure statement but never block the pipeline. See `shared/raise_framework.md §Scope disclaimer`. <!--ACAT-GOVERNANCE: 上游叙事——compliance_agent 与 shared/raise_framework.md 未随仓集成；本仓以披露章写作要求替代执行-->
 
 ## Phase-by-phase Invocation Contract (v3.9.2)
 
 academic-paper pipeline runs in 8 phases (Phase 0 intake → 7 formatting). Two invocation modes:
 
-**Mode A — orchestrator-driven (default):** `pipeline_orchestrator_agent` (in `academic-pipeline` skill) runs all phases end-to-end with state tracking via Material Passport.
+**Mode A — orchestrator-driven (default):** `pipeline_orchestrator_agent` (in `academic-pipeline` skill) runs all phases end-to-end with state tracking via Material Passport. <!--ACAT-GOVERNANCE: 上游语境——academic-pipeline 本仓未收编（目录不存在），Material Passport 机制未随仓；本仓由单执行者+引擎承担，Mode A 在本仓不可用，统一按单执行者流程走-->
 
 **Mode B — phase-by-phase (cross-session resume):** User invokes one agent per phase across sessions for long-running projects. Common pattern: write the draft in one session, return next week to citation-check / abstract / peer-review independently.
 
@@ -162,106 +164,11 @@ Routing into Mode B requires explicit user signal — `/ars-<mode>` slash comman
 
 **Enforcement (v3.9.2):** prompt-level via Phase Boundary blocks on Bucket A agents + advisory verifier (`scripts/check_pipeline_integrity.py`). Deterministic PreToolUse hook + multi-phase envelope deferred to v3.10 active conductor (#134).
 
-## v3.6.6 Generator-Evaluator Contract Protocol
+## v3.6.6 Generator-Evaluator Contract Protocol（上游叙事存档）
 
-> Authoritative orchestration block for the v3.6.6 contract-gated phase splits inside `academic-paper full` mode. Schema 13.1 since v3.6.6 (`shared/sprint_contract.schema.json`). Templates: `shared/contracts/writer/full.json` + `shared/contracts/evaluator/full.json`. Design spec: `docs/design/2026-04-27-ars-v3.6.6-generator-evaluator-contract-design.md` §5.
+> **本仓不执行该协议。** 以下为上游 `academic-paper full` 模式的四调用拆分契约叙事：writer/evaluator 各做 paper-blind 预承诺（4a/6a）与 paper-visible 产出（4b/6b），配合 `writer_full`/`evaluator_full` 合同 JSON、结构 lint 与 `[GENERATOR-PHASE-ABORTED]` 中止语义；依赖 `shared/sprint_contract.schema.json`、`shared/contracts/{writer,evaluator}/full.json`、`docs/design/2026-04-27-ars-v3.6.6-generator-evaluator-contract-design.md` 等上游资产（均未随仓集成，见 ASSET-GAP.md）。
 >
-> **Applies to `academic-paper full` mode only.** Nine non-full modes (`plan`, `outline-only`, `revision`, `revision-coach`, `abstract-only`, `lit-review`, `format-convert`, `citation-check`, `disclosure`) are byte-equivalent across v3.6.5 → v3.6.6 and do not invoke this protocol. Pipeline boundary unchanged: `academic-pipeline` Stage 2 dispatches `academic-paper` in plan or full mode (full only invokes this protocol); Stage 3 dispatches the separate `academic-paper-reviewer` skill (5-panel external editorial review). The in-pair Phase 6 evaluator under this protocol and the Stage 3 reviewer are different review layers — see design doc §5.1 audit conclusion 2.
-
-### Overview
-
-v3.6.6 splits Phase 4 (writer drafting) and Phase 6 (in-pair evaluator review) into paper-blind / paper-visible call pairs gated by the `writer_full` and `evaluator_full` contracts. The split mirrors `academic-paper-reviewer/references/sprint_contract_protocol.md` (the v3.6.2 reviewer pattern) but adapts it for single-agent generator modes that have no panel and (for the writer) no scoring_plan.
-
-The load-bearing mechanism is the **physical separation of calls**: writer Phase 4a never sees the runtime drafting artefacts; evaluator Phase 6a never sees the writer Phase 4b draft. This destroys the "read the paper, then rationalise the standard" drift path on the in-pair self-quality gate.
-
-### Four-call structure
-
-For each `academic-paper full` invocation, Phase 4 + Phase 6 expand from two single calls into four separate model calls. Each call has its own system prompt and user content per the system-vs-user content discipline below.
-
-1. **Phase 4a — writer paper-blind pre-commitment.**
-   - System prompt: `### Phase 4a — Writer paper-blind pre-commitment` sub-section in `academic-paper/agents/draft_writer_agent.md` § "v3.6.6 Generator-Evaluator Contract Protocol".
-   - User content: `writer_full` contract JSON + paper metadata only (`title`, `field`, `word_count`).
-   - Output: `## Acceptance Criteria Paraphrase` section + terminal `[PRE-COMMITMENT-ACKNOWLEDGED]` tag.
-   - Lint: 3 structural checks (see § "Phase 4a / 6a output lint" below).
-2. **Phase 4b — writer paper-visible drafting + self-scoring.**
-   - System prompt: `### Phase 4b — Writer paper-visible drafting + self-scoring` sub-section in the same agent file.
-   - User content: `writer_full` contract JSON (re-injected) + Phase 4a output wrapped in `<phase4a_output>...</phase4a_output>` data delimiter + upstream drafting artefacts (Paper Configuration Record, Paper Outline, Argument Blueprint, Annotated Bibliography, optional Style Profile, optional Knowledge Isolation Directive).
-   - Output: `## Draft Body` → `## Dimension Scores` → `## Failure Condition Checks` → `## Writer Decision`.
-   - Lint: 4 structural checks (see § "Phase 4b / 6b output lint" below).
-3. **Phase 6a — evaluator paper-blind pre-commitment.**
-   - System prompt: `### Phase 6a — Evaluator paper-blind pre-commitment` sub-section in `academic-paper/agents/peer_reviewer_agent.md` § "v3.6.6 Generator-Evaluator Contract Protocol".
-   - User content: `evaluator_full` contract JSON + paper metadata + the writer's most recent `<phase4a_output>` (the writer artefact the evaluator must verify per `disagreement_handling.pre_commitment_check_protocol.check_writer_artifact`).
-   - Output: `## Contract Paraphrase` + `## Scoring Plan` (per-dimension `dimension_id` / `what_to_look_for` / `what_triggers_block` / `what_triggers_warn`) + terminal `[PRE-COMMITMENT-ACKNOWLEDGED]` tag.
-   - Lint: 5 structural checks.
-4. **Phase 6b — evaluator paper-visible scoring + decision.**
-   - System prompt: `### Phase 6b — Evaluator paper-visible scoring + decision` sub-section in the same agent file.
-   - User content: `evaluator_full` contract JSON (re-injected) + Phase 6a output wrapped in `<phase6a_output>...</phase6a_output>` + the writer's `<phase4a_output>` (unconditional per `pre_commitment_check_protocol.check_writer_artifact`) + the writer Phase 4b draft (the artefact under review).
-   - Output: `## Dimension Scores` → `## Failure Condition Checks` → `## Review Body` → `## Evaluator Decision`.
-   - Lint: 5 structural checks.
-
-### System prompt vs user content discipline
-
-Mirrors `sprint_contract_protocol.md` §2 reviewer pattern verbatim:
-
-- **System prompt carries invariant policy text only**: the phase sub-section instructions from the agent file's `## v3.6.6 Generator-Evaluator Contract Protocol` block, the lint description, and the phase-boundary tag conventions.
-- **User content carries the contract JSON (re-injected per call) plus the runtime inputs allowed at that phase**: paper metadata, `<phase4a_output>` / `<phase6a_output>` delimiter blocks, upstream drafting artefacts, the paper draft.
-
-All dynamic LLM output (Phase Na runtime emissions, paper content) lives in user content via data delimiters, never in the system prompt. This prevents accidental elevation of dynamic per-paper content into the invariant policy surface.
-
-### Schema field name vs runtime emission distinction
-
-`pre_commitment_artifacts` (snake_case, backticks) is the schema field name in `shared/sprint_contract.schema.json` — a configuration declaration in the frozen contract baseline. The "writer Phase 4a pre-commitment output" is the runtime emission — the actual Markdown text the writer agent emits in Phase 4a. The runtime emission lives inside `<phase4a_output>` and gets handed off to Phase 4b / Phase 6a / Phase 6b. Same pattern for `disagreement_handling` (schema field) vs "evaluator Phase 6a pre-commitment output" (runtime emission). Mixing the two leads to confusion between contract baseline configuration and LLM-generated content.
-
-### Phase 4a / 6a output lint
-
-Mode-specific structural check counts, per `sprint_contract_protocol.md` §4 enumeration convention:
-
-- **Writer Phase 4a (3 checks)**: required sections in order (`## Acceptance Criteria Paraphrase`, terminal `[PRE-COMMITMENT-ACKNOWLEDGED]`); paraphrase paragraph count ≥ `pre_commitment_artifacts.acceptance_criteria_paraphrase.minimum_dimensions`; Phase 4a content references contract JSON + paper metadata only. **No `## Scoring Plan` section** — `writer_full` carries no scoring_plan.
-- **Evaluator Phase 6a (5 checks)**: required sections in order (`## Contract Paraphrase`, `## Scoring Plan`, terminal `[PRE-COMMITMENT-ACKNOWLEDGED]`); paraphrase paragraph count ≥ `disagreement_handling.paraphrase_minimum_dimensions`; one `### <Dn>: <name>` subsection per acceptance dimension; each scoring_plan subsection contains `disagreement_handling.scoring_plan.per_dimension_criteria` four-field shape (`dimension_id`, `what_to_look_for`, `what_triggers_block`, `what_triggers_warn`); Phase 6a content references contract JSON + paper metadata + the writer's `<phase4a_output>` only (no full draft / paper content).
-
-Retry semantics: lint failure on the first attempt → retry once with the specific lint gap hinted in the system prompt; second failure → mark this role unusable per § "Single-agent generator unusable handling" below.
-
-### Phase 4b / 6b output lint
-
-- **Writer Phase 4b (4 checks)**: required sections in order — `## Draft Body`, `## Dimension Scores`, `## Failure Condition Checks`, `## Writer Decision`; Dimension Scores one-to-one across the seven writer dimensions D1–D7 (per `shared/contracts/writer/full.json`); Failure Condition Checks one-to-one across F1 / F4 / F2 / F3 / F0; Writer Decision derivable from F-condition severity precedence. **No multi-dissent retry** (writer has no scoring_plan to dissent against). **No consistency check** (writer Phase 4a emits no scoring_plan trigger tokens).
-- **Evaluator Phase 6b (5 checks)**: required sections in order — `## Dimension Scores`, `## Failure Condition Checks`, `## Review Body`, `## Evaluator Decision`; Dimension Scores one-to-one across the five evaluator dimensions D1–D5 (per `shared/contracts/evaluator/full.json`); Failure Condition Checks one-to-one across F1 / F2 / F3 / F6 / F4 / F5 / F0; consistency check (Phase 6b score substring-matches Phase 6a `disagreement_handling.scoring_plan.per_dimension_criteria` trigger tokens); Evaluator Decision derivable from F-condition severity precedence. **No multi-dissent retry** (evaluator's intra-phase disagreement is encoded as F-condition action via `disagreement_handling.disagreement_resolution`, not as a retry trigger).
-
-Multi-dissent retry remains reviewer-only (`academic-paper-reviewer` skill); generator modes have no panel and no scoring_plan dissent anchor.
-
-Lint count summary across the three modes:
-
-| Phase | Reviewer (zero-touch) | Writer | Evaluator |
-|---|---|---|---|
-| Phase 1 / 4a / 6a | 5 | 3 | 5 |
-| Phase 2 / 4b / 6b | 6 | 4 | 5 |
-
-### Single-agent generator unusable handling
-
-When a writer or evaluator phase becomes unusable (Phase Na lint twice fail OR Phase Nb lint fail), `academic-paper` emits a phase-level abort tag and routes to user intervention:
-
-- **Writer Phase 4 unusable** → `[GENERATOR-PHASE-ABORTED: role=writer, contract=<id>, reason=<lint_failure_kind>]` → abort `academic-paper` Phase 4 → user intervention decides retry / fallback / regression to Phase 3 (Argument Blueprint).
-- **Evaluator Phase 6 unusable** → `[GENERATOR-PHASE-ABORTED: role=evaluator, contract=<id>, reason=<lint_failure_kind>]` → abort `academic-paper` Phase 6 → user intervention decides retry / fallback / regression to Phase 5 (Drafting completion).
-
-`[GENERATOR-PHASE-ABORTED]` does **not** constitute a valid Phase 6b emission and cannot enter Stage 3 reviewer dispatch. Two valid Stage 3 entry paths exist (per design doc §5.1):
-
-- **Standard path**: evaluator Phase 6b emits F0 `evaluator_decision=accept` or F4 `evaluator_decision=accept_with_dissent_note`.
-- **Exceptional path**: evaluator Phase 6b emits F5 `evaluator_decision=flag_for_reviewer_stage` after the in-pair revision loop exhausts at round 2 with mandatory-dimension block recurring.
-
-`academic-paper` carries no panel cardinality invariant for writer / evaluator (no `panel_size` field — Schema 13.1 §3.3.5 reviewer-conditional). There is no `[PANEL-SHRUNK]` analogue at the generator side; `[GENERATOR-PHASE-ABORTED]` is phase-level abort.
-
-**Operational monitor**: track `[GENERATOR-PHASE-ABORTED]` rate over the first three months of v3.6.6 deployment. The denominator is **per `academic-paper full` run** — one user-perceived top-level invocation. The 5% threshold is `(runs_with_any_abort) / (total_runs)`. If the rate exceeds 5%, v3.6.7 introduces graceful-degradation fallback (see § "Known limitations" below).
-
-### Cross-session resume scope
-
-The v3.6.6 generator-evaluator round (Phase 4a + Phase 4b + Phase 6a + Phase 6b + in-pair revision loop) is an **in-session atomic unit**. Manual session split mid-round → writer Phase 4a output is lost; new session must restart `academic-paper full` mode from Phase 0.
-
-The v3.6.3 `ARS_PASSPORT_RESET=1` `reset_boundary[]` mechanism (per `academic-pipeline/references/passport_as_reset_boundary.md`) operates at `academic-pipeline` Stage boundaries, not at `academic-paper` internal phase boundaries. `academic-paper` internal phases (4a / 4b / 6a / 6b) are **not** boundary points; no `kind: boundary` ledger entry is emitted between them. v3.6.7+ may introduce `pre_commitment_history[]` to persist writer Phase 4a artefacts across sessions if operational data warrants — see § "Known limitations" below.
-
-## Known limitations
-
-- **No graceful-degradation fallback in v3.6.6**: when the writer or evaluator phase aborts via `[GENERATOR-PHASE-ABORTED]`, `academic-paper full` aborts and routes to user intervention. v3.6.7 may introduce a fallback that degrades the affected phase to v3.6.5 single-call behaviour and logs the degradation. v3.6.6 ships with abort-only behaviour. See § "Single-agent generator unusable handling" above for the operational 5% / three-month monitor.
-- **No cross-session resume mid-round**: the four-phase generator-evaluator round is an in-session atomic unit. Manual session split mid-round loses the writer Phase 4a artefact and forces restart from Phase 0. v3.6.7+ may introduce a `pre_commitment_history[]` ledger entry in Schema 9 to persist the writer Phase 4a artefact across session boundaries; v3.6.6 does not implement.
-- **In-pair Phase 6 evaluator vs `academic-paper-reviewer` external review**: the in-pair `peer_reviewer_agent` (Phase 6 evaluator with the v3.6.6 contract gate) and the standalone `academic-paper-reviewer` skill (Stage 3 5-panel external editorial review) serve different review layers and remain documented as known technical debt per design doc §1 known limitations. Routing / merge decisions are deferred to v3.7.x.
+> **本仓要点吸收**：写作与评审角色分离；评审在见稿前先明确评分计划（paper-blind pre-commitment）；最多 2 轮修订、未决项记 Acknowledged Limitations。本仓由单执行者按上述原则执行 Phase 4/6，不落地四调用拆分、合同 schema 与 lint 基建；跨会话 reset boundary、v3.6.7+ 演进承诺（graceful-degradation fallback、`pre_commitment_history[]`）均属上游 roadmap，本仓不做。
 
 ## Operational Modes (10 Modes)
 
@@ -338,7 +245,7 @@ See `references/failure_paths.md` for details. Quick reference:
 
 ## Full Academic Pipeline
 
-See `academic-pipeline/SKILL.md` for the complete workflow.
+See `academic-pipeline/SKILL.md` for the complete workflow. <!--ACAT-GOVERNANCE: 本仓未收编 academic-pipeline（目录不存在），该跳转按上游语境理解；本仓完整流程即本文 8 阶段-->
 
 ---
 
@@ -378,7 +285,7 @@ Explicit prohibitions to prevent common failure modes:
 | 2 | **Em dash abuse** | More than 2 em dashes per page signals AI writing | Use parentheses, commas, or restructure the sentence |
 | 3 | **Throat-clearing openers** | "In this section, we will discuss..." adds no information | Start with the claim or finding directly |
 | 4 | **Uniform paragraph lengths** | Every paragraph is 4-5 sentences = monotonous AI rhythm | Vary paragraph length naturally (2-8 sentences) |
-| 5 | **⚠️ IRON RULE: Fabricated citations** | Inventing plausible-sounding references that don't exist | Every citation must be verified via DOI or WebSearch; see `academic-pipeline/agents/integrity_verification_agent.md` |
+| 5 | **⚠️ IRON RULE: Fabricated citations** | Inventing plausible-sounding references that don't exist | Every citation must be verified via DOI or WebSearch; see `academic-pipeline/agents/integrity_verification_agent.md` <!--ACAT-GOVERNANCE: 上游路径未随仓集成；本仓引用核验走 check-citations/citation-check 等在仓技能--> |
 | 6 | **Sycophantic revision** | Accepting all reviewer feedback without critical evaluation | Use REVIEWER_DISAGREE status when reviewer is wrong; justify with evidence |
 | 7 | **Scope creep during revision** | Adding unrequested sections/analyses to "improve" the paper | Revision addresses reviewer concerns only; new content requires explicit user approval |
 | 8 | **Ignoring failure paths** | Continuing despite desk-reject signals or fatal methodology flaws | Check `references/failure_paths.md`; invoke F11 Desk-Reject Recovery when triggered |
@@ -428,11 +335,11 @@ Follows the user's language. Academic terminology is kept in English. Bilingual 
 ## Integration with Other Skills
 
 ```
-academic-paper + tw-hei-intelligence  -> Evidence-based HEI paper with real MOE data
-academic-paper + comp-contest-research        -> Deep research phase -> paper writing phase (auto-handoff)
-academic-paper + report-to-website    -> Interactive web version of the paper
-academic-paper + notebooklm-slides-generator -> Presentation slides from paper
-academic-paper + academic-paper-reviewer -> Peer review -> revision loop
+academic-paper + tw-hei-intelligence  -> Evidence-based HEI paper with real MOE data   <!-- 本仓未收编 tw-hei-intelligence -->
+academic-paper + comp-contest-research        -> Deep research phase -> paper writing phase (auto-handoff)   <!-- comp-contest-research 在仓；其余为上游组合叙事 -->
+academic-paper + report-to-website    -> Interactive web version of the paper   <!-- 本仓未收编 report-to-website -->
+academic-paper + notebooklm-slides-generator -> Presentation slides from paper   <!-- 本仓未收编 notebooklm-slides-generator -->
+academic-paper + academic-paper-reviewer -> Peer review -> revision loop   <!-- 本仓未收编 academic-paper-reviewer -->
 ```
 
 ---
@@ -444,7 +351,7 @@ academic-paper + academic-paper-reviewer -> Peer review -> revision loop
 | Skill Version | 3.2.0 |
 | Last Updated | 2026-06-01 |
 | Maintainer | Cheng-I Wu |
-| Dependent Skills | comp-contest-research v1.0+ (upstream), academic-paper-reviewer v1.0+ (downstream) |
+| Dependent Skills | comp-contest-research v1.0+ (upstream，在仓), academic-paper-reviewer v1.0+ (downstream，本仓未收编) |
 
 ---
 

@@ -79,10 +79,21 @@ echo "Source MD: $SOURCE"
 
 ### Step 2：dump 模板结构
 
-⛔ 工具文件：复制到 `_utils/` 目录（`docx_template_analyze.py` / `docx_template_fill.py` / `docx_export.py`）。统一用 `python3 _utils/<tool>.py` 调用。
+⛔ 工具文件在仓库根 `academic-toolkit/tools/`（`docx_template_analyze.py` / `docx_template_fill.py` / `docx_export.py`，实测在盘）。不复制、不写死单一路径：按多候选解析（当前 cwd → 仓库根 `academic-toolkit/` 前缀回退，对齐 quality-check 模式），先解析出变量，全流程统一用变量调用。
 
 ```bash
-python3 tools/docx_template_analyze.py \
+ANALYZE=""; FILL=""
+for cand in tools/docx_template_analyze.py academic-toolkit/tools/docx_template_analyze.py ../../tools/docx_template_analyze.py; do
+    [ -f "$cand" ] && ANALYZE="$cand" && break
+done
+for cand in tools/docx_template_fill.py academic-toolkit/tools/docx_template_fill.py ../../tools/docx_template_fill.py; do
+    [ -f "$cand" ] && FILL="$cand" && break
+done
+[ -z "$ANALYZE" ] && { echo "docx_template_analyze.py not found; record as CHECK_UNAVAILABLE"; exit 1; }
+```
+
+```bash
+python3 "$ANALYZE" \
     --template "$TEMPLATE" \
     --output _template_structure.json \
     --summary _template_structure.txt
@@ -167,7 +178,7 @@ PY
 ```bash
 [ -z "$SOURCE" ] && exit 0  # 没源 md 就交付当前 map
 
-python3 tools/docx_template_fill.py \
+python3 "$FILL" \
     --template "$TEMPLATE" \
     --source "$SOURCE" \
     --output _template_test_filled.docx \
@@ -189,7 +200,7 @@ python3 tools/docx_template_fill.py \
 ### Step 6：分析试填后的 docx，定量检查残留
 
 ```bash
-python3 tools/docx_template_analyze.py \
+python3 "$ANALYZE" \
     --template _template_test_filled.docx \
     --output _template_filled_structure.json \
     --summary _template_filled_structure.txt

@@ -1,0 +1,616 @@
+{
+  "contract": "paperspine.open-release.platform-catalog",
+  "catalog_version": "2026-08-23",
+  "checked_at": "2026-08-23",
+  "source_policy": {
+    "authority": "official_platform_documentation",
+    "refresh_rule": "Re-check official requirements before every real release; this catalog is routing evidence, not a substitute for the current submission page.",
+    "repository_discovery": ["fairsharing", "re3data"]
+  },
+  "platforms": [
+    {
+      "id": "github",
+      "label": "GitHub",
+      "kind": "code_repository",
+      "selectable": true,
+      "domains": ["all", "computer_science", "artificial_intelligence"],
+      "artifact_roles": ["code", "software", "model", "figure_source", "supplement"],
+      "automation_level": "cli_or_browser",
+      "recommended_mode": "agent_cli",
+      "allowed_modes": ["agent_cli", "agent_browser"],
+      "public_access": "public_or_private",
+      "maximum_agent_action": "publish",
+      "required_metadata": ["repository_owner", "repository_name", "description", "visibility"],
+      "required_declarations": ["rights_holder_authorized", "third_party_assets_cleared", "license_confirmed"],
+      "mode_requirements": {
+        "agent_cli": ["computer_control", "gh_cli_available", "github_authenticated", "repository_create_permission"],
+        "agent_browser": ["computer_control", "browser_session_authenticated", "repository_create_permission"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "public_only_no_sensitive",
+      "official_urls": {
+        "home": "https://github.com/",
+        "submit": "https://github.com/new",
+        "requirements": "https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository",
+        "authentication": "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github"
+      },
+      "recommendation_zh": "适合代码、软件、模型实现和绘图源文件；需要单独安排数据与论文的长期存档 DOI。",
+      "boundary_zh": "组织仓库可能限制创建权限；公开前必须清除密钥、受限代码和敏感数据。"
+    },
+    {
+      "id": "zenodo",
+      "label": "Zenodo",
+      "kind": "general_research_archive",
+      "selectable": true,
+      "domains": ["all"],
+      "artifact_roles": ["manuscript", "preprint", "code", "software", "model", "dataset", "figures", "poster", "presentation", "supplement", "protocol"],
+      "automation_level": "api_or_browser",
+      "recommended_mode": "agent_browser",
+      "allowed_modes": ["agent_api", "agent_browser"],
+      "public_access": "public_restricted_or_embargoed",
+      "maximum_agent_action": "publish",
+      "required_metadata": ["title", "description", "creators", "resource_type", "version", "access_right"],
+      "required_declarations": ["rights_holder_authorized", "third_party_assets_cleared", "license_confirmed"],
+      "mode_requirements": {
+        "agent_api": ["computer_control", "zenodo_token_deposit_write", "zenodo_token_deposit_actions"],
+        "agent_browser": ["computer_control", "browser_session_authenticated"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "public_only_no_sensitive",
+      "official_urls": {
+        "home": "https://zenodo.org/",
+        "submit": "https://zenodo.org/uploads/new",
+        "requirements": "https://help.zenodo.org/docs/get-started/quickstart/",
+        "api": "https://developers.zenodo.org/"
+      },
+      "recommendation_zh": "通用研究对象存档，可为数据、软件、论文、图表和补充材料分配 DOI；适合作为 GitHub Release 的长期归档层。",
+      "boundary_zh": "记录发布后不能增删或替换该版本的文件；API token 只保存在主机凭据存储中，不能写入计划文件。"
+    },
+    {
+      "id": "arxiv",
+      "label": "arXiv",
+      "kind": "preprint_server",
+      "selectable": true,
+      "domains": ["computer_science", "artificial_intelligence", "mathematics", "physics", "statistics", "economics", "electrical_engineering", "quantitative_biology"],
+      "artifact_roles": ["manuscript", "preprint", "latex_source"],
+      "automation_level": "agent_browser",
+      "recommended_mode": "agent_browser",
+      "allowed_modes": ["agent_browser"],
+      "public_access": "public_after_moderation",
+      "maximum_agent_action": "submit_for_moderation",
+      "required_metadata": ["title", "abstract", "authors", "categories", "distribution_license"],
+      "required_declarations": ["all_authors_approved", "rights_holder_authorized", "publisher_policy_checked", "third_party_assets_cleared"],
+      "mode_requirements": {
+        "agent_browser": ["computer_control", "browser_session_authenticated", "arxiv_category_submission_eligible"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "public_only_no_sensitive",
+      "official_urls": {
+        "home": "https://arxiv.org/",
+        "submit": "https://arxiv.org/submit",
+        "requirements": "https://info.arxiv.org/help/submit/index.html",
+        "endorsement": "https://info.arxiv.org/help/endorsement.html"
+      },
+      "recommendation_zh": "适合 arXiv 覆盖学科的预印本和 LaTeX 源文件。",
+      "boundary_zh": "首次向某些分类投稿需要 endorsement；提交还要经过技术检查与内容审核，不能承诺即时公开。"
+    },
+    {
+      "id": "figshare",
+      "label": "Figshare",
+      "kind": "general_research_archive",
+      "selectable": true,
+      "domains": ["all"],
+      "artifact_roles": ["dataset", "figures", "figure_source", "poster", "presentation", "supplement", "code", "manuscript"],
+      "automation_level": "api_or_browser",
+      "recommended_mode": "agent_browser",
+      "allowed_modes": ["agent_api", "agent_browser"],
+      "public_access": "public_private_or_embargoed",
+      "maximum_agent_action": "publish",
+      "required_metadata": ["title", "description", "authors", "item_type", "license"],
+      "required_declarations": ["rights_holder_authorized", "third_party_assets_cleared", "license_confirmed"],
+      "mode_requirements": {
+        "agent_api": ["computer_control", "figshare_api_token"],
+        "agent_browser": ["computer_control", "browser_session_authenticated"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "public_only_no_sensitive",
+      "official_urls": {
+        "home": "https://figshare.com/",
+        "submit": "https://figshare.com/account/home",
+        "requirements": "https://help.figshare.com/article/how-to-upload-and-publish-your-research",
+        "api": "https://info.figshare.com/user-guide/how-to-use-the-figshare-api/"
+      },
+      "recommendation_zh": "特别适合图表、海报、演示稿、数据和补充材料，可先保留 DOI 或生成匿名审稿链接。",
+      "boundary_zh": "发布后内容永久可用；机构版可能有额外字段、审核流程或容量规则。"
+    },
+    {
+      "id": "osf",
+      "label": "Open Science Framework",
+      "kind": "research_project_repository",
+      "selectable": true,
+      "domains": ["all"],
+      "artifact_roles": ["dataset", "code", "software", "materials", "supplement", "protocol", "preregistration", "registration"],
+      "automation_level": "api_or_browser",
+      "recommended_mode": "agent_browser",
+      "allowed_modes": ["agent_api", "agent_browser"],
+      "public_access": "public_or_private",
+      "maximum_agent_action": "publish",
+      "required_metadata": ["title", "description"],
+      "required_declarations": ["rights_holder_authorized", "third_party_assets_cleared", "license_confirmed"],
+      "mode_requirements": {
+        "agent_api": ["computer_control", "osf_api_token"],
+        "agent_browser": ["computer_control", "browser_session_authenticated"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "private_workspace_supported_but_public_release_requires_clearance",
+      "official_urls": {
+        "home": "https://osf.io/",
+        "submit": "https://osf.io/",
+        "requirements": "https://help.osf.io/article/387-files",
+        "api": "https://developer.osf.io/"
+      },
+      "recommendation_zh": "适合把数据、材料、代码、预注册和研究过程组织成同一项目。",
+      "boundary_zh": "注册是冻结快照，提交后不能修改或删除其中的文件；项目公开与注册公开不是同一个动作。"
+    },
+    {
+      "id": "dryad",
+      "label": "Dryad",
+      "kind": "curated_data_repository",
+      "selectable": true,
+      "domains": ["all", "life_sciences", "medicine", "social_sciences", "earth_sciences"],
+      "artifact_roles": ["dataset", "supplement"],
+      "automation_level": "guided_curation",
+      "recommended_mode": "agent_browser",
+      "allowed_modes": ["agent_browser"],
+      "public_access": "public_after_curation",
+      "maximum_agent_action": "submit_for_curation",
+      "required_metadata": ["title", "abstract", "authors", "related_work", "readme"],
+      "required_declarations": ["rights_holder_authorized", "third_party_assets_cleared", "license_confirmed", "human_data_anonymized_if_applicable"],
+      "mode_requirements": {
+        "agent_browser": ["computer_control", "orcid_authenticated", "dryad_submission_permission"]
+      },
+      "license_constraints": ["CC0"],
+      "sensitive_data_policy": "public_only_strict_human_deidentification",
+      "official_urls": {
+        "home": "https://datadryad.org/",
+        "submit": "https://datadryad.org/stash/submissions/new",
+        "requirements": "https://datadryad.org/help/submission_steps/description",
+        "human_data": "https://datadryad.org/docs/HumanSubjectsData.pdf"
+      },
+      "recommendation_zh": "适合经过整理、可公开复用的数据集，并提供人工策展。",
+      "boundary_zh": "要求 CC0；人类受试者数据必须严格匿名化，不能包含直接标识符或不允许的间接标识符。"
+    },
+    {
+      "id": "hugging_face",
+      "label": "Hugging Face Hub",
+      "kind": "model_dataset_repository",
+      "selectable": true,
+      "domains": ["computer_science", "artificial_intelligence", "medicine"],
+      "artifact_roles": ["model", "dataset", "code", "demo"],
+      "automation_level": "cli_or_browser",
+      "recommended_mode": "agent_cli",
+      "allowed_modes": ["agent_cli", "agent_browser"],
+      "public_access": "public_or_private",
+      "maximum_agent_action": "publish",
+      "required_metadata": ["repository_owner", "repository_name", "card", "license", "visibility"],
+      "required_declarations": ["rights_holder_authorized", "third_party_assets_cleared", "license_confirmed"],
+      "mode_requirements": {
+        "agent_cli": ["computer_control", "huggingface_cli_available", "huggingface_authenticated", "repository_create_permission"],
+        "agent_browser": ["computer_control", "browser_session_authenticated", "repository_create_permission"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "public_only_no_sensitive",
+      "official_urls": {
+        "home": "https://huggingface.co/",
+        "submit": "https://huggingface.co/new",
+        "requirements": "https://huggingface.co/docs/hub/repositories-getting-started"
+      },
+      "recommendation_zh": "适合模型权重、模型卡、数据集卡与交互演示；医学模型仍需单独核对数据许可和临床使用声明。",
+      "boundary_zh": "不得上传受限训练数据、患者数据或权利不清的模型权重。"
+    },
+    {
+      "id": "protocols_io",
+      "label": "protocols.io",
+      "kind": "protocol_repository",
+      "selectable": true,
+      "domains": ["all", "life_sciences", "medicine"],
+      "artifact_roles": ["protocol"],
+      "automation_level": "api_or_browser",
+      "recommended_mode": "agent_browser",
+      "allowed_modes": ["agent_api", "agent_browser"],
+      "public_access": "public_or_private",
+      "maximum_agent_action": "publish",
+      "required_metadata": ["title", "description", "authors"],
+      "required_declarations": ["all_authors_approved", "rights_holder_authorized", "third_party_assets_cleared"],
+      "mode_requirements": {
+        "agent_api": ["computer_control", "protocols_io_api_token", "protocol_publish_permission"],
+        "agent_browser": ["computer_control", "browser_session_authenticated", "protocol_publish_permission"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "public_only_no_sensitive",
+      "official_urls": {
+        "home": "https://www.protocols.io/",
+        "submit": "https://www.protocols.io/",
+        "requirements": "https://apidoc.protocols.io/"
+      },
+      "recommendation_zh": "适合实验、临床或计算流程的可复现步骤与版本化 DOI。",
+      "boundary_zh": "发布权限取决于协议所有权与工作区角色；涉及患者操作的内容不能泄露受试者信息。"
+    },
+    {
+      "id": "medrxiv",
+      "label": "medRxiv",
+      "kind": "medical_preprint_server",
+      "selectable": true,
+      "domains": ["medicine", "public_health", "clinical_research"],
+      "artifact_roles": ["manuscript", "preprint"],
+      "automation_level": "agent_browser_moderated",
+      "recommended_mode": "agent_browser",
+      "allowed_modes": ["agent_browser"],
+      "public_access": "public_after_screening",
+      "maximum_agent_action": "submit_for_screening",
+      "required_metadata": ["title", "abstract", "authors", "article_type", "ethics_statement"],
+      "required_declarations": ["all_authors_approved", "rights_holder_authorized", "publisher_policy_checked", "ethics_approval_allows_release", "participant_consent_allows_release_if_applicable"],
+      "mode_requirements": {
+        "agent_browser": ["computer_control", "browser_session_authenticated", "medrxiv_manuscript_eligible"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "public_manuscript_no_sensitive_attachments",
+      "official_urls": {
+        "home": "https://www.medrxiv.org/",
+        "submit": "https://www.medrxiv.org/submit-a-manuscript",
+        "requirements": "https://www.medrxiv.org/submit-a-manuscript"
+      },
+      "recommendation_zh": "适合尚未正式发表的医学、临床与健康科学完整研究预印本。",
+      "boundary_zh": "已接收、已发表或已在其他站点发布的稿件可能不符合要求；平台会进行健康风险和科学内容筛查。"
+    },
+    {
+      "id": "clinicaltrials_gov",
+      "label": "ClinicalTrials.gov PRS",
+      "kind": "clinical_trial_registry",
+      "selectable": true,
+      "domains": ["medicine", "clinical_research", "public_health"],
+      "artifact_roles": ["trial_registration", "trial_results", "study_documents"],
+      "automation_level": "guided_institutional",
+      "recommended_mode": "guided_manual",
+      "allowed_modes": ["guided_manual"],
+      "public_access": "public_after_prs_review",
+      "maximum_agent_action": "prepare_and_assist_release",
+      "required_metadata": ["organization_name", "study_title", "responsible_party", "record_type"],
+      "required_declarations": ["responsible_party_authorized", "sponsor_approved", "regulatory_requirements_checked"],
+      "mode_requirements": {
+        "guided_manual": ["computer_control", "prs_organization_account", "responsible_party_authority", "sponsor_organization_access"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "registry_summary_only_no_participant_level_data",
+      "official_urls": {
+        "home": "https://clinicaltrials.gov/",
+        "submit": "https://register.clinicaltrials.gov/",
+        "requirements": "https://clinicaltrials.gov/submit-studies/prs-help/user-guide",
+        "accounts": "https://clinicaltrials.gov/submit-studies/prs-accounts"
+      },
+      "recommendation_zh": "仅用于临床研究注册、结果和规定研究文件，不是通用论文或原始临床数据仓库。",
+      "boundary_zh": "必须使用与申办组织关联的 PRS 账号，并由法定 Responsible Party/机构流程审核释放；Beta 只做引导与填表辅助。"
+    },
+    {
+      "id": "pubmed_central",
+      "label": "PubMed Central / NIHMS",
+      "kind": "biomedical_manuscript_archive",
+      "selectable": true,
+      "domains": ["medicine", "life_sciences", "public_health"],
+      "artifact_roles": ["accepted_manuscript"],
+      "automation_level": "guided_eligibility",
+      "recommended_mode": "guided_manual",
+      "allowed_modes": ["guided_manual"],
+      "public_access": "eligibility_and_policy_dependent",
+      "maximum_agent_action": "prepare_and_assist_deposit",
+      "required_metadata": ["journal", "acceptance_status", "funders", "authors", "manuscript_version"],
+      "required_declarations": ["all_authors_approved", "rights_holder_authorized", "funder_policy_checked", "publisher_policy_checked"],
+      "mode_requirements": {
+        "guided_manual": ["computer_control", "pmc_deposit_eligible", "nihms_or_europe_pmc_access", "author_reviewer_available"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "public_manuscript_no_sensitive_attachments",
+      "official_urls": {
+        "home": "https://pmc.ncbi.nlm.nih.gov/",
+        "submit": "https://www.nihms.nih.gov/",
+        "requirements": "https://pmc.ncbi.nlm.nih.gov/about/submission-methods/"
+      },
+      "recommendation_zh": "用于符合 PMC/资助方政策资格的已接收作者稿，不是任意医学论文的一般上传站。",
+      "boundary_zh": "最终出版版通常由期刊/出版商提交；作者稿需先判断 NIHMS 或 Europe PMC Plus 资格并完成作者审核批准。"
+    },
+    {
+      "id": "ncbi_geo",
+      "label": "NCBI GEO",
+      "kind": "functional_genomics_repository",
+      "selectable": true,
+      "domains": ["medicine", "life_sciences", "genomics"],
+      "artifact_roles": ["functional_genomics"],
+      "automation_level": "guided_domain_submission",
+      "recommended_mode": "guided_manual",
+      "allowed_modes": ["guided_manual"],
+      "public_access": "public_or_private_until_publication",
+      "maximum_agent_action": "prepare_and_assist_submission",
+      "required_metadata": ["study_summary", "organism", "experiment_type", "metadata_spreadsheet"],
+      "required_declarations": ["rights_holder_authorized", "human_subjects_clearance", "consent_allows_public_release_if_human"],
+      "mode_requirements": {
+        "guided_manual": ["computer_control", "ncbi_account_authenticated", "geo_data_type_eligible"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "public_functional_genomics_no_controlled_human_data",
+      "official_urls": {
+        "home": "https://www.ncbi.nlm.nih.gov/geo/",
+        "submit": "https://www.ncbi.nlm.nih.gov/geo/info/submission.html",
+        "requirements": "https://www.ncbi.nlm.nih.gov/geo/info/seq.html"
+      },
+      "recommendation_zh": "适合表达、调控、表观遗传、单细胞等功能基因组研究及其必需元数据。",
+      "boundary_zh": "需要受控访问的人类数据不能投 GEO，应转 dbGaP/受控 SRA；文件名也不能包含敏感信息。"
+    },
+    {
+      "id": "ncbi_sra",
+      "label": "NCBI Sequence Read Archive",
+      "kind": "sequence_repository",
+      "selectable": true,
+      "domains": ["medicine", "life_sciences", "genomics"],
+      "artifact_roles": ["sequencing_reads"],
+      "automation_level": "guided_domain_submission",
+      "recommended_mode": "guided_manual",
+      "allowed_modes": ["guided_manual"],
+      "public_access": "public_or_controlled_via_dbgap_route",
+      "maximum_agent_action": "prepare_and_assist_submission",
+      "required_metadata": ["study_summary", "bioproject", "biosample_metadata", "sequencing_platform", "file_manifest"],
+      "required_declarations": ["rights_holder_authorized", "human_subjects_clearance", "consent_route_confirmed_if_human"],
+      "mode_requirements": {
+        "guided_manual": ["computer_control", "ncbi_account_authenticated", "sra_data_type_eligible"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "public_only_with_explicit_consent_otherwise_route_dbgap",
+      "official_urls": {
+        "home": "https://www.ncbi.nlm.nih.gov/sra/",
+        "submit": "https://submit.ncbi.nlm.nih.gov/subs/sra/",
+        "requirements": "https://www.ncbi.nlm.nih.gov/sra/docs/submit/"
+      },
+      "recommendation_zh": "适合下一代测序原始读段和质量值；功能基因组研究常需按 GEO 路径组织。",
+      "boundary_zh": "未取得公开同意的人类序列绝不能传到公开 SRA，必须按 dbGaP 受控路线处理。"
+    },
+    {
+      "id": "dbgap",
+      "label": "dbGaP",
+      "kind": "controlled_human_genomics_repository",
+      "selectable": true,
+      "domains": ["medicine", "life_sciences", "genomics", "clinical_research"],
+      "artifact_roles": ["human_genomic_controlled", "clinical_genomic_data", "medical_images_controlled"],
+      "automation_level": "guided_institutional",
+      "recommended_mode": "guided_manual",
+      "allowed_modes": ["guided_manual"],
+      "public_access": "controlled_access",
+      "maximum_agent_action": "prepare_submission_package_only",
+      "required_metadata": ["study_summary", "consent_groups", "institutional_certification", "data_use_limitations", "subject_sample_mapping"],
+      "required_declarations": ["pi_authorized", "institutional_signing_official_approved", "irb_or_ethics_route_confirmed", "consent_status_established", "data_use_agreement_allows_deposit"],
+      "mode_requirements": {
+        "guided_manual": ["computer_control", "dbgap_study_registered", "institutional_submission_authority"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "controlled_access_supported",
+      "official_urls": {
+        "home": "https://www.ncbi.nlm.nih.gov/gap/",
+        "submit": "https://submit.ncbi.nlm.nih.gov/dbgap/",
+        "requirements": "https://www.ncbi.nlm.nih.gov/gap/docs/submissionguide/",
+        "sequence": "https://www.ncbi.nlm.nih.gov/sra/docs/submitdbgap/"
+      },
+      "recommendation_zh": "适合需要受控访问的个体级人类基因型、表型、临床和相关影像数据。",
+      "boundary_zh": "需要 PI、机构签署官、IRB/伦理与同意分组等治理；Agent 只能准备材料并引导，不能替代机构授权。"
+    },
+    {
+      "id": "physionet",
+      "label": "PhysioNet",
+      "kind": "physiological_and_clinical_resource_repository",
+      "selectable": true,
+      "domains": ["medicine", "clinical_research", "biomedical_engineering", "artificial_intelligence"],
+      "artifact_roles": ["clinical_signals", "clinical_dataset", "software", "model", "challenge"],
+      "automation_level": "guided_editorial",
+      "recommended_mode": "agent_browser",
+      "allowed_modes": ["agent_browser"],
+      "public_access": "open_restricted_or_credentialed_after_review",
+      "maximum_agent_action": "submit_for_editorial_review",
+      "required_metadata": ["title", "abstract", "authors", "resource_type", "methods", "conflicts_of_interest", "version", "license", "readme"],
+      "required_declarations": ["all_authors_approved", "rights_holder_authorized", "phi_removed", "ethics_approval_allows_release", "data_use_agreement_allows_release"],
+      "mode_requirements": {
+        "agent_browser": ["computer_control", "browser_session_authenticated", "physionet_submitting_author"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "open_restricted_or_credentialed_after_phi_removal",
+      "official_urls": {
+        "home": "https://physionet.org/",
+        "submit": "https://physionet.org/projects/",
+        "requirements": "https://physionet.org/about/publish/"
+      },
+      "recommendation_zh": "适合生理波形、结构化临床数据、医学软件、模型与挑战，并支持开放、限制或凭证访问许可。",
+      "boundary_zh": "必须移除 PHI，所有共同作者要批准，提交后进入编辑审查；正式发布内容固定。"
+    },
+    {
+      "id": "openneuro",
+      "label": "OpenNeuro",
+      "kind": "neuroimaging_repository",
+      "selectable": true,
+      "domains": ["medicine", "neuroscience", "neuroimaging"],
+      "artifact_roles": ["neuroimaging_bids"],
+      "automation_level": "cli_or_browser",
+      "recommended_mode": "agent_browser",
+      "allowed_modes": ["agent_cli", "agent_browser"],
+      "public_access": "public_after_snapshot_or_grace_period",
+      "maximum_agent_action": "publish",
+      "required_metadata": ["title", "authors", "dataset_description", "bids_version", "license"],
+      "required_declarations": ["dataset_owner_authorized", "ethics_approval_allows_release", "not_subject_to_gdpr", "defaced_or_explicit_consent", "license_confirmed"],
+      "mode_requirements": {
+        "agent_cli": ["computer_control", "openneuro_cli_available", "openneuro_authenticated", "bids_validation_passed"],
+        "agent_browser": ["computer_control", "browser_session_authenticated", "bids_validation_passed"]
+      },
+      "license_constraints": ["CC0"],
+      "sensitive_data_policy": "public_only_no_identifiable_health_information",
+      "official_urls": {
+        "home": "https://openneuro.org/",
+        "submit": "https://openneuro.org/",
+        "requirements": "https://docs.openneuro.org/user_guide.html"
+      },
+      "recommendation_zh": "适合符合 BIDS 的 MRI、PET、MEG、EEG 和 iEEG 数据。",
+      "boundary_zh": "必须通过 BIDS 校验、去除面部信息或具备明确同意，且数据不能受 GDPR 保护；公开采用 CC0。"
+    },
+    {
+      "id": "pride",
+      "label": "PRIDE / ProteomeXchange",
+      "kind": "proteomics_repository",
+      "selectable": true,
+      "domains": ["medicine", "life_sciences", "proteomics"],
+      "artifact_roles": ["proteomics"],
+      "automation_level": "guided_desktop_submission",
+      "recommended_mode": "guided_manual",
+      "allowed_modes": ["guided_manual"],
+      "public_access": "public_or_private_until_publication",
+      "maximum_agent_action": "prepare_and_assist_submission",
+      "required_metadata": ["project_title", "dataset_summary", "sample_metadata", "file_manifest", "submission_type"],
+      "required_declarations": ["rights_holder_authorized", "human_subjects_clearance_if_applicable"],
+      "mode_requirements": {
+        "guided_manual": ["computer_control", "pride_account_authenticated", "px_submission_tool_available"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "public_release_requires_clearance",
+      "official_urls": {
+        "home": "https://www.ebi.ac.uk/pride/",
+        "submit": "https://www.ebi.ac.uk/pride/login",
+        "requirements": "https://www.ebi.ac.uk/training/online/courses/pride-quick-tour/submitting-data-to-pride/"
+      },
+      "recommendation_zh": "适合各种蛋白质组学工作流的数据，并按 ProteomeXchange 规范提交。",
+      "boundary_zh": "需要 PRIDE 账号、PX 提交工具和完整样本/文件元数据；平台会进行验证与处理。"
+    },
+    {
+      "id": "wwpdb",
+      "label": "wwPDB OneDep",
+      "kind": "structural_biology_repository",
+      "selectable": true,
+      "domains": ["medicine", "life_sciences", "structural_biology"],
+      "artifact_roles": ["structural_model", "experimental_structure_data"],
+      "automation_level": "guided_domain_submission",
+      "recommended_mode": "guided_manual",
+      "allowed_modes": ["guided_manual"],
+      "public_access": "release_timing_selected_during_deposition",
+      "maximum_agent_action": "prepare_and_assist_deposition",
+      "required_metadata": ["title", "authors", "experimental_method", "coordinates", "experimental_data", "release_instruction"],
+      "required_declarations": ["depositor_authorized", "rights_holder_authorized"],
+      "mode_requirements": {
+        "guided_manual": ["computer_control", "orcid_authenticated", "onedep_validation_ready"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "not_for_patient_level_data",
+      "official_urls": {
+        "home": "https://www.wwpdb.org/",
+        "submit": "https://deposit.wwpdb.org/deposition/",
+        "requirements": "https://www.wwpdb.org/documentation/policy"
+      },
+      "recommendation_zh": "适合 X-ray、NMR、EM 等实验结构、坐标和实验数据的正式沉积。",
+      "boundary_zh": "需要符合 PDBx/mmCIF 等格式并通过 OneDep 验证；发布时点和作者复核不能由 Agent 推断。"
+    },
+    {
+      "id": "dataverse",
+      "label": "Dataverse",
+      "kind": "general_data_repository",
+      "selectable": true,
+      "domains": ["all", "social_sciences"],
+      "artifact_roles": ["dataset", "code", "documentation", "supplement"],
+      "automation_level": "api_or_browser_instance_dependent",
+      "recommended_mode": "agent_browser",
+      "allowed_modes": ["agent_api", "agent_browser"],
+      "public_access": "instance_policy_dependent",
+      "maximum_agent_action": "publish",
+      "required_metadata": ["repository_url", "dataverse", "title", "authors", "description", "subject"],
+      "required_declarations": ["rights_holder_authorized", "third_party_assets_cleared", "license_confirmed"],
+      "mode_requirements": {
+        "agent_api": ["computer_control", "dataverse_api_token", "dataset_publish_permission"],
+        "agent_browser": ["computer_control", "browser_session_authenticated", "dataset_publish_permission"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "instance_policy_dependent",
+      "official_urls": {
+        "home": "https://dataverse.org/",
+        "submit": "https://dataverse.harvard.edu/",
+        "requirements": "https://guides.dataverse.org/en/latest/user/dataset-management.html"
+      },
+      "recommendation_zh": "适合通用和社会科学数据；优先选择本机构或学科 Dataverse 实例。",
+      "boundary_zh": "账号、发布权限、许可、审核和敏感数据策略由具体实例决定，必须实时核对。"
+    },
+    {
+      "id": "pangaea",
+      "label": "PANGAEA",
+      "kind": "earth_environmental_data_repository",
+      "selectable": true,
+      "domains": ["earth_sciences", "environmental_sciences", "climate_science", "marine_science"],
+      "artifact_roles": ["dataset", "geospatial_data", "environmental_observations"],
+      "automation_level": "guided_curation",
+      "recommended_mode": "guided_manual",
+      "allowed_modes": ["guided_manual"],
+      "public_access": "public_after_curation",
+      "maximum_agent_action": "prepare_and_contact_curator",
+      "required_metadata": ["title", "authors", "abstract", "parameter_description", "spatial_temporal_coverage", "data_files"],
+      "required_declarations": ["rights_holder_authorized", "sensitive_location_clearance_if_applicable"],
+      "mode_requirements": {
+        "guided_manual": ["computer_control", "pangaea_submission_contact_ready"]
+      },
+      "license_constraints": [],
+      "sensitive_data_policy": "public_release_requires_location_clearance",
+      "official_urls": {
+        "home": "https://www.pangaea.de/",
+        "submit": "https://www.pangaea.de/submit/",
+        "requirements": "https://www.pangaea.de/submit/"
+      },
+      "recommendation_zh": "适合地球、环境、海洋和气候观测数据，并由数据编辑进行策展。",
+      "boundary_zh": "不是即时自助发布；需要参数、时空覆盖等学科元数据并经过策展。"
+    },
+    {
+      "id": "fairsharing",
+      "label": "FAIRsharing",
+      "kind": "repository_discovery_registry",
+      "selectable": false,
+      "domains": ["all"],
+      "artifact_roles": ["repository_discovery"],
+      "automation_level": "discovery_only",
+      "recommended_mode": "discovery_only",
+      "allowed_modes": ["discovery_only"],
+      "public_access": "not_applicable",
+      "maximum_agent_action": "recommend_repository",
+      "required_metadata": [],
+      "required_declarations": [],
+      "mode_requirements": {"discovery_only": []},
+      "license_constraints": [],
+      "sensitive_data_policy": "not_applicable",
+      "official_urls": {
+        "home": "https://fairsharing.org/",
+        "requirements": "https://fairsharing.gitbook.io/fairsharing/how-to/searching-and-browsing/database-discovery"
+      },
+      "recommendation_zh": "当内置目录没有覆盖学科时，用于发现与比较学科数据库、仓库和标准。",
+      "boundary_zh": "这是发现服务，不是上传目标。"
+    },
+    {
+      "id": "re3data",
+      "label": "re3data.org",
+      "kind": "repository_discovery_registry",
+      "selectable": false,
+      "domains": ["all"],
+      "artifact_roles": ["repository_discovery"],
+      "automation_level": "discovery_only",
+      "recommended_mode": "discovery_only",
+      "allowed_modes": ["discovery_only"],
+      "public_access": "not_applicable",
+      "maximum_agent_action": "recommend_repository",
+      "required_metadata": [],
+      "required_declarations": [],
+      "mode_requirements": {"discovery_only": []},
+      "license_constraints": [],
+      "sensitive_data_policy": "not_applicable",
+      "official_urls": {
+        "home": "https://www.re3data.org/",
+        "requirements": "https://www.re3data.org/faq"
+      },
+      "recommendation_zh": "用于按学科、数据类型、访问和认证条件发现研究数据仓库。",
+      "boundary_zh": "这是仓库注册目录，不是上传目标。"
+    }
+  ]
+}

@@ -34,97 +34,38 @@ This skill should be used when:
 - Ensuring proper use of field-specific terminology and nomenclature
 - Addressing reviewer comments and revising manuscripts
 
-## Visual Enhancement with Scientific Schematics
+## Visual Enhancement with Scientific Figures
 
-**⚠️ MANDATORY: Every scientific paper MUST include a graphical abstract plus 1-2 additional AI-generated figures using the scientific-schematics skill.**
+Default is no generated artwork: add a figure only when it materially improves comprehension, and choose the generation tool by what the current environment actually provides.
 
-This is not optional. Scientific papers without visual elements are incomplete. Before finalizing any document:
-1. **ALWAYS generate a graphical abstract** as the first visual element
-2. Generate at minimum ONE additional schematic or diagram using scientific-schematics
-3. Prefer 3-4 total figures for comprehensive papers (graphical abstract + methods flowchart + results visualization + conceptual diagram)
+When a manuscript would benefit from a schematic, workflow diagram, or conceptual figure, use an installed figure-generation skill if one is available. This repository does not ship a figure-generation script inside this skill directory, and no specific generator or figure count is mandatory.
 
-### Graphical Abstract (REQUIRED)
+Before finalizing any document:
+1. Add at least one figure when it materially improves comprehension.
+2. Prefer 2-3 figures for longer papers (methods flowchart, results visualization, conceptual diagram).
 
-**Every scientific writeup MUST include a graphical abstract.** This is a visual summary of your paper that:
-- Appears before or immediately after the text abstract
-- Captures the entire paper's key message in one image
-- Is suitable for journal table of contents display
-- Uses landscape orientation (typically 1200x600px)
+**How to generate figures:**
+- Use whatever figure-generation capability the current environment provides (an installed figure-generation skill, the repository's `infographics` skill, or an external generation API).
+- Write prompts that specify academic style, white background, clean labels, colorblind-friendly colors, and high contrast.
+- Save outputs under a local `figures/` directory in the current project.
 
-**Generate the graphical abstract FIRST:**
-```bash
-python scripts/generate_schematic.py "Graphical abstract for [paper title]: [brief description showing workflow from input → methods → key findings → conclusions]" -o figures/graphical_abstract.png
-```
+**Prompt template (tool-agnostic):**
+`"Publication-style scientific schematic of your method; white background; clean labels; colorblind-friendly palette; high contrast"` —
+save to `figures/output.png` at the highest resolution the tool supports, then iterate on the prompt until the figure is publication-ready.
+（ACAT-GOVERNANCE：上游图形生成脚本未随本技能目录集成，不可直接调用；本节为工具中性表述，生成工具按环境可用性选择。）
 
-**Graphical Abstract Requirements:**
-- **Content**: Visual summary showing workflow, key methods, main findings, and conclusions
-- **Style**: Clean, professional, suitable for journal TOC
-- **Elements**: Include 3-5 key steps/concepts with connecting arrows or flow
-- **Text**: Minimal labels, large readable fonts
-- Log: `[HH:MM:SS] GENERATED: Graphical abstract for paper summary`
+External generation APIs (if used) take their keys from environment variables — never write keys into repo files.
 
-### Additional Figures (GENERATE EXTENSIVELY)
-
-**⚠️ CRITICAL: Use BOTH scientific-schematics AND generate-image EXTENSIVELY throughout all documents.**
-
-Every document should be richly illustrated. Generate figures liberally - when in doubt, add a visual.
-
-**MINIMUM Figure Requirements:**
-
-| Document Type | Minimum | Recommended |
-|--------------|---------|-------------|
-| Research Papers | 5 | 6-8 |
-| Literature Reviews | 4 | 5-7 |
-| Market Research | 20 | 25-30 |
-| Presentations | 1/slide | 1-2/slide |
-| Posters | 6 | 8-10 |
-| Grants | 4 | 5-7 |
-| Clinical Reports | 3 | 4-6 |
-
-**Use scientific-schematics EXTENSIVELY for technical diagrams:**
-```bash
-python scripts/generate_schematic.py "your diagram description" -o figures/output.png
-```
-
+**When to add figures:**
 - Study design and methodology flowcharts (CONSORT, PRISMA, STROBE)
 - Conceptual framework diagrams
 - Experimental workflow illustrations
 - Data analysis pipeline diagrams
 - Biological pathway or mechanism diagrams
 - System architecture visualizations
-- Neural network architectures
-- Decision trees, algorithm flowcharts
-- Comparison matrices, timeline diagrams
-- Any technical concept that benefits from schematic visualization
+- Any complex concept that benefits from visualization
 
-**Use generate-image EXTENSIVELY for visual content:**
-```bash
-python scripts/generate_image.py "your image description" -o figures/output.png
-```
-
-- Photorealistic illustrations of concepts
-- Medical/anatomical illustrations
-- Environmental/ecological scenes
-- Equipment and lab setup visualizations
-- Artistic visualizations, infographics
-- Cover images, header graphics
-- Product mockups, prototype visualizations
-- Any visual that enhances understanding or engagement
-
-The AI will automatically:
-- Create publication-quality images with proper formatting
-- Review and refine through multiple iterations
-- Ensure accessibility (colorblind-friendly, high contrast)
-- Save outputs in the figures/ directory
-
-**When in Doubt, Generate a Figure:**
-- Complex concept → generate a schematic
-- Data discussion → generate a visualization
-- Process description → generate a flowchart
-- Comparison → generate a comparison diagram
-- Reader benefit → generate a visual
-
-For detailed guidance, refer to the scientific-schematics and generate-image skill documentation.
+For detailed guidance on creating figures, refer to the figure-generation capability available in your environment.
 
 ---
 

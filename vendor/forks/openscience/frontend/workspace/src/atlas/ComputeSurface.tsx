@@ -30,6 +30,3 @@ export function ComputeSurface(props: ComputeSurfaceProps = {}): JSX.Element {
     </section>
   )
 }
-
-/** @deprecated Kept for extensions that briefly imported the transitional name. */
-export const ActivitySurface = ComputeSurface

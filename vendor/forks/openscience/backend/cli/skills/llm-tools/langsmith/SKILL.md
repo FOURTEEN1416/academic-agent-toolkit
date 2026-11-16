@@ -3,10 +3,18 @@ name: langsmith-observability
 description: LLM observability platform for tracing, evaluation, and monitoring. Use when debugging LLM applications, evaluating model outputs against datasets, monitoring production systems, or building systematic testing pipelines for AI applications.
 category: llm-tools
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Observability, LangSmith, Tracing, Evaluation, Monitoring, Debugging, Testing, LLM Ops, Production]
 dependencies: [langsmith>=0.2.0]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 17-observability/langsmith
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # LangSmith - LLM Observability Platform
@@ -93,7 +101,7 @@ Credentials are auto-injected by openscience when connected via the dashboard.
 [ -n "$LANGSMITH_API_KEY" ] && echo "LANGSMITH_API_KEY set" || echo "NOT SET"
 ```
 
-If not set: connect LangSmith at https://app.syntheticsciences.ai -> Services, then restart openscience.
+If not set: add your LangSmith key in Customize → Tools or export `LANGSMITH_API_KEY` locally.
 
 ## Core concepts
 

@@ -246,7 +246,7 @@ See [`bundled_script_pattern.md`](bundled_script_pattern.md) for why bundled vs 
 
 - File path
 - Audit summary in chat: "Saved {file}. {N} sections × {M} papers / {K} cited. Plan tier: {tier}."
-- Validate: check zip integrity with `python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).testzip()" <docx>` (no output = intact), then confirm the required sections are present
+- Validate: check zip integrity with `python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).testzip()" <docx>` (no output = intact), then confirm the required sections are present（本机用 `python` 不用 `python3`：`python3` 可能触发 Microsoft Store 存根、exit 49）
 
 ## Tooling
 

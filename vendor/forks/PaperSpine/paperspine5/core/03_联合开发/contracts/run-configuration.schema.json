@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/run-configuration.schema.json",
+  "title": "PaperSpine5 J3 run configuration answer",
+  "description": "Complete public input contract for a configuration.required Runner issue. Fields with defaults are optional, but the published example supplies every field.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "workflow",
+    "scene",
+    "target",
+    "output_language",
+    "deliverables",
+    "network_policy",
+    "privacy",
+    "budget"
+  ],
+  "properties": {
+    "workflow": {
+      "enum": [
+        "build_from_materials",
+        "rewrite_existing",
+        "audit",
+        "review",
+        "revise",
+        "transfer"
+      ]
+    },
+    "scene": {
+      "enum": [
+        "journal",
+        "conference",
+        "report",
+        "review",
+        "competition",
+        "other"
+      ]
+    },
+    "target": {
+      "description": "Use status=unknown with name=null when runtime research must determine the target.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "name"],
+          "properties": {
+            "status": {"const": "known"},
+            "name": {"type": "string", "pattern": ".*\\S.*"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status"],
+          "properties": {
+            "status": {"const": "unknown"},
+            "name": {"type": "null"}
+          }
+        }
+      ]
+    },
+    "output_language": {"enum": ["en", "zh", "multilingual", "other"]},
+    "author_voice_restoration": {
+      "enum": ["off", "standard", "strict"],
+      "default": "off"
+    },
+    "requested_scope": {
+      "enum": ["manuscript", "local_delivery", "submission_package"],
+      "default": "local_delivery"
+    },
+    "interaction": {
+      "default": {"mode": "guided", "grant": null},
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode"],
+          "properties": {
+            "mode": {"const": "guided"},
+            "grant": {"type": "null"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "grant"],
+          "properties": {
+            "mode": {"const": "delegated_local_test"},
+            "grant": {"$ref": "#/$defs/local_delegation_grant"}
+          }
+        }
+      ]
+    },
+    "deliverables": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"enum": ["latex", "pdf", "word"]}
+    },
+    "network_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allow_network", "allow_external_upload"],
+      "properties": {
+        "allow_network": {"type": "boolean"},
+        "allow_external_upload": {
+          "const": false,
+          "description": "J3 can never authorize uploading material."
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allow_external_processing"],
+      "properties": {
+        "allow_external_processing": {"type": "boolean"}
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "time_minutes": {"type": ["number", "null"], "minimum": 0, "default": null},
+        "token_limit": {"type": ["number", "null"], "minimum": 0, "default": null},
+        "cost_limit": {"type": ["number", "null"], "minimum": 0, "default": null}
+      }
+    }
+    ,"research_mode": {
+      "enum": ["agent_decide", "required", "materials_only"],
+      "default": "agent_decide",
+      "description": "J4 policy. agent_decide lets the host Agent decide and record why, then perform justified research within the saved scope; required runs the requested literature and/or data analysis; materials_only uses authorized files and supplied results without new or rerun data analysis, while allowing public literature and venue learning under the saved network policy."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["interaction"],
+        "properties": {
+          "interaction": {
+            "required": ["mode"],
+            "properties": {"mode": {"const": "delegated_local_test"}}
+          }
+        }
+      },
+      "then": {
+        "required": ["requested_scope"],
+        "properties": {
+          "requested_scope": {"enum": ["manuscript", "local_delivery"]}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "local_delegation_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "schema_version",
+        "grant_id",
+        "task_id",
+        "material_snapshot_sha256",
+        "requested_scope",
+        "decision_classes",
+        "granted_at",
+        "expires_at",
+        "reversible",
+        "explicit_user_grant",
+        "confirmation_scope",
+        "user_confirmation_sha256",
+        "granting_actor",
+        "authority_attestation_sha256",
+        "external_action_authorized"
+      ],
+      "properties": {
+        "contract": {"const": "paperspine5.local-delegation-grant"},
+        "schema_version": {"const": "1.0"},
+        "grant_id": {"type": "string", "pattern": ".*\\S.*"},
+        "task_id": {"type": "string", "pattern": ".*\\S.*"},
+        "material_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "requested_scope": {"enum": ["manuscript", "local_delivery"]},
+        "decision_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "contribution_selection",
+              "motivation_selection",
+              "non_author_local_target_adaptation",
+              "figure_keep_or_transform",
+              "figure_omit",
+              "figure_supplement"
+            ]
+          }
+        },
+        "granted_at": {"type": "string", "format": "date-time"},
+        "expires_at": {"type": "string", "format": "date-time"},
+        "reversible": {"const": true},
+        "explicit_user_grant": {"const": true},
+        "confirmation_scope": {"const": "delegated_local_test.initial"},
+        "user_confirmation_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "granting_actor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["actor_id", "surface", "authority_kind"],
+          "properties": {
+            "actor_id": {"type": "string", "pattern": ".*\\S.*"},
+            "surface": {"enum": ["web", "codex", "standalone-skill", "mcp", "cli"]},
+            "authority_kind": {"enum": ["authenticated_local_user_session", "host_user_message"]}
+          }
+        },
+        "authority_attestation_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "external_action_authorized": {"const": false},
+        "grant_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Optional on input; the validator recomputes it."
+        }
+      }
+    }
+  }
+}

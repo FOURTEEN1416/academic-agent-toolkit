@@ -4,30 +4,36 @@ description: Access and analyze comprehensive drug information from the DrugBank
 category: databases
 license: Unknown
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/drugbank-database
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # DrugBank Database
 
 ## Overview
 
-DrugBank is a comprehensive bioinformatics and cheminformatics database containing detailed information on drugs and drug targets. This skill enables programmatic access to DrugBank data including ~9,591 drug entries (2,037 FDA-approved small molecules, 241 biotech drugs, 96 nutraceuticals, and 6,000+ experimental compounds) with 200+ data fields per entry.
+DrugBank contains drug and drug-target information. The bundled helper reads a licensed local XML export; it does not include the dataset or download it automatically. Available records depend on the supplied export and its version.
 
 ## Core Capabilities
 
 ### 1. Data Access and Authentication
 
-Download and access DrugBank data using Python with proper authentication. The skill provides guidance on:
+Access a DrugBank export that the user is licensed to use. The skill provides guidance on:
 
-- Installing and configuring the `drugbank-downloader` package
-- Managing credentials securely via environment variables or config files
-- Downloading specific or latest database versions
+- Supplying an explicit local XML path or a pre-loaded XML root
+- Keeping licensed data out of repositories and shared artifacts
+- Recording the supplied database version
 - Opening and parsing XML data efficiently
 - Working with cached data to optimize performance
 
-**When to use**: Setting up DrugBank access, downloading database updates, initial project configuration.
+**When to use**: Setting up local DrugBank analysis or diagnosing a missing export.
 
-**Reference**: See `references/data-access.md` for detailed authentication, download procedures, API access, caching strategies, and troubleshooting.
+**Reference**: See `references/data-access.md` for loading an explicitly provided licensed export, the current availability of DrugBank downloads, the separate hosted API, and troubleshooting.
 
 ### 2. Drug Information Queries
 
@@ -108,7 +114,7 @@ Perform structure-based analysis including molecular similarity searches, proper
 ## Typical Workflows
 
 ### Drug Discovery Workflow
-1. Use `data-access.md` to download and access latest DrugBank data
+1. Use `data-access.md` to load an explicitly provided licensed export
 2. Use `drug-queries.md` to build searchable drug database
 3. Use `chemical-analysis.md` to find similar compounds
 4. Use `targets-pathways.md` to identify shared targets
@@ -138,8 +144,8 @@ Perform structure-based analysis including molecular similarity searches, proper
 
 ### Python Packages
 ```bash
-uv pip install drugbank-downloader  # Core access
-uv pip install bioversions          # Latest version detection
+# The local XML helper uses only the Python standard library.
+# Install only the packages needed for the selected analysis:
 uv pip install lxml                 # XML parsing optimization
 uv pip install pandas               # Data manipulation
 uv pip install rdkit                # Chemical informatics (for similarity)
@@ -148,27 +154,33 @@ uv pip install scikit-learn         # ML/clustering (for chemical space)
 ```
 
 ### Account Setup
-1. Create free account at go.drugbank.com
-2. Accept license agreement (free for academic use)
-3. Obtain username and password credentials
-4. Configure credentials as documented in `references/data-access.md`
+Obtain an XML export through the user's authorized DrugBank access; the helper only
+loads an explicitly provided licensed export. An account or installed downloader does
+not prove download entitlement, and `references/data-access.md` records the current
+status of DrugBank downloads. Do not fetch a different or unlicensed copy as a fallback.
+
+From the skill directory:
+
+```python
+from scripts.drugbank_helper import DrugBankHelper
+
+db = DrugBankHelper(xml_path="/path/to/licensed/drugbank.xml")
+print(db.get_drug_info("DB00001"))
+```
+
+Alternatively set `DRUGBANK_XML_PATH` and use `DrugBankHelper()`. A previously
+parsed XML root is still accepted with `DrugBankHelper(root=root)`.
 
 ## Data Version and Reproducibility
 
-Always specify the DrugBank version for reproducible research:
-
-```python
-from drugbank_downloader import download_drugbank
-path = download_drugbank(version='5.1.10')  # Specify exact version
-```
-
-Document the version used in publications and analysis scripts.
+Record the version and checksum of the supplied XML export in analysis metadata.
+Do not silently substitute an older export when the requested version is unavailable.
 
 ## Best Practices
 
 1. **Credentials**: Use environment variables or config files, never hardcode
 2. **Versioning**: Specify exact database version for reproducibility
-3. **Caching**: Cache parsed data to avoid re-downloading and re-parsing
+3. **Caching**: Cache parsed data to avoid re-parsing the export
 4. **Namespaces**: Handle XML namespaces properly when parsing
 5. **Validation**: Validate chemical structures with RDKit before use
 6. **Cross-referencing**: Use external identifiers (UniProt, PubChem) for integration
@@ -179,11 +191,10 @@ Document the version used in publications and analysis scripts.
 
 All detailed implementation guidance is organized in modular reference files:
 
-- **references/data-access.md**: Authentication, download, parsing, API access, caching
+- **references/data-access.md**: Loading a licensed export, download availability, parsing, hosted API, caching
 - **references/drug-queries.md**: XML navigation, query methods, data extraction, indexing
 - **references/interactions.md**: DDI extraction, classification, network analysis, safety scoring
 - **references/targets-pathways.md**: Target/enzyme/transporter extraction, pathway mapping, repurposing
 - **references/chemical-analysis.md**: Structure extraction, similarity, fingerprints, ADMET prediction
 
 Load these references as needed based on your specific analysis requirements.
-

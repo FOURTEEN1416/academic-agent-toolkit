@@ -17,11 +17,12 @@ import { BusEvent } from "@/bus/bus-event"
 import { Session } from "@/session"
 import { ProjectTrust } from "@/project/trust"
 import { BundledSkills } from "./bundled"
-import { lazy } from "@/util/lazy"
+import { lazy } from "@synsci/util/lazy"
 import { Install } from "./install/install"
 import { isRetiredProductSkillName, isRetiredProductSkillPath, RETIRED_PRODUCT_SKILL_NAMES } from "./retired"
 import { purgeRetiredAtlasAgentInstall } from "./retired-install"
 import { SkillCatalog } from "./catalog"
+import { PermissionNext } from "@/permission/next"
 
 export namespace Skill {
   const log = Log.create({ service: "skill" })
@@ -46,6 +47,9 @@ export namespace Skill {
   export const Info = z.object({
     name: z.string(),
     description: z.string(),
+    /** One line (under 120 characters) for always-visible indexes such as the
+     *  core skill list; the description stays the full selection text. */
+    summary: z.string().optional(),
     location: z.string(),
     category: z.string().optional(),
     tags: z.array(z.string()).optional(),
@@ -64,11 +68,50 @@ export namespace Skill {
      *  Driven by `openscience-skills.json` `entries[]` for URL-installed skills;
      *  bundled skills omit this and are always entries. */
     entry: z.boolean().optional(),
+    /** Locations of same-named skills this one won over, so a local edit that
+     *  had no effect is explained rather than silent. */
+    shadows: z.array(z.string()).optional(),
   })
   export type Info = z.infer<typeof Info>
+
+  export const Root = z
+    .object({
+      path: z.string(),
+      kind: z.enum(["bundled", "project", "user", "installed", "config", "runtime"]),
+      skills: z.number().int().nonnegative(),
+      shadowed: z.number().int().nonnegative(),
+    })
+    .meta({ ref: "SkillRoot" })
+  export type Root = z.infer<typeof Root>
+
+  export const Shadowed = z
+    .object({
+      name: z.string(),
+      location: z.string(),
+      origin: z.enum(["default", "installed", "user", "project"]),
+      by: z.string(),
+    })
+    .meta({ ref: "ShadowedSkill" })
+  export type Shadowed = z.infer<typeof Shadowed>
+  export const CatalogEntry = Info.extend({
+    permission_action: PermissionNext.Action,
+    recommended: z.boolean(),
+    enabled: z.boolean().optional().describe("Selected for on-demand use; permissions remain independently enforced."),
+    disabled_by: z.enum(["server", "project"]).optional(),
+  })
+  export type CatalogEntry = z.infer<typeof CatalogEntry>
+  export type CatalogSnapshot = {
+    /** Every user-facing skill in the library, annotated with its effective
+     * permission state. Denied rows remain here so Settings can restore them. */
+    library: CatalogEntry[]
+    /** The only skills system routing, model search, and slash invocation may
+     * advertise. Runtime permission checks remain authoritative at execution. */
+    allowed: CatalogEntry[]
+  }
   const Frontmatter = Info.pick({
     name: true,
     description: true,
+    summary: true,
     category: true,
     tags: true,
     role: true,
@@ -110,8 +153,18 @@ export namespace Skill {
   const USER_SKILL_DIR = path.join(Global.Path.data, "user-skills")
   const UserSkillName = z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/)
   const priority = { default: 0, installed: 1, user: 2, project: 3 } as const
+  const duplicates = new Set<string>()
+  const recommended = new Set([
+    "research-lookup",
+    "literature-review",
+    "paper-writing",
+    "citations",
+    "figures",
+    "schematics",
+    "exploratory-data-analysis",
+  ])
 
-  async function read(match: string, origin: Info["origin"]): Promise<Info | undefined> {
+  async function parse(match: string, origin: Info["origin"]) {
     const md = await ConfigMarkdown.parse(match).catch((err) => {
       const message = ConfigMarkdown.FrontmatterError.isInstance(err)
         ? err.data.message
@@ -123,7 +176,19 @@ export namespace Skill {
     if (!md) return
 
     const parsed = Frontmatter.safeParse(md.data)
-    if (!parsed.success) return
+    if (!parsed.success) {
+      // Same visibility as a YAML failure: a skill that silently vanishes from
+      // the catalog because `description` is missing is indistinguishable from
+      // one that was never installed.
+      const detail = parsed.error.issues
+        .map((issue) => `${issue.path.join(".") || "frontmatter"}: ${issue.message}`)
+        .join("; ")
+      Bus.publish(Session.Event.Error, {
+        error: new NamedError.Unknown({ message: `Skill ${match} has invalid frontmatter (${detail})` }).toObject(),
+      })
+      log.warn("invalid skill frontmatter", { path: match, issues: parsed.error.issues })
+      return
+    }
 
     if (isRetiredProductSkillName(parsed.data.name) || isRetiredProductSkillPath(match)) {
       log.info("Skipped retired product skill", { name: parsed.data.name, path: match })
@@ -145,9 +210,10 @@ export namespace Skill {
     }
 
     const catalog = SkillCatalog.get(parsed.data.name)
-    return {
+    const info: Info = {
       name: parsed.data.name,
       description: parsed.data.description,
+      summary: parsed.data.summary,
       location: match,
       category: parsed.data.category,
       tags: parsed.data.tags,
@@ -160,6 +226,23 @@ export namespace Skill {
       entry: parsed.data.entry,
       origin,
     }
+    return { info, content: md.content }
+  }
+
+  async function read(match: string, origin: Info["origin"]): Promise<Info | undefined> {
+    return (await parse(match, origin))?.info
+  }
+
+  /** Read current instructions at use time. Catalogs retain metadata only. */
+  export async function load(skill: Info) {
+    const loaded = await parse(skill.location, skill.origin)
+    if (!loaded || loaded.info.name !== skill.name) {
+      throw new InvalidError({
+        path: skill.location,
+        message: `Skill ${skill.name} changed or is no longer valid. Refresh Skills and select it again.`,
+      })
+    }
+    return loaded
   }
 
   const defaults = lazy(async () => {
@@ -167,48 +250,88 @@ export namespace Skill {
     const root = await BundledSkills.root()
     if (!root) return []
     const skills: Info[] = []
-    let count = 0
-    for await (const match of SKILL_GLOB.scan({
-      cwd: root,
-      absolute: true,
-      onlyFiles: true,
-      followSymlinks: false,
-    })) {
+    let scanned = 0
+    for (const match of (
+      await Array.fromAsync(
+        SKILL_GLOB.scan({
+          cwd: root,
+          absolute: true,
+          onlyFiles: true,
+          followSymlinks: false,
+        }),
+      )
+    ).toSorted()) {
       const skill = await read(match, "default")
       if (skill) skills.push(skill)
-      count++
+      scanned++
     }
-    log.info("Loaded bundled skills", { path: root, count })
+    // `count` is what the catalog exposes; `dropped` covers retired, disabled
+    // and invalid files, so a release that ships a broken skill shows up here.
+    log.info("Loaded bundled skills", { path: root, count: skills.length, dropped: scanned - skills.length })
     return skills
   })
+
+  type Meta = { roots: Root[]; shadowed: Shadowed[]; revision: number }
+  const meta = new WeakMap<Record<string, Info>, Meta>()
+  const revisions = { value: 0 }
 
   async function compute() {
     const skills: Record<string, Info> = {}
     const disabled = Flag.OPENSCIENCE_DISABLED_SKILLS
+    const shadowed: Shadowed[] = []
+    const roots: Root[] = []
+    /** Every scan below runs inside `scan(root, kind, ...)` so the catalog
+     * can say which directories contributed and how many skills each won. */
+    const scan = async (
+      root: string,
+      kind: Root["kind"],
+      work: (accept: (skill: Info) => boolean) => Promise<void>,
+    ) => {
+      const entry: Root = { path: root, kind, skills: 0, shadowed: 0 }
+      await work((skill) => {
+        const accepted = add(skill)
+        if (accepted) entry.skills += 1
+        return accepted
+      })
+      roots.push(entry)
+    }
 
-    const add = (skill: Info) => {
+    const add = (skill: Info): boolean => {
       const directory = path.basename(path.dirname(skill.location))
-      if (isRetiredProductSkillName(skill.name) || isRetiredProductSkillName(directory)) return
+      if (isRetiredProductSkillName(skill.name) || isRetiredProductSkillName(directory)) return false
       if (disabled.has(skill.name) || disabled.has(directory)) {
         log.info("Skipped skill disabled by operator policy", { name: skill.name, directory, path: skill.location })
-        return
+        return false
       }
       const existing = skills[skill.name]
       const origin = skill.origin
-      if (existing && priority[existing.origin] > priority[origin]) return
+      if (existing && priority[existing.origin] > priority[origin]) {
+        shadowed.push({ name: skill.name, location: skill.location, origin, by: existing.location })
+        existing.shadows = [...(existing.shadows ?? []), skill.location]
+        return false
+      }
       if (existing) {
-        log.warn("duplicate skill name", {
+        shadowed.push({ name: skill.name, location: existing.location, origin: existing.origin, by: skill.location })
+        skill.shadows = [...(existing.shadows ?? []), existing.location]
+        // The catalog is rebuilt on every invalidation; the same collision
+        // warned once per build is log spam, so warn once per process per
+        // pair and demote later builds to debug.
+        const pair = [skill.name, ...[existing.location, skill.location].toSorted()].join("\0")
+        const level = duplicates.has(pair) ? "debug" : "warn"
+        duplicates.add(pair)
+        log[level]("duplicate skill name", {
           name: skill.name,
           existing: existing.location,
           duplicate: skill.location,
         })
       }
       skills[skill.name] = skill
+      return true
     }
 
-    const addSkill = async (match: string, origin: Info["origin"]) => {
+    const addSkill = async (match: string, origin: Info["origin"], accept: (skill: Info) => boolean = add) => {
       const skill = await read(match, origin)
-      if (skill) add(skill)
+      if (skill) accept(skill)
     }
 
     // Scan .claude/skills/ directories (project-level)
@@ -230,7 +353,7 @@ export namespace Skill {
     })
     if (retired > 0) log.info("Removed retired Atlas agent install artifacts", { count: retired })
     if (!Flag.OPENSCIENCE_DISABLE_CLAUDE_CODE_SKILLS) {
-      for (const dir of claudeDirs) {
+      for (const dir of claudeDirs.toReversed()) {
         const matches = await Array.fromAsync(
           CLAUDE_SKILL_GLOB.scan({
             cwd: dir,
@@ -244,21 +367,27 @@ export namespace Skill {
           return []
         })
 
-        for (const match of matches) {
-          await addSkill(match, "project")
-        }
+        await scan(path.join(dir, "skills"), "project", async (accept) => {
+          for (const match of matches.toSorted()) await addSkill(match, "project", accept)
+        })
       }
 
       if (await Filesystem.isDir(globalClaude)) {
-        for await (const match of CLAUDE_SKILL_GLOB.scan({
-          cwd: globalClaude,
-          absolute: true,
-          onlyFiles: true,
-          followSymlinks: true,
-          dot: true,
-        })) {
-          await addSkill(match, "installed")
-        }
+        await scan(path.join(globalClaude, "skills"), "installed", async (accept) => {
+          for (const match of (
+            await Array.fromAsync(
+              CLAUDE_SKILL_GLOB.scan({
+                cwd: globalClaude,
+                absolute: true,
+                onlyFiles: true,
+                followSymlinks: true,
+                dot: true,
+              }),
+            )
+          ).toSorted()) {
+            await addSkill(match, "installed", accept)
+          }
+        })
       }
     }
 
@@ -276,24 +405,45 @@ export namespace Skill {
             }),
           )
         : []
-    const directories = new Set([...(await Config.executableDirectories()), ...projectDirs])
+    const projectSet = new Set(projectDirs)
+    const directories = new Set([
+      ...(await Config.executableDirectories()).filter((dir) => !projectSet.has(dir)),
+      ...projectDirs.toSorted((a, b) => a.length - b.length || a.localeCompare(b)),
+    ])
 
     // Scan .openscience/skill/ directories
     for (const dir of directories) {
-      for await (const match of OPENSCIENCE_SKILL_GLOB.scan({
-        cwd: dir,
-        absolute: true,
-        onlyFiles: true,
-        followSymlinks: true,
-      })) {
-        await addSkill(match, "project")
-      }
+      const matches = (
+        await Array.fromAsync(
+          OPENSCIENCE_SKILL_GLOB.scan({
+            cwd: dir,
+            absolute: true,
+            onlyFiles: true,
+            followSymlinks: true,
+          }),
+        )
+      ).toSorted()
+      if (!matches.length) continue
+      const origin = projectSet.has(dir) ? "project" : "user"
+      await scan(dir, origin, async (accept) => {
+        for (const match of matches) await addSkill(match, origin, accept)
+      })
     }
 
     // Default skills are an immutable release asset. Source builds scan the
     // repository tree; compiled releases materialize their embedded archive to
     // a versioned cache directory. Neither path needs Atlas or a network.
-    for (const skill of await defaults()) add(skill)
+    const bundled = await defaults().catch((error) => {
+      defaults.reset()
+      State.clear(Instance.directory, compute)
+      throw error
+    })
+    if (bundled.length) {
+      const bundledRoot = path.dirname(path.dirname(path.dirname(bundled[0]!.location)))
+      await scan(bundledRoot, "bundled", async (accept) => {
+        for (const skill of bundled) accept(skill)
+      })
+    }
 
     // === User Skills: authored locally via openscience/web, private by default ===
     for (const name of RETIRED_PRODUCT_SKILL_NAMES) {
@@ -301,15 +451,21 @@ export namespace Skill {
     }
     if (await Filesystem.isDir(USER_SKILL_DIR)) {
       let userCount = 0
-      for await (const match of SKILL_GLOB.scan({
-        cwd: USER_SKILL_DIR,
-        absolute: true,
-        onlyFiles: true,
-        followSymlinks: true,
-      })) {
-        await addSkill(match, "user")
-        userCount++
-      }
+      await scan(USER_SKILL_DIR, "user", async (accept) => {
+        for (const match of (
+          await Array.fromAsync(
+            SKILL_GLOB.scan({
+              cwd: USER_SKILL_DIR,
+              absolute: true,
+              onlyFiles: true,
+              followSymlinks: true,
+            }),
+          )
+        ).toSorted()) {
+          await addSkill(match, "user", accept)
+          userCount++
+        }
+      })
       if (userCount > 0) {
         log.info("Loaded user skills", { count: userCount })
       }
@@ -384,17 +540,29 @@ export namespace Skill {
         /* installedDir read failed — skip */
       }
 
-      for await (const match of SKILL_GLOB.scan({
-        cwd: installedDir,
-        absolute: true,
-        onlyFiles: true,
-        followSymlinks: true,
-      })) {
-        await addSkill(match, "installed")
+      const installedMatches = (
+        await Array.fromAsync(
+          SKILL_GLOB.scan({
+            cwd: installedDir,
+            absolute: true,
+            onlyFiles: true,
+            followSymlinks: true,
+          }),
+        )
+      ).toSorted()
+      const installedRoot: Root = { path: installedDir, kind: "installed", skills: 0, shadowed: 0 }
+      if (installedMatches.length) roots.push(installedRoot)
+      for (const match of installedMatches) {
+        await addSkill(match, "installed", (skill) => {
+          const accepted = add(skill)
+          if (accepted) installedRoot.skills += 1
+          return accepted
+        })
         installedCount++
         // SKILL_GLOB matches <installedDir>/<ns>/skills/<name>/SKILL.md.
-        const rel = match.slice(installedDir.length + 1)
-        const segments = rel.split("/")
+        // The glob yields native separators, so a hardcoded "/" reads one
+        // segment holding the whole relative path and the namespace misses.
+        const segments = path.relative(installedDir, match).split(path.sep)
         const ns = segments[0]
         const skillName = segments[2]
         const entrySet = entriesByNs.get(ns)
@@ -410,30 +578,156 @@ export namespace Skill {
       }
     }
 
-    // Scan additional skill paths from config
+    // Scan additional skill roots: `skills.paths` from config, then the roots
+    // registered through the API for this project (no restart needed). Both
+    // load as project skills, the highest precedence, because the user put
+    // them there on purpose.
     const config = await Config.getExecution()
-    for (const skillPath of config.skills?.paths ?? []) {
-      const expanded = skillPath.startsWith("~/") ? path.join(os.homedir(), skillPath.slice(2)) : skillPath
-      const resolved = path.isAbsolute(expanded) ? expanded : path.join(Instance.directory, expanded)
-      if (!(await Filesystem.isDir(resolved))) {
-        log.warn("skill path not found", { path: resolved })
+    const configured = (config.skills?.paths ?? []).map(resolveRoot)
+    const extra = [
+      ...configured.map((root) => ({ root, kind: "config" as const })),
+      ...[...runtimeRoots()]
+        .filter((root) => !configured.includes(root))
+        .map((root) => ({ root, kind: "runtime" as const })),
+    ]
+    for (const { root, kind } of extra) {
+      if (!(await Filesystem.isDir(root))) {
+        log.warn("skill path not found", { path: root })
         continue
       }
-      for await (const match of SKILL_GLOB.scan({
-        cwd: resolved,
-        absolute: true,
-        onlyFiles: true,
-        followSymlinks: true,
-      })) {
-        await addSkill(match, "project")
-      }
+      await scan(root, kind, async (accept) => {
+        for (const match of (
+          await Array.fromAsync(
+            SKILL_GLOB.scan({
+              cwd: root,
+              absolute: true,
+              onlyFiles: true,
+              followSymlinks: true,
+            }),
+          )
+        ).toSorted()) {
+          await addSkill(match, "project", accept)
+        }
+      })
     }
 
+    // Counts are settled once every root has been scanned: a skill accepted
+    // early can still lose to a later root, and belongs to the winner's count
+    // only while it wins.
+    const within = (location: string) =>
+      roots
+        .filter((item) => location.startsWith(`${item.path}${path.sep}`))
+        .sort((a, b) => b.path.length - a.path.length)[0]
+    for (const root of roots) {
+      root.skills = 0
+      root.shadowed = 0
+    }
+    for (const skill of Object.values(skills)) {
+      const root = within(skill.location)
+      if (root) root.skills += 1
+    }
+    for (const entry of shadowed) {
+      const root = within(entry.location)
+      if (root) root.shadowed += 1
+    }
+    revisions.value += 1
+    meta.set(skills, { roots, shadowed, revision: revisions.value })
     return skills
+  }
+
+  /** Roots registered for this project through the API; never written to
+   * disk unless the caller asked to persist them. */
+  const runtimeRoots = Instance.state(() => new Set<string>())
+
+  function resolveRoot(raw: string) {
+    const expanded = raw.startsWith("~/") ? path.join(os.homedir(), raw.slice(2)) : raw
+    return path.normalize(path.isAbsolute(expanded) ? expanded : path.join(Instance.directory, expanded))
+  }
+
+  /** Every directory contributing to the catalog, with what each one won and
+   * what it lost to a same-named skill elsewhere. */
+  export async function roots(): Promise<{ roots: Root[]; shadowed: Shadowed[]; revision: number }> {
+    const current = await state()
+    const info = meta.get(current)
+    return info ?? { roots: [], shadowed: [], revision: revisions.value }
+  }
+
+  export const RootError = NamedError.create(
+    "SkillRootError",
+    z.object({ path: z.string(), code: z.enum(["missing", "empty", "duplicate", "unknown"]), message: z.string() }),
+  )
+
+  /**
+   * Register a directory as a skill root for this project. The directory must
+   * exist and hold at least one SKILL.md (a typo'd path is the failure people
+   * hit, and it must not be a silent no-op); a root that is already active is
+   * an error rather than a second copy of every skill. With `persist`, the
+   * absolute path is written to `skills.paths` in the global or project
+   * config so it survives a restart.
+   */
+  export async function addRoot(raw: string, options: { persist?: "global" | "project" } = {}): Promise<Root> {
+    const resolved = resolveRoot(raw)
+    if (!(await Filesystem.isDir(resolved))) {
+      throw new RootError({ path: resolved, code: "missing", message: `${resolved} is not a directory` })
+    }
+    const first = await Array.fromAsync(SKILL_GLOB.scan({ cwd: resolved, onlyFiles: true, followSymlinks: true }))
+    if (!first.length) {
+      throw new RootError({ path: resolved, code: "empty", message: `${resolved} contains no SKILL.md` })
+    }
+    const active = (await roots()).roots.some((root) => root.path === resolved)
+    if (active || runtimeRoots().has(resolved)) {
+      throw new RootError({ path: resolved, code: "duplicate", message: `${resolved} is already a skill root` })
+    }
+    if (options.persist) {
+      const current =
+        options.persist === "global" ? (await Config.getGlobal()).skills?.paths : (await Config.get()).skills?.paths
+      const paths = [...(current ?? []), resolved]
+      if (options.persist === "global") await Config.updateGlobal({ skills: { paths } })
+      else await Config.update({ skills: { paths } })
+    }
+    runtimeRoots().add(resolved)
+    await invalidate()
+    log.info("skill root added", { path: resolved, persist: options.persist ?? false })
+    const found = (await roots()).roots.find((root) => root.path === resolved)
+    return found ?? { path: resolved, kind: "runtime", skills: 0, shadowed: 0 }
+  }
+
+  /** Drop a root registered at runtime, and with `persist` also remove it
+   * from the config list it was written to. */
+  export async function removeRoot(raw: string, options: { persist?: "global" | "project" } = {}) {
+    const resolved = resolveRoot(raw)
+    const known = runtimeRoots().delete(resolved)
+    let persisted = false
+    if (options.persist) {
+      const current =
+        options.persist === "global" ? (await Config.getGlobal()).skills?.paths : (await Config.get()).skills?.paths
+      const paths = (current ?? []).filter((item) => resolveRoot(item) !== resolved)
+      if (paths.length !== (current ?? []).length) {
+        persisted = true
+        if (options.persist === "global") await Config.updateGlobal({ skills: { paths } })
+        else await Config.update({ skills: { paths } })
+      }
+    }
+    if (!known && !persisted) {
+      throw new RootError({ path: resolved, code: "unknown", message: `${resolved} is not a registered skill root` })
+    }
+    await invalidate()
+    log.info("skill root removed", { path: resolved, persist: options.persist ?? false })
+  }
+
+  /** The instructions of one skill, for clients without filesystem access. */
+  export async function content(
+    name: string,
+  ): Promise<{ name: string; location: string; content: string } | undefined> {
+    const skill = await get(name)
+    if (!skill) return
+    const text = await Bun.file(skill.location).text()
+    return { name: skill.name, location: skill.location, content: text }
   }
 
   export const state = Instance.state(compute)
   const lists = new WeakMap<Record<string, Info>, Info[]>()
+  const catalogs = new WeakMap<Info[], Map<string, CatalogSnapshot>>()
 
   export async function invalidate() {
     State.clear(Instance.directory, compute)
@@ -522,15 +816,34 @@ export namespace Skill {
     return true
   }
 
-  export async function get(name: string) {
+  export async function get(name: string, options: { includeDisabled?: boolean } = {}) {
     if (isRetiredProductSkillName(name)) return undefined
+    if (!options.includeDisabled && (await selection()).has(name)) return undefined
     return state().then((x) => {
       const skill = x[name]
       return skill?.catalog_status === "blocked" ? undefined : skill
     })
   }
 
-  export async function all() {
+  export async function all(options: { includeDisabled?: boolean } = {}) {
+    if (options.includeDisabled) return entries()
+    const disabled = await selection()
+    const skills = await entries()
+    if (!disabled.size) return skills
+    return skills.filter((skill) => !disabled.has(skill.name))
+  }
+
+  async function selection() {
+    const [global, project] = await Promise.all([Config.getGlobal(), Config.get()])
+    // A project's selection can narrow the server default, not silently turn
+    // a skill back on after the user disabled it for this installation.
+    return new Map([
+      ...(project.skills?.disabled ?? []).map((name) => [name, "project"] as const),
+      ...(global.skills?.disabled ?? []).map((name) => [name, "server"] as const),
+    ])
+  }
+
+  async function entries() {
     const current = await state()
     const cached = lists.get(current)
     if (cached) return cached
@@ -539,5 +852,33 @@ export namespace Skill {
     )
     lists.set(current, value)
     return value
+  }
+
+  /** Build the single permission-annotated catalog consumed by every skill
+   * discovery surface. Skill contents stay lazy; this snapshot contains only
+   * the already-indexed frontmatter metadata. */
+  export async function catalog(permission: PermissionNext.Ruleset): Promise<CatalogSnapshot> {
+    const current = await entries()
+    const disabled = await selection()
+    const key = JSON.stringify([permission, [...disabled].sort()])
+    const cached = catalogs.get(current)?.get(key)
+    if (cached) return cached
+
+    const library = current.map((skill) => ({
+      ...skill,
+      permission_action: PermissionNext.evaluate("skill", skill.name, permission).action,
+      recommended: recommended.has(skill.name),
+      enabled: !disabled.has(skill.name),
+      disabled_by: disabled.get(skill.name),
+    }))
+    const snapshot = {
+      library,
+      allowed: library.filter((skill) => skill.enabled && skill.permission_action !== "deny"),
+    }
+    const snapshots = catalogs.get(current) ?? new Map<string, CatalogSnapshot>()
+    snapshots.set(key, snapshot)
+    if (snapshots.size > 32) snapshots.delete(snapshots.keys().next().value!)
+    catalogs.set(current, snapshots)
+    return snapshot
   }
 }

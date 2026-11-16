@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/publication-stage-response.schema.json",
+  "title": "PaperSpine5 W5-W6 stage service response",
+  "type": "object",
+  "required": ["contract", "contract_version", "operation", "task_id", "revision_id", "status", "blockers", "artifact_descriptors", "invalidated_artifacts", "next_stage", "details", "external_action_authorized", "response_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.publication-stage-response"},
+    "contract_version": {"const": "1.0"},
+    "operation": {"enum": ["evaluate_figure_intent", "bind_canonical", "review_revision", "compile_package"]},
+    "task_id": {"type": "string"},
+    "revision_id": {"type": "string"},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "blockers": {"type": "array", "items": {"type": "object", "required": ["code", "message"], "properties": {"code": {"type": "string", "minLength": 1}, "message": {"type": "string", "minLength": 1}, "path": {"type": "string"}}, "additionalProperties": false}},
+    "artifact_descriptors": {"type": "array", "items": {"type": "object", "required": ["artifact_id", "artifact_type", "task_id", "revision_id", "sha256", "status", "payload", "external_action_authorized"], "properties": {"artifact_id": {"type": "string", "minLength": 1}, "artifact_type": {"type": "string", "minLength": 1}, "task_id": {"type": "string", "minLength": 1}, "revision_id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "status": {"enum": ["PASS", "BLOCKED"]}, "payload": {"type": "object"}, "external_action_authorized": {"const": false}}, "additionalProperties": false}},
+    "invalidated_artifacts": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "next_stage": {"type": "string", "minLength": 1},
+    "details": {"type": "object"},
+    "external_action_authorized": {"const": false},
+    "response_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": false
+}

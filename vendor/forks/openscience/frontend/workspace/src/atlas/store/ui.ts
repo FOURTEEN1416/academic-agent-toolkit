@@ -3,7 +3,7 @@ import { createStore } from "solid-js/store"
 import { normalizeStoredArtifact, type StoredArtifact } from "@/artifacts/store"
 import { defaultWorkspaceScope, projectScope, workspaceScope } from "./scope"
 
-export type RightPaneTab = "files" | "terminal" | "canvas" | "kernels" | "trace"
+export type RightPaneTab = "files" | "terminal" | "canvas" | "kernels" | "autoresearch" | "trace"
 export type RightPaneMode = "artifact" | "tools"
 export type ContextTab = RightPaneTab | "artifact"
 export type ArtifactPaneTab = "details" | "code" | "run" | "messages" | "environment" | "review" | "history"
@@ -29,6 +29,8 @@ export interface ContextFile {
   path: string
   name: string
   scope?: "session" | "auto"
+  /** Scratch and conversation links keep the session that authorized them. */
+  sessionID?: string
   external?: boolean
 }
 
@@ -70,7 +72,7 @@ interface TransientState {
 // User-selectable agents. A previously-persisted agent that no longer exists (e.g. a
 // removed mode) falls back to the default rather than sending an invalid agent.
 const VALID_AGENTS = new Set(["research", "biology", "physics", "ml", "plan"])
-const TABS = new Set<RightPaneTab>(["files", "terminal", "canvas", "kernels", "trace"])
+const TABS = new Set<RightPaneTab>(["files", "terminal", "kernels", "autoresearch", "trace"])
 const ARTIFACT_TABS = new Set<ArtifactPaneTab>([
   "details",
   "code",
@@ -114,10 +116,10 @@ function normalize(value: string) {
   return `${prefix}${parts.join("/")}` || prefix || "."
 }
 
-export function resolveContextFile(
+function resolveContextFile(
   directory: string,
   path: string,
-  options?: { scope?: "project" | "session" | "auto" },
+  options?: { scope?: "project" | "session" | "auto"; sessionID?: string },
 ): ContextFile {
   const root = normalize(directory).replace(/\/+$/, "") || "/"
   const input = slash(path)
@@ -128,6 +130,7 @@ export function resolveContextFile(
       path: sessionPath,
       name: sessionPath.split("/").pop() || sessionPath,
       scope: options.scope,
+      ...(options.sessionID ? { sessionID: options.sessionID } : {}),
     }
   }
   const absolute = input.startsWith("/") || /^[A-Za-z]:\//.test(input)
@@ -148,6 +151,7 @@ export function resolveContextFile(
     path: full,
     name: full.split("/").pop() || full,
     external: true,
+    ...(options?.sessionID ? { sessionID: options.sessionID } : {}),
   }
 }
 
@@ -161,13 +165,14 @@ function restoreFile(value: unknown) {
   if (!row || typeof row.directory !== "string" || typeof row.path !== "string") return
   const file = resolveContextFile(row.directory, row.path, {
     scope: row.scope === "session" || row.scope === "auto" ? row.scope : "project",
+    sessionID: typeof row.sessionID === "string" && row.sessionID !== "new" ? row.sessionID : undefined,
   })
   if (row.external === true) return { ...file, external: true }
   return file
 }
 
 function fileKey(file: ContextFile) {
-  return `${file.scope ?? "project"}\n${file.directory}\n${file.path}`
+  return `${file.scope ?? "project"}\n${file.directory}\n${file.path}${file.sessionID ? `\n${file.sessionID}` : ""}`
 }
 
 function viewTab(context: ContextTab): WorkTab {
@@ -180,7 +185,7 @@ function viewTab(context: ContextTab): WorkTab {
 
 function fileTab(file: ContextFile): WorkTab {
   return {
-    id: `file:${file.scope ? `${file.scope}:` : ""}${encodeURIComponent(file.directory)}:${encodeURIComponent(file.path)}`,
+    id: `file:${file.scope ? `${file.scope}:` : ""}${file.sessionID ? `${encodeURIComponent(file.sessionID)}:` : ""}${encodeURIComponent(file.directory)}:${encodeURIComponent(file.path)}`,
     kind: "file",
     file,
   }
@@ -299,8 +304,13 @@ function restore(storage: ContextStorage | undefined) {
 }
 
 function browserStorage(): ContextStorage | undefined {
-  if (typeof localStorage === "undefined") return
-  return localStorage
+  // Reading the `localStorage` global is itself what throws when storage is
+  // blocked, and `typeof` invokes the same getter, so it cannot guard the read.
+  try {
+    return globalThis.localStorage
+  } catch {
+    return undefined
+  }
 }
 
 function readAgent(): string {
@@ -317,6 +327,7 @@ export function createContextState(options: { storage?: ContextStorage } = {}) {
   const [store, setStore] = createStore({
     scope: defaultWorkspaceScope(),
     transientScope: workspaceScope("__workspace__", "new"),
+    sessionID: "new",
     scopes: restore(storage) as Record<string, ContextState>,
     transient: {} as Record<string, TransientState>,
   })
@@ -420,9 +431,17 @@ export function createContextState(options: { storage?: ContextStorage } = {}) {
     if (state.open && state.activeWorkTab === id) return
     update(select(state, tabs, id))
   }
-  const openFile = (directory: string, path: string, options?: { scope?: "project" | "session" | "auto" }) => {
+  const openFile = (
+    directory: string,
+    path: string,
+    options?: { scope?: "project" | "session" | "auto"; sessionID?: string },
+  ) => {
     const state = current()
-    const file = resolveContextFile(directory, path, options)
+    const session = options?.sessionID ?? store.sessionID
+    const file = resolveContextFile(directory, path, {
+      ...options,
+      sessionID: session === "new" ? undefined : session,
+    })
     const existing = state.files ?? []
     const known = existing.some((item) => fileKey(item) === fileKey(file))
     const files = known ? existing : [...existing, file]
@@ -498,7 +517,7 @@ export function createContextState(options: { storage?: ContextStorage } = {}) {
         setStore("scopes", scope, store.scopes[legacy])
         persist()
       }
-      setStore({ scope, transientScope: legacy })
+      setStore({ scope, transientScope: legacy, sessionID: session })
     },
     context,
     open: () => current().open,
@@ -535,13 +554,12 @@ export function createContextState(options: { storage?: ContextStorage } = {}) {
       update({ ...current(), artifactPaneTab: tab })
     },
     prefill: () => transient().prefill,
-    setPrefill(prefill: string | undefined) {
-      updateTransient({ ...transient(), prefill })
+    /** One write for text and send flag: the composer's prefill effect runs on
+     * the first, so two writes would send with the stale flag. */
+    setPrefill(prefill: string | undefined, send = false) {
+      updateTransient({ ...transient(), prefill, send })
     },
     prefillSend: () => transient().send,
-    setPrefillSend(send: boolean) {
-      updateTransient({ ...transient(), send })
-    },
   }
 }
 
@@ -596,5 +614,4 @@ export const uiStore = {
   prefill: state.prefill,
   setPrefill: state.setPrefill,
   prefillSend: state.prefillSend,
-  setPrefillSend: state.setPrefillSend,
 }

@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src" / "scripts"))
 from structured_review import (
     StructuredReviewReport,
     extract_sections,
+    generate_integrated_review_brief,
     generate_structured_review,
     to_markdown,
     validate_review,
@@ -82,6 +83,105 @@ class StructuredReviewTests(unittest.TestCase):
         finally:
             Path(name).unlink(missing_ok=True)
 
+    def test_balanced_brief_is_honestly_pending(self) -> None:
+        tex = _mktemp_tex(r"\section{Results} Evidence.\section{Discussion} Meaning.")
+        out_dir = _make_out_dir(**{
+            "paper_spine_config.json": '{"review_policy": "balanced"}',
+        })
+        try:
+            brief = generate_integrated_review_brief(out_dir, tex)
+            review_path = out_dir / "structured_review.md"
+            review_path.write_text(brief, encoding="utf-8")
+            self.assertIn("PENDING_EDITORIAL_REVIEW", brief)
+            self.assertNotIn("[LLM:", brief)
+            self.assertNotIn("Overall score: 0/100", brief)
+            self.assertFalse(validate_review(review_path)["ok"])
+        finally:
+            tex.unlink(missing_ok=True)
+
+    def test_balanced_free_form_editor_synthesis_passes(self) -> None:
+        out_dir = _make_out_dir(**{
+            "paper_spine_config.json": '{"review_policy": "balanced"}',
+        })
+        review_path = out_dir / "structured_review.md"
+        synthesis = (
+            "The manuscript presents one clear contribution and carries it from the introduction "
+            "through the primary comparison. Results now explain why each analysis is needed, surface "
+            "the decisive quantitative anchors, and bridge between figures without reading like captions. "
+            "The Discussion synthesizes prior work, alternatives, limitations, and implications. The final "
+            "paragraph closes the research arc, and the rendered figure order supports rather than interrupts "
+            "the reading sequence. Remaining stylistic choices are editorial preferences, not claim defects."
+        )
+        review_path.write_text(
+            "# Integrated Editorial Review\n\n- Review status: PASS\n\n"
+            "## Editor synthesis\n\n" + synthesis + "\n",
+            encoding="utf-8",
+        )
+        self.assertTrue(validate_review(review_path)["ok"])
+
+    def test_balanced_not_ready_status_cannot_pass_by_substring(self) -> None:
+        out_dir = _make_out_dir(**{
+            "paper_spine_config.json": '{"review_policy": "balanced"}',
+        })
+        review_path = out_dir / "structured_review.md"
+        review_path.write_text(
+            "# Integrated Editorial Review\n\n- Review status: NOT READY\n\n"
+            "## Editor synthesis\n\n" + ("Substantive manuscript-level assessment. " * 12),
+            encoding="utf-8",
+        )
+        result = validate_review(review_path)
+        self.assertFalse(result["ok"])
+        self.assertTrue(any("not PASS" in item for item in result["findings"]))
+
+    def test_balanced_major_revision_recommendation_blocks_pass(self) -> None:
+        out_dir = _make_out_dir(**{
+            "paper_spine_config.json": '{"review_policy": "balanced"}',
+        })
+        review_path = out_dir / "structured_review.md"
+        review_path.write_text(
+            "# Integrated Editorial Review\n\n- Review status: PASS\n"
+            "- Recommendation: Major Revision\n\n## Editor synthesis\n\n"
+            + ("Substantive manuscript-level assessment. " * 12),
+            encoding="utf-8",
+        )
+        result = validate_review(review_path)
+        self.assertFalse(result["ok"])
+        self.assertTrue(any("contradicts PASS" in item for item in result["findings"]))
+
+    def test_balanced_unresolved_synthesis_blocker_blocks_pass(self) -> None:
+        out_dir = _make_out_dir(**{
+            "paper_spine_config.json": '{"review_policy": "balanced"}',
+        })
+        review_path = out_dir / "structured_review.md"
+        review_path.write_text(
+            "# Integrated Editorial Review\n\n- Review status: PASS\n\n"
+            "## Editor synthesis\n\nThe paper is not submission-ready because an unresolved blocker "
+            + ("still invalidates the central claim. " * 12),
+            encoding="utf-8",
+        )
+        result = validate_review(review_path)
+        self.assertFalse(result["ok"])
+        self.assertTrue(any("scientific/editorial blocker" in item for item in result["findings"]))
+
+    def test_balanced_negated_unresolved_blocker_does_not_false_block(self) -> None:
+        out_dir = _make_out_dir(**{
+            "paper_spine_config.json": '{"review_policy": "balanced"}',
+        })
+        review_path = out_dir / "structured_review.md"
+        synthesis = (
+            "The manuscript now carries its central claim through the evidence and discussion. "
+            "There are no unresolved blockers, and the main result is calibrated to the reported "
+            "support. Figures follow the reading order, limitations bound generalization, and the "
+            "ending completes the research arc. Remaining changes concern phrasing and typesetting "
+            "only; they do not alter the contribution, evidence identity, or target-facing argument."
+        )
+        review_path.write_text(
+            "# Integrated Editorial Review\n\n- Review status: PASS\n\n"
+            "## Editor synthesis\n\n" + synthesis,
+            encoding="utf-8",
+        )
+        self.assertTrue(validate_review(review_path)["ok"])
+
     def test_validate_review_complete(self) -> None:
         text = (
             "Methods & Reproducibility Reviewer\nfindings here\n"
@@ -90,14 +190,13 @@ class StructuredReviewTests(unittest.TestCase):
             "Editor Synthesis\nfindings here\n"
             "supported by evidence\n"
         )
-        fd, name = tempfile.mkstemp(suffix=".md")
-        os.write(fd, text.encode("utf-8"))
-        os.close(fd)
-        try:
-            result = validate_review(Path(name))
-            self.assertTrue(result["ok"], msg=str(result.get("findings", [])))
-        finally:
-            Path(name).unlink(missing_ok=True)
+        out_dir = _make_out_dir(**{
+            "paper_spine_config.json": '{"review_policy": "strict"}',
+        })
+        review_path = out_dir / "structured_review.md"
+        review_path.write_text(text, encoding="utf-8")
+        result = validate_review(review_path)
+        self.assertTrue(result["ok"], msg=str(result.get("findings", [])))
 
     def test_validate_missing_file(self) -> None:
         result = validate_review(Path("nonexistent.md"))

@@ -1,0 +1,73 @@
+---
+title: "Context, checkpoints, and handoffs"
+description: "Keep long investigations understandable and recoverable as a conversation grows."
+---
+
+A conversation has a finite context window. OpenScience can summarize earlier work to make room for new steps, while your project files remain the place to keep detailed methods, results, and decisions.
+
+## Inspect context usage
+
+The token counter in the session header shows how much of the model's context the conversation occupies; open it for the composition. Large attachments, long tool outputs, instructions, and conversation history all contribute to the material available to the model.
+
+Context capacity differs by model. Switching models can change how much material fits; see [Models](/openscience/models).
+
+## Compact a conversation
+
+Use `/compact` when earlier discussion is crowding out the next task. Provide a focus when the next stage depends on particular information:
+
+```text
+/compact Preserve the study design, exclusions, input paths, chosen model,
+validation results, and unresolved questions. The next step is writing.
+```
+
+Compaction summarizes earlier context. Keep exact parameter values, code, source references, and detailed tables in files rather than relying on a summary to preserve every detail.
+
+## Automatic compaction
+
+OpenScience automatically compacts a conversation as it approaches the model's usable input capacity, reserving room for the response. You do not need to choose a percentage in settings. The context indicator still shows how much of the window is in use, and `/compact` remains available whenever you want to summarize earlier work sooner.
+
+If the model offers a smaller context-window choice, that choice is retained through compaction and continuation. Automatic compaction uses that selected capacity, bounded by the model's supported limits, rather than silently expanding back to the full window.
+
+When a model prices long prompts in tiers (GPT-6 Astra doubles every input rate past 272K tokens), the default budget is the first pricing boundary, so the conversation compacts a little before it crosses into the higher tier and each later step pays the lower rate on its whole prompt. Choose **Full** in the model's context options to allow the whole window instead; the choice is kept per model.
+
+Old tool results are pruned at every turn boundary: the newest 40k tokens of tool output stay, older results become one-line summaries the model can re-run, and skill loads, saved results and the task list are never pruned. Within a long turn the same prune runs once the old output it could clear reaches a third of what the last step carried, since one rewrite of the shorter prefix is repaid within a few dozen steps; pruning rewrites earlier context, which the provider then re-reads once at the cache-write price. With the experimental `compaction.pruneInputs`, a pruned call's long string arguments (a patch body, a script) are also shortened to a preview in what the model re-reads. Up to twenty recent images travel in full with each request; past that, the older half are released together and become placeholders that can be read again (`compaction.recentImages`).
+
+A summary request is built from the conversation's own header, system blocks and tools (offered, not callable), so the provider serves the material it summarizes from the cache the conversation already wrote; a configured `agent.compaction.model` that differs from the conversation's model takes a standalone request instead. Reasoning is replayed for the work since your last message; earlier turns' reasoning is left out of requests, as the visible transcript carries the decisions.
+
+Old `compaction.threshold` and warning-level preferences are ignored. If you explicitly set `compaction.auto` to `false` in configuration, use `/compact` before the conversation becomes too large.
+
+## Save a checkpoint
+
+Use `/checkpoint` when available to capture a local recovery point before a large change or interruption. Give it a meaningful label, then inspect the response for what was saved.
+
+A checkpoint is useful context for recovery, but it does not replace backups of original data, remote resources, or independent project files. For a risky file change, preserve the files through version control or your normal backup process too.
+
+## Write a handoff
+
+Use `/handoff` when available to save a continuation note and compact the conversation. For a handoff to a new conversation or colleague, specify the content you need:
+
+```text
+Write methods/handoff.md with the objective, completed work, exact input
+and output paths, commands that passed or failed, current decisions,
+remaining tasks, and the next concrete step. Include no credentials.
+```
+
+A new conversation can start with:
+
+```text
+Read methods/handoff.md and the referenced results. Verify that the files
+exist, summarize the current state, and continue with the next step.
+```
+
+## Choose the right recovery action
+
+| Need                                | Action                                                          |
+| ----------------------------------- | --------------------------------------------------------------- |
+| More space in the same discussion   | Compact with a clear focus.                                     |
+| A local recovery point              | Save a checkpoint and review its scope.                         |
+| A human-readable continuation note  | Write a handoff file.                                           |
+| A copy of conversation history      | Use [session export](/openscience/sessions).                    |
+| A durable deliverable               | Save a [Result](/openscience/results) and its supporting files. |
+| Return to an earlier supported turn | Use Undo and review affected changes.                           |
+
+Commands surfaced as skills need those skills enabled. Check [Slash commands](/openscience/slash-commands) if an action is not offered in the picker.

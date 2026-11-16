@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:paperspine:open-release:confirmation:1.0",
+  "title": "PaperSpine Open Release Final User Confirmation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "confirmation_id", "confirmed", "confirmed_by", "confirmed_at", "manifest_sha256", "authorized_platforms", "allow_partial_release"],
+  "properties": {
+    "contract": {"const": "paperspine.open-release.confirmation"},
+    "schema_version": {"const": "1.0"},
+    "confirmation_id": {"type": "string", "minLength": 1},
+    "confirmed": {"const": true},
+    "confirmed_by": {"type": "string", "minLength": 1},
+    "confirmed_at": {"type": "string", "minLength": 1},
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authorized_platforms": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "allow_partial_release": {"type": "boolean"},
+    "confirmation_note": {"type": "string"}
+  }
+}

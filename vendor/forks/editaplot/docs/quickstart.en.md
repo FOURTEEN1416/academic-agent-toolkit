@@ -1,15 +1,36 @@
 # English quick start
 
-## The 30-second version
+## Make your first figure
 
-Requirements: a physical Windows 10/11 x64 computer, 64-bit CPython 3.10–3.12, and a local
-Origin/OriginPro version in the 2021–2026b compatibility target. Origin 2024b (10.15) is the only
-current fully verified live baseline; other target versions receive a compatibility result after a
-local handshake, real smoke test, and template capability check. Origin 2020b and earlier, macOS,
+For a first run, I suggest three steps: **download the complete repository → let Codex install
+and check it → attach a table, confirm the meaning, and draw**. You do not need to learn Git or
+type the plotting commands yourself. Give Codex this prompt:
+
+```text
+Download and keep the complete latest main repository, including runtime, from
+https://github.com/hang-jin/editaplot. Run editaplot.cmd setup and doctor.
+Ask before installing Python; do not install or modify Origin.
+Then use $editaplot to inspect my table read-only, recommend charts, and ask me to confirm before drawing.
+Save editable OPJU, PNG, PDF, TIF and verification results in a new folder beside the original data.
+```
+
+Already installed? Start a new conversation, attach your data, and ask `$editaplot` to inspect
+it read-only. The requirements and details below are here when you need them, not a list to memorize.
+
+## Environment and installation details
+
+Requirements: a physical Windows 10/11 x64 computer, 64-bit CPython 3.11 or 3.12 (3.12 recommended
+for new installations), and a local Origin/OriginPro version in the 2021–2026b compatibility target.
+The current CPython 3.12.14 + Pillow 13.0.0 + Origin 2024b (10.15.132) baseline has passed smoke,
+six representative renders, and independent saved-project reopen checks, not every route or version.
+Python 3.11 has no live-verification claim; the older 3.10 record remains historical evidence.
+Other environments still require local capability checks. Origin 2020b and earlier, macOS,
 Linux, WSL, Wine/CrossOver, Parallels, and other VMs are unsupported.
 
-I currently publish 41 Origin plotting routes and retain 50 fully reviewed PNGs as verification
-assets. The public page displays 48 cases. The new 3D dual-density route accepts only upstream
+I currently publish 45 Origin plotting routes and retain 54 native-export PNGs in the asset
+inventory. The public page displays one representative per template, for 45 images. The other nine
+palette or mode examples retain their images, sample data, and plotting capabilities: all three
+SHAP palettes, steady-state PL, and PR curves remain selectable, for example. The 3D dual-density route accepts only upstream
 supplied density profiles and one Z=0 baseline focal locator per group; it does not run KDE or infer
 peaks or intersections. For heatmaps, the page shows only the real Origin-rendered
 30×30 dense example; the smaller matrix and 40×40 cases remain regression history rather than
@@ -19,15 +40,24 @@ Download the **complete repository** and run this from its root:
 
 ```powershell
 .\editaplot.cmd setup
+.\editaplot.cmd doctor
 ```
 
 Do not copy only `skill/editaplot`; it does not contain the rendering runtime. Git users can clone
 the repository. Everyone else can download the Source ZIP without a GitHub account and extract it
 in full. See the [installation guide](installation.md).
 
-The launcher reuses an existing 64-bit CPython 3.10–3.12 first. If none exists, the Skill must
+The launcher reuses an existing 64-bit CPython 3.11/3.12 first. If none exists, the Skill must
 explain the system-level change and obtain explicit consent before installing official Python 3.12
 in user scope with winget. It never installs Origin automatically.
+
+The secure dependency lock now uses Pillow 13.0.0 and excludes Python 3.10. Existing users can
+update the complete repository and rerun `setup`: a compatible interpreter builds the new environment,
+while the old one is retained under `.editaplot-venv.retained-*` without changing global Python.
+Missing compatible Python or failed installation stops the upgrade; it never falls back to an older
+Pillow, and retained backups are not automatically selected for execution.
+If an older plan reports `analysis_changed`, repeat understanding and confirmation and generate
+a new plan; do not hand-edit its JSON.
 
 Codex needs only scoped access: read the complete repository, selected table, and optional reference
 image; write to the repository, the current user's `$HOME\.codex\skills\editaplot`, and the source

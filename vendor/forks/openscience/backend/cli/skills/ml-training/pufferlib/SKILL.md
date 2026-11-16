@@ -4,7 +4,13 @@ description: High-performance reinforcement learning framework optimized for spe
 category: ml-training
 license: MIT license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/pufferlib
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # PufferLib - High-Performance Reinforcement Learning

@@ -52,8 +52,8 @@ For each section, execute:
 
 **Step D — Rewrite move by move.** Write each move as a unit:
 - Open the move the same way the model paper does (reuse structural pattern, not words)
-- Match data density (if model paper's equivalent move has no numbers, neither should ours)
-- Maintain claim strength consistent with model paper
+- Match information density to the current scientific question and official article requirements. A model paragraph without numbers does not justify deleting necessary quantitative findings.
+- Calibrate claim strength to this study's evidence, uncertainty and design; use the model paper to study expression, not to inherit its evidential strength.
 - After each move, verify: does this paragraph fulfill the move's communicative purpose?
 
 **Step E — Section-level check.** After rewriting all moves:
@@ -77,8 +77,8 @@ After all sections rewritten, read the full draft. Fix:
 ## Phase 3: Numerical Audit (Mandatory)
 
 Extract every numerical value from the revised draft. For each:
-- **Source**: original draft / deep-read paper N / neither
-- If "neither" → **DELETE** and replace with qualitative language or `[NEED DATA]` placeholder
+- **Source**: locate the value in authorized user results, the original draft, a verified literature statement, or an authorized deterministic calculation; distinguish this study's results from cited background.
+- If the source cannot be established, investigate the specific discrepancy and omit or qualify only the unsupported value; do not delete a legitimate result merely because it is absent from the original draft or the selected exemplars.
 - If from original draft → verify value was not altered
 
 Save audit table in `revision_1_literature.md`.

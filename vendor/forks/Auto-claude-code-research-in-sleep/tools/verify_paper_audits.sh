@@ -217,7 +217,8 @@ if not isinstance(data, dict):
 
 try:
 
-    # Required fields
+    # Required keys: reviewer_reasoning may be null when the transport cannot
+    # report actual effort. Model identities are independently checked below.
     for k in REQUIRED:
         if k not in data:
             issues.append(f"missing_field:{k}")
@@ -279,7 +280,16 @@ try:
                 # genuinely deterministic audit type exists AND binds its report.
                 issues.append(
                     f"deterministic_reviewer_not_allowed_for_semantic_audit:{expected_skill}")
-        if data.get("acceptance_status") != expected_acceptance:
+        # New routes keep negative/incomplete review outcomes provisional.
+        # Older cross-family artifacts used accepted for review evidence even
+        # with a negative verdict. Both remain readable for blocking outcomes;
+        # neither can bypass the substantive FAIL/ERROR/BLOCKED gate below.
+        blocking_cross_family_provisional = (
+            independence == "cross-family"
+            and verdict in ("FAIL", "ERROR", "BLOCKED")
+            and data.get("acceptance_status") == "provisional"
+        )
+        if data.get("acceptance_status") != expected_acceptance and not blocking_cross_family_provisional:
             issues.append(
                 f"acceptance_status_mismatch:{data.get('acceptance_status')}_vs_{expected_acceptance}")
 

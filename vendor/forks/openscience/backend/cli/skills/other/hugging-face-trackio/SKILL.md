@@ -3,10 +3,18 @@ name: hugging-face-trackio
 description: Track and visualize ML training experiments with Trackio. Use when logging metrics during training (Python API) or retrieving/analyzing logged metrics (CLI). Supports real-time dashboard visualization, HF Space syncing, and JSON output for automation.
 category: other
 version: 1.0.0
-author: Synthetic Sciences
+author: Hugging Face
 license: Apache-2.0
 tags: [Hugging Face, Experiment Tracking, Logging, Metrics]
 dependencies: [trackio, huggingface-hub]
+metadata:
+  upstream: huggingface/skills
+  upstream-url: https://github.com/huggingface/skills
+  upstream-path: skills/huggingface-trackio
+  upstream-license: Apache-2.0
+  upstream-relationship: derived
+  skill-author: Hugging Face
+  adapted-by: Synthetic Sciences
 ---
 
 # Trackio - Experiment Tracking for ML Training

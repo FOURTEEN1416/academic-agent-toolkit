@@ -13,7 +13,16 @@ from .coordinator import IntegrationCoordinator
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="PaperSpine × PaperFigure V5 integration coordinator")
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for command in ("validate", "init", "advance", "resume", "status", "body-contract", "workflow"):
+    for command in (
+        "validate",
+        "init",
+        "advance",
+        "resume",
+        "status",
+        "body-contract",
+        "workflow",
+        "manuscript-status",
+    ):
         current = subparsers.add_parser(command)
         current.add_argument("job")
         if command == "init":
@@ -29,6 +38,18 @@ def parse_args() -> argparse.Namespace:
     publication_invoke = subparsers.add_parser("publication-cycle-invoke")
     publication_invoke.add_argument("job")
     publication_invoke.add_argument("request")
+    manuscript_revision = subparsers.add_parser("manuscript-revision")
+    manuscript_revision.add_argument("job")
+    manuscript_revision.add_argument("revision")
+    manuscript_restore = subparsers.add_parser("manuscript-restore")
+    manuscript_restore.add_argument("job")
+    manuscript_restore.add_argument("request")
+    manuscript_confirm = subparsers.add_parser("manuscript-confirm")
+    manuscript_confirm.add_argument("job")
+    manuscript_confirm.add_argument("confirmation")
+    issue_resolve = subparsers.add_parser("issue-resolve")
+    issue_resolve.add_argument("job")
+    issue_resolve.add_argument("resolution")
     host_next = subparsers.add_parser("host-next")
     host_next.add_argument("job")
     host_next.add_argument("--host", choices=("codex", "claude-code", "dsh", "standalone-skill"))
@@ -76,6 +97,16 @@ def main() -> int:
                 result = coordinator.publication_cycle_snapshot()
             elif args.command == "publication-cycle-invoke":
                 result = coordinator.invoke_publication_cycle(load_json(args.request))
+            elif args.command == "manuscript-status":
+                result = coordinator.manuscript_snapshot()
+            elif args.command == "manuscript-revision":
+                result = coordinator.save_manuscript_revision(load_json(args.revision))
+            elif args.command == "manuscript-restore":
+                result = coordinator.restore_manuscript_revision(load_json(args.request))
+            elif args.command == "manuscript-confirm":
+                result = coordinator.confirm_manuscript_revision(load_json(args.confirmation))
+            elif args.command == "issue-resolve":
+                result = coordinator.resolve_user_input_issue(load_json(args.resolution))
             elif args.command == "host-next":
                 result = coordinator.host_next(args.host)
             else:  # pragma: no cover

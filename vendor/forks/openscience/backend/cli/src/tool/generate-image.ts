@@ -1,8 +1,6 @@
 import path from "node:path"
 import z from "zod"
 import { Tool } from "./tool"
-import { Provider } from "@/provider/provider"
-import { OpenScience } from "@/openscience"
 import { Instance } from "@/project/instance"
 import { SafeFileIO } from "@/file/safe-io"
 import { assertExternalDirectory, sessionToolDirectory } from "./external-directory"
@@ -12,12 +10,41 @@ import { Bus } from "@/bus"
 import { File } from "@/file"
 import { FileWatcher } from "@/file/watcher"
 import { Network } from "@/settings/network"
+import { ImageRoute } from "./image-route"
+import { OpenScience } from "@/openscience"
 
+/** What one image render can cost on Ace at the largest size, in cents: the
+ * floor below which a render is refused before it is requested. */
+const RENDER_FLOOR_CENTS = 50
 const MAX_IMAGE_BYTES = 30 * 1024 * 1024
 const MAX_IMAGE_RESPONSE_BYTES = Math.ceil(MAX_IMAGE_BYTES / 3) * 4 + 1024 * 1024
 const MAX_IMAGE_ERROR_BYTES = 1024 * 1024
 const MAX_IMAGE_ATTACHMENT_BYTES = 8 * 1024 * 1024
-const DEFAULT_MODEL = "google/gemini-3-pro-image"
+const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif"]
+/** Nano Banana Pro accepts up to 14 reference images per request. */
+const MAX_REFERENCES = 14
+
+/** GPT Image 2 takes any size whose edges are multiples of 16 within a 3:1
+ * ratio and 655,360–8,294,400 pixels; these are the requested aspect ratios
+ * at the working (1K) and print (2K) scales, and the true 4K frame where the
+ * pixel ceiling allows one. */
+const OPENAI_SIZES: Record<string, { "1K": string; "2K": string; "4K": string }> = {
+  "1:1": { "1K": "1024x1024", "2K": "2048x2048", "4K": "2048x2048" },
+  "3:2": { "1K": "1536x1024", "2K": "3072x2048", "4K": "3072x2048" },
+  "2:3": { "1K": "1024x1536", "2K": "2048x3072", "4K": "2048x3072" },
+  "4:3": { "1K": "1408x1056", "2K": "2816x2112", "4K": "2816x2112" },
+  "3:4": { "1K": "1056x1408", "2K": "2112x2816", "4K": "2112x2816" },
+  "16:9": { "1K": "1536x864", "2K": "3072x1728", "4K": "3840x2160" },
+  "9:16": { "1K": "864x1536", "2K": "1728x3072", "4K": "2160x3840" },
+  "21:9": { "1K": "1792x768", "2K": "3584x1536", "4K": "3584x1536" },
+}
+
+function mimeOf(extension: string | undefined) {
+  if (extension === ".webp") return "image/webp"
+  if (extension === ".gif") return "image/gif"
+  if (extension === ".jpg" || extension === ".jpeg") return "image/jpeg"
+  return "image/png"
+}
 
 function normalizedInputPath(value: string | undefined) {
   if (!value) return
@@ -50,6 +77,14 @@ type OpenRouterImage = {
     message?: {
       images?: unknown[]
       content?: unknown
+    }
+  }>
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        inlineData?: { data?: string; mimeType?: string }
+        inline_data?: { data?: string; mime_type?: string }
+      }>
     }
   }>
   error?:
@@ -114,6 +149,23 @@ function decodeImage(value: string) {
 }
 
 export function extractGeneratedImage(value: OpenRouterImage) {
+  const part = value.candidates
+    ?.flatMap((candidate) => candidate.content?.parts ?? [])
+    .find((item) => {
+      const data = item.inlineData?.data ?? item.inline_data?.data
+      return typeof data === "string" && data.length > 0
+    })
+  const inline =
+    part?.inlineData ??
+    (part?.inline_data ? { data: part.inline_data.data, mimeType: part.inline_data.mime_type } : undefined)
+  if (inline?.data) {
+    const mime = inline.mimeType ?? "image/png"
+    if (!/^image\/(?:png|jpeg|webp|gif)$/.test(mime)) {
+      throw new Error(`The image model returned an unsupported image format (${mime}).`)
+    }
+    return { mime, bytes: decodeImage(inline.data) }
+  }
+
   const generated = value.data?.find((item) => typeof item.b64_json === "string" && item.b64_json.length > 0)
   if (generated?.b64_json) {
     const mime = generated.media_type ?? "image/png"
@@ -201,9 +253,13 @@ async function materializeImage(
     { signal: AbortSignal.any([signal, AbortSignal.timeout(120_000)]) },
     { authorize, maxResponseBytes: MAX_IMAGE_BYTES, streamResponse: true },
   )
-  if (!response.ok) throw new Error(`The generated image could not be downloaded (${response.status}).`)
+  if (!response.ok) {
+    await response.body?.cancel().catch(() => {})
+    throw new Error(`The generated image could not be downloaded (${response.status}).`)
+  }
   const mime = response.headers.get("content-type")?.split(";")[0]?.trim() ?? ""
   if (!/^image\/(?:png|jpeg|webp|gif)$/.test(mime)) {
+    await response.body?.cancel().catch(() => {})
     throw new Error(`The generated image URL returned an unsupported format (${mime || "unknown"}).`)
   }
   const bytes = await readBoundedImageResponse(response, MAX_IMAGE_BYTES)
@@ -232,37 +288,115 @@ export function generatedImageAttachments(input: {
   ]
 }
 
-function requestError(status: number, body: OpenRouterImage | undefined, raw: string, managed: boolean) {
+/**
+ * The framing every scientific diagram is rendered under. Adapted from
+ * K-Dense Inc.'s scientific-schematics skill (MIT), whose renders read as
+ * paper figures because the model is told the publication standards on every
+ * call rather than left to infer them from the description.
+ */
+export const SCHEMATIC_GUIDELINES = `Create a publication-quality scientific diagram with these requirements.
+
+VISUAL QUALITY:
+- Clean white background (no textures, gradients, shadows or 3D effects)
+- High contrast for readability and printing
+- Sharp, clear lines and text; flat shapes with consistent line weight
+- Adequate spacing between elements to prevent crowding
+
+TYPOGRAPHY:
+- One clear sans-serif font (Arial or Helvetica style) throughout
+- Every label large enough to read at the printed column width; consistent sizes
+- All text horizontal, spelled exactly as given, with no overlapping text
+- Sentence case; units in parentheses where applicable
+
+SCIENTIFIC STANDARDS:
+- Show exactly the components and connections described, with the labels given verbatim
+- Do not invent components, numbers, tables, citations or filler labels
+- Use standard scientific notation and symbols; scale bars, legends or axes only where the description asks
+
+ACCESSIBILITY:
+- Colorblind-safe palette (Okabe-Ito) with one accent colour for the emphasised element and grey for context
+- Redundant encoding (shape and colour, not colour alone); must still read in grayscale
+
+LAYOUT:
+- One reading direction as described (left-to-right or top-to-bottom), clear visual hierarchy
+- Balanced composition with purposeful whitespace; no decorative icons, illustrations or clutter
+- Arrows connect exactly the elements named, in the direction named, none duplicated
+
+DO NOT ADD FIGURE NUMBERS OR CAPTIONS:
+- No "Figure 1", "Fig. 1", title banner or caption text inside the image; the document adds those
+- The image contains only the diagram itself`
+
+/** The framing for a conceptual illustration or graphical abstract: a
+ * scientific illustration, not a diagram with boxes and arrows, and not
+ * marketing art. */
+export const ILLUSTRATION_GUIDELINES = `Create a scientific illustration for a research publication with these requirements.
+
+- Clean white or very light background, flat or lightly shaded rendering, no photographic clutter
+- Restrained palette (two or three colours plus greys), high contrast, works in grayscale
+- Compose for the stated aspect ratio with purposeful whitespace; leave room for a caption if asked
+- Any text spelled exactly as given; otherwise no text, labels, watermarks, logos or figure numbers
+- Depict only what the description states; do not imply data, results or mechanisms it does not mention`
+
+export const PURPOSES = ["schematic", "illustration", "edit"] as const
+export type Purpose = (typeof PURPOSES)[number]
+
+/** The prompt actually sent: the purpose's framing, then the request. An edit
+ * carries the request alone so the instruction stays about the change. */
+export function framedPrompt(prompt: string, purpose: Purpose | undefined) {
+  if (purpose === "schematic") return `${SCHEMATIC_GUIDELINES}\n\nDIAGRAM REQUEST:\n${prompt}`
+  if (purpose === "illustration") return `${ILLUSTRATION_GUIDELINES}\n\nREQUEST:\n${prompt}`
+  return prompt
+}
+
+/** Statuses an upstream image service returns while it is briefly unable
+ * to answer; one retry after a short pause usually succeeds. */
+export const TRANSIENT_IMAGE_STATUSES = new Set([502, 503, 504, 529])
+
+function requestError(route: ImageRoute.Route, status: number, body: OpenRouterImage | undefined, raw: string) {
   const reported =
     typeof body?.error === "string"
       ? body.error
       : typeof body?.error?.message === "string"
         ? body.error.message
         : body?.message
-  const detail = (reported?.trim() || raw.trim()).replace(/\s+/g, " ").slice(0, 500)
-  if (status === 402 && managed) {
+  // A gateway's HTML error page is not a message for anyone; keep its title at most.
+  const html = /^\s*<(?:!doctype|html)/i.test(raw)
+  const detail = (reported?.trim() || (html ? (raw.match(/<title>([^<]*)<\/title>/i)?.[1] ?? "").trim() : raw.trim()))
+    .replace(/\s+/g, " ")
+    .slice(0, 500)
+  if (TRANSIENT_IMAGE_STATUSES.has(status)) {
+    const where = route.kind === "ace" ? "Ace's image service" : route.label
     return new Error(
-      "Your Ace balance does not have enough credits for this Nano Banana request. Add credits at app.syntheticsciences.ai/billing, or connect OpenRouter in Settings → Models.",
+      `${where} did not answer (HTTP ${status}${detail ? `, ${detail}` : ""}) and one retry also failed. ` +
+        `This is a transient outage on the provider side; try again in a minute, or continue with a placeholder for now.`,
     )
   }
   if (status === 402) {
-    return new Error("Your connected OpenRouter account does not have enough credit for this image request.")
+    if (route.kind === "ace")
+      return new Error(
+        "Your Ace Wallet does not have enough balance for this image. Add funds in Customize → Billing and retry.",
+      )
+    return new Error(`The account behind ${route.label} has no credit left for this image request.`)
   }
   if (status === 401 || status === 403) {
-    return new Error(
-      managed
-        ? "OpenScience could not authorize the wallet-backed image request. Reconnect your OpenScience account and retry."
-        : "OpenRouter rejected the connected key. Reconnect it in Settings → Models and retry.",
-    )
+    if (route.kind === "ace")
+      return new Error("Ace rejected the request. Sign in again in Customize → Billing and retry.")
+    return new Error(`The provider rejected ${route.label}. Reconnect it in Customize → Models and retry.`)
   }
-  return new Error(`Nano Banana request failed (${status})${detail ? `: ${detail}` : "."}`)
+  return new Error(`Image generation with ${route.model} failed (${status})${detail ? `: ${detail}` : "."}`)
 }
 
 export const GenerateImageTool = Tool.define("generate_image", {
   description:
-    "Generate or edit an image with Nano Banana through the user's connected OpenRouter key, falling back to funded OpenScience wallet Credits when managed spend is enabled. Saves the image directly in the connected workspace.",
+    "Generate or edit an image with Nano Banana Pro (Gemini 3 Pro Image) through Ace or the user's own Gemini key, or with GPT Image 2 through the user's own OpenAI key. Saves the image directly in the connected workspace.",
   parameters: z.object({
     prompt: z.string().trim().min(1).max(20_000).describe("Detailed description or editing instruction"),
+    purpose: z
+      .enum(PURPOSES)
+      .optional()
+      .describe(
+        "schematic: a method, pipeline, architecture or pathway diagram (publication framing is prepended: white background, sans-serif labels, Okabe-Ito palette, one reading direction, no figure numbers). illustration: a conceptual figure or graphical abstract. edit: change an existing image (input_path) as instructed. Omit for anything else.",
+      ),
     output_path: z
       .string()
       .trim()
@@ -279,11 +413,21 @@ export const GenerateImageTool = Tool.define("generate_image", {
       .describe(
         "Existing regular image file to edit. Omit this field entirely when generating a new image; never use a directory, '.', /dev/null, or a blank placeholder.",
       ),
-    model: z.string().trim().min(1).max(300).default(DEFAULT_MODEL).describe("OpenRouter image model ID"),
     aspect_ratio: z
-      .enum(["1:1", "3:2", "2:3", "4:3", "3:4", "16:9", "9:16"])
+      .enum(["1:1", "3:2", "2:3", "4:3", "3:4", "16:9", "9:16", "21:9"])
       .optional()
       .describe("Requested output aspect ratio"),
+    image_size: z
+      .enum(["1K", "2K", "4K"])
+      .optional()
+      .describe("Output resolution. 2K for figures that will be printed; 1K (default) while iterating."),
+    reference_paths: z
+      .array(z.string().trim().min(1).max(10_000))
+      .max(MAX_REFERENCES)
+      .optional()
+      .describe(
+        "Existing image files whose style or components the result should follow (published figures, earlier drafts). Up to 14. Distinct from input_path, which is the image being edited.",
+      ),
   }),
   normalizeInput,
   async execute(params, ctx) {
@@ -343,61 +487,70 @@ export const GenerateImageTool = Tool.define("generate_image", {
           },
         )
       : undefined
-    const inputMime = source
-      ? sourceExtension === ".webp"
-        ? "image/webp"
-        : sourceExtension === ".gif"
-          ? "image/gif"
-          : sourceExtension && [".jpg", ".jpeg"].includes(sourceExtension)
-            ? "image/jpeg"
-            : "image/png"
-      : undefined
-
-    const provider = await Provider.getProvider("openrouter").catch(() => undefined)
-    const key = typeof provider?.options?.apiKey === "string" ? provider.options.apiKey : provider?.key
-    const base =
-      typeof provider?.options?.baseURL === "string" ? provider.options.baseURL.replace(/\/+$/, "") : undefined
-    if (!provider || !key || !base) {
-      throw new Error(
-        "Nano Banana is unavailable. Connect OpenRouter in Settings → Models, or choose Credits there and sign in with a funded Ace balance.",
-      )
-    }
-
-    // This tool calls fetch directly instead of going through Provider.getSDK(),
-    // so enforce the same credential/host invariant here. The effective token,
-    // not the spend-toggle label, determines whether this is a wallet request.
-    // Otherwise a custom/stale base URL could receive the scoped thk_* token.
-    const managed = OpenScience.isManagedKeyValue(key)
-    const proxy = Provider.isAtlasProxyBaseURL(base)
-    if (managed && !proxy) {
-      throw new Error(
-        "OpenScience refused to send the wallet credential outside its managed image proxy. Run openscience sync and retry.",
-      )
-    }
-    if (!managed && proxy) {
-      throw new Error(
-        "OpenScience refused to send your connected OpenRouter key to the managed wallet proxy. Reconnect OpenRouter and retry.",
-      )
-    }
-    if (managed) {
-      const balance = await OpenScience.getBalance().catch(() => null)
-      if (balance !== null && balance <= 0) {
-        OpenScience.invalidateBalance()
-        throw new Error(
-          "Your Ace balance has no available credits for Nano Banana. Add credits at app.syntheticsciences.ai/billing, or connect OpenRouter in Settings → Models.",
-        )
+    const inputMime = source ? mimeOf(sourceExtension) : undefined
+    const references: Array<{ mime: string; data: string }> = []
+    for (const reference of params.reference_paths ?? []) {
+      const requestedReference = path.isAbsolute(reference) ? reference : path.join(directory, reference)
+      const referenceExtension = path.extname(requestedReference).toLowerCase()
+      if (!IMAGE_EXTENSIONS.includes(referenceExtension)) {
+        throw new Error(`reference_paths must name existing image files; ${reference} is not one.`)
       }
+      using referenceAccess = await assertExternalDirectory(ctx, requestedReference, { access: "read" })
+      const resolved = referenceAccess?.path ?? requestedReference
+      const bytes = await SafeFileIO.read((await referenceAccess?.revalidate()) ?? resolved, {
+        maxBytes: MAX_IMAGE_BYTES,
+      }).catch((error) => {
+        if (error instanceof SafeFileIO.LimitError)
+          throw new Error(`Reference image ${reference} exceeds the 30 MB safety limit.`)
+        if (error instanceof Error && error.message.startsWith("Only regular files can be accessed:")) {
+          throw new Error(`reference_paths must name existing image files; ${reference} is not one.`)
+        }
+        throw error
+      })
+      references.push({ mime: mimeOf(referenceExtension), data: bytes.bytes.toString("base64") })
+    }
+
+    const route = await ImageRoute.resolve()
+    if (!route) throw new Error(ImageRoute.UNAVAILABLE)
+    if (route.kind === "gemini" && extension !== ".png") {
+      throw new Error("Gemini image generation returns PNG. Use an output_path ending in .png.")
+    }
+    // Every image sent along: the one being edited first, then the style
+    // references. Ace's managed envelope accepts one per request.
+    const sources = [
+      ...(input && inputMime ? [{ mime: inputMime, data: input.bytes.toString("base64") }] : []),
+      ...references,
+    ]
+    if (route.kind === "ace" && sources.length > 1) {
+      throw new Error(
+        "Ace accepts one reference image per request: pass either input_path or a single reference_paths entry, or connect your own Gemini key for up to 14 references.",
+      )
+    }
+
+    // A render on Ace is paid from the Wallet. Three schematics once ran
+    // their 1K drafts and then failed at their 2K finals as the balance ran
+    // out mid-workflow; the check happens before the request, and the
+    // balance travels with the result so the next render can be planned.
+    const wallet =
+      route.kind === "ace"
+        ? await OpenScience.getCredits(undefined, { lifetimeSpent: false, timeoutMs: 4_000 }).catch(() => null)
+        : null
+    const available = wallet?.availableCents ?? wallet?.spendableBalanceCents
+    if (route.kind === "ace" && available !== undefined && available !== null && available < RENDER_FLOOR_CENTS) {
+      throw new Error(
+        `Your Ace Wallet has $${(available / 100).toFixed(2)} available, below the $${(RENDER_FLOOR_CENTS / 100).toFixed(2)} an image render can cost. Nothing was generated. Add funds in Customize → Ace and retry, or connect your own Gemini or OpenAI key for image generation.`,
+      )
     }
 
     await ctx.ask({
       permission: "generate_image",
-      patterns: [params.model],
+      patterns: [route.model],
       always: ["*"],
       metadata: {
-        model: params.model,
+        model: route.model,
         output,
         input: source,
-        route: managed ? "wallet" : "byok",
+        route: route.kind,
       },
     })
     await ctx.ask({
@@ -408,50 +561,125 @@ export const GenerateImageTool = Tool.define("generate_image", {
     })
 
     const format = extension === ".jpg" ? "jpeg" : extension.slice(1)
-    const headers = {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://syntheticsciences.ai",
-      "X-Title": "OpenScience",
-    }
-    const request = async (endpoint: string, payload: Record<string, unknown>) => {
-      const response = await fetch(`${base}/${endpoint}`, {
+    const authorization =
+      route.kind === "gemini"
+        ? { "x-goog-api-key": route.key }
+        : {
+            Authorization: `Bearer ${route.key}`,
+            ...(route.kind === "ace"
+              ? { "HTTP-Referer": "https://github.com/synthetic-sciences/OpenScience", "X-Title": "OpenScience" }
+              : {}),
+          }
+    const request = async (url: string, payload: Record<string, unknown> | FormData) => {
+      const requestHeaders = new Headers()
+      for (const [name, value] of Object.entries(authorization)) {
+        if (value) requestHeaders.set(name, value)
+      }
+      const body = payload instanceof FormData ? payload : JSON.stringify(payload)
+      if (!(payload instanceof FormData)) requestHeaders.set("Content-Type", "application/json")
+      const response = await fetch(url, {
         method: "POST",
-        signal: AbortSignal.any([ctx.abort, AbortSignal.timeout(120_000)]),
-        headers,
-        body: JSON.stringify(payload),
+        signal: AbortSignal.any([ctx.abort, AbortSignal.timeout(180_000)]),
+        headers: requestHeaders,
+        body,
       })
       const raw = (
         await readBoundedImageResponse(response, response.ok ? MAX_IMAGE_RESPONSE_BYTES : MAX_IMAGE_ERROR_BYTES)
       ).toString("utf8")
-      const body = (() => {
+      const parsed = (() => {
         try {
           return JSON.parse(raw) as OpenRouterImage
         } catch {
           return undefined
         }
       })()
-      return { response, raw, body }
+      return { response, raw, body: parsed }
     }
-    const direct = await request("images", {
-      model: params.model,
-      prompt: params.prompt,
-      n: 1,
-      output_format: format,
-      ...(params.aspect_ratio ? { aspect_ratio: params.aspect_ratio } : {}),
-      ...(input
-        ? {
-            input_references: [
-              {
+    const size = params.image_size ?? "1K"
+    // An edit of a supplied image keeps the instruction bare; a new schematic
+    // or illustration is framed by its purpose's publication standards.
+    const purpose = params.purpose ?? (input ? "edit" : undefined)
+    const prompt = framedPrompt(params.prompt, purpose)
+    const attempt = async () => {
+      if (route.kind === "gemini")
+        return request(`${route.base}/models/${route.model}:generateContent`, {
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: prompt },
+                ...sources.map((item) => ({ inlineData: { mimeType: item.mime, data: item.data } })),
+              ],
+            },
+          ],
+          generationConfig: {
+            responseModalities: ["IMAGE"],
+            ...(params.aspect_ratio || params.image_size
+              ? {
+                  imageConfig: {
+                    ...(params.aspect_ratio ? { aspectRatio: params.aspect_ratio } : {}),
+                    ...(params.image_size ? { imageSize: params.image_size } : {}),
+                  },
+                }
+              : {}),
+          },
+        })
+      if (route.kind === "openai") {
+        const frame = OPENAI_SIZES[params.aspect_ratio ?? "1:1"]?.[size] ?? "1024x1024"
+        const quality = size === "1K" ? "medium" : "high"
+        if (!sources.length)
+          return request(`${route.base}/images/generations`, {
+            model: route.model,
+            prompt,
+            n: 1,
+            size: frame,
+            quality,
+            output_format: format,
+          })
+        // Edits and reference-guided generations take the images as files.
+        const form = new FormData()
+        form.set("model", route.model)
+        form.set("prompt", prompt)
+        form.set("n", "1")
+        form.set("size", frame)
+        form.set("quality", quality)
+        form.set("output_format", format)
+        sources.forEach((item, index) => {
+          form.append(
+            "image[]",
+            new Blob([Buffer.from(item.data, "base64")], { type: item.mime }),
+            `reference-${index + 1}.${item.mime === "image/jpeg" ? "jpg" : item.mime.slice("image/".length)}`,
+          )
+        })
+        return request(`${route.base}/images/edits`, form)
+      }
+      return request(`${route.base}/images`, {
+        model: route.model,
+        prompt,
+        n: 1,
+        output_format: format,
+        ...(params.aspect_ratio ? { aspect_ratio: params.aspect_ratio } : {}),
+        ...(params.image_size ? { resolution: params.image_size } : {}),
+        ...(sources.length
+          ? {
+              input_references: sources.map((item) => ({
                 type: "image_url",
-                image_url: { url: `data:${inputMime};base64,${input.bytes.toString("base64")}` },
-              },
-            ],
-          }
-        : {}),
-    })
-    if (!direct.response.ok) throw requestError(direct.response.status, direct.body, direct.raw, managed)
-    if (!direct.body) throw new Error("Nano Banana returned an unreadable response.")
+                image_url: { url: `data:${item.mime};base64,${item.data}` },
+              })),
+            }
+          : {}),
+      })
+    }
+    // The image gateways sit behind proxies that occasionally answer 502/503
+    // while a backend restarts; one retry after two seconds turns most of
+    // those into a normal result instead of a failed figure.
+    const first = await attempt()
+    const direct =
+      !first.response.ok && TRANSIENT_IMAGE_STATUSES.has(first.response.status) && !ctx.abort.aborted
+        ? await Bun.sleep(2_000).then(attempt)
+        : first
+    if (!direct.response.ok) throw requestError(route, direct.response.status, direct.body, direct.raw)
+    if (!direct.body) throw new Error(`${route.model} returned an unreadable response.`)
     const approvedHosts = new Set<string>()
     const image = await materializeImage(direct.body, ctx.abort, async (input) => {
       if (approvedHosts.has(input.host)) return
@@ -470,7 +698,6 @@ export const GenerateImageTool = Tool.define("generate_image", {
     })
     await Bus.publish(File.Event.Edited, { file: output })
     await Bus.publish(FileWatcher.Event.Updated, { file: output, event: approved ? "change" : "add" })
-
     const attachments = generatedImageAttachments({
       bytes: image.bytes,
       mime: image.mime,
@@ -478,15 +705,33 @@ export const GenerateImageTool = Tool.define("generate_image", {
       sessionID: ctx.sessionID,
       messageID: ctx.messageID,
     })
+    // The receipt names the file where the reader will look for it: relative
+    // to the project when it was written there, to the session directory
+    // otherwise, never as a climb out of the session scratch.
+    const shown = [Instance.worktree, directory]
+      .map((root) => path.relative(root, output))
+      .find((rel) => rel && !rel.startsWith(".."))
+    const after =
+      route.kind === "ace"
+        ? await OpenScience.getCredits(undefined, { lifetimeSpent: false, timeoutMs: 4_000 }).catch(() => null)
+        : null
+    const left = after?.availableCents ?? after?.spendableBalanceCents
     return {
-      title: path.relative(directory, output),
-      output: `Generated ${path.basename(output)} with ${params.model} via ${managed ? "OpenScience wallet Credits" : "the connected OpenRouter key"}.`,
+      title: shown ?? path.basename(output),
+      output: `Generated ${path.basename(output)} with ${route.model} via ${route.label}.${
+        left !== undefined && left !== null
+          ? ` Wallet available after this render: $${(left / 100).toFixed(2)}${
+              left < 3 * RENDER_FLOOR_CENTS ? " (plan remaining renders against this before starting them)" : ""
+            }.`
+          : ""
+      }`,
       metadata: {
         filepath: output,
         mime: image.mime,
         size: image.bytes.byteLength,
-        model: params.model,
-        route: managed ? "wallet" : "byok",
+        model: route.model,
+        route: route.kind,
+        ...(purpose ? { purpose } : {}),
         attachment: attachments.length ? "inline" : "artifact_only",
         artifact: {
           kind: "image",

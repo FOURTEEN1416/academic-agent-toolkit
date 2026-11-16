@@ -4,9 +4,15 @@ description: Comprehensive toolkit for protein language models including ESM3 (g
 category: biology
 license: MIT license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/esm
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Protein, Embeddings, Structure Prediction, Deep Learning]
 dependencies: ["fair-esm>=2.0.0", "torch>=2.0.0", "biopython>=1.84"]
 ---

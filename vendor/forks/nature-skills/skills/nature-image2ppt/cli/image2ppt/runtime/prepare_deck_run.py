@@ -4,13 +4,14 @@ from pathlib import Path
 
 from PIL import Image
 
-from deck_run_state import now_iso, read_json, rel_to_run, save_deck, set_run_status, sha256_file, write_json
+from deck_run_state import now_iso, page_dir_for, read_json, rel_to_run, save_deck, set_run_status, sha256_file, write_json
 from deck_run_state import DEFAULT_MAX_CONCURRENT_PAGES
 from _input_normalization import normalize_inputs
 
 
 WIDE_SLIDE = {"width": 13.333, "height": 7.5, "size_mode": "wide"}
 PX_PER_INCH = 96
+MAX_SLIDE_INCHES = 56  # PowerPoint's maximum slide width/height
 ASPECT_16_9 = 16 / 9
 ASPECT_TOLERANCE = 0.03
 
@@ -27,11 +28,14 @@ def is_close_to_wide(width_px, height_px):
 
 
 def source_size_slide(width_px, height_px):
+    # PowerPoint rejects slides larger than 56 in per side, so a very large source
+    # image gets a coarser px/inch rather than an invalid <p:sldSz>.
+    px_per_inch = max(PX_PER_INCH, width_px / MAX_SLIDE_INCHES, height_px / MAX_SLIDE_INCHES)
     return {
-        "width": width_px / PX_PER_INCH,
-        "height": height_px / PX_PER_INCH,
+        "width": width_px / px_per_inch,
+        "height": height_px / px_per_inch,
         "size_mode": "source",
-        "px_per_inch": PX_PER_INCH,
+        "px_per_inch": px_per_inch,
     }
 
 
@@ -72,7 +76,7 @@ def deck_slide_layout(run_dir, deck):
 
 
 def page_request(run_dir, deck, page):
-    page_dir = (run_dir / page["page_dir"]).resolve()
+    page_dir = page_dir_for(run_dir, page)
     source, width_px, height_px = page_source_size(run_dir, page)
     slide = dict(deck["slide"])
     page_id = page["page_id"]
@@ -118,7 +122,7 @@ def write_page_jobs(run_dir, deck):
         "pages": [],
     }
     for page in deck["pages"]:
-        page_dir = run_dir / page["page_dir"]
+        page_dir = page_dir_for(run_dir, page)
         request_path = page_dir / "page_request.json"
         request = page_request(run_dir, deck, page)
         write_json(request_path, request)

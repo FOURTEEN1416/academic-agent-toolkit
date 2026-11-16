@@ -56,11 +56,63 @@ tier-specific directives mapped to the 5 detection dimensions:
 D1-Sentence Length / D2-Paragraph Structure / D3-Information Density /
 D4-Connector Frequency / D5-Term-Context Matching.
 
+**Fallback when the reference file is missing:** `humanize-tiers-{en,zh}.md`
+is not present in this repository (registered as missing upstream in
+`spine/references/UPSTREAM.md`). If the file cannot be found, apply the
+inlined tier directives below instead of stopping — they are the authoritative
+substitute and are aligned with the thresholds enforced by
+`scripts/humanize_check.py`.
+
+### Detection Dimensions (D1–D5)
+
+- **D1 — Sentence Structure (sentence length variation / burstiness):** vary
+  sentence lengths deliberately; avoid runs of near-identical sentence lengths
+  and repeated sentence openings.
+- **D2 — Paragraph Structure (paragraph similarity):** vary paragraph lengths;
+  avoid template paragraph openings, repeated 4-gram phrases, and
+  near-duplicate adjacent paragraphs.
+- **D3 — Information Density (vocabulary diversity / info anchors):** keep
+  type–token ratio healthy (EN ≥ 0.32, ZH ≥ 0.42 on ≥80-token samples); anchor
+  prose with concrete numbers, citations, and named entities instead of
+  generic filler.
+- **D4 — Connector Frequency:** keep AI-favorite connectors (EN: "however",
+  "moreover", "furthermore", "in conclusion"; ZH: "然而", "此外", "综上所述")
+  sparse — global density well under ~8 per 1,000 characters and under ~14
+  per 1,000 characters in any single paragraph; replace them with concrete
+  logical links (data, causality, referential cohesion).
+- **D5 — Term-Context Matching:** attach domain terms to specific mechanisms,
+  quantities, conditions, and results; avoid pairing technical terms with
+  generic, interchangeable context.
+
+### Tier Directives (light / medium / heavy)
+
+| Dim | light | medium | heavy |
+|---|---|---|---|
+| D1 | Enforce: vary sentence lengths and openings. | Enforce: plus avoid consecutive same-length sentence runs. | Enforce: plus mix short/medium/long rhythm in every paragraph. |
+| D2 | Advisory: report findings only. | Enforce: no repeated 4-gram clusters; vary paragraph openings and lengths. | Enforce: plus rewrite near-duplicate adjacent paragraphs. |
+| D3 | Advisory: report findings only. | Enforce: add information anchors; purge generic filler sentences. | Enforce: plus raise vocabulary diversity and claim specificity throughout. |
+| D4 | Enforce: prune the densest AI connectors. | Enforce: respect global and per-paragraph connector ceilings. | Enforce: plus replace mechanical transitions with content-bearing links. |
+| D5 | Advisory: report findings only. | Advisory: report findings only. | Enforce: every term use must carry specific context. |
+
+Required dimensions per tier (`light` = D1+D4, `medium` = D1–D4, `heavy` =
+D1–D5) match `TIER_REQUIRED_DIMENSIONS` in `scripts/humanize_check.py`; all
+tiers still report D1–D5 findings. Every applied change produces a matrix row:
+one row per writing unit for D1, per paragraph for D2, per density adjustment
+for D3 (medium+), per connector replaced for D4, and per term substitution
+for D5 (heavy only).
+
 ## Verification
 
 ```bash
-python scripts/humanize_check.py paper_rewriting_output --markdown --write
+# Resolve the script from this repository checkout, not the user's project cwd
+# (a bare `python scripts/...` path is the most common reason the command fails).
+REPO="$(git rev-parse --show-toplevel)"
+python "$REPO/academic-toolkit/skills/spine-humanize/scripts/humanize_check.py" paper_rewriting_output --markdown --write
 ```
+
+Same-name guard scripts exist in several spine skill directories (registered
+in `academic-toolkit/data/duplicate_assets_registry.json`); use this skill's
+own copy shown above.
 
 Produces `paper_rewriting_output/humanize_report.md`.  Checks matrix coverage
 against total paragraphs, scans sentence-length distribution and connector
@@ -70,3 +122,10 @@ density, and flags remaining AI patterns.
 
 In PaperSpine: called internally by rewrite and build.  Standalone in this repo:
 keep the skill directory in place under `skills/` and invoke via the repo driving protocol.
+
+Scope vs. same-domain skills: this skill is the PaperSpine-pipeline,
+tier-driven humanization step (driven by `humanize_tier`, producing
+`humanize_matrix.md` plus the `humanize_check.py` guard report). For one-off
+de-AI rewriting outside this pipeline, use `paper-humanize`; for Chinese
+8-dimension AI-feature diagnosis and competition "AI usage statement"
+generation, use `anti-ai-detection`.

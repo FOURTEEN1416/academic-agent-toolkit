@@ -4,7 +4,13 @@ description: Production-ready reinforcement learning algorithms (PPO, SAC, DQN, 
 category: ml-training
 license: MIT license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/stable-baselines3
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # Stable Baselines3

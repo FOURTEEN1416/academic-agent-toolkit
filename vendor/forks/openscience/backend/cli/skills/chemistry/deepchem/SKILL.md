@@ -4,9 +4,15 @@ description: Molecular ML with diverse featurizers and pre-built datasets. Use f
 category: chemistry
 license: MIT license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/deepchem
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Drug Discovery, Molecular ML, ADMET, Graph Neural Networks]
 dependencies: ["deepchem>=2.8.0", "torch>=2.0.0", "numpy>=1.25.0"]
 ---

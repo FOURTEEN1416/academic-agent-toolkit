@@ -6,22 +6,47 @@ test.skip(
   "requires the deterministic model supplied by test:e2e:local (or the E2E CI harness)",
 )
 
-test("model speed toggles through Research tools and reaches the prompt request", async ({
-  page,
-  sdk,
-  gotoSession,
-}) => {
+test("a custom slash command waits for a delayed command catalog", async ({ page, openSession }) => {
+  const gate = Promise.withResolvers<void>()
+  await page.route("**/command", async (route) => {
+    if (route.request().method() === "GET") await gate.promise
+    await route.continue()
+  })
+  try {
+    await openSession("delayed command catalog")
+    const command = page.waitForRequest((request) => {
+      const pathname = new URL(request.url()).pathname
+      return request.method() === "POST" && /\/session\/[^/]+\/command$/.test(pathname)
+    })
+    const completion = page.waitForResponse((response) => {
+      const pathname = new URL(response.url()).pathname
+      return response.request().method() === "POST" && /\/session\/[^/]+\/command$/.test(pathname)
+    })
+    const prompt = page.locator(promptSelector)
+    await prompt.fill("/e2e-tier-override ")
+    await page.getByRole("button", { name: "Send", exact: true }).click()
+    await expect(prompt).toHaveText("")
+    gate.resolve()
+    expect((await command).postDataJSON()).toMatchObject({ command: "e2e-tier-override", arguments: "" })
+    expect((await completion).ok()).toBe(true)
+  } finally {
+    gate.resolve()
+    await page.unroute("**/command")
+  }
+})
+
+test("model speed toggles through model options and reaches the prompt request", async ({ page, sdk, gotoSession }) => {
   await gotoSession()
 
   // Speed and thinking effort are independent. Both stay available in the
   // compact model-options popover without opening the full model catalog.
   await expect(modelRowValue(page, "speed")).resolves.toBe("Standard")
-  await expect(modelRowValue(page, "effort")).resolves.toBe("Standard")
+  await expect(modelRowValue(page, "effort")).resolves.toBe("Provider default")
 
   const send = async (tier?: string) => {
     const request = page.waitForRequest((request) => {
       const path = new URL(request.url()).pathname
-      return request.method() === "POST" && /\/session\/[^/]+\/message$/.test(path)
+      return request.method() === "POST" && path === "/runtime/prompt"
     })
     const token = `E2E_OK_${Date.now()}`
     const prompt = page.locator(promptSelector)
@@ -45,8 +70,8 @@ test("model speed toggles through Research tools and reaches the prompt request"
     )
 
   const standard = await send()
-  await expect(page).toHaveURL(/\/session\/[^/?#]+/, { timeout: 30_000 })
-  const sessionID = /\/session\/([^/?#]+)/.exec(page.url())?.[1]
+  await expect(page).toHaveURL(/\/session\/ses[^/?#]+/, { timeout: 30_000 })
+  const sessionID = /\/session\/(ses[^/?#]+)/.exec(page.url())?.[1]
   if (!sessionID) throw new Error(`Failed to parse session id from url: ${page.url()}`)
   try {
     await expect.poll(() => output(sessionID), { timeout: 20_000 }).toContain(standard)

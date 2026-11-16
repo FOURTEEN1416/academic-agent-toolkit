@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
+import { Config } from "../../src/config/config"
 import fs from "node:fs/promises"
 import path from "node:path"
 import { Provider } from "../../src/provider/provider"
@@ -7,10 +8,23 @@ import { Session } from "../../src/session"
 import { MessageV2 } from "../../src/session/message-v2"
 import { SessionPrompt } from "../../src/session/prompt"
 import { TaskAttempt, TaskCapacity } from "../../src/tool/task-attempt"
+import { normalizeTaskAttemptInput } from "../../src/tool/task"
 import { LockCoordination } from "../../src/util/lock-coordination"
 import { tmpdir, trustProject } from "../fixture/fixture"
 import { spawn } from "../fixture/spawn"
 import { STRESS_PROVIDER_ID, STRESS_PROVIDER_MODEL, stressProviderConfig } from "../fixture/stress-provider"
+
+const savedDefaults: { content?: string } = {}
+beforeEach(async () => {
+  savedDefaults.content = (await Config.getGlobalRaw()).content
+  await Config.updateGlobal(
+    { subagents: { enabled: true, tokens: 1000000, deadlineMs: 600000 } },
+    { preserveInstances: true },
+  )
+})
+afterEach(async () => {
+  if (savedDefaults.content !== undefined) await Config.replaceGlobal(savedDefaults.content)
+})
 
 const fixture = path.join(import.meta.dir, "../fixture/task-attempt-process.ts")
 
@@ -93,7 +107,7 @@ function worker(mode: string, directory: string, seed: Seed, ready: string, atte
   })
 }
 
-function capacity(mode: "hold-cap" | "take-cap" | "hold-cap-intent" | "replace-cap", ready: string) {
+function capacity(mode: "hold-cap" | "take-cap" | "hold-cap-claim" | "hold-cap-intent" | "replace-cap", ready: string) {
   return spawn([process.execPath, fixture, mode, "", "", "", "", ready], {
     cwd: import.meta.dir,
     stdout: "pipe",
@@ -122,7 +136,7 @@ async function result(proc: ReturnType<typeof worker>) {
   return JSON.parse(line) as Result
 }
 
-async function seed(directory: string, options?: { eagerParentPlaceholder?: boolean }): Promise<Seed> {
+async function seed(directory: string, options?: { eagerParentPlaceholder?: boolean; prompt?: string }): Promise<Seed> {
   return Instance.provide({
     directory,
     init: async () => {
@@ -167,8 +181,8 @@ async function seed(directory: string, options?: { eagerParentPlaceholder?: bool
           status: "running",
           input: {
             description: "Durable restart fixture",
-            prompt: "Return the deterministic child result.",
-            subagent_type: "execute",
+            prompt: options?.prompt ?? "Return the deterministic child result.",
+            subagent_type: "data",
             ...(options?.eagerParentPlaceholder ? { session_id: parent.id } : {}),
           },
           time: { start: Date.now() },
@@ -198,7 +212,7 @@ async function wrapped(directory: string, interrupted = false) {
         parts: [
           {
             type: "subtask",
-            agent: "execute",
+            agent: "data",
             description: "Durable wrapper fixture",
             prompt: "Return the deterministic parent continuation.",
             command: "fixture",
@@ -214,8 +228,8 @@ async function wrapped(directory: string, interrupted = false) {
         sessionID: session.id,
         parentID: user.info.id,
         role: "assistant",
-        mode: "execute",
-        agent: "execute",
+        mode: "data",
+        agent: "data",
         path: { cwd: directory, root: directory },
         modelID: STRESS_PROVIDER_MODEL,
         providerID: STRESS_PROVIDER_ID,
@@ -227,7 +241,7 @@ async function wrapped(directory: string, interrupted = false) {
       const input = {
         description: source.description,
         prompt: source.prompt,
-        subagent_type: "execute" as const,
+        subagent_type: "data" as const,
         command: source.command,
       }
       await Session.updatePart(
@@ -292,14 +306,14 @@ describe("durable Task attempts across Bun processes", () => {
     const params = {
       description: "Stable fingerprint fixture",
       prompt: "Keep this semantic input stable.",
-      subagent_type: "execute",
+      subagent_type: "data",
       specialist: "ml",
       session_id: "ses_stable_fingerprint_fixture",
     }
     const reordered = {
       session_id: "ses_stable_fingerprint_fixture",
       specialist: "ml",
-      subagent_type: "execute",
+      subagent_type: "data",
       prompt: "Keep this semantic input stable.",
       description: "Stable fingerprint fixture",
     }
@@ -343,7 +357,12 @@ describe("durable Task attempts across Bun processes", () => {
       const active = worker("active-block", tmp.path, input, activeReady)
       processes.add(active)
       await wait(activeReady)
-      await Bun.sleep(180)
+      const ready = Date.now()
+      // Long enough that the attempt is charging even on a slow runner, where
+      // the step's opening snapshot can hold the call's registration for a
+      // few hundred milliseconds; the accounting, not reaction time, is the
+      // subject here.
+      await Bun.sleep(700)
       active.kill("SIGKILL")
       await within(active.exited)
 
@@ -354,11 +373,14 @@ describe("durable Task attempts across Bun processes", () => {
       const recovered = await result(resume)
       const activeMs = Number(recovered.metadata.activeMs)
       const remainingMs = Number(recovered.metadata.remainingMs)
+      const downtime = Date.now() - stopped
 
-      expect(Date.now() - stopped).toBeGreaterThanOrEqual(450)
+      // The charge covers the live stretch and none of the downtime: however
+      // slow the machine, the 500 ms the process was dead never appears in it.
+      expect(downtime).toBeGreaterThanOrEqual(450)
       expect(activeMs).toBeGreaterThanOrEqual(50)
-      expect(activeMs).toBeLessThan(300)
-      expect(remainingMs).toBe(300 - activeMs)
+      expect(activeMs).toBeLessThan(Date.now() - ready - 450)
+      expect(remainingMs).toBe(2_000 - activeMs)
       expect(remainingMs).toBeGreaterThan(0)
     } finally {
       for (const proc of processes) proc.kill()
@@ -504,7 +526,7 @@ describe("durable Task attempts across Bun processes", () => {
     }
   }, 30_000)
 
-  test("restores a durable child result into an ordinary running Task call after restart", async () => {
+  test("restores a durable Task result despite later sibling evidence matching its literal marker", async () => {
     const local = provider()
     const processes = new Set<ReturnType<typeof parent>>()
     try {
@@ -512,7 +534,9 @@ describe("durable Task attempts across Bun processes", () => {
         git: true,
         config: stressProviderConfig(`http://127.0.0.1:${local.server.port}/v1`),
       })
-      const input = await seed(tmp.path)
+      const original = "Document the retained literal example. ".repeat(30)
+      const prompt = original.slice(0, 200) + `…[+${original.length - 200} chars]`
+      const input = await seed(tmp.path, { prompt })
       await Instance.provide({
         directory: tmp.path,
         fn: async () => {
@@ -525,8 +549,8 @@ describe("durable Task attempts across Bun processes", () => {
           }
           const params = {
             description: "Durable restart fixture",
-            prompt: "Return the deterministic child result.",
-            subagent_type: "execute" as const,
+            prompt,
+            subagent_type: "data" as const,
           }
           await TaskAttempt.reserve({ ...identity, fingerprint: TaskAttempt.fingerprint(params) })
           await TaskAttempt.complete({
@@ -537,6 +561,30 @@ describe("durable Task attempts across Bun processes", () => {
               output: "DURABLE_ORDINARY_CHILD_RESULT",
             },
           })
+          // This sibling was not in the Task's execution-visible history.
+          // A new admission now rejects the preview; recovery must still use
+          // the already committed result after checking its exact fingerprint.
+          await Session.updatePart({
+            id: `prt_${crypto.randomUUID().replaceAll("-", "").slice(0, 26)}`,
+            sessionID: input.parentID,
+            messageID: input.messageID,
+            callID: "call_later_sibling",
+            type: "tool",
+            tool: "write",
+            state: {
+              status: "completed",
+              input: { content: original },
+              title: "Later sibling",
+              output: "Saved full content",
+              metadata: {},
+              time: { start: Date.now(), end: Date.now() },
+            },
+          })
+          await Session.flushPendingParts(input.parentID)
+          const later = await Session.messages({ sessionID: input.parentID })
+          expect(() => normalizeTaskAttemptInput(params, input.parentID, later)).toThrow(
+            "shortened historical argument",
+          )
         },
       })
       const ready = path.join(tmp.path, "ordinary-recovery.ready")
@@ -591,7 +639,7 @@ describe("durable Task attempts across Bun processes", () => {
           const normalized = {
             description: "Durable restart fixture",
             prompt: "Return the deterministic child result.",
-            subagent_type: "execute" as const,
+            subagent_type: "data" as const,
             session_id: undefined,
           }
           await TaskAttempt.reserve({ ...identity, fingerprint: TaskAttempt.fingerprint(normalized) })
@@ -769,8 +817,7 @@ describe("durable Task attempts across Bun processes", () => {
     const slot = TaskCapacity.slotPath("child", 0)
     const root = path.dirname(slot)
     const deadReady = path.join(root, `aba-dead-${crypto.randomUUID()}.ready`)
-    const intentReady = path.join(root, `aba-intent-${crypto.randomUUID()}.ready`)
-    const firstReady = path.join(root, `aba-first-${crypto.randomUUID()}.ready`)
+    const claimReady = path.join(root, `aba-claim-${crypto.randomUUID()}.ready`)
     const secondReady = path.join(root, `aba-second-${crypto.randomUUID()}.ready`)
     const thirdReady = path.join(root, `aba-third-${crypto.randomUUID()}.ready`)
     await fs.mkdir(root, { recursive: true })
@@ -781,24 +828,13 @@ describe("durable Task attempts across Bun processes", () => {
       dead.kill("SIGKILL")
       await within(dead.exited)
 
-      const intent = capacity("hold-cap-intent", intentReady)
-      processes.add(intent)
-      await wait(intentReady)
-
-      const first = capacity("take-cap", firstReady)
-      processes.add(first)
-      const claims = LockCoordination.directory(slot, "claim")
-      await waitFor(
-        () =>
-          fs
-            .readdir(claims)
-            .then((items) => items.length > 0)
-            .catch(() => false),
-        "the first capacity reclaimer claim",
-      )
-      process.kill(first.pid, "SIGSTOP")
-      intent.kill("SIGKILL")
-      await within(intent.exited)
+      // Keep one reclaimer claim live without relying on SIGSTOP delivery.
+      // A successful kill() only queues the signal; the old choreography
+      // could kill the intent before the target actually stopped, allowing
+      // that process to dispose its claim and the next waiter to acquire.
+      const claim = capacity("hold-cap-claim", claimReady)
+      processes.add(claim)
+      await wait(claimReady)
 
       const second = capacity("take-cap", secondReady)
       processes.add(second)
@@ -812,17 +848,16 @@ describe("durable Task attempts across Bun processes", () => {
       const third = capacity("take-cap", thirdReady)
       processes.add(third)
       await Bun.sleep(150)
-      expect(await Promise.all([firstReady, secondReady, thirdReady].map((file) => Bun.file(file).exists()))).toEqual([
-        false,
+      expect(await Promise.all([secondReady, thirdReady].map((file) => Bun.file(file).exists()))).toEqual([
         false,
         false,
       ])
       expect(await Bun.file(slot).exists()).toBe(false)
 
-      process.kill(first.pid, "SIGCONT")
-      const results = await Promise.all([result(first), result(second), result(third)])
+      claim.kill("SIGKILL")
+      await within(claim.exited)
+      const results = await Promise.all([result(second), result(third)])
       expect(results).toEqual([
-        expect.objectContaining({ acquired: true }),
         expect.objectContaining({ acquired: true }),
         expect.objectContaining({ acquired: true }),
       ])
@@ -835,16 +870,9 @@ describe("durable Task attempts across Bun processes", () => {
       expect(await markers("claim")).toEqual([])
       expect(await markers("intent")).toEqual([])
     } finally {
-      for (const proc of processes) {
-        try {
-          process.kill(proc.pid, "SIGCONT")
-        } catch {}
-        proc.kill()
-      }
+      for (const proc of processes) proc.kill()
       await Promise.all([...processes].map((proc) => proc.exited.catch(() => undefined)))
-      await Promise.all(
-        [deadReady, intentReady, firstReady, secondReady, thirdReady].map((file) => fs.rm(file, { force: true })),
-      )
+      await Promise.all([deadReady, claimReady, secondReady, thirdReady].map((file) => fs.rm(file, { force: true })))
     }
   }, 20_000)
 

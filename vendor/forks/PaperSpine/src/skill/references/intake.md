@@ -1,17 +1,40 @@
 # Intake Stage
 
-This file is the canonical stage playbook for the paper-spine orchestrator.
+This playbook collects task configuration. Current public tools and the saved
+same-task Web configuration are authoritative; legacy fields below only explain
+older records.
 
 ## Purpose
 
-Collect workflow options and write validated configuration before any substantive work.
+Read the user's request and existing material roots, then propose a coherent,
+editable configuration using `intent-configuration.md`. Reuse a confirmed current
+configuration when resuming; a new workflow label does not erase valid choices.
+For initial intake, wait for the actual same-task Web configuration and material
+confirmation, read the saved result, then do the authorized scientific work.
 
-## Required Output
+## Current output and scope
+
+Use the public configuration schema and the task's exported `01_configuration.json`
+and material inventory. Do not create parallel configuration files or ask users
+to edit JSON. Preserve explicit language, target and output choices. Where the
+request leaves an ordinary preference open, propose a suitable value and explain
+it in the host handoff; do not infer author facts or external-action permissions.
+
+`research_mode` defaults to `agent_decide`: decide and explain whether new analysis
+is useful and feasible within the confirmed scope, then carry it out when chosen.
+`required` means perform the requested research, with actual tools and evidence.
+`materials_only` preserves supplied analyses and prohibits new analysis; it still
+allows authorized public literature/venue learning and evidence-based writing.
+Do not turn “materials supplied” or “draft first” into `materials_only`.
+
+## Legacy configuration record (migration reference only)
+
+Older tasks may retain these two files. They are not additional current outputs:
 
 - `paper_rewriting_output/paper_spine_config.json`
 - `paper_rewriting_output/paper_spine_config.md`
 
-## Config Fields
+## Legacy config fields
 
 | Field | Allowed Values | Default |
 |---|---|---|
@@ -30,18 +53,45 @@ Collect workflow options and write validated configuration before any substantiv
 | `reference_mode` | `local_first`, `specified_paths`, `web` | `local_first` |
 | `reference_paths` | list of local paths | `["."]` |
 | `citation_target_count` | integer | `20` |
-| `humanize_tier` | `none`, `light`, `medium`, `heavy` | `medium` |
+| `author_voice_restoration` | `off`, `standard`, `strict` | `off` |
+| `humanize_tier` | legacy compatibility: `none`, `light`, `medium`, `heavy` | `none` |
+| `detection_platform` | legacy observation label only: `cnki`, `weipu`, `general` | `general` |
+| `requested_scope` | `manuscript`, `local_delivery`, `submission_package` | `local_delivery` |
+| `interaction.mode` | `guided`, `delegated_local_test` | `guided` |
 
-## UI
+`author_voice_restoration` enables the evidence-bound Authorial Voice
+Restoration stage. The legacy `humanize_tier` values enable the same stage when
+non-`none`; they no longer select sentence-burstiness targets, synonym
+variation, or detector thresholds. `detection_platform` may label an external
+observation supplied by the author, but it is never a readiness gate.
 
-- The supported interactive path is the bundled terminal wizard (`intake_wizard.py`).
-- In Claude Code, `/paperspine` launches the intake UI automatically when config is missing.
-- In Codex, use the absolute path to `launch_paperspine_ui.ps1` with escalated permissions.
-- Fallback: numbered menus; chat-based questions only when terminal execution is impossible.
+`tier` selects research/example breadth and optional process depth. It never
+changes the requested deliverable type, necessary scientific argument, venue
+structure, or manuscript length. A `flash` journal run still produces a full
+journal manuscript; it simply researches fewer examples than `pro`.
+
+`review_policy` selects review rigor and is not an autonomy permission. For old
+`delegated_local_test`, collect one explicit initial authorization and construct
+the exact typed grant described in `interaction-policy.md`. Bind it to the
+current task, material snapshot, local requested scope, expiry, reversible
+decision classes, authenticated host/user actor, and canonical hashes. Do not
+accept a producer Boolean as user authority. Submission scope, author facts,
+licences/fees, and external actions always remain human gates.
+
+## Current UI
+
+- Use the same profile/task in the public Web workspace for normal intake.
+- `launch_paperspine_ui.ps1` or `launch_paperspine_ui.sh` opens that workspace;
+  the current host performs research. Launch success is not a Runner/Agent job.
+- Host chat/typed questions are only for precise confirmations that the Web issue
+  marks as requiring user authority; persist the answer through the same task API.
+- `intake_wizard.py` is retained for historical migration and developer diagnostics,
+  not as a supported user frontend or fallback.
 - Never require the user to hand-write JSON.
 
 ## Scripts
 
 ```bash
-python scripts/intake_wizard.py --output-dir paper_rewriting_output
+python scripts/paperspine5_web.py launch --profile-root <existing-profile>
+python scripts/paperspine5_web.py status --profile-root <existing-profile>
 ```

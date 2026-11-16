@@ -2,7 +2,7 @@ import path from "path"
 import os from "os"
 import fs from "fs"
 import { spawn, spawnSync } from "child_process"
-import { lazy } from "@/util/lazy"
+import { lazy } from "@synsci/util/lazy"
 import { Log } from "@/util/log"
 import { Shell } from "@/shell/shell"
 
@@ -35,6 +35,9 @@ export namespace Sandbox {
     writable: string[]
     /** Absolute grant/runtime roots the process may read. */
     readable?: string[]
+    /** Readable roots that must remain unwritable even below a writable
+     * ancestor (for example an exact scientific runtime inside a project). */
+    readOnly?: string[]
     /** Exact ancestor directories that a resolver may enumerate while walking
      * toward an allowed subtree. Children are not made readable. */
     readableExact?: string[]
@@ -45,10 +48,14 @@ export namespace Sandbox {
      * symlink). The source is resolved before spawn; bubblewrap never follows
      * the caller-provided lexical spelling on the host. */
     readableAliases?: MountAlias[]
+    readOnlyAliases?: MountAlias[]
     writableAliases?: MountAlias[]
     unreadableAliases?: MountAlias[]
     /** Whether the sandboxed process may reach the network. */
     network: boolean
+    /** The user approved this one command reaching the network: sockets are
+     * allowed while filesystem confinement stays exactly as it is. */
+    escalatedNetwork?: boolean
   }
 
   export interface MountAlias {
@@ -226,22 +233,25 @@ export namespace Sandbox {
     for (const temporary of [...temporaryRoots]) cleanup({ temporary })
   })
 
-  function withTempEnvironment(argv: string[], temporary: string, runtime?: { python?: string; path?: string }) {
-    const bin = (() => {
-      if (!runtime?.python) return
-      const value = path.join(temporary, "runtime", "bin")
-      fs.mkdirSync(value, { recursive: true })
-      for (const name of process.platform === "win32" ? ["python.exe", "python3.exe"] : ["python", "python3"]) {
-        const link = path.join(value, name)
-        try {
-          fs.symlinkSync(runtime.python, link, process.platform === "win32" ? "file" : undefined)
-        } catch (error) {
-          if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error
-        }
-      }
-      return value
-    })()
-    const inherited = runtime?.path ?? process.env.PATH
+  function runtimePath(temporary: string, runtime?: { python?: string; path?: string }) {
+    if (!runtime?.python) return runtime?.path
+    // Windows Python installations carry DLLs beside python.exe and cannot
+    // rely on privileged symlink creation. Keep their selected directory first.
+    if (process.platform === "win32") {
+      return [path.dirname(runtime.python), runtime.path ?? process.env.PATH].filter(Boolean).join(path.delimiter)
+    }
+    const bin = path.join(temporary, "runtime", "bin")
+    fs.mkdirSync(bin, { recursive: true })
+    // A symlink placed outside a venv loses its pyvenv.cfg lookup and starts
+    // the base interpreter instead. exec preserves the selected binary path.
+    const wrapper = `#!/bin/sh\nexec '${runtime.python.replaceAll("'", "'\\''")}' "$@"\n`
+    for (const name of ["python", "python3"]) {
+      fs.writeFileSync(path.join(bin, name), wrapper, { flag: "wx", mode: 0o700 })
+    }
+    return [bin, runtime.path ?? process.env.PATH].filter(Boolean).join(path.delimiter)
+  }
+
+  function withTempEnvironment(argv: string[], temporary: string, runtimePath?: string) {
     return [
       "/usr/bin/env",
       `TMPDIR=${temporary}`,
@@ -252,7 +262,7 @@ export namespace Sandbox {
       // read-only inside the sandbox. Keep those files in the same private,
       // owner-only temp root as every other runtime.
       `TMPPREFIX=${path.join(temporary, "zsh")}`,
-      ...(bin ? [`PATH=${[bin, inherited].filter(Boolean).join(path.delimiter)}`] : []),
+      ...(runtimePath ? [`PATH=${runtimePath}`] : []),
       ...argv,
     ]
   }
@@ -507,10 +517,13 @@ export namespace Sandbox {
     workspace: string[]
     temporary: string
     readable?: string[]
+    readOnly?: string[]
     extraWritable?: string[]
     unreadable?: string[]
     entrypoints?: string[]
     options: Options
+    /** Set only after the user approved this command reaching the network. */
+    escalateNetwork?: boolean
   }): Policy {
     const writableInputs = [
       ...input.workspace,
@@ -529,20 +542,26 @@ export namespace Sandbox {
       ...runtimeReadRoots(input.entrypoints ?? []),
       ...input.workspace,
       ...(input.readable ?? []),
+      ...(input.readOnly ?? []),
       ...(input.extraWritable ?? []),
       ...writable,
     ]
     const readable = dedupe(readableInputs).filter((value) => !tooBroadToConfine(value))
+    const readOnlyInputs = input.readOnly ?? []
+    const readOnly = dedupe(readOnlyInputs).filter((value) => !tooBroadToConfine(value))
     const unreadableInputs = input.unreadable ?? []
     return {
       writable,
       readable,
+      readOnly,
       readableExact: traversalRoots(readable),
       unreadable: dedupe(unreadableInputs).filter((value) => !tooBroadToConfine(value)),
       readableAliases: mountAliases(readableInputs),
+      readOnlyAliases: mountAliases(readOnlyInputs),
       writableAliases: mountAliases(writableInputs),
       unreadableAliases: mountAliases(unreadableInputs),
-      network: (input.options.network ?? "allow") !== "deny",
+      network: (input.options.network ?? "allow") !== "deny" || input.escalateNetwork === true,
+      escalatedNetwork: input.escalateNetwork === true,
     }
   }
 
@@ -579,6 +598,9 @@ export namespace Sandbox {
     // addresses or CIDR ranges. An allow-with-private-denies profile would
     // therefore expose LAN, link-local, and cloud-metadata endpoints. Keep the
     // default deny in force for every socket operation in both policy modes.
+    // The one exception is a command the user approved for network access
+    // (a push, a fetch, an upload): it runs with sockets but the same files.
+    if (policy.escalatedNetwork) lines.push("(allow network*)", "(allow system-socket)")
     const readable = withPrivateAliases(dedupe(policy.readable ?? []))
     if (readable.length) {
       lines.push(
@@ -608,6 +630,10 @@ export namespace Sandbox {
     }
     // Character devices tools legitimately write (null, tty, ptys, urandom, …).
     lines.push('(allow file-write* (subpath "/dev"))')
+    const readOnly = withPrivateAliases(dedupe(policy.readOnly ?? []))
+    if (readOnly.length) {
+      lines.push(`(deny file-write* ${readOnly.map((value) => `(subpath "${sbpl(value)}")`).join(" ")})`)
+    }
     // Seatbelt uses the last matching rule, so the sensitive write deny must
     // follow every broad writable-parent allow. These are host-managed
     // enclaves, not merely secrets to hide. Bubblewrap's later tmpfs/dev-null
@@ -693,6 +719,12 @@ export namespace Sandbox {
     for (const alias of safeMountAliases(policy.writableAliases)) {
       args.push("--bind-try", alias.source, alias.destination)
     }
+    // Re-apply immutable runtime mounts after every writable ancestor. A
+    // writable project bind can otherwise hide an earlier nested ro-bind.
+    for (const value of dedupe(policy.readOnly ?? [])) args.push("--ro-bind-try", value, value)
+    for (const alias of safeMountAliases(policy.readOnlyAliases)) {
+      args.push("--ro-bind-try", alias.source, alias.destination)
+    }
     const unreadable = new Map<string, string>()
     for (const value of dedupe(policy.unreadable ?? [])) unreadable.set(value, value)
     // A mask may safely name a broad source because only its file type is
@@ -723,7 +755,7 @@ export namespace Sandbox {
     // allow mode would expose 127.0.0.1 services, so fail closed and deny all
     // sockets on this backend in both modes. Host-brokered connectors enforce
     // the curated domain policy outside arbitrary project processes.
-    args.push("--unshare-net")
+    if (!policy.escalatedNetwork) args.push("--unshare-net")
     // The PID namespace's bwrap-owned PID 1 remains alive until every descendant
     // exits. A setsid()+double-fork daemon is reparented to that PID 1 rather than
     // host init, and --die-with-parent kills the namespace if the wrapper/server
@@ -753,8 +785,14 @@ export namespace Sandbox {
   // Warn only once per process so every command doesn't repeat the same notice.
   const warned = { unavailable: false }
 
-  function unavailableMessage(): string {
-    return `Sandbox is enabled but unavailable on this machine (${describe().reason}). Running the command WITHOUT isolation. Install the backend, or set sandbox.onUnavailable to "error" to refuse instead.`
+  function unavailableWarning(): string {
+    return `Sandbox is enabled but unavailable on this machine (${describe().reason}). Running the command WITHOUT isolation. Install the backend, or set Customize → Sandbox → Fallback behavior to Refuse (sandbox.onUnavailable "error") to refuse instead.`
+  }
+
+  /** What to tell the user when no backend exists and Fallback behavior is
+   * Refuse: nothing was spawned, so the text must not suggest it ran. */
+  export function refusal(subject = "this process"): string {
+    return `OpenScience did not start ${subject}: the sandbox is on, this machine has no sandbox backend (${describe().reason}), and Fallback behavior is set to Refuse. To run it without isolation, open Customize → Sandbox and set Fallback behavior to Warn & run, or turn off Sandbox agent commands (sandbox.onUnavailable or sandbox.enabled in the global config).`
   }
 
   /**
@@ -768,8 +806,8 @@ export namespace Sandbox {
     const b = backend()
     if (b !== "none") return { backend: b }
     const mode = options.onUnavailable ?? "warn"
-    if (mode === "error") throw new UnavailableError(unavailableMessage())
-    const warning = mode === "warn" && !warned.unavailable ? unavailableMessage() : undefined
+    if (mode === "error") throw new UnavailableError(refusal())
+    const warning = mode === "warn" && !warned.unavailable ? unavailableWarning() : undefined
     if (warning) {
       warned.unavailable = true
       log.warn("sandbox enabled but unavailable", { platform: process.platform })
@@ -792,14 +830,35 @@ export namespace Sandbox {
     workspace: string[]
     /** Additional explicit read-only grant roots for this process. */
     readable?: string[]
+    /** Roots that may be read but must override writable ancestors. */
+    readOnly?: string[]
     /** Exact host credential files to mask from the process. */
     unreadable?: string[]
     /** Canonical local runtime used by both persistent kernels and shell reruns. */
     runtime?: { python?: string; path?: string }
     options?: Options
+    /** The user approved this command reaching the network (a push, an upload). */
+    escalateNetwork?: boolean
   }): Plan {
     const { backend: b, warning } = decide(input.options)
     if (b === "none") {
+      if (input.runtime?.python && process.platform !== "win32") {
+        const temporary = privateTemp()
+        try {
+          const selectedPath = runtimePath(temporary, input.runtime)!
+          return {
+            file: `export PATH='${selectedPath.replaceAll("'", "'\\''")}'; ${input.command}`,
+            useShell: input.shell,
+            sandboxed: false,
+            backend: "none",
+            warning,
+            temporary,
+          }
+        } catch (error) {
+          cleanup({ temporary })
+          throw error
+        }
+      }
       return { file: input.command, useShell: input.shell, sandboxed: false, backend: "none", warning }
     }
     const temporary = privateTemp()
@@ -808,11 +867,16 @@ export namespace Sandbox {
         workspace: input.workspace,
         temporary,
         readable: input.readable,
+        readOnly: input.readOnly,
         unreadable: input.unreadable,
         entrypoints: [input.shell, input.runtime?.python].filter((value): value is string => !!value),
         options: input.options!,
+        escalateNetwork: input.escalateNetwork,
       })
-      const s = specForArgv(withTempEnvironment([input.shell, "-c", input.command], temporary, input.runtime), policy)!
+      const s = specForArgv(
+        withTempEnvironment([input.shell, "-c", input.command], temporary, runtimePath(temporary, input.runtime)),
+        policy,
+      )!
       log.info("sandboxing command", { backend: b, network: policy.network, writable: policy.writable.length })
       return { file: s.file, args: s.args, useShell: false, sandboxed: true, backend: b, temporary, warning }
     } catch (error) {
@@ -829,33 +893,50 @@ export namespace Sandbox {
    */
   export function wrapArgv(input: {
     file: string
-    args: string[]
+    /** Login shells can restore this selected PATH after their startup files. */
+    args: string[] | ((runtimePath?: string) => string[])
+    runtime?: { python?: string; path?: string }
     /** Workspace roots that stay writable. */
     workspace: string[]
     /** Explicit read-only grant roots for this process. */
     readable?: string[]
+    /** Roots that may be read but must override writable ancestors. */
+    readOnly?: string[]
     /** Extra paths (e.g. a generated kernel script under /tmp) to keep writable/visible. */
     extraWritable?: string[]
     /** Exact host credential files to mask from the process. */
     unreadable?: string[]
     options?: Options
+    /** The user asked for this network operation (a Repository-tab push). */
+    escalateNetwork?: boolean
   }): Wrapped {
     const { backend: b, warning } = decide(input.options)
-    if (b === "none") {
-      return { file: input.file, args: input.args, sandboxed: false, backend: "none", warning }
+    if (b === "none" && !input.runtime) {
+      return {
+        file: input.file,
+        args: typeof input.args === "function" ? input.args() : input.args,
+        sandboxed: false,
+        backend: "none",
+        warning,
+      }
     }
     const temporary = privateTemp()
     try {
+      const selectedPath = runtimePath(temporary, input.runtime)
+      const args = typeof input.args === "function" ? input.args(selectedPath) : input.args
+      if (b === "none") return { file: input.file, args, temporary, sandboxed: false, backend: "none", warning }
       const policy = buildPolicy({
         workspace: input.workspace,
         temporary,
         readable: input.readable,
+        readOnly: input.readOnly,
         extraWritable: input.extraWritable,
         unreadable: input.unreadable,
-        entrypoints: [input.file],
+        entrypoints: [input.file, input.runtime?.python].filter((value): value is string => !!value),
         options: input.options!,
+        escalateNetwork: input.escalateNetwork,
       })
-      const s = specForArgv(withTempEnvironment([input.file, ...input.args], temporary), policy)!
+      const s = specForArgv(withTempEnvironment([input.file, ...args], temporary, selectedPath), policy)!
       log.info("sandboxing process", { backend: b, network: policy.network, writable: policy.writable.length })
       return { file: s.file, args: s.args, sandboxed: true, backend: b, temporary, warning }
     } catch (error) {

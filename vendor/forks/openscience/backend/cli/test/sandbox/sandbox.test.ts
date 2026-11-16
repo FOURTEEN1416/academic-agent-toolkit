@@ -5,6 +5,7 @@ import path from "path"
 import { ProcessIdentity } from "../../src/process/process-identity"
 import { Sandbox } from "../../src/sandbox/sandbox"
 import { tmpdir } from "../fixture/fixture"
+import { spawn } from "../fixture/spawn"
 
 const shell = "/bin/sh"
 
@@ -52,6 +53,30 @@ describe("Sandbox.cacheEnvironment", () => {
 })
 
 describe("Sandbox local runtime support", () => {
+  for (const enabled of [false, true]) {
+    test.skipIf(process.platform === "win32" || (enabled && !Sandbox.available()))(
+      `restores the selected interpreter after login PATH changes (${enabled ? "sandboxed" : "unsandboxed"})`,
+      async () => {
+        await using tmp = await tmpdir()
+        const selected = path.join(tmp.path, "selected-python")
+        await Bun.write(selected, "#!/bin/sh\nprintf selected-runtime\n")
+        fs.chmodSync(selected, 0o755)
+        const plan = Sandbox.wrapArgv({
+          file: shell,
+          runtime: { python: selected, path: process.env.PATH },
+          args: (runtimePath) => ["-lc", `PATH=/usr/bin:/bin; export PATH=${JSON.stringify(runtimePath)}; python3`],
+          workspace: [tmp.path],
+          options: { enabled, network: "deny", onUnavailable: "error" },
+        })
+        expect(plan.temporary).toBeString()
+        const result = await execute(plan, tmp.path)
+        expect(result.exit, result.stderr).toBe(0)
+        expect(result.stdout).toBe("selected-runtime")
+        expect(fs.existsSync(plan.temporary!)).toBe(false)
+      },
+    )
+  }
+
   test.skipIf(process.platform === "win32" || !Sandbox.available())(
     "keeps the selected OpenScience Conda environment readable without exposing its parent data root",
     async () => {
@@ -147,6 +172,20 @@ describe("Sandbox.seatbeltProfile", () => {
     )
   })
 
+  test("keeps a nested exact runtime unwritable after a broad workspace allow", () => {
+    const runtime = "/work/project/.data/conda/envs/exact"
+    const profile = Sandbox.seatbeltProfile({
+      writable: ["/work/project"],
+      readable: [runtime],
+      readOnly: [runtime],
+      network: false,
+    })
+    const allow = profile.indexOf('(allow file-write* (subpath "/work/project"))')
+    const deny = profile.indexOf(`(deny file-write* (subpath "${runtime}"))`)
+    expect(allow).toBeGreaterThan(-1)
+    expect(deny).toBeGreaterThan(allow)
+  })
+
   test("allows resolver traversal only on exact ancestors", () => {
     const profile = Sandbox.seatbeltProfile({
       writable: ["/work/project"],
@@ -191,6 +230,25 @@ describe("Sandbox.bubblewrapArgs", () => {
     expect(i).toBeGreaterThan(-1)
     expect(args[i + 1]).toBe("/work/project")
     expect(args[i + 2]).toBe("/work/project")
+  })
+
+  test("re-mounts a nested exact runtime read-only after its writable workspace ancestor", () => {
+    const workspace = "/work/project"
+    const runtime = "/work/project/.data/conda/envs/exact"
+    const args = Sandbox.bubblewrapArgs({
+      writable: [workspace],
+      readable: [runtime],
+      readOnly: [runtime],
+      network: false,
+    })
+    const writable = args.findIndex(
+      (value, index) => value === "--bind-try" && args[index + 1] === workspace && args[index + 2] === workspace,
+    )
+    const immutable = args.findLastIndex(
+      (value, index) => value === "--ro-bind-try" && args[index + 1] === runtime && args[index + 2] === runtime,
+    )
+    expect(writable).toBeGreaterThan(-1)
+    expect(immutable).toBeGreaterThan(writable)
   })
 
   test("mounts canonical sources at normalized stable alias destinations", () => {
@@ -593,6 +651,45 @@ describe("Sandbox.plan", () => {
   test("onUnavailable:error throws when no backend is available", () => {
     if (Sandbox.available()) return // only meaningful without a backend
     expect(() => Sandbox.plan({ ...base, options: { enabled: true, onUnavailable: "error" } })).toThrow()
+  })
+
+  test("without a backend, Refuse says nothing started and Warn & run says it runs unisolated", async () => {
+    await using tmp = await tmpdir()
+    const empty = path.join(tmp.path, "empty-path")
+    fs.mkdirSync(empty)
+    const runner = path.join(tmp.path, "no-backend.ts")
+    await Bun.write(
+      runner,
+      `
+import { Sandbox } from ${JSON.stringify(new URL("../../src/sandbox/sandbox.ts", import.meta.url).href)}
+const input = { file: process.execPath, args: ["-e", "1"], workspace: [process.argv[2]] }
+const refused = (() => {
+  try {
+    Sandbox.wrapArgv({ ...input, options: { enabled: true, onUnavailable: "error" } })
+  } catch (error) {
+    return { name: error.name, message: error.message }
+  }
+})()
+const warned = Sandbox.wrapArgv({ ...input, options: { enabled: true, onUnavailable: "warn" } })
+process.stdout.write(JSON.stringify({ backend: Sandbox.backend(), refused, warned: { sandboxed: warned.sandboxed, warning: warned.warning } }))
+`,
+    )
+    // An empty PATH hides sandbox-exec and bwrap, which is the Windows situation.
+    const proc = spawn([process.execPath, runner, tmp.path], { stdout: "pipe", stderr: "pipe", env: { PATH: empty } })
+    const [output, error, exit] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ])
+    expect(exit, error).toBe(0)
+    const result = JSON.parse(output)
+    expect(result.backend).toBe("none")
+    expect(result.refused.name).toBe("SandboxUnavailableError")
+    expect(result.refused.message).toContain("did not start this process")
+    expect(result.refused.message).toContain("Customize → Sandbox")
+    expect(result.refused.message).not.toContain("WITHOUT isolation")
+    expect(result.warned.sandboxed).toBe(false)
+    expect(result.warned.warning).toContain("WITHOUT isolation")
   })
 
   test("makes the workspace writable but not an out-of-workspace cwd", () => {

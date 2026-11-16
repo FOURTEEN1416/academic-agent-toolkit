@@ -4,7 +4,7 @@ import { Global } from "../global"
 import fs from "fs/promises"
 import z from "zod"
 import { NamedError } from "@synsci/util/error"
-import { lazy } from "../util/lazy"
+import { lazy } from "@synsci/util/lazy"
 
 import { ZipReader, BlobReader, BlobWriter } from "@zip.js/zip.js"
 import { Log } from "@/util/log"
@@ -206,6 +206,7 @@ export namespace Ripgrep {
     cwd: string
     glob?: string[]
     hidden?: boolean
+    noIgnore?: boolean
     follow?: boolean
     maxDepth?: number
     signal?: AbortSignal
@@ -215,6 +216,7 @@ export namespace Ripgrep {
     const args = [await filepath(), "--files", "--glob=!.git/*", "--glob=!.openscience-trash/**"]
     if (input.follow === true) args.push("--follow")
     if (input.hidden !== false) args.push("--hidden")
+    if (input.noIgnore) args.push("--no-ignore")
     if (input.maxDepth !== undefined) args.push(`--max-depth=${input.maxDepth}`)
     if (input.glob) {
       for (const g of input.glob) {

@@ -1,0 +1,59 @@
+---
+title: "Generate and edit images"
+description: "Create illustrations and revise existing images while keeping the outputs in your project."
+---
+
+OpenScience renders schematics, illustrations, graphical abstracts and image edits with its `generate_image` tool, and saves the result into your project. Ask for a clear visual and an output path, then inspect the saved image before using it.
+
+## Image routes
+
+Image generation runs on one of three routes:
+
+| Route                         | Model                                   | Notes                                                                                    |
+| ----------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **Ace**                       | Nano Banana Pro (`gemini-3-pro-image`)  | Billed to your Wallet like any other Ace request. One reference image per request.       |
+| **Your Gemini key**           | Nano Banana Pro (`gemini-3-pro-image`)  | Connected in Customize → Models. Up to 14 reference images.                              |
+| **Your OpenAI key**           | GPT Image 2 (`gpt-image-2`)             | Connected in Customize → Models. Reference images are sent as an edit.                   |
+
+A personal OpenRouter key does not render images; connect the provider directly, or use Ace. Selecting a text-only or local chat model does not by itself provide image generation. The agent knows which route is active and says so when none is: it will not draw a diagram by hand with TikZ or SVG in its place.
+
+Image-service usage has its own costs and terms. Verify the route before planning a workflow around generated images.
+
+## Generate a new illustration
+
+```text
+Create a clean 16:9 conceptual illustration of the study workflow:
+sample collection, measurement, analysis, and interpretation. Use short
+labels, a white background, and colorblind-friendly accents. Save it as
+results/study-workflow.png. This is a conceptual diagram, not measured data.
+```
+
+Specify composition, intended audience, labels, colors, background, and aspect ratio. Supported ratios are 1:1, 3:2, 2:3, 4:3, 3:4, 16:9, 9:16 and 21:9; ask for `2K` when the figure will be printed.
+
+Use a `.png` destination for the most straightforward compatible output (Ace and OpenAI also write `.jpg` and `.webp`). Ask for the exact saved path and open it in Files.
+
+Method, pipeline and architecture diagrams go through the [schematics skill](/openscience/skill-library). It describes the diagram component by component from your text, renders it with `purpose: "schematic"` (the tool prepends the publication framing adapted from K-Dense's scientific-schematics skill: white background, one sans-serif face, a colorblind-safe palette with one accent, one reading direction, your labels verbatim, nothing invented, no figure numbers inside the image), scores the render on five criteria against the threshold for the document type (a journal figure needs 8.5 of 10, slides 6.5), re-renders once from the critique when it falls short, and finishes at 2K. Conceptual figures and graphical abstracts use `purpose: "illustration"`; edits of an existing image use `purpose: "edit"`.
+
+## Edit an existing image
+
+```text
+Edit figures/workflow-draft.png. Increase label contrast, change the
+background to white, and keep the four stages and their order. Save a
+new file at figures/workflow-revised.png so the draft remains available.
+```
+
+Provide an existing PNG, JPEG, WebP, or GIF image as the input. State what must remain and what should change. Style references (earlier figures, a published diagram) can ride along on a Gemini or OpenAI key; Ace takes one image per request.
+
+## Review the result
+
+Click the thumbnail or **Open image** on a generated-image card to view the original attachment. It remains available if the workspace file is later renamed, edited, or removed. Use **Files** to inspect the current version on disk. Images too large to attach open from their saved path instead.
+
+Check text spelling, labels, arrows, order, visual consistency, and whether a requested edit changed other details. Ask for a specific correction using the saved image as the next input.
+
+For a scientific concept, verify that the illustration reflects the intended mechanism and does not imply unsupported evidence. Keep any required attribution or disclosure with the final material.
+
+## Use measured data for scientific plots
+
+Use [Figures](/openscience/figures) and plotting code for charts of experimental or simulated results. Image generation is useful for explanatory illustrations; it does not replace data analysis or produce trustworthy numerical measurements.
+
+Save approved images as [Results](/openscience/results), and keep captions and source material in the project.

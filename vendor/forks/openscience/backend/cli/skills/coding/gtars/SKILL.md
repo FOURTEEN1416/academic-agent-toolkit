@@ -4,7 +4,13 @@ description: High-performance toolkit for genomic interval analysis in Rust with
 category: coding
 license: Unknown
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/gtars
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # Gtars: Genomic Tools and Algorithms in Rust

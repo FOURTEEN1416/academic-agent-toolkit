@@ -2,20 +2,16 @@ import { expect, type Page } from "@playwright/test"
 import { createOpenScienceClient } from "@synsci/sdk/v2/client"
 import { base64Encode } from "@synsci/util/encode"
 
-export const serverHost = process.env.PLAYWRIGHT_SERVER_HOST ?? "localhost"
-export const serverPort = process.env.PLAYWRIGHT_SERVER_PORT ?? "4096"
+const serverHost = process.env.PLAYWRIGHT_SERVER_HOST ?? "localhost"
+const serverPort = process.env.PLAYWRIGHT_SERVER_PORT ?? "4096"
 
 export const serverUrl = `http://${serverHost}:${serverPort}`
 export const serverName = `${serverHost}:${serverPort}`
-
-export const modKey = process.platform === "darwin" ? "Meta" : "Control"
-export const terminalToggleKey = "Control+Backquote"
 
 export const promptSelector = '[data-component="prompt-input"]'
 export const terminalSelector = '[data-component="terminal"]'
 export const modelTriggerSelector = "[data-model-settings-trigger]"
 export const modelPopoverSelector = "[data-model-settings-popover]"
-export const researchToolsSelector = ".workspace-composer__research-tools"
 
 export function createSdk(directory?: string) {
   return createOpenScienceClient({ baseUrl: serverUrl, directory, throwOnError: true })
@@ -50,7 +46,7 @@ export async function getWorktree() {
   return data.worktree
 }
 
-export function dirSlug(directory: string) {
+function dirSlug(directory: string) {
   return base64Encode(directory)
 }
 
@@ -58,18 +54,33 @@ export function dirPath(directory: string) {
   return `/${dirSlug(directory)}`
 }
 
-export function sessionPath(directory: string, sessionID?: string) {
-  return `${dirPath(directory)}/session${sessionID ? `/${sessionID}` : ""}`
-}
-
 const prefix = (value: string) => new RegExp(`^${value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:\\s|$)`)
 
+/**
+ * Picks a connected folder by name and asserts the pane actually switched to
+ * it. Up to three connected folders can be promoted to primary tabs
+ * (`[data-workspace-source="connected"]`) beside Project files; any beyond
+ * that stay in the overflow menu behind `[data-source-button]`. While a
+ * primary tab is active that trigger's own label reads "More" (SourceMenu's
+ * `triggerLabel`), so the trigger's text cannot say which source is current
+ * either way. Prefer the tab when this folder has one, otherwise use the
+ * menu, then confirm the switch through what the browser itself renders for
+ * the current source rather than the trigger.
+ */
 async function pickSource(page: Page, name: string) {
-  const picker = page.locator("[data-source-button]")
-  const label = picker.locator(".files-source__name")
-  if ((await picker.getAttribute("aria-expanded")) !== "true") await picker.click()
-  await page.getByRole("menuitemradio", { name: prefix(name) }).click()
-  await expect(label).toHaveText(name)
+  const files = page.getByRole("region", { name: "Files", exact: true })
+  const tab = files.locator('[data-workspace-source="connected"]').filter({ hasText: prefix(name) })
+  if (await tab.isVisible().catch(() => false)) {
+    await tab.click()
+    await expect(tab).toHaveAttribute("aria-selected", "true")
+  } else {
+    const picker = files.locator("[data-source-button]")
+    if ((await picker.getAttribute("aria-expanded")) !== "true") await picker.click()
+    await page.getByRole("menuitemradio", { name: prefix(name) }).click()
+  }
+  const browser = files.locator("[data-files-browser]")
+  await expect(browser).toHaveAttribute("data-source-kind", "connected")
+  await expect(browser.locator("[data-refresh-source]")).toHaveAttribute("aria-label", `Refresh ${name}`)
 }
 
 /** Opens the Files browser and selects the project's working-files source. */
@@ -141,14 +152,6 @@ export async function openConnectedFile(page: Page, folder: string, filename: st
   return tab
 }
 
-/** Opens the composer Research menu where request-scoped controls live. */
-export async function openResearchTools(page: Page) {
-  const tools = page.locator(researchToolsSelector)
-  if ((await tools.getAttribute("open")) === null) await tools.locator(":scope > summary").click()
-  await expect(tools.getByRole("group", { name: "Research tools", exact: true })).toBeVisible()
-  return tools
-}
-
 async function openModelOptions(page: Page) {
   const trigger = page.locator("[data-model-effort-chip]")
   const popover = page.locator('[data-model-settings-popover][data-model-popover-kind="effort"]')
@@ -160,8 +163,13 @@ async function openModelOptions(page: Page) {
 /** Sets reasoning effort through the dedicated model-options popover. */
 export async function setModelEffort(page: Page, id: string) {
   const popover = await openModelOptions(page)
-  await popover.locator(`[data-model-option="effort"][data-model-option-id="${id}"]`).click()
-  await page.keyboard.press("Escape")
+  const option = popover.locator(`[data-model-option="effort"][data-model-option-id="${id}"]`)
+  await option.click()
+  // The click re-renders the option list; Escape typed before focus settles
+  // inside the popover is swallowed. Wait for the selection to land, then
+  // dismiss from within the popover itself.
+  await expect(option).toHaveAttribute("aria-checked", "true")
+  await popover.press("Escape")
   await expect(popover).toBeHidden()
 }
 
@@ -183,19 +191,4 @@ export async function modelRowValue(page: Page, kind: "effort" | "speed") {
   const trigger = page.locator("[data-model-effort-chip]")
   if (kind === "effort") return (await trigger.locator("strong").innerText()).trim()
   return (await trigger.getAttribute("aria-label"))?.includes("Fast mode on") ? "Fast" : "Standard"
-}
-
-/** Connects an outside folder through the Files pane UI form. */
-export async function connectFolder(page: Page, folder: string, access: "read" | "write") {
-  await openFilesSources(page)
-  await page.locator("[data-source-button]").click()
-  await page.getByRole("menuitem", { name: "Add folder…", exact: true }).click()
-  const form = page.getByRole("form", { name: "Connect a folder" })
-  await form.getByLabel("Folder path").fill(folder)
-  await form.getByLabel("Folder access").selectOption(access)
-  await form.getByLabel("Folder access duration").selectOption("session")
-  await form.getByRole("button", { name: "Connect", exact: true }).click()
-  await expect(form).toBeHidden()
-  const name = folder.split("/").filter(Boolean).pop() ?? folder
-  await pickSource(page, name)
 }

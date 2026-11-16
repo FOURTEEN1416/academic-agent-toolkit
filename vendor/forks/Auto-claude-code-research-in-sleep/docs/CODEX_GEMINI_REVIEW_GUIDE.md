@@ -1,5 +1,7 @@
 # Codex + Gemini Reviewer Guide
 
+> This guide documents a frozen legacy partial overlay. New installs use the complete Codex pack with reviewer selection; see [migration and preserving customizations](../skills/skills-codex/README.md#migrate-frozen-partial-overlays). Existing directories and links remain available, without new feature sync.
+
 Run ARIS with:
 
 - **Codex** as the main executor

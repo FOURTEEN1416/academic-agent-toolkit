@@ -22,6 +22,23 @@
     display: none;
   }
 
+  /* The disclosure row pins below the sticky user message, or at the top when
+     the transcript lets that message scroll away, so a long trace stays
+     collapsible from wherever the reader is. */
+  [data-slot="session-turn-trace-control"] {
+    position: sticky;
+    top: calc(var(--session-title-height, 0px) + var(--session-turn-sticky-height, 0px));
+    z-index: 19;
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding: 4px 0;
+    background-color: var(--background-base);
+  }
+
   [data-slot="session-turn-message-container"] {
     display: flex;
     flex-direction: column;
@@ -200,7 +217,7 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 8px;
     align-items: flex-start;
     align-self: stretch;
   }
@@ -239,7 +256,7 @@
   }
 
   [data-slot="session-turn-summary-title"] {
-    font-size: 13px;
+    font-size: var(--font-size-medium);
     /* text-12-medium */
     font-weight: var(--font-weight-medium);
     color: var(--text-weak);
@@ -253,7 +270,7 @@
 
   [data-slot="session-turn-markdown"] {
     &[data-diffs="true"] {
-      font-size: 15px;
+      font-size: var(--font-size-base);
     }
 
     &[data-fade="true"] > * {
@@ -509,6 +526,8 @@
     }
   }
 
+  /* The trace is a list on a 4px rhythm: 28px rows, 4px between them, and a
+     clear breath before the answer so it never reads as another row. */
   [data-slot="session-turn-response-section"] {
     width: calc(100% + 9px);
     min-width: 0;
@@ -517,150 +536,409 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 
-    > [data-component="reasoning-part"] {
-      margin: 2px 0 3px 5px;
-      padding: 4px 10px 4px 12px;
-      border-left: 1px solid var(--border-weaker-base);
-      color: var(--text-weak);
+    > [data-slot="trace-entry"]:not([data-narration]) [data-slot="text-part-body"] {
+      margin-top: 16px;
     }
 
-    > [data-component="reasoning-status-part"] {
-      margin: 1px 0 1px 5px;
-      padding-left: 12px;
-      border-left: 1px solid var(--border-weaker-base);
+    > [data-slot="trace-entry"]:first-child:not([data-narration]) [data-slot="text-part-body"] {
+      margin-top: 8px;
     }
 
-    > [data-component="text-part"] [data-slot="text-part-body"] {
-      margin-top: 14px;
-    }
-
-    > [data-component="text-part"] + [data-component="text-part"] [data-slot="text-part-body"] {
+    > [data-slot="trace-entry"]:not([data-narration])
+      + [data-slot="trace-entry"]:not([data-narration])
+      [data-slot="text-part-body"] {
       margin-top: 2px;
     }
 
-    > [data-slot="session-turn-response-copy-wrapper"] {
-      position: absolute;
-      right: 4px;
-      bottom: 0;
-      opacity: 0;
-      transition: opacity 0.15s ease;
+    > [data-slot="session-turn-stop"] {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 8px;
     }
 
-    &:hover > [data-slot="session-turn-response-copy-wrapper"],
-    &:focus-within > [data-slot="session-turn-response-copy-wrapper"],
-    > [data-slot="session-turn-response-copy-wrapper"][data-copied="true"] {
+    > [data-slot="session-turn-stop"] [data-slot="session-turn-stop-note"] {
+      margin: 0;
+      color: var(--text-weaker);
+      font-size: var(--font-size-medium);
+      line-height: 20px;
+    }
+
+    > [data-slot="session-turn-response-copy-wrapper"] {
+      position: static;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+      color: var(--text-weak);
       opacity: 1;
     }
-  }
 
-  [data-slot="session-turn-collapsible"] {
-    gap: 32px;
-    overflow: visible;
-  }
-
-  [data-slot="session-turn-collapsible-trigger-content"] {
-    max-width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-weak);
-    /* Bigger, obviously-clickable hit area for the show/hide-steps toggle.
-       Negative inline margin keeps the enlarged target from shifting layout. */
-    cursor: pointer;
-    min-height: 32px;
-    padding: 6px 10px;
-    margin: -6px -10px;
-    border-radius: var(--radius-xs);
-    border: 1px solid transparent;
-    transition:
-      background 0.12s ease,
-      border-color 0.12s ease,
-      color 0.12s ease;
-
-    &:hover {
-      background: var(--surface-raised-base);
-      border-color: var(--border-weak-base);
-      color: var(--text-base);
+    > [data-slot="session-turn-response-copy-wrapper"] [data-component="button"] {
+      min-height: 32px;
     }
 
-    &:focus-visible {
-      border-color: var(--border-base);
+    > [data-slot="session-turn-response-copy-wrapper"] [role="status"] {
+      font-size: var(--font-size-small);
+      line-height: var(--line-height-large);
+    }
+  }
+
+  /* "Worked for 2m 3s ›": the one line that owns the trace. Reads as text,
+     not as a control, until hovered. */
+  [data-slot="session-turn-collapsible-trigger-content"] {
+    max-width: 100%;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    margin: 0;
+    border-radius: var(--radius-xs);
+    color: var(--text-weak);
+    font-size: var(--font-size-medium);
+    font-weight: var(--font-weight-regular);
+    line-height: 20px;
+    cursor: pointer;
+
+    /* The line reads as text, like the rows under it; hovering brightens the
+       words, nothing fills in behind them. */
+    &[data-component="button"],
+    &[data-component="button"]:hover:not(:disabled),
+    &[data-component="button"]:focus-visible:not(:disabled),
+    &[data-component="button"]:active:not(:disabled) {
+      background-color: transparent;
+      box-shadow: none;
+    }
+
+    /* The chevron follows the label, the way a disclosure reads in Cursor. */
+    > [data-component="icon"] {
+      order: 2;
+      flex-shrink: 0;
     }
 
     [data-slot="session-turn-trigger-icon"] {
-      color: var(--icon-base);
-      flex-shrink: 0;
-      transition: transform 0.15s ease;
+      transform: rotate(-90deg);
+      transition: transform 150ms var(--ease-standard, ease);
+    }
+
+    &[aria-expanded="true"] [data-slot="session-turn-trigger-icon"] {
+      transform: none;
     }
 
     [data-component="spinner"] {
       width: 12px;
       height: 12px;
-      margin-right: 4px;
-      /* Don't let a long status line ("Searching the web · 10m, 1s") squeeze the
-         SVG — without this the 15-unit grid compresses and the dots read as cut off. */
       flex-shrink: 0;
     }
 
-    [data-component="icon"] {
-      width: 14px;
-      height: 14px;
+    [data-slot="session-turn-trigger-label"] {
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      color: var(--text-base);
+    }
+
+    &[aria-expanded="true"] [data-slot="session-turn-trigger-label"],
+    &:hover [data-slot="session-turn-trigger-label"] {
+      color: var(--text-strong);
+    }
+
+    [data-slot="session-turn-duration"] {
+      order: 3;
     }
   }
 
-  [data-slot="session-turn-retry-message"] {
+  /* Trace rows: a verb, a muted summary, a chevron that appears on hover.
+     Groups fold a burst of exploration or edits behind one line; their
+     nested entries hang off a hairline rail. */
+  [data-component="trace-group"] {
+    width: 100%;
+    background: transparent;
+
+    > [data-slot="collapsible-trigger"] {
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: none;
+      text-align: left;
+      border-radius: var(--radius-xs);
+    }
+
+    > [data-slot="collapsible-trigger"]:hover [data-component="trace-row"],
+    > [data-slot="collapsible-trigger"]:focus-visible [data-component="trace-row"] {
+      color: var(--text-strong);
+    }
+
+    > [data-slot="collapsible-trigger"]:focus-visible {
+      outline: 2px solid var(--border-selected);
+      outline-offset: -2px;
+    }
+
+    /* Open and close glide instead of snapping. The content sits in a grid
+       row that eases from 0fr to 1fr, so the height animates without a
+       measured pixel value, and the body fades in with it. Kobalte keeps the
+       body mounted (forceMount), so a pending question or draft inside a fold
+       and find-in-page both survive; the child clips itself while collapsed. */
+    > [data-slot="collapsible-content"] {
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      transition:
+        grid-template-rows var(--duration-medium, 240ms) var(--ease-standard, ease),
+        opacity var(--duration-medium, 240ms) var(--ease-standard, ease);
+    }
+
+    > [data-slot="collapsible-content"] > * {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    > [data-slot="collapsible-content"][data-expanded] {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+
+    /* Honour a reader who asked the system for less motion: reveal at once. */
+    @media (prefers-reduced-motion: reduce) {
+      > [data-slot="collapsible-content"] {
+        transition: none;
+      }
+    }
+
+    [data-slot="trace-group-body"] {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin: 0 0 4px 7px;
+      padding-left: 13px;
+      border-left: 1px solid var(--border-weak-base);
+    }
+
+    /* A private thought is a label with nothing to open. */
+    &[data-header="label"] [data-component="trace-row"] {
+      cursor: default;
+      color: var(--text-weak);
+    }
+
+    /* A burst of one call is just that call's row. */
+    &[data-header="false"] [data-slot="trace-group-body"] {
+      margin: 0;
+      padding-left: 0;
+      border-left: 0;
+    }
+
+    &[data-kind="thought"] [data-component="reasoning-part"] {
+      margin: 0;
+    }
+
+    &[data-kind="thought"] [data-slot="reasoning-part-body"] {
+      margin: 0;
+      padding: 2px 0 4px;
+      border-left: 0;
+      color: var(--text-weak);
+    }
+  }
+
+  /* One level for every row of the trace: 13/20, regular weight, grey. The
+     answer is the white text; everything the model did to get there is quieter,
+     and brightens only under the pointer. */
+  [data-component="trace-row"] {
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px 4px 0;
+    color: var(--text-weak);
+    font-size: var(--font-size-medium);
+    font-weight: var(--font-weight-regular);
+    line-height: 20px;
+    cursor: pointer;
+
+    [data-component="spinner"] {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+
+    [data-slot="trace-row-label"] {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    [data-slot="trace-row-chevron"] {
+      flex-shrink: 0;
+      color: var(--icon-weak);
+      opacity: 0.5;
+      transform: rotate(-90deg);
+      transition:
+        opacity 150ms var(--ease-standard, ease),
+        transform 150ms var(--ease-standard, ease);
+    }
+
+    &[data-open="true"] [data-slot="trace-row-chevron"] {
+      transform: none;
+    }
+
+    &:hover [data-slot="trace-row-chevron"],
+    &[data-open="true"] [data-slot="trace-row-chevron"] {
+      opacity: 1;
+    }
+  }
+
+  [data-slot="session-turn-changes-summary"] {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 12px;
+    font-size: var(--font-size-small);
     font-weight: var(--font-weight-medium);
-    color: var(--syntax-critical);
+    color: var(--text-base);
+  }
+
+  /* Every line of activity, tool rows included, shares the trace row's type:
+     13/20, regular, grey, brighter under the pointer. The tool's own title and
+     argument stop competing with the prose. */
+  [data-slot="session-turn-response-section"] {
+    [data-slot="basic-tool-tool-title"],
+    [data-slot="basic-tool-tool-subtitle"],
+    [data-slot="basic-tool-tool-arg"] {
+      font-size: var(--font-size-medium);
+      font-weight: var(--font-weight-regular);
+      line-height: 20px;
+      color: var(--text-weak);
+    }
+
+    [data-slot="basic-tool-tool-trigger-content"]:hover [data-slot="basic-tool-tool-title"],
+    [data-component="trace-row"]:hover {
+      color: var(--text-base);
+    }
+  }
+
+  /* A message the harness wrote into the turn reads as one grey line, like
+     the tool rows, so the reader sees why the agent went on after answering. */
+  [data-slot="trace-entry"][data-note="true"] [data-component="trace-row"] {
+    color: var(--text-weak);
+    font-size: var(--font-size-small);
+    cursor: default;
+  }
+
+  [data-slot="trace-note-icon"] {
+    flex-shrink: 0;
+    color: var(--icon-weak);
+  }
+
+  [data-slot="trace-note-text"] {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Prose is the answer wherever it falls, so it is the bright text; the grey
+     rows around it are what the model did. Narration keeps a tighter rhythm. */
+  [data-slot="trace-entry"][data-narration="true"] [data-slot="text-part-body"] {
+    margin: 8px 0;
+  }
+
+  [data-slot="trace-entry"] [data-component="markdown"],
+  [data-slot="trace-entry"] [data-component="markdown"] :is(p, li) {
+    color: var(--text-strong);
+  }
+
+  [data-slot="session-turn-duration"] {
+    flex-shrink: 0;
+    color: var(--text-weak);
+    font-size: var(--font-size-small);
+    white-space: nowrap;
+  }
+
+  [data-slot="session-turn-retry-message"] {
+    color: var(--text-weak);
   }
 
   [data-slot="session-turn-retry-seconds"] {
-    color: var(--text-weak);
+    flex: 0 0 auto;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-on-warning-base, var(--text-base));
   }
 
   [data-slot="session-turn-retry-attempt"] {
     color: var(--text-weak);
   }
 
-  [data-slot="session-turn-status-text"] {
+  [data-slot="session-turn-status-text"],
+  [data-slot="session-turn-retry-message"] {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   [data-slot="session-turn-details-text"] {
-    font-size: 13px;
+    font-size: var(--font-size-medium);
     /* text-12-medium */
     font-weight: var(--font-weight-medium);
   }
 
   .error-card {
-    color: var(--text-on-critical-base);
+    color: var(--text-base);
     max-height: 240px;
     overflow-y: auto;
+
+    [data-slot="session-state-copy"] strong {
+      color: var(--text-on-critical-base);
+    }
+
+    [data-slot="session-state-message"] {
+      color: var(--text-weak);
+    }
   }
 
   .session-state-card {
     min-height: 44px;
     display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 9px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
     padding: 10px 12px;
     font-family: var(--font-family-sans);
     font-size: var(--font-size-small);
     line-height: var(--line-height-large);
 
+    [data-slot="session-state-head"] {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      min-width: 0;
+
+      > [data-component="icon"] {
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+    }
+
     &[data-state="paused"] {
       border-color: var(--border-warning-base);
       background: var(--surface-warning-weak);
       color: var(--text-on-warning-base);
-    }
 
-    &[data-state="paused"] > [data-component="icon"] {
-      flex-shrink: 0;
-      margin-top: 2px;
-      color: var(--icon-warning-active);
+      [data-slot="session-state-head"] > [data-component="icon"] {
+        color: var(--icon-warning-active);
+      }
+
+      [data-slot="session-state-copy"] strong {
+        color: var(--text-on-warning-strong);
+      }
     }
 
     [data-slot="session-state-copy"] {
@@ -669,13 +947,43 @@
       gap: 1px;
 
       strong {
-        color: var(--text-on-warning-strong);
         font-weight: var(--font-weight-medium);
       }
     }
 
     [data-slot="session-state-message"] {
       overflow-wrap: anywhere;
+    }
+
+    /* The status, router code or request id a support ticket needs, set apart
+       from the sentence the reader acts on. */
+    [data-slot="session-state-detail"] {
+      margin-top: 2px;
+      overflow: hidden;
+      opacity: 0.7;
+      font-family: var(--font-family-mono);
+      font-size: var(--font-size-x-small);
+      line-height: 16px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &[data-state="error"] {
+      [data-slot="session-state-head"] > [data-component="icon"] {
+        color: var(--icon-critical-active, currentColor);
+      }
+    }
+
+    [data-slot="session-state-actions"] {
+      display: flex;
+      justify-content: flex-end;
+
+      [data-component="button"][data-size="small"] {
+        height: 24px;
+        min-height: 24px;
+        padding: 0 8px;
+        border-radius: var(--radius-xs);
+      }
     }
   }
 
@@ -707,42 +1015,60 @@
   [data-slot="session-turn-session-outputs"] {
     width: 100%;
     min-width: 0;
-    border: 1px solid var(--border-weak-base);
-    border-radius: var(--radius-sm);
-    background: var(--background-base);
 
-    > header {
+    > summary {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 5px;
-      padding: 7px 9px;
+      gap: 6px;
+      min-height: 28px;
+      padding: 4px 8px 4px 0;
+      border-radius: var(--radius-xs);
       color: var(--text-weak);
-      font-size: 11px;
-      font-weight: var(--font-weight-medium);
-      border-bottom: 1px solid var(--border-weak-base);
+      font-size: var(--font-size-medium);
+      font-weight: var(--font-weight-regular);
+      line-height: 20px;
+      list-style: none;
+      cursor: pointer;
 
-      > span:first-child {
-        display: flex;
-        min-width: 0;
-        flex-direction: column;
-        gap: 1px;
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &:hover {
+        color: var(--text-strong);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--border-selected);
+        outline-offset: -2px;
+      }
+
+      [data-component="icon"] {
+        flex-shrink: 0;
+        color: var(--icon-weak);
+        transform: rotate(-90deg);
+        transition: transform 150ms var(--ease-standard, ease);
       }
 
       strong {
         color: var(--text-base);
-        font-weight: var(--font-weight-medium);
+        font-weight: var(--font-weight-regular);
       }
 
       small {
-        color: var(--text-weak);
-        font-size: 10px;
-        font-weight: var(--font-weight-normal);
+        color: var(--text-weaker);
+        font-size: var(--font-size-medium);
       }
     }
 
+    &[open] > summary [data-component="icon"] {
+      transform: none;
+    }
+
     > [data-slot="session-turn-artifact-save"] {
-      padding: 8px;
+      margin: 2px 0 6px 7px;
+      padding: 2px 0 2px 12px;
+      border-left: 1px solid var(--border-weak-base);
     }
   }
 
@@ -758,7 +1084,7 @@
       align-items: center;
       gap: 4px;
       color: var(--text-weak);
-      font-size: 11px;
+      font-size: var(--font-size-x-small);
       line-height: 16px;
       letter-spacing: var(--letter-spacing-normal);
 
@@ -835,13 +1161,13 @@
     }
 
     strong {
-      font-size: 12px;
+      font-size: var(--font-size-small);
       font-weight: var(--font-weight-medium);
     }
 
     small {
       color: var(--text-weak);
-      font-size: 10px;
+      font-size: var(--font-size-2x-small);
     }
   }
 
@@ -892,25 +1218,6 @@
     [data-slot="session-turn-artifact-action"][data-state="error"] {
       color: var(--text-critical-base);
     }
-  }
-}
-
-[data-component="trace-preflight-group"] {
-  [data-slot="trace-preflight-items"] {
-    display: grid;
-    padding: 2px 0 4px 18px;
-    border-left: 1px solid var(--border-weak-base);
-  }
-
-  [data-slot="trace-preflight-items"] > [data-component="tool-part-wrapper"] {
-    min-width: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-component="session-turn"] [data-slot="session-turn-collapsible-trigger-content"],
-  [data-component="session-turn"] [data-slot="session-turn-trigger-icon"] {
-    transition: none;
   }
 }
 

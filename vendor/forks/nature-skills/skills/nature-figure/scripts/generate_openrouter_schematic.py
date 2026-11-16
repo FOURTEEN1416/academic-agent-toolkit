@@ -5,12 +5,14 @@ from __future__ import annotations
 
 import argparse
 import base64
+import ipaddress
 import json
 import mimetypes
 import os
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -112,6 +114,20 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
     return payload
 
 
+def _require_downloadable_url(url: str, source: str) -> None:
+    """Response-supplied URLs must be plain http(s) to non-local hosts before download."""
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in {"http", "https"}:
+        raise SystemExit(f"Refusing non-http(s) {source}: {url}")
+    hostname = (parsed.hostname or "").lower()
+    try:
+        ip = ipaddress.ip_address(hostname)
+    except ValueError:
+        ip = None
+    if hostname == "localhost" or (ip is not None and (ip.is_private or ip.is_loopback or ip.is_link_local)):
+        raise SystemExit(f"Refusing local {source} host: {url}")
+
+
 def media_extension(media_type: str | None, output_format: str | None) -> str:
     if media_type == "image/svg+xml":
         return ".svg"
@@ -162,7 +178,8 @@ def request_images(payload: dict[str, Any], args: argparse.Namespace) -> dict[st
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
         raise SystemExit(f"Image request failed ({exc.code}) at {args.api_url}: {body}") from exc
-    except urllib.error.URLError as exc:
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        # A timeout while waiting for headers or reading the body raises a bare TimeoutError/OSError.
         raise SystemExit(f"Image request failed at {args.api_url}: {exc}") from exc
 
 
@@ -182,8 +199,12 @@ def save_outputs(response: dict[str, Any], payload: dict[str, Any], args: argpar
             outpath.write_bytes(decode_b64_image(item["b64_json"]))
             saved.append(str(outpath))
         elif "url" in item:
-            with urllib.request.urlopen(item["url"], timeout=args.timeout) as image_response:
-                outpath.write_bytes(image_response.read())
+            _require_downloadable_url(item["url"], f"image URL in response item {index}")
+            try:
+                with urllib.request.urlopen(item["url"], timeout=args.timeout) as image_response:
+                    outpath.write_bytes(image_response.read())
+            except OSError as exc:  # URLError, HTTPError and timeouts are all OSError subclasses
+                raise SystemExit(f"Image download failed for response item {index} ({item['url']}): {exc}") from exc
             saved.append(str(outpath))
         else:
             raise SystemExit(f"No image bytes or URL in response item {index}: {item}")

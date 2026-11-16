@@ -31,8 +31,19 @@ function getSystemMode(): "light" | "dark" {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 }
 
+// Reading `globalThis.localStorage` is itself what throws in a sandboxed frame or
+// a browser with storage blocked, so every access resolves it defensively. A
+// `typeof` guard runs the very same getter and cannot protect the read.
+function storageOrNothing(): Storage | undefined {
+  try {
+    return globalThis.localStorage
+  } catch {
+    return undefined
+  }
+}
+
 function getStoredColorScheme(): ColorScheme | undefined {
-  const scheme = localStorage.getItem(STORAGE_KEYS.COLOR_SCHEME)
+  const scheme = storageOrNothing()?.getItem(STORAGE_KEYS.COLOR_SCHEME)
   if (scheme === "system" || scheme === "light" || scheme === "dark") return scheme
 }
 
@@ -101,20 +112,25 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
       mediaQuery.addEventListener("change", handler)
       onCleanup(() => mediaQuery.removeEventListener("change", handler))
 
-      const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME_ID)
+      const savedTheme = storageOrNothing()?.getItem(STORAGE_KEYS.THEME_ID)
       const savedScheme = getStoredColorScheme()
       if (lockedTheme) {
         setStore("themeId", lockedTheme)
-        localStorage.setItem(STORAGE_KEYS.THEME_ID, lockedTheme)
-        localStorage.removeItem(STORAGE_KEYS.LEGACY_THEME_CSS_LIGHT)
-        localStorage.removeItem(STORAGE_KEYS.LEGACY_THEME_CSS_DARK)
+        // Guarded in place rather than routed through `storageOrNothing`: the
+        // theme-lock test pins these exact calls, and the same idiom is already
+        // used above for the CSS cache.
+        try {
+          localStorage.setItem(STORAGE_KEYS.THEME_ID, lockedTheme)
+          localStorage.removeItem(STORAGE_KEYS.LEGACY_THEME_CSS_LIGHT)
+          localStorage.removeItem(STORAGE_KEYS.LEGACY_THEME_CSS_DARK)
+        } catch {}
       } else if (savedTheme && store.themes[savedTheme]) {
         setStore("themeId", savedTheme)
       }
       if (lockedScheme) {
         setStore("colorScheme", lockedScheme)
         setStore("mode", lockedScheme)
-        localStorage.setItem(STORAGE_KEYS.COLOR_SCHEME, lockedScheme)
+        storageOrNothing()?.setItem(STORAGE_KEYS.COLOR_SCHEME, lockedScheme)
       } else if (savedScheme) {
         setStore("colorScheme", savedScheme)
         if (savedScheme !== "system") {
@@ -142,14 +158,14 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
         return
       }
       setStore("themeId", id)
-      localStorage.setItem(STORAGE_KEYS.THEME_ID, id)
+      storageOrNothing()?.setItem(STORAGE_KEYS.THEME_ID, id)
       cacheThemeVariants(theme, id)
     }
 
     const setColorScheme = (scheme: ColorScheme) => {
       if (lockedScheme && scheme !== lockedScheme) return
       setStore("colorScheme", scheme)
-      localStorage.setItem(STORAGE_KEYS.COLOR_SCHEME, scheme)
+      storageOrNothing()?.setItem(STORAGE_KEYS.COLOR_SCHEME, scheme)
       setStore("mode", scheme === "system" ? getSystemMode() : scheme)
     }
 

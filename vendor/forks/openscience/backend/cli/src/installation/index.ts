@@ -13,6 +13,7 @@ declare global {
   const OPENSCIENCE_CHANNEL: string
   const OPENSCIENCE_LIBC: string
   const OPENSCIENCE_PLATFORM_PACKAGE: string
+  const OPENSCIENCE_ARTIFACT_SOURCE: string
 }
 
 export namespace Installation {
@@ -73,6 +74,14 @@ export namespace Installation {
     const script = (input.scriptPath ?? "").replaceAll("\\", "/").toLowerCase()
     const installed = `${exec}\n${script}`
 
+    // The desktop app ships this CLI as the sidecar inside its own application
+    // bundle: `OpenScience.app/Contents/Resources/sidecar/openscience` on
+    // macOS, `resources/sidecar/openscience[.exe]` in electron-builder's
+    // Windows and Linux layouts. A terminal running that copy — directly or
+    // through the `~/.openscience/bin` symlink the app installs — inherits
+    // none of the desktop update environment, so the executable's own location
+    // is the only thing that can tell us the app owns it.
+    if (exec.includes("/resources/sidecar/openscience")) return "desktop" as const
     if (exec.includes("/.openscience/bin/") || exec.includes("/.synsc/bin/")) return "curl" as const
     // legacy pre-rename curl installs lived under ~/.synsc/bin
     // ~/.local/bin is ALSO npm's target with `--prefix ~/.local`, pipx, and many
@@ -85,14 +94,21 @@ export namespace Installation {
     if (installed.includes("/.pnpm/") || installed.includes("/pnpm/global/")) return "pnpm" as const
     if (installed.includes("/scoop/apps/openscience/")) return "scoop" as const
     if (installed.includes("/chocolatey/")) return "choco" as const
-    if (installed.includes("/cellar/openscience/")) return "brew" as const
     if (installed.includes("/node_modules/@synsci/openscience-")) return "npm" as const
     if (script.includes("/node_modules/@synsci/openscience/")) return "npm" as const
     if (exec.includes("/.local/bin/")) return "curl" as const
     return "unknown" as const
   }
 
+  /** The Electron shell hands its signed updater to the sidecar it spawns.
+   *  Only that process can stage or apply a desktop update; the same
+   *  executable started from a terminal has to send the user to the app. */
+  export function desktopUpdateAvailable() {
+    return !!(process.env.OPENSCIENCE_DESKTOP_UPDATE_URL && process.env.OPENSCIENCE_DESKTOP_UPDATE_TOKEN)
+  }
+
   export async function method() {
+    if (desktopUpdateAvailable()) return "desktop" as const
     return methodFromPaths({ execPath: process.execPath, scriptPath: process.argv[1] })
   }
 
@@ -103,16 +119,127 @@ export namespace Installation {
     }),
   )
 
-  async function getBrewFormula() {
-    const tapFormula = await $`brew list --formula openscience/tap/openscience`.throws(false).quiet().text()
-    if (tapFormula.includes("openscience")) return "openscience/tap/openscience"
-    const coreFormula = await $`brew list --formula openscience`.throws(false).quiet().text()
-    if (coreFormula.includes("openscience")) return "openscience"
-    return "openscience"
+  export const DesktopUpdateState = z.object({
+    phase: z.enum([
+      "idle",
+      "downloading",
+      "extracting",
+      "verifying",
+      "ready",
+      "restarting",
+      "restart_blocked",
+      "succeeded",
+      "failed",
+    ]),
+    version: z.string().optional(),
+    transferred: z.number().nonnegative().optional(),
+    total: z.number().positive().optional(),
+    progress: z.number().min(0).max(1).optional(),
+    completed_at: z.string().optional(),
+    error: z.string().optional(),
+    migration_required: z.boolean().optional(),
+  })
+  export type DesktopUpdateState = z.infer<typeof DesktopUpdateState>
+
+  async function desktopRequest(method: "GET" | "POST" | "DELETE", body?: unknown) {
+    const url = process.env.OPENSCIENCE_DESKTOP_UPDATE_URL
+    const token = process.env.OPENSCIENCE_DESKTOP_UPDATE_TOKEN
+    if (!url || !token) throw new Error("The desktop update service is unavailable")
+    const response = await fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(30_000),
+    })
+    if (!response.ok) {
+      const message = await response
+        .json()
+        .then((value) => value.error)
+        .catch(() => undefined)
+      throw new UpgradeFailedError({ stderr: message ?? `Desktop update failed (${response.status})` })
+    }
+    return DesktopUpdateState.parse(await response.json())
+  }
+
+  export function desktopUpdateState() {
+    return desktopRequest("GET")
+  }
+
+  export function stageDesktopUpdate(target: string) {
+    return desktopRequest("POST", { action: "stage", version: target })
+  }
+
+  export function applyDesktopUpdate(target: string) {
+    return desktopRequest("POST", { action: "apply", version: target })
+  }
+
+  export function cancelDesktopUpdate() {
+    return desktopRequest("DELETE")
+  }
+
+  // `curl … | bash` cannot report a failed download: Bun's `$` has no pipefail,
+  // so bash reads EOF and exits 0. Fetch the script to disk first.
+  async function downloadInstaller(url: string, cwd: string, env: Record<string, string>) {
+    const script = path.join(cwd, "install.sh")
+    const download = await $`curl -fsSL -o ${script} ${url}`.cwd(cwd).env(env).quiet().throws(false)
+    const size = await fs.stat(script).then(
+      (stat) => stat.size,
+      () => 0,
+    )
+    if (download.exitCode === 0 && size > 0) return script
+    const detail = download.stderr.toString("utf8").trim()
+    throw new UpgradeFailedError({
+      stderr: `Could not download the installer from ${url}${detail ? `: ${detail}` : " (empty response)"}. Check your network or proxy settings and try again.`,
+    })
+  }
+
+  // A package manager may replace the executable's versioned directory
+  // (pnpm store), so the command on PATH is the fallback probe.
+  async function installedVersion(target: string, cwd: string, env: Record<string, string>) {
+    const candidates = [process.execPath, Bun.which("openscience", { PATH: env.PATH ?? "" })]
+    let observed: string | undefined
+    for (const file of candidates) {
+      if (!file || !(await Bun.file(file).exists())) continue
+      const result = await $`${file} --version`.cwd(cwd).env(env).quiet().throws(false)
+      if (result.exitCode !== 0) continue
+      const version = result.stdout.toString("utf8").trim()
+      if (version === target) return version
+      if (version) observed ??= version
+    }
+    return observed
+  }
+
+  async function verifyUpgrade(method: Method, target: string, cwd: string, env: Record<string, string>) {
+    const observed = await installedVersion(target, cwd, env)
+    if (observed === target) return
+    const hint =
+      method === "curl"
+        ? "Re-run `curl -fsSL https://openscience.sh/install | bash` and read its output."
+        : `Re-run the ${method} upgrade and read its output.`
+    if (observed === undefined) {
+      throw new UpgradeFailedError({
+        stderr: `The ${method} upgrade command finished, but the installed openscience could not be run to confirm its version. ${hint}`,
+      })
+    }
+    if (observed === VERSION) {
+      throw new UpgradeFailedError({
+        stderr: `The ${method} upgrade command finished, but openscience still reports ${VERSION}. ${hint}`,
+      })
+    }
+    throw new UpgradeFailedError({
+      stderr: `The ${method} upgrade command finished, but openscience now reports ${observed} instead of ${target}. ${hint}`,
+    })
   }
 
   export async function upgrade(method: Method, target: string) {
-    const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "openscience-upgrade-"))
+    if (method === "desktop") {
+      await stageDesktopUpdate(target)
+      log.info("desktop update staged", { target })
+      return
+    }
     const allowed = [
       "PATH",
       "HOME",
@@ -135,47 +262,41 @@ export namespace Installation {
       "no_proxy",
     ]
     const env = Object.fromEntries(allowed.flatMap((key) => (process.env[key] ? [[key, process.env[key]!]] : [])))
-    let cmd
-    switch (method) {
-      case "curl":
-        // openscience.sh/install serves the repo install script. The app
-        // subdomain serves the dashboard SPA, so piping it into bash fails.
-        // Override via OPENSCIENCE_INSTALL_URL if hosting the script elsewhere.
-        cmd = $`curl -fsSL ${process.env.OPENSCIENCE_INSTALL_URL || "https://openscience.sh/install"} | bash`
-        break
-      case "npm":
-        cmd = $`npm install -g @synsci/openscience@${target}`
-        break
-      case "pnpm":
-        cmd = $`pnpm install -g @synsci/openscience@${target}`
-        break
-      case "yarn":
-        cmd = $`yarn global add @synsci/openscience@${target}`
-        break
-      case "bun":
-        cmd = $`bun install -g @synsci/openscience@${target}`
-        break
-      case "brew": {
-        const formula = await getBrewFormula()
-        cmd = $`brew upgrade ${formula}`
-        break
-      }
-      case "choco":
-        cmd = $`echo Y | choco upgrade openscience --version=${target}`
-        break
-      case "scoop":
-        cmd = $`scoop install openscience@${target}`
-        break
-      default:
-        throw new Error(`Unknown method: ${method}`)
-    }
-    const commandEnv =
-      method === "curl"
-        ? { ...env, VERSION: target }
-        : method === "brew"
-          ? { ...env, HOMEBREW_NO_AUTO_UPDATE: "1" }
-          : env
+    const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "openscience-upgrade-"))
     try {
+      let cmd
+      switch (method) {
+        case "curl": {
+          // openscience.sh/install serves the repo install script. The app
+          // subdomain serves the dashboard SPA, so piping it into bash fails.
+          // Override via OPENSCIENCE_INSTALL_URL if hosting the script elsewhere.
+          const url = process.env.OPENSCIENCE_INSTALL_URL || "https://openscience.sh/install"
+          const script = await downloadInstaller(url, cwd, env)
+          cmd = $`bash ${script}`
+          break
+        }
+        case "npm":
+          cmd = $`npm install -g @synsci/openscience@${target}`
+          break
+        case "pnpm":
+          cmd = $`pnpm install -g @synsci/openscience@${target}`
+          break
+        case "yarn":
+          cmd = $`yarn global add @synsci/openscience@${target}`
+          break
+        case "bun":
+          cmd = $`bun install -g @synsci/openscience@${target}`
+          break
+        case "choco":
+          cmd = $`echo Y | choco upgrade openscience --version=${target}`
+          break
+        case "scoop":
+          cmd = $`scoop install openscience@${target}`
+          break
+        default:
+          throw new Error(`Unknown method: ${method}`)
+      }
+      const commandEnv = method === "curl" ? { ...env, VERSION: target } : env
       const result = await cmd.cwd(cwd).env(commandEnv).quiet().throws(false)
       if (result.exitCode !== 0) {
         const stderr =
@@ -190,7 +311,7 @@ export namespace Installation {
         stdout: result.stdout.toString(),
         stderr: result.stderr.toString(),
       })
-      await $`${process.execPath} --version`.cwd(cwd).env(env).nothrow().quiet().text()
+      await verifyUpgrade(method, target, cwd, env)
     } finally {
       await fs.rm(cwd, { recursive: true, force: true })
     }
@@ -198,6 +319,10 @@ export namespace Installation {
 
   export const VERSION = typeof OPENSCIENCE_VERSION === "string" ? OPENSCIENCE_VERSION : "local"
   export const CHANNEL = typeof OPENSCIENCE_CHANNEL === "string" ? OPENSCIENCE_CHANNEL : "local"
+  export const ARTIFACT_SOURCE =
+    typeof OPENSCIENCE_ARTIFACT_SOURCE === "string" && /^[a-f0-9]{40}$/.test(OPENSCIENCE_ARTIFACT_SOURCE)
+      ? OPENSCIENCE_ARTIFACT_SOURCE
+      : undefined
   export const USER_AGENT = `openscience/${CHANNEL}/${VERSION}/${Flag.OPENSCIENCE_CLIENT}`
   export const PLATFORM_PACKAGE =
     typeof OPENSCIENCE_PLATFORM_PACKAGE === "string"
@@ -224,17 +349,20 @@ export namespace Installation {
     return knownTags.has(channel) ? channel : "latest"
   }
 
+  /** The newest published GitHub release. The desktop app's signed bundles are
+   *  released there and nowhere else, so this — not the npm dist-tag the
+   *  package managers resolve — is the version a desktop copy upgrades to. */
+  function githubLatest() {
+    return releaseFetch("https://api.github.com/repos/synthetic-sciences/OpenScience/releases/latest")
+      .then((res) => {
+        if (!res.ok) throw new Error(res.statusText)
+        return res.json()
+      })
+      .then((data: any) => data.tag_name.replace(/^v/, ""))
+  }
+
   export async function latest(installMethod?: Method) {
     const detectedMethod = installMethod || (await method())
-
-    if (detectedMethod === "brew") {
-      return releaseFetch("https://formulae.brew.sh/api/formula/openscience.json")
-        .then((res) => {
-          if (!res.ok) throw new Error(res.statusText)
-          return res.json()
-        })
-        .then((data: any) => data.versions.stable)
-    }
 
     if (
       detectedMethod === "npm" ||
@@ -271,11 +399,7 @@ export namespace Installation {
         .then((data: any) => data.version)
     }
 
-    return releaseFetch("https://api.github.com/repos/synthetic-sciences/OpenScience/releases/latest")
-      .then((res) => {
-        if (!res.ok) throw new Error(res.statusText)
-        return res.json()
-      })
-      .then((data: any) => data.tag_name.replace(/^v/, ""))
+    // `desktop` and anything else without a package registry behind it.
+    return githubLatest()
   }
 }

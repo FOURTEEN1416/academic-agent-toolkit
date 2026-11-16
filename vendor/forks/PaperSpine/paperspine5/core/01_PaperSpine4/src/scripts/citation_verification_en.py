@@ -476,14 +476,12 @@ def verify_citation(
                 crossref_year = _crossref_year(msg)
                 crossref_doi = msg.get("DOI", "")
 
-                # A DOI that resolves on Crossref is itself sufficient
-                # evidence that the work is real.  A registration/publication
-                # year mismatch is not grounds to fail a resolvable DOI, so
-                # we record it as a note but still mark the entry matched.
+                # Resolution proves a record exists, not that this citation
+                # identifies it. Keep title mismatches visible for correction.
                 title_ok = _titles_similar(extracted_title, crossref_title)
                 year_ok = _years_close(extracted_year or "", crossref_year)
 
-                entry.status = "matched"
+                entry.status = "matched" if title_ok else "unmatched"
                 entry.crossref_title = crossref_title[:120]
                 entry.crossref_year = crossref_year
                 entry.crossref_doi = crossref_doi
@@ -501,7 +499,10 @@ def verify_citation(
                         "DOI resolved on Crossref (real work)"
                         + ("; " + "; ".join(caveats) if caveats else "")
                     )
-                result.matched_count += 1
+                if title_ok:
+                    result.matched_count += 1
+                else:
+                    result.unmatched_count += 1
             else:
                 entry.status = "unmatched"
                 entry.note = f"DOI {doi} not found in Crossref"
@@ -584,6 +585,7 @@ def verify_citation(
         )
 
     if result.unmatched_count > 0:
+        result.ok = False
         unmatched_ids = [
             e.candidate_id for e in result.entries if e.status == "unmatched"
         ]
@@ -626,6 +628,7 @@ def to_markdown(result: CitationVerificationResult) -> str:
         f"- Unmatched: {result.unmatched_count}",
         f"- Skipped: {result.skipped_count}",
         f"- Status: {'PASS' if result.ok else 'FAIL'}",
+        "- Scope: Crossref title/year matching only; skipped entries, author/venue attribution and claim support still require source review. PASS is not a complete bibliography audit.",
         "",
         "## Verification Results",
         "",

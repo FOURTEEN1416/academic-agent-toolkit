@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/figure-reference-plan.schema.json",
+  "title": "PaperSpine pre-execution reference-figure plan",
+  "description": "Master-authorized, hash-bound visual-grammar and domain mapping frozen before a figure candidate is generated. Its mapping_authority self-hash is integrity only: production validation additionally requires Runner-trusted actor/attestation authority and the exact authority-table byte hash.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "mapping_id",
+    "authority_table_version",
+    "mapping_authority",
+    "subject",
+    "figure",
+    "design_provenance",
+    "reference_assets",
+    "scientific_story",
+    "domain_mappings",
+    "external_action_authorized",
+    "plan_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.figure-reference-plan"},
+    "schema_version": {"const": "1.0"},
+    "mapping_id": {"$ref": "figure-reference-mapping.schema.json#/$defs/id"},
+    "authority_table_version": {
+      "enum": ["paper-spine/references/figure-reference-mapping.md#1.0", "PAPERSPINE_VERA_FIGURE_MAPPING.md#MASTER_FROZEN_V1", "PAPERSPINE_VERA_FIGURE_MAPPING.md#MASTER_FROZEN_V3"],
+      "description": "New plans bind the canonical PaperSpine Skill reference method. Old wire labels are readable history, not current authority. Exact method bytes and the Runner-trusted identity receipt remain required; post-J8 historical reuse additionally requires sealed successor evidence and current revalidation."
+    },
+    "mapping_authority": {"$ref": "figure-reference-mapping.schema.json#/$defs/mapping_authority"},
+    "subject": {"$ref": "figure-reference-mapping.schema.json#/$defs/subject"},
+    "figure": {"$ref": "figure-reference-mapping.schema.json#/$defs/figure"},
+    "design_provenance": {"enum": ["reference_guided", "original_no_reference"]},
+    "original_design_rationale": {"type": "string", "minLength": 12},
+    "reference_assets": {
+      "type": "array",
+      "items": {"$ref": "figure-reference-mapping.schema.json#/$defs/reference_asset"}
+    },
+    "scientific_story": {"$ref": "figure-reference-mapping.schema.json#/$defs/scientific_story"},
+    "domain_mappings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "figure-reference-mapping.schema.json#/$defs/domain_mapping"}
+    },
+    "grammar_reuse_justification": {"type": ["string", "null"], "minLength": 12},
+    "external_action_authorized": {"const": false},
+    "plan_sha256": {
+      "$ref": "figure-reference-mapping.schema.json#/$defs/sha256",
+      "description": "Canonical SHA-256 of the exact plan object with plan_sha256 omitted."
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"design_provenance": {"const": "reference_guided"}}, "required": ["design_provenance"]},
+      "then": {
+        "properties": {
+          "reference_assets": {"minItems": 1},
+          "domain_mappings": {"contains": {"properties": {"source_kind": {"const": "reference_panel"}}, "required": ["source_kind"]}}
+        },
+        "not": {"required": ["original_design_rationale"]}
+      }
+    },
+    {
+      "if": {"properties": {"design_provenance": {"const": "original_no_reference"}}, "required": ["design_provenance"]},
+      "then": {
+        "required": ["original_design_rationale"],
+        "properties": {
+          "reference_assets": {"maxItems": 0},
+          "domain_mappings": {
+            "items": {
+              "allOf": [
+                {"$ref": "figure-reference-mapping.schema.json#/$defs/domain_mapping"},
+                {"properties": {"source_kind": {"const": "original_component"}}, "required": ["source_kind"]}
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -6,8 +6,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .config import load_config
+from .config import REDESIGN_DECISIONS, load_config
 from .img2ppt_pipeline import audit_img2ppt_pptx
+from .redesign_review import comparison_selection
 from .svg import audit_svg
 
 DIMENSION_WEIGHTS = {
@@ -272,7 +273,14 @@ def evaluate_candidate(candidate_dir: Path, config: dict[str, Any]) -> dict[str,
     }
 
 
-def _rank_figure(candidate_root: Path, config: dict[str, Any], review_mode: str) -> dict[str, Any]:
+def _rank_figure(
+    candidate_root: Path,
+    config: dict[str, Any],
+    review_mode: str,
+    *,
+    job: Path,
+    write: bool,
+) -> dict[str, Any]:
     candidate_ids = tuple("ABC"[: int(config["candidate_count"])])
     evaluations = [evaluate_candidate(candidate_root / name, config) for name in candidate_ids]
     passing = sorted((item for item in evaluations if item["status"] == "PASS"), key=lambda item: item["score"], reverse=True)
@@ -292,12 +300,52 @@ def _rank_figure(candidate_root: Path, config: dict[str, Any], review_mode: str)
             else:
                 selected = str(first["candidate_id"])
                 reason = "top candidate passed all gates, score, and margin thresholds"
+    recommended: str | None = selected
+    comparison: dict[str, Any] | None = None
+    if config.get("decision") in REDESIGN_DECISIONS:
+        comparison = comparison_selection(
+            job,
+            str(config["figure_id"]),
+            write_missing_receipt=write,
+        )
+        comparison_choice = str(comparison["selection"])
+        evaluation_by_id = {str(item["candidate_id"]): item for item in evaluations}
+        if comparison_choice != "existing" and comparison_choice not in evaluation_by_id:
+            comparison = {
+                **comparison,
+                "selection": "existing",
+                "winner": "current_figure",
+                "fallback_reason": "comparison_winner_not_in_configured_candidate_set",
+            }
+            comparison_choice = "existing"
+        elif comparison_choice in evaluation_by_id and evaluation_by_id[comparison_choice]["status"] != "PASS":
+            comparison = {
+                **comparison,
+                "selection": "existing",
+                "winner": "current_figure",
+                "fallback_reason": "comparison_winner_failed_candidate_hard_gates",
+            }
+            comparison_choice = "existing"
+        recommended = comparison_choice
+        comparison_reason = str(comparison.get("fallback_reason") or "independent reviewer found a strictly superior candidate")
+        if review_mode == "auto":
+            selected = comparison_choice
+            reason = (
+                f"original selected fail-safe: {comparison_reason}"
+                if comparison_choice == "existing"
+                else "candidate passed hard gates and the independent strict-superiority comparison"
+            )
+        else:
+            selected = None
+            reason = f"manual review was requested; independent comparison recommends {comparison_choice}: {comparison_reason}"
     return {
         "figure_id": config["figure_id"],
         "decision": "selected" if selected else "manual_review_required",
         "selected_candidate": selected,
+        "recommended_candidate": recommended,
         "reason": reason,
         "candidates": evaluations,
+        "redesign_comparison": comparison,
     }
 
 
@@ -310,7 +358,15 @@ def rank_job(job_dir: str | Path, *, write: bool = True) -> dict[str, Any]:
         figure_root = candidates_root / str(figure["figure_id"])
         if len(config["figures"]) == 1 and not figure_root.is_dir():
             figure_root = candidates_root
-        figure_results.append(_rank_figure(figure_root, figure, str(config["review_mode"])))
+        figure_results.append(
+            _rank_figure(
+                figure_root,
+                figure,
+                str(config["review_mode"]),
+                job=job.resolve(),
+                write=write,
+            )
+        )
 
     all_selected = all(item["decision"] == "selected" for item in figure_results)
     result: dict[str, Any] = {
@@ -331,8 +387,10 @@ def rank_job(job_dir: str | Path, *, write: bool = True) -> dict[str, Any]:
             {
                 "figure_id": single["figure_id"],
                 "selected_candidate": single["selected_candidate"],
+                "recommended_candidate": single["recommended_candidate"],
                 "reason": single["reason"],
                 "candidates": single["candidates"],
+                "redesign_comparison": single["redesign_comparison"],
             }
         )
     if write:

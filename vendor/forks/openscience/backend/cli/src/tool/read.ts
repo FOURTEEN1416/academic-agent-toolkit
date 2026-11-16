@@ -2,15 +2,32 @@ import z from "zod"
 import * as fs from "fs"
 import * as path from "path"
 import { Tool } from "./tool"
+import { displayPath } from "./display-path"
 import { LSP } from "../lsp"
 import { FileTime } from "../file/time"
 import DESCRIPTION from "./read.txt"
-import { Instance } from "../project/instance"
 import { Identifier } from "../id/id"
 import { assertExternalDirectory, isAuthorizedPath, sessionToolDirectory } from "./external-directory"
 import { InstructionPrompt } from "../session/instruction"
+import { MessageV2 } from "../session/message-v2"
 import { readImageDimensions } from "../util/image"
 import { SafeFileIO } from "@/file/safe-io"
+import { Literature } from "../research/literature"
+
+const MAX_PDF_TEXT_CHARS = 24_000
+
+/** The document's text for the result body: page-marked, bounded, or nothing
+ * when the PDF has no text layer or extraction fails. */
+async function pdfText(filepath: string, signal?: AbortSignal) {
+  const extracted = await Literature.extract(filepath, signal).catch(() => undefined)
+  if (!extracted || !extracted.pages.length) return undefined
+  const marked = extracted.pages.map((page, index) => `--- page ${index + 1} ---\n${page}`).join("\n\n")
+  const truncated = marked.length > MAX_PDF_TEXT_CHARS
+  const body = truncated
+    ? `${marked.slice(0, MAX_PDF_TEXT_CHARS)}\n\n(Text truncated at ${MAX_PDF_TEXT_CHARS.toLocaleString()} characters of ${marked.length.toLocaleString()}. Use \`literature read\` with a query for passages from the rest.)`
+    : marked
+  return { pages: extracted.pages.length, chars: extracted.chars, tool: extracted.tool, body, truncated }
+}
 
 const DEFAULT_READ_LIMIT = 2000
 const MAX_LINE_LENGTH = 2000
@@ -110,7 +127,12 @@ async function textWindow(filepath: string, offset: number, limit: number) {
     while (!state.stopped) {
       const chunk = await reader.read()
       if (chunk.done) {
-        state.stopped = consume(decoder.decode()) || finishLine()
+        const flushed = consume(decoder.decode())
+        // A trailing newline ends the last line rather than starting one, so
+        // finishing unconditionally appends a phantom empty line: every line
+        // number shifts, including the total reported to the model.
+        const pending = state.line.length > 0 || state.lineWide
+        state.stopped = flushed || (pending && finishLine())
         break
       }
       if (!state.binaryChecked) {
@@ -180,7 +202,7 @@ export const ReadTool = Tool.define("read", {
     }
 
     filepath = (await authorized?.revalidate()) ?? filepath
-    const title = path.relative(Instance.worktree, filepath)
+    const title = await displayPath(filepath, ctx.sessionID)
 
     const file = Bun.file(filepath)
     // Exclude SVG (XML-based) and vnd.fastbidsheet (.fbs extension, commonly FlatBuffers schema files)
@@ -208,8 +230,8 @@ export const ReadTool = Tool.define("read", {
       const instructions = await InstructionPrompt.resolve(ctx.messages, filepath, ctx.messageID)
       const mime = file.type
       const fileBytes = snapshot.bytes
+      const dims = isImage ? readImageDimensions(fileBytes) : undefined
       if (isImage) {
-        const dims = readImageDimensions(fileBytes)
         if (usesAnthropicImageLimit(ctx) && dims && Math.max(dims.width, dims.height) > MAX_IMAGE_DIMENSION) {
           throw new Error(
             `Image too large to attach (${dims.width}x${dims.height}). ` +
@@ -219,25 +241,57 @@ export const ReadTool = Tool.define("read", {
           )
         }
       }
-      const msg = `${kind} read successfully`
+      // A PDF attachment is only as readable as the model behind the route
+      // makes it, and several routes take no PDFs at all: the text goes into
+      // the result beside the attachment when this machine can extract it,
+      // with the pages counted, so the reader is never left to guess whether
+      // the document arrived.
+      const text = isPdf ? await pdfText(filepath, ctx.abort) : undefined
+      // A PDF longer than a provider accepts per attachment is not attached:
+      // the request carrying it would be refused, identically, on every retry.
+      const pdfPages = isPdf ? MessageV2.pdfPagesOf(Buffer.from(fileBytes).toString("latin1")) : 0
+      const attachable = !isPdf || pdfPages <= MessageV2.PDF_MAX_PAGES
+      const msg = isPdf
+        ? text
+          ? `PDF read successfully: ${text.pages} page${text.pages === 1 ? "" : "s"}, ${text.chars.toLocaleString()} characters of text extracted with ${text.tool}.${attachable ? "" : ` ${MessageV2.oversizedPdfNote(pdfPages)}`}`
+          : attachable
+            ? "PDF attached. No text could be extracted; it may be scanned pages with no text layer."
+            : `No text could be extracted; it may be scanned pages with no text layer. ${MessageV2.oversizedPdfNote(pdfPages)}`
+        : dims
+          ? `Image read successfully: ${dims.width}×${dims.height} ${mime.replace("image/", "").toUpperCase()}, ${Math.max(1, Math.round(fileBytes.byteLength / 1024))} KB.`
+          : `${kind} read successfully`
       return {
         title,
-        output: msg,
+        output: text ? `${msg}\n\n${text.body}` : msg,
         metadata: {
           preview: msg,
-          truncated: false,
+          truncated: text?.truncated ?? false,
+          ...(text ? { pages: text.pages } : {}),
+          // What was looked at, for the trace: a schematic review that says
+          // "10/10" can be checked against the file it judged.
+          ...(isImage
+            ? {
+                image: {
+                  mime,
+                  bytes: fileBytes.byteLength,
+                  ...(dims ? { width: dims.width, height: dims.height } : {}),
+                },
+              }
+            : {}),
           ...(instructions.length > 0 && { loaded: instructions.map((i) => i.filepath) }),
         },
-        attachments: [
-          {
-            id: Identifier.ascending("part"),
-            sessionID: ctx.sessionID,
-            messageID: ctx.messageID,
-            type: "file",
-            mime,
-            url: `data:${mime};base64,${Buffer.from(fileBytes).toString("base64")}`,
-          },
-        ],
+        attachments: attachable
+          ? [
+              {
+                id: Identifier.ascending("part"),
+                sessionID: ctx.sessionID,
+                messageID: ctx.messageID,
+                type: "file",
+                mime,
+                url: `data:${mime};base64,${Buffer.from(fileBytes).toString("base64")}`,
+              },
+            ]
+          : [],
       }
     }
 

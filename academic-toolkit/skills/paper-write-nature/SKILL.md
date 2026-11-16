@@ -17,6 +17,8 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetc
 
 Draft a Nature-quality LaTeX paper based on: **$ARGUMENTS**
 
+> **分工**：已有成稿的语言层润色/翻译用 `paper-polish-nature`；本技能负责结构起草与全文生成（沙漏架构与章节职责见下，为该架构的权威表述）。
+
 
 
 ## Constants
@@ -603,63 +605,13 @@ Then save to `paper/main.tex` with proper Nature formatting and compile.
 
 ## ⛔ Figure embedding verification (MUST pass before finishing — file existence + actual `\includegraphics` reference both required)
 
-
+已并入共享脚本 `paper_write_audit.sh`（paper-write 族单一实现）。**怎么跑**：
 
 ```bash
-
-echo "=== Figure embedding check (file + reference) ==="
-
-missing=0
-
-
-
-# 1. Every PDF in figures/ must be referenced in paper/sections/*.tex or paper/main.tex
-
-for pdf in figures/*.pdf; do
-
-    [ -f "$pdf" ] || continue
-
-    bn=$(basename "$pdf")
-
-    if ! grep -rq "$bn" paper/sections/*.tex paper/main.tex 2>/dev/null; then
-
-        echo "MISSING: $bn — produced but not embedded in any section"
-
-        missing=$((missing + 1))
-
-    fi
-
-done
-
-
-
-# 2. Every \label{} in figures/*.tex must be \ref'd in some section
-
-for fig_tex in figures/*.tex; do
-
-    [ -f "$fig_tex" ] || continue
-
-    for lbl in $(grep -oh '\\label{[^}]*}' "$fig_tex" 2>/dev/null); do
-
-        if ! grep -rq "$lbl" paper/sections/*.tex paper/main.tex 2>/dev/null; then
-
-            echo "MISSING: $lbl (from $(basename $fig_tex)) — not referenced"
-
-            missing=$((missing + 1))
-
-        fi
-
-    done
-
-done
-
-
-
-echo "Total missing embeddings: $missing"
-
-[ "$missing" -gt 0 ] && echo "⛔ DO NOT finish until missing = 0. Embed each missing figure into the appropriate section."
-
+bash _utils/paper_write_audit.sh --mode latex   # 本目录无 _utils 时: bash skills/shared-scripts/paper_write_audit.sh --mode latex
 ```
+
+**怎么读结果**：任何 `MISSING:` / `❌` 行或 `Total missing embeddings > 0` 都表示有图未嵌入或缺件——逐项补齐后重跑至 0；`⛔ DO NOT finish until missing = 0.`。该脚本同时执行下方 FIGURE_MANIFEST audit 与 universal paper audit；审计留痕由程序采集，不再手写 AUDIT_REPORT 审计文件；有引擎 finish 时以 output_contract/`paper_write_gate` 自动核验为准，本脚本为无引擎合同场景的兜底预检。
 
 
 
@@ -669,103 +621,13 @@ echo "Total missing embeddings: $missing"
 
 ## ⛔ FIGURE_MANIFEST audit (run before finishing — must produce + embed every planned figure)
 
-
-
-```bash
-
-echo "=== FIGURE_MANIFEST audit ==="
-
-PLAN_FILE=""
-
-for f in PROBLEM_ANALYSIS.md PAPER_PLAN.md MODELING_REPORT.md TOPIC_PLAN.md; do
-
-  [ -f "$f" ] && grep -q "<!-- BEGIN FIGURE_MANIFEST -->" "$f" && { PLAN_FILE="$f"; break; }
-
-done
-
-if [ -n "$PLAN_FILE" ]; then
-
-    START=$(grep -n "<!-- BEGIN FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
-
-    END=$(grep -n "<!-- END FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
-
-    EXPECTED_FIGS=$(sed -n "${START},${END}p" "$PLAN_FILE" | grep -oE "^[[:space:]]*-[[:space:]]+(fig_[a-zA-Z0-9_]+|tikz_[a-zA-Z0-9_]+)" | sed "s/^[[:space:]]*-[[:space:]]*//")
-
-    manifest_missing=0
-
-    for name in $EXPECTED_FIGS; do
-
-        if ! ls figures/${name}.pdf figures/${name}.png 2>/dev/null | head -1 | grep -q .; then
-
-            echo "❌ MANIFEST: $name file missing"
-
-            manifest_missing=$((manifest_missing + 1))
-
-        elif ! grep -rqE "${name}\.(pdf|png)" paper/sections/ paper/main.tex 2>/dev/null; then
-
-            echo "❌ MANIFEST: $name exists but not referenced in paper"
-
-            manifest_missing=$((manifest_missing + 1))
-
-        fi
-
-    done
-
-    if [ "$manifest_missing" -gt 0 ]; then
-
-        echo "⛔ FIGURE_MANIFEST audit failed ($manifest_missing missing): produce + embed every planned figure before ending"
-
-    else
-
-        echo "✅ FIGURE_MANIFEST fully embedded"
-
-    fi
-
-else
-
-    echo "(no FIGURE_MANIFEST in plan docs, skip audit)"
-
-fi
-
-```
+已并入共享脚本 `paper_write_audit.sh`（见上节，随 `bash _utils/paper_write_audit.sh --mode latex` 一并执行）。**怎么读结果**：`✅ FIGURE_MANIFEST fully embedded` = 通过；`❌ MANIFEST: ...` / `⛔ FIGURE_MANIFEST audit failed (N missing)` = 计划图缺文件或未嵌入正文——补产/补嵌后重跑。判据与原内联版逐项一致（计划图清单取自 PROBLEM_ANALYSIS/PAPER_PLAN/MODELING_REPORT/TOPIC_PLAN 的 FIGURE_MANIFEST 块，检查 .pdf/.png 存在且被 paper/sections/ 或 paper/main.tex 引用）。
 
 
 
 ## ⛔ Universal paper-stage audit (shared across all writing steps)
 
-
-
-Before finishing writing / compiling, run the universal audit. Works without `PROBLEM_FACTS.json`:
-
-
-
-```bash
-
-# Universal paper audit:
-
-#   [13] Conclusion consistency: paper text ↔ results.json (prevent "optimal=X but paper says Y")
-
-#   [14] Event source attribution (prevent "guessing source from variable name")
-
-# Falls back to simplified mode if no PROBLEM_FACTS.json (general academic / course / humanities).
-
-PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
-
-if [ -f _utils/facts_audit.py ]; then
-
-    $PYTHON _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
-
-    PRC=$?
-
-    if [ "$PRC" = "1" ]; then
-
-        echo "❌ Universal paper-stage audit failed — fix paper text / results.json before finishing"
-
-    fi
-
-fi
-
-```
+已并入共享脚本 `paper_write_audit.sh`（见上节，随 `bash _utils/paper_write_audit.sh --mode latex` 一并执行；内部调 `_utils/facts_audit.py --stage paper`，无 `PROBLEM_FACTS.json` 时自动走简化模式）。检查项：[13] 正文结论与 results.json 一致；[14] 事件源归属。**怎么读结果**：输出 `❌ Universal paper-stage audit failed` = 修正正文/results.json 后重跑。审计输出由程序采集留痕，不再手写 AUDIT_REPORT 审计文件。
 
 
 

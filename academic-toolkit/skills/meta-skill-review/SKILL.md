@@ -323,8 +323,8 @@ For detailed evaluation criteria and examples, consult:
 
 ### Related Skills
 
-- **`skill-development`** - Comprehensive guide for creating skills
-- **`code-review-excellence`** - Best practices for code review
+- **`meta-skill-development`** - Comprehensive guide for creating skills（本仓实名；写作规范与完整性检查入口）
+- ~~`code-review-excellence`~~ - 上游技能，本仓未集成；其「最佳实践审查」职责并入 `meta-skill-development`
 
 ## Best Practices
 

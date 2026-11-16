@@ -58,18 +58,14 @@ Use OpenAlex when you want:
    pip install requests
    ```
 
-2. **Optional: API keys** — Create `.claude/.env` in project root:
+2. **Optional: API key and email** — Set the variables you use in the same shell **before starting Claude Code** so helper commands inherit them:
    ```bash
-   # Copy from template
-   cp .claude/.env.example .claude/.env
-   
-   # Edit and add your keys
-   # .claude/.env
-   OPENALEX_API_KEY=your-key-here
-   OPENALEX_EMAIL=your-email@example.com
+   export OPENALEX_API_KEY='your-key-here'
+   export OPENALEX_EMAIL='your-email@example.com'
+   claude
    ```
-   
-   Claude Code automatically loads `.claude/.env` as environment variables.
+
+   The helper reads `OPENALEX_API_KEY` and `OPENALEX_EMAIL` from its process environment. A separate tool-shell `export` does not update an already running host. If you keep credentials in an environment file, load it explicitly before starting the host rather than relying on automatic `.env` loading.
 
 3. **Get API keys** (optional but recommended):
    - **OpenAlex API key**: Free tier $1/day (10,000 list calls, 1,000 search calls) from [openalex.org](https://openalex.org/)

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/academic-cumulative-inputs.schema.json",
+  "title": "Persisted cumulative inputs and actual base snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "task_id", "product_build_id", "base_snapshot", "stage_inputs", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.academic-cumulative-inputs"},
+    "schema_version": {"const": "1.0"},
+    "task_id": {"type": "string", "minLength": 1},
+    "product_build_id": {"type": "string", "minLength": 1},
+    "base_snapshot": {"type": "object", "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+    "stage_inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "awaiting_research": {"type": "object"},
+        "awaiting_contribution": {"type": "object"},
+        "awaiting_claim_graph": {"type": "object"},
+        "awaiting_figure_intent": {"type": "object"},
+        "awaiting_canonical": {"type": "object"},
+        "awaiting_review": {"type": "object"},
+        "awaiting_package": {"type": "object"}
+      }
+    },
+    "revision_context": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract", "schema_version", "initial_review", "manuscript_head", "producer_ids", "status", "external_action_authorized"],
+      "properties": {
+        "contract": {"const": "paperspine5.publication-revision-context"},
+        "schema_version": {"const": "1.0"},
+        "initial_review": {"type": "object"},
+        "manuscript_head": {"type": "object"},
+        "producer_ids": {"type": "array", "items": {"type": "string"}},
+        "status": {"enum": ["revision_required", "closed"]},
+        "external_action_authorized": {"const": false}
+      },
+      "description": "Runner-owned immutable review/head retained across the J9 to J8 repair transition; never accepted from an academic answer."
+    },
+    "external_action_authorized": {"const": false}
+  }
+}

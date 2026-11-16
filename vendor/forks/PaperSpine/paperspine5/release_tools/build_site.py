@@ -3,11 +3,10 @@
 
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 import shutil
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "website"
@@ -115,8 +114,12 @@ def verify_figure_showcase() -> dict[str, int | str]:
 
 def main() -> int:
     manifest = json.loads((SOURCE / "downloads" / "manifest.json").read_text(encoding="utf-8"))
-    if manifest.get("product") != "PaperSpine5" or len(manifest.get("artifacts", [])) != 4:
+    if manifest.get("product") != "PaperSpine5" or len(manifest.get("artifacts", [])) < 2:
         raise RuntimeError("refusing to build from an invalid PaperSpine5 manifest")
+    kinds = {item.get("kind") for item in manifest.get("artifacts", [])}
+    required = {"suite", "suite-linux-x86_64", "suite-macos-arm64", "suite-macos-x86_64"}
+    if kinds != required:
+        raise RuntimeError("manifest must expose the four complete platform suites")
     figure_evidence = verify_figure_showcase()
     if OUTPUT.exists():
         shutil.rmtree(OUTPUT)

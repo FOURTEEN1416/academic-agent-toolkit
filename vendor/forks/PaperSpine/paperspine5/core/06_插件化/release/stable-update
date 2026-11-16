@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+PYTHON="$ROOT/runtime_vendor/python/bin/python3"
+if [ ! -x "$PYTHON" ]; then
+  echo "PaperSpine packaged Python is missing or not executable: $PYTHON" >&2
+  exit 1
+fi
+exec "$PYTHON" -I -B -X utf8 "$ROOT/release/stable_updater.py" "$@"

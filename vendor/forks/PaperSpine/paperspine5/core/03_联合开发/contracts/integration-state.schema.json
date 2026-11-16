@@ -4,14 +4,42 @@
   "title": "Resumable integration state",
   "type": "object",
   "additionalProperties": true,
-  "required": ["schema_version", "job_id", "stage", "next_action", "events", "signals", "context", "updated_at"],
+  "required": ["schema_version", "job_id", "stage", "next_action", "events", "signals", "issues", "context", "updated_at"],
   "properties": {
-    "schema_version": {"const": "1.2"},
+    "schema_version": {"const": "1.3"},
     "job_id": {"type": "string", "minLength": 1},
     "stage": {"enum": ["initialized", "awaiting_candidates", "awaiting_review", "figures_confirmed", "awaiting_paper_integration", "canonical_paper_ready", "target_profile_ready", "rebuttal_validated", "rebuttal_materials_ready", "destination_rebuild_ready", "awaiting_external_authorization", "blocked"]},
     "next_action": {"type": "string"},
     "events": {"type": "array", "items": {"type": "object"}},
     "signals": {"type": "array", "items": {"type": "object"}},
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["contract", "version", "issue_id", "status", "question", "details", "missing_fields", "missing_materials", "allowed_actions", "blocked_stage", "resume", "created_at"],
+        "properties": {
+          "contract": {"const": "paperspine5.needs_user_input"},
+          "version": {"const": "1.0"},
+          "issue_id": {"type": "string", "minLength": 1},
+          "status": {"enum": ["open", "resolved"]},
+          "question": {"type": "string", "minLength": 1},
+          "details": {"type": "string", "minLength": 1},
+          "missing_fields": {"type": "array", "items": {"type": "string"}},
+          "missing_materials": {"type": "array", "items": {"type": "string"}},
+          "allowed_actions": {"type": "array", "minItems": 1, "items": {"enum": ["answer", "acknowledge", "provide_material", "retry"]}, "uniqueItems": true},
+          "blocked_stage": {"type": "string", "minLength": 1},
+          "resume": {
+            "type": "object",
+            "required": ["token", "state"],
+            "properties": {
+              "token": {"type": "string", "minLength": 16},
+              "state": {"type": "object"}
+            }
+          },
+          "created_at": {"type": "string"}
+        }
+      }
+    },
     "context": {"type": "object"},
     "updated_at": {"type": "string"}
   }

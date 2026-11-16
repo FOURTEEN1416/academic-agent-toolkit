@@ -1,12 +1,10 @@
-- Search and get relevant context for any programming task using Exa Code API
-- Provides the highest quality and freshest context for libraries, SDKs, and APIs
-- Use this tool for ANY question or task related to programming
-- Returns comprehensive code examples, documentation, and API references
-- Optimized for finding specific programming patterns and solutions
+- Search the web for programming reference material using Exa search
+- Ranks official documentation, API references, source repositories and code examples first
+- Returns up to 10 pages, each with its title, URL and highlighted excerpts (often including code snippets)
+- Use this tool to look up how a library, SDK, API or framework is used
 
 Usage notes:
-  - Adjustable token count (1000-50000) for focused or comprehensive results
-  - Default 5000 tokens provides balanced context for most queries
-  - Use lower values for specific questions, higher values for comprehensive documentation
-  - Supports queries about frameworks, libraries, APIs, and programming concepts
-  - Examples: 'React useState hook examples', 'Python pandas dataframe filtering', 'Express.js middleware'
+  - Describe the page you want rather than listing keywords, and name the library or language
+  - Excerpts are highlights, not full pages; use webfetch on a returned URL when you need the whole page
+  - Default 5 pages keeps the result focused; raise numResults for broader coverage
+  - Examples: 'pandas DataFrame filtering rows by condition with examples', 'Express.js error-handling middleware'

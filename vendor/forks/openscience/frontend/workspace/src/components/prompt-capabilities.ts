@@ -16,6 +16,14 @@ export type DelegationModel = {
   modelID: string
 }
 
+export function sameDelegationModel(
+  current: DelegationModel | null | undefined,
+  next: DelegationModel | null | undefined,
+) {
+  if (!current || !next) return !current && !next
+  return current.providerID === next.providerID && current.modelID === next.modelID
+}
+
 export type DelegationSettings = {
   level: DelegationLevel
   workerModel?: DelegationModel
@@ -31,13 +39,26 @@ export const DELEGATION_LEVELS: Array<{ value: DelegationLevel; label: string }>
 export const DELEGATION_AUTONOMY: Array<{
   value: DelegationAutonomy
   label: string
+  description: string
 }> = [
-  { value: "interactive", label: "Interactive" },
-  { value: "balanced", label: "Balanced" },
-  { value: "autonomous", label: "Independent" },
+  {
+    value: "interactive",
+    label: "Interactive",
+    description: "Asks every question, with one recommended option",
+  },
+  {
+    value: "balanced",
+    label: "Balanced",
+    description: "Takes the recommended plan; asks before consequential decisions",
+  },
+  {
+    value: "autonomous",
+    label: "Independent",
+    description: "Takes the recommended option; asks only when input or authority is missing",
+  },
 ]
 
-export const DEFAULT_DELEGATION: DelegationSettings = {
+const DEFAULT_DELEGATION: DelegationSettings = {
   level: "standard",
   autonomy: "balanced",
 }
@@ -53,17 +74,13 @@ export function delegationSettings(preferences?: CapabilityPreferences): Delegat
   }
 }
 
-export function delegationLabel(settings: DelegationSettings) {
-  return DELEGATION_LEVELS.find((option) => option.value === settings.level)?.label ?? "Auto"
-}
-
 export const CAPABILITY_PREFERENCES_EVENT = "openscience:capability-preferences"
 
 export function publishCapabilityPreferences(preferences: CapabilityPreferences) {
   globalThis.dispatchEvent(new CustomEvent(CAPABILITY_PREFERENCES_EVENT, { detail: preferences }))
 }
 
-export type SpecialistOption = {
+type SpecialistOption = {
   name: string
   description?: string
 }
@@ -73,16 +90,13 @@ const LABELS: Record<string, string> = {
   biology: "Biology",
   physics: "Physics",
   ml: "ML",
-  write: "Scientific writing",
+  chemistry: "Chemistry",
+  data: "Data",
   docs: "Documentation",
-  task: "General",
   explore: "Exploration",
-  "literature-review": "Literature review",
-  critique: "Scientific critique",
-  "physics-critique": "Physics critique",
 }
 
-export const CORE_SPECIALISTS = ["biology", "physics", "ml"] as const
+const CORE_SPECIALISTS = ["biology", "physics", "ml", "chemistry", "data"] as const
 
 export function isCoreSpecialist(name: string) {
   return CORE_SPECIALISTS.some((specialist) => specialist === name)

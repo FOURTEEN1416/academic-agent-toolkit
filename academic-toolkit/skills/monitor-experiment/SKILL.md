@@ -1,6 +1,6 @@
 ---
 name: monitor-experiment
-description: "Monitor running experiments, check progress, collect results. Use when user says ”check results”, ”is it done”, or ”check experiment progress”."
+description: "Monitor running experiments, check progress, collect results (remote inspection and result gathering). Use when user says 'check results', 'is it done', or 'check experiment progress'. For training-quality inspection (NaN/divergence/plateau), use training-check."
 argument-hint: [server-alias or screen-name]
 allowed-tools: Bash(ssh *), Bash(echo *), Read, Write, Edit
 ---
@@ -99,7 +99,7 @@ Present results in a comparison table:
 
 ### Step 6: Feishu Notification (if configured)
 
-After results are collected, 检查 `~/.acat/feishu.json`:
+After results are collected, check the project's notification configuration (e.g., the Feishu/webhook config file agreed in the project's `AGENTS.md`, if any):
 - Send `experiment_done` notification: results summary table, delta vs baseline
 - If config absent or mode `"off"`: skip entirely (no-op)
 

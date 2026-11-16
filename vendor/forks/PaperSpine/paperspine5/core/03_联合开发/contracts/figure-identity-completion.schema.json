@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/figure-identity-completion.schema.json",
+  "title": "PaperSpine scientific figure identity completion receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "contract_type", "status", "body_contract_sha256", "figures", "receipt_sha256"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "contract_type": {"const": "paperspine.figure.identity-completion"},
+    "status": {"const": "PASS"},
+    "body_contract_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "figures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["figure_id", "status", "scientific_identity", "surfaces", "candidate_identity_audit"],
+        "properties": {
+          "figure_id": {"type": "string", "minLength": 1},
+          "status": {"const": "PASS"},
+          "scientific_identity": {"type": "object"},
+          "surfaces": {
+            "type": "object",
+            "required": ["final_pixels", "editable_source", "caption", "body_contract", "lineage_receipt"]
+          },
+          "candidate_identity_audit": {
+            "type": "object",
+            "required": ["path", "sha256"],
+            "properties": {
+              "path": {"type": "string", "minLength": 1},
+              "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "receipt_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

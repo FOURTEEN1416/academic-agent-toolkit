@@ -159,7 +159,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch, WebFetc
 
 cat _utils/figure_exemplars.md 2>/dev/null || cat skills/shared-scripts/figure_exemplars.md
 
-# 同时浏览配方库（60+ 张 SCI 级图表代码模板，参考性质）
+# 同时浏览配方库（110 张 SCI 级图表代码模板，参考性质；张数以 _utils/figure_recipes_*.md 的 H2 实数为准，库更新时以库为准）
 
 ls _utils/figure_recipes_*.md 2>/dev/null || ls skills/shared-scripts/figure_recipes_*.md
 
@@ -167,17 +167,17 @@ ls _utils/figure_recipes_*.md 2>/dev/null || ls skills/shared-scripts/figure_rec
 
 
 
-**5 个配方库供参考**（启发图表规划，不强制按编号生成）：
+**5 个配方库供参考**（启发图表规划，不强制按编号生成；张数以 `_utils/figure_recipes_*.md` 实数为准，2026-11-16 复核）：
 
 - `basic`（12 张）：基础图 + 渐变填充 / KDE 背景 / Rain Cloud / Lollipop
 
-- `advanced`（24 张）：高 SCI 影响因子图（SHAP / Kaplan-Meier / Forest plot / Sankey / Volcano / Ridgeline）
+- `advanced`（35 张）：高 SCI 影响因子图（SHAP / Kaplan-Meier / Forest plot / Sankey / Volcano / Ridgeline）
 
 - `empirical`（21 张）：计量/统计图（DID / 工具变量 / 分位数回归 / PSM / 脉冲响应）
 
 - `academic`（12 张）：AI/CS 图（ablation / t-SNE / training curves）
 
-- `competition`（27 张）：竞赛风格（收敛 / Pareto / 灵敏度 / 3D Surface / 龙卷风）
+- `competition`（30 张）：竞赛风格（收敛 / Pareto / 灵敏度 / 3D Surface / 龙卷风）
 
 
 

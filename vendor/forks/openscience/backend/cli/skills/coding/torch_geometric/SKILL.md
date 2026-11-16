@@ -4,9 +4,15 @@ description: Graph Neural Networks (PyG). Node/graph classification, link predic
 category: coding
 license: MIT license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/torch_geometric
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Graph Neural Networks, Deep Learning, Molecules, Networks]
 dependencies: ["torch-geometric>=2.5.0", "torch>=2.0.0"]
 ---
@@ -647,8 +653,6 @@ When choosing layers, consider these capabilities:
 - **Bipartite**: Works with bipartite graphs (different source/target dimensions)
 - **Lazy**: Enables initialization without specifying input dimensions
 
-See the GNN cheatsheet at `references/layer_capabilities.md`.
-
 ## Resources
 
 ### Bundled References
@@ -658,7 +662,6 @@ This skill includes detailed reference documentation:
 - **`references/layers_reference.md`**: Complete listing of all 40+ GNN layers with descriptions and capabilities
 - **`references/datasets_reference.md`**: Comprehensive dataset catalog organized by category
 - **`references/transforms_reference.md`**: All available transforms and their use cases
-- **`references/api_patterns.md`**: Common API patterns and coding examples
 
 ### Scripts
 

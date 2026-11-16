@@ -1,0 +1,402 @@
+import { expect, test } from "bun:test"
+import z from "zod"
+import { Provider } from "../../src/provider/provider"
+import { Instance } from "../../src/project/instance"
+import { Session } from "../../src/session"
+import { SessionPrompt } from "../../src/session/prompt"
+import { SessionStatus } from "../../src/session/status"
+import { SessionTelemetry } from "../../src/session/telemetry"
+import { ToolRegistry } from "../../src/tool/registry"
+import { Tool } from "../../src/tool/tool"
+import { tmpdir, trustProject } from "../fixture/fixture"
+import { STRESS_PROVIDER_ID, STRESS_PROVIDER_MODEL, stressProviderConfig } from "../fixture/stress-provider"
+
+const encoder = new TextEncoder()
+const marker = "STALL_RECOVERY_MAIN_REQUEST"
+
+function chunk(delta: Record<string, unknown>, finish: string | null = null) {
+  return `data: ${JSON.stringify({ id: "chatcmpl-stall", object: "chat.completion.chunk", created: 1, model: STRESS_PROVIDER_MODEL, choices: [{ index: 0, delta, finish_reason: finish }], ...(finish ? { usage: { prompt_tokens: 12, completion_tokens: 3, total_tokens: 15 } } : {}) })}\n\n`
+}
+
+test.each(["silence", "keepalive", "private-reasoning"])(
+  "stops %s, keeps partial work, and sends only one model request",
+  async (mode) => {
+    let requests = 0
+    let cancelled = false
+    let ready = false
+    const timers = new Set<ReturnType<typeof setInterval>>()
+    using server = Bun.serve({
+      hostname: "127.0.0.1",
+      port: 0,
+      async fetch(request) {
+        const body = await request.json()
+        if (!JSON.stringify(body).includes(marker)) {
+          return new Response(`${chunk({ content: "Helper title" })}${chunk({}, "stop")}data: [DONE]\n\n`, {
+            headers: { "content-type": "text/event-stream" },
+          })
+        }
+        requests++
+        let timer: ReturnType<typeof setInterval> | undefined
+        return new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(
+                encoder.encode(chunk({ role: "assistant", reasoning_content: "Saved partial reasoning." })),
+              )
+              controller.enqueue(encoder.encode(chunk({ content: "Saved partial answer." })))
+              // Do not begin the intentional stall until the real session has
+              // persisted both seed parts. SDK startup and storage are not a
+              // subsecond timing contract, especially in the full CI shard.
+              timer = setInterval(() => {
+                if (ready && mode === "silence") {
+                  clearInterval(timer)
+                  return
+                }
+                controller.enqueue(
+                  encoder.encode(
+                    !ready || mode === "keepalive" ? ": PROCESSING\n\n" : chunk({ reasoning_content: "[REDACTED]" }),
+                  ),
+                )
+              }, 20)
+              timers.add(timer)
+            },
+            cancel() {
+              cancelled = true
+              clearInterval(timer)
+            },
+          }),
+          { headers: { "content-type": "text/event-stream" } },
+        )
+      },
+    })
+    const base = stressProviderConfig(`http://127.0.0.1:${server.port}/v1`)
+    const config = {
+      ...base,
+      provider: {
+        ...base.provider,
+        [STRESS_PROVIDER_ID]: {
+          ...base.provider[STRESS_PROVIDER_ID],
+          options: {
+            ...base.provider[STRESS_PROVIDER_ID].options,
+            connectTimeout: 5_000,
+            idleTimeout: mode === "silence" ? 1_000 : 5_000,
+            outputIdleTimeout: 2_000,
+          },
+        },
+      },
+    }
+    await using tmp = await tmpdir({ git: true, config })
+    try {
+      await Instance.provide({
+        directory: tmp.path,
+        init: async () => {
+          await trustProject()
+          await Provider.invalidate()
+        },
+        fn: async () => {
+          const session = await Session.create({ title: "Stall recovery" })
+          let settled = false
+          const pending = SessionPrompt.prompt({
+            sessionID: session.id,
+            model: { providerID: STRESS_PROVIDER_ID, modelID: STRESS_PROVIDER_MODEL },
+            agent: "research",
+            delegation: false,
+            system: marker,
+            parts: [{ type: "text", text: "Answer once." }],
+          }).finally(() => {
+            settled = true
+          })
+          void pending.catch(() => undefined)
+          const result = await (async () => {
+            const deadline = Date.now() + 5_000
+            while (Date.now() < deadline) {
+              const parts = (await Session.messages({ sessionID: session.id })).flatMap((message) => message.parts)
+              ready =
+                parts.some((part) => part.type === "text" && part.text.includes("Saved partial answer.")) &&
+                parts.some((part) => part.type === "reasoning" && part.text.includes("Saved partial reasoning."))
+              if (ready || settled) break
+              await Bun.sleep(100)
+            }
+            expect(ready, "seed parts must be durable before the intentional stall").toBe(true)
+            return await pending
+          })().finally(async () => {
+            if (!settled) await SessionPrompt.cancel(session.id)
+            await pending.catch(() => undefined)
+          })
+          expect(requests).toBe(1)
+          expect(result.info).toMatchObject({
+            role: "assistant",
+            time: { completed: expect.any(Number) },
+            error: {
+              name: "APIError",
+              data: {
+                isRetryable: false,
+                metadata: {
+                  code: "provider_request_timeout",
+                  action: "resubmit",
+                  phase: mode === "silence" ? "stream" : "output",
+                },
+              },
+            },
+          })
+          expect(
+            result.parts.find((part) => part.type === "text" && part.text.includes("Saved partial answer.")),
+          ).toMatchObject({ time: { end: expect.any(Number) } })
+          expect(
+            result.parts.find((part) => part.type === "reasoning" && part.text.includes("Saved partial reasoning.")),
+          ).toMatchObject({ time: { end: expect.any(Number) } })
+          expect(SessionStatus.get(session.id)).toEqual({ type: "idle" })
+          expect(SessionTelemetry.progress(session.id)?.phase).toBe("error")
+          const durable = await Session.messages({ sessionID: session.id })
+          expect(durable.find((message) => message.info.id === result.info.id)?.info).toEqual(result.info)
+          for (let index = 0; index < 40 && !cancelled; index++) await Bun.sleep(10)
+          expect(cancelled).toBe(true)
+        },
+      })
+    } finally {
+      for (const timer of timers) clearInterval(timer)
+    }
+  },
+  20_000,
+)
+
+test.each(["finished-stream", "stop-with-tool", "stop-with-error", "stalled-stream"])(
+  "preserves an actual long-running tool after %s",
+  async (mode) => {
+    let requests = 0
+    let executions = 0
+    let cancelled = false
+    const results: string[] = []
+    using server = Bun.serve({
+      hostname: "127.0.0.1",
+      port: 0,
+      async fetch(request) {
+        const body = await request.json()
+        if (!JSON.stringify(body).includes(marker)) {
+          return new Response(`${chunk({ content: "Helper title" })}${chunk({}, "stop")}data: [DONE]\n\n`, {
+            headers: { "content-type": "text/event-stream" },
+          })
+        }
+        requests++
+        if (
+          Array.isArray(body.messages) &&
+          body.messages.some((message: { role?: string }) => message.role === "tool")
+        ) {
+          results.push(JSON.stringify(body.messages))
+          return new Response(
+            `${chunk({ content: mode === "stop-with-error" ? "The local tool failed; revise the input." : "The local tool completed." })}${chunk({}, "stop")}data: [DONE]\n\n`,
+            { headers: { "content-type": "text/event-stream" } },
+          )
+        }
+        const call = chunk({
+          role: "assistant",
+          tool_calls: [
+            {
+              index: 0,
+              id: "call_long_tool",
+              type: "function",
+              function: {
+                name: "stall_fixture",
+                arguments: "{}",
+              },
+            },
+          ],
+        })
+        return new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(
+                encoder.encode(`${call}${chunk({}, mode.startsWith("stop-with-") ? "stop" : "tool_calls")}`),
+              )
+              if (mode === "stalled-stream") return
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"))
+              controller.close()
+            },
+            cancel() {
+              cancelled = true
+            },
+          }),
+          { headers: { "content-type": "text/event-stream" } },
+        )
+      },
+    })
+    const base = stressProviderConfig(`http://127.0.0.1:${server.port}/v1`)
+    const config = {
+      ...base,
+      provider: {
+        ...base.provider,
+        [STRESS_PROVIDER_ID]: {
+          ...base.provider[STRESS_PROVIDER_ID],
+          options: {
+            ...base.provider[STRESS_PROVIDER_ID].options,
+            connectTimeout: 2_000,
+            idleTimeout: mode === "stalled-stream" ? 450 : 2_000,
+            outputIdleTimeout: 250,
+          },
+        },
+      },
+    }
+    await using tmp = await tmpdir({ git: true, config })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        await ToolRegistry.register(
+          Tool.define("stall_fixture", {
+            description: "Wait locally and return a completion marker",
+            parameters: z.object({}),
+            async execute(_args, context) {
+              executions++
+              await Bun.sleep(1100)
+              context.abort.throwIfAborted()
+              if (mode === "stop-with-error") throw new Error("LONG_TOOL_FAILURE")
+              return { title: "Local wait completed", output: "LONG_TOOL_COMPLETED", metadata: {} }
+            },
+          }),
+        )
+        const session = await Session.create({
+          title: "Long tool stall recovery",
+          permission: [{ permission: "*", pattern: "*", action: "allow" }],
+        })
+        const result = await SessionPrompt.prompt({
+          sessionID: session.id,
+          model: { providerID: STRESS_PROVIDER_ID, modelID: STRESS_PROVIDER_MODEL },
+          agent: "research",
+          delegation: false,
+          system: marker,
+          tools: { stall_fixture: true },
+          parts: [{ type: "text", text: "Run the local fixture once, then report the result." }],
+        })
+        const messages = await Session.messages({ sessionID: session.id })
+        const tools = messages
+          .flatMap((message) => message.parts)
+          .filter((part) => part.type === "tool" && part.callID === "call_long_tool")
+        expect(tools).toHaveLength(1)
+        const tool = tools[0]
+        expect(tool).toMatchObject({
+          tool: "stall_fixture",
+          state:
+            mode === "stop-with-error"
+              ? { status: "error", error: expect.stringContaining("LONG_TOOL_FAILURE") }
+              : { status: "completed", output: expect.stringContaining("LONG_TOOL_COMPLETED") },
+        })
+        expect(executions).toBe(1)
+        if (tool.type !== "tool" || (tool.state.status !== "completed" && tool.state.status !== "error"))
+          throw new Error("Expected a settled local tool")
+        expect(tool.state.time.end - tool.state.time.start).toBeGreaterThan(900)
+        expect(SessionStatus.get(session.id)).toEqual({ type: "idle" })
+        if (result.info.role !== "assistant") throw new Error("Expected an assistant result")
+        if (mode !== "stalled-stream") {
+          expect(result.info.error).toBeUndefined()
+          expect(requests).toBe(2)
+          expect(results).toHaveLength(1)
+          expect(results[0]).toContain(mode === "stop-with-error" ? "LONG_TOOL_FAILURE" : "LONG_TOOL_COMPLETED")
+          expect(
+            result.parts.some(
+              (part) =>
+                part.type === "text" &&
+                part.text.includes(
+                  mode === "stop-with-error" ? "The local tool failed; revise the input." : "The local tool completed.",
+                ),
+            ),
+          ).toBe(true)
+          return
+        }
+        expect(requests).toBe(1)
+        expect(result.info.error).toMatchObject({
+          name: "APIError",
+          data: { isRetryable: false, metadata: { code: "provider_request_timeout", phase: "stream" } },
+        })
+        for (let index = 0; index < 40 && !cancelled; index++) await Bun.sleep(10)
+        expect(cancelled).toBe(true)
+      },
+    })
+  },
+  20_000,
+)
+
+test.each(["answers", "stays-silent"])(
+  "a stream that dies before any model output is sent once more as a new request (%s)",
+  async (mode) => {
+    let requests = 0
+    using server = Bun.serve({
+      hostname: "127.0.0.1",
+      port: 0,
+      async fetch(request) {
+        const body = await request.json()
+        if (!JSON.stringify(body).includes(marker)) {
+          return new Response(`${chunk({ content: "Helper title" })}${chunk({}, "stop")}data: [DONE]\n\n`, {
+            headers: { "content-type": "text/event-stream" },
+          })
+        }
+        requests++
+        if (requests === 2 && mode === "answers") {
+          return new Response(
+            `${chunk({ role: "assistant", content: "Answered on the resubmit." })}${chunk({}, "stop")}data: [DONE]\n\n`,
+            {
+              headers: { "content-type": "text/event-stream" },
+            },
+          )
+        }
+        // Headers and one role-only chunk, then nothing: the shape of a
+        // connection that died after its first byte.
+        return new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(encoder.encode(chunk({ role: "assistant" })))
+            },
+          }),
+          { headers: { "content-type": "text/event-stream" } },
+        )
+      },
+    })
+    const base = stressProviderConfig(`http://127.0.0.1:${server.port}/v1`)
+    const config = {
+      ...base,
+      provider: {
+        ...base.provider,
+        [STRESS_PROVIDER_ID]: {
+          ...base.provider[STRESS_PROVIDER_ID],
+          options: { ...base.provider[STRESS_PROVIDER_ID].options, connectTimeout: 2_000, idleTimeout: 500 },
+        },
+      },
+    }
+    await using tmp = await tmpdir({ git: true, config })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const session = await Session.create({ title: "Silent stream resubmit" })
+        const result = await SessionPrompt.prompt({
+          sessionID: session.id,
+          model: { providerID: STRESS_PROVIDER_ID, modelID: STRESS_PROVIDER_MODEL },
+          agent: "research",
+          delegation: false,
+          system: marker,
+          parts: [{ type: "text", text: "Answer once." }],
+        })
+        if (result.info.role !== "assistant") throw new Error("Expected an assistant result")
+        expect(requests).toBe(2)
+        expect(SessionStatus.get(session.id)).toEqual({ type: "idle" })
+        if (mode === "answers") {
+          expect(result.info.error).toBeUndefined()
+          expect(result.parts.some((part) => part.type === "text" && part.text === "Answered on the resubmit.")).toBe(
+            true,
+          )
+          return
+        }
+        expect(result.info.error).toMatchObject({
+          name: "APIError",
+          data: { isRetryable: false, metadata: { code: "provider_request_timeout", phase: "stream" } },
+        })
+      },
+    })
+  },
+  20_000,
+)

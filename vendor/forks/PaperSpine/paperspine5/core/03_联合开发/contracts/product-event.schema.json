@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/product-event.schema.json",
+  "title": "PaperSpine5 ordered product event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "task_id", "sequence", "revision", "event_type", "command_id", "payload", "occurred_at"],
+  "properties": {
+    "contract": {"const": "paperspine5.product-event"},
+    "schema_version": {"const": "1.0"},
+    "task_id": {"type": "string", "minLength": 1},
+    "sequence": {"type": "integer", "minimum": 1},
+    "revision": {"type": "integer", "minimum": 0},
+    "event_type": {"type": "string", "minLength": 1},
+    "command_id": {"type": ["string", "null"]},
+    "payload": {"type": "object"},
+    "occurred_at": {"type": "string", "minLength": 1}
+  }
+}

@@ -4,9 +4,15 @@ description: Distributed computing for larger-than-RAM pandas/NumPy workflows. U
 category: data-engineering
 license: BSD-3-Clause license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/dask
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Distributed Computing, Parallel, DataFrames, Big Data]
 dependencies: ["dask>=2024.1.0"]
 ---

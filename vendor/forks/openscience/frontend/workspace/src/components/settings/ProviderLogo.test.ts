@@ -8,6 +8,11 @@ const CREDENTIALS = [
   "azure",
   "nvidia",
   "modal",
+  "tensorpool",
+  "lambda",
+  "prime_intellect",
+  "vast",
+  "runpod",
   "github",
   "literature",
   "openalex",
@@ -16,6 +21,10 @@ const CREDENTIALS = [
   "wandb",
   "pinecone",
   "langsmith",
+  "givemeanode",
+  "benchling",
+  "box",
+  "dropbox",
 ] as const
 
 describe("provider logos", () => {
@@ -33,8 +42,31 @@ describe("provider logos", () => {
     expect(providerLogoSource("ollama")).toEqual({ kind: "vector", id: "ollama" })
   })
 
+  test("uses existing first-party provider marks for the current Ace catalog", () => {
+    for (const id of ["minimax", "nvidia"] as const) expect(providerLogoSource(id)).toEqual({ kind: "provider", id })
+  })
+
+  test("uses the Synthetic Sciences mark for OpenScience and Ace", () => {
+    for (const id of ["openscience", "synsci", "ace", "synthetic-sciences", "Synthetic Sciences"])
+      expect(providerLogoSource(id)).toEqual({ kind: "provider", id: "synsci" })
+  })
+
   test("covers every built-in compute and integration credential", () => {
     for (const id of CREDENTIALS) expect(providerLogoSource(id).kind).not.toBe("fallback")
+  })
+
+  test("uses local canonical marks for every CLI compute bridge", () => {
+    expect(providerLogoSource("tensorpool").kind).toBe("image")
+    expect(providerLogoSource("lambda-labs")).toEqual({ kind: "vector", id: "lambda" })
+    expect(providerLogoSource("prime").kind).toBe("image")
+    expect(providerLogoSource("vast-ai")).toEqual({ kind: "vector", id: "vast" })
+    expect(providerLogoSource("runpod").kind).toBe("image")
+  })
+
+  test("uses local canonical marks for every MCP catalog brand", () => {
+    for (const id of ["givemeanode", "github", "benchling", "box", "dropbox", "aws"]) {
+      expect(providerLogoSource(id).kind).not.toBe("fallback")
+    }
   })
 
   test("uses a monogram only for user-defined services", () => {

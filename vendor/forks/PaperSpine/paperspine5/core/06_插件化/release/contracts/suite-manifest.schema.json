@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/release/suite-manifest.schema.json",
+  "title": "PaperSpine5 deterministic suite manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "suite",
+    "source",
+    "components",
+    "state",
+    "workflow",
+    "reader_compatibility",
+    "api",
+    "test_evidence",
+    "claim_ceiling",
+    "content"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.suite-manifest"},
+    "schema_version": {"const": "1.0"},
+    "suite": {
+      "type": "object",
+      "required": ["product_id", "product_version", "channel", "build_id"],
+      "properties": {
+        "product_id": {"const": "paperspine5"},
+        "product_version": {"type": "string", "minLength": 1},
+        "channel": {"type": "string", "minLength": 1},
+        "build_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"}
+      }
+    },
+    "source": {"type": "object"},
+    "components": {
+      "type": "object",
+      "minProperties": 1,
+      "required": ["product_runner", "host_runtime"],
+      "properties": {
+        "product_runner": {
+          "type": "object",
+          "required": ["version", "root", "sha256"],
+          "properties": {
+            "version": {"const": "0.2.0"},
+            "root": {"type": "string", "minLength": 1},
+            "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
+        },
+        "host_runtime": {
+          "type": "object",
+          "required": ["version", "root", "sha256"],
+          "properties": {
+            "version": {"const": "0.2.0-dev"},
+            "root": {"type": "string", "minLength": 1},
+            "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
+        }
+      }
+    },
+    "state": {"type": "object"},
+    "workflow": {
+      "type": "object",
+      "required": [
+        "product_command_contract",
+        "host_bridge",
+        "implemented_slice",
+        "product_runner_j1_j3",
+        "product_runner_j4_j11",
+        "academic_evidence_input",
+        "registered_id_change",
+        "domain_preferences",
+        "user_front_door",
+        "plugin_role"
+      ],
+      "properties": {
+        "host_bridge": {"const": "0.4.0"},
+        "implemented_slice": {"const": ["J0", "J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9", "J10", "J11"]},
+        "product_runner_j4_j11": {"const": "0.2.0-cumulative-typed-collaboration"},
+        "academic_evidence_input": {"const": "actual-json-payloads-not-client-trusted-projections"},
+        "registered_id_change": {"const": "invalidate-dependents-and-return-j4"},
+        "domain_preferences": {"const": "runtime-research-only"},
+        "user_front_door": {"const": "standalone/paper-spine-only"},
+        "plugin_role": {"const": "internal-mcp-dispatch-backend-no-discoverable-skill"}
+      }
+    },
+    "reader_compatibility": {"type": "object"},
+    "api": {"type": "object"},
+    "update": {
+      "type": "object",
+      "required": [
+        "contract",
+        "install_kinds",
+        "simultaneous_update",
+        "commands",
+        "source_policy",
+        "mutation_policy",
+        "state_policy",
+        "plugin_activation",
+        "skill_activation"
+      ],
+      "properties": {
+        "contract": {"const": "paperspine5.independent-surface-update/1.0"},
+        "install_kinds": {"const": ["plugin", "skill"]},
+        "simultaneous_update": {"const": false},
+        "commands": {
+          "const": {
+            "plugin": ["plugin-update-check", "plugin-upgrade", "plugin-upgrade-rollback"],
+            "skill": ["skill-update-check", "skill-upgrade", "skill-upgrade-rollback"]
+          }
+        }
+      }
+    },
+    "test_evidence": {"type": "object"},
+    "claim_ceiling": {
+      "type": "object",
+      "required": ["maturity", "p0", "statement", "external_action_authorized"],
+      "properties": {"external_action_authorized": {"const": false}}
+    },
+    "content": {
+      "type": "object",
+      "required": ["file_count", "index_sha256", "files"],
+      "properties": {
+        "file_count": {"type": "integer", "minimum": 1},
+        "index_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sha256", "size_bytes"],
+            "properties": {
+              "path": {"type": "string", "minLength": 1},
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "size_bytes": {"type": "integer", "minimum": 0}
+            }
+          }
+        }
+      }
+    }
+  }
+}

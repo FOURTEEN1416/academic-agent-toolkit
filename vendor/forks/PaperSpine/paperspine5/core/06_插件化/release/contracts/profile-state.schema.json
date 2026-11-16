@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/release/profile-state.schema.json",
+  "title": "PaperSpine5 local lifecycle profile state",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "contract",
+    "schema_version",
+    "product_id",
+    "active_build_id",
+    "enabled_entries",
+    "history",
+    "data_schema"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.local-profile-state"},
+    "schema_version": {"const": "1.0"},
+    "product_id": {"const": "paperspine5"},
+    "active_build_id": {"type": ["string", "null"]},
+    "enabled_entries": {"type": "array", "items": {"type": "object"}},
+    "history": {"type": "array", "items": {"type": "object"}},
+    "data_schema": {"type": "object"}
+  }
+}

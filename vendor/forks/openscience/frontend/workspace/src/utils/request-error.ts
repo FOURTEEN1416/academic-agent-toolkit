@@ -1,4 +1,4 @@
-export type RequestFailureKind = "health" | "transport" | "provider" | "ambiguous-create" | "request"
+type RequestFailureKind = "health" | "transport" | "provider" | "ambiguous-create" | "request"
 
 export type RequestFailure = {
   kind: RequestFailureKind

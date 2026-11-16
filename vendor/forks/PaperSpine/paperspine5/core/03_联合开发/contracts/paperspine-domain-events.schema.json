@@ -1,0 +1,947 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/paperspine-domain-events.schema.json",
+  "title": "PaperSpine discriminated domain event envelope",
+  "x-contract-status": "frozen-p0-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "event_id",
+    "task_id",
+    "sequence",
+    "task_version",
+    "event_type",
+    "command_id",
+    "actor",
+    "occurred_at",
+    "payload",
+    "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {
+      "const": "paperspine.domain-event"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "event_id": {
+      "$ref": "#/$defs/id"
+    },
+    "task_id": {
+      "$ref": "#/$defs/id"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "task_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "event_type": {
+      "enum": [
+        "task.opened",
+        "materials.authorized",
+        "stage.started",
+        "milestone.committed",
+        "evidence.bound",
+        "artifact.published",
+        "decision.required",
+        "decision.resolved",
+        "decision.expired",
+        "decision.cancelled",
+        "review.submitted",
+        "review.blocked",
+        "finding.resolved",
+        "delivery.ready",
+        "task.failed"
+      ]
+    },
+    "command_id": {
+      "$ref": "#/$defs/id"
+    },
+    "causation_event_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "correlation_id": {
+      "type": "string"
+    },
+    "trace_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actor_id",
+        "surface"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "#/$defs/id"
+        },
+        "surface": {
+          "enum": [
+            "agent",
+            "business",
+            "reviewer",
+            "system"
+          ]
+        }
+      }
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/taskOpened"
+        },
+        {
+          "$ref": "#/$defs/materialsAuthorized"
+        },
+        {
+          "$ref": "#/$defs/stageStarted"
+        },
+        {
+          "$ref": "#/$defs/milestoneCommitted"
+        },
+        {
+          "$ref": "#/$defs/evidenceBound"
+        },
+        {
+          "$ref": "#/$defs/artifactPublished"
+        },
+        {
+          "$ref": "#/$defs/decisionRequired"
+        },
+        {
+          "$ref": "#/$defs/decisionResolved"
+        },
+        {
+          "$ref": "#/$defs/decisionExpired"
+        },
+        {
+          "$ref": "#/$defs/decisionCancelled"
+        },
+        {
+          "$ref": "#/$defs/reviewSubmitted"
+        },
+        {
+          "$ref": "#/$defs/reviewBlocked"
+        },
+        {
+          "$ref": "#/$defs/findingResolved"
+        },
+        {
+          "$ref": "#/$defs/deliveryReady"
+        },
+        {
+          "$ref": "#/$defs/taskFailed"
+        }
+      ]
+    },
+    "recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "confirmed_no_effect",
+        "surface"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "#/$defs/id"
+        },
+        "confirmed_no_effect": {
+          "type": "boolean"
+        },
+        "surface": {
+          "enum": [
+            "agent",
+            "business",
+            "reviewer",
+            "system"
+          ]
+        }
+      }
+    },
+    "external_action_authorized": {
+      "const": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "task.opened"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/taskOpened"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "materials.authorized"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/materialsAuthorized"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "stage.started"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/stageStarted"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "milestone.committed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/milestoneCommitted"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "evidence.bound"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/evidenceBound"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "artifact.published"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/artifactPublished"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "decision.required"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/decisionRequired"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "decision.resolved"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "actor": {
+            "properties": {
+              "surface": {
+                "const": "business"
+              }
+            }
+          },
+          "payload": {
+            "$ref": "#/$defs/decisionResolved"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "decision.expired"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/decisionExpired"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "decision.cancelled"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/decisionCancelled"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "review.submitted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/reviewSubmitted"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "review.blocked"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/reviewBlocked"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "finding.resolved"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/findingResolved"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "delivery.ready"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/deliveryReady"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "task.failed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/taskFailed"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "stage": {
+      "enum": [
+        "intake",
+        "research",
+        "contribution",
+        "evidence",
+        "draft",
+        "figure",
+        "review",
+        "delivery"
+      ]
+    },
+    "taskOpened": {
+      "$ref": "#/$defs/simpleTaskOpened"
+    },
+    "simpleTaskOpened": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "mode"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "task.opened"
+        },
+        "mode": {
+          "enum": [
+            "open",
+            "resume"
+          ]
+        }
+      }
+    },
+    "materialsAuthorized": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "grant_ids",
+        "snapshot_sha256"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "materials.authorized"
+        },
+        "grant_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "snapshot_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "stageStarted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "stage"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "stage.started"
+        },
+        "stage": {
+          "$ref": "#/$defs/stage"
+        }
+      }
+    },
+    "milestoneCommitted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "stage",
+        "milestone_id",
+        "artifact_ids"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "milestone.committed"
+        },
+        "stage": {
+          "$ref": "#/$defs/stage"
+        },
+        "milestone_id": {
+          "$ref": "#/$defs/id"
+        },
+        "artifact_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    },
+    "evidenceBound": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "claim_id",
+        "evidence_id",
+        "relation"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "evidence.bound"
+        },
+        "claim_id": {
+          "$ref": "#/$defs/id"
+        },
+        "evidence_id": {
+          "$ref": "#/$defs/id"
+        },
+        "relation": {
+          "enum": [
+            "supports",
+            "limits",
+            "challenges",
+            "visualizes"
+          ]
+        }
+      }
+    },
+    "artifactPublished": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "artifact_id",
+        "sha256",
+        "media_type",
+        "artifact_type"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "artifact.published"
+        },
+        "artifact_id": {
+          "$ref": "#/$defs/id"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "media_type": {
+          "type": "string"
+        },
+        "artifact_type": {
+          "type": "string"
+        },
+        "stage": {
+          "$ref": "#/$defs/stage"
+        }
+      }
+    },
+    "decisionRequired": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "decision_id",
+        "task_version",
+        "decision_type",
+        "allowed_decisions",
+        "scope_refs",
+        "requested_by_command_id",
+        "expires_at"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "decision.required"
+        },
+        "decision_id": {
+          "$ref": "#/$defs/id"
+        },
+        "task_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "decision_type": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "allowed_decisions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "allowed_decision_details": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "option_id",
+              "label"
+            ],
+            "properties": {
+              "option_id": {
+                "$ref": "#/$defs/id"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "risk": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "files": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "Task-relative figure files to show with this choice."
+              }
+            }
+          }
+        },
+        "scope_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "requested_by_command_id": {
+          "$ref": "#/$defs/id"
+        },
+        "expires_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "decisionResolved": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "decision_id",
+        "option_id",
+        "confirmed_at"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "decision.resolved"
+        },
+        "decision_id": {
+          "$ref": "#/$defs/id"
+        },
+        "option_id": {
+          "$ref": "#/$defs/id"
+        },
+        "confirmed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "decisionExpired": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "decision_id",
+        "expired_at"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "decision.expired"
+        },
+        "decision_id": {
+          "$ref": "#/$defs/id"
+        },
+        "expired_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "decisionCancelled": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "decision_id",
+        "reason"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "decision.cancelled"
+        },
+        "decision_id": {
+          "$ref": "#/$defs/id"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "reviewSubmitted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "review_id",
+        "finding_ids"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "review.submitted"
+        },
+        "review_id": {
+          "$ref": "#/$defs/id"
+        },
+        "finding_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "reviewed_artifact_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "reviewer_id": {
+          "$ref": "#/$defs/id"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "finding_id",
+              "severity",
+              "message"
+            ],
+            "properties": {
+              "finding_id": {
+                "$ref": "#/$defs/id"
+              },
+              "severity": {
+                "enum": [
+                  "blocking",
+                  "major",
+                  "minor"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "reviewBlocked": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "review_id",
+        "blocking_finding_ids"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "review.blocked"
+        },
+        "review_id": {
+          "$ref": "#/$defs/id"
+        },
+        "blocking_finding_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        }
+      }
+    },
+    "findingResolved": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "finding_id",
+        "resolution_artifact_ids"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "finding.resolved"
+        },
+        "finding_id": {
+          "$ref": "#/$defs/id"
+        },
+        "resolution_artifact_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "deliveryReady": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "package_artifact_id",
+        "local_download_ready",
+        "submission_ready"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "delivery.ready"
+        },
+        "package_artifact_id": {
+          "$ref": "#/$defs/id"
+        },
+        "local_download_ready": {
+          "const": true
+        },
+        "submission_ready": {
+          "type": "boolean"
+        }
+      }
+    },
+    "taskFailed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_type",
+        "code",
+        "message"
+      ],
+      "properties": {
+        "payload_type": {
+          "const": "task.failed"
+        },
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "failure_kind": {
+          "enum": [
+            "network",
+            "model",
+            "tool",
+            "process-restart"
+          ]
+        },
+        "operation_id": {
+          "$ref": "#/$defs/id"
+        },
+        "operation": {
+          "type": "string"
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "next_action": {
+          "enum": [
+            "retry",
+            "confirm_no_effect"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -187,3 +187,15 @@ Read the relevant reference file before making any API call.
 |---|---|---|
 | CORE | `references/core.md` | 37M+ full texts from OA repositories worldwide |
 | Unpaywall | `references/unpaywall.md` | OA status and PDF links for any DOI |
+
+## Helper Scripts (in `scripts/`)
+
+Deterministic helpers bundled with this skill (run from the repo root or this skill's directory):
+
+| Script | Purpose |
+|---|---|
+| `_common.py` | Shared HTTP session, API-key loading, retry/rate-limit helpers |
+| `arxiv_atom.py` | Parse arXiv Atom XML responses into structured records |
+| `jats_to_text.py` | Convert PMC JATS XML full text to plain text |
+| `openalex_abstract.py` | Rebuild abstract text from OpenAlex `abstract_inverted_index` |
+| `paginate.py` | Cursor/page-based pagination helper for list endpoints |

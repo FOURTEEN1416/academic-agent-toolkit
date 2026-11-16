@@ -9,6 +9,12 @@ Append one JSON object per model call or delegated phase to
 - hashes of Skill/input artifacts, output artifact paths, gate result, retry;
 - a concrete `telemetry_note` when usage is unavailable.
 
+When available, also record `elapsed_ms`, `execution_reuse` (`hit`, `miss`, or
+`not_applicable`), `execution_receipt`, and `failure_category`. These fields make
+unchanged retries and expensive-operation reuse auditable. Read
+`execution-efficiency.md`; the same command on the same input snapshot must not
+exceed one initial attempt plus one corrected retry.
+
 Never estimate billed tokens from file bytes inside this ledger. If the host
 does not return usage, log `telemetry_unavailable` explicitly and omit token
 counts. This preserves the execution receipt without pretending it is a bill.

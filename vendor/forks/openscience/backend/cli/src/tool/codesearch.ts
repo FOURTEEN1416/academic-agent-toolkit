@@ -9,6 +9,11 @@ const API_CONFIG = {
   },
 } as const
 
+// web_search_exa is a general web search; the objective is what ranks
+// documentation and code above everything else.
+const OBJECTIVE =
+  "Programming reference lookup. Rank official documentation, API references, source repositories and worked code examples first; exclude marketing pages, news and unrelated results. Pull concrete code snippets, function signatures and configuration options."
+
 interface McpCodeRequest {
   jsonrpc: string
   id: number
@@ -17,19 +22,53 @@ interface McpCodeRequest {
     name: string
     arguments: {
       query: string
-      tokensNum: number
+      objective: string
+      numResults: number
     }
   }
 }
 
 interface McpCodeResponse {
   jsonrpc: string
-  result: {
-    content: Array<{
+  error?: {
+    code: number
+    message: string
+  }
+  result?: {
+    isError?: boolean
+    content?: Array<{
       type: string
       text: string
     }>
   }
+}
+
+/** The request asks for `application/json` first, and a Streamable HTTP server may
+ *  answer with exactly that, so only reading `data:` frames reported a perfectly
+ *  good search as empty. A rejected call arrives as a JSON-RPC `error` object
+ *  with no `result` at all, which fell through to the same "nothing found"
+ *  text. Returns undefined only when the reply really carried no content. */
+export function parseCodeReply(responseText: string, contentType: string | null) {
+  const mime = (contentType ?? "").split(";")[0]!.trim().toLowerCase()
+  const frames =
+    mime === "application/json" || mime.endsWith("+json")
+      ? [responseText]
+      : responseText.split("\n").flatMap((line) => (line.startsWith("data:") ? [line.slice(5).replace(/^ /, "")] : []))
+  for (const frame of frames) {
+    const body = frame.trim()
+    // The terminal sentinel is not a message. Anything else that is not JSON is
+    // left to throw, so a broken reply surfaces instead of reading as empty.
+    if (!body || body === "[DONE]") continue
+    const data = JSON.parse(body) as McpCodeResponse
+    if (data.error) throw new Error(`Code search error (${data.error.code}): ${data.error.message}`)
+    const text = (data.result?.content ?? [])
+      .filter((part) => part.type === "text")
+      .map((part) => part.text)
+      .join("\n\n")
+    if (data.result?.isError) throw new Error(`Code search error: ${text || "the search tool reported a failure"}`)
+    if (text) return text
+  }
+  return undefined
 }
 
 export const CodeSearchTool = Tool.define("codesearch", {
@@ -38,15 +77,16 @@ export const CodeSearchTool = Tool.define("codesearch", {
     query: z
       .string()
       .describe(
-        "Search query to find relevant context for APIs, Libraries, and SDKs. For example, 'React useState hook examples', 'Python pandas dataframe filtering', 'Express.js middleware', 'Next js partial prerendering configuration'",
+        "Describe the page you want, naming the library, API or language. For example, 'pandas DataFrame filtering rows by condition with examples', 'Express.js error-handling middleware', 'Next.js partial prerendering configuration'",
       ),
-    tokensNum: z
+    numResults: z
       .number()
-      .min(1000)
-      .max(50000)
-      .default(5000)
+      .int()
+      .min(1)
+      .max(10)
+      .default(5)
       .describe(
-        "Number of tokens to return (1000-50000). Default is 5000 tokens. Adjust this value based on how much context you need - use lower values for focused queries and higher values for comprehensive documentation.",
+        "Number of pages to return (1-10). Default is 5. Each page contributes its title, URL and highlighted excerpts, so fewer pages keep the result focused.",
       ),
   }),
   async execute(params, ctx) {
@@ -56,7 +96,7 @@ export const CodeSearchTool = Tool.define("codesearch", {
       always: ["*"],
       metadata: {
         query: params.query,
-        tokensNum: params.tokensNum,
+        numResults: params.numResults,
       },
     })
 
@@ -65,10 +105,11 @@ export const CodeSearchTool = Tool.define("codesearch", {
       id: 1,
       method: "tools/call",
       params: {
-        name: "get_code_context_exa",
+        name: "web_search_exa",
         arguments: {
           query: params.query,
-          tokensNum: params.tokensNum || 5000,
+          objective: OBJECTIVE,
+          numResults: params.numResults,
         },
       },
     }
@@ -96,20 +137,14 @@ export const CodeSearchTool = Tool.define("codesearch", {
         throw new Error(`Code search error (${response.status}): ${errorText}`)
       }
 
+      const contentType = response.headers.get("content-type")
       const responseText = await response.text()
-
-      // Parse SSE response
-      const lines = responseText.split("\n")
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const data: McpCodeResponse = JSON.parse(line.substring(6))
-          if (data.result && data.result.content && data.result.content.length > 0) {
-            return {
-              output: data.result.content[0].text,
-              title: `Code search: ${params.query}`,
-              metadata: {},
-            }
-          }
+      const found = parseCodeReply(responseText, contentType)
+      if (found) {
+        return {
+          output: found,
+          title: `Code search: ${params.query}`,
+          metadata: {},
         }
       }
 

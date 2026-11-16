@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/academic-stage-result.schema.json",
+  "title": "Cumulative J4-J11 pure orchestration result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "task_id", "revision_id", "product_build_id", "stage", "status", "blockers", "warnings", "descriptors", "next_stage", "invalidated_artifacts", "cumulative_inputs", "external_action_authorized", "result_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.academic-stage-result"},
+    "schema_version": {"const": "1.0"},
+    "task_id": {"type": "string", "minLength": 1},
+    "revision_id": {"type": "string", "pattern": "^[0-9]+$"},
+    "product_build_id": {"type": "string", "minLength": 1},
+    "stage": {"enum": ["awaiting_research", "awaiting_contribution", "awaiting_claim_graph", "awaiting_figure_intent", "awaiting_canonical", "awaiting_review", "awaiting_package"]},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "blockers": {"type": "array", "items": {"type": "object", "required": ["code", "message"]}},
+    "warnings": {"type": "array", "items": {"type": "object", "required": ["code", "message"]}},
+    "descriptors": {"type": "array", "items": {"$ref": "stage-artifact-descriptor.schema.json"}},
+    "next_stage": {"enum": ["awaiting_research", "awaiting_contribution", "awaiting_claim_graph", "awaiting_figure_intent", "awaiting_canonical", "awaiting_review", "awaiting_package", "target_package_ready"]},
+    "invalidated_artifacts": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "cumulative_inputs": {"$ref": "academic-cumulative-inputs.schema.json"},
+    "external_action_authorized": {"const": false},
+    "result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

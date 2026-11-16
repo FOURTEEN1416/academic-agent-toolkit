@@ -3,10 +3,18 @@ name: hugging-face-tool-builder
 description: Use this skill when the user wants to build tool/scripts or achieve a task where using data from the Hugging Face API would help. This is especially useful when chaining or combining API calls or the task will be repeated/automated. This Skill creates a reusable script to fetch, enrich or process data.
 category: llm-tools
 version: 1.0.0
-author: Synthetic Sciences
+author: Hugging Face
 license: MIT
 tags: [Hugging Face, Tools, Agents, MCP]
 dependencies: [huggingface-hub]
+metadata:
+  upstream: huggingface/skills
+  upstream-url: https://github.com/huggingface/skills
+  upstream-path: skills/huggingface-tool-builder
+  upstream-license: Apache-2.0
+  upstream-relationship: derived
+  skill-author: Hugging Face
+  adapted-by: Synthetic Sciences
 ---
 
 # Hugging Face API Tool Builder

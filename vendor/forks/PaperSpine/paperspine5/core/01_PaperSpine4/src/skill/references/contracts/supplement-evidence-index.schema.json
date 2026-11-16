@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/supplement-evidence-index.schema.json",
+  "title": "PaperSpine supplementary evidence and upload inventory index",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "package_root", "main_manuscript", "supplementary_material", "claims", "items", "submission_inventory"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "package_root": {"type": "string"},
+    "main_manuscript": {"$ref": "#/$defs/file"},
+    "supplementary_material": {"$ref": "#/$defs/file"},
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["claim_id", "text", "main_text_locator", "requires_supplement"],
+        "properties": {
+          "claim_id": {"type": "string", "minLength": 1},
+          "text": {"type": "string", "minLength": 1},
+          "main_text_locator": {"type": "string", "minLength": 1},
+          "requires_supplement": {"type": "boolean"}
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["supplement_id", "kind", "scientific_role", "supported_claim_ids", "main_text_locators", "supplement_locators", "publication_asset", "upload_artifact", "semantic_validation"],
+        "properties": {
+          "supplement_id": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["figure", "table", "data", "method", "note"]},
+          "scientific_role": {"type": "string", "minLength": 1},
+          "supported_claim_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "main_text_locators": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "supplement_locators": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "publication_asset": {"$ref": "#/$defs/file"},
+          "upload_artifact": {"$ref": "#/$defs/file"},
+          "semantic_validation": {
+            "type": "object",
+            "required": ["status", "rendered_surface_summary", "caption_summary", "review_receipt"],
+            "properties": {
+              "status": {"enum": ["pass", "blocked"]},
+              "rendered_surface_summary": {"type": "string", "minLength": 1},
+              "caption_summary": {"type": "string", "minLength": 1},
+              "review_receipt": {"$ref": "#/$defs/file"}
+            }
+          }
+        }
+      }
+    },
+    "submission_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item_id", "required", "state"],
+        "properties": {
+          "item_id": {"type": "string", "minLength": 1},
+          "required": {"type": "boolean"},
+          "state": {"enum": ["ready", "needs_author", "not_applicable"]},
+          "artifact": {"$ref": "#/$defs/file"},
+          "justification": {"type": "string"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"}
+      }
+    }
+  }
+}

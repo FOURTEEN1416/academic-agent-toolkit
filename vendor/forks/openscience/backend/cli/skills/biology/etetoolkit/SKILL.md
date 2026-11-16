@@ -4,7 +4,13 @@ description: Phylogenetic tree toolkit (ETE). Tree manipulation (Newick/NHX), ev
 category: biology
 license: GPL-3.0 license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/etetoolkit
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # ETE Toolkit Skill

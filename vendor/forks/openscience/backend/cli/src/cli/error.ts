@@ -20,9 +20,7 @@ export function FormatError(input: unknown) {
     return `Failed to initialize provider "${input.data.providerID}". Check credentials and configuration.`
   }
   if (Config.JsonError.isInstance(input)) {
-    return (
-      `Config file at ${input.data.path} is not valid JSON(C)` + (input.data.message ? `: ${input.data.message}` : "")
-    )
+    return `Config file at ${input.data.path} is not valid JSON` + (input.data.message ? `: ${input.data.message}` : "")
   }
   if (Config.ConfigDirectoryTypoError.isInstance(input)) {
     return `Directory "${input.data.dir}" in ${input.data.path} is not valid. Rename the directory to "${input.data.suggestion}" or remove it. This is a common typo.`
@@ -38,20 +36,4 @@ export function FormatError(input: unknown) {
     ].join("\n")
 
   if (UI.CancelledError.isInstance(input)) return ""
-}
-
-export function FormatUnknownError(input: unknown): string {
-  if (input instanceof Error) {
-    return input.stack ?? `${input.name}: ${input.message}`
-  }
-
-  if (typeof input === "object" && input !== null) {
-    try {
-      return JSON.stringify(input, null, 2)
-    } catch {
-      return "Unexpected error (unserializable)"
-    }
-  }
-
-  return String(input)
 }

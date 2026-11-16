@@ -5,9 +5,9 @@ a fake Crossref fetcher into ``verify_citation``; the CLI is exercised offline
 with ``--help`` and ``--no-api``.
 
 Covered behaviour:
-  * a row whose DOI resolves on Crossref is marked ``matched`` even when the
-    local year differs from the Crossref ``created`` year (a resolvable DOI is
-    sufficient evidence — the year mismatch is only a note, never a failure);
+  * a row with a matching Crossref title is marked ``matched`` even when the
+    local year differs from the Crossref ``created`` year; DOI existence alone
+    is insufficient, while a registration-year mismatch remains a note;
   * DOIs are URL-encoded via ``urllib.parse.quote`` before being queried;
   * the script imports cleanly and ``--help`` / ``--no-api`` work offline.
 """
@@ -60,7 +60,7 @@ class YearMismatchTests(unittest.TestCase):
                 return {
                     "status": "ok",
                     "message": {
-                        "title": ["A completely different registered title"],
+                        "title": ["A study of conversion fidelity"],
                         "created": {"date-parts": [[2010, 1, 1]]},
                         "DOI": "10.1234/example.2018",
                     },

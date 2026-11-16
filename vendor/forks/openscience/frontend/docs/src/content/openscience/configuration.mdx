@@ -1,0 +1,138 @@
+---
+title: "Configuration"
+description: "Save repeatable model, instruction, skill, and tool settings."
+---
+
+Use Customize for everyday settings. Configuration files are useful when you want to review settings as text or share a project setup.
+
+## File locations
+
+| Scope | Location |
+| --- | --- |
+| Your account on this machine | `~/.config/openscience/openscience.json` or `openscience.jsonc`. |
+| Project | `openscience.json` or `openscience.jsonc` in the project. |
+| Project customization folder | `.openscience/` for agents, commands, skills, and related configuration. |
+
+The resolved global location can differ with your platform or environment. Run `openscience debug paths` to find it.
+
+JSONC permits comments and trailing commas. Use one main config file per scope to avoid conflicting settings spread across both formats.
+
+## A small project configuration
+
+```json
+{
+  "instructions": ["methods/protocol.md"],
+  "skills": {
+    "paths": ["./skills"]
+  },
+  "command": {
+    "check-data": {
+      "description": "Inspect data quality before analysis",
+      "template": "Inspect $ARGUMENTS for missing values, duplicate rows, units, and label consistency. Keep the input unchanged."
+    }
+  }
+}
+```
+
+Use `/check-data data/samples.csv` in the workspace, or `openscience run --command check-data "data/samples.csv"`.
+
+## Common settings
+
+| Key | Purpose |
+| --- | --- |
+| `model` | Default model in `provider/model` form. |
+| `small_model` | Model for smaller helper tasks such as title generation. |
+| `default_agent` | Default primary agent; Research is the normal default. |
+| `provider` | Provider connections, custom endpoints, and model overrides. |
+| `instructions` | Additional instruction files or patterns. |
+| `skills.paths` | Extra skill directories. |
+| `skills.disabled` | Skills excluded from discovery without uninstalling. |
+| `command` | Reusable named prompt templates. |
+| `mcp` | External tool connections. |
+| `plugin` | Plugin packages or local module URLs. |
+| `permission` | Action rules such as `ask`, `allow`, and `deny`. |
+| `agent.<name>` | Per-agent `model`, `variant`, `skills` (categories for a specialist's domain index), `prompt`, `permission`. A rule that names a tool offers it to that agent without a skill. |
+| `subagents` | User-global worker model, `enabled` (default `false`), `usd` and `tokens` allowances, `deadlineMs` (default `600000`), and optional `usdIncrease` / `tokenIncrease`. Missing amounts use USD `5`, tokens `1000000`, USD increase `1`, and token increase `250000`. Set these in Settings → General → Subagents, which saves them to `subagents.json` beside the global config so older OpenScience versions sharing the folder still start; a `subagents` block in the global config is still read and moves to that file on the next save. Project configuration cannot raise them. Existing conversation pools change only through an explicit user increase. |
+| `subagent_depth` | How many levels of workers may nest; default `1` (only the lead dispatches). |
+| `harness` | Switches for the harness units, all on by default: `redirect`, `deliverables`, `acceptance`, `unattended`, `review`, `budget`, `cost` (or `{ "max_usd": n }` for a soft spend ceiling), `headless-policy`, `durable-jobs`, `workers`. |
+| `compaction` | `auto` (default `true`), `prune` (default `true`), `recentImages`, and the experimental `pruneInputs`: when an old tool call is pruned, also shorten its long string arguments (a patch body, a script) to a preview in what the model re-reads; the stored call stays complete (default `false`). |
+| `server.port` | Port for the local workspace or server. |
+| `autoupdate` | Update preference: `true`, `false`, or `"notify"`. |
+
+Provider and model identifiers must match the configured catalog. Use `openscience models --flat` to find them.
+
+### Harness units
+
+Each unit delivers one piece of context at a precise point in the loop and can be switched off with `"harness": { "<unit>": false }`:
+
+| Unit | What it does |
+| --- | --- |
+| `redirect` | When the same tool failure repeats three times (or the model loops on text), inject one strategy-change message instead of stopping; a second trip stops the turn. |
+| `deliverables` | When the first request names its output files, check each named file before the turn ends (present, non-empty, parses, no NaN/Inf, no placeholder text) and list the failures once; two rounds at most. Files listed under a destination ("save to `results/`: `a.csv`, `b.tsv`") are looked for there. |
+| `acceptance` | When the first request states its own verification (a recognised build or test command such as `lake build`, `pytest -q tests/`, `cargo test`, a `check.sh`; tokens forbidden under a path such as `sorry` under `src/`), run the command and grep the path before the turn ends and continue the turn with the grader's own output when they fail; three rounds at most. The command runs through the session's `bash` tool under the same permission rule and card a model-typed command gets, inside the same sandbox; one the rules do not permit is reported as not run. |
+| `unattended` | Under autonomous autonomy (`openscience run --auto-approve`, or the Autonomous setting), a final answer that asks the user to upload, provide, confirm or choose is answered once: proceed on the inputs as supplied, state the assumption, deliver; a turn that asked before calling any tool is told to stop instead when the message asked for no work. |
+| `review` | When the deliverable is a written report, read it once in a fresh context (the internal `reader` agent) against the request before the turn ends, and continue the turn once with what the report does not address. |
+| `budget` | Show CPUs and memory (from the container's cgroup) and, with a deadline, the time budget and elapsed time in the environment block; remind at 50% and 85%; ask to continue when time remains and deliverables fail. |
+| `cost` | Show spend so far beside the time budget; an optional soft ceiling adds a wrap-up reminder, never a hard stop. |
+| `headless-policy` | In `openscience run --auto-approve`, continue past denied tool calls and answer questions with their recommended option. |
+| `durable-jobs` | Keep tool hints consistent with what is offered: the truncation hint suggests a worker only when delegation is on. |
+| `workers` | Stream child-session events in headless runs and roll their usage into `done`. |
+
+## Scope and overrides
+
+Global configuration supplies defaults; project configuration can override project-specific settings. Options are combined, so adding a project setting does not mean every global setting is removed.
+
+Legacy configuration files in `~/.synsc/` and `~/.openscience/` load before the canonical user configuration and project files. An explicit `OPENSCIENCE_CONFIG_DIR` isolates configuration discovery from these legacy home folders. `OPENSCIENCE_CONFIG_CONTENT` overrides file-based settings, including project customization folders; administrator policy still applies last.
+
+Some executable project customizations require approval before they become active, and administrator policy can restrict available settings. If a value seems ignored, check the setting in Customize and the applicable project or administrator configuration.
+
+Use explicit per-run flags such as `--model` when you need to override a default for a single terminal request.
+
+## Reference a secret
+
+Supported configuration strings can reference an environment variable:
+
+```json
+{
+  "provider": {
+    "my-provider": {
+      "options": {
+        "apiKey": "{env:MY_PROVIDER_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+This snippet shows secret substitution for an existing provider. It does not define a complete custom provider. See [Custom providers](/openscience/custom-providers).
+
+Use a connection form or environment reference instead of committing a real key. A variable must be available to the process that starts OpenScience.
+
+## Check changes
+
+After editing configuration, reopen the project or restart the app if the setting does not refresh automatically. Use `openscience doctor` to check setup and read any configuration error for the file and field that need correction.
+
+For project rules, use [Project instructions](/openscience/instructions). For external tools, use [Connectors](/openscience/connectors).
+
+## Network transport and TUN DNS
+
+Requests enforce response limits on decoded bytes, including gzip, deflate and
+Brotli responses. Cancellation covers DNS resolution and response bodies;
+incomplete or timed-out scientific responses are never cached.
+
+The default resolver is your operating system. If a TUN proxy supplies Fake IP
+addresses such as `198.18.0.30`, configure a real-IP DNS exclusion for the
+requested public domain in that proxy. Private and synthetic addresses remain
+blocked even when the domain allow-list is off.
+
+Alternatively, start OpenScience with `OPENSCIENCE_DNS_RESOLVER=cloudflare`.
+This explicitly sends queried hostnames to Cloudflare's DNS-over-HTTPS service,
+using a fixed public bootstrap address with TLS hostname verification. Returned
+addresses still undergo the same private-address checks, and every redirect is
+checked again. It does not trust or connect through the proxy's synthetic IP
+mapping. Use `system` or unset the variable to keep your system resolver.
+
+The resolver setting affects the shared web, scientific connector, remote
+instruction and result-download transport. It does not change provider
+credentials, model requests or MCP connections. No DNS change is enabled by
+default, and an unavailable public resolver fails closed.

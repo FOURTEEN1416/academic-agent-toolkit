@@ -3,10 +3,18 @@ name: optimizing-attention-flash
 description: Optimizes transformer attention with Flash Attention for 2-4x speedup and 10-20x memory reduction. Use when training/running transformers with long sequences (>512 tokens), encountering GPU memory issues with attention, or need faster inference. Supports PyTorch native SDPA, flash-attn library, H100 FP8, and sliding window attention.
 category: ml-training
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Optimization, Flash Attention, Attention Optimization, Memory Efficiency, Speed Optimization, Long Context, PyTorch, SDPA, H100, FP8, Transformers]
 dependencies: [flash-attn, torch, transformers]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 10-optimization/flash-attention
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # Flash Attention - Fast Memory-Efficient Attention
@@ -343,10 +351,6 @@ Flash Attention uses float16/bfloat16 for speed. Float32 not supported.
 
 **Performance benchmarks**: See [references/benchmarks.md](references/benchmarks.md) for detailed speed and memory comparisons across GPUs and sequence lengths.
 
-**Algorithm details**: See [references/algorithm.md](references/algorithm.md) for tiling strategy, recomputation, and IO complexity analysis.
-
-**Advanced features**: See [references/advanced-features.md](references/advanced-features.md) for rotary embeddings, ALiBi, paged KV cache, and custom attention masks.
-
 ## Hardware requirements
 
 - **GPU**: NVIDIA Ampere+ (A100, A10, A30) or AMD MI200+
@@ -355,7 +359,6 @@ Flash Attention uses float16/bfloat16 for speed. Float32 not supported.
 - **PyTorch**: 2.2+ for native support
 
 **Not supported**: V100 (Volta), CPU inference
-
 
 ## Known Conflicts
 
@@ -368,6 +371,4 @@ Flash Attention uses float16/bfloat16 for speed. Float32 not supported.
 - Blog: https://tridao.me/blog/2024/flash3/
 - GitHub: https://github.com/Dao-AILab/flash-attention
 - PyTorch docs: https://pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html
-
-
 

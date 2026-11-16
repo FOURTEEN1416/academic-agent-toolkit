@@ -1,6 +1,6 @@
 ---
 name: paper-humanize
-description: "Use when the user asks to ”remove AI writing patterns”, ”humanize this text”, or ”make this sound natural and human-written”."
+description: "Use when the user asks to ”remove AI writing patterns”, ”humanize this text”, or ”make this sound natural and human-written”. 区别于 anti-ai-detection（中文学术文本 AI 特征检测 + AI 使用声明）与 anti-defensive-writing（删防御性限定/免责，不做去 AI 味）：英文稿去 AI 味/自然化改写用本技能。"
 version: 1.0.0
 author: gaoruizhang
 license: MIT

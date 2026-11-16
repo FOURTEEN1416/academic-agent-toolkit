@@ -7,8 +7,8 @@
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
   border: 0;
   border-radius: var(--radius-md);
-  background: var(--surface-raised-strong);
-  color: var(--text-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .workspace-composer__setup > span {
@@ -19,15 +19,15 @@
 }
 
 .workspace-composer__setup strong {
-  font-size: 12px;
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
   line-height: 17px;
 }
 
 .workspace-composer__setup small {
   overflow: hidden;
-  color: var(--text-weak);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
   line-height: 17px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -39,16 +39,16 @@
   padding-inline: 10px;
   border: 0;
   border-radius: var(--radius-xs);
-  background: var(--surface-base);
-  color: var(--text-strong);
+  background: var(--color-surface-base);
+  color: var(--color-text);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-regular);
   cursor: pointer;
 }
 
 .workspace-composer__setup button:hover {
-  background: var(--surface-raised-base-hover);
+  background: var(--color-surface-raised-hover);
 }
 
 .workspace-composer__context {
@@ -62,19 +62,19 @@
   padding: 4px 5px 4px 7px;
   border: 0;
   border-radius: var(--radius-xs);
-  background: var(--surface-weak);
+  background: var(--color-surface-weak);
   transition: background-color 150ms var(--ease-standard);
 }
 
 .workspace-composer__context-item:hover {
-  background: var(--surface-raised-base-hover);
+  background: var(--color-surface-raised-hover);
 }
 
 .workspace-composer__context-heading {
   min-width: 0;
   min-height: 20px;
-  color: var(--text-strong);
-  font-size: 12.5px;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
   line-height: 16px;
 }
@@ -94,8 +94,8 @@
 .workspace-composer__context-comment {
   margin-left: 20px;
   padding-right: 4px;
-  color: var(--text-weak);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-regular);
   line-height: 15px;
 }
@@ -109,7 +109,7 @@
 
 .workspace-composer__dropzone {
   border-radius: inherit;
-  background: var(--surface-raised-stronger-non-alpha);
+  background: var(--color-surface-solid);
   backdrop-filter: blur(3px);
 }
 
@@ -118,7 +118,7 @@
   grid-template-columns: 28px minmax(0, 1fr);
   align-items: center;
   column-gap: 9px;
-  color: var(--text-weak);
+  color: var(--color-text-muted);
 }
 
 .workspace-composer__dropzone-copy > [data-component="icon"] {
@@ -126,15 +126,15 @@
 }
 
 .workspace-composer__dropzone-copy strong {
-  color: var(--text-strong);
-  font-size: 13px;
+  color: var(--color-text);
+  font-size: var(--font-size-medium);
   font-weight: var(--font-weight-medium);
   line-height: 17px;
 }
 
 .workspace-composer__dropzone-copy span {
-  color: var(--text-weak);
-  font-size: 11.5px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-regular);
   line-height: 15px;
 }
@@ -150,7 +150,7 @@
   padding: 5px 5px 5px 6px;
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--surface-weak);
+  background: var(--color-surface-weak);
 }
 
 .workspace-composer__attachment-open {
@@ -185,8 +185,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--surface-base);
-  color: var(--text-weak);
+  background: var(--color-surface-base);
+  color: var(--color-text-muted);
 }
 
 .workspace-composer__attachment-preview {
@@ -208,15 +208,15 @@
 }
 
 .workspace-composer__attachment-copy strong {
-  color: var(--text-strong);
-  font-size: 12.5px;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
   line-height: 16px;
 }
 
 .workspace-composer__attachment-copy span {
-  color: var(--text-weak);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
   line-height: 15px;
 }
 
@@ -236,7 +236,7 @@
 
 .workspace-composer__attachment-remove:hover,
 .workspace-composer__attachment-remove:focus-visible {
-  background: var(--surface-raised-base-hover);
+  background: var(--color-surface-raised-hover);
   opacity: 1;
 }
 
@@ -266,17 +266,17 @@
 
 .workspace-composer__suggestions {
   z-index: 40;
-  max-height: min(360px, 48vh);
+  max-height: min(420px, 52vh);
   gap: 1px;
-  padding: 5px;
+  padding: 4px;
   overscroll-behavior: contain;
   border: 1px solid var(--color-border-weak, var(--color-border));
   border-radius: var(--radius-xl);
-  background: var(--color-surface-solid, var(--surface-raised-stronger-non-alpha));
+  background: var(--color-surface-solid);
   background-clip: padding-box;
   box-shadow:
     var(--atlas-shadow-md),
-    inset 0 1px color-mix(in srgb, var(--text-strong) 5%, transparent);
+    inset 0 1px color-mix(in srgb, var(--color-text) 5%, transparent);
   font-family: var(--font-family-sans);
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
@@ -288,7 +288,7 @@
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--text-base);
+  color: var(--color-text-secondary);
   text-align: left;
   cursor: pointer;
   transition:
@@ -298,14 +298,14 @@
 
 .workspace-composer__suggestion:hover,
 .workspace-composer__suggestion:focus-visible {
-  background: var(--color-bg-subtle, var(--surface-raised-base-hover));
+  background: var(--color-bg-subtle, var(--color-surface-raised-hover));
 }
 
 .workspace-composer__suggestion-heading,
 .workspace-composer__suggestion-empty {
   padding: 5px 8px;
-  color: var(--text-weak);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
   line-height: 18px;
 }
 
@@ -328,9 +328,9 @@
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
-  background: var(--surface-base-hover);
-  color: var(--text-weak);
-  font-size: 13px;
+  background: var(--color-hover);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-medium);
   font-weight: var(--font-weight-medium);
 }
 
@@ -349,76 +349,90 @@
 }
 
 .workspace-composer__conversation-row strong {
-  color: var(--text-strong);
-  font-size: 13px;
+  color: var(--color-text);
+  font-size: var(--font-size-medium);
   font-weight: var(--font-weight-medium);
   line-height: 17px;
 }
 
 .workspace-composer__conversation-row small {
-  color: var(--text-weak);
-  font-size: 11.5px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
   line-height: 15px;
 }
 
 form.workspace-composer [data-component="prompt-input"] [data-type="conversation"] {
   padding: 1px 4px;
   border-radius: var(--radius-xs);
-  background: var(--surface-interactive-weak);
-  color: var(--text-link-base);
+  background: var(--color-interactive-muted);
+  color: var(--color-text-link);
 }
 
 .workspace-composer__slash-group {
-  display: grid;
-  gap: 2px;
+  display: flex;
+  flex-direction: column;
 }
 
 .workspace-composer__slash-group + .workspace-composer__slash-group {
-  margin-top: 4px;
-  padding-top: 8px;
+  margin-top: 3px;
+  padding-top: 3px;
   border-top: 1px solid var(--color-border-weak, var(--color-border));
 }
 
 .workspace-composer__slash-heading {
-  min-height: 24px;
   display: block;
-  padding: 4px 8px 2px;
-  color: var(--text-weak);
-  font-size: 12px;
+  padding: 6px 10px 3px;
+  color: var(--color-text-faint);
+  font-size: var(--font-size-x-small, 11px);
   font-weight: var(--font-weight-medium);
-  line-height: 18px;
-}
-
-.workspace-composer__suggestion:focus-visible {
-  outline: 2px solid var(--focus-lit-ring);
-  outline-offset: -2px;
+  line-height: 14px;
 }
 
 .workspace-composer__slash-row {
-  display: grid;
-  grid-template-columns: 20px minmax(96px, 0.38fr) minmax(0, 1fr) auto;
+  width: 100%;
+  min-height: 28px;
+  display: flex;
   align-items: center;
-  column-gap: 10px;
+  gap: 8px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.workspace-composer__slash-row.is-active,
+.workspace-composer__slash-row:hover {
+  background: var(--color-bg-subtle, var(--color-surface-raised-hover));
+}
+
+.workspace-composer__slash-row:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
 }
 
 .workspace-composer__slash-icon {
-  width: 20px;
-  height: 20px;
+  flex: none;
+  width: 16px;
+  height: 16px;
   display: grid;
   place-items: center;
-  color: var(--text-weaker);
+  color: var(--color-text-faint);
 }
 
-.workspace-composer__suggestion:hover .workspace-composer__slash-icon,
-.workspace-composer__suggestion:focus-visible .workspace-composer__slash-icon {
-  color: var(--text-weak);
+.workspace-composer__slash-row.is-active .workspace-composer__slash-icon,
+.workspace-composer__slash-row:hover .workspace-composer__slash-icon {
+  color: var(--color-text-muted);
 }
 
 .workspace-composer__slash-name {
-  min-width: 0;
+  flex: none;
+  max-width: 46%;
   overflow: hidden;
-  color: var(--text-strong);
-  font-size: 13px;
+  color: var(--color-text);
+  font-size: var(--font-size-medium);
   font-weight: var(--font-weight-medium);
   line-height: 18px;
   text-overflow: ellipsis;
@@ -426,19 +440,155 @@ form.workspace-composer [data-component="prompt-input"] [data-type="conversation
 }
 
 .workspace-composer__slash-detail {
-  color: var(--text-weak);
-  font-size: 12.5px;
-  line-height: 16px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-medium);
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .workspace-composer__slash-meta {
-  max-width: 76px;
+  flex: none;
+  max-width: 96px;
   overflow: hidden;
-  color: var(--text-weaker);
-  font-size: 11.5px;
+  color: var(--color-text-faint);
+  font-size: var(--font-size-x-small, 11px);
   line-height: 16px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.workspace-composer__slash-sentinel {
+  height: 1px;
+}
+
+/* @ picker
+   --------
+   Name first, folder dimmed beside it, one line per row; the active row's
+   place in the tree is drawn in a pane beside the list when there is room. */
+
+.workspace-composer__at {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.workspace-composer__at-list {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace-composer__at-row {
+  width: 100%;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.workspace-composer__at-row.is-active,
+.workspace-composer__at-row:hover {
+  background: var(--color-bg-subtle, var(--color-surface-raised-hover));
+}
+
+.workspace-composer__at-row:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+.workspace-composer__at-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-faint);
+}
+
+.workspace-composer__at-name {
+  flex: none;
+  max-width: 60%;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: var(--font-size-medium);
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-composer__at-path {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-faint);
+  font-size: var(--font-size-small);
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-composer__at-preview {
+  display: none;
+}
+
+@container (min-width: 560px) {
+  .workspace-composer__at[data-preview] {
+    grid-template-columns: minmax(0, 1fr) 232px;
+  }
+
+  /* The pane keeps its place while a long list scrolls beneath it. */
+  .workspace-composer__at[data-preview] .workspace-composer__at-preview {
+    position: sticky;
+    top: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-left: 4px;
+    padding: 8px 10px;
+    border-left: 1px solid var(--color-border-weak, var(--color-border));
+    color: var(--color-text-muted);
+    font-size: var(--font-size-small);
+    line-height: 18px;
+  }
+}
+
+.workspace-composer__at-crumb {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: calc(var(--depth, 0) * 12px);
+  white-space: nowrap;
+}
+
+.workspace-composer__at-crumb > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace-composer__at-crumb[data-last] {
+  color: var(--color-text);
+}
+
+.workspace-composer__at-crumb[data-last] > span {
+  padding: 0 4px;
+  margin-left: -4px;
+  border-radius: var(--radius-xs);
+  background: var(--color-bg-subtle, var(--color-surface-raised-hover));
 }
 
 @media (max-width: 639px) {
@@ -446,12 +596,13 @@ form.workspace-composer [data-component="prompt-input"] [data-type="conversation
     max-height: min(340px, 48vh);
   }
 
-  .workspace-composer__slash-row {
-    grid-template-columns: 20px minmax(0, 1fr) auto;
+  .workspace-composer__slash-detail,
+  .workspace-composer__slash-meta {
+    display: none;
   }
 
-  .workspace-composer__slash-detail {
-    display: none;
+  .workspace-composer__slash-name {
+    max-width: none;
   }
 }
 
@@ -470,14 +621,15 @@ form.workspace-composer {
      Mobile still steps up to 16px below to prevent browser zoom. */
   --composer-editor-font-size: var(--font-size-base);
   --composer-editor-font-weight: var(--font-weight-regular);
-  --composer-editor-line-height: 20px;
+  /* The same 14/21 as the answer and the user's own message above it. */
+  --composer-editor-line-height: 21px;
   --composer-editor-padding-block-start: 12px;
   --composer-editor-padding-block-end: 5px;
   --composer-editor-padding-inline: 14px;
   min-height: 88px;
-  border: 1px solid var(--border-weak-base);
+  border: 1px solid var(--color-border-weak);
   border-radius: var(--radius-xl);
-  background: var(--color-surface-solid, var(--surface-raised-stronger-non-alpha));
+  background: var(--color-surface-solid);
   box-shadow: none;
   transition:
     border-color 150ms var(--ease-standard),
@@ -485,8 +637,8 @@ form.workspace-composer {
 }
 
 form.workspace-composer:focus-within {
-  border-color: var(--border-base);
-  box-shadow: var(--focus-lit);
+  border-color: var(--color-border);
+  box-shadow: var(--color-focus-lit);
 }
 
 .workspace-composer__editor {
@@ -494,7 +646,7 @@ form.workspace-composer:focus-within {
   max-height: 240px;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--border-base) transparent;
+  scrollbar-color: var(--color-border) transparent;
 }
 
 .workspace-composer__editor[data-composer-mode="shell"] {
@@ -527,8 +679,8 @@ form.workspace-composer :is([data-component="prompt-input"], .workspace-composer
 
 form.workspace-composer [data-component="prompt-input"] {
   display: block;
-  color: var(--text-strong);
-  caret-color: var(--text-strong);
+  color: var(--color-text);
+  caret-color: var(--color-text);
   overflow-wrap: anywhere;
   text-align: start;
   white-space: pre-wrap;
@@ -538,7 +690,7 @@ form.workspace-composer .workspace-composer__placeholder {
   position: absolute;
   inset: 0 0 auto;
   overflow: hidden;
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   pointer-events: none;
   text-align: start;
   text-overflow: ellipsis;
@@ -575,7 +727,7 @@ form.workspace-composer .workspace-composer__attach {
   justify-content: center;
   padding: 0;
   border-radius: var(--radius-sm);
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   font-weight: var(--font-weight-regular);
   transition:
     background-color 150ms var(--ease-standard),
@@ -585,8 +737,8 @@ form.workspace-composer .workspace-composer__attach {
 
 form.workspace-composer .workspace-composer__attach:hover:not(:disabled),
 form.workspace-composer .workspace-composer__attach:focus-visible {
-  background: var(--color-bg-subtle, var(--surface-raised-base-hover));
-  color: var(--text-strong);
+  background: var(--color-bg-subtle, var(--color-surface-raised-hover));
+  color: var(--color-text);
 }
 
 form.workspace-composer .workspace-composer__attach:active:not(:disabled) {
@@ -602,10 +754,10 @@ form.workspace-composer .workspace-composer__intent {
   padding: 0 10px 0 6px;
   border: 0;
   border-radius: var(--composer-radius-pill);
-  background: var(--surface-raised-base-hover);
-  color: var(--text-weak);
+  background: var(--color-surface-raised-hover);
+  color: var(--color-text-muted);
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition:
@@ -616,12 +768,12 @@ form.workspace-composer .workspace-composer__intent {
 
 form.workspace-composer .workspace-composer__intent:hover,
 form.workspace-composer .workspace-composer__intent:focus-visible {
-  background: var(--surface-raised-base-active);
-  color: var(--text-strong);
+  background: var(--color-surface-raised-active);
+  color: var(--color-text);
 }
 
 form.workspace-composer .workspace-composer__intent:focus-visible {
-  outline: 2px solid var(--focus-lit-ring);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 1px;
 }
 
@@ -635,7 +787,7 @@ form.workspace-composer .workspace-composer__intent-close {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--surface-base-hover);
+  background: var(--color-hover);
   color: currentColor;
 }
 
@@ -647,7 +799,7 @@ form.workspace-composer .workspace-composer__intent-close [data-slot="icon-svg"]
 form.workspace-composer .workspace-composer__research-tools {
   position: relative;
   flex: 0 0 auto;
-  height: 32px;
+  height: 34px;
 }
 
 form.workspace-composer .workspace-composer__research-tools > summary {
@@ -659,9 +811,9 @@ form.workspace-composer .workspace-composer__research-tools > summary {
   gap: 3px;
   padding: 0 7px;
   border-radius: var(--radius-sm);
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   font-family: var(--font-family-sans);
-  font-size: 13px;
+  font-size: var(--font-size-medium);
   font-weight: var(--font-weight-regular);
   line-height: 1;
   list-style: none;
@@ -680,12 +832,12 @@ form.workspace-composer .workspace-composer__research-tools > summary::-webkit-d
 form.workspace-composer .workspace-composer__research-tools > summary:hover,
 form.workspace-composer .workspace-composer__research-tools > summary:focus-visible,
 form.workspace-composer .workspace-composer__research-tools[open] > summary {
-  background: var(--color-bg-subtle, var(--surface-raised-base-hover));
-  color: var(--text-strong);
+  background: var(--color-bg-subtle, var(--color-surface-raised-hover));
+  color: var(--color-text);
 }
 
 form.workspace-composer .workspace-composer__research-tools > summary:focus-visible {
-  outline: 2px solid var(--focus-lit-ring);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: -2px;
 }
 
@@ -706,45 +858,77 @@ form.workspace-composer .workspace-composer__research-tools-menu {
   bottom: calc(100% + var(--space-2));
   left: 0;
   z-index: 40;
-  width: min(360px, calc(100vw - 24px));
+  /* Same geometry as the adjacent model popover ([data-model-settings-popover]). */
+  width: min(344px, calc(100vw - 24px));
+  max-height: min(72dvh, 440px);
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 4px;
+  padding: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-solid, var(--surface-raised-stronger-non-alpha));
+  border-radius: var(--radius-md);
+  background: var(--color-surface-solid);
   background-clip: padding-box;
   box-shadow: var(--atlas-shadow-md);
+}
+
+/* Title row shared with .model-settings-popover__header so both composer
+   menus open with the same chrome. */
+form.workspace-composer .workspace-composer__research-tools-header {
+  min-height: 36px;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 0 3px 5px 7px;
+  border-bottom: 1px solid var(--color-border-weak);
+}
+
+form.workspace-composer .workspace-composer__research-tools-header > span {
+  min-width: 0;
+  flex: 1;
+  color: var(--color-text);
+  font-size: var(--font-size-medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 18px;
 }
 
 form.workspace-composer .workspace-composer__research-controls {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 4px;
+  gap: 12px;
+  padding: 4px 0 0;
+}
+
+form.workspace-composer .workspace-composer__research-note {
+  margin: -4px 4px 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
+  line-height: 1.45;
 }
 
 form.workspace-composer .workspace-composer__research-slider {
   min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  align-items: stretch;
-  gap: 5px;
-  min-height: 56px;
-  padding: 5px 4px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
   border-radius: var(--radius-md);
 }
 
 form.workspace-composer .workspace-composer__research-slider-label {
   overflow: hidden;
-  color: var(--text-strong);
-  font-size: 12px;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
   line-height: 16px;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding-inline: 2px;
+  padding-inline: 4px;
 }
 
 form.workspace-composer .workspace-composer__research-slider > [role="radiogroup"] {
@@ -752,26 +936,27 @@ form.workspace-composer .workspace-composer__research-slider > [role="radiogroup
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
-  gap: 2px;
-  padding: 2px;
+  gap: 4px;
+  padding: 4px;
   border: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent);
   border-radius: var(--radius-md);
-  background: var(--color-bg-subtle, var(--surface-raised-base));
-  box-shadow: inset 0 1px 2px color-mix(in srgb, var(--text-strong) 4%, transparent);
+  background: var(--color-bg-subtle, var(--color-surface-raised));
+  box-shadow: inset 0 1px 2px color-mix(in srgb, var(--color-text) 4%, transparent);
 }
 
 form.workspace-composer .workspace-composer__research-slider button {
   min-width: 0;
   min-height: 32px;
-  padding: 3px 7px;
+  padding: 4px;
   border: 0;
   border-radius: var(--composer-radius-segment);
   background: transparent;
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
   line-height: 16px;
+  white-space: nowrap;
   cursor: pointer;
   transition:
     background-color 150ms var(--ease-standard),
@@ -781,20 +966,20 @@ form.workspace-composer .workspace-composer__research-slider button {
 }
 
 form.workspace-composer .workspace-composer__research-slider button:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--surface-raised-base-hover) 62%, transparent);
-  color: var(--text-strong);
+  background: color-mix(in srgb, var(--color-surface-raised-hover) 62%, transparent);
+  color: var(--color-text);
 }
 
 form.workspace-composer .workspace-composer__research-slider button[aria-checked="true"] {
-  background: var(--color-surface-solid, var(--surface-raised-stronger-non-alpha));
-  color: var(--text-strong);
+  background: var(--color-surface-solid);
+  color: var(--color-text);
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--color-border) 86%, transparent),
-    0 1px 2px color-mix(in srgb, var(--text-strong) 10%, transparent);
+    0 1px 2px color-mix(in srgb, var(--color-text) 10%, transparent);
 }
 
 form.workspace-composer .workspace-composer__research-slider button:focus-visible {
-  outline: 2px solid var(--focus-lit-ring);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: -2px;
 }
 
@@ -809,24 +994,74 @@ form.workspace-composer .workspace-composer__research-slider button:disabled {
 
 form.workspace-composer .workspace-composer__research-control,
 form.workspace-composer .workspace-composer__research-choice > summary {
-  min-height: 38px;
+  min-height: 40px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto 16px;
   align-items: center;
   gap: 8px;
-  padding: 3px 5px;
+  padding: 4px 8px;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--text-base);
+  color: var(--color-text-secondary);
 }
 
-form.workspace-composer .workspace-composer__research-control strong,
-form.workspace-composer .workspace-composer__research-choice > summary > span {
-  color: var(--text-strong);
-  font-size: 12px;
+form.workspace-composer .workspace-composer__research-access {
+  display: grid;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+form.workspace-composer button.workspace-composer__research-control {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 150ms var(--ease-standard),
+    transform 120ms var(--ease-standard);
+}
+
+form.workspace-composer button.workspace-composer__research-control:hover,
+form.workspace-composer button.workspace-composer__research-control:focus-visible {
+  background: var(--color-bg-subtle, var(--color-surface-raised-hover));
+}
+
+form.workspace-composer button.workspace-composer__research-control:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+form.workspace-composer button.workspace-composer__research-control:active {
+  transform: scale(0.985);
+}
+
+form.workspace-composer .workspace-composer__research-setting-label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
   line-height: 16px;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+form.workspace-composer .workspace-composer__research-setting-value {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-regular);
+  line-height: 16px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+form.workspace-composer .workspace-composer__research-connectors > [data-component="icon"] {
+  color: var(--color-text-faint);
 }
 
 form.workspace-composer .workspace-composer__research-choice {
@@ -834,7 +1069,6 @@ form.workspace-composer .workspace-composer__research-choice {
 }
 
 form.workspace-composer .workspace-composer__research-choice > summary {
-  grid-template-columns: 100px minmax(0, 1fr) 12px;
   list-style: none;
   cursor: pointer;
   transition:
@@ -849,11 +1083,11 @@ form.workspace-composer .workspace-composer__research-choice > summary::-webkit-
 form.workspace-composer .workspace-composer__research-choice > summary:hover,
 form.workspace-composer .workspace-composer__research-choice > summary:focus-visible,
 form.workspace-composer .workspace-composer__research-choice[open] > summary {
-  background: var(--color-bg-subtle, var(--surface-raised-base-hover));
+  background: var(--color-bg-subtle, var(--color-surface-raised-hover));
 }
 
 form.workspace-composer .workspace-composer__research-choice > summary:focus-visible {
-  outline: 2px solid var(--focus-lit-ring);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: -2px;
 }
 
@@ -862,36 +1096,23 @@ form.workspace-composer .workspace-composer__research-choice > summary:active {
 }
 
 form.workspace-composer .workspace-composer__research-choice > summary > strong {
-  overflow: hidden;
-  color: var(--text-weak);
-  font-size: 13px;
-  font-weight: var(--font-weight-regular);
-  line-height: 16px;
-  text-align: right;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  justify-self: stretch;
 }
 
 form.workspace-composer .workspace-composer__research-choice > summary > [data-component="icon"] {
-  color: var(--text-weaker);
-}
-
-form.workspace-composer .workspace-composer__research-divider {
-  height: 1px;
-  margin: 4px;
-  background: var(--color-border);
+  color: var(--color-text-faint);
 }
 
 form.workspace-composer .workspace-composer__research-choice-menu {
   position: static;
   width: auto;
   max-height: min(240px, calc(100vh - 32px));
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   overflow-y: auto;
-  padding: 3px;
+  padding: 4px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-bg-subtle, var(--surface-raised-base));
+  background: var(--color-bg-subtle, var(--color-surface-raised));
   box-shadow: none;
   scrollbar-width: thin;
 }
@@ -917,11 +1138,11 @@ form.workspace-composer .workspace-composer__research-choice-menu > button {
   grid-template-columns: minmax(0, 1fr) 16px;
   align-items: center;
   gap: 8px;
-  padding: 4px 7px;
+  padding: 8px;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--text-base);
+  color: var(--color-text-secondary);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -934,11 +1155,11 @@ form.workspace-composer .workspace-composer__research-choice-menu > button {
 form.workspace-composer .workspace-composer__research-choice-menu > button:hover:not(:disabled),
 form.workspace-composer .workspace-composer__research-choice-menu > button:focus-visible,
 form.workspace-composer .workspace-composer__research-choice-menu > button[aria-checked="true"] {
-  background: var(--color-bg-subtle, var(--surface-raised-base-hover));
+  background: var(--color-bg-subtle, var(--color-surface-raised-hover));
 }
 
 form.workspace-composer .workspace-composer__research-choice-menu > button:focus-visible {
-  outline: 2px solid var(--focus-lit-ring);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: -2px;
 }
 
@@ -952,20 +1173,20 @@ form.workspace-composer .workspace-composer__research-choice-menu > button:disab
 }
 
 form.workspace-composer .workspace-composer__research-choice-menu > button[data-tone="warning"][aria-checked="true"] {
-  color: var(--color-warning, var(--text-warning-base));
+  color: var(--color-warning, var(--color-text-warning));
 }
 
 form.workspace-composer .workspace-composer__research-choice-menu > button > span {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 4px;
 }
 
 form.workspace-composer .workspace-composer__research-choice-menu > button strong {
   overflow: hidden;
   color: currentColor;
-  font-size: 13px;
+  font-size: var(--font-size-medium);
   font-weight: var(--font-weight-medium);
   line-height: 16px;
   text-overflow: ellipsis;
@@ -973,12 +1194,10 @@ form.workspace-composer .workspace-composer__research-choice-menu > button stron
 }
 
 form.workspace-composer .workspace-composer__research-choice-menu > button small {
-  overflow: hidden;
-  color: var(--text-weak);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
   line-height: 16px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-wrap: pretty;
 }
 
 form.workspace-composer .workspace-composer__research-access-retry {
@@ -987,15 +1206,15 @@ form.workspace-composer .workspace-composer__research-access-retry {
   margin-top: 5px;
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--surface-critical-weak);
-  color: var(--text-critical-base);
+  background: var(--color-error-muted);
+  color: var(--color-text-error);
   font: inherit;
-  font-size: 11px;
+  font-size: var(--font-size-x-small);
   cursor: pointer;
 }
 
 form.workspace-composer .workspace-composer__research-access-retry:focus-visible {
-  outline: 2px solid var(--focus-lit-ring);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: -2px;
 }
 
@@ -1009,24 +1228,24 @@ form.workspace-composer .workspace-composer__send {
 }
 
 form.workspace-composer .workspace-composer__send[data-composer-action="idle"]:disabled {
-  background-color: var(--color-bg-subtle, var(--surface-raised-base-hover));
+  background-color: var(--color-bg-subtle, var(--color-surface-raised-hover));
 }
 
 form.workspace-composer .workspace-composer__send[data-composer-action="idle"]:disabled [data-slot="icon-svg"] {
-  color: var(--text-weaker);
+  color: var(--color-text-faint);
 }
 
 form.workspace-composer .workspace-composer__send[data-composer-action="stop"] {
-  background-color: var(--surface-critical-strong);
+  background-color: var(--color-error);
 }
 
 form.workspace-composer .workspace-composer__send[data-composer-action="stop"]:hover:not(:disabled),
 form.workspace-composer .workspace-composer__send[data-composer-action="stop"]:focus-visible {
-  background-color: var(--icon-critical-hover);
+  background-color: var(--color-icon-error-hover);
 }
 
 form.workspace-composer .workspace-composer__send[data-composer-action="stop"] [data-slot="icon-svg"] {
-  color: var(--icon-invert-base);
+  color: var(--color-icon-invert);
 }
 
 form.workspace-composer .workspace-composer__send[data-composer-action="stop"] [data-component="icon"] {
@@ -1058,23 +1277,13 @@ form.workspace-composer .workspace-composer__send[data-composer-action="stop"] [
 
   form.workspace-composer .workspace-composer__research-tools-menu {
     left: -46px;
-    width: min(292px, calc(100cqw - 20px));
-  }
-
-  form.workspace-composer .workspace-composer__research-slider {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
-    padding-block: 4px;
-  }
-
-  form.workspace-composer .workspace-composer__research-choice > summary {
-    grid-template-columns: minmax(0, 1fr) auto 12px;
+    width: min(336px, calc(100cqw - 20px));
   }
 }
 
 @media (max-width: 719px) {
   form.workspace-composer {
-    --composer-editor-font-size: 16px;
+    --composer-editor-font-size: var(--font-size-large);
     --composer-editor-line-height: 24px;
     --composer-editor-padding-inline: 12px;
     min-height: 94px;
@@ -1098,29 +1307,23 @@ form.workspace-composer .workspace-composer__send[data-composer-action="stop"] [
 
   form.workspace-composer .workspace-composer__research-tools-menu {
     left: -46px;
-    width: min(292px, calc(100vw - 32px));
-  }
-
-  form.workspace-composer .workspace-composer__research-slider {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
-    padding-block: 4px;
-  }
-
-  form.workspace-composer .workspace-composer__research-choice > summary {
-    grid-template-columns: minmax(0, 1fr) auto 12px;
+    width: min(336px, calc(100vw - 32px));
   }
 
   form.workspace-composer .workspace-composer__research-choice-menu {
     position: static;
     width: 100%;
     max-height: 240px;
-    margin-top: 3px;
+    margin-top: 4px;
     box-shadow: none;
   }
 }
 
 @media (pointer: coarse) {
+  .workspace-composer__slash-row {
+    min-height: 44px;
+  }
+
   form.workspace-composer .workspace-composer__research-tools {
     height: 44px;
   }
@@ -1159,7 +1362,14 @@ form.workspace-composer .workspace-composer__send[data-composer-action="stop"] [
   form.workspace-composer .workspace-composer__research-choice > summary,
   form.workspace-composer .workspace-composer__research-slider button,
   form.workspace-composer .workspace-composer__research-choice-menu > button,
+  form.workspace-composer button.workspace-composer__research-control,
   form.workspace-composer .workspace-composer__attach {
     transition: none;
   }
+}
+
+/* A known /skill or /command in the composer, coloured like the other prompt
+   tokens (files, agents, conversations) without leaving plain text. */
+::highlight(composer-slash) {
+  color: var(--syntax-primitive);
 }

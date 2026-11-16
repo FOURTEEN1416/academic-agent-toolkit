@@ -1,6 +1,6 @@
 ---
 name: results-analysis
-description: "Use when the user asks to ”analyze experimental results” or ”run strict statistical analysis”; yields an evidence-first bundle."
+description: "Use when the user asks to 'analyze experimental results' or 'run strict statistical analysis'; yields an evidence-first bundle. Lightweight numeric cross-checks and tabulation belong to analyze-results instead."
 tags: [Research, Analysis, Statistics, Visualization, Scientific Reporting]
 version: 0.2.0
 ---
@@ -9,13 +9,15 @@ version: 0.2.0
 
 Run **strict, evidence-first experimental analysis** for ML/AI research.
 
+> **分工说明**：本技能 = **严格统计 + 证据包**（显著性/CI/效应量/图目录/统计附录）。快速数值口径核对与表格化走 `analyze-results`（轻量，无严格统计保证）；学术论文级 APA 统计报告走 `data-statistics-report`。触发词相近时按此分工路由。
+
 Use this skill to produce a **strict analysis bundle**:
 - `analysis-report.md`
 - `stats-appendix.md`
 - `figure-catalog.md`
 - `figures/`
 
-When the user asks for review, audit, no-write, dry-run, or when inputs are incomplete, use **read-only audit mode** instead of producing files or figures. In that mode, output only valid/invalid statistics, blockers, claim candidates, and what evidence is missing. If invoked by `/analyze-results`, the command layer may write a blocker summary, but this skill should not create figures, reports, or polished conclusions from incomplete evidence.
+When the user asks for review, audit, no-write, dry-run, or when inputs are incomplete, use **read-only audit mode** instead of producing files or figures. In that mode, output only valid/invalid statistics, blockers, claim candidates, and what evidence is missing. Regardless of which entry point routed the request (including the lightweight `analyze-results` skill), this skill should not create figures, reports, or polished conclusions from incomplete evidence; only a blocker summary may be written.
 
 Do **not** use this skill to draft a paper `Results` section or a full experiment wrap-up report. Those belong to `ml-paper-writing` or `results-report`.
 

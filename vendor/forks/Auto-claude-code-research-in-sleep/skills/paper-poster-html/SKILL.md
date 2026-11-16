@@ -2,10 +2,21 @@
 name: paper-poster-html
 description: "DEFAULT poster pipeline — build an academic conference poster (ICML/NeurIPS/ICLR/CVPR/...) as a single HTML/CSS file with measurement-driven hard gates, real paper figures, a two-hue design-token system, and print-ready PDF via headless Chromium. Use when the user says \"做海报\", \"poster\", \"conference poster\", \"paper poster\", or asks to design/redo a research poster. Supersedes the retired LaTeX /paper-poster."
 argument-hint: "[paper-dir-or-pdf] [— venue: ICLR, canvas: 185x90cm landscape, venue-colors: true]"
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebFetch, WebSearch, AskUserQuestion, mcp__codex__codex
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebFetch, WebSearch, AskUserQuestion, mcp__codex__codex, mcp__antigravity__antigravity, mcp__antigravity__antigravity-reply, mcp__grok__grok, mcp__grok__grok-reply, mcp__claude-review__review, mcp__claude-review__review_reply, mcp__claude-review__review_start, mcp__claude-review__review_reply_start, mcp__claude-review__review_status
 ---
 
 # Paper Poster (HTML): measurement-gated poster generation
+
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Claude Code default (Codex MCP)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
 
 One HTML file styled for an exact print canvas (`@page { size: W H }`), rendered to PDF
 via Playwright print emulation. **Iterate by measuring, not eyeballing** — the screen
@@ -56,7 +67,7 @@ paper (.tex / PDF) ──► content plan + claim→evidence audit (codex, fresh
   ship inside this skill (Arch C). If the directory is missing the install is broken:
   abort and tell the user to re-install the skill (Policy A — the gates ARE the skill;
   never improvise replacements).
-- **REVIEWER_MODEL** = `gpt-5.6-sol`, reasoning `xhigh`, **fresh thread per review call**
+- **REVIEWER_MODEL** = `gpt-6-astra`, reasoning `xhigh`, **fresh thread per review call**
   (`mcp__codex__codex`, never `codex-reply` across review boundaries).
 - **CANVAS** — from the venue's official spec, looked up live in Phase 0. Never assume.
   (Known anchor: ICLR 2026 main = 185×90 cm landscape per its official printing

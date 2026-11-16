@@ -41,8 +41,16 @@ background, Introduction/overview, Discussion, limitations, and applications.
 Run or emulate:
 
 ```bash
-python scripts/material_inventory.py <materials_dir> --output-dir paper_rewriting_output
+# Resolve scripts from this repository checkout, not the user's project cwd
+# (a bare `python scripts/...` path is the most common reason the command fails).
+REPO="$(git rev-parse --show-toplevel)"
+python "$REPO/academic-toolkit/skills/spine-build/scripts/material_inventory.py" <materials_dir> --output-dir paper_rewriting_output
 ```
+
+Same-name guard scripts exist in several spine skill directories (registered
+in `academic-toolkit/data/duplicate_assets_registry.json`); use this skill's
+own copies — resolve every `scripts/...` reference below as
+`$REPO/academic-toolkit/skills/spine-build/scripts/...`.
 
 Create `source_inventory.md` before making claims.
 
@@ -68,9 +76,11 @@ Before final prose, create `writing_rationale_matrix.md` and read
 be ordered by the target document's actual writing units, not by a fixed paper
 template.
 
-Use this table:
+Use this table. Column headers are owned by the single source of truth
+`references/writing-rationale-matrix.md` (same file as `spine-rewrite`'s copy);
+repeat them exactly:
 
-| Row ID | Manuscript Unit | Planned Function | Motivation Link | Reference/SOTA Pattern Learned | Target Scene or Venue Norm | User Evidence or Citation Anchor | Planned Text Move | Final Text Check |
+| Row ID | Manuscript Unit | Current Problem or Planned Function | Motivation Link | Reference/SOTA Pattern Learned | Target Scene or Venue Norm | User Evidence or Citation Anchor | Planned Change/Text Move | Final Text Check |
 |---|---|---|---|---|---|---|---|---|
 
 The first data row must deeply justify the whole-work framework or throughline:
@@ -110,18 +120,26 @@ provides tier-specific writing constraints enforced during all prose generation.
 - Follow `output_language`: `en` or `zh`.
 - Use `citation_support_bank.md` to select citations sentence by sentence; do
   not treat citation candidates as user evidence or insert all candidates.
-- Before routing through `spine-latex`, run `python scripts/integrity_audit.py paper_rewriting_output --markdown --write` and `python scripts/structured_review.py paper_rewriting_output --dispatch`. After dispatch, launch three parallel review sub-agents per `review_prompts/dispatch.md`, then validate independence. Only proceed when all dimensions PASS.
+- Before routing through `spine-latex`, run `python "$REPO/academic-toolkit/skills/spine-build/scripts/integrity_audit.py" paper_rewriting_output --markdown --write` and `python "$REPO/academic-toolkit/skills/spine-build/scripts/structured_review.py" paper_rewriting_output --dispatch` (with `REPO="$(git rev-parse --show-toplevel)"` resolved first). After dispatch, launch three parallel review sub-agents per `review_prompts/dispatch.md`, then validate independence. Only proceed when all dimensions PASS.
+- Gate tiering by the `tier` field from `paper_spine_config.json`: with
+  `tier` set to `flash`, run `integrity_audit.py` only (still requiring no
+  BLOCKED findings) and skip the structured-review dispatch plus the three
+  parallel sub-agents — record the skipped review for the final audit. With
+  `tier` set to `pro`, run the full gate as described above.
 - Always finish by routing through `spine-latex`. A Markdown draft is not
   a final deliverable for this workflow.
 - Build the final LaTeX project under `paper_rewriting_output/final_paper/`.
 - If `word_output` is `docx`, generate `final_paper/paper.docx` and run
-  `scripts/word_guard.py`, saving `paper_rewriting_output/word_report.md`.
+  `python "$REPO/academic-toolkit/skills/spine-build/scripts/word_guard.py" paper_rewriting_output/final_paper/paper.docx --markdown --output paper_rewriting_output/word_report.md`,
+  saving `paper_rewriting_output/word_report.md`.
 - If `output_language` is `en` and `translation_package` is `zh`, create a full
   `paper_rewriting_output/translation_zh/` package. This includes complete
   row-by-row translation of large intermediate files such as
   `writing_rationale_matrix.md`; partial translation or summary translation is
   a failure.
 
-Read `references/build-from-materials.md` and
-`references/writing-rationale-matrix.md` before building the manuscript.
+Read `references/writing-rationale-matrix.md` before building the manuscript.
+`references/build-from-materials.md` does not exist in this repository or in
+the upstream pin (registered in `ASSET-GAP.md`); when a referenced file is
+missing, apply the matrix rules above instead of searching for the file.
 

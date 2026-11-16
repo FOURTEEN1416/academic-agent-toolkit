@@ -1,10 +1,65 @@
-import { describe, expect, test } from "bun:test"
+import { describe, expect, spyOn, test } from "bun:test"
+import { managedApiBase } from "../../src/endpoints"
 import { Config } from "../../src/config/config"
 import { Provider } from "../../src/provider/provider"
 import { SessionProcessor } from "../../src/session/processor"
+import { outputWatchdog } from "../../src/session/output-watchdog"
 
 const encoder = new TextEncoder()
 const context = { sessionID: "ses_watchdog", messageID: "msg_watchdog", attempt: 2 }
+
+/** Advance the real watchdogs without spending minutes on a silent fixture.
+ * Tests are serial and restore these process-local clocks in every finally. */
+function clock() {
+  const schedule = globalThis.setTimeout
+  const cancel = globalThis.clearTimeout
+  const origin = Date.now()
+  let now = 0
+  const timers = new Map<ReturnType<typeof setTimeout>, { at: number; run: () => void }>()
+  const timeout = spyOn(globalThis, "setTimeout").mockImplementation(
+    Object.assign(
+      (run: TimerHandler, delay = 0, ...args: unknown[]) => {
+        if (typeof run !== "function") throw new TypeError("The fixture clock only accepts function callbacks")
+        const handle = schedule(() => {}, 2_147_483_647).unref()
+        timers.set(handle, { at: now + delay, run: () => run(...args) })
+        return handle
+      },
+      { __promisify__: schedule.__promisify__ },
+      // Bun returns timer handles; the merged DOM overload also declares a number.
+    ) as unknown as typeof setTimeout,
+  )
+  const clear = spyOn(globalThis, "clearTimeout").mockImplementation((handle) => {
+    timers.delete(handle as ReturnType<typeof setTimeout>)
+    cancel(handle as ReturnType<typeof setTimeout>)
+  })
+  const date = spyOn(Date, "now").mockImplementation(() => origin + now)
+  const performanceClock = spyOn(performance, "now").mockImplementation(() => now)
+  return {
+    async advance(milliseconds: number) {
+      const target = now + milliseconds
+      // ReadableStream pull jobs must enter their wait before the clock moves.
+      await Bun.sleep(0)
+      while (true) {
+        const next = [...timers].filter(([, item]) => item.at <= target).sort((a, b) => a[1].at - b[1].at)[0]
+        if (!next) break
+        now = next[1].at
+        timers.delete(next[0])
+        cancel(next[0])
+        next[1].run()
+        await Bun.sleep(0)
+      }
+      now = target
+      await Bun.sleep(0)
+    },
+    restore() {
+      for (const handle of timers.keys()) cancel(handle)
+      timeout.mockRestore()
+      clear.mockRestore()
+      date.mockRestore()
+      performanceClock.mockRestore()
+    },
+  }
+}
 
 type Settled<T> = { type: "resolved"; value: T } | { type: "rejected"; error: unknown } | { type: "hung" }
 
@@ -29,6 +84,7 @@ function watched(
       providerID: "test-provider",
       modelID: "test-model",
       idleTimeout: 30,
+      connectTimeout: options.idleTimeout ?? 30,
       ...options,
       onTiming: (timing) => {
         timings.push(timing)
@@ -40,19 +96,360 @@ function watched(
 }
 
 describe("provider activity watchdog", () => {
-  test("leaves provider inactivity unbounded by default and clamps explicit timer values", () => {
+  test("never emits a funding credential through request timing", async () => {
+    const secret = "thk_timing.super-secret"
+    const timings: Provider.RequestTiming[] = []
+    const response = Provider.withRequestContext(
+      {
+        ...context,
+        funding: Object.freeze({
+          api_key: secret,
+          user_id: "user-timing",
+          account: "user-timing",
+          organization_id: "org-timing",
+        }),
+      },
+      () =>
+        Provider.fetchWithIdleWatchdog(async () => new Response("ok"), "https://provider.test", undefined, {
+          providerID: "test-provider",
+          modelID: "test-model",
+          idleTimeout: false,
+          onTiming: (timing) => timings.push(timing),
+        }),
+    )
+    expect(await (await response).text()).toBe("ok")
+    const serialized = JSON.stringify(timings)
+    expect(timings).toHaveLength(1)
+    expect(serialized).not.toContain(secret)
+    expect(serialized).not.toContain("api_key")
+    expect(serialized).not.toContain("funding")
+  })
+
+  test("selects a finite remote body deadline while preserving local and explicit escape hatches", () => {
+    expect(Provider.resolveConnectTimeout(undefined)).toBe(300_000)
     expect(Provider.resolveIdleTimeout(undefined)).toBe(false)
+    expect(Provider.resolveOutputIdleTimeout(undefined)).toBe(false)
+    expect(Provider.defaultIdleTimeout({ providerID: "openrouter", baseURL: "https://openrouter.ai/api/v1" })).toBe(
+      600_000,
+    )
+    // The test preload points the managed base at loopback, which the local
+    // rule would claim first; a remote managed origin shows the gateway tier.
+    const base = process.env["OPENSCIENCE_API_BASE"]
+    process.env["OPENSCIENCE_API_BASE"] = "https://managed.test"
+    try {
+      expect(
+        Provider.defaultIdleTimeout({
+          providerID: "openrouter",
+          baseURL: `${managedApiBase()}/api/llm/proxy/openrouter/v1`,
+        }),
+      ).toBe(600_000)
+      // The gateway holds headers until the upstream body starts, so a silent
+      // think lands in the header wait; it gets the same allowance.
+      expect(
+        Provider.defaultConnectTimeout({
+          providerID: "openrouter",
+          baseURL: `${managedApiBase()}/api/llm/proxy/openrouter/v1`,
+        }),
+      ).toBe(600_000)
+      expect(
+        Provider.defaultConnectTimeout({ providerID: "openrouter", baseURL: "https://openrouter.ai/api/v1" }),
+      ).toBe(300_000)
+    } finally {
+      process.env["OPENSCIENCE_API_BASE"] = base
+    }
+    expect(Provider.defaultIdleTimeout({ providerID: "ollama" })).toBe(false)
+    expect(Provider.defaultIdleTimeout({ providerID: "custom", baseURL: "http://127.0.0.1:11434/v1" })).toBe(false)
+    expect(Provider.defaultIdleTimeout({ providerID: "custom", baseURL: "http://inference.local/v1" })).toBe(false)
+    expect(Provider.resolveConnectTimeout(false)).toBe(false)
     expect(Provider.resolveIdleTimeout(false)).toBe(false)
+    expect(Provider.resolveOutputIdleTimeout(false)).toBe(false)
     expect(Provider.resolveIdleTimeout(12_345.9)).toBe(12_345)
+    expect(Provider.resolveOutputIdleTimeout(600_000)).toBe(600_000)
     expect(Provider.resolveIdleTimeout(Number.MAX_SAFE_INTEGER)).toBe(2_147_483_647)
   })
 
+  for (const partial of [false, true]) {
+    test(`explicitly unbounded response resumes after fifteen minutes ${partial ? "after partial output" : "before first output"}`, async () => {
+      const time = clock()
+      const user = new AbortController()
+      const transport = new AbortController()
+      const watchdog = outputWatchdog({
+        timeout: Provider.resolveOutputIdleTimeout(undefined),
+        signal: user.signal,
+        expire: () => new Provider.RequestTimeoutError("output", 600_000),
+        onTimeout: (reason) => transport.abort(reason),
+      })
+      let source!: ReadableStreamDefaultController<Uint8Array>
+      let signal: AbortSignal | undefined
+      let requests = 0
+      const timings: Provider.RequestTiming[] = []
+      let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
+      try {
+        const response = await Provider.withRequestContext({ ...context, abort: transport.signal }, () =>
+          Provider.fetchWithIdleWatchdog(
+            async (_input, init) => {
+              requests++
+              signal = init?.signal ?? undefined
+              return new Response(
+                new ReadableStream<Uint8Array>({
+                  start(controller) {
+                    source = controller
+                    if (partial) controller.enqueue(encoder.encode("partial reasoning"))
+                  },
+                }),
+              )
+            },
+            "https://provider.test/no-network",
+            { signal: user.signal },
+            { providerID: "test", modelID: "test", idleTimeout: false, onTiming: (item) => timings.push(item) },
+          ),
+        )
+        reader = response.body!.getReader()
+        watchdog.start()
+        if (partial) {
+          expect(new TextDecoder().decode((await watchdog.next(() => reader!.read())).value)).toBe("partial reasoning")
+          watchdog.progress()
+        }
+        let settled = false
+        const pending = watchdog.next(() => reader!.read())
+        void pending.then(
+          () => (settled = true),
+          () => (settled = true),
+        )
+        await time.advance(900_001)
+        expect(settled).toBe(false)
+        expect(signal?.aborted).toBe(false)
+        expect(timings).toHaveLength(0)
+        source.enqueue(encoder.encode("resumed output"))
+        source.close()
+        expect(new TextDecoder().decode((await pending).value)).toBe("resumed output")
+        watchdog.progress()
+        expect((await watchdog.next(() => reader!.read())).done).toBe(true)
+        expect(requests).toBe(1)
+        expect(timings).toHaveLength(1)
+        expect(timings[0]).toMatchObject({ outcome: "completed", idleTimeoutMs: false, connectTimeoutMs: 300_000 })
+        expect(timings[0].completedAt - timings[0].startedAt).toBeGreaterThan(900_000)
+      } finally {
+        user.abort(new DOMException("fixture cleanup", "AbortError"))
+        await reader?.cancel().catch(() => {})
+        watchdog.dispose()
+        time.restore()
+      }
+    })
+  }
+
+  test("explicitly unbounded response still cancels its reader immediately when the user stops", async () => {
+    const time = clock()
+    const user = new AbortController()
+    const reason = new DOMException("User stopped", "AbortError")
+    let cancelled: unknown
+    let signal: AbortSignal | undefined
+    const { response, timings } = watched(
+      async (_input, init) => {
+        signal = init?.signal ?? undefined
+        return new Response(
+          new ReadableStream<Uint8Array>({
+            cancel(value) {
+              cancelled = value
+            },
+          }),
+        )
+      },
+      { idleTimeout: false, connectTimeout: undefined },
+      { signal: user.signal },
+    )
+    try {
+      const body = (await response).text()
+      void body.catch(() => {})
+      await time.advance(900_001)
+      expect(signal?.aborted).toBe(false)
+      user.abort(reason)
+      await expect(body).rejects.toBe(reason)
+      expect(signal?.reason).toBe(reason)
+      expect(cancelled).toBe(reason)
+      expect(timings).toHaveLength(1)
+      expect(timings[0]).toMatchObject({ outcome: "aborted", idleTimeoutMs: false })
+    } finally {
+      user.abort(reason)
+      time.restore()
+    }
+  })
+
+  for (const phase of ["stream", "output"] as const) {
+    test(`an explicitly configured ${phase} deadline still aborts without making the paid outcome retryable`, async () => {
+      const time = clock()
+      const user = new AbortController()
+      const transport = new AbortController()
+      const duration = phase === "stream" ? 300_000 : 600_000
+      const watchdog = outputWatchdog({
+        timeout: Provider.resolveOutputIdleTimeout(phase === "output" ? duration : undefined),
+        signal: user.signal,
+        expire: () => new Provider.RequestTimeoutError("output", duration),
+        onTimeout: (reason) => transport.abort(reason),
+      })
+      let requests = 0
+      let cancelled: unknown
+      let signal: AbortSignal | undefined
+      try {
+        const response = await Provider.withRequestContext({ ...context, abort: transport.signal }, () =>
+          Provider.fetchWithIdleWatchdog(
+            async (_input, init) => {
+              requests++
+              signal = init?.signal ?? undefined
+              return new Response(
+                new ReadableStream<Uint8Array>({
+                  start(controller) {
+                    controller.enqueue(encoder.encode("saved partial output"))
+                  },
+                  cancel(reason) {
+                    cancelled = reason
+                  },
+                }),
+              )
+            },
+            "https://provider.test/no-network",
+            { signal: user.signal },
+            { providerID: "test", modelID: "test", idleTimeout: phase === "stream" ? duration : undefined },
+          ),
+        )
+        const reader = response.body!.getReader()
+        watchdog.start()
+        expect(new TextDecoder().decode((await watchdog.next(() => reader.read())).value)).toBe("saved partial output")
+        watchdog.progress()
+        const pending = watchdog.next(() => reader.read())
+        void pending.catch(() => {})
+        await time.advance(duration + 1)
+        await expect(pending).rejects.toMatchObject({ phase, timeoutMs: duration })
+        expect(signal?.aborted).toBe(true)
+        expect(Provider.requestTimeout(cancelled)).toMatchObject({ phase, timeoutMs: duration })
+        expect(SessionProcessor.retryableProviderError(cancelled, {} as never)).toBeUndefined()
+        expect(requests).toBe(1)
+      } finally {
+        user.abort(new DOMException("fixture cleanup", "AbortError"))
+        watchdog.dispose()
+        time.restore()
+      }
+    })
+  }
+
   test("provider timeout config separates total and idle contracts", () => {
-    const parsed = Config.Provider.parse({ options: { timeout: false, idleTimeout: 120_000 } })
+    const parsed = Config.Provider.parse({
+      options: { timeout: false, idleTimeout: 120_000, connectTimeout: 60_000, outputIdleTimeout: false },
+    })
     expect(parsed.options?.timeout).toBe(false)
     expect(parsed.options?.idleTimeout).toBe(120_000)
+    expect(parsed.options?.connectTimeout).toBe(60_000)
+    expect(parsed.options?.outputIdleTimeout).toBe(false)
     expect(() => Config.Provider.parse({ options: { idleTimeout: 2_147_483_648 } })).toThrow()
     expect(() => Config.Provider.parse({ options: { timeout: 2_147_483_648 } })).toThrow()
+    expect(() => Config.Provider.parse({ options: { connectTimeout: 0 } })).toThrow()
+    expect(() => Config.Provider.parse({ options: { outputIdleTimeout: 2_147_483_648 } })).toThrow()
+  })
+
+  test("the default header deadline remains finite when fetch never responds", async () => {
+    const time = clock()
+    let signal: AbortSignal | undefined
+    const { response, timings } = watched(
+      async (_input, init) => {
+        signal = init?.signal ?? undefined
+        return new Promise<Response>(() => {})
+      },
+      { idleTimeout: undefined, connectTimeout: undefined },
+    )
+    void response.catch(() => {})
+    try {
+      await time.advance(300_001)
+      await expect(response).rejects.toMatchObject({ phase: "connect", timeoutMs: 300_000 })
+      expect(signal?.aborted).toBe(true)
+      expect(timings).toHaveLength(1)
+      expect(timings[0]).toMatchObject({ outcome: "idle_timeout", timeoutPhase: "connect", idleTimeoutMs: false })
+    } finally {
+      time.restore()
+    }
+  })
+
+  test("uses a distinct header deadline and aborts the underlying fetch", async () => {
+    let signal: AbortSignal | undefined
+    const { response, timings } = watched(
+      async (_input, init) => {
+        signal = init?.signal ?? undefined
+        return new Promise<Response>(() => {})
+      },
+      { connectTimeout: 20, idleTimeout: 200 },
+    )
+    const result = await settleWithin(response)
+    expect(result.type).toBe("rejected")
+    expect(signal?.aborted).toBe(true)
+    expect(Provider.isRequestTimeoutError(signal?.reason)).toBe(true)
+    expect(timings[0]).toMatchObject({ connectTimeoutMs: 20, idleTimeoutMs: 200, timeoutPhase: "connect" })
+    expect(timings[0].completedAt - timings[0].startedAt).toBeLessThan(150)
+  })
+
+  test("does not apply the body-idle deadline while response headers are pending", async () => {
+    const { response, timings } = watched(
+      async () => {
+        await Bun.sleep(30)
+        return new Response("ok")
+      },
+      { connectTimeout: 100, idleTimeout: 10 },
+    )
+    expect(await (await response).text()).toBe("ok")
+    expect(timings[0].outcome).toBe("completed")
+    expect(timings[0].responseStartedAt! - timings[0].startedAt).toBeGreaterThanOrEqual(25)
+  })
+
+  test("provider-only cancellation closes HTTP while preserving the tool authority signal", async () => {
+    const user = new AbortController()
+    const provider = new AbortController()
+    const error = new Provider.RequestTimeoutError("output", 600_000)
+    let signal: AbortSignal | undefined
+    const timings: Provider.RequestTiming[] = []
+    const response = await Provider.withRequestContext({ ...context, abort: provider.signal }, () =>
+      Provider.fetchWithIdleWatchdog(
+        async (_input, init) => {
+          signal = init?.signal ?? undefined
+          return new Response(
+            new ReadableStream<Uint8Array>({
+              start(controller) {
+                controller.enqueue(encoder.encode("saved partial output"))
+              },
+            }),
+          )
+        },
+        "https://provider.test/no-network",
+        { signal: user.signal },
+        { providerID: "test-provider", modelID: "test-model", onTiming: (item) => timings.push(item) },
+      ),
+    )
+    const reader = response.body!.getReader()
+    expect(new TextDecoder().decode((await reader.read()).value)).toBe("saved partial output")
+    const pending = reader.read()
+    provider.abort(error)
+    expect(await settleWithin(pending)).toEqual({ type: "rejected", error })
+    expect(signal?.aborted).toBe(true)
+    expect(signal?.reason).toBe(error)
+    expect(user.signal.aborted).toBe(false)
+    expect(timings[0]).toMatchObject({
+      outcome: "timeout",
+      timeoutPhase: "output",
+      errorName: "ProviderRequestTimeoutError",
+    })
+  })
+
+  test("recognizes all timeout kinds through SDK wrappers without classifying unrelated errors", () => {
+    for (const phase of ["connect", "first_event", "stream", "output", "total"] as const) {
+      const error = new Provider.RequestTimeoutError(phase, 100)
+      const wrapped = new Error("SDK wrapper", { cause: error })
+      expect(Provider.isRequestTimeoutError(wrapped)).toBe(true)
+      expect(Provider.requestTimeout(wrapped)).toBe(error)
+      expect(Provider.isRequestTimeoutError(new AggregateError([{ name: error.name, phase, timeoutMs: 100 }]))).toBe(
+        true,
+      )
+    }
+    expect(Provider.isRequestTimeoutError(new Error("unrelated"))).toBe(false)
+    expect(
+      Provider.isRequestTimeoutError({ name: "ProviderRequestTimeoutError", phase: "invalid", timeoutMs: 100 }),
+    ).toBe(false)
   })
 
   test("hard-returns when connection setup is silent even if fetch ignores abort", async () => {
@@ -138,6 +535,84 @@ describe("provider activity watchdog", () => {
     expect(timings[0].lastBodyChunkAt).toBe(timings[0].firstBodyChunkAt)
   })
 
+  test("the remote default stops a response that goes silent after its first body bytes", async () => {
+    const time = clock()
+    const idleTimeout = Provider.defaultIdleTimeout({
+      providerID: "openrouter",
+      baseURL: "https://openrouter.ai/api/v1",
+    })
+    const { response, timings } = watched(
+      async () =>
+        new Response(
+          new ReadableStream<Uint8Array>({
+            start(controller) {
+              controller.enqueue(encoder.encode(": response started\n\n"))
+            },
+          }),
+        ),
+      { idleTimeout },
+    )
+    try {
+      const reader = (await response).body!.getReader()
+      expect(new TextDecoder().decode((await reader.read()).value)).toBe(": response started\n\n")
+      const pending = reader.read()
+      void pending.catch(() => {})
+      await time.advance(600_001)
+      await expect(pending).rejects.toMatchObject({ phase: "stream", timeoutMs: 600_000 })
+      expect(timings).toHaveLength(1)
+      expect(timings[0]).toMatchObject({
+        outcome: "idle_timeout",
+        timeoutPhase: "stream",
+        idleTimeoutMs: 600_000,
+      })
+    } finally {
+      time.restore()
+    }
+  })
+
+  test("raw private-reasoning and keepalive bytes reset the remote inactivity deadline", async () => {
+    const time = clock()
+    let source!: ReadableStreamDefaultController<Uint8Array>
+    let closed = false
+    const idleTimeout = Provider.defaultIdleTimeout({
+      providerID: "openrouter",
+      baseURL: "https://openrouter.ai/api/v1",
+    })
+    const { response, timings } = watched(
+      async () =>
+        new Response(
+          new ReadableStream<Uint8Array>({
+            start(controller) {
+              source = controller
+            },
+          }),
+        ),
+      { idleTimeout },
+    )
+    try {
+      const reader = (await response).body!.getReader()
+      for (const activity of [
+        ": OPENROUTER PROCESSING\n\n",
+        'data: {"choices":[{"delta":{"reasoning_content":"[REDACTED]"}}]}\n\n',
+        ": still processing\n\n",
+      ]) {
+        const pending = reader.read()
+        await time.advance(400_000)
+        source.enqueue(encoder.encode(activity))
+        expect(new TextDecoder().decode((await pending).value)).toBe(activity)
+      }
+      source.close()
+      closed = true
+      expect((await reader.read()).done).toBe(true)
+      expect(timings).toHaveLength(1)
+      expect(timings[0]).toMatchObject({ outcome: "completed", idleTimeoutMs: 600_000 })
+      expect(timings[0].completedAt - timings[0].startedAt).toBeGreaterThan(600_000)
+    } finally {
+      if (!closed) source.close()
+      time.restore()
+    }
+  })
+
   test("allows an active stream to run for multiple idle windows", async () => {
     let index = 0
     const chunks = 8
@@ -189,12 +664,12 @@ describe("provider activity watchdog", () => {
     expect(timings[0].timeoutPhase).toBeUndefined()
   })
 
-  test("idleTimeout false disables inactivity while retaining caller cancellation", async () => {
+  test("explicitly disabled header and body deadlines retain caller cancellation", async () => {
     const controller = new AbortController()
     const reason = new DOMException("cancel disabled-idle request", "AbortError")
     const { response, timings } = watched(
       async () => new Promise<Response>(() => {}),
-      { idleTimeout: false },
+      { idleTimeout: false, connectTimeout: false },
       { signal: controller.signal },
     )
 
@@ -212,7 +687,7 @@ describe("provider activity watchdog", () => {
     if (settled.type !== "rejected") return
     expect(settled.error).toBe(reason)
     expect(timings).toHaveLength(1)
-    expect(timings[0]).toMatchObject({ idleTimeoutMs: false, outcome: "aborted" })
+    expect(timings[0]).toMatchObject({ idleTimeoutMs: false, connectTimeoutMs: false, outcome: "aborted" })
   })
 
   test("honors an explicit total timeout even while the body stays active", async () => {
@@ -233,9 +708,9 @@ describe("provider activity watchdog", () => {
     const settled = await settleWithin(response.then((value) => value.text()))
     expect(settled.type).toBe("rejected")
     if (settled.type !== "rejected") return
-    expect((settled.error as Error).name).toBe("TimeoutError")
+    expect(Provider.requestTimeout(settled.error)).toMatchObject({ phase: "total", timeoutMs: 45 })
     expect(timings).toHaveLength(1)
-    expect(timings[0].outcome).toBe("timeout")
+    expect(timings[0]).toMatchObject({ outcome: "timeout", timeoutPhase: "total" })
     expect(timings[0].firstBodyChunkAt).toBeDefined()
   })
 
@@ -280,4 +755,21 @@ describe("provider activity watchdog", () => {
     expect(timings).toHaveLength(1)
     expect(timings[0].outcome).toBe("completed")
   })
+})
+
+test("the idle deadline follows the effort the request asks for", () => {
+  const body = (effort: string) => JSON.stringify({ model: "gpt-5.6-sol", input: "x", reasoning: { effort } })
+  expect(Provider.scaleIdleTimeout(600_000, body("max"), false)).toBe(2_700_000)
+  expect(Provider.scaleIdleTimeout(600_000, body("xhigh"), false)).toBe(1_500_000)
+  expect(Provider.scaleIdleTimeout(600_000, body("high"), false)).toBe(900_000)
+  expect(Provider.scaleIdleTimeout(600_000, body("medium"), false)).toBe(600_000)
+  expect(
+    Provider.scaleIdleTimeout(600_000, JSON.stringify({ model: "m", messages: [], reasoning_effort: "max" }), false),
+  ).toBe(2_700_000)
+  // No deadline stays no deadline; a non-JSON body is left alone.
+  expect(Provider.scaleIdleTimeout(false, body("max"), false)).toBe(false)
+  expect(Provider.scaleIdleTimeout(600_000, undefined, false)).toBe(600_000)
+  // The managed gateway bounds its own silence, so its deadline never grows.
+  expect(Provider.scaleIdleTimeout(600_000, body("max"), true)).toBe(600_000)
+  expect(Provider.scaleIdleTimeout(600_000, body("xhigh"), true)).toBe(600_000)
 })

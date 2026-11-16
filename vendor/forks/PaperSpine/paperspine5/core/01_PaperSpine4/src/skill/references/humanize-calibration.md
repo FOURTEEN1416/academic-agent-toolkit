@@ -1,44 +1,49 @@
-# Humanize Calibration Workflow
+# Authorial Voice Restoration Evaluation
 
-## Purpose
+This file replaces detector-threshold calibration for the legacy `humanize`
+route. AI-detector scores may be recorded as secondary observations when a user
+already has them, but they are never acceptance gates and never justify a
+revision by themselves.
 
-Calibrate `humanize_check.py` detection thresholds against real platform
-detection results.  Thresholds are **not** derived from guesswork about any
-vendor's internal algorithm — they must be adjusted based on actual back-testing
-across multiple manuscripts.
+## Primary evaluation set
 
-## What the User Must Provide
+Use frozen train/validation/test manuscripts and include all of these controls:
 
-- **Platform name**: CNKI / Weipu / General / other
-- **Detection date**: ISO date
-- **Detection score or risk level**: as reported by the platform
-- **`humanize_tier`** used: light / medium / heavy
-- **`humanize_report.md`** from the revision run
-- **Manuscript metadata**: word count, language, discipline
-- **Manual post-revision editing**: yes / no
+- mechanically polished prose with known empty framing and paragraph-template
+  defects;
+- revisions containing seeded number, unit, citation, formula, protected-term,
+  negation, causality, modality, and claim-strength drift;
+- unsupported-new-claim mutations;
+- section-specific Methods, Results, and Discussion cases;
+- strong human-authored text that should remain a clean-text no-op;
+- authorized and unavailable author-corpus cases;
+- stale hash, non-independent audit, and stale author-confirmation cases.
 
-## Recording Format
+## Hard metrics
 
-`humanize_calibration/platform_runs.md`:
+- number/unit/citation/formula/protected-term drift: 0;
+- negation/causal direction/modality/claim-strength drift: 0;
+- unsupported new claims: 0;
+- stale authority, audit, or author-confirmation false clears: 0;
+- false rewrite rate on clean-text no-op controls;
+- author blind preference for revised versus original;
+- independent domain-expert judgment of clarity and scientific fidelity;
+- wall time, model tokens/cost when available, and author-review time.
 
-| Date | Platform | Language | Discipline | Tier | Detector score/risk | D1 status | D2 status | D3 status | D4 status | D5 status | Residual issue | Threshold note |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
+Pattern precision/recall may be measured for individual diagnostic groups, but
+pattern density is not an authorship label. Record section role so standard
+Methods repetition is not counted as a defect by default.
 
-## Calibration Principles
+## Optional detector observation
 
-1. A single result does not justify a global threshold change. Accumulate
-   multiple runs on the same platform/language/discipline first.
-2. Adjust WARNING thresholds before FAIL thresholds.
-3. Every threshold change must be documented with reason, old/new values,
-   supporting run count, and date.
-4. Do not promise that adjusted thresholds will pass any detector.
+If a user supplies an external detector result, record platform, date,
+language, discipline, document hash, exact revision hash, and the platform's
+own uncertainty. Never optimize thresholds from one result, promise transfer to
+another platform, or describe the detector as proof of authorship.
 
-## Current Threshold Location
+## Adoption rule
 
-Default thresholds live in `DEFAULT_THRESHOLDS` (the `HumanizeThresholds`
-dataclass) in `humanize_check.py`. At runtime `load_thresholds()` reads
-per-run overrides from the `humanize_thresholds` block of
-`paper_spine_config.json`; missing, non-numeric, negative, or unknown keys
-fall back to the defaults and emit a warning. Edit the defaults in code for a
-permanent change, or set `humanize_thresholds` in the config to override a
-single run without touching the script.
+Adopt a new rule only when it improves held-out clarity/voice preference or
+repair precision without any semantic-invariant regression and without
+increasing the clean-text false-rewrite rate. A lower detector score alone is
+insufficient.

@@ -39,7 +39,12 @@ Project relevance:
 Claim strength: speculative | observed | supported | strong
 ```
 
-Use `../research-ideation/references/research-contract.md` as the shared contract for Evidence Records and claim strength definitions.
+Claim strength definitions (shared contract, inlined here — the upstream `research-ideation` skill is not bundled in this repo):
+
+- `speculative` — idea/hypothesis only; no data or source behind it yet
+- `observed` — seen in this project's own runs/notes, but not independently verified
+- `supported` — backed by an Evidence Record from a verifiable source (full paper, dataset, or experiment artifact)
+- `strong` — supported and independently corroborated (replication, multiple independent sources, or peer-reviewed confirmation); the only level that may be phrased as established fact
 
 Before synthesis lands in `Knowledge/` or `Writing/`, apply the shared Claim Promotion Gate:
 - every promoted claim must point back to an Evidence Record ID,

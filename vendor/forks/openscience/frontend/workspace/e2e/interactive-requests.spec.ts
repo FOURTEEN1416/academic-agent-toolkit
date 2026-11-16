@@ -101,7 +101,7 @@ test("question prompt replies through the real pending request", async ({ page, 
   const { sessionID, sentinel } = await sendSentinel({ sdk, gotoSession }, "question")
 
   try {
-    const prompt = page.locator('[data-component="question-prompt"]')
+    const prompt = page.locator('[data-component="request-card"][data-kind="question"]')
     await expect.poll(() => listPending(page.request, "question", sessionID, directory)).toHaveLength(1)
     await expect(prompt).toBeVisible({ timeout: 20_000 })
 
@@ -125,7 +125,7 @@ test("question prompt can be rejected through the real pending request", async (
   const { sessionID } = await sendSentinel({ sdk, gotoSession }, "question")
 
   try {
-    const prompt = page.locator('[data-component="question-prompt"]')
+    const prompt = page.locator('[data-component="request-card"][data-kind="question"]')
     await expect.poll(() => listPending(page.request, "question", sessionID, directory)).toHaveLength(1)
     await expect(prompt).toBeVisible({ timeout: 20_000 })
 
@@ -144,7 +144,7 @@ test("permission prompt allows a harmless read once", async ({ page, sdk, direct
   const { sessionID, sentinel } = await sendSentinel({ sdk, gotoSession }, "permission")
 
   try {
-    const prompt = page.locator('[data-component="permission-prompt"]')
+    const prompt = page.locator('[data-component="request-card"]:not([data-kind="question"])')
     await expect.poll(() => listPending(page.request, "permission", sessionID, directory)).toHaveLength(1)
     await expect(prompt).toBeVisible({ timeout: 20_000 })
 
@@ -163,7 +163,7 @@ test("permission prompt denies a harmless read", async ({ page, sdk, directory, 
   const { sessionID } = await sendSentinel({ sdk, gotoSession }, "permission")
 
   try {
-    const prompt = page.locator('[data-component="permission-prompt"]')
+    const prompt = page.locator('[data-component="request-card"]:not([data-kind="question"])')
     await expect.poll(() => listPending(page.request, "permission", sessionID, directory)).toHaveLength(1)
     await expect(prompt).toBeVisible({ timeout: 20_000 })
 

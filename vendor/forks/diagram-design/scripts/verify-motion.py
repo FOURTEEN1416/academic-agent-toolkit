@@ -73,7 +73,9 @@ class MotionParser(HTMLParser):
             self._current_style = {"body": [], "closed": False}
             self.styles.append(self._current_style)
         self._element_stack.append(tag)
-        if tag == "svg":
+        # Match self_check.py: a nested <svg> (such as an icon) belongs to the
+        # root diagram, and only the root's direct <title>/<desc> name it.
+        if tag == "svg" and self._svg_depth == 0:
             self._svg_depth = 1
             self._current_svg = {"attrs": data, "first": None, "title": {}, "desc": {}}
             self.svgs.append(self._current_svg)
@@ -83,7 +85,7 @@ class MotionParser(HTMLParser):
             assert self._current_svg is not None
             if self._svg_depth == 2 and self._current_svg["first"] is None:
                 self._current_svg["first"] = tag
-            if tag in {"title", "desc"}:
+            if self._svg_depth == 2 and tag in {"title", "desc"}:
                 self._current_svg[tag] = {"attrs": data, "text": ""}
                 self._capture = tag
 
@@ -467,9 +469,11 @@ def verify(path: Path) -> list[str]:
     if mode == "loop" and len(parser.items) > 2:
         errors.append("loop mode may contain at most one semantic item and one decorative token")
 
-    if not parser.svgs:
+    checkable = [svg for svg in parser.svgs
+                 if str(svg["attrs"].get("aria-hidden", "")).casefold() != "true"]
+    if not checkable:
         errors.append("motion document needs an accessible SVG")
-    for number, svg in enumerate(parser.svgs, 1):
+    for number, svg in enumerate(checkable, 1):
         attrs = svg["attrs"]
         assert isinstance(attrs, dict)
         if attrs.get("role") != "img":

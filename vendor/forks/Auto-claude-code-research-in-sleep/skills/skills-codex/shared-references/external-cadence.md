@@ -2,9 +2,12 @@
 
 > **Codex mirror adaptation (normative).** External cadence remains fire-control
 > only. The default fresh Codex reviewer may produce a provisional stop/continue
-> decision, while only a cross-family overlay or deterministic gate records
-> accepted. Replace mainline Codex MCP examples with fresh `spawn_agent` calls;
-> never schedule reviewer verdicts themselves.
+> decision. Resolve other routes through
+> [Selectable Reviewers](reviewer-backends.md). Accepted semantic assurance needs
+> a completed positive in-scope review with known different actual model
+> families; deterministic gates accept only their mechanical obligations.
+> Native Codex examples use fresh `spawn_agent` calls; other routes preserve
+> the same session boundaries. Never schedule reviewer verdicts themselves.
 
 External schedulers — `/loop`, `/schedule`, `CronCreate`, and any
 wall-clock "wake me every N minutes" mechanism — decide **WHEN** an
@@ -25,8 +28,9 @@ fire-control corollary of the acceptance-gate rule
 (`acceptance-gate.md`): a goal/loop may keep an agent going, but the
 STOP/ACCEPT decision still belongs to whoever the acceptance gate
 assigns it to — fresh Codex quality/correctness verdicts are provisional;
-only a cross-family overlay or deterministic verifier is accepted
-(`reviewer-independence.md`).
+accepted semantic assurance requires a completed positive cross-family review
+covering the obligation (`reviewer-independence.md`). A deterministic wait or
+completion check cannot supply that judgment.
 
 ## Known failure mode (why this doc exists)
 
@@ -66,7 +70,7 @@ never for **internal semantic loops**.
 | What advances it | Reality changing (GPU frees, epoch logs, PDF compiles) | A model emitting a verdict |
 | Owns its own loop? | No — without cadence a Claude session blocks on `sleep` | Yes — the skill already iterates internally, carrying its own round-to-round state (a reviewer thread, or fed-forward summaries) |
 | Cadence replaces | A blocking session burning context on a wait | Nothing — it only re-spawns and re-judges |
-| Acceptance gate | Machine-checkable existence/completion (safe same-model) | Quality/correctness (base Codex = provisional; overlay/deterministic = accepted) |
+| Acceptance gate | Machine-checkable existence/completion (safe same-model) | Quality/correctness (same-family = provisional; accepted only after completed positive cross-family review) |
 
 One-liner: **schedule the wait, never the verdict.**
 
@@ -140,7 +144,9 @@ quality, correctness, support, novelty, or satisfaction — must run on
 its own internal cadence with its own round-to-round state (a persistent
 reviewer thread, or prior-round summaries fed forward — whichever the skill
 uses), and must terminate through its recorded reviewer route. In the base
-mirror that route is provisional; overlays/deterministic verifiers are accepted. Never put one inside
+mirror that route is provisional; accepted semantic assurance requires a
+completed positive in-scope review with known different actual model families.
+A deterministic completion check cannot replace it. Never put one inside
 `/loop`, `/schedule`, or `CronCreate`:
 
 - `/auto-review-loop` — already loops internally; reviewer carries

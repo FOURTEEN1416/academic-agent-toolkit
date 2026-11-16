@@ -12,10 +12,10 @@ Create any LaTeX document, compile to PDF, and generate PNG previews. Convert PD
 ## Workflow: Create Documents
 
 1. Determine document type (resume, report, letter, invoice, article, thesis, academic CV, presentation, poster, exam, book, cheat sheet)
-2. **If the target is an IEEE journal / Transactions / IEEE two-column paper:** Read [references/ieee-journal-twocolumn-guide.md](references/ieee-journal-twocolumn-guide.md) before choosing a template. Start from `examples/ieee-twocolumn-sample.tex` for a working IEEEtran baseline and use `examples/ieee-twocolumn.png` / `examples/ieee-twocolumn-p1.png` / `examples/ieee-twocolumn-p2.png` as visual references.
+2. **If the target is an IEEE journal / Transactions / IEEE two-column paper:** Read [references/ieee-journal-twocolumn-guide.md](references/ieee-journal-twocolumn-guide.md) before choosing a template. Start from `examples/ieee-twocolumn-sample.tex` for a working IEEEtran baseline and use `examples/ieee-twocolumn.png` / `examples/ieee-twocolumn-p1.png` / `examples/ieee-twocolumn-p2.png` as visual references. **若 examples/ 4 件缺失（已登记 ASSET-GAP），不要卡在示例上：按 guide 从零搭 IEEEtran 基线（`\documentclass[conference]{IEEEtran}` 起步，补 title/author/abstract/sections 骨架），编译通过后再对齐格式。**
 3. **If poster:** Run the poster sub-workflow (see [Poster Sub-Workflow](#poster-sub-workflow) below), then skip to step 5.
 4. **If cheat sheet / reference card:** Run the cheat sheet sub-workflow (see [Cheat Sheet / Reference Card Sub-Workflow](#cheat-sheet--reference-card-sub-workflow) below), then skip to step 5.
-5. **Ask the user which enrichment elements they want** (use AskUserQuestion tool with multiSelect). Offer relevant options based on document type:
+5. **Ask the user which enrichment elements they want**（向用户提出多选题：用当前宿主可用的问询工具，或直接列出选项让用户挑选，等价于 multiSelect）. Offer relevant options based on document type:
    - **AI-generated images** -- custom illustrations, diagrams, photos (uses generate-image skill)
    - **Charts/graphs** -- bar, line, pie, scatter, heatmap (pgfplots or matplotlib)
    - **Flowcharts/diagrams** -- process flows, architecture, decision trees (TikZ or Mermaid)
@@ -35,7 +35,7 @@ Create any LaTeX document, compile to PDF, and generate PNG previews. Convert PD
 
 ### Poster Sub-Workflow
 
-When the user requests a poster: read [references/poster-design-guide.md](references/poster-design-guide.md) for the complete workflow including conference size presets (NeurIPS/ICML/CVPR/ICLR dimensions), layout archetypes (Traditional/BetterPoster/Visual-Heavy), color schemes, and typography standards. Use `poster.tex` (portrait) or `poster-landscape.tex` (landscape). Ask the user for conference/orientation, layout style, and color scheme using AskUserQuestion, then proceed to step 5.
+When the user requests a poster: read [references/poster-design-guide.md](references/poster-design-guide.md) for the complete workflow including conference size presets (NeurIPS/ICML/CVPR/ICLR dimensions), layout archetypes (Traditional/BetterPoster/Visual-Heavy), color schemes, and typography standards. Use `poster.tex` (portrait) or `poster-landscape.tex` (landscape). Ask the user for conference/orientation, layout style, and color scheme（向用户提问，宿主中立表述，不依赖特定问询工具名）, then proceed to step 5.
 
 ### Cheat Sheet / Reference Card Sub-Workflow
 

@@ -211,6 +211,16 @@ mcp__claude-review__review_start:
     claim"), instruction confessions ("we do not address X"), and generic caveats
     outside Limitations as writing defects to remove. Tone fixes must never alter
     facts, negation, modality, scope, comparison direction, or numbers.
+    Also flag narrative defects: a progress-report structure ("we first tried
+    A, then B"), a story built on a metric the method loses, results narrated
+    as defeats ("underperforms", "fails to surpass") instead of explained as a
+    goal difference or tradeoff, experiments with no argumentative duty, an
+    abstract or introduction that opens on background or implementation
+    instead of problem -> gap -> idea -> strongest result, and a conclusion
+    that ends on new self-negation. The fix is reframing and cutting where
+    the evidence supports the reframing; a genuine weakness is stated
+    neutrally and kept in Limitations. Never delete unfavorable numbers from
+    tables, and never dress a weakness as a tradeoff.
 
     ## Paper Files:
     - LaTeX source: [list all section .tex files]
@@ -286,6 +296,8 @@ never manuscript content; tone edits never change what the paper knows.
 | Genuine overclaim | Narrow the claim itself to the supported scope/modality — never substitute a softer-sounding synonym for fixing scope, comparison, or aggregation |
 | Supported claim wrapped in caution | Remove the redundant hedges; keep any scope qualifier that makes the claim true |
 | Scattered generic caveats | Consolidate into Limitations and delete the duplicates |
+| Story built on a losing metric, or results narrated as defeats | Reframe around the contest the paper wins; explain the gap as a goal difference or tradeoff when the evidence supports that, otherwise state it neutrally and narrow the claim; keep every number in the table |
+| Experiment with no argumentative duty | Cut, shorten, move to the appendix, or redesign it so it proves the method, the mechanism, the target-scenario value, or rules out an alternative |
 | Missing metrics | Add quantitative table with honest parameter counts and caveats |
 | Theorem not self-contained | Add "Interpretation" paragraph listing all dependencies |
 | Notation confusion | Rename conflicting symbols globally, add Notation paragraph |
@@ -353,6 +365,16 @@ mcp__claude-review__review_start:
     claim"), instruction confessions ("we do not address X"), and generic caveats
     outside Limitations as writing defects to remove. Tone fixes must never alter
     facts, negation, modality, scope, comparison direction, or numbers.
+    Also flag narrative defects: a progress-report structure ("we first tried
+    A, then B"), a story built on a metric the method loses, results narrated
+    as defeats ("underperforms", "fails to surpass") instead of explained as a
+    goal difference or tradeoff, experiments with no argumentative duty, an
+    abstract or introduction that opens on background or implementation
+    instead of problem -> gap -> idea -> strongest result, and a conclusion
+    that ends on new self-negation. The fix is reframing and cutting where
+    the evidence supports the reframing; a genuine weakness is stated
+    neutrally and kept in Limitations. Never delete unfavorable numbers from
+    tables, and never dress a weakness as a tradeoff.
     Ignore any prior review rounds, prior fix lists, or executor explanations.
     Judge the paper only from the current LaTeX source and compiled PDF.
 

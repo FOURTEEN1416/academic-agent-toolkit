@@ -1,0 +1,197 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "minProperties": 1,
+  "properties": {
+    "workflow": {
+      "enum": [
+        "build_from_materials",
+        "rewrite_existing",
+        "audit",
+        "review",
+        "revise",
+        "transfer"
+      ]
+    },
+    "scene": {
+      "default": "journal",
+      "enum": [
+        "journal",
+        "conference",
+        "report",
+        "review",
+        "competition",
+        "other"
+      ]
+    },
+    "target": {
+      "description": "Use status=unknown with name=null when runtime research must determine the target.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "name"
+          ],
+          "properties": {
+            "status": {
+              "const": "known"
+            },
+            "name": {
+              "type": "string",
+              "pattern": ".*\\S.*"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "const": "unknown"
+            },
+            "name": {
+              "type": "null"
+            }
+          }
+        }
+      ]
+    },
+    "output_language": {
+      "enum": [
+        "en",
+        "zh",
+        "multilingual",
+        "other"
+      ]
+    },
+    "author_voice_restoration": {
+      "enum": [
+        "off",
+        "standard",
+        "strict"
+      ],
+      "default": "off"
+    },
+    "requested_scope": {
+      "enum": [
+        "manuscript",
+        "local_delivery",
+        "submission_package"
+      ],
+      "default": "local_delivery"
+    },
+    "network_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allow_network",
+        "allow_external_upload"
+      ],
+      "properties": {
+        "allow_network": {
+          "type": "boolean"
+        },
+        "allow_external_upload": {
+          "const": false,
+          "description": "J3 can never authorize uploading material."
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allow_external_processing"
+      ],
+      "properties": {
+        "allow_external_processing": {
+          "type": "boolean"
+        }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "time_minutes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "default": null
+        },
+        "token_limit": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "default": null
+        },
+        "cost_limit": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "default": null
+        }
+      }
+    },
+    "formats": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "pdf",
+          "docx",
+          "tex"
+        ]
+      }
+    },
+    "research_mode": {
+      "enum": [
+        "agent_decide",
+        "required",
+        "materials_only"
+      ],
+      "default": "agent_decide",
+      "description": "Choose whether the host performs new research/analysis. materials_only forbids new analyses, experiments and model runs; ordinary public literature learning, citation checks and reference-figure reading remain allowed."
+    },
+    "literature": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional host research preferences, merged by field on SaveConfiguration. Missing fields receive defaults on save/read/replay. Sampling and reference counts are host scholarly work, not delivery gates.",
+      "properties": {
+        "same_field_papers": {"type": "integer", "minimum": 1, "default": 3},
+        "target_venue_papers": {"type": "integer", "minimum": 1, "default": 3},
+        "reference_count_mode": {
+          "enum": ["venue_average", "custom"], "default": "venue_average",
+          "description": "venue_average aims above the sampled mean reference count for the same article type in the target venue. The host records sources, sampling and limitations; custom uses reference_count."
+        },
+        "reference_count": {
+          "type": ["integer", "null"], "minimum": 1, "default": null,
+          "description": "Effective only in custom mode; otherwise retained as an inactive user preference."
+        },
+        "mechanism_figure": {
+          "enum": ["prefer", "auto", "omit"], "default": "prefer",
+          "description": "prefer prioritizes scientifically justified mechanism, conceptual-framework or method-architecture figures; auto leaves selection to the host; omit requests omission."
+        }
+      },
+      "allOf": [{
+        "if": {"required": ["reference_count_mode"], "properties": {"reference_count_mode": {"const": "custom"}}},
+        "then": {"required": ["reference_count"], "properties": {"reference_count": {"type": "integer", "minimum": 1}}}
+      }]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/task-configuration-patch.v1.1.schema.json",
+  "x-contract-status": "additive-v1.1-task-inputs"
+}

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/readiness-verdict.schema.json",
+  "title": "Five-tier non-compensatory readiness verdict",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "contract_version", "subject", "obligation_manifest", "tiers", "overall_status", "ready", "requested_scope", "manuscript_ready", "delivery_ready", "submission_ready", "is_complete_for_requested_scope", "blockers_by_layer", "blockers", "invalidated_artifacts", "current_artifacts", "external_action_authorized", "verdict_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.readiness-verdict"},
+    "contract_version": {"const": "1.0"},
+    "subject": {"type": "object"},
+    "obligation_manifest": {"type": "object"},
+    "tiers": {
+      "type": "array", "minItems": 5, "maxItems": 5,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["tier", "status", "ready", "predicates"],
+        "properties": {
+          "tier": {"enum": ["canonical", "independent_quality", "final_render", "target_package", "author_close"]},
+          "status": {"enum": ["true", "false", "unknown", "stale"]},
+          "ready": {"type": "boolean"},
+          "predicates": {"type": "array", "items": {"type": "object"}}
+        }
+      }
+    },
+    "overall_status": {"enum": ["ready", "blocked", "unknown", "stale"]},
+    "ready": {"type": "boolean"},
+    "requested_scope": {"enum": ["manuscript", "local_delivery", "submission_package"]},
+    "manuscript_ready": {"type": "boolean"},
+    "delivery_ready": {"type": "boolean"},
+    "submission_ready": {"type": "boolean"},
+    "is_complete_for_requested_scope": {"type": "boolean"},
+    "blockers_by_layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manuscript", "local_delivery", "submission_package", "external_action"],
+      "properties": {
+        "manuscript": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+        "local_delivery": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+        "submission_package": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+        "external_action": {"type": "array", "items": {"$ref": "#/$defs/finding"}}
+      }
+    },
+    "blockers": {"type": "array", "items": {"type": "object"}},
+    "invalidated_artifacts": {"type": "array", "items": {"type": "string"}},
+    "current_artifacts": {"type": "object", "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+    "external_action_authorized": {"const": false},
+    "verdict_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1},
+        "message": {"type": "string", "minLength": 1},
+        "path": {"type": "string"}
+      },
+      "additionalProperties": true
+    }
+  }
+}

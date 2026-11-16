@@ -46,26 +46,37 @@ async function send(language: any, providerOptions: Record<string, any>) {
 }
 
 describe("reasoning options serialize onto provider request bodies", () => {
-  test("Codex OAuth max reaches the OpenAI Responses wire shape", async () => {
-    const target = model({
-      id: "gpt-5.6-sol",
-      providerID: "openai-codex",
-      api: { id: "gpt-5.6-sol", url: "https://chatgpt.com/backend-api/codex", npm: "@ai-sdk/openai" },
-    })
-    const selected = ProviderTransform.variants(target).max
-    const options = mergeDeep(ProviderTransform.options({ model: target, sessionID, providerOptions: {} }), selected)
-    const wire = recorder()
-    const sdk = createOpenAI({ apiKey: "test", baseURL: "https://codex.test/v1", fetch: wire.fetch })
+  test.each(["gpt-5.6-sol", "gpt-6-sol", "gpt-6.1-sol"])(
+    "Codex OAuth %s max and Fast reach the Responses wire shape",
+    async (id) => {
+      const target = model({
+        id,
+        providerID: "openai-codex",
+        api: { id, url: "https://chatgpt.com/backend-api/codex", npm: "@ai-sdk/openai" },
+        modes: { fast: { provider: { body: { service_tier: "priority" } } } },
+      })
+      const selected = ProviderTransform.variants(target).max
+      const options = mergeDeep(ProviderTransform.options({ model: target, sessionID, providerOptions: {} }), selected)
+      const wire = recorder()
+      const sdk = createOpenAI({ apiKey: "test", baseURL: "https://codex.test/v1", fetch: wire.fetch })
 
-    await send(sdk.responses(target.api.id), ProviderTransform.providerOptions(target, options))
+      await send(sdk.responses(target.api.id), ProviderTransform.providerOptions(target, options))
+      await send(
+        sdk.responses(target.api.id),
+        ProviderTransform.providerOptions(target, { ...options, ...ProviderTransform.tier(target, "fast").options }),
+      )
 
-    expect(wire.bodies).toHaveLength(1)
-    expect(wire.bodies[0]).toMatchObject({
-      store: false,
-      include: ["reasoning.encrypted_content"],
-      reasoning: { effort: "max", summary: "auto" },
-    })
-  })
+      expect(wire.bodies).toHaveLength(2)
+      expect(wire.bodies[0].service_tier).toBeUndefined()
+      expect(wire.bodies[1]).toMatchObject({
+        model: id,
+        service_tier: "priority",
+        store: false,
+        include: ["reasoning.encrypted_content"],
+        reasoning: { effort: "max", summary: "detailed" },
+      })
+    },
+  )
 
   test("xAI Responses leaves the native high default implicit and sends selected medium", async () => {
     const target = model({
@@ -85,6 +96,35 @@ describe("reasoning options serialize onto provider request bodies", () => {
     expect(wire.bodies).toHaveLength(2)
     expect(wire.bodies[0].reasoning).toBeUndefined()
     expect(wire.bodies[1].reasoning).toEqual({ effort: "medium" })
+  })
+
+  test("Grok Fast sends priority on Chat and Responses, without changing standard requests", async () => {
+    const target = model({
+      id: "grok-4.6",
+      providerID: "xai",
+      api: { id: "grok-4.6", url: "https://api.x.ai/v1", npm: "@ai-sdk/xai" },
+      modes: { fast: { provider: { body: { service_tier: "priority" } } } },
+    })
+    const wire = recorder()
+    const sdk = createXai({ apiKey: "test", baseURL: "https://xai.test/v1", fetch: wire.fetch })
+    for (const language of [sdk.chat(target.api.id), sdk.responses(target.api.id)]) {
+      await send(
+        language,
+        ProviderTransform.providerOptions(target, ProviderTransform.tier(target, "standard").options),
+      )
+      await send(
+        language,
+        ProviderTransform.providerOptions(target, {
+          ...ProviderTransform.tier(target, "fast").options,
+          ...ProviderTransform.variants(target).xhigh,
+        }),
+      )
+    }
+    expect(wire.bodies).toHaveLength(4)
+    expect(wire.bodies[0].service_tier).toBeUndefined()
+    expect(wire.bodies[1]).toMatchObject({ service_tier: "priority", reasoning_effort: "xhigh" })
+    expect(wire.bodies[2].service_tier).toBeUndefined()
+    expect(wire.bodies[3]).toMatchObject({ service_tier: "priority", reasoning: { effort: "xhigh" } })
   })
 
   test("Muse requests stateless encrypted reasoning for replay", async () => {
@@ -157,6 +197,30 @@ describe("reasoning options serialize onto provider request bodies", () => {
     expect(wire.bodies[0].provider).toEqual({ sort: "throughput" })
   })
 
+  test("Managed Haiku token budgets reach OpenRouter and preserve Off", async () => {
+    const target = model({
+      id: "anthropic/claude-haiku-4.5",
+      providerID: "openrouter",
+      api: {
+        id: "anthropic/claude-haiku-4.5",
+        url: "https://atlas.test/api/llm/proxy/openrouter/v1",
+        npm: "@openrouter/ai-sdk-provider",
+      },
+      limit: { context: 200_000, output: 64_000 },
+      reasoningOptions: [{ type: "budget_tokens", values: [0, 4096, 8192, 16384, 32768] }],
+    })
+    const variants = ProviderTransform.variants(target)
+    const wire = recorder()
+    const sdk = createOpenRouter({ apiKey: "test", baseURL: target.api.url, fetch: wire.fetch })
+
+    await send(sdk.chat(target.api.id), ProviderTransform.providerOptions(target, variants.none))
+    await send(sdk.chat(target.api.id), ProviderTransform.providerOptions(target, variants["4096-tokens"]))
+
+    expect(wire.bodies).toHaveLength(2)
+    expect(wire.bodies[0].reasoning).toEqual({ enabled: false })
+    expect(wire.bodies[1].reasoning).toEqual({ max_tokens: 4096 })
+  })
+
   test("Anthropic fast mode reaches the speed field", async () => {
     const target = model({
       id: "claude-opus-4-8",
@@ -201,5 +265,27 @@ describe("reasoning options serialize onto provider request bodies", () => {
     expect(wire.bodies).toHaveLength(1)
     expect(wire.bodies[0].thinking).toEqual({ type: "adaptive" })
     expect(wire.bodies[0].output_config).toEqual({ effort: "xhigh" })
+  })
+
+  test("a subagent's fitted thinking budget reaches Anthropic max_tokens", async () => {
+    const target = model({
+      id: "claude-opus-4-1",
+      providerID: "anthropic",
+      api: { id: "claude-opus-4-1", url: "https://api.anthropic.com/v1", npm: "@ai-sdk/anthropic" },
+    })
+    const options = { thinking: { type: "enabled", budgetTokens: 16000 } }
+    const fitted = ProviderTransform.fitThinking(target.api.npm, options, 4500)
+    const wire = recorder()
+    const sdk = createAnthropic({ apiKey: "test", baseURL: "https://anthropic.test/v1", fetch: wire.fetch })
+
+    await generateText({
+      model: sdk(target.api.id),
+      prompt: "hi",
+      maxOutputTokens: 4500,
+      providerOptions: ProviderTransform.providerOptions(target, fitted),
+    }).catch(() => undefined)
+
+    expect(wire.bodies[0].thinking).toEqual({ type: "enabled", budget_tokens: 4500 })
+    expect(wire.bodies[0].max_tokens).toBe(9000)
   })
 })

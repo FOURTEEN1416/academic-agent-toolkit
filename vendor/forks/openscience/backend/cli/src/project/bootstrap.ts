@@ -1,9 +1,12 @@
 import { Plugin } from "../plugin"
+import { Config } from "../config/config"
+import { Harness } from "@/harness"
 import { Format } from "../format"
 import { LSP } from "../lsp"
 import { FileWatcher } from "../file/watcher"
 import { File } from "../file"
 import { Skill } from "../skill/skill"
+import { StudyDriver } from "../experiments/driver"
 import { Project } from "./project"
 import { Bus } from "../bus"
 import { Command } from "../command"
@@ -25,6 +28,8 @@ import { AuthorityProcessLedger } from "./authority-process"
 import { MCP } from "@/mcp"
 import { CredentialProcessLedger } from "@/credentials/process-ledger"
 import { Agent } from "@/agent/agent"
+import { PermissionNext } from "@/permission/next"
+import { MessageV2 } from "@/session/message-v2"
 import { ToolRegistry } from "@/tool/registry"
 import { RuntimeEvents } from "@/runtime/events"
 import { SessionPrompt } from "@/session/prompt"
@@ -48,7 +53,7 @@ async function invalidateProjectExecutionCaches() {
   Command.invalidate()
   ToolRegistry.invalidate()
   Agent.invalidate()
-  Plugin.invalidate()
+  await Plugin.invalidate()
   const providerAuth = import("@/provider/auth").then(({ ProviderAuth }) => ProviderAuth.invalidate())
   await Promise.all([Skill.invalidate(), providerAuth])
 }
@@ -99,8 +104,12 @@ const filesystemSync = Instance.state(
       )
       if (!payload.success || event.directory === directory) return
       if (payload.data.grant.scope !== "installation" && payload.data.projectID !== projectID) return
+      if (payload.data.narrowing === false) return
+      // A runtime never mints an instance: without one there is nothing to stop.
+      if (!Instance.has(directory)) return
       Instance.provide({
         directory,
+        projectID,
         fn: async () => stopFilesystem(payload.data.sessionID, payload.data.grant.scope),
       }).catch((error) => Log.Default.error("failed to apply filesystem authority change", { error, directory }))
     }
@@ -115,86 +124,94 @@ const authoritySync = Instance.state(
   async () => {
     const directory = Instance.directory
     const projectID = Instance.project.id
-    return AuthoritySignal.watch(async (change) => {
-      return Instance.provide({
-        directory,
-        fn: async () => {
-          if (change.type === "resync") {
-            const sessions = []
-            for await (const session of Session.list()) sessions.push(session.id)
-            await Promise.all([
-              stopSessions(sessions),
-              LSP.dispose(),
-              MCP.disposeLocal(),
-              invalidateProjectExecutionCaches(),
-            ])
-            await Promise.all([
-              AuthorityProcessLedger.revoke({ projectID }),
-              CredentialProcessLedger.revoke({ kind: "mcp", projectID }),
-              CredentialProcessLedger.revoke({ kind: "provider", projectID }),
-              invalidateProjectTokenCache(projectID),
-            ])
-            return true
-          }
-          const event = change.event
-          if (event.kind === "trust") {
-            if (event.projectID !== projectID) return false
-            if (!event.denied) {
-              await invalidateProjectExecutionCaches()
+    return AuthoritySignal.watch(
+      async (change) => {
+        // A runtime never mints an instance: without one there is nothing to stop.
+        if (!Instance.has(directory)) return false
+        return Instance.provide({
+          directory,
+          projectID,
+          fn: async () => {
+            if (change.type === "resync") {
+              const sessions = []
+              for await (const session of Session.list()) sessions.push(session.id)
+              await Promise.all([
+                stopSessions(sessions),
+                LSP.dispose(),
+                MCP.disposeLocal(),
+                invalidateProjectExecutionCaches(),
+              ])
+              await Promise.all([
+                AuthorityProcessLedger.revoke({ projectID }),
+                CredentialProcessLedger.revoke({ kind: "mcp", projectID }),
+                CredentialProcessLedger.revoke({ kind: "provider", projectID }),
+                invalidateProjectTokenCache(projectID),
+              ])
               return true
             }
-            const jobs = import("../compute/jobs").then((module) => module.ComputeJobs.cancelProject(projectID))
-            const biology = BiologyKernelLifecycle.releaseProject(projectID)
-            await Promise.all([
-              Pty.releaseAll(),
-              KernelRuntime.releaseProject(projectID),
-              CommandRuntime.stopProject(projectID),
-              LSP.dispose(),
-              MCP.disposeLocal(),
-              invalidateProjectExecutionCaches(),
-              biology,
-              jobs,
-            ])
-            await Promise.all([
-              AuthorityProcessLedger.revoke({ projectID }),
-              CredentialProcessLedger.revoke({ kind: "mcp", projectID }),
-              CredentialProcessLedger.revoke({ kind: "provider", projectID }),
-              invalidateProjectTokenCache(projectID),
-            ])
-            return true
-          }
-          if (event.kind === "access") {
-            if (event.projectID !== projectID) return false
-            if (event.narrowing === false) {
-              await Promise.all([invalidateProjectExecutionCaches(), invalidateProjectTokenCache(projectID)])
+            const event = change.event
+            if (event.kind === "trust") {
+              if (event.projectID !== projectID) return false
+              if (!event.denied) {
+                await invalidateProjectExecutionCaches()
+                return true
+              }
+              const jobs = import("../compute/jobs").then((module) => module.ComputeJobs.cancelProject(projectID))
+              const biology = BiologyKernelLifecycle.releaseProject(projectID)
+              await Promise.all([
+                Pty.releaseAll(),
+                KernelRuntime.releaseProject(projectID),
+                CommandRuntime.stopProject(projectID),
+                LSP.dispose(),
+                MCP.disposeLocal(),
+                invalidateProjectExecutionCaches(),
+                biology,
+                jobs,
+              ])
+              await Promise.all([
+                AuthorityProcessLedger.revoke({ projectID }),
+                CredentialProcessLedger.revoke({ kind: "mcp", projectID }),
+                CredentialProcessLedger.revoke({ kind: "provider", projectID }),
+                invalidateProjectTokenCache(projectID),
+              ])
               return true
             }
-            const jobs = import("../compute/jobs").then((module) => module.ComputeJobs.cancelProject(projectID))
-            const biology = BiologyKernelLifecycle.releaseProject(projectID)
-            await Promise.all([
-              Pty.releaseAll(),
-              KernelRuntime.releaseProject(projectID),
-              CommandRuntime.stopProject(projectID),
-              LSP.dispose(),
-              MCP.disposeLocal(),
-              invalidateProjectExecutionCaches(),
-              biology,
-              jobs,
-            ])
-            await Promise.all([
-              AuthorityProcessLedger.revoke({ projectID }),
-              CredentialProcessLedger.revoke({ kind: "mcp", projectID }),
-              CredentialProcessLedger.revoke({ kind: "provider", projectID }),
-              invalidateProjectTokenCache(projectID),
-            ])
+            if (event.kind === "access") {
+              if (event.projectID !== projectID) return false
+              if (event.narrowing === false) {
+                await Promise.all([invalidateProjectExecutionCaches(), invalidateProjectTokenCache(projectID)])
+                return true
+              }
+              const jobs = import("../compute/jobs").then((module) => module.ComputeJobs.cancelProject(projectID))
+              const biology = BiologyKernelLifecycle.releaseProject(projectID)
+              await Promise.all([
+                Pty.releaseAll(),
+                KernelRuntime.releaseProject(projectID),
+                CommandRuntime.stopProject(projectID),
+                LSP.dispose(),
+                MCP.disposeLocal(),
+                invalidateProjectExecutionCaches(),
+                biology,
+                jobs,
+              ])
+              await Promise.all([
+                AuthorityProcessLedger.revoke({ projectID }),
+                CredentialProcessLedger.revoke({ kind: "mcp", projectID }),
+                CredentialProcessLedger.revoke({ kind: "provider", projectID }),
+                invalidateProjectTokenCache(projectID),
+              ])
+              return true
+            }
+            if (event.scope !== "installation" && event.projectID !== projectID) return false
+            if (event.narrowing === false) return true
+            await stopFilesystem(event.sessionID, event.scope)
             return true
-          }
-          if (event.scope !== "installation" && event.projectID !== projectID) return false
-          await stopFilesystem(event.sessionID, event.scope)
-          return true
-        },
-      })
-    })
+          },
+        })
+      },
+      200,
+      { projectID },
+    )
   },
   async (watcher) => {
     await watcher[Symbol.asyncDispose]()
@@ -216,28 +233,143 @@ export function applyRuntimeCancellationRequest(request: {
   runID: string
   source: "user" | "runner_timeout"
 }) {
+  // Ignore a stale request whose run this process no longer owns: a newer
+  // prompt may have replaced it, and cancelling by session alone would abort
+  // the replacement's controller. Bind cancellation to this exact run.
+  if (RuntimeEvents.activeRunID(request.sessionID) !== request.runID) {
+    return Promise.resolve({ status: "inactive" as const })
+  }
   const controller = SessionPrompt.activeController(request.sessionID)
   if (!controller) return RuntimeEvents.cancel(request)
+  // Bind the abort to this controller so a prompt that starts after this read
+  // is a deliberate no-op rather than an aborted replacement.
   SessionPrompt.cancel(request.sessionID, controller)
   return Promise.resolve({ status: "requested" as const, runID: request.runID })
+}
+
+/**
+ * Runtimes the first request does not need. Each is an Instance.state that
+ * would otherwise be primed on the connect path: the language-server table,
+ * the filesystem watcher and its root scan, the ripgrep file index, and the
+ * git branch probe. They start shortly after the instance is live, or on
+ * first use, whichever comes first; disposal cancels a warmup still waiting.
+ */
+export const WARMUP_DELAY_MS = 1_000
+
+interface Warmup {
+  timer: ReturnType<typeof setTimeout> | undefined
+  run: Promise<void> | undefined
+  cancelled: boolean
+}
+
+const warmup = Instance.state(
+  (): Warmup => ({ timer: undefined, run: undefined, cancelled: false }),
+  async (state) => {
+    state.cancelled = true
+    if (!state.timer) return
+    clearTimeout(state.timer)
+    state.timer = undefined
+  },
+)
+
+/**
+ * Each runtime primes on its own: a language-server table that cannot be
+ * read (an execution config failure) must not keep the watcher, the file
+ * index or the git probe from starting, nor the scratch sweep from running.
+ * The `cancelled` checks keep a disposal that lands mid-warmup from
+ * registering runtimes for a project the server already released.
+ */
+function warm(state: Warmup) {
+  if (state.cancelled) return Promise.resolve()
+  state.run ??= (async () => {
+    await LSP.init().catch((error) => Log.Default.warn("deferred language-server init failed", { error }))
+    if (state.cancelled) return
+    FileWatcher.init()
+    File.init()
+    await Vcs.init().catch((error) => Log.Default.warn("deferred vcs init failed", { error }))
+    if (state.cancelled) return
+    // Scratch workspaces: remove orphans whose session record is gone.
+    SessionFilesystem.sweep().catch(() => {})
+    // Studies that were running when the server last stopped resume their
+    // clock: followers reattach to job logs and wake-ups continue.
+    await StudyDriver.resumeAll().catch((error) => Log.Default.warn("study driver resume failed", { error }))
+    if (state.cancelled) return
+    // Sessions the last process left mid-turn pick their loops back up, so a
+    // restart never leaves a turn reading "Running" with nothing behind it.
+    if (Harness.enabled(await Config.get(), "durable-jobs")) {
+      await SessionPrompt.resumeInterrupted().catch((error) =>
+        Log.Default.warn("interrupted session resume failed", { error }),
+      )
+    }
+  })()
+  return state.run
+}
+
+/** Test seam: observe and drive the deferred warmup without waiting on its timer. */
+export const InstanceWarmup = {
+  /** True while the deferred runtimes have neither started nor been cancelled. */
+  pending() {
+    const state = warmup()
+    return !state.run && !state.cancelled
+  },
+  /**
+   * Run the deferred runtimes now instead of waiting for the timer. Joins a
+   * warmup already in flight and resolves once that one finishes.
+   */
+  flush() {
+    const state = warmup()
+    if (state.timer) clearTimeout(state.timer)
+    state.timer = undefined
+    return warm(state)
+  },
+}
+
+function scheduleWarmup() {
+  const state = warmup()
+  if (state.timer || state.run || state.cancelled) return
+  const directory = Instance.directory
+  const projectID = Instance.project.id
+  state.timer = setTimeout(() => {
+    state.timer = undefined
+    // Disposal, of a live instance or of one whose bootstrap failed after
+    // scheduling, clears this timer and flips `cancelled` before the cache
+    // entry goes. A provide for a directory without an instance would mint a
+    // bare one, one that never ran InstanceBootstrap yet would serve every
+    // later request, so a stray callback gives up instead; inside the
+    // instance only the warmup it still owns runs, since a fresh instance
+    // for the directory schedules its own.
+    if (state.cancelled || !Instance.has(directory)) {
+      state.cancelled = true
+      return
+    }
+    Instance.provide({
+      directory,
+      projectID,
+      fn: () => (warmup.created() && warmup() === state ? warm(state) : undefined),
+    }).catch((error) => Log.Default.warn("deferred project warmup failed", { error, directory }))
+  }, WARMUP_DELAY_MS)
+  state.timer.unref?.()
 }
 
 export async function InstanceBootstrap() {
   Log.Default.info("bootstrapping", { directory: Instance.directory })
   await Plugin.init()
   Format.init()
-  await LSP.init()
-  FileWatcher.init()
-  File.init()
-  Vcs.init()
   Snapshot.init()
   Truncate.init()
   filesystemSync()
   await authoritySync()
   runtimeCancellationSync()
 
-  // Scratch workspaces: remove orphans whose session record is gone.
-  SessionFilesystem.sweep().catch(() => {})
+  // Successful agent write/edit/apply_patch tools publish this event directly,
+  // without going through the file editor's write API. Filesystem watcher
+  // notifications and reads must not move project recency.
+  const projectID = Instance.project.id
+  Bus.subscribe(File.Event.Edited, async () => {
+    await Project.touchActivity(projectID).catch((error) =>
+      Log.Default.warn("project activity update failed", { error }),
+    )
+  })
 
   Bus.subscribe(Command.Event.Executed, async (payload) => {
     if (payload.properties.name === Command.Default.INIT) {
@@ -306,6 +438,25 @@ export async function InstanceBootstrap() {
   Bus.subscribe(ProjectAccess.Event.Changed, async (payload) => {
     if (!payload.properties.narrowing) {
       await Promise.all([invalidateProjectExecutionCaches(), invalidateProjectTokenCache(Instance.project.id)])
+      // Cards already waiting were evaluated under the narrower mode. Apply
+      // the rebuilt rules to them so widening access clears routine prompts.
+      await PermissionNext.reconsider({
+        mode: payload.properties.status.mode,
+        ruleset: async (request) => {
+          if (!request.tool) return
+          const message = await MessageV2.get({
+            sessionID: request.sessionID,
+            messageID: request.tool.messageID,
+          }).catch(() => undefined)
+          if (message?.info.role !== "assistant") return
+          const [agent, session] = await Promise.all([
+            Agent.get(message.info.agent),
+            Session.get(request.sessionID).catch(() => undefined),
+          ])
+          if (!agent) return
+          return PermissionNext.merge(agent.permission, session?.permission ?? [])
+        },
+      }).catch((error) => Log.Default.error("failed to reconsider pending approvals", { error }))
       return
     }
     const jobs = import("../compute/jobs").then((module) => module.ComputeJobs.cancelProject(Instance.project.id))
@@ -328,7 +479,11 @@ export async function InstanceBootstrap() {
     ])
   })
 
+  // An added grant can widen access without invalidating running processes.
+  // Publishers still mark revocation, replacement and working-root changes as
+  // narrowing; legacy events without the marker remain conservative.
   Bus.subscribe(SessionFilesystem.Event.Changed, async (payload) => {
+    if (payload.properties.narrowing === false) return
     await stopFilesystem(payload.properties.sessionID, payload.properties.grant.scope)
   })
 
@@ -336,4 +491,8 @@ export async function InstanceBootstrap() {
   // cleanup handlers above are installed, so recovery has the same strict
   // acknowledgment contract as the original request.
   await Session.resumeDeleting()
+
+  // Last, once nothing above can throw. A bootstrap that still fails has its
+  // runtimes, this timer among them, disposed by Instance.provide.
+  scheduleWarmup()
 }

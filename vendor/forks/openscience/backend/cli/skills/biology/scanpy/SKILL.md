@@ -2,11 +2,17 @@
 name: scanpy
 description: Standard single-cell RNA-seq analysis pipeline. Use for QC, normalization, dimensionality reduction (PCA/UMAP/t-SNE), clustering, differential expression, and visualization. Best for exploratory scRNA-seq analysis with established workflows. For deep learning models use scvi-tools; for data format questions use anndata.
 category: biology
-license: SD-3-Clause license
+license: BSD-3-Clause license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/scanpy
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Single-Cell, RNA-seq, Clustering, UMAP, Bioinformatics]
 dependencies: ["scanpy>=1.10.0", "anndata>=0.10.0", "numpy>=1.25.0"]
 ---
@@ -67,7 +73,8 @@ adata.obs        # Cell metadata (DataFrame)
 adata.var        # Gene metadata (DataFrame)
 adata.uns        # Unstructured annotations (dict)
 adata.obsm       # Multi-dimensional cell data (PCA, UMAP)
-adata.raw        # Raw data backup
+adata.layers     # Alternative matrices, e.g. counts before normalization
+adata.raw        # Log-normalized values for all genes, kept before feature selection
 
 # Access cell and gene names
 adata.obs_names  # Cell barcodes
@@ -105,13 +112,17 @@ python scripts/qc_analysis.py input_file.h5ad --output filtered.h5ad
 ### 2. Normalization and Preprocessing
 
 ```python
+# Preserve raw counts before normalization
+adata.layers['counts'] = adata.X.copy()
+
 # Normalize to 10,000 counts per cell
 sc.pp.normalize_total(adata, target_sum=1e4)
 
 # Log-transform
 sc.pp.log1p(adata)
 
-# Save raw counts for later
+# Keep log-normalized values for every gene: the subset to highly variable genes
+# below drops the rest, and marker plots still need them
 adata.raw = adata
 
 # Identify highly variable genes
@@ -181,7 +192,7 @@ marker_genes = ['CD3D', 'CD14', 'MS4A1', 'NKG7', 'FCGR3A']
 
 # Visualize markers
 sc.pl.umap(adata, color=marker_genes, use_raw=True)
-sc.pl.dotplot(adata, var_names=marker_genes, groupby='leiden')
+sc.pl.dotplot(adata, var_names=marker_genes, groupby='leiden', use_raw=True)
 
 # Manual annotation
 cluster_to_celltype = {
@@ -301,12 +312,12 @@ sc.pp.combat(adata, key='batch')
 
 ## Common Pitfalls and Best Practices
 
-1. **Always save raw counts**: `adata.raw = adata` before filtering genes
+1. **Preserve counts before normalization**: `adata.layers['counts'] = adata.X.copy()`
 2. **Check QC plots carefully**: Adjust thresholds based on dataset quality
 3. **Use Leiden over Louvain**: More efficient and better results
 4. **Try multiple clustering resolutions**: Find optimal granularity
 5. **Validate cell type annotations**: Use multiple marker genes
-6. **Use `use_raw=True` for gene expression plots**: Shows original counts
+6. **Use `use_raw=True` for marker plots after subsetting**: `adata.raw` holds log-normalized values for every gene, including those outside the highly variable set
 7. **Check PCA variance ratio**: Determine optimal number of PCs
 8. **Save intermediate results**: Long workflows can fail partway through
 

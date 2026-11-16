@@ -286,14 +286,49 @@ def _reject_handbuilt_final_evidence(store, step_id: str, evidence: dict) -> Non
             "（preflight 只读验收 / complete 提交），或经 execution.session finish 提交。")
 
 
+def _evidence_skeleton(action, tier: str) -> dict:
+    """ENG-2：当前步骤的 execution evidence 骨架（next/retry 随 action 下发）。
+
+    执行者照抄结构填写：身份字段引擎已给真值（与 validate_execution_evidence
+    的 normalize_legacy_evidence/一致性校验同源），commands/inputs/outputs 只给
+    格式示例——执行事实必须由执行者真实产生，骨架不代填。
+    """
+    return {
+        "schema_version": 1,
+        "agent": "<执行者标识，如 agent-name>",
+        "step_id": action.step_id,
+        "attempt_id": action.attempt_id,
+        "expected_revision": action.expected_revision,
+        "skill_name": action.skill_name,
+        "skill_sha256": action.skill_sha256,
+        "contract_tier": tier,
+        "commands": [{"command": "<真实执行的完整命令；须含读取本技能 SKILL.md 的命令>",
+                      "returncode": 0, "cwd": "."}],
+        "inputs": ["<workspace 相对路径；真实读取过的输入>"],
+        "outputs": list(action.output_files or []),
+        "fill_notes": [
+            "身份字段（step_id/attempt_id/expected_revision/skill_name/skill_sha256/"
+            "contract_tier）直接照抄本骨架，引擎按当前步骤一致性校验",
+            "commands 每条必须是真实执行过的命令串与真实退出码；描述性文字会被"
+            " execution_protocol 判为伪命令拒绝",
+            "outputs 用 workspace 相对路径，且须与本 payload 的 output_files 完全一致",
+            "companion_skills/assets 申报格式见 payload 同名字段；used 技能须留真实使用痕迹",
+        ],
+    }
+
+
 def _action_payload(action, *, contract_tier: str = "", requires_collection: bool | None = None) -> dict:
     """StepAction 的 CLI JSON 序列化（next/retry/approve 共用，保持输出风格一致）。"""
+    tier = contract_tier or getattr(action, "contract_tier", None) or "delivery"
     return {
         "workflow_id": action.workflow_id,
         "step_id": action.step_id,
         "attempt_id": action.attempt_id,
         "expected_revision": action.expected_revision,
-        "contract_tier": contract_tier or getattr(action, "contract_tier", None) or "delivery",
+        "contract_tier": tier,
+        # ENG-2：随 next/retry 下发当前步骤证据骨架，执行者照抄结构填写，
+        # 消除 evidence 字段不一致与描述性命令两类高频打回（校验逻辑不变）。
+        "evidence_template": _evidence_skeleton(action, tier),
         "requires_collection": (bool(getattr(action, "requires_collection", False))
                                 if requires_collection is None else requires_collection),
         "skill_sha256": action.skill_sha256,

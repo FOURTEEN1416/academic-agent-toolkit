@@ -43,7 +43,7 @@ from .models import (
     TokenUsage,
 )
 
-__version__ = "2.21.0"
+__version__ = "2.23.0"
 __author__ = "K-Dense"
 __license__ = "MIT"
 

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/release/doctor-report.schema.json",
+  "title": "PaperSpine5 explicit-profile doctor report",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "contract",
+    "schema_version",
+    "status",
+    "profile_root",
+    "inventory",
+    "blockers",
+    "warnings",
+    "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.doctor-report"},
+    "schema_version": {"const": "1.0"},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "profile_root": {"type": "string", "minLength": 1},
+    "inventory": {"type": "object"},
+    "blockers": {"type": "array", "items": {"type": "object"}},
+    "warnings": {"type": "array", "items": {"type": "object"}},
+    "external_action_authorized": {"const": false}
+  }
+}

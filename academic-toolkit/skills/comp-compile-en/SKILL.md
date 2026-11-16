@@ -311,9 +311,9 @@ When pages overflow (and the competition truly has a hard limit), trim only in t
 
 echo "=== Figure-width compliance (no page-fitting shrink) ==="
 
-# Only inspect includegraphics width coefficients; <0.80 = shrunk to fit pages (genuine side-by-side panels use 0.48 with subfigure/minipage; this check flags them for manual confirm)
+# Only inspect includegraphics width coefficients; <0.80 = shrunk to fit pages (2026-11-16 threshold unified with the Chinese side comp-compile-zh at 0.80; regex tolerant of one/two decimal forms written by fig_include_size.py %g). Genuine side-by-side panels use 0.48 with subfigure/minipage; this check flags them for manual confirm.
 
-BAD_W=$(grep -rhoE 'includegraphics\[[^]]*width=0\.[0-9]+' paper/sections/*.tex paper/main.tex 2>/dev/null | grep -oE 'width=0\.[0-9]+' | grep -vE 'width=0\.(8[0-9]|9[0-9])' | wc -l)
+BAD_W=$(grep -rhoE 'includegraphics\[[^]]*width=0\.[0-9]+' paper/sections/*.tex paper/main.tex 2>/dev/null | grep -oE 'width=0\.[0-9]+' | grep -vE 'width=0\.(8|9)[0-9]*' | wc -l)
 
 [ "$BAD_W" -eq 0 ] && echo "OK no undersized figures" || echo "FAIL $BAD_W figures width<0.80 (page-fitting shrink; restore 0.85 unless genuine side-by-side)"
 

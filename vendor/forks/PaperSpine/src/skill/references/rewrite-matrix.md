@@ -4,12 +4,16 @@ Use this reference when transforming a diagnosis or style profile into revised m
 
 ## Principle
 
-Do not rewrite by asking for "better prose." Rewrite by assigning each paragraph a motivation job, evidence source, model pattern, target length, and operation. The matrix must make shallow patching and motivation drift visible.
+Do not rewrite by asking for "better prose." Rewrite by assigning each paragraph
+a contribution job, aligned motivation, evidence source, model pattern, target
+length, and operation. The matrix must make shallow patching, contribution drift,
+and motivation drift visible.
 
 ## Required Inputs
 
 - User draft.
-- `confirmed_motivation.md` showing the user-confirmed controlling motivation.
+- `confirmed_contribution.md` showing the user-confirmed governing contribution and claim boundary.
+- `confirmed_motivation.md` showing the aligned, user-confirmed motivation.
 - `motivation_surface_map.md` showing how the motivation should appear in headings, topic sentences, transitions, and closure.
 - `paper_diagnosis.md` or equivalent argument diagnosis.
 - `original_logic_map.md` showing current section and paragraph logic.
@@ -22,19 +26,23 @@ Do not rewrite by asking for "better prose." Rewrite by assigning each paragraph
 
 ## Step 1: Build the Red Thread
 
-Read `confirmed_motivation.md` and derive one sentence from it:
+Read `confirmed_contribution.md` and `confirmed_motivation.md` and derive one sentence from both:
 
 ```text
 This paper addresses [specific problem] for [specific audience/context] by [approach], showing that [main supported finding], which matters because [significance].
 ```
 
-Every section, subsection opening, transition, and Discussion closure should either set up, test, support, interpret, or qualify this sentence. Headings should be natural navigation labels that support the same logic without mechanically repeating the motivation. If the draft suggests a different motivation, return to motivation intake instead of silently changing the spine.
+Every section, subsection opening, transition, and Discussion closure should
+either set up, test, support, interpret, or qualify this sentence. Headings
+should support the same logic without mechanically repeating the motivation. If
+the draft implies a different contribution or stronger claim, return to semantic
+confirmation instead of silently changing the contract.
 
 ## Step 2: Make the Section Role Map
 
 ```markdown
-| Section | Current Role | Motivation Job Needed | Heading/Surface Decision | Main Defect | Action |
-|---|---|---|---|---|---|
+| Section | Current Role | Contribution Job / Claim ID | Motivation Alignment | Heading/Surface Decision | Main Defect | Action |
+|---|---|---|---|---|---|---|
 | Abstract | | | | | |
 | Introduction | | | | | |
 | Methods | | | | | |
@@ -56,8 +64,8 @@ Common defects:
 Save as `paper_rewriting_output/rewrite_matrix.md`.
 
 ```markdown
-| Section | Unit ID | Current Function | Motivation Link | Operation | Intended Move | Evidence Source | Model Pattern | Target Length | Logic Change | Decision |
-|---|---|---|---|---|---|---|---|---|---|---|
+| Section | Unit ID | Current Function | Contribution Promise / Claim ID | Motivation Alignment | Operation | Intended Move | Evidence Source | Model Pattern | Target Length | Logic Change | Decision |
+|---|---|---|---|---|---|---|---|---|---|---|---|
 ```
 
 Use these move labels unless the field has a better taxonomy:
@@ -76,14 +84,15 @@ For each row:
 
 1. Read the original paragraph.
 2. Read the relevant `style_profile.md` section.
-3. Confirm the row's motivation job from `confirmed_motivation.md` and `motivation_surface_map.md`.
-4. Confirm the intended move.
-5. Verify the evidence source.
-6. Cite the exact paragraph-function or result-narrative template row.
-7. State the logic change from `original_logic_map.md`.
-8. Choose the operation: `REWRITE`, `SPLIT`, `MERGE`, `DELETE`, `MOVE`, `ADD`, or `KEEP`.
-9. Write the paragraph with the target length and claim strength.
-10. Check that no number or citation was invented.
+3. Confirm the row's contribution promise/claim ID from `confirmed_contribution.md`.
+4. Confirm its motivation alignment from `confirmed_motivation.md` and `motivation_surface_map.md`.
+5. Confirm the intended move.
+6. Verify the evidence source.
+7. Cite the exact paragraph-function or result-narrative template row.
+8. State the logic change from `original_logic_map.md`.
+9. Choose the operation: `REWRITE`, `SPLIT`, `MERGE`, `DELETE`, `MOVE`, `ADD`, or `KEEP`.
+10. Write the paragraph with the target length and claim strength.
+11. Check that no number or citation was invented.
 
 For style imitation, prefer `REWRITE`, `SPLIT`, `MERGE`, and `MOVE`. Treat repeated `KEEP` or `ADD` rows as a warning that the revision is shallow.
 
@@ -91,7 +100,7 @@ Do not change LaTeX commands during this step. If the source is `.tex`, draft th
 
 ## Step 4.5: Closed-Book Rewrite
 
-For major sections, do not edit the original paragraph in place.
+For a section with a diagnosed structural weakness, consider rewriting from its facts and a new outline. Preserve valid sections and use targeted edits when they address the actual request.
 
 1. Extract facts, numbers, citations, and figure references into notes.
 2. Hide the original prose.
@@ -111,9 +120,10 @@ After each section:
 |---|---|---|
 | All obligatory moves present | pass/fail | |
 | Move order matches style profile | pass/fail | |
-| Red thread advanced | pass/fail | |
+| Contribution promise advanced/validated/bounded | pass/fail | |
+| Motivation remains aligned with claim boundary | pass/fail | |
 | Heading/opening follows motivation surface map | pass/fail | |
-| Every paragraph has a motivation job | pass/fail | |
+| Every paragraph has a contribution job | pass/fail | |
 | Numbers traced | pass/fail | |
 | Claims calibrated | pass/fail | |
 | LaTeX commands preserved | pass/fail/not applicable | |
@@ -133,7 +143,7 @@ Use the seven-sentence lineage test:
 
 These sentences should tell one coherent story. If they do not, revise the relevant section anchors before polishing local language.
 
-Also run the surface test: title/subtitle if editable, Results subsection headings, figure/table callouts, and Discussion closing sentence should all support the same confirmed motivation without repeating a slogan.
+Also run the surface test: title/subtitle if editable, Results subsection headings, figure/table callouts, and Discussion closing sentence should all support the same confirmed contribution and aligned motivation without repeating a slogan.
 
 ## Step 7: Logic-Transfer Audit
 
@@ -158,7 +168,7 @@ python scripts/revision_audit.py <original> <revised> --markdown > paper_rewriti
 
 Interpretation:
 
-- High unchanged ratio means the rewrite preserved too much old prose.
+- A high unchanged ratio is a diagnostic signal. Check whether the diagnosed weaknesses remain; preserve valid, unaffected prose and explain why it was retained.
 - High addition ratio means the rewrite mainly appended content.
 - High similarity in weak sections means the section should be rebuilt from the blueprint.
 
@@ -185,8 +195,8 @@ End a rewrite pass with:
 
 ## Motivation Surface
 
-| Surface Element | Changed? | Motivation Link | Remaining Weakness |
-|---|---|---|---|
+| Surface Element | Changed? | Contribution Promise / Claim ID | Motivation Alignment | Remaining Weakness |
+|---|---|---|---|---|
 
 ## Logic Transfer
 

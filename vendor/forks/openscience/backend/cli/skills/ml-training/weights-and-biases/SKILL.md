@@ -3,10 +3,18 @@ name: weights-and-biases
 description: Track ML experiments with automatic logging, visualize training in real-time, optimize hyperparameters with sweeps, and manage model registry with W&B - collaborative MLOps platform
 category: ml-training
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [MLOps, Weights And Biases, WandB, Experiment Tracking, Hyperparameter Tuning, Model Registry, Collaboration, Real-Time Visualization, PyTorch, TensorFlow, HuggingFace]
 dependencies: [wandb]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 13-mlops/weights-and-biases
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # Weights & Biases: ML Experiment Tracking & MLOps
@@ -34,7 +42,7 @@ Credentials are auto-injected by openscience when connected via the dashboard.
 [ -n "$WANDB_API_KEY" ] && echo "WANDB_API_KEY set" || echo "NOT SET"
 ```
 
-If not set: connect Weights & Biases at https://app.syntheticsciences.ai -> Services, then restart openscience.
+If not set: add your Weights & Biases key in Customize → Tools or export `WANDB_API_KEY` locally.
 
 ## Installation
 
@@ -599,5 +607,4 @@ print(f"Share this URL: {run.url}")
 - `references/sweeps.md` - Comprehensive hyperparameter optimization guide
 - `references/artifacts.md` - Data and model versioning patterns
 - `references/integrations.md` - Framework-specific examples
-
 

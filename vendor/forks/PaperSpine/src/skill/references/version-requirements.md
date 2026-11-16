@@ -52,6 +52,6 @@ The next version must read this file first and either carry forward, edit, or ex
 - Do not include a weak analysis in the main text; move it to Supplementary material.
 - Do not over-explain a dataset-processing detail; use the approved concise wording.
 - Do not claim data, code, or models are public until stable URLs/DOIs are supplied.
-- Keep a specific motivation as the paper spine.
+- Keep a specific confirmed contribution as the governing contract and its motivation as the aligned problem-solution spine.
 - Preserve a specific figure order, section order, or title direction.
 - Avoid a claim-strength pattern such as causal language, universal superiority, or exact deltas not supported by evidence.

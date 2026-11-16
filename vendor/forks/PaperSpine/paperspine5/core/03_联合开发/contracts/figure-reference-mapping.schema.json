@@ -1,0 +1,432 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/figure-reference-mapping.schema.json",
+  "title": "PaperSpine figure reference-to-domain mapping",
+  "description": "Hash-bound reference provenance, panel grammar, domain evidence mapping, selected assets, neutral-background evidence, and independent review for one scientific figure. Master authority self-hashes prove integrity only and require an external trusted expectation or Runner-owned actor receipt.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "mapping_id",
+    "mapping_authority",
+    "plan_binding",
+    "subject",
+    "figure",
+    "design_provenance",
+    "reference_assets",
+    "scientific_story",
+    "domain_mappings",
+    "assets",
+    "background",
+    "independent_review",
+    "side_by_side",
+    "verification",
+    "external_action_authorized",
+    "mapping_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.figure-reference-mapping"},
+    "schema_version": {"const": "1.0"},
+    "mapping_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "mapping_authority": {"$ref": "#/$defs/mapping_authority"},
+    "plan_binding": {"$ref": "#/$defs/asset_binding", "description": "Exact immutable paperspine5.figure-reference-plan/1.0 consumed before candidate generation."},
+    "subject": {"$ref": "#/$defs/subject"},
+    "figure": {"$ref": "#/$defs/figure"},
+    "design_provenance": {"enum": ["reference_guided", "original_no_reference"]},
+    "original_design_rationale": {"type": "string", "minLength": 12},
+    "reference_assets": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/reference_asset"}
+    },
+    "scientific_story": {"$ref": "#/$defs/scientific_story"},
+    "domain_mappings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/domain_mapping"}
+    },
+    "grammar_reuse_justification": {"type": ["string", "null"], "minLength": 12},
+    "assets": {"$ref": "#/$defs/assets"},
+    "background": {"$ref": "#/$defs/background"},
+    "independent_review": {"$ref": "#/$defs/independent_review"},
+    "side_by_side": {"$ref": "#/$defs/side_by_side"},
+    "verification": {"$ref": "#/$defs/verification"},
+    "external_action_authorized": {"const": false},
+    "mapping_sha256": {"$ref": "#/$defs/sha256", "description": "Canonical SHA-256 of the exact mapping object with mapping_sha256 omitted."}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"design_provenance": {"const": "reference_guided"}}, "required": ["design_provenance"]},
+      "then": {
+        "properties": {
+          "reference_assets": {"minItems": 1},
+          "domain_mappings": {"contains": {"properties": {"source_kind": {"const": "reference_panel"}}, "required": ["source_kind"]}},
+          "side_by_side": {
+            "properties": {
+              "left": {"properties": {"kind": {"const": "reference_asset"}}, "required": ["kind"]}
+            }
+          }
+        },
+        "not": {"required": ["original_design_rationale"]}
+      }
+    },
+    {
+      "if": {"properties": {"design_provenance": {"const": "original_no_reference"}}, "required": ["design_provenance"]},
+      "then": {
+        "required": ["original_design_rationale"],
+        "properties": {
+          "reference_assets": {"maxItems": 0},
+          "domain_mappings": {
+            "items": {"allOf": [{"$ref": "#/$defs/domain_mapping"}, {"properties": {"source_kind": {"const": "original_component"}}, "required": ["source_kind"]}]}
+          },
+          "side_by_side": {
+            "properties": {
+              "left": {"properties": {"kind": {"enum": ["original_asset", "original_no_reference"]}}, "required": ["kind"]}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"figure": {"properties": {"figure_kind": {"const": "schematic"}}, "required": ["figure_kind"]}}, "required": ["figure"]},
+      "then": {
+        "properties": {
+          "background": {
+            "properties": {
+              "axes_inventory": {"properties": {"status": {"const": "not_applicable"}}, "required": ["status"]},
+              "axes": {"maxItems": 0}
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"},
+    "asset_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "sha256", "revision_id"],
+      "properties": {
+        "artifact_id": {"$ref": "#/$defs/id"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "revision_id": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "string", "pattern": "^[0-9]+$"}]},
+        "package_relative_path": {"type": "string", "minLength": 1, "pattern": "^(?![A-Za-z]:)(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$)).+$"},
+        "media_type": {"type": "string", "minLength": 3}
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "material_snapshot_sha256", "runner_revision"],
+      "properties": {
+        "task_id": {"$ref": "#/$defs/id"},
+        "material_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "runner_revision": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "string", "pattern": "^[0-9]+$"}]}
+      }
+    },
+    "mapping_authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_kind", "principal_id", "session_id", "run_id", "attestation_input_id", "authority_table_sha256", "provenance_sha256"],
+      "properties": {
+        "authority_kind": {"const": "paperspine_master"},
+        "principal_id": {"$ref": "#/$defs/id"},
+        "session_id": {"$ref": "#/$defs/id"},
+        "run_id": {"$ref": "#/$defs/id"},
+        "attestation_input_id": {"$ref": "#/$defs/id"},
+        "authority_table_sha256": {"$ref": "#/$defs/sha256", "description": "SHA-256 of the immutable authority-table bytes trusted by the validating host."},
+        "provenance_sha256": {"$ref": "#/$defs/sha256", "description": "Canonical SHA-256 over authority_kind, principal_id, session_id, run_id, attestation_input_id, and authority_table_sha256. This self-hash is integrity only; validation also requires a host expectation or trusted actor receipt."}
+      }
+    },
+    "figure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["figure_id", "figure_kind", "publication_role", "panel_ids", "producer_id"],
+      "properties": {
+        "figure_id": {"$ref": "#/$defs/id"},
+        "figure_kind": {"enum": ["data", "schematic"]},
+        "publication_role": {"enum": ["main", "supplementary"]},
+        "panel_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "producer_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "normalized_bbox": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        {"type": "number", "minimum": 0, "maximum": 1},
+        {"type": "number", "minimum": 0, "maximum": 1},
+        {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+      ]
+    },
+    "reference_panel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "panel_id",
+        "bbox_normalized",
+        "layout_role",
+        "mark_type",
+        "encodings",
+        "visual_hierarchy",
+        "reading_order",
+        "transferable_features",
+        "prohibited_transfer"
+      ],
+      "properties": {
+        "panel_id": {"$ref": "#/$defs/id"},
+        "bbox_normalized": {"$ref": "#/$defs/normalized_bbox"},
+        "layout_role": {"type": "string", "minLength": 3},
+        "mark_type": {"type": "string", "minLength": 3},
+        "encodings": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 3}},
+        "visual_hierarchy": {"type": "string", "minLength": 8},
+        "reading_order": {"type": "string", "minLength": 8},
+        "transferable_features": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["layout", "visual_hierarchy", "encoding", "annotation", "reading_order"]}},
+        "prohibited_transfer": {
+          "type": "array",
+          "minItems": 5,
+          "uniqueItems": true,
+          "allOf": [
+            {"contains": {"const": "data"}},
+            {"contains": {"const": "values"}},
+            {"contains": {"const": "labels"}},
+            {"contains": {"const": "claims"}},
+            {"contains": {"const": "wording"}}
+          ],
+          "items": {"enum": ["data", "values", "labels", "claims", "wording", "domain_facts", "patient_information"]}
+        }
+      }
+    },
+    "reference_asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference_id",
+        "source_id",
+        "source_locator",
+        "source_content_sha256",
+        "asset_id",
+        "asset_sha256",
+        "media_type",
+        "preview_artifact_id",
+        "preview_sha256",
+        "preview_media_type",
+        "access_basis",
+        "rights_basis",
+        "publication_use",
+        "figure_locator",
+        "panels"
+      ],
+      "properties": {
+        "reference_id": {"$ref": "#/$defs/id"},
+        "source_id": {"$ref": "#/$defs/id"},
+        "source_locator": {"type": "string", "minLength": 3},
+        "source_content_sha256": {"$ref": "#/$defs/sha256"},
+        "asset_id": {"$ref": "#/$defs/id"},
+        "asset_sha256": {"$ref": "#/$defs/sha256"},
+        "media_type": {"enum": ["image/png", "image/jpeg", "image/svg+xml", "application/pdf"]},
+        "preview_artifact_id": {"$ref": "#/$defs/id"},
+        "preview_sha256": {"$ref": "#/$defs/sha256"},
+        "preview_media_type": {"enum": ["image/png", "image/jpeg", "image/svg+xml"]},
+        "access_basis": {"enum": ["public", "user_provided", "lawful_cache"]},
+        "rights_basis": {"enum": ["public_analysis_only", "user_authorized", "permissioned", "lawful_private_analysis"]},
+        "publication_use": {"const": "visual_grammar_only"},
+        "figure_locator": {"type": "string", "minLength": 3},
+        "panels": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/reference_panel"}}
+      }
+    },
+    "scientific_story": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["question", "claim_ids", "claim_boundary", "results_unit_ids", "intended_conclusion", "hero_panel_id"],
+      "properties": {
+        "question": {"type": "string", "minLength": 8},
+        "claim_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "claim_boundary": {"type": "string", "minLength": 8},
+        "results_unit_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "intended_conclusion": {"type": "string", "minLength": 12},
+        "hero_panel_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "data_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["current_field", "visual_role", "unit", "transform"],
+      "properties": {
+        "current_field": {"type": "string", "minLength": 1},
+        "visual_role": {"type": "string", "minLength": 2},
+        "unit": {"type": ["string", "null"]},
+        "transform": {"type": "string", "minLength": 1}
+      }
+    },
+    "domain_mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapping_row_id", "source_kind", "current_panel_id", "evidence_anchor_ids", "data_bindings", "semantic_transform", "retained_differences"],
+      "properties": {
+        "mapping_row_id": {"$ref": "#/$defs/id"},
+        "source_kind": {"enum": ["reference_panel", "original_component"]},
+        "reference_id": {"$ref": "#/$defs/id"},
+        "reference_panel_id": {"$ref": "#/$defs/id"},
+        "current_panel_id": {"$ref": "#/$defs/id"},
+        "evidence_anchor_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "data_bindings": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/data_binding"}},
+        "semantic_transform": {"type": "string", "minLength": 12},
+        "retained_differences": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 3}}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"source_kind": {"const": "reference_panel"}}, "required": ["source_kind"]},
+          "then": {"required": ["reference_id", "reference_panel_id"]}
+        },
+        {
+          "if": {"properties": {"source_kind": {"const": "original_component"}}, "required": ["source_kind"]},
+          "then": {"not": {"anyOf": [{"required": ["reference_id"]}, {"required": ["reference_panel_id"]}]}}
+        }
+      ]
+    },
+    "assets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidates", "selected", "publication", "editable_source"],
+      "properties": {
+        "current": {"$ref": "#/$defs/asset_binding"},
+        "candidates": {"type": "array", "items": {"$ref": "#/$defs/asset_binding"}},
+        "selected": {"$ref": "#/$defs/asset_binding"},
+        "publication": {"$ref": "#/$defs/asset_binding"},
+        "editable_source": {"$ref": "#/$defs/asset_binding"}
+      }
+    },
+    "background_region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region_id", "bbox_normalized", "detected_background", "status"],
+      "properties": {
+        "region_id": {"$ref": "#/$defs/id"},
+        "bbox_normalized": {"$ref": "#/$defs/normalized_bbox"},
+        "detected_background": {"enum": ["transparent", "pure_white"]},
+        "status": {"const": "PASS"}
+      }
+    },
+    "background": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "probe_method", "probe_version", "probe_render_sha256", "asset_sha256", "canvas", "axes_inventory", "axes", "panels", "final_surface_status", "receipt_sha256"],
+      "properties": {
+        "policy": {"const": "transparent_master_white_publication"},
+        "probe_method": {"enum": ["svg_structure_and_pixel_probe", "pixel_connected_background", "pdf_render_and_pixel_probe"]},
+        "probe_version": {"const": "paperspine-neutral-background/1.0"},
+        "probe_render_sha256": {"$ref": "#/$defs/sha256"},
+        "asset_sha256": {"$ref": "#/$defs/sha256"},
+        "canvas": {"$ref": "#/$defs/background_region"},
+        "axes_inventory": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status"],
+          "properties": {"status": {"enum": ["complete", "not_applicable"]}}
+        },
+        "axes": {"type": "array", "items": {"$ref": "#/$defs/background_region"}},
+        "panels": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/background_region"}},
+        "semantic_fill_allowed": {"const": true},
+        "final_surface_status": {"const": "PASS"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "independent_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewer_id", "producer_ids", "status", "reviewed_reference_hashes", "reviewed_asset_hashes", "decision", "selected_sha256", "rationale"],
+      "properties": {
+        "reviewer_id": {"$ref": "#/$defs/id"},
+        "producer_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "status": {"const": "PASS"},
+        "reviewed_reference_hashes": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/sha256"}},
+        "reviewed_asset_hashes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/sha256"}},
+        "decision": {"enum": ["keep_original", "redesign_wins", "candidate_wins"]},
+        "selected_sha256": {"$ref": "#/$defs/sha256"},
+        "rationale": {"type": "string", "minLength": 12}
+      }
+    },
+    "preview_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_asset_sha256", "preview_artifact_id", "preview_sha256"],
+      "properties": {
+        "source_asset_sha256": {"$ref": "#/$defs/sha256"},
+        "preview_artifact_id": {"$ref": "#/$defs/id"},
+        "preview_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "side_by_side_left": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "reference_id", "preview"],
+          "properties": {
+            "kind": {"const": "reference_asset"},
+            "reference_id": {"$ref": "#/$defs/id"},
+            "preview": {"$ref": "#/$defs/preview_binding"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "preview"],
+          "properties": {
+            "kind": {"const": "original_asset"},
+            "preview": {"$ref": "#/$defs/preview_binding"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "message"],
+          "properties": {
+            "kind": {"const": "original_no_reference"},
+            "message": {"type": "string", "minLength": 12}
+          }
+        }
+      ]
+    },
+    "side_by_side": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layout", "left", "right", "surface_artifact_id", "surface_sha256", "status"],
+      "properties": {
+        "layout": {"const": "side_by_side"},
+        "left": {"$ref": "#/$defs/side_by_side_left"},
+        "right": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "preview"],
+          "properties": {
+            "kind": {"const": "final_publication_asset"},
+            "preview": {"$ref": "#/$defs/preview_binding"}
+          }
+        },
+        "surface_artifact_id": {"$ref": "#/$defs/id"},
+        "surface_sha256": {"$ref": "#/$defs/sha256"},
+        "status": {"const": "PASS"}
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapping_complete", "asset_hashes_match", "background_compliant", "story_aligned", "final_render_inspected", "status"],
+      "properties": {
+        "mapping_complete": {"const": true},
+        "asset_hashes_match": {"const": true},
+        "background_compliant": {"const": true},
+        "story_aligned": {"const": true},
+        "final_render_inspected": {"const": true},
+        "status": {"const": "PASS"}
+      }
+    }
+  }
+}

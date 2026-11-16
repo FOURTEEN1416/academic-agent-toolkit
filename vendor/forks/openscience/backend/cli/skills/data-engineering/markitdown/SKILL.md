@@ -5,6 +5,13 @@ category: data-engineering
 allowed-tools: [Read, Write, Edit, Bash]
 license: MIT
 source: https://github.com/microsoft/markitdown
+metadata:
+  upstream: microsoft/markitdown
+  upstream-url: https://github.com/microsoft/markitdown
+  upstream-license: MIT
+  upstream-relationship: vendored
+  skill-author: Microsoft Corporation
+  adapted-by: Synthetic Sciences
 ---
 
 # MarkItDown - File to Markdown Conversion
@@ -34,7 +41,7 @@ If your document does not already contain schematics or diagrams:
 
 **How to generate schematics:**
 ```bash
-python scripts/generate_schematic.py "your diagram description" -o figures/output.png
+python skills/visualization/scientific-schematics/scripts/generate_schematic.py "your diagram description" -o figures/output.png
 ```
 
 The AI will automatically:

@@ -31,7 +31,10 @@ export async function resolveNetworkOptions(args: NetworkOptions) {
       "openscience: server.hostname / server.mdns in your config are no longer supported — the server always binds to localhost (127.0.0.1).",
     )
   }
-  const portExplicitlySet = process.argv.includes("--port")
+  // Both spellings reach here as the same parsed argument, so an exact match
+  // on the bare word let "--port=5555" be treated as not passed and quietly
+  // lose to server.port from the config.
+  const portExplicitlySet = process.argv.some((arg) => arg === "--port" || arg.startsWith("--port="))
   const port = portExplicitlySet ? args.port : (config?.server?.port ?? args.port)
   const configCors = config?.server?.cors ?? []
   const argsCors = Array.isArray(args.cors) ? args.cors : args.cors ? [args.cors] : []

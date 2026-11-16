@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/maturity-official-run-aggregate-v3.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["contract", "contract_version", "execution_class", "operation_id", "index_file_sha256", "index_sha256", "protocol_sha256", "candidate_lock_sha256", "run_count", "pass_count", "fail_count", "missing_run_ids", "duplicate_run_ids", "strata_counts", "all_samples_complete", "all_strata_complete", "status", "maturity_label", "external_action_authorized", "aggregate_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.maturity-official-run-aggregate-v3"}, "contract_version": {"const": "3.0"}, "execution_class": {"enum": ["official", "test_only"]}, "operation_id": {"type": "string", "minLength": 1},
+    "index_file_sha256": {"$ref": "#/$defs/sha"}, "index_sha256": {"$ref": "#/$defs/sha"}, "protocol_sha256": {"$ref": "#/$defs/sha"}, "candidate_lock_sha256": {"$ref": "#/$defs/sha"},
+    "run_count": {"type": "integer", "minimum": 0, "maximum": 42}, "pass_count": {"type": "integer", "minimum": 0, "maximum": 42}, "fail_count": {"type": "integer", "minimum": 0, "maximum": 42},
+    "missing_run_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}, "duplicate_run_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "strata_counts": {"type": "object", "minProperties": 10, "additionalProperties": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}},
+    "all_samples_complete": {"type": "boolean"}, "all_strata_complete": {"type": "boolean"}, "status": {"enum": ["PASS", "FAIL", "INCOMPLETE", "TEST_ONLY"]},
+    "maturity_label": {"const": "multi-sample-source-acceptance"}, "external_action_authorized": {"const": false}, "aggregate_sha256": {"$ref": "#/$defs/sha"}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

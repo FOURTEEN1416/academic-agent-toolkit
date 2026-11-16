@@ -2,9 +2,7 @@
 
 Use this reference in both `rewrite_existing` and `build_from_materials`.
 
-The matrix is the core writing method. It must be written before final prose and
-then used as the checklist for drafting/revision. It is not a post-hoc change
-log and it is not a fixed IMRaD template.
+Before substantive writing or revision, apply the matrix's contribution, evidence and structural questions. Record the useful decisions in the existing notes, outline or relevant matrix rows before writing. A narrow edit can reuse its still-valid plan; no fixed form or row quota substitutes for this reasoning, and a post-hoc account is not evidence of prior planning.
 
 ## Principle
 
@@ -72,8 +70,7 @@ or "add detail" do not pass.
 
 Minimum depth requirement:
 
-- Use at least 8 rows for ordinary manuscripts/reports. Longer manuscripts
-  should have many more rows. A complex paper often needs 20-60 rows.
+- Cover the actual writing decisions at a useful granularity. A short manuscript or narrow revision may need few rows; a complex argument may need many. Row count alone does not establish depth.
 - The first row is the whole-work framework row. It must deeply explain the
   controlling structure: which contribution contract governs it, how the
   confirmed motivation establishes necessity, what SOTA/example pattern it
@@ -94,16 +91,7 @@ should be traceable to the original logic map and/or a deliberate structural
 change. For build-from-materials tasks, each row should be traceable to the
 source inventory, evidence bank, claim register, or figure asset map.
 
-**Scaffolding stays internal (fourth-wall rule).** The matrix's reasoning
-columns — the contribution promise, motivation alignment, the "close-the-supervisor/reviewer-comment"
-justifications, the planned structural moves, and any `A -> B -> C` throughline —
-are PLANNING NOTATION. Draft *from* them, but never copy them into the
-manuscript. The reader-facing prose must never name the writing process, a
-supervisor or reviewer, their comments/feedback, an earlier or previous draft,
-or narrate that the paper was "reorganized/restructured" to address anything.
-A sentence like "针对导师对前期初稿的审阅意见，本文沿一条主线重新组织：…→…→…" is
-a leak of this matrix row into the body — render it instead as a direct
-motivation statement. `integrity_audit.py` hard-fails such process language.
+**Scaffolding stays internal.** Use the matrix to develop the scientific argument, without copying planning labels, revision logistics or supervisor-response narration into the manuscript. Preserve required AI-use or writing-assistance disclosures and any review procedure that belongs to the research Methods. Judge a passage by its scientific or transparency function, not by the presence of words such as `reviewer` or `draft`.
 
 After drafting, update the `Final Text Check` column. The value must start with
 `PASS` or `FAIL`, then give the final location or the reason it still fails.
@@ -135,4 +123,4 @@ The whole-work row should look more like a design memo than a TODO item:
 
 | Row ID | Manuscript Unit | Current Problem or Planned Function | Contribution Promise / Claim ID | Motivation Alignment | Reference/SOTA Pattern Learned | Target Scene or Venue Norm | User Evidence or Citation Anchor | Planned Change/Text Move | Final Text Check |
 |---|---|---|---|---|---|---|---|---|---|
-| F1 | Whole-work framework | Decide the paper's controlling argument before editing any paragraph. The current draft may contain multiple valid technical points, but the paper needs one dominant contribution and a sequence of evidence that makes that contribution inevitable. | C1 is the governing promise from `confirmed_contribution.md`; every section must establish its need, enable its test, validate it, interpret it, or police its boundary. Secondary engineering choices remain mechanisms unless separately confirmed as C2/C3. | The confirmed motivation explains why C1 matters: the paper first exposes the unresolved problem, then shows why the design response is necessary, and finally lets evidence test the promise without inflating it. | Learn from SOTA and target examples at the level of structure: how they stage gap, design rationale, evidence order, failure modes, and bounded discussion. Do not copy wording; transfer the move that makes the reader accept why this paper had to be written. | The target scene expects a recognizable argument architecture. A journal paper may need IMRaD and independent evaluation; a competition report may need assumptions, model logic, validation, sensitivity, and recommendations; a course report may need rubric-visible evidence. | Anchor the framework to the user's actual draft/materials: source_map.md, evidence_bank.md, figures/tables, citations, experiment settings, claim register, and any special requirements. External papers only teach writing logic. | Reframe the manuscript so every major section answers one part of C1. Move background, method rationale, results interpretation, captions, and discussion claims until the evidence sequence and claim boundary are visible. | PASS: Reader can state C1, why it matters, which evidence validates it, and what it does not claim from ordered section openings and captions. |
+| F1 | Whole-work framework | Decide the paper's controlling argument before editing any paragraph. The current draft may contain multiple valid technical points, but the paper needs one dominant contribution and a sequence of evidence that makes that contribution inevitable. | C1 is the governing promise from `confirmed_contribution.md`; every section must establish its need, enable its test, validate it, interpret it, or police its boundary. Secondary engineering choices remain mechanisms unless separately confirmed as C2/C3. | The confirmed motivation explains why C1 matters: the paper first exposes the unresolved problem, then shows why the design response is necessary, and finally lets evidence test the promise without inflating it. | Learn from SOTA and target examples at the level of structure: how they stage gap, design rationale, evidence order, failure modes, and bounded discussion. Do not copy wording; transfer the move that makes the reader accept why this paper had to be written. | The target scene expects a recognizable argument architecture. A journal paper may need IMRaD and independent evaluation; a competition report may need assumptions, model logic, validation, sensitivity, and recommendations; a course report may need rubric-visible evidence. | Anchor the framework to the user's actual draft/materials: source_map.md, evidence_bank.md, figures/tables, citations, experiment settings, claim register, and any special requirements. External papers may teach writing structure and support verified background, methods or interpretation; their findings must remain attributed and must not be presented as this study's results. | Reframe the manuscript so every major section answers one part of C1. Move background, method rationale, results interpretation, captions, and discussion claims until the evidence sequence and claim boundary are visible. | PASS: Reader can state C1, why it matters, which evidence validates it, and what it does not claim from ordered section openings and captions. |

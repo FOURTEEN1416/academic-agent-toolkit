@@ -13,13 +13,16 @@ test("skills can be searched and disabled", async ({ page, gotoSession }) => {
   await gotoSession()
   const dialog = await openSkills(page)
 
-  await expect(dialog.getByText(/\d+ enabled/).first()).toBeVisible()
+  // The tallies live on the view switch: "All 368", "Core 18", ...
+  await expect(dialog.getByRole("button", { name: /^All \d+$/ })).toBeVisible()
+  await expect(dialog.getByRole("button", { name: /^Library \d+$/ })).toBeVisible()
 
   const search = dialog.getByPlaceholder("Search skills")
   // Exercise search against the catalog the runtime actually returned. Skill
   // bundles can differ across source, packaged, and signed-in installations.
   const firstSkill = dialog.getByRole("listitem").first()
-  const slug = (await firstSkill.locator("code").innerText()).trim()
+  // The slug also renders in the row's purpose line; read the durable text.
+  const slug = ((await firstSkill.locator("code").textContent()) ?? "").trim()
   expect(slug).toMatch(/^\/[a-z0-9-]+$/)
   const knownSkill = slug.slice(1)
   await search.fill(knownSkill)
@@ -39,28 +42,74 @@ test("skills can be searched and disabled", async ({ page, gotoSession }) => {
   await expect(skill).not.toHaveAttribute("aria-busy", "true", { timeout: 15_000 })
 })
 
-// The product bug is fixed: the add-skill dropdown now mounts inside the
-// settings dialog's layer (AddMenu in components/settings/_shared.tsx), so it
-// opens and its items activate — verified live in a real browser, and the
-// menu renders `[expanded]` in this test's own trace. What remains is a
-// Playwright actionability quirk clicking the menuitem inside the nested
-// modal portal (it reports the item as not hittable though it is visibly on
-// top). Kept fixme until the click is made robust against that quirk.
-test.fixme("skills can be authored from scratch", async ({ page, gotoSession }) => {
+test("skills can be authored from scratch", async ({ page, gotoSession }) => {
   await gotoSession()
-  const dialog = await openSkills(page)
+  let dialog = await openSkills(page)
+
+  // Both keyboard and pointer users must reach the menu through the dialog's
+  // accessible tree. A visually open portal under aria-hidden is not enough.
+  const add = dialog.getByRole("button", { name: "Add skill", exact: true })
+  await add.focus()
+  await add.press("ArrowDown")
+  const scratch = dialog.getByRole("menuitem", { name: "Write from scratch", exact: true })
+  await expect(scratch).toBeVisible()
+  await page.keyboard.press("Home")
+  await expect(scratch).toBeFocused()
+  await page.keyboard.press("Enter")
+  await expect(dialog.getByRole("heading", { name: "Write a new skill" })).toBeVisible()
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click()
 
   const name = `e2e-skill-${Date.now()}`
-  await dialog.getByRole("button", { name: "add skill" }).click()
-  await page.getByRole("menuitem", { name: /write from scratch/i }).click()
+  const description = "Created by the isolated browser E2E suite"
+  const body = "Run the requested check and report the result."
+  const content = `---\nname: ${name}\ndescription: ${description}\n---\n\n${body}\n`
+  await add.click()
+  await scratch.click()
 
   await dialog.getByLabel("Name").fill(name)
-  await dialog.getByLabel("Description").fill("Created by the isolated browser E2E suite")
-  await dialog.getByLabel("Instructions (Markdown)").fill("Run the requested check and report the result.")
-  await dialog.getByRole("button", { name: "create skill" }).click()
+  await dialog.getByLabel("Description").fill(description)
+  await dialog.getByLabel("Instructions (Markdown)").fill(body)
+  const saving = page.waitForResponse(
+    (response) => response.request().method() === "PUT" && new URL(response.url()).pathname === `/skill/${name}`,
+  )
+  await dialog.getByRole("button", { name: "Create skill", exact: true }).click()
+  const response = await saving
+  expect(response.status()).toBe(200)
+  expect(response.request().postDataJSON()).toEqual({ content })
+  const saved = await response.json()
+  expect(saved.name).toBe(name)
+  expect(saved.description).toBe(description)
 
   const search = dialog.getByPlaceholder("Search skills")
   await expect(search).toBeVisible()
   await search.fill(name)
-  await expect(dialog.getByText(name, { exact: true }).first()).toBeVisible()
+  await expect(
+    dialog
+      .getByRole("listitem")
+      .filter({ hasText: `/${name}` })
+      .locator("code"),
+  ).toHaveText(`/${name}`)
+
+  await page.reload()
+  dialog = await openSkills(page)
+  await dialog.getByPlaceholder("Search skills").fill(name)
+  await expect(
+    dialog
+      .getByRole("listitem")
+      .filter({ hasText: `/${name}` })
+      .locator("code"),
+  ).toHaveText(`/${name}`)
+
+  // The Personal view lists what the user wrote, installed, or keeps in the project.
+  await dialog.getByPlaceholder("Search skills").fill("")
+  const personal = dialog.getByRole("group", { name: "Skill library views" }).getByRole("button", { name: /^Personal/ })
+  await personal.click()
+  await expect(personal).toHaveAttribute("aria-pressed", "true")
+  await expect(
+    dialog
+      .getByRole("listitem")
+      .filter({ hasText: `/${name}` })
+      .locator("code"),
+  ).toHaveText(`/${name}`)
+  await expect(dialog.getByRole("button", { name: `Edit ${name}`, exact: true })).toBeAttached()
 })

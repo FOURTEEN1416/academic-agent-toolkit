@@ -7,6 +7,14 @@ author: Synthetic Sciences
 license: MIT
 tags: [Hugging Face, Evaluation, Benchmarking, Metrics]
 dependencies: [huggingface-hub, markdown-it-py, pyyaml, requests, python-dotenv]
+metadata:
+  upstream: huggingface/skills
+  upstream-url: https://github.com/huggingface/skills
+  upstream-path: skills/huggingface-community-evals
+  upstream-license: Apache-2.0
+  upstream-relationship: adapted and rewritten
+  skill-author: Synthetic Sciences
+  adapted-by: Synthetic Sciences
 ---
 
 # Overview
@@ -227,7 +235,7 @@ Submit an evaluation job on Hugging Face infrastructure using the `hf jobs uv ru
 **Direct CLI Usage:**
 ```bash
 HF_TOKEN=$HF_TOKEN \
-hf jobs uv run hf-evaluation/scripts/inspect_eval_uv.py \
+hf jobs uv run skills/ml-training/hugging-face-evaluation/scripts/inspect_eval_uv.py \
   --flavor cpu-basic \
   --secret HF_TOKEN=$HF_TOKEN \
   -- --model "meta-llama/Llama-2-7b-hf" \
@@ -237,7 +245,7 @@ hf jobs uv run hf-evaluation/scripts/inspect_eval_uv.py \
 **GPU Example (A10G):**
 ```bash
 HF_TOKEN=$HF_TOKEN \
-hf jobs uv run hf-evaluation/scripts/inspect_eval_uv.py \
+hf jobs uv run skills/ml-training/hugging-face-evaluation/scripts/inspect_eval_uv.py \
   --flavor a10g-small \
   --secret HF_TOKEN=$HF_TOKEN \
   -- --model "meta-llama/Llama-2-7b-hf" \

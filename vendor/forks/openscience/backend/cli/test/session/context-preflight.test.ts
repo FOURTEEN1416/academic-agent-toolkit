@@ -3,6 +3,7 @@ import type { StressScenario } from "../../../../evals/cadence-harness/stress-ma
 import { Provider } from "../../src/provider/provider"
 import { Instance } from "../../src/project/instance"
 import { Session } from "../../src/session"
+import { SessionLoopState } from "../../src/session/loop-state"
 import { MessageV2 } from "../../src/session/message-v2"
 import { SessionPrompt } from "../../src/session/prompt"
 import { SessionResearch } from "../../src/session/research"
@@ -26,7 +27,7 @@ const scenario: StressScenario = {
 }
 
 describe("current-turn context preflight", () => {
-  test("rejects a deterministically oversized newest turn without another provider dispatch", async () => {
+  test("automatically compacts and resumes a rejected newest turn exactly once", async () => {
     const provider = startStressProvider([scenario])
     try {
       await using tmp = await tmpdir({
@@ -46,7 +47,6 @@ describe("current-turn context preflight", () => {
             sessionID: session.id,
             model,
             agent: "research",
-            tools: { "*": false },
             system: `${STRESS_SCENARIO_MARKER}${scenario.id}`,
             parts: [{ type: "text", text: scenario.prompt }],
           })
@@ -66,22 +66,180 @@ describe("current-turn context preflight", () => {
           const oversized = await SessionPrompt.prompt({
             sessionID: session.id,
             model,
+            context: 64_000,
             agent: "research",
-            tools: { "*": false },
             system: `${STRESS_SCENARIO_MARKER}${scenario.id}`,
-            parts: [{ type: "text", text: `Oversized current request:\n${"x".repeat(600_000)}` }],
+            parts: [
+              {
+                type: "text",
+                text: `MATRIX_OBJECTIVE: Download the SRA runs, build the genome index, align the reads, and run the quantification pipeline.\n${"x".repeat(600_000)}`,
+              },
+            ],
           })
           await provider.quiet()
 
-          expect(provider.requests).toHaveLength(before)
+          const requests = provider.requests.slice(before)
+          const summary = requests.findIndex((request) => request.kind === "summary")
+          const main = requests.findIndex((request) => request.kind === "main" && request.scenario === scenario.id)
+          expect(summary).toBeGreaterThanOrEqual(0)
+          expect(main).toBeGreaterThan(summary)
           expect(oversized.info.role).toBe("assistant")
-          if (oversized.info.role !== "assistant") throw new Error("Expected local terminal response")
-          expect(oversized.info.tokens.input).toBe(0)
-          expect(oversized.info.cost).toBe(0)
-          expect(oversized.info.error?.data.message).toContain("cannot fit")
-          expect(oversized.info.error?.data.message).toContain("No provider request was sent")
-          expect((await SessionResearch.read(session.id))?.budget.runtimeModelCalls).toBe(0)
+          if (oversized.info.role !== "assistant") throw new Error("Expected recovered assistant response")
+          expect(oversized.info.error).toBeUndefined()
+
+          const history = await Session.messages({ sessionID: session.id })
+          const recoveries = history.filter(
+            (message) => message.info.role === "user" && SessionLoopState.messageKind(message.info) === "context",
+          )
+          const carriers = history.filter(
+            (message) =>
+              message.info.role === "user" &&
+              message.info.internal?.type === "compaction" &&
+              message.info.internal.recovery?.type === "preflight",
+          )
+          const rejections = history.filter(
+            (message) =>
+              message.info.role === "assistant" &&
+              message.info.error?.data.message.includes("cannot fit") &&
+              message.info.error.data.message.includes("No provider request was sent"),
+          )
+          expect(recoveries).toHaveLength(1)
+          expect(carriers).toHaveLength(1)
+          expect(recoveries[0]?.info.role === "user" && recoveries[0].info.context).toBe(64_000)
+          expect(carriers[0]?.info.role === "user" && carriers[0].info.context).toBe(64_000)
+          const parentID = oversized.info.parentID
+          const resumed = history.find((message) => message.info.id === parentID)
+          expect(resumed?.info.role === "user" && resumed.info.context).toBe(64_000)
+          expect(rejections).toHaveLength(1)
+          expect(SessionLoopState.routing(history)).toContain("genome index")
+          expect(requests[main]?.text).toContain("MATRIX_OBJECTIVE")
+          expect(requests[main]?.tools).toContain("compute_job")
+          expect(requests[main]?.tools).not.toContain("modal")
           await SessionResearch.remove(session.id)
+        },
+      })
+    } finally {
+      provider.stop()
+    }
+  }, 30_000)
+
+  test("leaves an oversized newest turn terminal when automatic compaction is disabled", async () => {
+    const provider = startStressProvider([scenario])
+    try {
+      const base = stressProviderConfig(`http://127.0.0.1:${provider.server.port}/v1`)
+      await using tmp = await tmpdir({
+        git: true,
+        config: { ...base, compaction: { auto: false } },
+      })
+      await Instance.provide({
+        directory: tmp.path,
+        init: async () => {
+          await trustProject()
+          await Provider.invalidate()
+        },
+        fn: async () => {
+          const session = await Session.create({ title: "Disabled context preflight recovery" })
+          const model = { providerID: STRESS_PROVIDER_ID, modelID: STRESS_PROVIDER_MODEL }
+          const result = await SessionPrompt.prompt({
+            sessionID: session.id,
+            model,
+            agent: "research",
+            tools: { "*": false },
+            system: `${STRESS_SCENARIO_MARKER}${scenario.id}`,
+            parts: [{ type: "text", text: `Oversized request with recovery disabled:\n${"x".repeat(600_000)}` }],
+          })
+          await provider.quiet()
+
+          expect(result.info.role).toBe("assistant")
+          if (result.info.role !== "assistant") throw new Error("Expected terminal assistant response")
+          expect(result.info.error?.name).toBe("UnknownError")
+          expect(provider.requests).toHaveLength(0)
+          const before = await Session.messages({ sessionID: session.id })
+          expect(SessionLoopState.pendingPreflight(before)).toBeUndefined()
+          expect(
+            before.filter(
+              (message) => message.info.role === "user" && SessionLoopState.messageKind(message.info) === "context",
+            ),
+          ).toHaveLength(0)
+
+          const restarted = await SessionPrompt.loop(session.id)
+          await provider.quiet()
+          expect(restarted.info.id).toBe(result.info.id)
+          expect(provider.requests).toHaveLength(0)
+          const after = await Session.messages({ sessionID: session.id })
+          expect(SessionLoopState.pendingPreflight(after)).toBeUndefined()
+          expect(
+            after.filter(
+              (message) => message.info.role === "user" && SessionLoopState.messageKind(message.info) === "context",
+            ),
+          ).toHaveLength(0)
+        },
+      })
+    } finally {
+      provider.stop()
+    }
+  }, 30_000)
+
+  test("repairs a crash after the preflight error but before its continuation", async () => {
+    const provider = startStressProvider([scenario])
+    try {
+      await using tmp = await tmpdir({
+        git: true,
+        config: stressProviderConfig(`http://127.0.0.1:${provider.server.port}/v1`),
+      })
+      await Instance.provide({
+        directory: tmp.path,
+        init: async () => {
+          await trustProject()
+          await Provider.invalidate()
+        },
+        fn: async () => {
+          const session = await Session.create({ title: "Interrupted context preflight" })
+          const model = { providerID: STRESS_PROVIDER_ID, modelID: STRESS_PROVIDER_MODEL }
+          const source = await SessionPrompt.prompt({
+            sessionID: session.id,
+            model,
+            agent: "research",
+            noReply: true,
+            tools: { "*": false },
+            system: `${STRESS_SCENARIO_MARKER}${scenario.id}`,
+            parts: [{ type: "text", text: `Interrupted oversized request:\n${"x".repeat(600_000)}` }],
+          })
+          if (source.info.role !== "user") throw new Error("Expected queued user message")
+          await Session.updateMessage({
+            id: await MessageV2.nextMessageID(session.id),
+            sessionID: session.id,
+            parentID: source.info.id,
+            role: "assistant",
+            mode: "research",
+            agent: "research",
+            path: { cwd: tmp.path, root: tmp.path },
+            modelID: model.modelID,
+            providerID: model.providerID,
+            cost: 0,
+            tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+            error: new MessageV2.ContextWindowError({ message: "No provider request was sent." }).toObject(),
+            time: { created: Date.now(), completed: Date.now() },
+          })
+
+          const before = provider.requests.length
+          const result = await SessionPrompt.loop(session.id)
+          await provider.quiet()
+
+          expect(result.info.role).toBe("assistant")
+          if (result.info.role !== "assistant") throw new Error("Expected recovered assistant response")
+          expect(result.info.error).toBeUndefined()
+          const requests = provider.requests.slice(before)
+          const summary = requests.findIndex((request) => request.kind === "summary")
+          const main = requests.findIndex((request) => request.kind === "main" && request.scenario === scenario.id)
+          expect(summary).toBeGreaterThanOrEqual(0)
+          expect(main).toBeGreaterThan(summary)
+          const history = await Session.messages({ sessionID: session.id })
+          expect(
+            history.filter(
+              (message) => message.info.role === "user" && SessionLoopState.messageKind(message.info) === "context",
+            ),
+          ).toHaveLength(1)
         },
       })
     } finally {
@@ -138,6 +296,110 @@ describe("current-turn context preflight", () => {
           const main = requests.findIndex((request) => request.kind === "main" && request.scenario === scenario.id)
           expect(summary).toBeGreaterThanOrEqual(0)
           expect(main).toBeGreaterThan(summary)
+        },
+      })
+    } finally {
+      provider.stop()
+    }
+  }, 30_000)
+
+  test("re-arms compaction once when the protected tail still exceeds the hard budget", async () => {
+    const provider = startStressProvider([scenario])
+    try {
+      const base = stressProviderConfig(`http://127.0.0.1:${provider.server.port}/v1`)
+      base.provider[STRESS_PROVIDER_ID].models[STRESS_PROVIDER_COMPACT_MODEL].limit.context = 20_000
+      await using tmp = await tmpdir({
+        git: true,
+        config: { ...base, compaction: { tailTurns: 2, tailTokens: 50_000 } },
+      })
+      await Instance.provide({
+        directory: tmp.path,
+        init: async () => {
+          await trustProject()
+          await Provider.invalidate()
+        },
+        fn: async () => {
+          const session = await Session.create({ title: "Post-compaction preflight recovery" })
+          const model = { providerID: STRESS_PROVIDER_ID, modelID: STRESS_PROVIDER_COMPACT_MODEL }
+          await SessionPrompt.prompt({
+            sessionID: session.id,
+            model,
+            agent: "research",
+            tools: { "*": false },
+            system: `${STRESS_SCENARIO_MARKER}${scenario.id}`,
+            parts: [{ type: "text", text: "A short completed prior turn." }],
+          })
+          await provider.quiet()
+
+          const retained = await SessionPrompt.prompt({
+            sessionID: session.id,
+            model,
+            agent: "research",
+            tools: { "*": false },
+            noReply: true,
+            system: `${STRESS_SCENARIO_MARKER}${scenario.id}`,
+            parts: [{ type: "text", text: `Retained tail:\n${"k".repeat(48_000)}` }],
+          })
+          if (retained.info.role !== "user") throw new Error("Expected a queued user message")
+          // Realistic usage prevents the ordinary low-usage re-arm from hiding
+          // the spent latch. The first summary must preserve this recent tail.
+          await Session.updateMessage({
+            id: await MessageV2.nextMessageID(session.id),
+            sessionID: session.id,
+            parentID: retained.info.id,
+            role: "assistant",
+            mode: "research",
+            agent: "research",
+            path: { cwd: tmp.path, root: tmp.path },
+            modelID: model.modelID,
+            providerID: model.providerID,
+            cost: 0,
+            tokens: { input: 16_000, output: 12, reasoning: 0, cache: { read: 0, write: 0 } },
+            finish: "stop",
+            time: { created: Date.now(), completed: Date.now() },
+          })
+          const before = provider.requests.length
+          const result = await SessionPrompt.prompt({
+            sessionID: session.id,
+            model,
+            agent: "research",
+            tools: { "*": false },
+            system: `${STRESS_SCENARIO_MARKER}${scenario.id}`,
+            parts: [{ type: "text", text: `Small current request:\n${"c".repeat(8_000)}` }],
+          })
+          await provider.quiet()
+          if (result.info.role !== "assistant") throw new Error("Expected a recovered assistant response")
+          expect(result.info.error).toBeUndefined()
+          expect(result.info.summary).toBeUndefined()
+          expect(
+            result.parts
+              .filter((part) => part.type === "text")
+              .map((part) => part.text)
+              .join("\n"),
+          ).toContain("CONTEXT_PREFLIGHT_BASELINE")
+
+          const requests = provider.requests.slice(before)
+          expect(requests.filter((request) => request.kind === "summary")).toHaveLength(2)
+          expect(
+            requests.filter((request) => request.kind === "main" && request.scenario === scenario.id),
+          ).toHaveLength(1)
+          expect(requests).toHaveLength(3)
+          const history = await Session.messages({ sessionID: session.id })
+          const failures = history.filter((message) => message.info.role === "assistant" && message.info.error)
+          expect(failures).toHaveLength(1)
+          expect(failures[0].info.role === "assistant" && failures[0].info.error?.data.message).toContain(
+            "after context reduction",
+          )
+          expect(
+            history.filter(
+              (message) => message.info.role === "user" && SessionLoopState.messageKind(message.info) === "context",
+            ),
+          ).toHaveLength(1)
+          const count = provider.requests.length
+          const replay = await SessionPrompt.loop(session.id)
+          await provider.quiet()
+          expect(replay.info.id).toBe(result.info.id)
+          expect(provider.requests).toHaveLength(count)
         },
       })
     } finally {
@@ -276,10 +538,19 @@ describe("current-turn context preflight", () => {
           const summary = requests.find((request) => request.kind === "summary")
           const main = requests.find((request) => request.kind === "main" && request.scenario === scenario.id)
           if (!summary || !main) throw new Error("Expected summary and resumed provider requests")
-          expect(summary.text).not.toContain(first)
-          expect(summary.text).not.toContain(second)
+          // The queued prompts are not summarized: their bodies stay out of the
+          // summary request and verbatim in the resumed one. The handoff
+          // instruction does name both as the requests still waiting, as a
+          // bounded excerpt, so the summarizer writes the Objective for them.
+          expect(summary.text).not.toContain("q".repeat(8_000))
+          expect(summary.text).not.toContain("r".repeat(8_000))
+          expect(summary.text.indexOf(`<newest-request>\n${first}`)).toBeGreaterThan(-1)
+          expect(summary.text.indexOf(`<newest-request>\n${first}`)).toBeLessThan(
+            summary.text.indexOf(`<newest-request>\n${second}`),
+          )
           expect(main.text).toContain(first)
           expect(main.text).toContain(second)
+          expect(main.text).toContain("q".repeat(8_000))
         },
       })
     } finally {

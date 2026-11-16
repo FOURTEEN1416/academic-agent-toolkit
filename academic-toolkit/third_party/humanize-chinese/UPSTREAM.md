@@ -4,6 +4,8 @@
   一并如实登记：
   - `package.json`: `humanize-chinese` v2.1.0 · author `voidborne-d` · MIT ·
     https://github.com/voidborne-d/humanize-chinese
+    （2026-11-16 核查：该原址已 404；上游现址 https://github.com/swaylq/humanize-chinese ，
+    实测 HEAD 6510ca7；版本/许可口径 2.1.0 vs 2.4.0、MIT/MIT-0/NOASSERTION 待上游澄清）
   - `_meta.json` / `skill-card.md`: ClawHub 注册表元数据，slug `humanize-chinese` v2.4.0
     （skill-card 标注发布者 swaylq、License MIT-0——与 package.json 的 MIT 存在口径冲突）
 - Pinned commit: 不可固定——快照无 `.git`，无法定 hash；以快照内 `package.json` v2.1.0 为

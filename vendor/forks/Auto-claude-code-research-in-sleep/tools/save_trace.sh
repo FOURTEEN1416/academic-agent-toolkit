@@ -16,7 +16,7 @@
 #   bash tools/save_trace.sh \
 #     --skill "auto-review-loop" \
 #     --purpose "round-1-review" \
-#     --model "gpt-5.6-sol" \
+#     --model "gpt-6-astra" \
 #     --effort "ultra" \
 #     --thread-id "019d8fe0-..." \
 #     --prompt-file /tmp/prompt.txt \
@@ -26,13 +26,18 @@
 #   bash tools/save_trace.sh \
 #     --skill "experiment-audit" \
 #     --purpose "code-audit" \
-#     --model "gpt-5.6-sol" \
+#     --model "gpt-6-astra" \
 #     --effort "ultra" \
 #     --thread-id "019d8fe0-..." \
 #     --prompt "Review this code..." \
 #     --response "Score: 7/10..."
 
 set -euo pipefail
+
+# Reviewer assurance flags: --review-completed --review-scope-complete
+# --review-positive (only when the skill's own gate is positive). --verdict keeps
+# the raw assessment; this helper does not infer positivity from text or scores.
+# --status records the call outcome independently.
 
 # --- Parse arguments ---
 SKILL="" PURPOSE="" MODEL="" THREAD_ID="" PROMPT="" RESPONSE=""
@@ -41,6 +46,8 @@ BACKEND="" TOOL="" EXECUTOR="" EXECUTOR_MODEL="" EXECUTOR_FAMILY="" REVIEWER_PRO
 REQUESTED_REVIEWER_MODEL="" REPORTED_REVIEWER_MODEL="" MEMORY_HASH=""
 EXECUTOR_MODEL_SOURCE="unavailable" REVIEWER_MODEL_SOURCE="unavailable" FAMILY_RELATION="unknown"
 NATIVE_EVIDENCE="" NATIVE_EVIDENCE_ID="" NATIVE_EVIDENCE_PATH=""
+REVIEW_COMPLETED=false REVIEW_SCOPE_COMPLETE=false REVIEW_POSITIVE=false VERDICT=""
+REVIEW_INDEPENDENCE="unknown" ACCEPTANCE_STATUS="provisional"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -68,6 +75,10 @@ while [[ $# -gt 0 ]]; do
     --independence-verified) INDEPENDENCE_VERIFIED="$2"; shift 2 ;;
     --memory-hash)        MEMORY_HASH="$2";        shift 2 ;;
     --native-evidence)    NATIVE_EVIDENCE="$2";    shift 2 ;;
+    --review-completed)   REVIEW_COMPLETED=true; shift ;;
+    --review-scope-complete) REVIEW_SCOPE_COMPLETE=true; shift ;;
+    --review-positive)    REVIEW_POSITIVE=true; shift ;;
+    --verdict)            VERDICT="$2"; shift 2 ;;
     *) echo "Unknown arg: $1" >&2; exit 1 ;;
   esac
 done
@@ -86,18 +97,11 @@ fi
 # independence labels.  The legacy family/independence flags remain accepted so
 # older callers do not break, but they are only consistency hints.
 derive_model_family() {
-  ST_MODEL_NAME="$1" python3 -c '
-import os, re
-
-name = (os.environ.get("ST_MODEL_NAME") or "").strip().lower()
-families = set()
-if re.search(r"(^|[^a-z0-9])(gpt|chatgpt|codex|oracle|o1|o3|o4)([^a-z0-9]|$)", name):
-    families.add("openai")
-if re.search(r"(^|[^a-z0-9])(claude|sonnet|opus|haiku|anthropic)([^a-z0-9]|$)", name):
-    families.add("anthropic")
-if re.search(r"(^|[^a-z0-9])(gemini|google)([^a-z0-9]|$)", name):
-    families.add("google")
-print(next(iter(families)) if len(families) == 1 else "unknown")
+  ST_MODEL_NAME="$1" ST_TOOLS_DIR="$(dirname "$0")" python3 -c '
+import os, sys
+sys.path.insert(0, os.environ["ST_TOOLS_DIR"])
+from review_gate import derive_model_family
+print(derive_model_family(os.environ.get("ST_MODEL_NAME") or ""))
 '
 }
 
@@ -211,6 +215,24 @@ if [[ -n "$CALLER_INDEPENDENCE_VERIFIED" && "$(lowercase "$CALLER_INDEPENDENCE_V
   echo "warning: ignoring independence value '$CALLER_INDEPENDENCE_VERIFIED'; model-derived value is '$INDEPENDENCE_VERIFIED'" >&2
 fi
 
+# Assurance describes this completed review call, separately from identity
+# attestation. Requested model names remain traceable but cannot grant acceptance.
+case "$FAMILY_RELATION" in
+  same) REVIEW_INDEPENDENCE="same-family" ;;
+  different) REVIEW_INDEPENDENCE="cross-family" ;;
+esac
+if $REVIEW_COMPLETED && $REVIEW_SCOPE_COMPLETE && $REVIEW_POSITIVE && \
+   [[ "$REVIEW_INDEPENDENCE" == "cross-family" ]] && \
+   [[ "$REVIEWER_MODEL_SOURCE" == "backend-reported" || "$REVIEWER_MODEL_SOURCE" == "host-session-event" ]]; then
+  case "$(lowercase "${BACKEND:-codex}")" in
+    codex|manual|copilot-native|oracle-pro|agy|llm-chat|antigravity|grok|claude-code)
+      case "$(lowercase "$STATUS")" in
+        ok|fallback_used|success|completed) ACCEPTANCE_STATUS="accepted" ;;
+      esac
+      ;;
+  esac
+fi
+
 # --- Read from files if provided ---
 if [[ -n "$PROMPT_FILE" && -f "$PROMPT_FILE" ]]; then
   PROMPT=$(cat "$PROMPT_FILE")
@@ -291,6 +313,9 @@ if [[ "$TRACE_MODE" == "full" ]]; then
   ST_FAMILY_RELATION="$FAMILY_RELATION" ST_INDEPENDENCE_VERIFIED="$INDEPENDENCE_VERIFIED" \
   ST_MEMORY_HASH="$MEMORY_HASH" ST_NATIVE_EVIDENCE_ID="$NATIVE_EVIDENCE_ID" \
   ST_NATIVE_EVIDENCE_PATH="$NATIVE_EVIDENCE_PATH" \
+  ST_REVIEWER_MODEL="$EFFECTIVE_REVIEWER_MODEL" ST_REVIEW_INDEPENDENCE="$REVIEW_INDEPENDENCE" \
+  ST_ACCEPTANCE_STATUS="$ACCEPTANCE_STATUS" ST_REVIEW_COMPLETED="$REVIEW_COMPLETED" \
+  ST_REVIEW_SCOPE_COMPLETE="$REVIEW_SCOPE_COMPLETE" ST_REVIEW_POSITIVE="$REVIEW_POSITIVE" ST_VERDICT="$VERDICT" \
   ST_OUT="${RUN_DIR}/${CALL_PREFIX}-${PURPOSE}.request.json" python3 -c '
 import json, os, sys
 e = os.environ
@@ -309,6 +334,13 @@ data = {
     "effort_unpinned": effort_unpinned,
     "fallback_reason": e["ST_FALLBACK"],
     "status": e["ST_STATUS"],
+    "reviewer_model": e.get("ST_REVIEWER_MODEL") or None,
+    "review_independence": e["ST_REVIEW_INDEPENDENCE"],
+    "acceptance_status": e["ST_ACCEPTANCE_STATUS"],
+    "review_completed": e["ST_REVIEW_COMPLETED"] == "true",
+    "review_scope_complete": e["ST_REVIEW_SCOPE_COMPLETE"] == "true",
+    "review_positive": e["ST_REVIEW_POSITIVE"] == "true",
+    "verdict": e.get("ST_VERDICT") or None,
     "executor": e.get("ST_EXECUTOR") or "claude-code",
     "executor_model": e.get("ST_EXECUTOR_MODEL") or None,
     "executor_model_source": e.get("ST_EXECUTOR_MODEL_SOURCE") or "unavailable",
@@ -343,6 +375,9 @@ else
   ST_FAMILY_RELATION="$FAMILY_RELATION" ST_INDEPENDENCE_VERIFIED="$INDEPENDENCE_VERIFIED" \
   ST_MEMORY_HASH="$MEMORY_HASH" ST_NATIVE_EVIDENCE_ID="$NATIVE_EVIDENCE_ID" \
   ST_NATIVE_EVIDENCE_PATH="$NATIVE_EVIDENCE_PATH" \
+  ST_REVIEWER_MODEL="$EFFECTIVE_REVIEWER_MODEL" ST_REVIEW_INDEPENDENCE="$REVIEW_INDEPENDENCE" \
+  ST_ACCEPTANCE_STATUS="$ACCEPTANCE_STATUS" ST_REVIEW_COMPLETED="$REVIEW_COMPLETED" \
+  ST_REVIEW_SCOPE_COMPLETE="$REVIEW_SCOPE_COMPLETE" ST_REVIEW_POSITIVE="$REVIEW_POSITIVE" ST_VERDICT="$VERDICT" \
   ST_OUT="${RUN_DIR}/${CALL_PREFIX}-${PURPOSE}.request.json" python3 -c '
 import json, os
 e = os.environ
@@ -361,6 +396,13 @@ data = {
     "effort_unpinned": effort_unpinned,
     "fallback_reason": e["ST_FALLBACK"],
     "status": e["ST_STATUS"],
+    "reviewer_model": e.get("ST_REVIEWER_MODEL") or None,
+    "review_independence": e["ST_REVIEW_INDEPENDENCE"],
+    "acceptance_status": e["ST_ACCEPTANCE_STATUS"],
+    "review_completed": e["ST_REVIEW_COMPLETED"] == "true",
+    "review_scope_complete": e["ST_REVIEW_SCOPE_COMPLETE"] == "true",
+    "review_positive": e["ST_REVIEW_POSITIVE"] == "true",
+    "verdict": e.get("ST_VERDICT") or None,
     "prompt_length": int(e["ST_PLEN"]),
     "response_length": int(e["ST_RLEN"]),
     "executor": e.get("ST_EXECUTOR") or "claude-code",
@@ -393,6 +435,9 @@ ST_REQUESTED_REVIEWER_MODEL="$REQUESTED_REVIEWER_MODEL" ST_REPORTED_REVIEWER_MOD
 ST_FAMILY_RELATION="$FAMILY_RELATION" ST_INDEPENDENCE_VERIFIED="$INDEPENDENCE_VERIFIED" \
 ST_MEMORY_HASH="$MEMORY_HASH" ST_NATIVE_EVIDENCE_ID="$NATIVE_EVIDENCE_ID" \
 ST_NATIVE_EVIDENCE_PATH="$NATIVE_EVIDENCE_PATH" \
+ST_REVIEWER_MODEL="$EFFECTIVE_REVIEWER_MODEL" ST_REVIEW_INDEPENDENCE="$REVIEW_INDEPENDENCE" \
+ST_ACCEPTANCE_STATUS="$ACCEPTANCE_STATUS" ST_REVIEW_COMPLETED="$REVIEW_COMPLETED" \
+ST_REVIEW_SCOPE_COMPLETE="$REVIEW_SCOPE_COMPLETE" ST_REVIEW_POSITIVE="$REVIEW_POSITIVE" ST_VERDICT="$VERDICT" \
 ST_OUT="${RUN_DIR}/${CALL_PREFIX}-${PURPOSE}.meta.json" python3 -c '
 import json, os
 e = os.environ
@@ -411,6 +456,13 @@ data = {
     "effort_unpinned": effort_unpinned,
     "fallback_reason": e["ST_FALLBACK"],
     "status": e["ST_STATUS"],
+    "reviewer_model": e.get("ST_REVIEWER_MODEL") or None,
+    "review_independence": e["ST_REVIEW_INDEPENDENCE"],
+    "acceptance_status": e["ST_ACCEPTANCE_STATUS"],
+    "review_completed": e["ST_REVIEW_COMPLETED"] == "true",
+    "review_scope_complete": e["ST_REVIEW_SCOPE_COMPLETE"] == "true",
+    "review_positive": e["ST_REVIEW_POSITIVE"] == "true",
+    "verdict": e.get("ST_VERDICT") or None,
     "executor": e.get("ST_EXECUTOR") or "claude-code",
     "executor_model": e.get("ST_EXECUTOR_MODEL") or None,
     "executor_model_source": e.get("ST_EXECUTOR_MODEL_SOURCE") or "unavailable",

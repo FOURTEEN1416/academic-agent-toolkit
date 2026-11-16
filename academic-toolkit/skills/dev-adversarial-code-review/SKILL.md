@@ -242,6 +242,9 @@ You are likely reviewing code you just wrote or just read. Your brain (weights) 
 
 ## Cross-References
 
-- Related: `engineering-team/senior-security` — deep security analysis
-- Related: `engineering-team/code-reviewer` — general code quality review
-- Complementary: `ra-qm-team/` — quality management workflows
+> ⚠️ 下列为**外部技能族，本仓未集成**（仓库内无对应技能目录），保留原分工说明供生态对照，勿按路径查找。
+
+- Related: `engineering-team/senior-security` — deep security analysis *(外部技能族，本仓未集成)*
+- Related: `engineering-team/code-reviewer` — general code review *(外部技能族，本仓未集成)*
+- Complementary: `ra-qm-team/` — quality management workflows *(外部技能族，本仓未集成)*
+- 本仓评审分工：结构化人工评审方法论用 `dev-code-review`；评审沟通与团队流程用 `dev-code-review-guide`；本技能提供对抗性批判视角。

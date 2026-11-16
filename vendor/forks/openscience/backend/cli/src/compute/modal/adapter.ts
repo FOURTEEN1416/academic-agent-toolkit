@@ -16,7 +16,7 @@ import { ModalUpload } from "./upload"
 import { ModalVolume } from "./volume"
 
 export namespace ModalAdapter {
-  export const VERSION = "0.9.0"
+  export const VERSION = "0.10.1"
   export const ROOT = "/workspace"
   const RUN_LOG = path.posix.join(ROOT, ".openscience-run.log")
   const EXIT_CODE = path.posix.join(ROOT, ".openscience-exit-code")
@@ -40,6 +40,8 @@ export namespace ModalAdapter {
     canonical: string
     size: number
     sha256: string
+    /** Named literally in the request, so it may exceed the swept limit. */
+    named?: boolean
   }
 
   export type Spec = {
@@ -48,6 +50,7 @@ export namespace ModalAdapter {
     command: string
     image: string
     packages: string[]
+    packageLock?: { digest: string; requirements: string }
     gpu: string
     gpus?: number
     cpus?: number
@@ -146,10 +149,11 @@ export namespace ModalAdapter {
   type ClosableClient = Pick<ModalClient, "close">
 
   /**
-   * modal@0.9.0's public `close()` does not currently tear down the client's
-   * underlying gRPC channels. Reusing one process-scoped client per credential
-   * identity therefore prevents every status poll, recovery, and release call
-   * from opening another live transport in the long-running OpenScience server.
+   * One process-scoped client per credential identity. The SDK's `close()`
+   * releases the auth token manager, and from 0.10.1 idle connections are
+   * released on their own; reusing the client still keeps every status poll,
+   * recovery, and release call off a fresh transport in the long-running
+   * OpenScience server.
    *
    * Keep the pool deliberately small. Changing credentials or environments is
    * rare and a process restart is safer than silently accumulating transports
@@ -236,9 +240,31 @@ export namespace ModalAdapter {
     ].join("; ")
   }
 
-  export function layers(packages: string[]) {
+  /** The slim Debian Python images ship without libgomp, which LightGBM,
+   * scikit-learn's OpenMP builds and several other wheels dlopen at import.
+   * A study run that failed on `libgomp.so.1: cannot open shared object`
+   * after a four-minute build is the kind of loss one apt layer prevents. */
+  function systemLayers(image: string, packages: string[]) {
+    if (!packages.length || !/-slim\b/.test(image)) return []
+    return [
+      "RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/*",
+    ]
+  }
+
+  export function layers(packages: string[], packageLock?: { digest: string; requirements: string }, image = "") {
+    const system = systemLayers(image, packageLock ? [packageLock.digest] : packages)
+    if (packageLock) {
+      const encoded = Buffer.from(packageLock.requirements).toString("base64")
+      return [
+        ...system,
+        `RUN printf '%s' ${quote(encoded)} | base64 -d > /tmp/openscience-requirements.txt && python -m pip install --disable-pip-version-check --no-cache-dir --no-deps --only-binary=:all: --require-hashes -r /tmp/openscience-requirements.txt && rm -f /tmp/openscience-requirements.txt`,
+      ]
+    }
     if (!packages.length) return []
-    return [`RUN python -m pip install --disable-pip-version-check --no-cache-dir ${packages.map(quote).join(" ")}`]
+    return [
+      ...system,
+      `RUN python -m pip install --disable-pip-version-check --no-cache-dir ${packages.map(quote).join(" ")}`,
+    ]
   }
 
   export function reconcile(code: number, recovered: Result): Result {
@@ -305,6 +331,17 @@ export namespace ModalAdapter {
       } finally {
         reader.releaseLock()
       }
+    }
+  }
+
+  /** Release the local gRPC channel once the sandbox has exited; the SDK
+   * recommends it and only 0.10.1+ does it on its own. Nothing on Modal's
+   * side changes. */
+  function detach(sandbox: Sandbox) {
+    try {
+      sandbox.detach()
+    } catch {
+      // Already detached, or a handle the SDK considers closed.
     }
   }
 
@@ -429,6 +466,27 @@ export namespace ModalAdapter {
     await sandbox.filesystem.writeText("approved\n", path.posix.join(ROOT, ".openscience-ready"))
   }
 
+  /** Resolve a recorded sandbox id to a handle Modal still recognizes.
+   * `sandboxes.fromId` stopped validating ids in SDK 0.8.0 and returns a
+   * handle for any string, so the first call that reaches the API is where a
+   * vanished sandbox shows up; that is the signal to harvest the durable
+   * volume rather than to fail the job as not found. */
+  async function attach(modal: ModalClient, sandboxId: string): Promise<Sandbox | undefined> {
+    const sandbox = await modal.sandboxes.fromId(sandboxId).catch((error) => {
+      if (error instanceof NotFoundError) return undefined
+      throw error
+    })
+    if (!sandbox) return undefined
+    const known = await sandbox
+      .getTags()
+      .then(() => true)
+      .catch((error) => {
+        if (error instanceof NotFoundError) return false
+        throw error
+      })
+    return known ? sandbox : undefined
+  }
+
   async function own(sandbox: Sandbox, id: string, project: string) {
     const tags = await sandbox.getTags()
     const owner = crypto.createHash("sha256").update(project).digest("hex").slice(0, 20)
@@ -460,11 +518,13 @@ export namespace ModalAdapter {
       const count = spec.gpus ?? 1
       const gpu = spec.gpu === "none" || count <= 1 ? spec.gpu : `${spec.gpu}:${count}`
       const base = modal.images.fromRegistry(spec.image)
-      const commands = layers(spec.packages)
+      const commands = layers(spec.packages, spec.packageLock, spec.image)
       const image = commands.length ? base.dockerfileCommands(commands) : base
       await hooks.log(
         commands.length
-          ? `Building image ${spec.image} with ${spec.packages.length} Python package${spec.packages.length === 1 ? "" : "s"}`
+          ? spec.packageLock
+            ? `Building image ${spec.image} from locked wheels (${spec.packageLock.digest.slice(0, 12)})`
+            : `Building image ${spec.image} with ${spec.packages.length} Python package${spec.packages.length === 1 ? "" : "s"}`
           : `Resolving image ${spec.image}`,
       )
       const ready = await image.build(app).catch((error) => {
@@ -515,7 +575,7 @@ export namespace ModalAdapter {
         `Uploaded ${spec.uploads.length} input file${spec.uploads.length === 1 ? "" : "s"} (${spec.uploads.reduce((sum, file) => sum + file.size, 0)} bytes)`,
       )
       await hooks.log(`Running command: ${spec.command}`)
-      const settled = await outcome(sandbox, hooks.output)
+      const settled = await outcome(sandbox, hooks.output).finally(() => detach(sandbox))
       await hooks.log(`Command exited with code ${settled.code}; compute sandbox released`)
       const recovered = await harvest(context, spec, settled).catch((error) => {
         throw new HarvestError(settled.code, error)
@@ -540,12 +600,7 @@ export namespace ModalAdapter {
   ): Promise<Result> {
     const modal = client(context)
     return Promise.resolve().then(async () => {
-      const sandbox = sandboxId
-        ? await modal.sandboxes.fromId(sandboxId).catch((error) => {
-            if (error instanceof NotFoundError) return undefined
-            throw error
-          })
-        : undefined
+      const sandbox = sandboxId ? await attach(modal, sandboxId) : undefined
       if (!sandbox) {
         await hooks.log(
           sandboxId
@@ -560,7 +615,7 @@ export namespace ModalAdapter {
       }
       await own(sandbox, spec.id, spec.project)
       await hooks.log(`Reattached to sandbox ${sandboxId}`)
-      const settled = await outcome(sandbox, hooks.output, true)
+      const settled = await outcome(sandbox, hooks.output, true).finally(() => detach(sandbox))
       const recovered = await harvest(context, spec, settled).catch((error) => {
         throw new HarvestError(settled.code, error)
       })
@@ -626,10 +681,7 @@ export namespace ModalAdapter {
     const modal = client(context)
     return Promise.resolve().then(async () => {
       if (sandboxId) {
-        const sandbox = await modal.sandboxes.fromId(sandboxId).catch((error) => {
-          if (error instanceof NotFoundError) return undefined
-          throw error
-        })
+        const sandbox = await attach(modal, sandboxId)
         if (sandbox) {
           await own(sandbox, spec.id, spec.project)
           await sandbox.terminate({ wait: true })

@@ -11,6 +11,12 @@ description: "Create publication figures with matplotlib/seaborn/plotly. Multi-p
 
 建议额外记录：每张图的数据文件、生成脚本、matplotlib/seaborn/plotly 版本、colormap 与导出参数。图表溯源门禁 figure_provenance 要求图有来源证据。
 
+## 与本仓其他绘图入口的分工
+
+- 本技能：期刊级统计图的方法学与代码参考（matplotlib/seaborn/plotly 多面板、误差棒、显著性标记、色图选择与导出规范）。
+- `matplotlib` / `seaborn` / `plotly` 技能：单一绘图库的快速用法参考；本技能覆盖跨库的出版级组合与期刊导出要求。
+- `paper-figure`：竞赛/论文出图主链（FIGURE_MANIFEST 账本、save_fig 护栏、paper-figure-palette 调色板注册表）；正式交付图优先走 paper-figure，本技能作为方法深化参考。
+
 ## Overview
 
 Scientific visualization transforms data into clear, accurate figures for publication. Create journal-ready plots with multi-panel layouts, error bars, significance markers, and colorblind-safe palettes. Export as PDF/EPS/TIFF using matplotlib, seaborn, and plotly for manuscripts.

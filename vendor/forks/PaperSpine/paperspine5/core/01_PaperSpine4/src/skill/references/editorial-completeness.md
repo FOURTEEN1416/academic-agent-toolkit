@@ -34,6 +34,11 @@ rationale matrix as substitutes for this judgment. Venue length ranges and
 section proportions are orientation, not targets to pad or ceilings that permit
 underdevelopment.
 
+When space is tight, compress repeated numbers and generic background before
+method definitions, update/decision rules and evaluation settings. Keep the
+method and comparison self-contained; a compact algorithm or settings table
+can preserve the necessary detail from the existing study record.
+
 `tier` controls how broadly the Agent researches examples and how much optional
 process detail it records. It never reduces the paper promised by `scene`,
 `target_name`, the template, or the user's request.

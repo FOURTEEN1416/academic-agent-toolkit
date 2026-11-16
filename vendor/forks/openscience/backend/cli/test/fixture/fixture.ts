@@ -67,13 +67,26 @@ export async function executionSession() {
 }
 
 /** Explicitly opt a containment test into the machine-wide sandbox and restore
- * the prior policy afterward. Product defaults intentionally remain Full access. */
+ * the prior policy afterward. */
 export async function sandboxedExecution() {
   const previous = await Config.trustedSandbox()
   await Config.setSandbox({ enabled: true, onUnavailable: "error" })
   return {
     async [Symbol.asyncDispose]() {
       await Config.setSandbox(previous)
+    },
+  }
+}
+
+/** Lifecycle fixtures still exercise durable OS ownership on hosts without a
+ * filesystem sandbox, after explicitly selecting the supported Full access mode. */
+export async function fullAccessExecution() {
+  const previous = (await Config.getGlobal()).sandbox
+  await Config.setSandbox({ enabled: false })
+  return {
+    async [Symbol.asyncDispose]() {
+      await Config.unsetGlobal(["sandbox"])
+      if (previous !== undefined) await Config.setSandbox(previous)
     },
   }
 }

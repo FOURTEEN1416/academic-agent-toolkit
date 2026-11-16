@@ -1,0 +1,767 @@
+import { afterEach, describe, expect, test } from "bun:test"
+import fs from "node:fs/promises"
+import path from "node:path"
+import { Experiments } from "../../src/experiments"
+import { StudyDriver } from "../../src/experiments/driver"
+import { ProvenanceEnvelope } from "../../src/science/provenance/envelope"
+import { ComputeLifecycle } from "../../src/compute/lifecycle"
+import { TrackingSDK } from "../../src/experiments/sdk"
+import { Instance } from "../../src/project/instance"
+import { Session } from "../../src/session"
+import { MessageV2 } from "../../src/session/message-v2"
+import type { JobBroker } from "../../src/compute/job-broker"
+import { tmpdir } from "../fixture/fixture"
+
+afterEach(() => Experiments.close())
+
+type FakeJob = Pick<JobBroker.Job, "status" | "error" | "lifecycle" | "provenance">
+
+function harness(root: string) {
+  const jobs = new Map<string, FakeJob>()
+  const prompts: string[] = []
+  const cancelled: string[] = []
+  const clock = { now: Date.now() }
+  const state = { idle: true }
+  StudyDriver.configure({
+    now: () => clock.now,
+    idle: () => state.idle,
+    prompt: async ({ text }) => {
+      prompts.push(text)
+    },
+    job: async (jobID) => (jobs.has(jobID) ? ({ id: jobID, ...jobs.get(jobID)! } as JobBroker.Job) : undefined),
+    cancel: async (jobID) => {
+      cancelled.push(jobID)
+      jobs.set(jobID, { status: "cancelled" })
+    },
+    logPath: async (jobID) => path.join(root, `${jobID}.log`),
+  })
+  const record = (jobID: string, records: object[]) =>
+    fs.appendFile(
+      path.join(root, `${jobID}.log`),
+      records.map((item) => `${TrackingSDK.MARKER}${JSON.stringify(item)}\n`).join(""),
+    )
+  return { jobs, prompts, cancelled, clock, state, record }
+}
+
+describe("study driver", () => {
+  test("retains final artifact provenance before settling a job whose delivery is pending", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const h = harness(tmp.path)
+        const study = await Experiments.createStudy({
+          sessionID: "ses_delivery",
+          name: "delivery",
+          purpose: "retain outputs",
+          metric: "loss",
+          direction: "minimize",
+          root: path.join(tmp.path, "study"),
+          concurrency: 1,
+          killCriteria: "",
+          budget: {},
+        })
+        const run = await Experiments.createRun({
+          name: "baseline",
+          source: "job",
+          studyID: study.id,
+          jobID: "job_delivery",
+          sessionID: study.sessionID,
+        })
+        const initial = ProvenanceEnvelope.create({
+          kind: "remote_compute",
+          runID: "job_delivery",
+          status: "succeeded",
+        })
+        const pending = ComputeLifecycle.transition(ComputeLifecycle.from("succeeded"), { type: "collect" })
+        h.jobs.set("job_delivery", { status: "succeeded", lifecycle: pending, provenance: initial })
+        await StudyDriver.tick(study.id)
+        expect((await Experiments.getRun(run.id))?.status).toBe("running")
+        expect((await Experiments.getRun(run.id))?.provenance).toEqual(initial)
+        expect(h.prompts).toHaveLength(0)
+        const final = ProvenanceEnvelope.create({
+          kind: "remote_compute",
+          runID: "job_delivery",
+          status: "succeeded",
+          outputs: [
+            ProvenanceEnvelope.output({
+              kind: "artifact",
+              label: "weights",
+              content: "final weights",
+              artifactID: "artifact_weights",
+            }),
+          ],
+        })
+        h.jobs.set("job_delivery", {
+          status: "succeeded",
+          lifecycle: ComputeLifecycle.transition(pending, { type: "deliver" }),
+          provenance: final,
+        })
+        await StudyDriver.tick(study.id)
+        expect((await Experiments.getRun(run.id))?.status).toBe("finished")
+        expect((await Experiments.getRun(run.id))?.provenance).toEqual(final)
+        expect(h.prompts).toHaveLength(1)
+        Experiments.close()
+        expect((await Experiments.getRun(run.id))?.provenance).toEqual(final)
+      },
+    })
+  })
+
+  test("follows a run's log, settles it when the job ends, and wakes the session once", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const h = harness(tmp.path)
+        const study = await Experiments.createStudy({
+          sessionID: "ses_driver",
+          name: "loop",
+          purpose: "test",
+          question: "Does momentum reduce validation loss?",
+          hypothesis: "Momentum lowers loss at equal compute.",
+          metric: "val_loss",
+          direction: "minimize",
+          root: path.join(tmp.path, "study"),
+          concurrency: 1,
+          killCriteria: "",
+          budget: {},
+        })
+        const [idea] = await Experiments.proposeIdeas(study.id, [
+          { title: "baseline", description: "d", why: "w", ev: 0, priority: 1000 },
+          { title: "next", description: "d", why: "w", ev: 0.5 },
+        ])
+        const run = await Experiments.createRun({
+          name: "baseline",
+          source: "job",
+          studyID: study.id,
+          ideaID: idea!.id,
+          jobID: "job_a",
+          sessionID: "ses_driver",
+        })
+        h.jobs.set("job_a", { status: "running" })
+        await h.record("job_a", [
+          { t: "init", name: "baseline", config: { lr: 0.01 } },
+          { t: "log", step: 1, m: { val_loss: 1.0 } },
+          { t: "log", step: 2, m: { val_loss: 0.7 } },
+        ])
+        await StudyDriver.tick(study.id)
+        expect((await Experiments.getRun(run.id))?.points).toBe(2)
+        expect((await Experiments.getRun(run.id))?.status).toBe("running")
+        expect(h.prompts).toEqual([])
+
+        await h.record("job_a", [{ t: "summary", s: { val_loss: 0.65 } }, { t: "finish" }])
+        h.jobs.set("job_a", { status: "succeeded" })
+        await StudyDriver.tick(study.id)
+        const settled = await Experiments.getRun(run.id)
+        expect(settled?.status).toBe("finished")
+        expect(settled?.headline).toBe(0.65)
+        expect(h.prompts).toHaveLength(1)
+        expect(h.prompts[0]).toContain('Study update for "loop"')
+        expect(h.prompts[0]).toContain("val_loss 0.65")
+        expect(h.prompts[0]).toContain("Does momentum reduce validation loss?")
+        expect(h.prompts[0]).toContain("Momentum lowers loss at equal compute.")
+        expect(h.prompts[0]).toContain("study record")
+        // The ledger files are rendered into the study root.
+        expect(await Bun.file(path.join(tmp.path, "study", "results.tsv")).text()).toContain("baseline")
+        expect(await Bun.file(path.join(tmp.path, "study", "ideas.md")).text()).toContain("next")
+        // Nothing new: no second wake-up, and a busy session is never interrupted.
+        await StudyDriver.tick(study.id)
+        expect(h.prompts).toHaveLength(1)
+        expect((await Experiments.getStudy(study.id))?.turns).toBe(1)
+      },
+    })
+  })
+
+  test("a job that failed before its command ran hands the idea back and stays outside the run budget", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const h = harness(tmp.path)
+        const study = await Experiments.createStudy({
+          sessionID: "ses_driver",
+          name: "loop",
+          purpose: "test",
+          metric: "cv_accuracy",
+          direction: "maximize",
+          root: path.join(tmp.path, "study"),
+          concurrency: 2,
+          killCriteria: "",
+          budget: { maxRuns: 1 },
+        })
+        const [idea] = await Experiments.proposeIdeas(study.id, [
+          { title: "One-hot XGBoost reference", description: "d", why: "w", ev: 0.001 },
+        ])
+        const run = await Experiments.createRun({
+          name: "One-hot XGBoost reference",
+          source: "job",
+          studyID: study.id,
+          ideaID: idea!.id,
+          jobID: "job_x",
+          sessionID: "ses_driver",
+        })
+        // The Modal adapter rejected an upload whose size drifted from its
+        // approval; the command never started.
+        h.jobs.set("job_x", {
+          status: "failed",
+          error: "Modal input changed after approval: .openscience/sdk/openscience_track/__init__.py",
+        })
+        await StudyDriver.tick(study.id)
+        const failed = (await Experiments.getRun(run.id))!
+        expect(failed.status).toBe("failed")
+        expect(failed.killReason).toStartWith("dispatch failed:")
+        expect(Experiments.budgeted(failed)).toBe(false)
+        expect((await Experiments.getIdea(idea!.id))?.status).toBe("queued")
+        expect((await Experiments.getIdea(idea!.id))?.runID).toBeUndefined()
+        expect(h.prompts).toHaveLength(1)
+        expect(h.prompts[0]).toContain("failed before its command ran")
+        expect(h.prompts[0]).toContain("back in the queue")
+
+        // A job the command itself failed is a result, judged as one.
+        const [other] = await Experiments.proposeIdeas(study.id, [
+          { title: "blend", description: "d", why: "w", ev: 0 },
+        ])
+        const second = await Experiments.createRun({
+          name: "blend",
+          source: "job",
+          studyID: study.id,
+          ideaID: other!.id,
+          jobID: "job_y",
+          sessionID: "ses_driver",
+        })
+        h.jobs.set("job_y", { status: "failed", error: "Traceback: ModuleNotFoundError: xgboost" })
+        await StudyDriver.tick(study.id)
+        expect((await Experiments.getRun(second.id))?.killReason).toBe("Traceback: ModuleNotFoundError: xgboost")
+        expect((await Experiments.getIdea(other!.id))?.status).not.toBe("queued")
+      },
+    })
+  })
+
+  test("applies kill criteria to a live run and reports the reason", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const h = harness(tmp.path)
+        const study = await Experiments.createStudy({
+          sessionID: "ses_kill",
+          name: "kill",
+          purpose: "test",
+          metric: "val_loss",
+          direction: "minimize",
+          root: path.join(tmp.path, "study"),
+          concurrency: 2,
+          killCriteria: "val_loss > 5 for 2 steps",
+          budget: {},
+        })
+        const [idea] = await Experiments.proposeIdeas(study.id, [
+          { title: "diverges", description: "d", why: "w", ev: 0.1 },
+        ])
+        const run = await Experiments.createRun({
+          name: "diverges",
+          source: "job",
+          studyID: study.id,
+          ideaID: idea!.id,
+          jobID: "job_k",
+        })
+        h.jobs.set("job_k", { status: "running" })
+        await h.record("job_k", [
+          { t: "log", step: 1, m: { val_loss: 7 } },
+          { t: "log", step: 2, m: { val_loss: 9 } },
+        ])
+        await StudyDriver.tick(study.id)
+        expect(h.cancelled).toEqual(["job_k"])
+        const killed = await Experiments.getRun(run.id)
+        expect(killed?.status).toBe("killed")
+        expect(killed?.killReason).toContain("val_loss > 5 for 2 steps")
+        expect(h.prompts[0]).toContain("killed")
+        expect((await Experiments.getIdea(idea!.id))?.status).toBe("running")
+      },
+    })
+  })
+
+  test("nudges an idle session with free slots and queued ideas, at most once per window", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const h = harness(tmp.path)
+        const study = await Experiments.createStudy({
+          sessionID: "ses_idle",
+          name: "idle",
+          purpose: "test",
+          metric: "acc",
+          direction: "maximize",
+          root: path.join(tmp.path, "study"),
+          concurrency: 2,
+        })
+        await Experiments.proposeIdeas(study.id, [{ title: "try wd", description: "d", why: "w", ev: 0.2 }])
+        await StudyDriver.tick(study.id)
+        expect(h.prompts).toHaveLength(1)
+        expect(h.prompts[0]).toContain("2 of 2 slots free")
+        expect(h.prompts[0]).toContain("try wd")
+        await StudyDriver.tick(study.id)
+        expect(h.prompts).toHaveLength(1)
+        // Time passes without action: the same situation is not repeated.
+        h.clock.now += StudyDriver.IDLE_NUDGE_MS + 1
+        await StudyDriver.tick(study.id)
+        expect(h.prompts).toHaveLength(1)
+        // A busy session is left alone even when a wake-up is due.
+        h.state.idle = false
+        await StudyDriver.resume(study.id)
+        await StudyDriver.tick(study.id)
+        expect(h.prompts).toHaveLength(1)
+      },
+    })
+  })
+
+  test("a thin backlog, a stuck streak and a step-back ride along with run news, and a directive wakes at once", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const h = harness(tmp.path)
+        const study = await Experiments.createStudy({
+          sessionID: "ses_loop",
+          name: "loop",
+          purpose: "test",
+          metric: "score",
+          direction: "maximize",
+          root: path.join(tmp.path, "study"),
+          concurrency: 1,
+          budget: { maxHours: 4 },
+        })
+        const ideas = await Experiments.proposeIdeas(
+          study.id,
+          Array.from({ length: 7 }, (_, index) => ({ title: `idea ${index}`, description: "d", why: "w", ev: 0.1 })),
+        )
+        // Baseline, then six runs that never beat it.
+        const baseline = await Experiments.createRun({
+          name: "idea 0",
+          source: "job",
+          studyID: study.id,
+          ideaID: ideas[0]!.id,
+          jobID: "job_0",
+        })
+        h.jobs.set("job_0", { status: "succeeded" })
+        await h.record("job_0", [{ t: "log", step: 1, m: { score: 1.0 } }])
+        await StudyDriver.tick(study.id)
+        await Experiments.setBaseline(study.id, baseline.id)
+        await Experiments.recordResult({ studyID: study.id, runID: baseline.id, kept: true, analysis: "ref" })
+        expect(h.prompts).toHaveLength(1)
+        expect(h.prompts[0]).not.toContain("Backlog is thin")
+        for (let index = 1; index <= 5; index++) {
+          const run = await Experiments.createRun({
+            name: `idea ${index}`,
+            source: "job",
+            studyID: study.id,
+            ideaID: ideas[index]!.id,
+            jobID: `job_${index}`,
+          })
+          h.jobs.set(`job_${index}`, { status: "succeeded" })
+          await h.record(`job_${index}`, [{ t: "log", step: 1, m: { score: 0.9 } }])
+          await StudyDriver.tick(study.id)
+          await Experiments.recordResult({ studyID: study.id, runID: run.id, kept: false, analysis: "worse" })
+        }
+        const all = h.prompts.join("\n")
+        // One queued idea left after five reverts: the backlog warning appears.
+        expect(all).toContain("Backlog is thin (1 queued)")
+        // Four reverts in a row: asked to change the kind of idea, once.
+        expect(all.split("No progress in the last 4 runs").length - 1).toBe(1)
+        // Six completed runs: one step-back review.
+        expect(all.split("Step back (6 runs done)").length - 1).toBe(1)
+
+        // A directive is stored on the study and delivered as its own wake-up.
+        const before = h.prompts.length
+        await StudyDriver.directive(study.id, "Only vary the optimizer from now on")
+        expect(h.prompts).toHaveLength(before + 1)
+        expect(h.prompts.at(-1)).toContain("Directive from the user: Only vary the optimizer from now on")
+        const updated = (await Experiments.getStudy(study.id))!
+        expect(updated.directives).toHaveLength(1)
+        expect(updated.directives[0]!.active).toBe(true)
+        await Experiments.retireDirective(study.id, updated.directives[0]!.id)
+        expect((await Experiments.getStudy(study.id))!.directives[0]!.active).toBe(false)
+      },
+    })
+  })
+
+  test("a cost budget reads the session's spend and pauses when it is exceeded", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const h = harness(tmp.path)
+        const spend = { value: 0.5 }
+        StudyDriver.configure({
+          now: () => h.clock.now,
+          idle: () => true,
+          prompt: async ({ text }) => {
+            h.prompts.push(text)
+          },
+          job: async () => undefined,
+          cancel: async () => undefined,
+          logPath: async (jobID) => path.join(tmp.path, `${jobID}.log`),
+          cost: async () => spend.value,
+        })
+        const study = await Experiments.createStudy({
+          sessionID: "ses_cost",
+          name: "cost",
+          purpose: "test",
+          metric: "val_loss",
+          direction: "minimize",
+          root: path.join(tmp.path, "study"),
+          budget: { maxCostUSD: 2 },
+        })
+        await StudyDriver.tick(study.id)
+        expect((await Experiments.getStudy(study.id))?.costUSD).toBe(0.5)
+        expect((await Experiments.getStudy(study.id))?.status).toBe("running")
+        spend.value = 2.25
+        await StudyDriver.tick(study.id)
+        expect((await Experiments.getStudy(study.id))?.status).toBe("paused")
+        expect(h.prompts.at(-1)).toContain("$2.25 reached the $2.00 limit")
+      },
+    })
+  })
+
+  test("pauses at the budget and asks for a conclusion", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const h = harness(tmp.path)
+        const study = await Experiments.createStudy({
+          sessionID: "ses_budget",
+          name: "budget",
+          purpose: "test",
+          metric: "val_loss",
+          direction: "minimize",
+          root: path.join(tmp.path, "study"),
+          budget: { maxRuns: 1 },
+        })
+        const [idea] = await Experiments.proposeIdeas(study.id, [
+          { title: "only", description: "d", why: "w", ev: 0.1 },
+        ])
+        const run = await Experiments.createRun({
+          name: "only",
+          source: "job",
+          studyID: study.id,
+          ideaID: idea!.id,
+          jobID: "job_b",
+        })
+        // A run that evaluated something spends the budget; one that died
+        // before logging a point would not (see Experiments.budgeted).
+        h.jobs.set("job_b", { status: "succeeded" })
+        await StudyDriver.tick(study.id)
+        expect((await Experiments.getRun(run.id))?.status).toBe("finished")
+        expect((await Experiments.getStudy(study.id))?.status).toBe("paused")
+        expect(h.prompts).toHaveLength(1)
+        expect(h.prompts[0]).toContain("Budget reached")
+        expect(h.prompts[0]).toContain("study conclude")
+        // Halting cancels nothing more and records the state.
+        await StudyDriver.halt(study.id)
+        expect((await Experiments.getStudy(study.id))?.status).toBe("halted")
+      },
+    })
+  })
+
+  test("a wake that fails to reach the session keeps its news and spends no turn", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const h = harness(tmp.path)
+        const failing = { on: true }
+        const prompts: string[] = []
+        StudyDriver.configure({
+          now: () => h.clock.now,
+          idle: () => true,
+          prompt: async ({ text }) => {
+            if (failing.on) throw new Session.BusyError("ses_retry")
+            prompts.push(text)
+          },
+          job: async (jobID) =>
+            h.jobs.has(jobID) ? ({ id: jobID, ...h.jobs.get(jobID)! } as JobBroker.Job) : undefined,
+          cancel: async () => undefined,
+          logPath: async (jobID) => path.join(tmp.path, `${jobID}.log`),
+        })
+        const study = await Experiments.createStudy({
+          sessionID: "ses_retry",
+          name: "retry",
+          purpose: "test",
+          metric: "val_loss",
+          direction: "minimize",
+          root: path.join(tmp.path, "study"),
+          budget: { maxRuns: 5 },
+        })
+        const [idea] = await Experiments.proposeIdeas(study.id, [{ title: "one", description: "d", why: "w", ev: 0.1 }])
+        await Experiments.createRun({ name: "one", source: "job", studyID: study.id, ideaID: idea!.id, jobID: "job_r" })
+        h.jobs.set("job_r", { status: "succeeded" })
+        await StudyDriver.tick(study.id)
+        expect(prompts).toEqual([])
+        expect((await Experiments.getStudy(study.id))?.turns).toBe(0)
+        // The next tick delivers the same news once the session accepts it.
+        failing.on = false
+        await StudyDriver.tick(study.id)
+        expect(prompts).toHaveLength(1)
+        expect(prompts[0]).toContain('Run "one"')
+        expect((await Experiments.getStudy(study.id))?.turns).toBe(1)
+      },
+    })
+  })
+
+  test("a wake whose turn the user interrupted is not sent again and does not pause the study", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const session = await Session.create({})
+        const h = harness(tmp.path)
+        const prompts: string[] = []
+        StudyDriver.configure({
+          now: () => h.clock.now,
+          idle: () => true,
+          prompt: async ({ text }) => {
+            prompts.push(text)
+            await Session.updateMessage({
+              id: `msg_stopped_${prompts.length}`,
+              sessionID: session.id,
+              role: "assistant",
+              parentID: "msg_user",
+              mode: "research",
+              agent: "research",
+              path: { cwd: tmp.path, root: tmp.path },
+              cost: 0,
+              tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+              modelID: "m",
+              providerID: "p",
+              time: { created: h.clock.now, completed: h.clock.now },
+              error: new MessageV2.AbortedError({ message: "The operation was aborted." }).toObject(),
+            })
+            throw new Error("The operation was aborted.")
+          },
+          job: async (jobID) =>
+            h.jobs.has(jobID) ? ({ id: jobID, ...h.jobs.get(jobID)! } as JobBroker.Job) : undefined,
+          cancel: async () => undefined,
+          logPath: async (jobID) => path.join(tmp.path, `${jobID}.log`),
+        })
+        const study = await Experiments.createStudy({
+          sessionID: session.id,
+          name: "stopped",
+          purpose: "test",
+          metric: "val_loss",
+          direction: "minimize",
+          root: path.join(tmp.path, "study"),
+          budget: { maxRuns: 5 },
+        })
+        const [idea] = await Experiments.proposeIdeas(study.id, [{ title: "one", description: "d", why: "w", ev: 0.1 }])
+        await Experiments.createRun({ name: "one", source: "job", studyID: study.id, ideaID: idea!.id, jobID: "job_s" })
+        h.jobs.set("job_s", { status: "succeeded" })
+        await StudyDriver.tick(study.id)
+        expect(prompts).toHaveLength(1)
+        expect(prompts[0]).toContain('Run "one"')
+        await StudyDriver.tick(study.id)
+        expect(prompts).toHaveLength(1)
+        expect((await Experiments.getStudy(study.id))?.status).toBe("running")
+      },
+    })
+  })
+
+  test("a wake the provider refused pauses the study with the reason instead of knocking again", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const session = await Session.create({})
+        const prompts: string[] = []
+        StudyDriver.configure({
+          now: () => Date.now(),
+          idle: () => true,
+          prompt: async ({ text }) => {
+            prompts.push(text)
+            // The turn the wake started ended in the provider's refusal.
+            await Session.updateMessage({
+              id: `msg_refused_${prompts.length}`,
+              sessionID: session.id,
+              role: "assistant",
+              parentID: "msg_user",
+              mode: "research",
+              agent: "research",
+              path: { cwd: tmp.path, root: tmp.path },
+              cost: 0,
+              tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+              modelID: "m",
+              providerID: "p",
+              time: { created: Date.now(), completed: Date.now() },
+              error: new MessageV2.APIError({
+                message: "The connected provider account needs $26.86 for this step; $0.00 is available.",
+                statusCode: 402,
+                isRetryable: false,
+              }).toObject(),
+            })
+          },
+          job: async () => undefined,
+          cancel: async () => undefined,
+          logPath: async (jobID) => path.join(tmp.path, `${jobID}.log`),
+        })
+        const study = await Experiments.createStudy({
+          sessionID: session.id,
+          name: "refused",
+          purpose: "test",
+          metric: "val_loss",
+          direction: "minimize",
+          root: path.join(tmp.path, "study"),
+          budget: { maxRuns: 5 },
+        })
+        await Experiments.proposeIdeas(study.id, [{ title: "one", description: "d", why: "w", ev: 0.1 }])
+        await StudyDriver.tick(study.id)
+        expect(prompts).toHaveLength(1)
+        const paused = await Experiments.getStudy(study.id)
+        expect(paused?.status).toBe("paused")
+        const event = (await Experiments.listEvents(study.id)).find((item) => item.kind === "paused")
+        expect(event?.message).toContain("needs $26.86")
+        expect(event?.message).toContain("resume the study")
+        // Paused: the next tick does not knock again.
+        await StudyDriver.tick(study.id)
+        expect(prompts).toHaveLength(1)
+      },
+    })
+  })
+
+  test("a run whose job record disappears is failed after the grace period, not held forever", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const h = harness(tmp.path)
+        const study = await Experiments.createStudy({
+          sessionID: "ses_lost",
+          name: "lost",
+          purpose: "test",
+          metric: "val_loss",
+          direction: "minimize",
+          root: path.join(tmp.path, "study"),
+          budget: { maxRuns: 5 },
+        })
+        const [idea] = await Experiments.proposeIdeas(study.id, [
+          { title: "gone", description: "d", why: "w", ev: 0.1 },
+        ])
+        const run = await Experiments.createRun({
+          name: "gone",
+          source: "job",
+          studyID: study.id,
+          ideaID: idea!.id,
+          jobID: "job_missing",
+        })
+        // No job record at all: inside the grace period the run keeps running.
+        await StudyDriver.tick(study.id)
+        expect((await Experiments.getRun(run.id))?.status).toBe("running")
+        expect(h.prompts).toEqual([])
+        h.clock.now += StudyDriver.MISSING_JOB_GRACE_MS + 1_000
+        await StudyDriver.tick(study.id)
+        const lost = await Experiments.getRun(run.id)
+        expect(lost?.status).toBe("failed")
+        expect(lost?.killReason).toContain("no record")
+        expect(h.prompts).toHaveLength(1)
+        expect(h.prompts[0]).toContain("job record is missing")
+      },
+    })
+  })
+
+  test("a run the previous process left without a job is failed and its idea re-queued; one this process is dispatching is left alone", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const h = harness(tmp.path)
+        const study = await Experiments.createStudy({
+          sessionID: "ses_phantom",
+          name: "phantom",
+          purpose: "test",
+          metric: "val_loss",
+          direction: "minimize",
+          root: path.join(tmp.path, "study"),
+          concurrency: 2,
+          budget: { maxRuns: 5 },
+        })
+        const [orphaned, dispatching] = await Experiments.proposeIdeas(study.id, [
+          { title: "orphaned", description: "d", why: "w", ev: 0.1 },
+          { title: "dispatching", description: "d", why: "w", ev: 0.1 },
+        ])
+        const phantom = await Experiments.createRun({
+          name: "orphaned",
+          source: "job",
+          studyID: study.id,
+          ideaID: orphaned!.id,
+        })
+        await Experiments.updateIdea(orphaned!.id, { status: "running", runID: phantom.id })
+        // The process restarts after the run was created: nothing is dispatching it.
+        await Bun.sleep(5)
+        const before = StudyDriver.boundary.processStart
+        StudyDriver.boundary.processStart = Date.now()
+        try {
+          const live = await Experiments.createRun({
+            name: "dispatching",
+            source: "job",
+            studyID: study.id,
+            ideaID: dispatching!.id,
+          })
+          // Created in this process: still being dispatched, kept.
+          StudyDriver.boundary.processStart = live.createdAt
+          await StudyDriver.tick(study.id)
+          expect((await Experiments.getRun(phantom.id))?.status).toBe("failed")
+          expect((await Experiments.getRun(phantom.id))?.killReason).toContain("dispatch interrupted")
+          expect((await Experiments.getIdea(orphaned!.id))?.status).toBe("queued")
+          expect((await Experiments.getRun(live.id))?.status).toBe("running")
+          expect(h.prompts).toHaveLength(1)
+          expect(h.prompts[0]).toContain("dispatch was interrupted")
+        } finally {
+          StudyDriver.boundary.processStart = before
+        }
+      },
+    })
+  })
+})
+
+test("launches that never became jobs are not counted as runs without progress", async () => {
+  await using tmp = await tmpdir()
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const h = harness(tmp.path)
+      const study = await Experiments.createStudy({
+        sessionID: "ses_launch",
+        name: "launch",
+        purpose: "test",
+        metric: "val_loss",
+        direction: "minimize",
+        root: path.join(tmp.path, "study"),
+        budget: { maxRuns: 20 },
+      })
+      const ideas = await Experiments.proposeIdeas(
+        study.id,
+        ["a", "b", "c", "d", "e"].map((title) => ({ title, description: "d", why: "w", ev: 0.1 })),
+      )
+      for (const idea of ideas.slice(0, 4)) {
+        const run = await Experiments.createRun({ name: idea.title, source: "job", studyID: study.id, ideaID: idea.id })
+        await Experiments.finishRun(run.id, "failed", { killReason: "dispatch failed: working directory unavailable" })
+      }
+      const real = ideas[4]!
+      await Experiments.createRun({
+        name: real.title,
+        source: "job",
+        studyID: study.id,
+        ideaID: real.id,
+        jobID: "job_e",
+      })
+      h.jobs.set("job_e", { status: "succeeded" })
+      await StudyDriver.tick(study.id)
+      expect(h.prompts).toHaveLength(1)
+      expect(h.prompts[0]).toContain('Run "e"')
+      expect(h.prompts[0]).not.toContain("No progress")
+      // Nor do they start the hour budget's clock.
+      expect(Experiments.clockStart(await Experiments.listRuns({ studyID: study.id }))).toBe(
+        (await Experiments.listRuns({ studyID: study.id })).find((run) => run.name === "e")?.startedAt ?? undefined,
+      )
+    },
+  })
+})

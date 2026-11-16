@@ -25,6 +25,10 @@ def _family(model: str) -> str:
         return "anthropic"
     if "gemini" in model:
         return "google"
+    if "deepseek" in model:
+        return "deepseek"
+    if "grok" in model:
+        return "xai"
     if "gpt" in model or "codex" in model:
         return "openai"
     return "unknown"
@@ -36,6 +40,8 @@ def _write_audits(
     verdict: str = "PASS",
     executor: str = "codex-gpt-5.5",
     reviewer: str | None = None,
+    acceptance: str | None = None,
+    reviewer_reasoning: str | None = "xhigh",
 ) -> None:
     trace = paper / ".aris" / "traces" / "audit"
     trace.mkdir(parents=True)
@@ -55,12 +61,12 @@ def _write_audits(
             "trace_path": ".aris/traces/audit",
             "agent_id": "agent_019f",
             "reviewer_model": selected_reviewer,
-            "reviewer_reasoning": "xhigh",
+            "reviewer_reasoning": reviewer_reasoning,
             "generated_at": "2026-07-10T00:00:00Z",
         }
         if independence is not None:
             artifact["review_independence"] = independence
-            artifact["acceptance_status"] = (
+            artifact["acceptance_status"] = acceptance or (
                 "provisional" if independence == "same-family" else "accepted"
             )
             artifact["executor_model"] = executor
@@ -74,11 +80,13 @@ def _verify(
     verdict: str = "PASS",
     executor: str = "codex-gpt-5.5",
     reviewer: str | None = None,
+    acceptance: str | None = None,
+    reviewer_reasoning: str | None = "xhigh",
 ) -> tuple[subprocess.CompletedProcess[str], dict]:
     with tempfile.TemporaryDirectory() as d:
         paper = Path(d) / "paper"
         paper.mkdir()
-        _write_audits(paper, independence, verdict, executor, reviewer)
+        _write_audits(paper, independence, verdict, executor, reviewer, acceptance, reviewer_reasoning)
         result = subprocess.run(
             ["bash", str(VERIFIER), str(paper), "--assurance", "submission"],
             cwd=REPO_ROOT,
@@ -181,6 +189,95 @@ def test_hostile_metadata_cannot_break_verifier_report_json():
     assert result.returncode == 1
     assert report["overall_assurance"] == "blocked"
     assert all(row["status"] == "HAS_ISSUES" for row in report["audits"])
+
+
+def test_blocking_cross_family_reviews_allow_new_provisional_and_legacy_accepted_evidence():
+    for reviewer in ("deepseek-flash", "grok-4.7-build"):
+        for verdict in ("FAIL", "ERROR", "BLOCKED"):
+            for acceptance in ("provisional", "accepted"):
+                result, report = _verify(
+                    "cross-family", verdict=verdict, reviewer=reviewer,
+                    acceptance=acceptance, reviewer_reasoning=None,
+                )
+                assert result.returncode == 1, (reviewer, verdict, acceptance)
+                assert report["overall_assurance"] == "blocked"
+                assert report["submission_blocking"] is True
+                assert all(row["status"] == "BLOCKING_VERDICT" for row in report["audits"])
+                assert all(row["verdict"] == verdict for row in report["audits"])
+                assert all(row["issues"] == [] for row in report["audits"])
+
+
+def test_cross_family_positive_audits_require_accepted_classification():
+    for verdict in ("PASS", "WARN"):
+        result, report = _verify(
+            "cross-family", verdict=verdict, reviewer="deepseek-flash",
+            acceptance="provisional", reviewer_reasoning=None,
+        )
+        assert result.returncode == 1
+        assert report["overall_assurance"] == "blocked"
+        assert all(any("acceptance_status_mismatch" in issue for issue in row["issues"])
+                   for row in report["audits"])
+
+
+def test_unknown_actual_reasoning_is_allowed_without_weakening_model_identity():
+    result, report = _verify(
+        "cross-family", reviewer="deepseek-flash", reviewer_reasoning=None,
+    )
+    assert result.returncode == 0, result.stderr
+    assert report["overall_assurance"] == "accepted"
+    result, report = _verify(
+        "cross-family", reviewer="mystery-reviewer", reviewer_reasoning=None,
+    )
+    assert result.returncode == 1
+    assert report["overall_assurance"] == "blocked"
+    assert all(any("unrecognized_model_family" in issue for issue in row["issues"])
+               for row in report["audits"])
+
+
+def test_provisional_negative_exception_never_waives_known_model_identity():
+    result, report = _verify(
+        "cross-family", verdict="ERROR", reviewer="mystery-reviewer",
+        acceptance="provisional", reviewer_reasoning=None,
+    )
+    assert result.returncode == 1
+    assert report["overall_assurance"] == "blocked"
+    assert all(any("unrecognized_model_family" in issue for issue in row["issues"])
+               for row in report["audits"])
+
+
+def test_missing_reasoning_key_is_not_equivalent_to_unknown_actual_effort():
+    def remove_reasoning(paper):
+        for filename in AUDITS:
+            path = paper / filename
+            data = json.loads(path.read_text())
+            del data["reviewer_reasoning"]
+            path.write_text(json.dumps(data))
+    result, report = _run_on(remove_reasoning)
+    assert result.returncode == 1
+    assert all("missing_field:reviewer_reasoning" in row["issues"] for row in report["audits"])
+
+
+def test_same_family_blocking_audits_cannot_claim_accepted():
+    result, report = _verify("same-family", verdict="FAIL", acceptance="accepted")
+    assert result.returncode == 1
+    assert all(any("acceptance_status_mismatch" in issue for issue in row["issues"])
+               for row in report["audits"])
+
+
+def test_null_actual_model_blocks_even_when_reasoning_is_legitimately_unknown():
+    def remove_actual_model(paper):
+        for filename in AUDITS:
+            path = paper / filename
+            data = json.loads(path.read_text())
+            data["reviewer_model"] = None
+            data["reviewer_family"] = "unknown"
+            data["reviewer_reasoning"] = None
+            path.write_text(json.dumps(data))
+    result, report = _run_on(remove_actual_model)
+    assert result.returncode == 1
+    assert report["overall_assurance"] == "blocked"
+    assert all(any("unrecognized_model_family" in issue for issue in row["issues"])
+               for row in report["audits"])
 
 
 if __name__ == "__main__":

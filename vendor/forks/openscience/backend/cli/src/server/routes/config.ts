@@ -6,7 +6,7 @@ import { Provider } from "../../provider/provider"
 import { mapValues } from "remeda"
 import { errors } from "../error"
 import { Log } from "../../util/log"
-import { lazy } from "../../util/lazy"
+import { lazy } from "@synsci/util/lazy"
 
 const log = Log.create({ service: "server" })
 
@@ -53,7 +53,10 @@ export const ConfigRoutes = lazy(() =>
       }),
       validator("json", Config.Info),
       async (c) => {
-        const config = c.req.valid("json")
+        // Validated above, but written as sent: the schema's parsed form
+        // expands scalars and fills defaults that must not land in the file.
+        c.req.valid("json")
+        const config = (await c.req.json()) as Config.Info
         const next = Config.restore(config, await Config.get())
         await Config.update(next)
         return c.json(Config.redact(next))
@@ -84,8 +87,10 @@ export const ConfigRoutes = lazy(() =>
       async (c) => {
         using _ = log.time("providers")
         const providers = await Provider.list().then((x) => mapValues(x, (item) => item))
+        // Same payload as GET /provider: ids, models and variants are all the
+        // browser needs, so keys and loader options stay in the process.
         return c.json({
-          providers: Object.values(providers),
+          providers: Object.values(providers).map(Provider.redact),
           default: mapValues(providers, (item) => Provider.sort(Object.values(item.models))[0].id),
         })
       },

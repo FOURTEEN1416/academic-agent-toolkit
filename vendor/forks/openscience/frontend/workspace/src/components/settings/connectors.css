@@ -1,10 +1,10 @@
-/* Connectors follows the workspace's compact neutral language. Semantic color
-   is reserved for live status; transport, controls, and form chrome stay
-   monochrome so this page reads like the rest of the workbench. */
+/* Connectors uses the same flat hierarchy as Models: one quiet surface for
+   saved connections, one for reviewed setups, and advanced/manual setup behind
+   disclosure. Semantic color is reserved for live status. */
 .connectors-panel {
   --connectors-control-height: 32px;
-  --connectors-radius: var(--radius-sm);
-  --connectors-row-columns: 32px minmax(180px, 1fr) minmax(92px, auto) auto;
+  --connectors-radius: var(--settings-radius-control);
+  --connectors-row-columns: 20px minmax(180px, 1fr) minmax(92px, auto) auto;
 
   min-width: 0;
 }
@@ -21,23 +21,22 @@
 
 .connectors-panel .settings-control,
 .connectors-panel .settings-button,
-.connectors-panel .settings-inline-action,
 .connectors-panel .settings-field {
   min-height: var(--connectors-control-height);
   height: var(--connectors-control-height);
   border-radius: var(--connectors-radius);
-  font-size: 12px;
+  font-size: var(--font-size-small);
 }
 
 .connectors-panel .settings-control {
   padding-inline: 10px;
-  border: 1px solid var(--border-weak-base);
-  background: var(--surface-raised-base);
+  border: 1px solid transparent;
+  background: var(--settings-surface-muted);
 }
 
 .connectors-panel .settings-control--search:focus-within,
 .connectors-panel .settings-field:focus {
-  border-color: var(--border-strong-base);
+  border-color: var(--color-border-strong);
   box-shadow: none;
 }
 
@@ -59,58 +58,216 @@
 }
 
 .connectors-panel .settings-button[data-variant="ghost"] {
-  border-color: var(--border-weak-base);
+  border: 1px solid var(--color-border-weak);
   background: transparent;
+}
+
+.connectors-section,
+.connectors-catalog,
+.connectors-list {
+  min-width: 0;
 }
 
 .connectors-list {
   display: flex;
-  min-width: 0;
   flex-direction: column;
+}
+
+.connectors-catalog__list {
+  min-width: 0;
+}
+
+.connectors-catalog__row {
+  min-width: 0;
+  border-radius: var(--settings-radius-control);
+}
+
+.connectors-catalog__row + .connectors-catalog__row,
+.connectors-manual__row + .connectors-manual__row {
+  border-top: 1px solid var(--settings-border);
+}
+
+.connectors-catalog__row[data-expanded="true"] {
+  background: var(--settings-surface-muted);
+}
+
+.connectors-catalog__main {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: inherit;
+}
+
+.connectors-catalog__copy {
+  min-width: 0;
+}
+
+.connectors-catalog__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.connectors-catalog__title strong {
+  color: var(--color-text);
+  font-size: var(--settings-type-row);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--settings-leading-body);
+}
+
+.connectors-catalog__title span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+}
+
+.connectors-catalog__row[data-state="unavailable"] .connectors-catalog__title span {
+  color: var(--color-text-danger);
+}
+
+.connectors-catalog__copy p {
+  display: block;
+  margin: 2px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
+  text-wrap: pretty;
+}
+
+.connectors-catalog__row[data-state="unavailable"] .connectors-catalog__copy p [data-tag] {
+  color: var(--color-text-danger);
+}
+
+.connectors-catalog__details {
+  display: grid;
+  gap: 8px;
+  padding: 0 48px 14px 52px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
+  line-height: 16px;
+}
+
+.connectors-catalog__details p,
+.connectors-catalog__details dl {
+  margin: 0;
+}
+
+.connectors-catalog__details dl {
+  display: grid;
+  gap: 4px;
+}
+
+.connectors-catalog__details dl > div {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.connectors-catalog__details dt {
+  color: var(--color-text-faint);
+}
+
+.connectors-catalog__details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+}
+
+.connectors-catalog__details .connectors-detail-action {
+  justify-self: start;
+}
+
+.connectors-catalog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.connectors-manual__row {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: var(--settings-radius-control);
+}
+
+.connectors-manual__row:hover {
+  background: var(--settings-surface-hover);
 }
 
 .connectors-item {
   min-width: 0;
-  border-top: 1px solid var(--border-weak-base);
+  border-radius: 0;
 }
 
-.connectors-item:last-child {
-  border-bottom: 1px solid var(--border-weak-base);
+.connectors-item + .connectors-item {
+  border-top: 1px solid var(--settings-border);
 }
 
 .connectors-item[data-expanded="true"] {
-  background: var(--surface-raised-base);
-  border-radius: var(--connectors-radius);
+  background: var(--settings-surface-muted);
 }
 
-.connectors-item[data-expanded="true"] + .connectors-item {
-  border-top-color: transparent;
+.connectors-oauth {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 12px 10px 56px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--connectors-radius);
+  background: var(--settings-surface-muted);
+}
+
+.connectors-oauth > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.connectors-oauth strong {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+}
+
+.connectors-oauth span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
+  line-height: 16px;
+}
+
+.connectors-oauth__actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.connectors-oauth__actions button {
+  min-height: 32px;
 }
 
 .connectors-row {
-  min-height: 64px;
+  min-height: 56px;
   display: grid;
   grid-template-columns: var(--connectors-row-columns);
   align-items: center;
   gap: 12px;
-  padding: 8px 4px;
-}
-
-.connectors-item[data-expanded="true"] .connectors-row {
-  padding-inline: 12px;
-}
-
-.connectors-identity {
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border-weak-base);
-  border-radius: var(--connectors-radius);
-  background: var(--surface-raised-base);
-  color: var(--icon-strong-base);
+  padding: 8px 12px;
 }
 
 .connectors-copy {
@@ -127,78 +284,45 @@
 .connectors-copy__title strong {
   min-width: 0;
   overflow: hidden;
-  color: var(--text-strong);
-  font-size: 13px;
+  color: var(--color-text);
+  font-size: var(--settings-type-row);
   font-weight: var(--font-weight-medium);
-  line-height: 18px;
+  line-height: var(--settings-leading-body);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .connectors-copy__title > span {
   flex: 0 0 auto;
-  color: var(--text-weak);
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
   line-height: 16px;
 }
 
 .connectors-copy > p {
   margin: 1px 0 0;
   overflow: hidden;
-  color: var(--text-weak);
-  font-family: var(--font-family-mono);
-  font-size: 11px;
-  line-height: 16px;
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.connectors-capability-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  margin-top: 2px;
-  color: var(--text-weaker);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  line-height: 16px;
 }
 
 .connectors-status {
   min-width: 0;
   display: inline-flex;
   align-items: center;
-  justify-self: start;
-  gap: 6px;
-  color: var(--text-weak);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
-  line-height: 16px;
+  justify-self: end;
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--settings-leading-helper);
   white-space: nowrap;
 }
 
-.connectors-status > span {
-  width: 6px;
-  height: 6px;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  background: var(--icon-disabled);
-}
-
-.connectors-status[data-tone="active"] > span {
-  background: var(--icon-success-base);
-}
-
-.connectors-status[data-tone="pending"] > span {
-  background: var(--icon-warning-base);
-}
-
 .connectors-status[data-tone="error"] {
-  color: var(--text-danger);
-}
-
-.connectors-status[data-tone="error"] > span {
-  background: var(--text-danger);
+  color: var(--color-text-danger);
 }
 
 .connectors-row__actions {
@@ -224,8 +348,8 @@
 
 .connectors-action {
   padding: 0 10px;
-  color: var(--text-strong);
-  font-size: 11px;
+  color: var(--color-text);
+  font-size: var(--font-size-x-small);
   font-weight: var(--font-weight-medium);
 }
 
@@ -233,7 +357,7 @@
 .connectors-refresh:hover,
 .connectors-detail-action:hover,
 .connectors-panel [data-component="icon-button"]:hover:not(:disabled) {
-  background: var(--surface-raised-base-hover);
+  background: var(--color-surface-raised-hover);
 }
 
 .connectors-panel :is(button, [data-component="icon-button"]):active:not(:disabled) {
@@ -257,8 +381,8 @@
 }
 
 .connectors-inspection__loading {
-  color: var(--text-weak);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
 }
 
 .connectors-inspection-state {
@@ -267,14 +391,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  color: var(--text-weak);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
 }
 
 .connectors-inspection-state button {
   min-height: 32px;
   padding-inline: 8px;
-  color: var(--text-base);
+  color: var(--color-text-secondary);
   font-weight: var(--font-weight-medium);
 }
 
@@ -294,19 +418,19 @@
   align-items: center;
   gap: 6px;
   min-height: 24px;
-  color: var(--text-weak);
+  color: var(--color-text-muted);
 }
 
 .connectors-capability h3 {
   margin: 0;
   color: inherit;
-  font-size: 11px;
+  font-size: var(--font-size-x-small);
   font-weight: var(--font-weight-medium);
   line-height: 16px;
 }
 
 .connectors-capability header > span {
-  font-size: 11px;
+  font-size: var(--font-size-x-small);
   font-variant-numeric: tabular-nums;
 }
 
@@ -326,9 +450,9 @@
 .connectors-capability__name {
   margin: 0;
   overflow: hidden;
-  color: var(--text-strong);
+  color: var(--color-text);
   font-family: var(--font-family-mono);
-  font-size: 11px;
+  font-size: var(--font-size-x-small);
   font-weight: var(--font-weight-medium);
   line-height: 16px;
   text-overflow: ellipsis;
@@ -340,8 +464,8 @@
   display: -webkit-box;
   margin: 1px 0 0;
   overflow: hidden;
-  color: var(--text-weak);
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
   line-height: 16px;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -355,7 +479,7 @@
   gap: 4px;
   margin-top: 12px;
   padding-top: 8px;
-  border-top: 1px solid var(--border-weak-base);
+  border-top: 1px solid var(--color-border-weak);
 }
 
 .connectors-detail-action,
@@ -364,14 +488,14 @@
   align-items: center;
   gap: 6px;
   padding: 0 8px;
-  color: var(--text-weak);
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
   font-weight: var(--font-weight-medium);
 }
 
 .connectors-detail-action--danger:hover {
-  color: var(--text-danger);
-  background: var(--surface-critical-weak);
+  color: var(--color-text-danger);
+  background: var(--color-error-muted);
 }
 
 .connectors-refresh {
@@ -379,52 +503,54 @@
   margin-top: 4px;
 }
 
+/* The whole-panel empty state is the shared EmptyState tile; only the two
+   follow-up actions are local. */
 .connectors-empty {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 48px 16px;
-  text-align: center;
 }
 
-.connectors-empty__icon {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
+.connectors-empty .settings-empty-state {
+  padding-bottom: 12px;
+}
+
+.connectors-empty__actions {
   justify-content: center;
-  border: 1px solid var(--border-weak-base);
-  border-radius: var(--connectors-radius);
-  color: var(--icon-weak-base);
+  padding-bottom: 40px;
 }
 
-.connectors-empty__copy {
-  max-width: 380px;
-}
-
-.connectors-empty__copy strong,
 .connectors-form__lead strong {
-  color: var(--text-strong);
-  font-size: 13px;
+  display: block;
+  color: var(--color-text);
+  font-size: var(--settings-type-row);
   font-weight: var(--font-weight-medium);
-  line-height: 18px;
+  line-height: var(--settings-leading-body);
 }
 
-.connectors-empty__copy p,
 .connectors-form__lead p {
   margin: 2px 0 0;
-  color: var(--text-weak);
-  font-size: 12px;
-  line-height: 18px;
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
   text-wrap: pretty;
 }
 
-.connectors-empty__actions,
+.connectors-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The form's buttons sit at the right, the confirming one last, as every
+   settings form's do. */
 .connectors-form__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
 }
 
@@ -435,12 +561,7 @@
 }
 
 .connectors-form__lead {
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1fr);
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-weak-base);
+  min-width: 0;
 }
 
 .connectors-form__grid {
@@ -466,16 +587,10 @@
 
 .connectors-form__select > span,
 .connectors-panel .connectors-form__field label > span {
-  color: var(--text-strong);
-  font-size: 11px;
+  color: var(--color-text);
+  font-size: var(--font-size-x-small);
   font-weight: var(--font-weight-medium);
   line-height: 16px;
-}
-
-.connectors-panel .settings-field {
-  padding: 6px 10px;
-  border: 1px solid var(--border-weak-base);
-  background: var(--surface-raised-base);
 }
 
 .connectors-panel .settings-field--multiline {
@@ -485,23 +600,31 @@
 
 .connectors-form__hint {
   margin: -4px 0 0;
-  color: var(--text-weak);
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
   line-height: 16px;
   text-wrap: pretty;
 }
 
-@media (max-width: 840px) {
+/* Break on the Settings column, not the viewport: the rail and expanded
+   dialog change the available width without changing the window. */
+@container settings-main (max-width: 700px) {
   .connectors-panel {
-    --connectors-row-columns: 32px minmax(0, 1fr) auto;
+    --connectors-row-columns: 20px minmax(0, 1fr) auto;
   }
 
   .connectors-status {
-    display: none;
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .connectors-row__actions {
+    grid-column: 3;
+    grid-row: 1 / span 2;
   }
 }
 
-@media (max-width: 680px) {
+@container settings-main (max-width: 520px) {
   .connectors-panel .settings-toolbar,
   .connectors-form__grid {
     grid-template-columns: 1fr;
@@ -512,17 +635,25 @@
     grid-column: auto;
   }
 
-  .connectors-row {
-    grid-template-columns: 32px minmax(0, 1fr);
+  .connectors-catalog__main {
+    grid-template-columns: 20px minmax(0, 1fr);
   }
 
-  .connectors-row__actions {
+  .connectors-catalog__actions {
     grid-column: 2;
     justify-content: flex-start;
   }
 
-  .connectors-details {
-    padding-left: 56px;
+  .connectors-manual__row {
+    grid-template-columns: 20px minmax(0, 1fr);
+  }
+
+  .connectors-manual__row .connectors-catalog__actions {
+    grid-column: 2;
+  }
+
+  .connectors-catalog__details {
+    padding-right: 12px;
   }
 
   .connectors-inspection__grid {

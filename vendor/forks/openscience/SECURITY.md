@@ -16,11 +16,11 @@ Server mode is opt-in. The server binds to localhost (127.0.0.1) only and enforc
 
 Self-hosted operators can set `OPENSCIENCE_AUTH_TOKEN` to require `Authorization: Bearer <token>` on network requests as an additional deployment boundary. The health endpoint and browser CORS preflights remain open, and trusted in-process calls are unaffected. A reverse proxy must inject or forward the header on ordinary HTTP, streaming, and WebSocket requests. Leaving the variable unset preserves the local default.
 
-### Telemetry and managed services
+### Local data and external services
 
-Content-free product telemetry is enabled by default and can be disabled in Settings. The telemetry contract accepts only allowlisted operational fields such as installation, session, tool category, model route, latency, status, and aggregate token counts. It rejects prompts, responses, file paths and contents, notebook cells, shell output, environment values, credentials, and arbitrary metadata. Telemetry failures never block research and telemetry can never debit the Gateway wallet.
+Projects, settings, credentials, and session history are stored locally. When signed in, session trace sharing is enabled by default, subject to saved account preferences. Shared traces can include prompts, model responses and exposed reasoning, tool inputs and outputs, and provider-reported usage, including sessions using your own keys, subscriptions, or local models. Known credentials are redacted before traces are queued; this does not remove every kind of sensitive research content. Turn off **Customize → General → Data & privacy → Share session traces** to stop this device's uploads and clear its pending traces. Account opt-outs remain effective. See the [privacy policy](https://openscience.sh/privacy) for data handling and deletion controls.
 
-Research-content sharing is a separate explicit opt-in. Managed search queries necessarily leave the machine for the OpenScience Gateway and its configured search provider; the UI identifies that route before use. Local, BYOK, and eligible ChatGPT/Codex routes remain available when the Gateway is disconnected or unavailable.
+Requests to model providers, scientific data sources, MCP servers, and other connectors use the services you configure or invoke. Managed Ace model requests use the OpenScience service; direct provider routes use the selected provider. The receiving service's security and data-handling policies apply. OpenScience may also contact GitHub for release and update metadata.
 
 ### Out of scope
 
@@ -36,7 +36,7 @@ Research-content sharing is a separate explicit opt-in. Managed search queries n
 ## Supported versions
 
 Security fixes ship in the latest release on npm (`@synsci/openscience`). Please
-upgrade to the newest version before reporting — earlier versions are not patched.
+upgrade to the newest version before reporting; earlier versions are not patched.
 
 | Version            | Supported |
 | ------------------ | --------- |

@@ -97,13 +97,17 @@ Day 4     ═══ 论文撰写 ═══
 - **不采纳无参考文献的方法**
 - **数据可用性优先**：先确认数据能拿到再选方法
 
+## 下游衔接（选题串联）
+
+本技能产出选题调研报告后，按序进入：`problem-selection`（30 分钟快筛，5 维打分出 TOP3）→ `math-modeling-contest-route-selection`（TOP3 深度路线选择）。三技能串联详见 route-selection 头部串联图。
+
 ## 调用方式
-```powershell
-skill("comp-contest-research")         # 本 skill
-skill("paper-search")          # OpenAlex 搜索
-skill("lit-multi-db-search")      # 论文检索
-python tools/arxiv_miner.py    # arXiv 抓取
-```
+
+本仓中技能由驱动 Agent 直接读 `SKILL.md` 执行，协作技能以「读其 SKILL.md → 按其工作流执行」方式衔接（无 `skill()` 宿主调用）：
+
+- `paper-search` — OpenAlex 搜索（`academic-toolkit/skills/paper-search/SKILL.md`）
+- `lit-multi-db-search` — 论文检索（`academic-toolkit/skills/lit-multi-db-search/SKILL.md`）
+- arXiv 批量抓取：`python academic-toolkit/tools/arxiv_miner.py`
 
 ## 补充参考（v2.0 全部吸收批）
 

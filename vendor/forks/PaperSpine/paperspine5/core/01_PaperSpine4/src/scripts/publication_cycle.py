@@ -53,6 +53,39 @@ PLACEHOLDER_RE = re.compile(
     r"|(?i:\bTODO\b)|\[\[|\]\]",
 )
 COMMENT_ID_RE = re.compile(r"^(?:E|R\d+)\.C\d+(?:\.\d+)?$")
+RULE_COVERAGE_AREAS = (
+    "title",
+    "abstract",
+    "body",
+    "figures",
+    "tables",
+    "references",
+    "attachments",
+    "required_sections",
+    "required_materials",
+)
+RULE_COVERAGE_STATES = {"known", "not_applicable", "pending"}
+RULE_VERIFICATIONS = {"machine_verifiable", "needs_author_confirmation", "advisory"}
+RULE_METRICS = {
+    "word_count",
+    "character_count",
+    "page_count",
+    "count",
+    "required_sections",
+    "required_material",
+    "confirmation",
+}
+RULE_OPERATORS = {"max", "required"}
+MANUSCRIPT_SCOPES = {
+    "title",
+    "abstract",
+    "body",
+    "full_text",
+    "rendered_manuscript",
+    "figures",
+    "tables",
+    "references",
+}
 
 PUBLIC_OPERATION_SPECS = {
     "profile_check": {
@@ -235,6 +268,150 @@ def referenced_source_ids(section: dict[str, Any], label: str, known: set[str], 
         findings.append(f"{label} references unknown source_ids: {missing}")
 
 
+def validate_compliance_contract(
+    data: dict[str, Any],
+    *,
+    source_ids: set[str],
+    official_source_ids: set[str],
+    requirement_ids: set[str],
+    findings: list[str],
+    warnings: list[str],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    compliance = data.get("compliance")
+    if not isinstance(compliance, dict):
+        findings.append("compliance must be an object with coverage and rules.")
+        return [], []
+
+    coverage = compliance.get("coverage")
+    if not isinstance(coverage, list):
+        findings.append("compliance.coverage must be a list.")
+        coverage = []
+    coverage_map: dict[str, dict[str, Any]] = {}
+    for index, entry in enumerate(coverage, start=1):
+        label = f"compliance.coverage[{index}]"
+        if not isinstance(entry, dict):
+            findings.append(f"{label} must be an object.")
+            continue
+        area = str(entry.get("area") or "")
+        if area not in RULE_COVERAGE_AREAS:
+            findings.append(f"{label}.area must be one of {list(RULE_COVERAGE_AREAS)}.")
+            continue
+        if area in coverage_map:
+            findings.append(f"Duplicate compliance coverage area: {area}")
+            continue
+        coverage_map[area] = entry
+        status = str(entry.get("status") or "")
+        if status not in RULE_COVERAGE_STATES:
+            findings.append(f"{label}.status must be one of {sorted(RULE_COVERAGE_STATES)}.")
+        referenced_source_ids(entry, label, source_ids, findings)
+        if not official_source_ids.intersection(string_list(entry.get("source_ids"))):
+            findings.append(f"{label} must cite an official source.")
+        if not str(entry.get("source_locator") or "").strip():
+            findings.append(f"{label}.source_locator is required; do not guess the rule.")
+        if status == "pending":
+            findings.append(
+                f"Compliance coverage {area} is pending and blocks target readiness until the official rule is resolved."
+            )
+        if status == "not_applicable" and not str(entry.get("note") or "").strip():
+            findings.append(f"{label}.note must explain the official not-applicable determination.")
+    missing_areas = [area for area in RULE_COVERAGE_AREAS if area not in coverage_map]
+    if missing_areas:
+        findings.append(f"compliance.coverage is missing required areas: {missing_areas}")
+
+    rules = compliance.get("rules")
+    if not isinstance(rules, list):
+        findings.append("compliance.rules must be a list.")
+        rules = []
+    rule_ids: set[str] = set()
+    rules_by_area: dict[str, int] = {}
+    for index, rule in enumerate(rules, start=1):
+        label = f"compliance.rules[{index}]"
+        if not isinstance(rule, dict):
+            findings.append(f"{label} must be an object.")
+            continue
+        rule_id = str(rule.get("id") or "").strip()
+        if not rule_id:
+            findings.append(f"{label}.id is required.")
+        elif rule_id in rule_ids:
+            findings.append(f"Duplicate compliance rule id: {rule_id}")
+        else:
+            rule_ids.add(rule_id)
+        area = str(rule.get("area") or "")
+        if area not in RULE_COVERAGE_AREAS:
+            findings.append(f"{label}.area must be one of {list(RULE_COVERAGE_AREAS)}.")
+        else:
+            rules_by_area[area] = rules_by_area.get(area, 0) + 1
+            if str(coverage_map.get(area, {}).get("status")) != "known":
+                findings.append(f"{label} requires compliance.coverage[{area}].status=known.")
+        verification = str(rule.get("verification") or "")
+        if verification not in RULE_VERIFICATIONS:
+            findings.append(f"{label}.verification must be one of {sorted(RULE_VERIFICATIONS)}.")
+        metric = str(rule.get("metric") or "")
+        if metric not in RULE_METRICS:
+            findings.append(f"{label}.metric must be one of {sorted(RULE_METRICS)}.")
+        operator = str(rule.get("operator") or "")
+        if operator not in RULE_OPERATORS:
+            findings.append(f"{label}.operator must be one of {sorted(RULE_OPERATORS)}.")
+        if not str(rule.get("unit") or "").strip():
+            findings.append(f"{label}.unit is required.")
+        referenced_source_ids(rule, label, source_ids, findings)
+        if verification != "advisory" and not official_source_ids.intersection(string_list(rule.get("source_ids"))):
+            findings.append(f"{label} is non-advisory and must cite an official source.")
+        if not str(rule.get("source_locator") or "").strip():
+            findings.append(f"{label}.source_locator is required.")
+        if not str(rule.get("remediation") or "").strip():
+            findings.append(f"{label}.remediation is required.")
+
+        if metric in {"word_count", "character_count", "page_count", "count"}:
+            if operator != "max":
+                findings.append(f"{label} numeric metrics require operator=max.")
+            limit = rule.get("limit")
+            if not isinstance(limit, (int, float)) or isinstance(limit, bool) or limit < 0:
+                findings.append(f"{label}.limit must be a non-negative number.")
+            scope = str(rule.get("scope") or "")
+            if scope not in MANUSCRIPT_SCOPES | {"attachments"}:
+                findings.append(f"{label}.scope is invalid for a numeric metric: {scope}")
+            if metric == "count" and scope not in {"figures", "tables", "references", "attachments"}:
+                findings.append(
+                    f"{label} metric=count is only valid for figures, tables, references, or attachments."
+                )
+            if metric in {"word_count", "character_count"} and scope not in {
+                "title",
+                "abstract",
+                "body",
+                "full_text",
+            }:
+                findings.append(
+                    f"{label} metric={metric} requires title, abstract, body, or full_text scope."
+                )
+            if metric == "page_count" and scope != "rendered_manuscript":
+                findings.append(f"{label} metric=page_count requires scope=rendered_manuscript.")
+        elif metric in {"required_sections", "required_material"}:
+            if operator != "required":
+                findings.append(f"{label} requires operator=required.")
+            required_values = string_list(rule.get("limit"))
+            if not required_values:
+                findings.append(f"{label}.limit must list required values.")
+            if metric == "required_material":
+                unknown = sorted(set(required_values) - requirement_ids)
+                if unknown:
+                    findings.append(f"{label} references unknown package requirement ids: {unknown}")
+        elif metric == "confirmation":
+            if verification != "needs_author_confirmation":
+                findings.append(f"{label} confirmation metrics require verification=needs_author_confirmation.")
+            if operator != "required":
+                findings.append(f"{label} confirmation metrics require operator=required.")
+            if not str(rule.get("confirmation_id") or "").strip():
+                findings.append(f"{label}.confirmation_id is required.")
+
+    for area, entry in coverage_map.items():
+        if str(entry.get("status")) == "known" and rules_by_area.get(area, 0) == 0:
+            findings.append(f"Compliance coverage {area} is known but has no structured rule.")
+        if str(entry.get("status")) == "not_applicable" and rules_by_area.get(area, 0):
+            warnings.append(f"Compliance coverage {area} is not_applicable but rules were supplied and ignored.")
+    return coverage, [rule for rule in rules if isinstance(rule, dict)]
+
+
 def validate_profile(path: Path) -> tuple[AuditResult, dict[str, Any]]:
     result = AuditResult("target_profile", str(path))
     data, error = load_json(path)
@@ -260,6 +437,7 @@ def validate_profile(path: Path) -> tuple[AuditResult, dict[str, Any]]:
         result.findings.append("sources must contain at least one evidence source.")
         sources = []
     source_ids: set[str] = set()
+    official_source_ids: set[str] = set()
     official_count = 0
     for index, source in enumerate(sources, start=1):
         label = f"sources[{index}]"
@@ -278,6 +456,8 @@ def validate_profile(path: Path) -> tuple[AuditResult, dict[str, Any]]:
             result.findings.append(f"{label}.authority must be one of {sorted(SOURCE_AUTHORITIES)}.")
         if authority == "official":
             official_count += 1
+            if source_id:
+                official_source_ids.add(source_id)
         url = str(source.get("url") or "")
         if not url.startswith(("https://", "http://")):
             result.findings.append(f"{label}.url must be an HTTP(S) source URL.")
@@ -352,6 +532,87 @@ def validate_profile(path: Path) -> tuple[AuditResult, dict[str, Any]]:
             result.findings.append(f"{label}.reuse_policy must be one of {sorted(REUSE_POLICIES)}.")
         referenced_source_ids(requirement, label, source_ids, result.findings)
 
+    coverage, compliance_rules = validate_compliance_contract(
+        data,
+        source_ids=source_ids,
+        official_source_ids=official_source_ids,
+        requirement_ids=requirement_ids,
+        findings=result.findings,
+        warnings=result.warnings,
+    )
+    legacy_limits = [
+        ("format.word_limit", format_contract.get("word_limit"), "body", "word_count", "body"),
+        ("format.page_limit", format_contract.get("page_limit"), "body", "page_count", "rendered_manuscript"),
+        (
+            "format.title.word_limit",
+            format_contract.get("title", {}).get("word_limit") if isinstance(format_contract.get("title"), dict) else None,
+            "title",
+            "word_count",
+            "title",
+        ),
+        (
+            "format.abstract.word_limit",
+            format_contract.get("abstract", {}).get("word_limit")
+            if isinstance(format_contract.get("abstract"), dict)
+            else None,
+            "abstract",
+            "word_count",
+            "abstract",
+        ),
+        (
+            "format.figures.max_count",
+            format_contract.get("figures", {}).get("max_count")
+            if isinstance(format_contract.get("figures"), dict)
+            else None,
+            "figures",
+            "count",
+            "figures",
+        ),
+        (
+            "format.tables.max_count",
+            format_contract.get("tables", {}).get("max_count")
+            if isinstance(format_contract.get("tables"), dict)
+            else None,
+            "tables",
+            "count",
+            "tables",
+        ),
+        (
+            "format.references.max_count",
+            format_contract.get("references", {}).get("max_count")
+            if isinstance(format_contract.get("references"), dict)
+            else None,
+            "references",
+            "count",
+            "references",
+        ),
+        (
+            "format.attachments.max_count",
+            format_contract.get("attachments", {}).get("max_count")
+            if isinstance(format_contract.get("attachments"), dict)
+            else None,
+            "attachments",
+            "count",
+            "attachments",
+        ),
+    ]
+    for label, limit, area, metric, scope in legacy_limits:
+        if limit is None:
+            continue
+        matches = [
+            rule
+            for rule in compliance_rules
+            if str(rule.get("area")) == area
+            and str(rule.get("metric")) == metric
+            and str(rule.get("scope")) == scope
+            and rule.get("limit") == limit
+            and str(rule.get("operator")) == "max"
+        ]
+        if not matches:
+            result.findings.append(
+                f"{label}={limit!r} must be mirrored exactly by a structured compliance rule."
+            )
+
     result.findings = dedupe(result.findings)
     result.warnings = dedupe(result.warnings)
     result.details = {
@@ -360,6 +621,8 @@ def validate_profile(path: Path) -> tuple[AuditResult, dict[str, Any]]:
         "source_count": len(sources),
         "official_source_count": official_count,
         "requirement_count": len(requirements),
+        "compliance_coverage_count": len(coverage),
+        "compliance_rule_count": len(compliance_rules),
     }
     return result, data
 
@@ -375,6 +638,453 @@ def extract_searchable_text(path: Path) -> str:
             return ""
         return re.sub(r"<[^>]+>", " ", document)
     return ""
+
+
+def _word_count(text: str) -> int:
+    return len(re.findall(r"\b[\w'-]+\b", text, flags=re.UNICODE))
+
+
+def _character_count(text: str) -> int:
+    return len(re.sub(r"\s+", "", text))
+
+
+def _tex_group(text: str, opening_index: int, opening: str = "{", closing: str = "}") -> tuple[str, int] | None:
+    r"""Return one balanced TeX group and its exclusive end offset.
+
+    Escaped delimiters (``\{``/``\}``) are content, while a delimiter after an
+    escaped backslash (``\\{``) retains its structural meaning.
+    """
+    if opening_index >= len(text) or text[opening_index] != opening:
+        return None
+    depth = 0
+    index = opening_index
+    while index < len(text):
+        char = text[index]
+        if char == "\\" and index + 1 < len(text) and text[index + 1] in {opening, closing, "\\"}:
+            index += 2
+            continue
+        if char == opening:
+            depth += 1
+        elif char == closing:
+            depth -= 1
+            if depth == 0:
+                return text[opening_index + 1 : index], index + 1
+        index += 1
+    return None
+
+
+def _tex_macro_arguments(text: str, command: str) -> list[tuple[str, int, int]]:
+    """Extract balanced mandatory arguments for a TeX command.
+
+    Each tuple contains ``(argument, command_start, argument_end)``. Optional
+    bracket groups and a starred command form are accepted so the helper can
+    also parse section headings without single-line regular expressions.
+    """
+    arguments: list[tuple[str, int, int]] = []
+    index = 0
+    while index < len(text):
+        command_start = text.find("\\", index)
+        if command_start < 0:
+            break
+        preceding_slashes = 0
+        cursor = command_start - 1
+        while cursor >= 0 and text[cursor] == "\\":
+            preceding_slashes += 1
+            cursor -= 1
+        if preceding_slashes % 2:
+            index = command_start + 1
+            continue
+        name_end = command_start + 1
+        while name_end < len(text) and (text[name_end].isalpha() or text[name_end] == "@"):
+            name_end += 1
+        if text[command_start + 1 : name_end] != command:
+            index = max(name_end, command_start + 1)
+            continue
+        cursor = name_end
+        if cursor < len(text) and text[cursor] == "*":
+            cursor += 1
+        while cursor < len(text) and text[cursor].isspace():
+            cursor += 1
+        while cursor < len(text) and text[cursor] == "[":
+            optional = _tex_group(text, cursor, "[", "]")
+            if optional is None:
+                break
+            _, cursor = optional
+            while cursor < len(text) and text[cursor].isspace():
+                cursor += 1
+        group = _tex_group(text, cursor)
+        if group is None:
+            index = max(cursor + 1, command_start + 1)
+            continue
+        argument, argument_end = group
+        arguments.append((argument, command_start, argument_end))
+        index = argument_end
+    return arguments
+
+
+def _without_spans(text: str, spans: list[tuple[int, int]]) -> str:
+    for start, end in sorted(spans, reverse=True):
+        text = text[:start] + " " + text[end:]
+    return text
+
+
+def _tex_abstract_from_section(text: str) -> tuple[str, tuple[int, int] | None]:
+    sections = _tex_macro_arguments(text, "section")
+    for index, (heading, start, end) in enumerate(sections):
+        if _normalized_heading(_tex_plain(heading)) != "abstract":
+            continue
+        section_end = sections[index + 1][1] if index + 1 < len(sections) else len(text)
+        return text[end:section_end], (start, section_end)
+    return "", None
+
+
+def _tex_plain(text: str) -> str:
+    text = re.sub(r"(?m)(?<!\\)%.*$", " ", text)
+    text = re.sub(r"\$\$.*?\$\$|\$.*?\$", " ", text, flags=re.DOTALL)
+    text = re.sub(r"\\begin\{(?:figure\*?|table\*?)\}.*?\\end\{(?:figure\*?|table\*?)\}", " ", text, flags=re.DOTALL)
+    for _ in range(4):
+        text = re.sub(r"\\[A-Za-z@]+\*?(?:\[[^\]]*\])?\{([^{}]*)\}", r"\1", text)
+    text = re.sub(r"\\[A-Za-z@]+\*?(?:\[[^\]]*\])?", " ", text)
+    text = re.sub(r"[{}~]", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _tex_metrics(path: Path, bibliography_paths: list[Path]) -> dict[str, Any]:
+    raw = path.read_text(encoding="utf-8", errors="ignore")
+    clean = re.sub(r"(?m)(?<!\\)%.*$", "", raw)
+    title_arguments = _tex_macro_arguments(clean, "title")
+    abstract_arguments = _tex_macro_arguments(clean, "abstract")
+    abstract_match = re.search(r"\\begin\{abstract\}(.*?)\\end\{abstract\}", clean, flags=re.DOTALL)
+    section_abstract, _ = _tex_abstract_from_section(clean)
+    title = _tex_plain(title_arguments[0][0]) if title_arguments else ""
+    if abstract_arguments:
+        abstract = _tex_plain(abstract_arguments[0][0])
+    elif abstract_match:
+        abstract = _tex_plain(abstract_match.group(1))
+    else:
+        abstract = _tex_plain(section_abstract)
+    document_match = re.search(r"\\begin\{document\}(.*?)\\end\{document\}", clean, flags=re.DOTALL)
+    document = document_match.group(1) if document_match else clean
+    document = _without_spans(
+        document,
+        [(start, end) for _, start, end in _tex_macro_arguments(document, "abstract")],
+    )
+    document = re.sub(r"\\begin\{abstract\}.*?\\end\{abstract\}", " ", document, flags=re.DOTALL)
+    _, document_abstract_section = _tex_abstract_from_section(document)
+    if document_abstract_section:
+        document = _without_spans(document, [document_abstract_section])
+    document = re.sub(r"\\begin\{thebibliography\}.*?\\end\{thebibliography\}", " ", document, flags=re.DOTALL)
+    body = _tex_plain(document)
+    sections = [
+        _tex_plain(item)
+        for item, _, _ in _tex_macro_arguments(clean, "section")
+    ]
+    if abstract:
+        sections.append("Abstract")
+    reference_count = len(re.findall(r"\\bibitem(?:\[[^\]]*\])?\{", clean))
+    for bib_path in bibliography_paths:
+        if bib_path.is_file():
+            reference_count += len(re.findall(r"(?m)^\s*@\w+\s*\{", bib_path.read_text(encoding="utf-8", errors="ignore")))
+    return {
+        "title": title,
+        "abstract": abstract,
+        "body": body,
+        "full_text": " ".join(part for part in (title, abstract, body) if part),
+        "sections": sections,
+        "figures": len(re.findall(r"\\begin\{figure\*?\}", clean)),
+        "tables": len(re.findall(r"\\begin\{table\*?\}", clean)),
+        "references": reference_count,
+        "counting_method": (
+            "deterministic TeX plain-text extraction with balanced macro arguments; "
+            "body excludes abstract, bibliography, figure and table content"
+        ),
+    }
+
+
+def _markdown_metrics(path: Path) -> dict[str, Any]:
+    raw = path.read_text(encoding="utf-8", errors="ignore")
+    headings = re.findall(r"(?m)^#{1,6}\s+(.+?)\s*$", raw)
+    title = headings[0] if headings else next((line.strip() for line in raw.splitlines() if line.strip()), "")
+    abstract_match = re.search(
+        r"(?ims)^#{1,6}\s+abstract\s*$\s*(.*?)(?=^#{1,6}\s+|\Z)", raw
+    )
+    abstract = abstract_match.group(1).strip() if abstract_match else ""
+    body = raw
+    if abstract_match:
+        body = body[: abstract_match.start()] + body[abstract_match.end() :]
+    body = re.sub(r"(?m)^#{1,6}\s+.*$", " ", body)
+    reference_match = re.search(r"(?ims)^#{1,6}\s+references\s*$\s*(.*?)(?=^#{1,6}\s+|\Z)", raw)
+    references = 0
+    if reference_match:
+        references = len(re.findall(r"(?m)^\s*(?:[-*]|\d+[.)])\s+", reference_match.group(1)))
+    return {
+        "title": title,
+        "abstract": abstract,
+        "body": re.sub(r"\s+", " ", body).strip(),
+        "full_text": re.sub(r"\s+", " ", raw).strip(),
+        "sections": headings,
+        "figures": len(re.findall(r"!\[[^\]]*\]\([^\)]+\)", raw)),
+        "tables": len(re.findall(r"(?m)^\s*\|(?:[^\n]*\|)+\s*$", raw)) // 2,
+        "references": references,
+        "counting_method": "deterministic Markdown heading/plain-text extraction",
+    }
+
+
+def manuscript_metrics(path: Path, bibliography_paths: list[Path]) -> tuple[dict[str, Any], str | None]:
+    if not path.is_file():
+        return {}, f"Compliance manuscript does not exist: {path}"
+    suffix = path.suffix.lower()
+    try:
+        if suffix == ".tex":
+            return _tex_metrics(path, bibliography_paths), None
+        if suffix in {".md", ".txt"}:
+            return _markdown_metrics(path), None
+    except OSError as exc:
+        return {}, f"Cannot read compliance manuscript {path}: {exc}"
+    return {}, (
+        f"Compliance manuscript format {suffix or '<none>'} is not deterministically analyzable; "
+        "provide compliance_inputs.manuscript_path pointing to the current .tex, .md, or .txt source."
+    )
+
+
+def pdf_page_count(path: Path | None) -> tuple[int | None, str | None]:
+    if path is None:
+        return None, "No rendered PDF was supplied for the formal page-count rule."
+    if not path.is_file() or path.suffix.lower() != ".pdf":
+        return None, f"Rendered manuscript PDF is missing or not a .pdf file: {path}"
+    try:
+        from pypdf import PdfReader  # type: ignore[import-not-found]
+    except ImportError:
+        try:
+            from PyPDF2 import PdfReader  # type: ignore[import-not-found,no-redef]
+        except ImportError:
+            return None, "Neither pypdf nor PyPDF2 is available for deterministic PDF page counting."
+    try:
+        return len(PdfReader(str(path)).pages), None
+    except Exception as exc:  # pragma: no cover - parser-specific errors are fail-closed
+        return None, f"Cannot count rendered PDF pages: {exc}"
+
+
+def _normalized_heading(value: object) -> str:
+    return re.sub(r"[^\w]+", " ", str(value or "").casefold()).strip()
+
+
+def _rule_sources(rule: dict[str, Any], profile: dict[str, Any]) -> list[dict[str, str]]:
+    wanted = set(string_list(rule.get("source_ids")))
+    return [
+        {"id": str(source.get("id") or ""), "url": str(source.get("url") or "")}
+        for source in profile.get("sources", [])
+        if isinstance(source, dict) and str(source.get("id") or "") in wanted
+    ]
+
+
+def _resolve_plan_context(
+    plan_path: Path | None,
+) -> tuple[dict[str, Any], Path | None, dict[str, str], set[str], list[Path], list[str]]:
+    if plan_path is None:
+        return {}, None, {}, set(), [], []
+    plan, error = load_json(plan_path)
+    if error:
+        return {}, None, {}, set(), [], [error]
+    base = plan_path.parent.resolve()
+    project_root_value = plan.get("project_root")
+    if not project_root_value:
+        return plan, None, {}, set(), [], ["package plan project_root is required for final rule validation."]
+    project_root = resolve_from(base, project_root_value)
+    findings: list[str] = []
+    if not project_root.is_dir():
+        findings.append(f"package plan project_root does not exist: {project_root}")
+    confirmations = {
+        str(item.get("id")): str(item.get("status"))
+        for item in plan.get("author_confirmations", [])
+        if isinstance(item, dict) and item.get("id")
+    }
+    ready_materials: set[str] = set()
+    for item in plan.get("items", []):
+        if not isinstance(item, dict) or str(item.get("status")) != "ready":
+            continue
+        source = resolve_from(base, item.get("source_path"))
+        if project_root.is_dir() and source.is_file() and is_relative_to(source, project_root):
+            ready_materials.add(str(item.get("requirement_id") or ""))
+    bibliography_paths: list[Path] = []
+    inputs = plan.get("compliance_inputs")
+    if not isinstance(inputs, dict):
+        inputs = {}
+    for raw in inputs.get("bibliography_paths", []) if isinstance(inputs.get("bibliography_paths"), list) else []:
+        candidate = resolve_from(base, raw)
+        if project_root.is_dir() and candidate.is_file() and is_relative_to(candidate, project_root):
+            bibliography_paths.append(candidate)
+        else:
+            findings.append(f"compliance_inputs bibliography path is missing or outside project_root: {candidate}")
+    return plan, project_root, confirmations, ready_materials, bibliography_paths, findings
+
+
+def check_journal_rules(
+    profile_path: Path,
+    manuscript_path: Path,
+    *,
+    plan_path: Path | None = None,
+    phase: str = "writing",
+    rendered_pdf_path: Path | None = None,
+) -> AuditResult:
+    result = AuditResult("journal_rules", str(manuscript_path))
+    if phase not in {"writing", "final"}:
+        result.findings.append("phase must be writing or final.")
+        return result
+    profile_audit, profile = validate_profile(profile_path)
+    result.findings.extend(profile_audit.findings)
+    result.warnings.extend(profile_audit.warnings)
+    plan, project_root, confirmations, ready_materials, bibliography_paths, plan_findings = _resolve_plan_context(
+        plan_path
+    )
+    result.findings.extend(plan_findings if phase == "final" else [])
+    if rendered_pdf_path is None and plan:
+        inputs = plan.get("compliance_inputs") if isinstance(plan.get("compliance_inputs"), dict) else {}
+        raw_pdf = inputs.get("rendered_pdf_path")
+        if raw_pdf and plan_path is not None:
+            rendered_pdf_path = resolve_from(plan_path.parent.resolve(), raw_pdf)
+    if phase == "final" and rendered_pdf_path is not None and project_root is not None:
+        if not is_relative_to(rendered_pdf_path.resolve(), project_root):
+            result.findings.append(f"Rendered compliance PDF escapes project_root: {rendered_pdf_path}")
+    manuscript = manuscript_path.resolve()
+    if phase == "final":
+        if plan_path is None:
+            result.findings.append("Final journal-rule validation requires submission_package_plan.json.")
+        elif project_root is not None and not is_relative_to(manuscript, project_root):
+            result.findings.append(f"Compliance manuscript escapes project_root: {manuscript}")
+    metrics, metrics_error = manuscript_metrics(manuscript, bibliography_paths)
+    if metrics_error:
+        result.findings.append(metrics_error)
+
+    requirement_roles = {
+        str(item.get("id") or ""): str(item.get("role") or "")
+        for item in profile.get("package_requirements", [])
+        if isinstance(item, dict)
+    }
+    attachment_count = len(
+        [item for item in ready_materials if requirement_roles.get(item) not in {"main_manuscript", "blinded_manuscript"}]
+    )
+    rule_results: list[dict[str, Any]] = []
+    rules = profile.get("compliance", {}).get("rules", []) if isinstance(profile.get("compliance"), dict) else []
+    for rule in rules if isinstance(rules, list) else []:
+        if not isinstance(rule, dict):
+            continue
+        verification = str(rule.get("verification") or "")
+        metric = str(rule.get("metric") or "")
+        scope = str(rule.get("scope") or "")
+        observed: Any = None
+        status = "pending"
+        blocking = verification != "advisory"
+        if phase == "writing" and (
+            verification == "needs_author_confirmation" or metric in {"required_material"} or scope == "attachments"
+        ):
+            status = "deferred_to_final"
+            blocking = False
+        elif verification == "needs_author_confirmation":
+            observed = confirmations.get(str(rule.get("confirmation_id") or ""), "missing")
+            status = "pass" if observed == "confirmed" else "needs_author_confirmation"
+        elif metric in {"word_count", "character_count", "page_count", "count"}:
+            if scope == "attachments":
+                observed = attachment_count
+            elif metric == "page_count":
+                observed, page_error = pdf_page_count(rendered_pdf_path)
+                if page_error:
+                    result.warnings.append(page_error)
+            elif scope in {"figures", "tables", "references"}:
+                observed = metrics.get(scope)
+            else:
+                text = metrics.get(scope)
+                if isinstance(text, str):
+                    if metric == "word_count":
+                        observed = _word_count(text)
+                    elif metric == "character_count":
+                        observed = _character_count(text)
+            if observed is not None:
+                passed = observed <= rule.get("limit")
+                status = "pass" if passed else "fail"
+        elif metric == "required_sections":
+            required = string_list(rule.get("limit"))
+            present = {_normalized_heading(item) for item in metrics.get("sections", [])}
+            missing = [item for item in required if _normalized_heading(item) not in present]
+            observed = {"present": metrics.get("sections", []), "missing": missing}
+            status = "pass" if not missing else "fail"
+        elif metric == "required_material":
+            required = string_list(rule.get("limit"))
+            missing = [item for item in required if item not in ready_materials]
+            observed = {"ready": sorted(ready_materials), "missing": missing}
+            status = "pass" if not missing else "fail"
+
+        if verification == "advisory":
+            blocking = False
+            status = f"advisory_{status}"
+        remediation = str(rule.get("remediation") or "")
+        record = {
+            "id": str(rule.get("id") or ""),
+            "area": str(rule.get("area") or ""),
+            "verification": verification,
+            "observed": observed,
+            "limit": rule.get("limit"),
+            "unit": str(rule.get("unit") or ""),
+            "source": _rule_sources(rule, profile),
+            "source_locator": str(rule.get("source_locator") or ""),
+            "status": status,
+            "blocking": blocking and status != "pass",
+            "remediation": remediation,
+        }
+        rule_results.append(record)
+        if record["blocking"]:
+            result.findings.append(
+                f"Journal rule {record['id']} is {status}: observed={observed!r}, "
+                f"limit={record['limit']!r} {record['unit']}. Remediation: {remediation}"
+            )
+        elif verification == "advisory" and status != "advisory_pass":
+            result.warnings.append(
+                f"Advisory journal rule {record['id']} is {status}: observed={observed!r}, limit={record['limit']!r}."
+            )
+
+    result.findings = dedupe(result.findings)
+    result.warnings = dedupe(result.warnings)
+    result.details = {
+        "phase": phase,
+        "target": profile.get("target", {}).get("name"),
+        "profile_sha256": sha256_file(profile_path) if profile_path.is_file() else None,
+        "manuscript_path": str(manuscript),
+        "manuscript_sha256": sha256_file(manuscript) if manuscript.is_file() else None,
+        "counting_method": metrics.get("counting_method"),
+        "rules": rule_results,
+        "external_action_authorized": False,
+    }
+    return result
+
+
+def journal_rules_markdown(result: AuditResult) -> str:
+    lines = [
+        "# Journal Rules Check",
+        "",
+        f"- Subject: `{result.subject}`",
+        f"- Phase: {result.details.get('phase')}",
+        f"- Status: {'PASS' if result.ok else 'BLOCKED'}",
+        f"- Counting method: {result.details.get('counting_method') or 'unavailable'}",
+        "- External action authorized: false",
+        "",
+        "| Rule | Area | Verification | Observed | Limit | Unit | Source | Status | Remediation |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    for rule in result.details.get("rules", []):
+        source = ", ".join(
+            f"{item.get('id')} ({item.get('url')})" for item in rule.get("source", [])
+        )
+        lines.append(
+            f"| {rule.get('id')} | {rule.get('area')} | {rule.get('verification')} | "
+            f"{str(rule.get('observed')).replace('|', '/')} | {str(rule.get('limit')).replace('|', '/')} | "
+            f"{rule.get('unit')} | {source.replace('|', '/')} | {rule.get('status')} | "
+            f"{str(rule.get('remediation')).replace('|', '/')} |"
+        )
+    lines.extend(["", "## Blocking findings", ""])
+    lines.extend(f"- {item}" for item in result.findings) if result.findings else lines.append("- None")
+    lines.extend(["", "## Advisory findings", ""])
+    lines.extend(f"- {item}" for item in result.warnings) if result.warnings else lines.append("- None")
+    return "\n".join(lines) + "\n"
 
 
 def deterministic_zip(upload_root: Path, archive_path: Path) -> None:
@@ -416,6 +1126,30 @@ def assemble_bundle(profile_path: Path, plan_path: Path, output_dir: Path) -> Au
     if output_dir.exists() and any(output_dir.iterdir()):
         result.findings.append(f"output_dir is not empty; use a new immutable bundle directory: {output_dir}")
         return result
+
+    compliance_inputs = plan.get("compliance_inputs")
+    if not isinstance(compliance_inputs, dict):
+        compliance_inputs = {}
+    manuscript_value = compliance_inputs.get("manuscript_path")
+    if not manuscript_value:
+        rule_audit = AuditResult(
+            "journal_rules",
+            "<missing>",
+            findings=[
+                "submission_package_plan.compliance_inputs.manuscript_path is required for final journal-rule revalidation."
+            ],
+            details={"phase": "final", "rules": [], "external_action_authorized": False},
+        )
+    else:
+        compliance_manuscript = resolve_from(base, manuscript_value)
+        rule_audit = check_journal_rules(
+            profile_path,
+            compliance_manuscript,
+            plan_path=plan_path,
+            phase="final",
+        )
+    result.findings.extend(rule_audit.findings)
+    result.warnings.extend(rule_audit.warnings)
 
     target_name = str(profile.get("target", {}).get("name") or "")
     if str(plan.get("target_name") or "") != target_name:
@@ -579,6 +1313,12 @@ def assemble_bundle(profile_path: Path, plan_path: Path, output_dir: Path) -> Au
 
     shutil.copy2(profile_path, output_dir / "target_profile.snapshot.json")
     shutil.copy2(plan_path, output_dir / "package_plan.snapshot.json")
+    rules_json_path = output_dir / "journal_rules_final.json"
+    rules_md_path = output_dir / "journal_rules_final.md"
+    rules_json_path.write_text(
+        json.dumps(rule_audit.payload(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    rules_md_path.write_text(journal_rules_markdown(rule_audit), encoding="utf-8")
     result.findings = dedupe(result.findings)
     result.warnings = dedupe(result.warnings)
     manifest = {
@@ -590,6 +1330,15 @@ def assemble_bundle(profile_path: Path, plan_path: Path, output_dir: Path) -> Au
         "items": copied_entries,
         "pending_actions": dedupe(pending_actions),
         "warnings": result.warnings,
+        "external_action_authorized": False,
+        "journal_rules": {
+            "status": "PASS" if rule_audit.ok else "BLOCKED",
+            "json_path": rules_json_path.name,
+            "json_sha256": sha256_file(rules_json_path),
+            "markdown_path": rules_md_path.name,
+            "markdown_sha256": sha256_file(rules_md_path),
+            "rule_count": len(rule_audit.details.get("rules", [])),
+        },
         "archive": None,
     }
     archive_path = output_dir / "submission_bundle.zip"
@@ -635,6 +1384,18 @@ def bundle_manifest_markdown(manifest: dict[str, Any]) -> str:
     lines.extend(["", "## Pending Author Actions", ""])
     pending = manifest.get("pending_actions") or []
     lines.extend(f"- {item}" for item in pending) if pending else lines.append("- None")
+    rules = manifest.get("journal_rules") or {}
+    lines.extend(
+        [
+            "",
+            "## Journal Rules",
+            "",
+            f"- Status: {rules.get('status', 'BLOCKED')}",
+            f"- Machine-readable receipt: `{rules.get('json_path')}` — `{rules.get('json_sha256')}`",
+            f"- Human-readable receipt: `{rules.get('markdown_path')}` — `{rules.get('markdown_sha256')}`",
+            f"- Rules evaluated: {rules.get('rule_count', 0)}",
+        ]
+    )
     lines.extend(["", "## Archive", ""])
     archive = manifest.get("archive")
     if archive:
@@ -1256,6 +2017,8 @@ def public_interface_descriptor() -> dict[str, Any]:
         ],
         "completion_rules": {
             "canonical_paper_complete_is_not_bundle_ready": True,
+            "target_profile_requires_complete_official_rule_coverage": True,
+            "writing_precheck_does_not_replace_final_bundle_revalidation": True,
             "transfer_delta_ready_requires_destination_rebuild": True,
             "rebuttal_ready_does_not_authorize_resubmission": True,
             "external_action_requires_separate_user_authorization": True,
@@ -1538,6 +2301,19 @@ def build_parser() -> argparse.ArgumentParser:
     profile.add_argument("--markdown", action="store_true")
     profile.add_argument("--write", action="store_true")
 
+    rules = subparsers.add_parser(
+        "rules-check",
+        help="Precheck structured journal limits/requirements against a manuscript.",
+    )
+    rules.add_argument("profile", type=Path)
+    rules.add_argument("manuscript", type=Path)
+    rules.add_argument("--plan", type=Path)
+    rules.add_argument("--rendered-pdf", type=Path)
+    rules.add_argument("--phase", choices=("writing", "final"), default="writing")
+    rules.add_argument("--json", action="store_true")
+    rules.add_argument("--markdown", action="store_true")
+    rules.add_argument("--write", action="store_true")
+
     assemble = subparsers.add_parser("assemble", help="Assemble an immutable target-specific upload bundle.")
     assemble.add_argument("profile", type=Path)
     assemble.add_argument("plan", type=Path)
@@ -1582,6 +2358,21 @@ def main() -> int:
             args.profile.resolve().with_name("target_profile_check.md").write_text(
                 audit_markdown(result), encoding="utf-8"
             )
+    elif args.command == "rules-check":
+        result = check_journal_rules(
+            args.profile.resolve(),
+            args.manuscript.resolve(),
+            plan_path=args.plan.resolve() if args.plan else None,
+            phase=args.phase,
+            rendered_pdf_path=args.rendered_pdf.resolve() if args.rendered_pdf else None,
+        )
+        if args.write:
+            stem = "journal_rules_precheck" if args.phase == "writing" else "journal_rules_final_preflight"
+            report_dir = args.profile.resolve().parent
+            (report_dir / f"{stem}.json").write_text(
+                json.dumps(result.payload(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
+            (report_dir / f"{stem}.md").write_text(journal_rules_markdown(result), encoding="utf-8")
     elif args.command == "assemble":
         result = assemble_bundle(args.profile.resolve(), args.plan.resolve(), args.output_dir.resolve())
     elif args.command == "rebuttal-check":
@@ -1599,7 +2390,13 @@ def main() -> int:
             args.request.resolve(),
             args.output_dir.resolve(),
         )
-    emit(result, json_output=args.json, markdown_output=args.markdown)
+    if args.command == "rules-check":
+        if args.json:
+            print(json.dumps(result.payload(), ensure_ascii=False, indent=2))
+        if args.markdown or not args.json:
+            print(journal_rules_markdown(result), end="")
+    else:
+        emit(result, json_output=args.json, markdown_output=args.markdown)
     return 0 if result.ok else 1
 
 

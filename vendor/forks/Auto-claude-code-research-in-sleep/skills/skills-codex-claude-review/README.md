@@ -1,5 +1,7 @@
 # skills-codex-claude-review
 
+> **Frozen legacy partial overlay.** Kept for existing installations and links; no new workflow features or regeneration from the base pack. Use the full `skills-codex` pack with reviewer selection for new installs and migration: [safe migration](../skills-codex/README.md#migrate-frozen-partial-overlays). The historical installation and protocol notes below remain for existing users; transport names and old assurance statements do not establish actual model identity, review completion, or acceptance.
+
 This package is a **thin override layer** for users who want:
 
 - **Codex** as the main executor

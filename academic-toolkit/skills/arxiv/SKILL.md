@@ -13,7 +13,7 @@ Search topic or arXiv paper ID: $ARGUMENTS
 
 - **PAPER_DIR** - Local directory to save downloaded PDFs. Default: `papers/` in the current project directory.
 - **MAX_RESULTS = 10** - Default number of search results.
-- **FETCH_SCRIPT** - `tools/arxiv_fetch.py` relative to the MH Agent install, or the same path relative to the current project. Fall back to inline Python if not found.
+- **FETCH_SCRIPT** - `academic-toolkit/tools/arxiv_fetch.py` (repo-root relative) or `tools/arxiv_fetch.py` relative to the current project. Fall back to inline Python if not found.
 
 > Overrides (append to arguments):
 > - `/arxiv "attention mechanism" - max: 20` - return up to 20 results
@@ -43,6 +43,7 @@ Locate the fetch script:
 SCRIPT=$(python3 -c "
 import pathlib
 candidates = [
+    pathlib.Path('academic-toolkit/tools/arxiv_fetch.py'),
     pathlib.Path('tools/arxiv_fetch.py'),
 ]
 for p in candidates:

@@ -78,10 +78,6 @@ export const dict = {
   "command.session.compact.description": "Resumir la sesión para reducir el tamaño del contexto",
   "command.session.fork": "Bifurcar desde mensaje",
   "command.session.fork.description": "Crear una nueva sesión desde un mensaje anterior",
-  "command.session.share": "Compartir sesión",
-  "command.session.share.description": "Compartir esta sesión y copiar la URL al portapapeles",
-  "command.session.unshare": "Dejar de compartir sesión",
-  "command.session.unshare.description": "Dejar de compartir esta sesión",
 
   "palette.search.placeholder": "Buscar archivos y comandos",
   "palette.empty": "No se encontraron resultados",
@@ -93,7 +89,6 @@ export const dict = {
   "dialog.provider.group.popular": "Popular",
   "dialog.provider.group.other": "Otro",
   "dialog.provider.tag.recommended": "Recomendado",
-  "dialog.provider.synsci.note": "curated models including Claude, GPT, Gemini and more",
   "dialog.provider.anthropic.note": "Conectar con Claude Pro/Max o clave API",
   "dialog.provider.openai.note": "Conectar con ChatGPT Pro/Plus o clave API",
   "dialog.provider.google.note": "Gemini models for fast, structured responses",
@@ -106,10 +101,6 @@ export const dict = {
   "dialog.model.empty": "Sin resultados de modelos",
   "dialog.model.manage": "Gestionar modelos",
   "dialog.model.manage.description": "Personalizar qué modelos aparecen en el selector de modelos.",
-
-  "dialog.model.unpaid.freeModels.title": "Modelos gratuitos de tus proveedores conectados",
-  "dialog.model.unpaid.empty": "no free models available yet — connect a provider to add models.",
-  "dialog.model.unpaid.addMore.title": "Añadir más modelos de proveedores populares",
 
   "dialog.provider.viewAll": "Ver más proveedores",
 
@@ -263,16 +254,10 @@ export const dict = {
   "dialog.project.edit.worktree.startup.description":
     "Se ejecuta después de crear un nuevo espacio de trabajo (árbol de trabajo).",
   "dialog.project.edit.worktree.startup.placeholder": "p. ej. bun install",
-  "context.breakdown.title": "Desglose de Contexto",
-  "context.breakdown.note":
-    'Desglose aproximado de tokens de entrada. "Otro" incluye definiciones de herramientas y sobrecarga.',
-  "context.breakdown.system": "Sistema",
   "context.breakdown.user": "Usuario",
   "context.breakdown.assistant": "Asistente",
   "context.breakdown.tool": "Llamadas a herramientas",
-  "context.breakdown.other": "Otro",
 
-  "context.systemPrompt.title": "Prompt del Sistema",
   "context.rawMessages.title": "Mensajes en bruto",
 
   "context.stats.session": "Sesión",
@@ -333,16 +318,6 @@ export const dict = {
   "toast.file.listFailed.title": "Fallo al listar archivos",
   "toast.context.noLineSelection.title": "Sin selección de líneas",
   "toast.context.noLineSelection.description": "Primero selecciona un rango de líneas en una pestaña de archivo.",
-  "toast.session.share.copyFailed.title": "Fallo al copiar URL al portapapeles",
-  "toast.session.share.success.title": "Sesión compartida",
-  "toast.session.share.success.description": "¡URL compartida copiada al portapapeles!",
-  "toast.session.share.failed.title": "Fallo al compartir sesión",
-  "toast.session.share.failed.description": "Ocurrió un error al compartir la sesión",
-
-  "toast.session.unshare.success.title": "Sesión dejó de compartirse",
-  "toast.session.unshare.success.description": "¡La sesión dejó de compartirse exitosamente!",
-  "toast.session.unshare.failed.title": "Fallo al dejar de compartir sesión",
-  "toast.session.unshare.failed.description": "Ocurrió un error al dejar de compartir la sesión",
 
   "toast.session.listFailed.title": "Fallo al cargar sesiones para {{project}}",
 
@@ -380,9 +355,9 @@ export const dict = {
   "error.chain.providerAuthFailed": "Autenticación de proveedor fallida ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     'Fallo al inicializar proveedor "{{provider}}". Comprueba credenciales y configuración.',
-  "error.chain.configJsonInvalid": "El archivo de configuración en {{path}} no es un JSON(C) válido",
+  "error.chain.configJsonInvalid": "El archivo de configuración en {{path}} no es un JSON válido",
   "error.chain.configJsonInvalidWithMessage":
-    "El archivo de configuración en {{path}} no es un JSON(C) válido: {{message}}",
+    "El archivo de configuración en {{path}} no es un JSON válido: {{message}}",
   "error.chain.configDirectoryTypo":
     'El directorio "{{dir}}" en {{path}} no es válido. Renombra el directorio a "{{suggestion}}" o elimínalo. Esto es un error tipográfico común.',
   "error.chain.configFrontmatterError": "Fallo al analizar frontmatter en {{path}}:\n{{message}}",
@@ -438,20 +413,6 @@ export const dict = {
   "status.popover.tab.lsp": "LSP",
   "status.popover.tab.plugins": "Plugins",
   "status.popover.action.manageServers": "Administrar servidores",
-
-  "session.share.popover.title": "Publicar en web",
-  "session.share.popover.description.shared":
-    "Esta sesión es pública en la web. Es accesible para cualquiera con el enlace.",
-  "session.share.popover.description.unshared":
-    "Compartir sesión públicamente en la web. Será accesible para cualquiera con el enlace.",
-  "session.share.action.share": "Compartir",
-  "session.share.action.publish": "Publicar",
-  "session.share.action.publishing": "Publicando...",
-  "session.share.action.unpublish": "Despublicar",
-  "session.share.action.unpublishing": "Despublicando...",
-  "session.share.action.view": "Ver",
-  "session.share.copy.copied": "Copiado",
-  "session.share.copy.copyLink": "Copiar enlace",
 
   "lsp.tooltip.none": "Sin servidores LSP",
   "lsp.label.connected": "{{count}} LSP",

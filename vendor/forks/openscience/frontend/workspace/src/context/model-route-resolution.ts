@@ -10,7 +10,7 @@ const exactRoute = (left: ModelKey, right: ModelKey) =>
 /**
  * Pick one connected route for a logical model without folding provider
  * identities together. Automatic prefers an attached ChatGPT subscription;
- * Credits stays on managed inference; Accounts prefers a direct user route.
+ * Ace stays on managed inference; BYOK prefers a direct user route.
  * An already selected exact route always wins so changing effort or speed can
  * never move a request onto another credential.
  */

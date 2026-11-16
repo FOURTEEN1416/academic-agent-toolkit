@@ -3,6 +3,14 @@ name: infographics
 description: "[EXPERIMENTAL] Create professional infographics using Nano Banana Pro AI with smart iterative refinement. Uses Gemini 3 Pro for quality review. Integrates research-lookup and web search for accurate data. Supports 10 infographic types, 8 industry styles, and colorblind-safe palettes."
 category: visualization
 allowed-tools: [Read, Write, Edit, Bash]
+metadata:
+  upstream: K-Dense-AI/claude-scientific-writer
+  upstream-url: https://github.com/K-Dense-AI/claude-scientific-writer
+  upstream-path: skills/infographics
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: K-Dense Inc.
+  adapted-by: Synthetic Sciences
 ---
 
 # Infographics

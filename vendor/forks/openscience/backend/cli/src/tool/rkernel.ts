@@ -311,11 +311,10 @@ class RKernel implements Kernel {
     try {
       proc = spawn(wrapped.file, wrapped.args, {
         cwd,
-        env: {
-          ...OpenScience.kernelEnv(process.env),
+        env: OpenScience.kernelEnv(process.env, {
           ...(opts?.env ?? {}),
           ATLAS_CLI_CONFIG_PATH: configPath,
-        },
+        }),
         stdio: ["pipe", "pipe", "pipe"],
         // Own process group so killing the kernel reaps its worker children (#102).
         detached: process.platform !== "win32",
@@ -579,7 +578,7 @@ class RKernelManager implements KernelManager {
 }
 
 /** Process-wide singleton manager. */
-export const rKernels = new RKernelManager()
+const rKernels = new RKernelManager()
 KernelRuntime.register(rKernels)
 KernelProcessIdentity.onExit(() => rKernels.shutdownAllSync())
 
@@ -701,7 +700,10 @@ async function executeR(params: RInput, ctx: Tool.Context, compatibilityNamed: b
       permission: "bash",
       patterns: ["R"],
       always: ["Rscript*"],
-      metadata: {},
+      // What the approval card says is being run; the source itself is the tool row's input.
+      metadata: {
+        kernel: { language: "r", title: params.title, lines: params.code!.split("\n").length },
+      },
     })
   }
 

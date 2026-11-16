@@ -4,6 +4,7 @@ import { stream } from "hono/streaming"
 import { describeRoute, validator, resolver } from "hono-openapi"
 import z from "zod"
 import { Session } from "../../session"
+import { Provider } from "../../provider/provider"
 import { MessageV2 } from "../../session/message-v2"
 import { SessionPrompt } from "../../session/prompt"
 import { SessionCompaction } from "../../session/compaction"
@@ -16,16 +17,19 @@ import { Snapshot } from "@/snapshot"
 import { Log } from "../../util/log"
 import { PermissionNext } from "@/permission/next"
 import { errors } from "../error"
-import { lazy } from "../../util/lazy"
+import { lazy } from "@synsci/util/lazy"
 import { SessionFilesystem } from "../../session/filesystem"
+import { TaskReceipts } from "@/session/task-receipts"
 import { SessionTrace } from "../../session/trace"
 import { RuntimeEvents } from "../../runtime/events"
 import { SessionLoopState } from "../../session/loop-state"
+import { SubagentRoutes } from "./subagents"
 
 const log = Log.create({ service: "server" })
 
 export const SessionRoutes = lazy(() =>
   new Hono()
+    .route("/:sessionID/subagents", SubagentRoutes())
     .get(
       "/",
       describeRoute({
@@ -65,8 +69,8 @@ export const SessionRoutes = lazy(() =>
           if (query.roots && session.parentID) continue
           if (query.start !== undefined && session.time.updated < query.start) continue
           if (term !== undefined && !session.title.toLowerCase().includes(term)) continue
-          sessions.push(session)
           if (query.limit !== undefined && sessions.length >= query.limit) break
+          sessions.push(session)
         }
         return c.json(sessions)
       },
@@ -157,6 +161,27 @@ export const SessionRoutes = lazy(() =>
         return c.json(session)
       },
     )
+    .post(
+      "/:sessionID/receipts",
+      describeRoute({
+        summary: "Check settled Ace receipts for a task and its workers",
+        operationId: "session.receipts",
+        responses: {
+          200: {
+            description: "Settled ledger evidence, with pending and missing calls explicit",
+            content: { "application/json": { schema: resolver(TaskReceipts.Info) } },
+          },
+          ...errors(400, 404),
+        },
+      }),
+      validator("param", z.object({ sessionID: Session.get.schema })),
+      async (c) => {
+        const sessionID = c.req.valid("param").sessionID
+        await Session.assertDirectory(sessionID)
+        c.header("Cache-Control", "no-store")
+        return c.json(await TaskReceipts.check(sessionID))
+      },
+    )
     .get(
       "/:sessionID/trace",
       describeRoute({
@@ -245,6 +270,29 @@ export const SessionRoutes = lazy(() =>
         return c.json(grant)
       },
     )
+    .put(
+      "/:sessionID/filesystem/working-root",
+      describeRoute({
+        summary: "Choose the session's working directory",
+        description:
+          "Pin relative tool paths to a connected read/write folder, to session scratch, or return to automatic (the single connected folder when there is one).",
+        operationId: "session.filesystem.workingRoot",
+        responses: {
+          200: {
+            description: "Versioned filesystem grant state",
+            content: { "application/json": { schema: resolver(SessionFilesystem.Snapshot) } },
+          },
+          ...errors(400, 404),
+        },
+      }),
+      validator("param", z.object({ sessionID: Session.get.schema })),
+      validator("json", z.object({ workingRoot: SessionFilesystem.WorkingRoot.nullable() })),
+      async (c) => {
+        const sessionID = c.req.valid("param").sessionID
+        await Session.assertDirectory(sessionID)
+        return c.json(await SessionFilesystem.setWorkingRoot(sessionID, c.req.valid("json").workingRoot))
+      },
+    )
     .delete(
       "/:sessionID/filesystem/:grantID",
       describeRoute({
@@ -311,7 +359,7 @@ export const SessionRoutes = lazy(() =>
         description: "Create a new OpenScience session for interacting with AI assistants and managing conversations.",
         operationId: "session.create",
         responses: {
-          ...errors(400),
+          ...errors(400, 409),
           200: {
             description: "Successfully created session",
             content: {
@@ -819,12 +867,18 @@ export const SessionRoutes = lazy(() =>
       ),
       validator("json", SessionPrompt.PromptInput.omit({ sessionID: true })),
       async (c) => {
+        const sessionID = c.req.valid("param").sessionID
+        const body = c.req.valid("json")
+        // The headers go out before the turn runs because a research turn can
+        // outlast a client's header timeout; once they are committed, an error
+        // can only end the body. Resolve what the caller most often gets wrong
+        // first, so an unknown session or model still answers 404/400.
+        await Session.get(sessionID)
+        if (body.model) await Provider.getModel(body.model.providerID, body.model.modelID)
         c.status(200)
         c.header("Content-Type", "application/json")
         return stream(c, async (stream) => {
-          const sessionID = c.req.valid("param").sessionID
-          const body = c.req.valid("json")
-          const msg = await SessionPrompt.prompt({ ...body, sessionID })
+          const msg = await SessionPrompt.submit({ ...body, sessionID })
           stream.write(JSON.stringify(msg))
         })
       },
@@ -858,7 +912,7 @@ export const SessionRoutes = lazy(() =>
           const body = c.req.valid("json")
           // fire-and-forget: session-level failures are published as session.error
           // events inside prompt(); catch here so nothing becomes an unhandled rejection
-          SessionPrompt.prompt({ ...body, sessionID }).catch((error) => {
+          SessionPrompt.submit({ ...body, sessionID }).catch((error) => {
             log.error("prompt_async failed", { sessionID, error })
           })
         })
@@ -941,10 +995,10 @@ export const SessionRoutes = lazy(() =>
         operationId: "session.revert",
         responses: {
           200: {
-            description: "Updated session",
+            description: "Completed undo transaction",
             content: {
               "application/json": {
-                schema: resolver(Session.Info),
+                schema: resolver(SessionRevert.RevertResult),
               },
             },
           },
@@ -961,11 +1015,18 @@ export const SessionRoutes = lazy(() =>
       async (c) => {
         const sessionID = c.req.valid("param").sessionID
         log.info("revert", c.req.valid("json"))
-        const session = await SessionRevert.revert({
-          sessionID,
-          ...c.req.valid("json"),
-        })
-        return c.json(session)
+        try {
+          const result = await SessionRevert.revert({
+            sessionID,
+            ...c.req.valid("json"),
+          })
+          return c.json(result)
+        } catch (error) {
+          if (error instanceof SessionRevert.UnavailableError || error instanceof SessionRevert.TransactionError) {
+            throw new HTTPException(400, { message: error.message })
+          }
+          throw error
+        }
       },
     )
     .post(
@@ -994,8 +1055,15 @@ export const SessionRoutes = lazy(() =>
       ),
       async (c) => {
         const sessionID = c.req.valid("param").sessionID
-        const session = await SessionRevert.unrevert({ sessionID })
-        return c.json(session)
+        try {
+          const session = await SessionRevert.unrevert({ sessionID })
+          return c.json(session)
+        } catch (error) {
+          if (error instanceof SessionRevert.UnavailableError || error instanceof SessionRevert.TransactionError) {
+            throw new HTTPException(400, { message: error.message })
+          }
+          throw error
+        }
       },
     )
     .post(

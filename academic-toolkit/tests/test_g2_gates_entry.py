@@ -171,7 +171,8 @@ def test_explore_operation_contract_differs_from_delivery(tmp_path):
         explore_action = runner.next_action(explore.id).action
         delivery_action = runner.next_action(delivery.id).action
         assert explore_action.contract_tier == "explore"
-        assert delivery_action.contract_tier is None  # 旧交付直连接口不变
+        # ENG-2：delivery 步骤也显式下发档位（不再置 None），防手拼证据挂错档
+        assert delivery_action.contract_tier == "delivery"
         explore_contract = OperationContext(store, explore_action, tmp_path).contract()
         delivery_contract = OperationContext(store, delivery_action, tmp_path).contract()
         assert explore_contract != delivery_contract

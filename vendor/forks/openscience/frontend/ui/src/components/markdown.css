@@ -115,7 +115,7 @@
   }
 
   .shiki {
-    font-size: 13px;
+    font-size: var(--font-size-medium);
     padding: 8px 12px;
     border-radius: var(--radius-md);
     border: 0.5px solid var(--border-weak-base);
@@ -161,18 +161,17 @@
     }
   }
 
+  /* Inline code is a quiet chip in the text colour, not a second accent. */
   :not(pre) > code {
     font-family: var(--font-family-mono);
     font-feature-settings: var(--font-family-mono--font-feature-settings);
-    color: var(--syntax-string);
-    font-weight: var(--font-weight-medium);
-    /* font-size: 13px; */
-
-    /* padding: 2px 2px; */
-    /* margin: 0 1.5px; */
-    /* border-radius: var(--radius-xs); */
-    /* background: var(--surface-base); */
-    /* box-shadow: 0 0 0 0.5px var(--border-weak-base); */
+    font-size: 0.92em;
+    font-weight: var(--font-weight-regular);
+    color: var(--text-strong);
+    padding: 1px 5px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-base);
+    box-shadow: 0 0 0 0.5px var(--border-weak-base);
   }
 
   /* Tables */
@@ -212,7 +211,7 @@
 [data-component="markdown"] code[data-file-link] {
   cursor: pointer;
 }
-[data-component="markdown"] code[data-file-link]:hover {
+[data-component="markdown"] code[data-file-link]:is(:hover, :focus-visible) {
   color: var(--text-interactive-base);
   text-decoration: underline;
   text-underline-offset: 2px;

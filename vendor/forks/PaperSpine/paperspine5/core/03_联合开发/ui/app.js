@@ -4,6 +4,9 @@ const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selec
 let snapshot = null;
 let currentView = "configuration";
 let hasChosenView = false;
+let pdfPage = 1;
+let manuscriptRenderedRevision = null;
+let activeIssueId = null;
 
 const STAGE_LABELS = {
   initialized: "任务已初始化",
@@ -67,6 +70,7 @@ function setView(view, { user = false } = {}) {
 
 function phaseForSnapshot(data) {
   const stage = data?.state?.stage;
+  if (data?.manuscript?.available && !data?.manuscript?.confirmed_current) return "deliverables";
   if (["canonical_paper_ready", "target_profile_ready", "rebuttal_validated", "rebuttal_materials_ready", "destination_rebuild_ready", "awaiting_external_authorization"].includes(stage)) return "publication";
   if (["awaiting_paper_integration", "complete"].includes(stage)) return "deliverables";
   if (["awaiting_candidates", "awaiting_review", "figures_confirmed"].includes(stage)) return "figures";
@@ -119,8 +123,7 @@ function configurationFromForm() {
     special_requirements: splitLines(data.get("special_requirements")),
     word_output: data.get("word_output"),
     translation_package: data.get("translation_package"),
-    humanize_tier: data.get("humanize_tier"),
-    detection_platform: data.get("detection_platform"),
+    author_voice_restoration: data.get("author_voice_restoration"),
     ui_language: data.get("ui_language") || "zh"
   };
 }
@@ -167,6 +170,7 @@ function candidatePreview(candidate) {
 }
 
 function candidateTitle(id, candidate) {
+  if (id === "existing") return "原图 · 安全回退";
   return "方案 " + id + " · " + (candidate.title || candidate.layout || "完整候选图");
 }
 
@@ -225,6 +229,19 @@ function buildFigure(figure, index) {
   heading.append(number, headingCopy, kind);
   const claim = createElement("p", "figure-claim", figure.claim || "该图件的论证主张尚未提供。");
   const entries = Object.entries(figure.candidates || {});
+  if (figure.original_selection_allowed && figure.original?.path) {
+    entries.unshift([
+      "existing",
+      {
+        title: "原图（安全回退）",
+        full_preview: figure.original.path,
+        layout: "existing",
+        note: figure.redesign_comparison?.fallback_reason
+          ? "独立比较回退原因：" + figure.redesign_comparison.fallback_reason
+          : "只有独立比较证明候选严格更好时才使用新图；原图始终保留为安全选项。"
+      }
+    ]);
+  }
   block.append(heading, claim);
   if (!entries.length) {
     const empty = createElement("div", "empty-state");
@@ -270,7 +287,7 @@ function renderSelectionSummary() {
     const selected = selectedInputFor(figure.figure_id);
     if (selected) selectedCount += 1;
     const row = createElement("div", "selection-row" + (selected ? " selected" : ""));
-    row.append(createElement("strong", "", figure.figure_id), createElement("span", "", selected ? "方案 " + selected.value : "未选择"));
+    row.append(createElement("strong", "", figure.figure_id), createElement("span", "", selected ? (selected.value === "existing" ? "原图" : "方案 " + selected.value) : "未选择"));
     summary.append(row);
   });
   $("#selection-progress").textContent = selectedCount + " / " + figures.length;
@@ -364,6 +381,129 @@ function renderDeliverables(data) {
   $("#assembly-evidence").classList.toggle("muted", !evidence.length);
 }
 
+function sectionEditor(section) {
+  const root = createElement("article", "manuscript-section");
+  root.dataset.sectionId = section.section_id;
+  root.dataset.starred = section.starred ? "true" : "false";
+  const header = createElement("header");
+  const title = createElement("input");
+  title.type = "text";
+  title.value = section.title || "未命名章节";
+  title.setAttribute("aria-label", "章节标题");
+  const tools = createElement("div", "section-tools");
+  [["up", "上移"], ["down", "下移"], ["delete", "删除"]].forEach(([action, label]) => {
+    const button = createElement("button", "", label);
+    button.type = "button";
+    button.dataset.action = action;
+    tools.append(button);
+  });
+  const body = createElement("textarea");
+  body.value = section.body || "";
+  body.setAttribute("aria-label", section.title + " 正文");
+  header.append(title, tools);
+  root.append(header, body);
+  return root;
+}
+
+function manuscriptSectionsFromUI() {
+  return $$(".manuscript-section", $("#manuscript-sections")).map((section) => ({
+    section_id: section.dataset.sectionId,
+    title: $("input", section).value.trim(),
+    body: $("textarea", section).value,
+    starred: section.dataset.starred === "true"
+  }));
+}
+
+function updatePdfPreview(manuscript) {
+  const count = Number(manuscript?.page_count || 0);
+  pdfPage = Math.max(1, Math.min(pdfPage, Math.max(count, 1)));
+  $("#pdf-page").textContent = count ? pdfPage + " / " + count : "PDF 尚不可用";
+  $("#pdf-prev").disabled = count < 1 || pdfPage <= 1;
+  $("#pdf-next").disabled = count < 1 || pdfPage >= count;
+  const frame = $("#pdf-preview");
+  if (count && manuscript.pdf_preview_url) {
+    const nextSource = manuscript.pdf_preview_url + "?sha=" + encodeURIComponent(manuscript.hashes?.pdf_sha256 || "") + "#page=" + pdfPage + "&zoom=page-width";
+    if (frame.dataset.source !== nextSource) {
+      frame.src = nextSource;
+      frame.dataset.source = nextSource;
+    }
+  } else {
+    frame.removeAttribute("src");
+    frame.dataset.source = "";
+  }
+}
+
+function renderManuscript(data) {
+  const manuscript = data.manuscript || {};
+  const workbench = $("#manuscript-workbench");
+  workbench.classList.toggle("hidden", !manuscript.available);
+  if (!manuscript.available) return;
+  const revision = manuscript.revision || {};
+  const revisionId = revision.revision_id || "unknown";
+  if (manuscriptRenderedRevision !== revisionId) {
+    $("#front-matter").value = manuscript.front_matter || "";
+    const sections = $("#manuscript-sections");
+    sections.replaceChildren(...(manuscript.sections || []).map(sectionEditor));
+    manuscriptRenderedRevision = revisionId;
+    pdfPage = 1;
+  }
+  $("#section-count").textContent = (manuscript.sections || []).length + " 个章节";
+  $("#manuscript-status").textContent = manuscript.confirmed_current
+    ? "当前修订版已确认"
+    : revision.status === "rebuild_blocked"
+      ? "重建受阻"
+      : manuscript.gates_valid
+        ? "等待用户确认"
+        : "等待重新跑门禁";
+  $("#manuscript-hashes").textContent = JSON.stringify({
+    revision_id: revisionId,
+    before: revision.before_hashes || null,
+    current: manuscript.hashes || null,
+    confirmed: revision.confirmed_hashes || null,
+    backup_directory: revision.backup_directory || null
+  }, null, 2);
+  $("#manuscript-gates").textContent = JSON.stringify(manuscript.gates || {}, null, 2);
+  $("#save-revision").disabled = revision.status === "rebuild_blocked";
+  $("#confirm-revision").disabled = !manuscript.can_confirm || manuscript.confirmed_current;
+  $("#restore-revision").disabled = !(revision.backup_directory && revisionId);
+  updatePdfPreview(manuscript);
+}
+
+function renderIssues(data) {
+  const issues = (data.state?.issues || []).filter((issue) => issue.status === "open");
+  const modal = $("#issue-modal");
+  if (!issues.length) {
+    modal.classList.add("hidden");
+    activeIssueId = null;
+    return;
+  }
+  const issue = issues[0];
+  modal.classList.remove("hidden");
+  $("#issue-position").textContent = "1 / " + issues.length;
+  $("#issue-question").textContent = issue.question;
+  $("#issue-details").textContent = issue.details;
+  const missing = $("#issue-missing");
+  missing.replaceChildren();
+  (issue.missing_fields || []).forEach((item) => missing.append(createElement("span", "", "缺失字段：" + item)));
+  (issue.missing_materials || []).forEach((item) => missing.append(createElement("span", "", "缺失材料：" + item)));
+  if (!missing.childElementCount) missing.append(createElement("span", "", "需要用户明确确认后才能继续。"));
+  if (activeIssueId !== issue.issue_id) {
+    $("#issue-answer").value = "";
+    $("#issue-materials").value = "";
+    $("#issue-error").textContent = "";
+    activeIssueId = issue.issue_id;
+  }
+  const actions = $("#issue-actions");
+  actions.replaceChildren();
+  const labels = { answer: "提交回答", provide_material: "提交材料", acknowledge: "确认知悉", retry: "重试" };
+  (issue.allowed_actions || []).forEach((action) => {
+    const button = createElement("button", "", labels[action] || action);
+    button.type = "button";
+    button.dataset.issueAction = action;
+    actions.append(button);
+  });
+}
+
 const PUBLICATION_INPUTS = {
   profile_check: ["profile"],
   assemble: ["profile", "plan"],
@@ -437,6 +577,10 @@ function renderAdvance(data) {
     complete: ["旧版状态待迁移", true],
     blocked: ["修复后恢复工作流", false]
   }[stage] || ["推进工作流", true];
+  if (stage === "blocked" && (data.state?.issues || []).some((issue) => issue.status === "open")) {
+    settings[0] = "等待补充信息";
+    settings[1] = true;
+  }
   button.textContent = settings[0];
   button.disabled = settings[1];
 }
@@ -456,9 +600,11 @@ function render(data, { autoNavigate = false } = {}) {
   renderAnchoring(data);
   renderFigures(data);
   renderDeliverables(data);
+  renderManuscript(data);
   renderPublication(data);
   renderWorkflow(data);
   renderAdvance(data);
+  renderIssues(data);
   if (!hasChosenView || autoNavigate) setView(phaseForSnapshot(data));
   else setView(currentView);
 }
@@ -570,6 +716,95 @@ $$('[data-publication-operation]').forEach((button) => {
     request("/api/publication-cycle", publicationRequest(operation)).catch((error) => {
       $("#message").textContent = error.message;
     });
+  });
+});
+
+$("#pdf-prev").addEventListener("click", () => {
+  pdfPage -= 1;
+  updatePdfPreview(snapshot?.manuscript || {});
+});
+
+$("#pdf-next").addEventListener("click", () => {
+  pdfPage += 1;
+  updatePdfPreview(snapshot?.manuscript || {});
+});
+
+$("#add-section").addEventListener("click", () => {
+  const section = {
+    section_id: "section-user-" + Date.now().toString(36),
+    title: "新增章节",
+    body: "",
+    starred: false
+  };
+  $("#manuscript-sections").append(sectionEditor(section));
+  $("#section-count").textContent = manuscriptSectionsFromUI().length + " 个章节";
+});
+
+$("#manuscript-sections").addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-action]");
+  if (!button) return;
+  const section = button.closest(".manuscript-section");
+  const root = $("#manuscript-sections");
+  if (button.dataset.action === "up" && section.previousElementSibling) root.insertBefore(section, section.previousElementSibling);
+  if (button.dataset.action === "down" && section.nextElementSibling) root.insertBefore(section.nextElementSibling, section);
+  if (button.dataset.action === "delete") {
+    if ($$(".manuscript-section", root).length <= 1) {
+      $("#message").textContent = "规范主稿至少保留一个章节。";
+      return;
+    }
+    section.remove();
+  }
+  $("#section-count").textContent = manuscriptSectionsFromUI().length + " 个章节";
+});
+
+$("#save-revision").addEventListener("click", () => {
+  const manuscript = snapshot?.manuscript;
+  if (!manuscript?.available) return;
+  request("/api/manuscript/revision", {
+    base_source_sha256: manuscript.hashes?.source_sha256,
+    front_matter: $("#front-matter").value,
+    sections: manuscriptSectionsFromUI()
+  }).catch((error) => {
+    $("#message").textContent = error.message;
+  });
+});
+
+$("#confirm-revision").addEventListener("click", () => {
+  const manuscript = snapshot?.manuscript;
+  if (!manuscript?.available) return;
+  request("/api/manuscript/confirm", {
+    revision_id: manuscript.revision?.revision_id,
+    hashes: manuscript.hashes,
+    source: "ui"
+  }).catch((error) => {
+    $("#message").textContent = error.message;
+  });
+});
+
+$("#restore-revision").addEventListener("click", () => {
+  const revisionId = snapshot?.manuscript?.revision?.revision_id;
+  if (!revisionId) return;
+  request("/api/manuscript/restore", { revision_id: revisionId }).catch((error) => {
+    $("#message").textContent = error.message;
+  });
+});
+
+$("#issue-actions").addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-issue-action]");
+  if (!button) return;
+  const issue = (snapshot?.state?.issues || []).find((item) => item.issue_id === activeIssueId && item.status === "open");
+  if (!issue) return;
+  button.disabled = true;
+  request("/api/issues/resolve", {
+    issue_id: issue.issue_id,
+    resume_token: issue.resume?.token,
+    action: button.dataset.issueAction,
+    answer: $("#issue-answer").value,
+    materials: splitLines($("#issue-materials").value),
+    source: "ui"
+  }).catch((error) => {
+    button.disabled = false;
+    $("#issue-error").textContent = error.message;
   });
 });
 

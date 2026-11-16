@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/paperspine-check-delivery.schema.json",
+  "title": "Read-only same-task delivery candidate check",
+  "description": "MCP paperspine_check_delivery(request). No command, expected_version, grant, absolute path, publish, review or task mutation. Reports the sampled task_version; never readiness. Recheck after final artifact publication or review changes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["task_id", "package_path", "required_formats"],
+  "properties": {
+    "task_id": {"$ref": "paperspine-domain-commands.v1.1.schema.json#/$defs/safeId"},
+    "package_path": {
+      "type": "string", "minLength": 1,
+      "description": "Candidate ZIP file relative to this task workspace, e.g. paper/delivery.zip. Same safe source reader as typed PublishArtifact; maximum 134217728 bytes (128 MiB), regular single-link file, no symlink/reparse/traversal/absolute path. Contents of a nested archive do not count as required PDF/TeX/etc."
+    },
+    "required_formats": {"$ref": "paperspine-domain-commands.v1.1.schema.json#/$defs/prepareDelivery/properties/required_formats"}
+  },
+  "examples": [{"task_id": "task-1", "package_path": "paper/delivery.zip", "required_formats": ["pdf", "docx", "tex", "figures", "bibliography"]}],
+  "$defs": {
+    "artifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["artifact_id", "artifact_type", "sha256"],
+      "properties": {"artifact_id": {"type": "string"}, "artifact_type": {"type": "string"}, "sha256": {"type": "string"}, "stage": {"type": "string"}, "document_id": {"type": "string", "description": "Published document identity; legacy omission is reported as main. Never inferred from filename."}, "message": {"type": "string"}}
+    },
+    "result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract", "schema_version", "task_id", "task_version", "observed_task_version", "snapshot_changed", "read_only", "readiness_evaluated", "candidate", "required_formats", "required_artifacts", "current_artifact_issues", "review", "pending", "pending_decision_ids", "open_findings", "limitations"],
+      "properties": {
+        "contract": {"const": "paperspine.delivery-check"}, "schema_version": {"const": "1.0"},
+        "task_id": {"type": "string"}, "task_version": {"type": "integer", "minimum": 0},
+        "observed_task_version": {"type": ["integer", "null"]}, "snapshot_changed": {"type": "boolean"},
+        "read_only": {"const": true}, "readiness_evaluated": {"const": false},
+        "candidate": {
+          "type": "object", "additionalProperties": false,
+          "required": ["relative_path", "max_size_bytes", "archive_checks_passed", "archive", "issues", "published_current_artifact_ids"],
+          "properties": {
+            "relative_path": {"type": "string"}, "max_size_bytes": {"const": 134217728},
+            "size_bytes": {"type": "integer", "minimum": 0}, "sha256": {"type": "string"}, "media_type": {"type": "string"},
+            "archive_checks_passed": {"type": "boolean", "description": "Only archive safety and already-published required bytes. Does not include missing formats, review, choices, findings or readiness."},
+            "archive": {"type": ["object", "null"], "properties": {
+              "member_count": {"type": "integer"}, "expanded_size_bytes": {"type": "integer"},
+              "nested_archives": {"type": "array", "items": {"type": "string"}},
+              "matched_artifact_ids": {"type": "array", "items": {"type": "string"}},
+              "missing_artifact_ids": {"type": "array", "items": {"type": "string"}}
+            }},
+            "issues": {"type": "array", "items": {"type": "object", "required": ["code", "message"], "properties": {"code": {"const": "validation_failed"}, "message": {"type": "string"}}}},
+            "published_current_artifact_ids": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "required_formats": {"$ref": "#/properties/required_formats"},
+        "required_artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}},
+        "current_artifact_issues": {"type": "array", "items": {"$ref": "#/$defs/artifact"}},
+        "review": {"type": "object", "additionalProperties": false, "required": ["outputs_present", "coverage_complete", "unreviewed_current_artifacts"], "properties": {
+          "outputs_present": {"type": "boolean"}, "coverage_complete": {"type": "boolean"},
+          "unreviewed_current_artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}}
+        }},
+        "pending": {"type": "object", "additionalProperties": false, "required": ["publish_formats", "publish_candidate", "review_artifact_ids"], "properties": {
+          "publish_formats": {"type": "array", "items": {"type": "string"}}, "publish_candidate": {"type": "boolean"},
+          "review_artifact_ids": {"type": "array", "items": {"type": "string"}}
+        }},
+        "pending_decision_ids": {"type": "array", "items": {"type": "string"}},
+        "open_findings": {"type": "array", "items": {"type": "object"}},
+        "limitations": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

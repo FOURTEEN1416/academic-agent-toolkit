@@ -62,13 +62,31 @@ test("can edit, discard, save, and close a text file", async ({ page, sdk, openS
     await view.getByRole("tab", { name: "Edit", exact: true }).click()
 
     const editor = view.getByRole("textbox", { name: `${filename} source`, exact: true })
+    const replaceSource = async (text: string) => {
+      // CodeMirror owns its selection. Exercise its keyboard editing path,
+      // rather than replacing the managed contenteditable DOM with fill().
+      await editor.press("ControlOrMeta+A")
+      await editor.press("Backspace")
+      await editor.pressSequentially(text)
+      await editor.press("Enter")
+      await expect(editor).toHaveText(text)
+    }
     await expect(editor).toHaveText("original")
-    await editor.fill("discarded\n")
+    await replaceSource("discarded")
     await view.getByRole("button", { name: "Discard changes", exact: true }).click()
     await expect(editor).toHaveText("original")
 
-    await editor.fill("saved\n")
-    await view.getByRole("button", { name: "Save changes", exact: true }).click()
+    await replaceSource("saved")
+    const [saved] = await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.request().method() === "PUT" &&
+          new URL(response.url()).pathname === "/file/content" &&
+          response.request().postDataJSON()?.path === filepath,
+      ),
+      view.getByRole("button", { name: "Save changes", exact: true }).click(),
+    ])
+    expect(saved.status()).toBe(200)
     await expect.poll(() => readFileSync(filepath, "utf8")).toBe("saved\n")
     await expect(view.getByRole("button", { name: "Save changes", exact: true })).toHaveCount(0)
 
@@ -102,7 +120,16 @@ test("opens ordinary Markdown as a focused document", async ({ page, sdk, openSe
     const editor = view.getByRole("textbox", { name: `${filename} source`, exact: true })
     await expect(editor).toContainText("A focused research note.")
     await editor.fill("# Notes\n\nA calmer research note.\n")
-    await view.getByRole("button", { name: "Save changes", exact: true }).click()
+    const [saved] = await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.request().method() === "PUT" &&
+          new URL(response.url()).pathname === "/file/content" &&
+          response.request().postDataJSON()?.path === filepath,
+      ),
+      view.getByRole("button", { name: "Save changes", exact: true }).click(),
+    ])
+    expect(saved.status()).toBe(200)
     await expect.poll(() => readFileSync(filepath, "utf8")).toBe("# Notes\n\nA calmer research note.\n")
   } finally {
     rmSync(directory, { recursive: true, force: true })

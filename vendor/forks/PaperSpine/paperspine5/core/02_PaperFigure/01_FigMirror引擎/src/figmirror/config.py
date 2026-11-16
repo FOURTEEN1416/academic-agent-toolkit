@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,8 @@ PANEL_COUNTS = {"auto", 2, 3, 4}
 DATA_BACKENDS = {"matplotlib"}
 SCHEMATIC_BACKENDS = {"figure_spec", "semantic_svg", "pptx", "canvas", "image_bootstrap"}
 SCHEMATIC_PIPELINES = {"image_blueprint", "direct_vector", "high_resolution_raster", "img2ppt_hybrid"}
+FIGURE_DECISIONS = {"keep", "redesign", "improve", "create"}
+REDESIGN_DECISIONS = {"redesign", "improve"}
 SHARED_FIGURE_KEYS = (
     "panel_count",
     "svg_required",
@@ -22,6 +25,10 @@ SHARED_FIGURE_KEYS = (
     "data_backend",
     "schematic_backend",
     "schematic_pipeline",
+    "requested_schematic_pipeline",
+    "pipeline_fallback",
+    "image_generation",
+    "composition",
     "raster_schematic",
     "img2ppt",
     "auto_accept",
@@ -75,10 +82,27 @@ def _score(value: Any, key: str) -> float:
 def _normalize_shared(config: dict[str, Any]) -> dict[str, Any]:
     shared = dict(config)
     shared.setdefault("panel_count", "auto")
-    shared.setdefault("schematic_pipeline", "img2ppt_hybrid")
+    shared["image_generation"] = _normalize_image_generation(shared)
+    shared["composition"] = _normalize_composition(shared)
+    requested_pipeline = str(
+        shared.get("requested_schematic_pipeline") or shared.get("schematic_pipeline") or "direct_vector"
+    )
+    shared["requested_schematic_pipeline"] = requested_pipeline
+    shared["pipeline_fallback"] = None
+    if requested_pipeline == "img2ppt_hybrid" and not shared["image_generation"]["available"]:
+        shared["schematic_pipeline"] = "direct_vector"
+        shared["pipeline_fallback"] = {
+            "activated": True,
+            "requested": "img2ppt_hybrid",
+            "effective": "direct_vector",
+            "reason": "image_generation_unavailable",
+            "img2ppt_used": False,
+        }
+    else:
+        shared["schematic_pipeline"] = requested_pipeline
     shared.setdefault("svg_required", shared["schematic_pipeline"] not in {"high_resolution_raster", "img2ppt_hybrid"})
     shared.setdefault("editable_text", shared["schematic_pipeline"] != "high_resolution_raster")
-    shared.setdefault("allow_raster_in_svg", False)
+    shared.setdefault("allow_raster_in_svg", bool(shared["image_generation"]["available"]))
     shared.setdefault("data_backend", "matplotlib")
     shared.setdefault("schematic_backend", "figure_spec")
     shared["raster_schematic"] = _normalize_raster_schematic(shared)
@@ -143,6 +167,55 @@ def _normalize_shared(config: dict[str, Any]) -> dict[str, Any]:
             raise ConfigError(f"complexity_gate.{key} must be true or false")
     shared["complexity_gate"] = complexity_gate
     return shared
+
+
+def _normalize_image_generation(config: dict[str, Any]) -> dict[str, Any]:
+    """Make image-generation availability explicit; absence means unavailable."""
+
+    raw = config.get("image_generation", {})
+    if not isinstance(raw, dict):
+        raise ConfigError("image_generation must be an object")
+    capability = dict(raw)
+    capability.setdefault("available", False)
+    capability.setdefault("backend", None)
+    capability.setdefault("fallback", "native_only")
+    if not isinstance(capability["available"], bool):
+        raise ConfigError("image_generation.available must be true or false")
+    backend = capability["backend"]
+    if backend is not None and (not isinstance(backend, str) or not backend.strip()):
+        raise ConfigError("image_generation.backend must be non-empty text or null")
+    if capability["available"] and backend is None:
+        raise ConfigError("image_generation.backend is required when image generation is available")
+    if capability["fallback"] != "native_only":
+        raise ConfigError("image_generation.fallback must remain native_only")
+    return capability
+
+
+def _normalize_composition(config: dict[str, Any]) -> dict[str, Any]:
+    """Normalize the region/object routing policy shared by data and schematics."""
+
+    raw = config.get("composition", {})
+    if not isinstance(raw, dict):
+        raise ConfigError("composition must be an object")
+    composition = dict(raw)
+    composition.setdefault("route_each_region", True)
+    composition.setdefault("allow_cross_evidence_insets", True)
+    composition.setdefault("allow_bounded_image_assets", True)
+    composition.setdefault("max_image_region_area_ratio", 0.55)
+    composition.setdefault("regions", [])
+    for key in ("route_each_region", "allow_cross_evidence_insets", "allow_bounded_image_assets"):
+        if not isinstance(composition[key], bool):
+            raise ConfigError(f"composition.{key} must be true or false")
+    if composition["route_each_region"] is not True or composition["allow_cross_evidence_insets"] is not True:
+        raise ConfigError("component routing and cross-evidence insets cannot be disabled")
+    ratio = composition["max_image_region_area_ratio"]
+    if isinstance(ratio, bool) or not isinstance(ratio, (int, float)) or not 0.05 <= float(ratio) <= 0.70:
+        raise ConfigError("composition.max_image_region_area_ratio must be between 0.05 and 0.70")
+    if not isinstance(composition["regions"], list) or any(
+        not isinstance(item, dict) for item in composition["regions"]
+    ):
+        raise ConfigError("composition.regions must be a list of objects")
+    return composition
 
 
 def _normalize_raster_schematic(config: dict[str, Any]) -> dict[str, Any]:
@@ -277,7 +350,7 @@ def _normalize_schematic_conversion(config: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(raw, dict):
         raise ConfigError("schematic_conversion must be an object")
     conversion = dict(raw)
-    pipeline = str(config.get("schematic_pipeline") or "img2ppt_hybrid")
+    pipeline = str(config.get("schematic_pipeline") or "direct_vector")
     direct_vector = pipeline == "direct_vector"
     raster_first = pipeline == "high_resolution_raster"
     img2ppt = pipeline == "img2ppt_hybrid"
@@ -339,6 +412,12 @@ def _normalize_figure(raw: dict[str, Any], shared: dict[str, Any], index: int) -
     if not isinstance(raw, dict):
         raise ConfigError(f"figures[{index}] must be an object")
     figure = {key: shared[key] for key in SHARED_FIGURE_KEYS}
+    if "schematic_pipeline" in raw:
+        figure.pop("requested_schematic_pipeline", None)
+        figure.pop("pipeline_fallback", None)
+        for defaulted_key in ("svg_required", "editable_text", "allow_raster_in_svg", "schematic_backend"):
+            if defaulted_key not in raw:
+                figure.pop(defaulted_key, None)
     figure.update(raw)
     figure = _normalize_shared(figure)
     figure["schematic_conversion"] = _normalize_schematic_conversion(figure)
@@ -346,6 +425,34 @@ def _normalize_figure(raw: dict[str, Any], shared: dict[str, Any], index: int) -
     _require_text(figure, "claim", minimum=12)
     if figure.get("figure_kind") not in FIGURE_KINDS:
         raise ConfigError(f"figures[{index}].figure_kind must be data or schematic")
+    decision = figure.get("decision")
+    if decision is not None:
+        if not isinstance(decision, str) or decision not in FIGURE_DECISIONS:
+            raise ConfigError(f"figures[{index}].decision must be keep, redesign, improve, or create")
+        figure["decision"] = decision
+    current_figure = figure.get("current_figure")
+    if decision in {"keep", *REDESIGN_DECISIONS}:
+        if not isinstance(current_figure, str) or not current_figure.strip():
+            raise ConfigError(f"figures[{index}].current_figure is required for {decision}")
+        figure["current_figure"] = current_figure.strip()
+    elif current_figure is not None:
+        if not isinstance(current_figure, str) or not current_figure.strip():
+            raise ConfigError(f"figures[{index}].current_figure must be a non-empty path")
+        figure["current_figure"] = current_figure.strip()
+    declared_current_hash = figure.get("current_figure_sha256")
+    if declared_current_hash is not None:
+        if (
+            not isinstance(declared_current_hash, str)
+            or len(declared_current_hash.strip()) != 64
+            or any(char not in "0123456789abcdefABCDEF" for char in declared_current_hash.strip())
+        ):
+            raise ConfigError(f"figures[{index}].current_figure_sha256 must be a 64-character SHA-256")
+        figure["current_figure_sha256"] = declared_current_hash.strip().upper()
+    generator_identity = figure.get("generator_identity")
+    if generator_identity is not None:
+        if not isinstance(generator_identity, str) or not generator_identity.strip():
+            raise ConfigError(f"figures[{index}].generator_identity must be non-empty text")
+        figure["generator_identity"] = generator_identity.strip()
     if figure["figure_kind"] == "data":
         if "svg_required" not in raw:
             figure["svg_required"] = True
@@ -397,7 +504,6 @@ def validate_config(config: dict[str, Any]) -> dict[str, Any]:
     normalized.setdefault("review_points", "final_only")
     normalized.setdefault("review_scope", "all_figures")
     normalized.setdefault("generation_mode", "agent_native")
-    normalized["schematic_conversion"] = _normalize_schematic_conversion(normalized)
     if normalized.get("review_mode") not in REVIEW_MODES:
         raise ConfigError("review_mode must be auto or manual")
     if normalized.get("review_scope") != "all_figures":
@@ -411,6 +517,7 @@ def validate_config(config: dict[str, Any]) -> dict[str, Any]:
         raise ConfigError("generation_mode must be agent_native or template_assisted")
 
     shared = _normalize_shared(normalized)
+    shared["schematic_conversion"] = _normalize_schematic_conversion(shared)
     raw_figures = normalized.get("figures")
     if raw_figures is None:
         raw_figures = [
@@ -425,15 +532,28 @@ def validate_config(config: dict[str, Any]) -> dict[str, Any]:
                     "candidate_reference_assets",
                     "source_data",
                     "data_evidence",
+                    "decision",
                     "current_figure",
+                    "current_figure_sha256",
                     "current_figure_metadata",
+                    "generator_identity",
                 )
                 if key in normalized
             }
         ]
     if not isinstance(raw_figures, list) or not raw_figures:
         raise ConfigError("figures must be a non-empty list")
-    figures = [_normalize_figure(item, shared, index) for index, item in enumerate(raw_figures)]
+    inherited_generator = normalized.get("generator_identity")
+    prepared_figures: list[dict[str, Any]] = []
+    for item in raw_figures:
+        if not isinstance(item, dict):
+            prepared_figures.append(item)
+            continue
+        prepared = dict(item)
+        if inherited_generator is not None and "generator_identity" not in prepared:
+            prepared["generator_identity"] = inherited_generator
+        prepared_figures.append(prepared)
+    figures = [_normalize_figure(item, shared, index) for index, item in enumerate(prepared_figures)]
     for figure in figures:
         figure["review_points"] = normalized["review_points"]
         figure["candidate_count"] = normalized["candidate_count"]
@@ -453,4 +573,25 @@ def load_config(path: str | Path) -> dict[str, Any]:
         raw = json.loads(config_path.read_text(encoding="utf-8-sig"))
     except json.JSONDecodeError as exc:
         raise ConfigError(f"invalid JSON in {config_path}: {exc}") from exc
-    return validate_config(raw)
+    normalized = validate_config(raw)
+    for index, figure in enumerate(normalized["figures"]):
+        declared = figure.get("current_figure")
+        if not declared:
+            continue
+        current = Path(str(declared))
+        if not current.is_absolute():
+            current = config_path.parent / current
+        current = current.resolve()
+        if not current.is_file():
+            raise ConfigError(f"figures[{index}].current_figure does not exist: {current}")
+        digest = hashlib.sha256()
+        with current.open("rb") as handle:
+            for block in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(block)
+        actual = digest.hexdigest().upper()
+        declared_hash = figure.get("current_figure_sha256")
+        if declared_hash and str(declared_hash).upper() != actual:
+            raise ConfigError(f"figures[{index}].current_figure_sha256 does not match {current}")
+        figure["current_figure"] = str(current)
+        figure["current_figure_sha256"] = actual
+    return normalized

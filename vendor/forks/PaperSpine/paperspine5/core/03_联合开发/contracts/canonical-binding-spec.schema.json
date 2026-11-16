@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/canonical-binding-spec.schema.json",
+  "title": "PaperSpine5 real-byte canonical binding specification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "contract_version", "artifacts", "figure_mode", "figure_bindings", "claims", "review_required_artifact_ids"],
+  "properties": {
+    "contract": {"const": "paperspine5.canonical-binding-spec"},
+    "contract_version": {"const": "1.0"},
+    "artifacts": {
+      "type": "object",
+      "minProperties": 4,
+      "propertyNames": {"pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+      "additionalProperties": {"$ref": "#/$defs/artifact"}
+    },
+    "figure_mode": {"enum": ["none", "present"]},
+    "figure_bindings": {"type": "array", "items": {"$ref": "#/$defs/figureBinding"}},
+    "claims": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/claim"}},
+    "review_required_artifact_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"}
+    }
+  },
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "start_byte", "end_byte", "sha256"],
+      "properties": {
+        "artifact_id": {"type": "string", "minLength": 1},
+        "start_byte": {"type": "integer", "minimum": 0},
+        "end_byte": {"type": "integer", "minimum": 1},
+        "sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "path", "sha256"],
+      "properties": {
+        "role": {"enum": ["manuscript", "claim_graph", "source_claim", "exact_result", "figure_asset", "figure_body_contract", "claim_scope_authority", "final_reader_review", "surface_receipt"]},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha"}
+      }
+    },
+    "panelBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["binding_id", "panel_id", "argument_role", "result_span", "argument_span", "evidence_phrase_span", "reference_span"],
+      "properties": {
+        "binding_id": {"type": "string", "minLength": 1},
+        "panel_id": {"type": "string", "minLength": 1},
+        "argument_role": {"enum": ["supports_claim", "qualifies_claim", "compares_claim", "explains_evidence", "limits_claim"]},
+        "result_span": {"$ref": "#/$defs/span"},
+        "argument_span": {"$ref": "#/$defs/span"},
+        "evidence_phrase_span": {"$ref": "#/$defs/span"},
+        "reference_span": {"$ref": "#/$defs/span"}
+      }
+    },
+    "figureBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["figure_id", "asset_artifact_id", "panels"],
+      "properties": {
+        "figure_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+        "asset_artifact_id": {"type": "string", "minLength": 1},
+        "panels": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/panelBinding"}}
+      }
+    },
+    "readerSurface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surface", "span"],
+      "properties": {
+        "surface": {"enum": ["title", "abstract", "conclusion", "caption", "body"]},
+        "span": {"$ref": "#/$defs/span"}
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_id", "disposition", "source_span", "reader_surfaces"],
+      "properties": {
+        "claim_id": {"type": "string", "minLength": 1},
+        "disposition": {"enum": ["retained", "omitted"]},
+        "omission_reason": {"type": ["string", "null"]},
+        "source_span": {"$ref": "#/$defs/span"},
+        "reader_surfaces": {"type": "array", "items": {"$ref": "#/$defs/readerSurface"}}
+      }
+    }
+  }
+}

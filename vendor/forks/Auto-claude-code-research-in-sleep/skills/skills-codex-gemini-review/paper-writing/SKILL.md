@@ -128,8 +128,12 @@ If the paper plan includes architecture diagrams, pipeline figures, or method il
 > claim to its evidence and state it directly; generic caveats live in the
 > Limitations section only; writing instructions are never manuscript content
 > ("do not mention X" means omit X, not "we do not address X"); tone edits
-> never change what the paper knows. `/paper-write` carries the full
-> CONFIDENT PROSE, HONEST LIMITS contract.
+> never change what the paper knows; the paper is a launch, not a progress
+> report — organize around the strongest advantage, give every experiment an
+> argumentative duty, keep unfavorable numbers in the tables and explain them
+> as tradeoffs only where the evidence supports that, never narrating
+> defeats. `/paper-write` carries the full CONFIDENT PROSE, HONEST LIMITS
+> contract.
 
 ### Phase 3: LaTeX Writing
 

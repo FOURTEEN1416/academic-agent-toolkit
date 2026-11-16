@@ -16,8 +16,8 @@ import {
 export { canonicalKey, FRONTIER_MODELS, type ModelKey } from "./model-catalog"
 
 export const RECOMMENDED_MODELS: ModelKey[] = [
-  { providerID: "openai", modelID: "gpt-5.6-sol" },
-  { providerID: "anthropic", modelID: "claude-opus-5" },
+  { providerID: "openai", modelID: "gpt-6-sol" },
+  { providerID: "anthropic", modelID: "claude-opus-5.5" },
   { providerID: "moonshotai", modelID: "kimi-k3" },
 ]
 
@@ -28,9 +28,14 @@ type User = ModelKey & { visibility: Visibility; favorite?: boolean }
 type Store = {
   user: User[]
   recent: ModelKey[]
+  /** The last model chosen in the composer. Kept here, outside any project
+   * mount, so leaving a project or opening another one does not fall back to
+   * the install default. */
+  selected?: ModelKey
   pinned?: ModelKey[]
   variant?: Record<string, string | undefined>
   tier?: Record<string, string | undefined>
+  context?: Record<string, number | undefined>
 }
 
 export const composerModelPreferenceKey = (model: ModelKey) => logicalModelKey(model.providerID, model.modelID)
@@ -69,6 +74,7 @@ export const { use: useModels, provider: ModelsProvider } = createSimpleContext(
         pinned: [],
         variant: {},
         tier: {},
+        context: {},
       }),
     )
 
@@ -160,6 +166,10 @@ export const { use: useModels, provider: ModelsProvider } = createSimpleContext(
       setStore("recent", uniq)
     }
 
+    const select = (model: ModelKey | undefined) => {
+      setStore("selected", model ? { providerID: model.providerID, modelID: model.modelID } : undefined)
+    }
+
     // New installations start unpinned. The composer derives its suggested set
     // from available models, so pinning is always an explicit user choice.
     const connected = createMemo(() => new Set(list().map((model) => logicalModelKey(model.provider.id, model.id))))
@@ -197,6 +207,17 @@ export const { use: useModels, provider: ModelsProvider } = createSimpleContext(
       setStore("tier", key, value)
     }
 
+    const getContext = (model: ModelKey) => store.context?.[variantKey(model)]
+
+    const setContext = (model: ModelKey, value: number | undefined) => {
+      const key = variantKey(model)
+      if (!store.context) {
+        setStore("context", { [key]: value })
+        return
+      }
+      setStore("context", key, value)
+    }
+
     return {
       ready,
       list,
@@ -206,6 +227,10 @@ export const { use: useModels, provider: ModelsProvider } = createSimpleContext(
       recent: {
         list: createMemo(() => store.recent),
         push,
+      },
+      selected: {
+        get: () => store.selected,
+        set: select,
       },
       pinned: {
         list: pinned,
@@ -219,6 +244,10 @@ export const { use: useModels, provider: ModelsProvider } = createSimpleContext(
       tier: {
         get: getTier,
         set: setTier,
+      },
+      context: {
+        get: getContext,
+        set: setContext,
       },
     }
   },

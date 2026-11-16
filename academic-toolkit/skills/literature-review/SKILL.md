@@ -9,19 +9,11 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 ---
 
-
-
 # 文献综述撰写
-
-
 
 为以下研究主题撰写文献综述：**$ARGUMENTS**
 
-
-
 ## 常量
-
-
 
 - **TARGET_PAPER_COUNT** — 从 Additional Parameters 读取（默认 20）
 
@@ -29,21 +21,13 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 - **CUSTOM_REQUIREMENTS** — 用户自定义要求
 
-
-
 ## 输入
-
-
 
 1. 研究主题（$ARGUMENTS）
 
 2. 用户上传的参考文献（`user_data/*.pdf` 或 `user_data/*.bib`，可选）
 
-
-
 ## 硬约束（借鉴 PaperSpine citation + lunwen-skill reference_selector）
-
-
 
 1. 候选池必须 ≥ 目标数量的 2 倍（如目标 20 篇，候选池 ≥ 40 篇）
 
@@ -59,19 +43,11 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 7. 最终输出文件名：`LITERATURE_REVIEW.md`
 
-
-
 ## ⛔⛔⛔ 完成铁律（最高优先级，违反则本步骤失败）
-
-
 
 **本步骤必须产出 `LITERATURE_REVIEW.md`（≥ 5KB，完整的文献综述内容）**。
 
-
-
 ⛔ **MANDATORY: 用 `Write` 工具直接写出 `LITERATURE_REVIEW.md`。不要只调 Read/Bash 工具就 end_turn — 这是本步骤失败的 #1 原因。产出必须是真实落盘的文件。**
-
-
 
 ⛔ **读用户上传的文献/数据时**：
 
@@ -81,20 +57,11 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 - AGENTS.md 已列出所有上传文件清单 + 字数，**优先用清单 + Read 局部，不要全量 cat**。
 
-
-
-
 产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
-
-
 
 ## 工作流程
 
-
-
 ### Step 1: 确定检索策略
-
-
 
 根据研究主题，确定：
 
@@ -106,31 +73,37 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 - 目标数据库：AMiner（中文优先）、Semantic Scholar、CrossRef、DBLP、arXiv
 
-
-
 ### Step 2: 文献检索与候选池构建
 
+**⛔ 检索通道按序尝试（`$SCHOLAR_SCRIPT` 为可选加速通道，本仓默认不注入该变量）：**
 
-
-**⛔ 优先使用 `$SCHOLAR_SCRIPT` 工具搜索（自动调用 AMiner + Semantic Scholar + DBLP + CrossRef）：**
-
-
+1. **若环境已注入 `$SCHOLAR_SCRIPT`**（自动调用 AMiner + Semantic Scholar + DBLP + CrossRef）；
+2. **`$SCHOLAR_SCRIPT` 未设置或调用失败时（本仓默认情形），回退仓内检索器 `academic-toolkit/tools/scholar_fetch.py`**（同一套 `bibtex` 子命令，内置 AMiner + Semantic Scholar + CrossRef + DBLP 四级 fallback）；
+3. **仓内工具也不可用时，用执行侧 WebSearch / arXiv API** 按关键词与时间范围补充检索。
 
 ```bash
 
-PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+PYTHON=""; for _c in python python3; do if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
 
-# 中文主题搜索（AMiner 自动返回中文标题 + 作者 + 年份 + DOI）
+if [ -n "$SCHOLAR_SCRIPT" ]; then
 
-$PYTHON "$SCHOLAR_SCRIPT" bibtex "研究主题关键词" --max 10
+  # 首选：宿主注入的检索脚本
 
-# 英文补充搜索
+  $PYTHON "$SCHOLAR_SCRIPT" bibtex "研究主题关键词" --max 10
 
-$PYTHON "$SCHOLAR_SCRIPT" bibtex "English keywords" --max 10
+  $PYTHON "$SCHOLAR_SCRIPT" bibtex "English keywords" --max 10
+
+else
+
+  # 本仓默认：$SCHOLAR_SCRIPT 未设置，回退仓内检索器
+
+  $PYTHON academic-toolkit/tools/scholar_fetch.py bibtex "研究主题关键词" --max 10
+
+  $PYTHON academic-toolkit/tools/scholar_fetch.py bibtex "English keywords" --max 10
+
+fi
 
 ```
-
-
 
 **结果处理（必读）：**
 
@@ -140,15 +113,9 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "English keywords" --max 10
 
 3. 主题分组时，`low` 标签的不要放进任何子主题分组。
 
-
-
-如果 `$SCHOLAR_SCRIPT` 结果不足，再用 WebSearch 补充搜索学术文献。
-
-
+如果以上检索结果不足，再用执行侧 WebSearch / arXiv API 补充搜索学术文献。
 
 **搜索策略（借鉴 PaperSpine 三维度）：**
-
-
 
 1. **核心方法论文**：直接相关的方法/技术论文
 
@@ -158,29 +125,17 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "English keywords" --max 10
 
 4. **基础理论论文**：奠基性工作（可以是较早的经典论文）
 
-
-
 **对每篇候选文献记录：**
-
-
 
 | 序号 | 标题 | 作者 | 年份 | 来源 | DOI/URL | 主题分类 | 核心贡献 | 与本综述的关联 |
 
 |------|------|------|------|------|---------|----------|----------|---------------|
 
-
-
 将候选池保存到 `papers_pool.md`。
-
-
 
 ### Step 3: 文献真实性验证
 
-
-
 **验证规则（借鉴 PaperSpine citation_quality_audit）：**
-
-
 
 对每篇候选文献执行：
 
@@ -190,8 +145,6 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "English keywords" --max 10
 
 3. 检查作者名 + 标题组合是否能在网上找到对应记录
 
-
-
 **验证结果标记：**
 
 - ✅ 已验证（DOI 可解析或有明确出版记录）
@@ -200,19 +153,11 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "English keywords" --max 10
 
 - ❌ 不可验证（丢弃，不使用）
 
-
-
 丢弃所有标记为 ❌ 的文献。将验证结果更新到 `papers_pool.md`。
-
-
 
 ### Step 4: 主题聚类
 
-
-
 将验证通过的文献按研究主题分为 3-5 个类别：
-
-
 
 **分类原则：**
 
@@ -222,129 +167,75 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "English keywords" --max 10
 
 - 类别命名要具体（不能用"其他"这种模糊分类）
 
-
-
 输出分类结果到 `papers_pool.md` 的末尾。
-
-
 
 ### Step 5: 撰写文献综述
 
-
-
 基于分类结果，撰写完整文献综述。输出到 `LITERATURE_REVIEW.md`。
 
-
-
 **标准结构：**
-
-
 
 ```markdown
 
 # [综述标题]
 
-
-
 ## 摘要
-
-
 
 （200-300 字，概述综述范围、方法、主要发现）
 
-
-
 ## 一、引言
-
-
 
 ### 1.1 研究背景
 
 （领域概述 + 为什么需要这篇综述，500-800 字）
 
-
-
 ### 1.2 综述目的与范围
 
 （明确综述覆盖的主题、时间范围、文献来源，200-300 字）
-
-
 
 ### 1.3 文献检索方法
 
 （数据库 + 关键词 + 筛选标准 + 最终纳入篇数，200-300 字）
 
-
-
 ## 二、[主题分类 A]
-
-
 
 ### 2.1 [子主题 A1]
 
 （综合分析该方向的研究进展，引用具体文献，800-1200 字）
 
-
-
 ### 2.2 [子主题 A2]
 
 （...）
 
-
-
 ## 三、[主题分类 B]
-
-
 
 ### 3.1 [子主题 B1]
 
 （...）
 
-
-
 ## 四、[主题分类 C]
-
-
 
 （...）
 
-
-
 ## 五、研究趋势与热点分析
-
-
 
 （基于文献时间分布和引用关系，分析领域发展趋势，500-800 字）
 
-
-
 ## 六、现有研究不足与未来方向
-
-
 
 ### 6.1 现有研究的局限性
 
 （指出 2-3 个主要不足，每个 200-300 字）
 
-
-
 ### 6.2 未来研究方向
 
 （基于不足提出 2-3 个可能的研究方向，每个 200-300 字）
 
-
-
 ## 七、结论
-
-
 
 （总结综述主要发现，200-300 字）
 
-
-
 ## 参考文献
-
-
 
 [1] 作者. 题名[J]. 刊名, 年, 卷(期): 页码.
 
@@ -352,11 +243,7 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "English keywords" --max 10
 
 ```
 
-
-
 ### Step 6: 质量自检
-
-
 
 1. **文献数量**：最终引用的文献是否达到目标数量
 
@@ -372,11 +259,7 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "English keywords" --max 10
 
 7. **字数检查**：总字数是否在 6000-10000 字范围
 
-
-
 ## 写作风格约束
-
-
 
 1. 综述不是摘要堆砌——每个段落必须有综合分析和比较
 
@@ -388,19 +271,11 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "English keywords" --max 10
 
 5. 段落之间要有逻辑过渡，不能突然跳转主题
 
-
-
 ---
-
-
 
 ## ⛔⛔⛔ 反 AI 痕迹写作铁律（Word 模式必须遵守，违反等同失败）
 
-
-
 Word 输出最常被识别为「AI 写的」就是因为下面这 6 条没遵守。优先级凌驾于章节模板和字数要求。
-
-
 
 1. **禁止 markdown bullet/编号列表（`-`、`*`、`1.`、`2.`）作为正文叙述。** 含「主题分类」「研究方向」「现有方法」「研究不足」「未来方向」「分类下的子主题」等场景必须用连贯段落，不许分点罗列。
 
@@ -422,23 +297,15 @@ Word 输出最常被识别为「AI 写的」就是因为下面这 6 条没遵守
 
    - bullet **唯一允许场景**：参考文献列表 / 检索关键词清单 / 文献筛选标准列表，正文综述一律禁止。
 
-
-
 2. **加粗写作 `**标签**：内容`，不要 `**标签：**内容`。** 把冒号包进 `**` 里 docx 引擎正则匹配不到，会留下孤立 `**` 残留。
 
    - ❌ `**全参考方法：** 以 PSNR、SSIM 为代表…`
 
    - ✅ `**全参考方法**以 PSNR、SSIM 为代表…`（标签和内容直接连写更自然）
 
-
-
 3. **每段至少 3-5 句话。** 1-2 句的短段落是 AI 痕迹；要么扩写到 3 句以上，要么并入相邻段落。综述每段一般 5-8 句更合适。
 
-
-
 4. **连续段落不能以相同句式开头。** 三段都「研究表明…」开头必须改，交替用「早期工作…」「近年来…」「与之相对…」「另一类方法…」「在此基础上…」等多样化连接词。
-
-
 
 5. **不要写成「文献堆砌」。** 每个段落必须有综合性论断，文献作为支撑而非主语。
 
@@ -446,19 +313,11 @@ Word 输出最常被识别为「AI 写的」就是因为下面这 6 条没遵守
 
    - ✅ `针对 X 问题，早期方法侧重于…[1]，但在 Y 场景下精度受限；后续工作通过引入…机制改进了这一不足[2,3]，在公开数据集上将精度从 80% 提升到 92%。`
 
-
-
 6. **去掉 AI 写作口头禅。** 少用「值得注意的是」「综上所述」「这一发现表明」「随着…的发展」「在…的背景下」「具有重要意义」。「研究表明」「多项研究证实」必须紧跟具体引用号 [N]，不能空喊。
-
-
 
 ---
 
-
-
 ## 输出文件
-
-
 
 - `papers_pool.md` — 候选文献池（含验证状态和分类）
 
@@ -469,4 +328,3 @@ Word 输出最常被识别为「AI 写的」就是因为下面这 6 条没遵守
 使用当前执行会话完成本步工作；产物路径按当前步骤合同。程序采集真实操作、输入输出、版本与运行清单，模型只负责实质成果和领域质量。
 
 建议额外记录：搜索词、源 API、结果数、fallback 链。
-

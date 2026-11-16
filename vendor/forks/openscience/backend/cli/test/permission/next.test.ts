@@ -1,9 +1,10 @@
-import { test, expect } from "bun:test"
+import { test, expect, describe } from "bun:test"
 import os from "os"
 import { PermissionNext } from "../../src/permission/next"
 import { Instance } from "../../src/project/instance"
 import { Storage } from "../../src/storage/storage"
 import { tmpdir } from "../fixture/fixture"
+import { ShellRisk } from "../../src/permission/shell-risk"
 
 // fromConfig tests
 
@@ -52,6 +53,13 @@ test("fromConfig - expands $HOME to home directory", () => {
 test("fromConfig - expands $HOME without trailing slash", () => {
   const result = PermissionNext.fromConfig({ external_directory: { $HOME: "allow" } })
   expect(result).toEqual([{ permission: "external_directory", pattern: os.homedir(), action: "allow" }])
+})
+
+test("fromConfig - does not expand a different variable that starts with $HOME", () => {
+  // "$HOMEevil" names another variable. Expanding it minted a grant for a path
+  // beside the home directory that the user never wrote.
+  const result = PermissionNext.fromConfig({ external_directory: { $HOMEevil: "allow" } })
+  expect(result).toEqual([{ permission: "external_directory", pattern: "$HOMEevil", action: "allow" }])
 })
 
 test("fromConfig - does not expand tilde in middle of path", () => {
@@ -927,6 +935,64 @@ test("modal approvals can be scoped only to one exact immutable plan", async () 
   })
 })
 
+test("a study's approval covers its runs for the session, and nothing wider", async () => {
+  await using tmp = await tmpdir({ git: true })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const scope = "study:stu_0a3fa1209001B6h1pLz8QMUHLo"
+      // The study is approved once, for this session.
+      const created = PermissionNext.ask({
+        id: "permission_study_create",
+        sessionID: "session_study",
+        permission: "modal",
+        patterns: [scope],
+        metadata: {},
+        always: [scope],
+        ruleset: [],
+      })
+      await PermissionNext.reply({ requestID: "permission_study_create", reply: "session" })
+      await expect(created).resolves.toBeUndefined()
+
+      // Each run then dispatches under it without a card.
+      await expect(
+        PermissionNext.ask({
+          sessionID: "session_study",
+          permission: "modal",
+          patterns: [scope],
+          metadata: {},
+          always: [scope],
+          ruleset: [],
+        }),
+      ).resolves.toBeUndefined()
+
+      // Another study, a plain digest, or a configured wildcard still ask.
+      const other = PermissionNext.ask({
+        id: "permission_study_other",
+        sessionID: "session_study",
+        permission: "modal",
+        patterns: ["study:stu_other"],
+        metadata: {},
+        always: ["study:stu_other"],
+        ruleset: [{ permission: "*", pattern: "*", action: "allow" }],
+      })
+      await PermissionNext.reply({ requestID: "permission_study_other", reply: "reject" })
+      await expect(other).rejects.toBeInstanceOf(PermissionNext.RejectedError)
+      const digest = PermissionNext.ask({
+        id: "permission_study_digest",
+        sessionID: "session_study",
+        permission: "modal",
+        patterns: ["c".repeat(64)],
+        metadata: {},
+        always: ["c".repeat(64)],
+        ruleset: [],
+      })
+      await PermissionNext.reply({ requestID: "permission_study_digest", reply: "reject" })
+      await expect(digest).rejects.toBeInstanceOf(PermissionNext.RejectedError)
+    },
+  })
+})
+
 test("SSH approvals require an exact remote plan while local compute remains configurable", async () => {
   await using tmp = await tmpdir({ git: true })
   await Instance.provide({
@@ -1077,5 +1143,414 @@ test("ask - allows all patterns when all match allow rules", async () => {
       })
       expect(result).toBeUndefined()
     },
+  })
+})
+
+test("shell risk classifier keeps audited reads, tests, and builds contained", () => {
+  const commands = [
+    'rg -n "permission" backend/cli/src',
+    "git status --short",
+    "git diff --check",
+    "git log --oneline -5",
+    "git branch --show-current",
+    "/usr/bin/git status --short",
+    "bun test backend/cli/test/permission/next.test.ts",
+    "bun run typecheck",
+    "npm run build",
+    "pnpm test",
+    "yarn lint",
+    "cargo test --workspace",
+    "./gradlew test",
+    "go test ./...",
+    "ninja",
+    "meson test -C build",
+    "pytest -q",
+    "cd backend && rg --files | head -n 5",
+    "find backend -type f -name '*.ts'",
+    "sed -n '1,20p' package.json",
+    "date +%s",
+    "hostname",
+    "file package.json",
+    "tar -tf release.tar",
+    "unzip -l release.zip",
+  ]
+  for (const command of commands) {
+    expect(ShellRisk.classify(command), command).toMatchObject({ level: "contained" })
+    expect(PermissionNext.risk("bash", { shell: { command } }), command).toBe("contained")
+  }
+})
+
+test("shell risk classifier fails closed for destructive, remote, dynamic, and ambiguous commands", () => {
+  const commands = [
+    "rm -rf build",
+    "rmdir generated",
+    "mv output final",
+    "cp source target",
+    "git reset --hard HEAD~1",
+    "git clean -fdx",
+    "git checkout -- package.json",
+    "git restore --source=HEAD --worktree .",
+    "git rebase main",
+    "git push --force-with-lease origin main",
+    "git push -f origin main",
+    "git -c diff.external=./evil diff",
+    "git diff --ext-diff",
+    "kill -TERM 1234",
+    "pkill -f worker",
+    "launchctl unload service.plist",
+    "psql -c 'DROP TABLE runs'",
+    "kubectl delete namespace research",
+    "aws s3 rm s3://bucket --recursive",
+    "gcloud projects delete project-id",
+    "az group delete --name research",
+    "docker rm -f worker",
+    "echo result > result.txt",
+    "cat < input.txt",
+    "printf ok 2>&1",
+    "echo $(git status --short)",
+    "echo `date`",
+    "rg TODO &",
+    "if rg TODO; then echo yes; fi",
+    "unknown-command && rg TODO",
+    "PATH=. rg TODO",
+    "./rg TODO",
+    "sed -i.bak 's/a/b/' file.txt",
+    "find . -type f -delete",
+    "find . -type f -fls result.txt",
+    "sort -oresult.txt input.txt",
+    "tar -tf release.tar --delete file.txt",
+    "tar -tf release.tar --checkpoint-action=exec=rm",
+    "date 010112002026",
+    "hostname replacement-host",
+    "file -C -m custom.magic",
+    "ninja install",
+    "meson install -C build",
+    "npm install package",
+    "bun run deploy",
+    'python -c \'open("result.txt", "w").write("x")\'',
+  ]
+  for (const command of commands) {
+    expect(ShellRisk.classify(command), command).toMatchObject({ level: "risky" })
+    expect(PermissionNext.risk("bash", { shell: { command } }), command).toBe("risky")
+  }
+  expect(PermissionNext.risk("bash", {})).toBe("unknown")
+})
+
+test("shell risk script and build target parsing stays linear on adversarial names", () => {
+  const valid = `test:${"unit-".repeat(20_000)}final`
+  const ambiguous = `ci-${"--".repeat(20_000)}:`
+
+  expect(ShellRisk.classify(`bun run ${valid}`)).toMatchObject({ level: "contained" })
+  expect(ShellRisk.classify(`make ${valid}`)).toMatchObject({ level: "contained" })
+  expect(ShellRisk.classify(`bun run ${ambiguous}`)).toMatchObject({ level: "risky" })
+  expect(ShellRisk.classify(`make ${ambiguous}`)).toMatchObject({ level: "risky" })
+})
+
+test("project action modes are execution-time authority floors", () => {
+  expect(PermissionNext.risk("provider_compute")).toBe("risky")
+  expect(PermissionNext.modeAction({ mode: "ask", permission: "edit", configured: "allow", granted: "allow" })).toBe(
+    "ask",
+  )
+  expect(PermissionNext.modeAction({ mode: "ask", permission: "network", configured: "allow", granted: "allow" })).toBe(
+    "ask",
+  )
+  expect(PermissionNext.modeAction({ mode: "ask", permission: "read", configured: "allow", granted: "allow" })).toBe(
+    "allow",
+  )
+
+  expect(PermissionNext.modeAction({ mode: "approve", permission: "edit", configured: "allow", granted: "ask" })).toBe(
+    "allow",
+  )
+  expect(
+    PermissionNext.modeAction({ mode: "approve", permission: "network", configured: "allow", granted: "ask" }),
+  ).toBe("ask")
+  expect(
+    PermissionNext.modeAction({ mode: "approve", permission: "network", configured: "allow", granted: "allow" }),
+  ).toBe("allow")
+
+  expect(PermissionNext.modeAction({ mode: "full", permission: "network", configured: "allow", granted: "ask" })).toBe(
+    "allow",
+  )
+  expect(
+    PermissionNext.modeAction({ mode: "full", permission: "future_provider", configured: "allow", granted: "allow" }),
+  ).toBe("ask")
+  expect(PermissionNext.modeAction({ mode: "full", permission: "network", configured: "deny", granted: "allow" })).toBe(
+    "deny",
+  )
+
+  const safeShell = { shell: { command: "rg --files" } }
+  const destructiveShell = { shell: { command: "rm -rf build" } }
+  expect(
+    PermissionNext.modeAction({
+      mode: "approve",
+      permission: "bash",
+      configured: "allow",
+      granted: "ask",
+      metadata: safeShell,
+    }),
+  ).toBe("allow")
+  expect(
+    PermissionNext.modeAction({
+      mode: "approve",
+      permission: "bash",
+      configured: "allow",
+      granted: "allow",
+      metadata: destructiveShell,
+    }),
+  ).toBe("ask")
+  expect(
+    PermissionNext.modeAction({
+      mode: "ask",
+      permission: "bash",
+      configured: "allow",
+      granted: "allow",
+      metadata: safeShell,
+    }),
+  ).toBe("ask")
+  expect(
+    PermissionNext.modeAction({
+      mode: "full",
+      permission: "bash",
+      configured: "allow",
+      granted: "ask",
+      metadata: destructiveShell,
+    }),
+  ).toBe("allow")
+  expect(
+    PermissionNext.modeAction({
+      mode: "full",
+      permission: "bash",
+      configured: "deny",
+      granted: "allow",
+      metadata: destructiveShell,
+    }),
+  ).toBe("deny")
+})
+
+test("Ask risky shell floor cannot be weakened by standing approval or pending settlement", async () => {
+  await using tmp = await tmpdir({ git: true })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const request = (id: string, sessionID: string) =>
+        PermissionNext.ask({
+          id,
+          sessionID,
+          permission: "bash",
+          patterns: ["rm -rf build"],
+          metadata: { shell: { command: "rm -rf build" } },
+          always: ["rm *"],
+          ruleset: [{ permission: "bash", pattern: "*", action: "allow" }],
+          mode: "approve",
+        })
+
+      const first = request("permission_shell_floor_first", "session_shell_floor")
+      const second = request("permission_shell_floor_second", "session_shell_floor")
+      expect((await PermissionNext.list()).map((item) => item.id)).toEqual(
+        expect.arrayContaining(["permission_shell_floor_first", "permission_shell_floor_second"]),
+      )
+
+      await PermissionNext.reply({ requestID: "permission_shell_floor_first", reply: "project" })
+      await expect(first).resolves.toBeUndefined()
+      expect((await PermissionNext.list()).some((item) => item.id === "permission_shell_floor_second")).toBe(true)
+      await PermissionNext.reply({ requestID: "permission_shell_floor_second", reply: "reject" })
+      await expect(second).rejects.toBeInstanceOf(PermissionNext.RejectedError)
+
+      const later = request("permission_shell_floor_later", "session_shell_floor_later")
+      expect((await PermissionNext.list()).some((item) => item.id === "permission_shell_floor_later")).toBe(true)
+      await PermissionNext.reply({ requestID: "permission_shell_floor_later", reply: "reject" })
+      await expect(later).rejects.toBeInstanceOf(PermissionNext.RejectedError)
+
+      await expect(
+        PermissionNext.ask({
+          sessionID: "session_shell_floor_safe",
+          permission: "bash",
+          patterns: ["rg --files"],
+          metadata: { shell: { command: "rg --files" } },
+          always: ["rg *"],
+          ruleset: [{ permission: "bash", pattern: "*", action: "allow" }],
+          mode: "approve",
+        }),
+      ).resolves.toBeUndefined()
+
+      await expect(
+        PermissionNext.ask({
+          sessionID: "session_shell_floor_full",
+          permission: "bash",
+          patterns: ["rm -rf build"],
+          metadata: { shell: { command: "rm -rf build" } },
+          always: ["rm *"],
+          ruleset: [{ permission: "bash", pattern: "*", action: "allow" }],
+          mode: "full",
+        }),
+      ).resolves.toBeUndefined()
+    },
+  })
+})
+
+test("Ask always ignores prior grants while Ask risky requires a user grant", async () => {
+  await using tmp = await tmpdir({ git: true })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const first = PermissionNext.ask({
+        id: "permission_mode_first",
+        sessionID: "session_mode_floor",
+        permission: "network",
+        patterns: ["api.example.test"],
+        metadata: {},
+        always: ["api.example.test"],
+        ruleset: [{ permission: "network", pattern: "*", action: "ask" }],
+        mode: "approve",
+      })
+      await PermissionNext.reply({ requestID: "permission_mode_first", reply: "session" })
+      await expect(first).resolves.toBeUndefined()
+
+      const strict = PermissionNext.ask({
+        id: "permission_mode_strict",
+        sessionID: "session_mode_floor",
+        permission: "network",
+        patterns: ["api.example.test"],
+        metadata: {},
+        always: ["api.example.test"],
+        ruleset: [{ permission: "network", pattern: "*", action: "allow" }],
+        mode: "ask",
+      })
+      expect((await PermissionNext.list()).some((request) => request.id === "permission_mode_strict")).toBe(true)
+      await PermissionNext.reply({ requestID: "permission_mode_strict", reply: "reject" })
+      await expect(strict).rejects.toBeInstanceOf(PermissionNext.RejectedError)
+
+      const configured = PermissionNext.ask({
+        id: "permission_mode_configured",
+        sessionID: "session_mode_configured",
+        permission: "network",
+        patterns: ["other.example.test"],
+        metadata: {},
+        always: ["other.example.test"],
+        ruleset: [{ permission: "network", pattern: "*", action: "allow" }],
+        mode: "approve",
+      })
+      await PermissionNext.reply({ requestID: "permission_mode_configured", reply: "reject" })
+      await expect(configured).rejects.toBeInstanceOf(PermissionNext.RejectedError)
+
+      await expect(
+        PermissionNext.ask({
+          sessionID: "session_mode_full",
+          permission: "network",
+          patterns: ["full.example.test"],
+          metadata: {},
+          always: ["full.example.test"],
+          ruleset: [{ permission: "network", pattern: "*", action: "allow" }],
+          mode: "full",
+        }),
+      ).resolves.toBeUndefined()
+    },
+  })
+})
+
+test("widening to Full access clears pending routine prompts but keeps explicit asks and denies", async () => {
+  await using tmp = await tmpdir()
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const ask = (id: string, permission: string, pattern: string, ruleset: PermissionNext.Ruleset) =>
+        PermissionNext.ask({
+          id,
+          sessionID: "session_widen",
+          permission,
+          patterns: [pattern],
+          metadata: {},
+          always: [pattern],
+          tool: { messageID: "msg_widen", callID: `call_${id}` },
+          ruleset,
+          mode: "approve",
+        })
+      // Two fetches raised under Ask risky, plus one the user's policy pins to ask.
+      const fetch = ask("permission_widen_fetch", "webfetch", "https://example.test/paper", [
+        { permission: "webfetch", pattern: "*", action: "ask" },
+      ])
+      const host = ask("permission_widen_host", "network", "example.test", [
+        { permission: "network", pattern: "*", action: "ask" },
+      ])
+      const pinned = ask("permission_widen_pinned", "websearch", "genes", [
+        { permission: "websearch", pattern: "*", action: "ask" },
+      ])
+      expect((await PermissionNext.list()).map((request) => request.id).sort()).toEqual([
+        "permission_widen_fetch",
+        "permission_widen_host",
+        "permission_widen_pinned",
+      ])
+
+      // The rebuilt Full-access ruleset allows fetch and network; websearch stays
+      // at ask because an explicit user rule follows the built-in allow.
+      const full: PermissionNext.Ruleset = [
+        { permission: "webfetch", pattern: "*", action: "allow" },
+        { permission: "network", pattern: "*", action: "allow" },
+        { permission: "websearch", pattern: "*", action: "allow" },
+        { permission: "websearch", pattern: "*", action: "ask" },
+      ]
+      await PermissionNext.reconsider({ mode: "full", ruleset: async () => full })
+
+      await expect(fetch).resolves.toBeUndefined()
+      await expect(host).resolves.toBeUndefined()
+      expect((await PermissionNext.list()).map((request) => request.id)).toEqual(["permission_widen_pinned"])
+      await PermissionNext.reply({ requestID: "permission_widen_pinned", reply: "reject" })
+      await expect(pinned).rejects.toBeInstanceOf(PermissionNext.RejectedError)
+    },
+  })
+})
+
+describe("ShellRisk long option abbreviation", () => {
+  // GNU tools parse options with getopt_long, which accepts any unambiguous
+  // prefix of a long option, so an abbreviated spelling reaches the same
+  // destructive flag. Verified against GNU sed 4.9, coreutils sort 8.32 and
+  // GNU tar 1.35: `sed --in-p` edits in place, `sort --outp` writes its output
+  // file, and `tar --to-c` runs a command per extracted file. Spelling the flag
+  // differently must not lower the risk level.
+  test("an abbreviated long option still classifies as risky", () => {
+    const risky = [
+      "sed --in-p 's/a/b/' notes.txt",
+      // The `=value` form abbreviates too: the name before `=` is what is
+      // compared, so a backup suffix did not hide the flag.
+      "sed --in-p=.bak 's/a/b/' notes.txt",
+      "sort --outp sorted.txt",
+      "sort --outp=sorted.txt input.txt",
+      "git diff --out=x",
+      // `-tf` is already a read-only listing, so this is risky only because
+      // `--to-c` reaches `--to-command`.
+      "tar --to-c 'id' -tf out.tar",
+    ]
+    for (const command of risky) {
+      expect(ShellRisk.classify(command), command).toMatchObject({ level: "risky" })
+    }
+  })
+
+  test("an abbreviation cannot widen a command into the allowed set", () => {
+    // `--l` is not `--list`, so the listing branch must not be entered and the
+    // command falls through to extraction, which needs its own approval.
+    expect(ShellRisk.classify("unzip -l out.zip")).toMatchObject({ level: "contained" })
+    expect(ShellRisk.classify("unzip --l out.zip")).toMatchObject({ level: "risky" })
+  })
+
+  test("the read-only spellings stay contained", () => {
+    // `--noEmit` is not `--noemit`; folding case here would have made our own
+    // typecheck prompt in Approve mode.
+    const contained = [
+      "find . -type f -name '*.ts'",
+      "sed -n '1,20p' package.json",
+      "sort input.txt",
+      "tsc --noEmit",
+      "prettier --check .",
+      "cargo fmt --check",
+    ]
+    for (const command of contained) {
+      expect(ShellRisk.classify(command), command).toMatchObject({ level: "contained" })
+    }
+  })
+
+  test("short options are not abbreviations and stay unaffected", () => {
+    // GNU find rejects `-del` as an unknown predicate, so its short-flag
+    // blocklist is not bypassable by shortening and is left alone.
+    expect(ShellRisk.classify("find . -type f -del")).toMatchObject({ level: "contained" })
   })
 })

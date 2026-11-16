@@ -1,6 +1,7 @@
 import { For, Show, createMemo, type JSX } from "solid-js"
+import { ViewerControls } from "@/atlas/file-chrome"
 import { createStore } from "solid-js/store"
-import { exportDelimited, parseTable, summarizeColumn, type DataTable, type TableFormat } from "./table"
+import { exportDelimited, numericColumn, parseTable, summarizeColumn, type DataTable, type TableFormat } from "./table"
 import "./DataTableView.css"
 
 const PAGE_SIZE = 100
@@ -104,11 +105,15 @@ export function DataTableView(props: { text: string; format: TableFormat; name: 
         {(data) => (
           <>
             <header class="data-table-toolbar">
-              <div class="data-table-summary" aria-label="Dataset dimensions">
-                <strong>{data().totalRows.toLocaleString()} rows</strong>
-                <span aria-hidden="true">×</span>
-                <span>{data().columns.length.toLocaleString()} columns</span>
-              </div>
+              {/* The dimensions belong beside the file's name when a file
+                  header hosts them; the search and tools stay with the table. */}
+              <ViewerControls>
+                <div class="data-table-summary" aria-label="Dataset dimensions">
+                  <strong>{data().totalRows.toLocaleString()} rows</strong>
+                  <span aria-hidden="true">×</span>
+                  <span>{data().columns.length.toLocaleString()} columns</span>
+                </div>
+              </ViewerControls>
 
               <label class="data-table-search">
                 <span class="sr-only">Filter every column</span>
@@ -270,7 +275,7 @@ export function DataTableView(props: { text: string; format: TableFormat; name: 
 }
 
 function Histogram(props: { table: DataTable; index: number; onClose: () => void }): JSX.Element {
-  const values = () => props.table.rows.map((row) => Number(row[props.index])).filter(Number.isFinite)
+  const values = () => numericColumn(props.table, props.index)
   const stats = () => summarizeColumn(props.table, props.index)
   const bars = createMemo(() => {
     const items = values()
@@ -332,5 +337,3 @@ function compare(left: string, right: string, type: string) {
 
 const number = (value: number | undefined) =>
   value === undefined ? "—" : new Intl.NumberFormat(undefined, { maximumSignificantDigits: 5 }).format(value)
-
-export default DataTableView

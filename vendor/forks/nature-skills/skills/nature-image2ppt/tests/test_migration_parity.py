@@ -18,7 +18,9 @@ BASELINE_SHA256 = {
     "cli/image2ppt/runtime/build_pptx_from_manifest.py": "0d9c29e5ff8ffb98440d1123ac014ed6d19e36555e6ccf8ace57f86713d8b91b",
     "cli/image2ppt/runtime/deck_run_state.py": "bd6bb3da7a81d9b8ee262fc606d4e77d97946d8f3de05d247cca56dba33542e6",
     "cli/image2ppt/runtime/finalize_deck_run.py": "835fa3db0c4215c35e7cefca39c20b3879257cd07b5c93d545be230a8bc69da9",
-    "cli/image2ppt/runtime/paddle_text_hints.py": "9dae5da054ca768f683c1aa61dc147dda57b475e6bab2cb1cdbcb5ee794788bf",
+    # Result URL guard from PR #259; offline OCR-to-editable-PPTX evidence lives in
+    # test_ocr_http.py::test_public_result_response_converts_to_editable_pptx.
+    "cli/image2ppt/runtime/paddle_text_hints.py": "fb47067dbac1c00e4ebe5168c8adad5c987287f881b09a445fa1bf11d98a2b9c",
     "cli/image2ppt/runtime/page_job_status.py": "01e8effade4c3ab6719341c60490cb874f6c9d780e1fdbe00088696362d8703b",
     "cli/image2ppt/runtime/record_page_dispatch.py": "d91b45281c0eafa10801b1344f3c423712b5aeae0aea0231d2243003176f0522",
     "cli/image2ppt/runtime/reset_page_job.py": "81181eb9e5bb42cb973608795592d1a7c1dd04e5bd4ddd339bdc0864f080f42e",

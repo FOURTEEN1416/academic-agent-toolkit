@@ -2,10 +2,21 @@
 name: meta-apply
 description: "Privileged applier that LANDS meta-optimize / corpus-audit patches the user approved — the ONLY skill permitted to mutate the skill corpus from a self-modification proposal, with cross-model jury and human approval at landing. Use when the user says \"meta apply\", \"/meta-apply\", \"land the staged patches\", \"应用优化\", after a /meta-optimize run."
 argument-hint: "[patch-number-or-all]"
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, mcp__codex__codex, mcp__codex__codex-reply, mcp__antigravity__antigravity, mcp__antigravity__antigravity-reply, mcp__grok__grok, mcp__grok__grok-reply, mcp__claude-review__review, mcp__claude-review__review_reply, mcp__claude-review__review_start, mcp__claude-review__review_reply_start, mcp__claude-review__review_status
 ---
 
 # Meta-Apply: the privileged landing gate for self-modification patches
+
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Claude Code default (Codex MCP)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
 
 This skill exists to enforce a **privilege boundary**. Producers like
 [`/meta-optimize`](../meta-optimize/SKILL.md) (and, later, `corpus-audit`) are
@@ -36,7 +47,7 @@ never silently apply:
 1. **The human named THIS patch.** Apply only patches the user listed (`/meta-apply 1,3`
    or `all`); default to applying nothing.
 2. **Fresh cross-model jury PASS, obtained now.** Run `mcp__codex__codex` (fresh thread,
-   NOT codex-reply; `model: gpt-5.6-sol`, `config: {"model_reasoning_effort": "ultra"}`, `sandbox: read-only`,
+   NOT codex-reply; `model: gpt-6-astra`, `config: {"model_reasoning_effort": "ultra"}`, `sandbox: read-only`,
    paths-only per [`reviewer-independence.md`](../shared-references/reviewer-independence.md))
    on the staged `.diff` + its target. Ask: *does this change improve the harness without
    regressions; PASS or KILL + one-line reason.* Include the scope-limits block from
@@ -47,9 +58,9 @@ never silently apply:
    cannot override a KILL — they may only pick among jury-PASSED survivors. (A loop can
    DRIVE; only the cross-model jury can ACQUIT.)
 3. **Author ≠ reviewer family.** The author is the producer's executor model; the reviewer
-   is the codex model that just judged it. Run `provenance.py assert_cross_family` — if it
-   raises (same family / unknown), refuse. (Here it always holds: producer=Claude,
-   jury=codex. The check is the structural backstop.)
+   is the actual returned model that just judged it. Run `provenance.py assert_cross_family` — if it
+   raises (same family / unknown), refuse. Use actual author/reviewer identities, never infer the family from
+   the host or transport. This strict landing gate remains mandatory.
 
 ## Workflow
 

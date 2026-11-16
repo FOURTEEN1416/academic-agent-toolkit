@@ -1,4 +1,4 @@
-export type SessionTabKey = "ArrowLeft" | "ArrowRight" | "Home" | "End"
+type SessionTabKey = "ArrowLeft" | "ArrowRight" | "Home" | "End"
 
 export function sessionTabTarget(key: string, index: number, count: number) {
   if (count < 1 || index < 0 || index >= count) return

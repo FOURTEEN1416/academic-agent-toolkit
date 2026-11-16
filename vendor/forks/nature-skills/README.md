@@ -5,7 +5,7 @@
   <p>
     <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-2ea44f"></a>
     <a href="#5-安装"><img alt="Install" src="https://img.shields.io/badge/install-Claude%20Code%20%7C%20Codex%20%7C%20OpenClaw%20%7C%20OpenCode%20%7C%20Hermes-111827"></a>
-    <a href="#6-技能索引"><img alt="Skills" src="https://img.shields.io/badge/skills-19-0ea5e9"></a>
+    <a href="#6-技能索引"><img alt="Skills" src="https://img.shields.io/badge/skills-23-0ea5e9"></a>
     <a href="README_EN.md"><img alt="Language" src="https://img.shields.io/badge/language-中文%20%7C%20English-1f6feb"></a>
   </p>
   <p>
@@ -17,7 +17,15 @@
     · <a href="#7-贡献与开发">贡献方式</a>
     · <a href="README_EN.md">English</a>
   </p>
+  <p>
+    <b>Nature Skills 网页版：内置 Nature Polishing（论文润色）与 Nature Figure（科研绘图）核心功能，访问地址 <a href="https://natureskills.cn">https://natureskills.cn</a></b>
+  </p>
+  <a href="https://natureskills.cn">
+    <img width="2559" height="1527" alt="Nature Skills 网页版预览" src="https://github.com/user-attachments/assets/d57703ab-7ccb-4652-8810-8af1bb032032" />
+  </a>
+
 </div>
+
 
 ---
 
@@ -27,8 +35,8 @@
 
 - [1. 项目发起人与运营信息](#1-项目发起人与运营信息)
   - [1.1 创始人介绍](#11-创始人介绍)
-  - [1.2 知识星球](#12-知识星球)
-  - [1.3 自营 GPT / Claude 代充与成品号](#13-自营-gpt--claude-代充与成品号)
+  - [1.2 自营 GPT / Claude 代充与成品号](#12-自营-gpt--claude-代充与成品号)
+  - [1.3 知识星球](#13-知识星球)
   - [1.4 商务合作](#14-商务合作)
 - [2. Skills 主要开发者](#2-skills-主要开发者)
 - [3. 项目理念与社区](#3-项目理念与社区)
@@ -37,7 +45,8 @@
   - [5.1 `npx skills` 安装方式](#51-npx-skills-安装方式)
   - [5.2 Claude Code 安装方式](#52-claude-code-安装方式)
   - [5.3 Codex 安装方式](#53-codex-安装方式)
-  - [5.4 其他 Agent 场景](#54-其他-agent-场景)
+  - [5.4 Chatbox 安装与使用](#54-chatbox-安装与使用)
+  - [5.5 其他 Agent 场景](#55-其他-agent-场景)
 - [6. 技能索引](#6-技能索引)
 - [7. 贡献与开发](#7-贡献与开发)
 - [8. Star 历史](#8-star-历史)
@@ -48,13 +57,7 @@
 
 大家好，我是 `nature-skills` 的创立者袁一哲。感谢大家持续关注本项目。我们在抖音更新了许多视频教程，大家可以根据名称检索查看，希望能够真正帮助到科研工作。
 
-### 1.2 知识星球
-
-知识星球名称：**Nature Skills 以及背后的哲学**，以加入知识星球代替打赏。
-
-<img width="300" height="400" alt="Nature Skills 知识星球" src="https://github.com/user-attachments/assets/64e37909-0a48-4bfb-8471-c2aff971a0f6" />
-
-### 1.3 自营 GPT / Claude 代充与成品号
+### 1.2 自营 GPT / Claude 代充与成品号
 
 严格筛选渠道商，提供完全正规的充值渠道与服务。欢迎访问 **Nature AI 充值卡网（已上线plus一年代充，Pro5x，20x等等）**：
 
@@ -70,11 +73,17 @@
       <a href="https://apiciyuan.top/">https://apiciyuan.top/</a>
     </td>
     <td align="center" width="32%">
-<img width="1088" height="1101" alt="250d280342f34902a527721a118ac52e" src="https://github.com/user-attachments/assets/de1432e7-23ca-476d-9a68-30cd78f23ffd" />
+<img width="1170" height="963" alt="d4299d264d3e48d8bf67951e6fe61be4_compress" src="https://github.com/user-attachments/assets/30bd4ff5-5560-455b-9b47-9d06596ac699" />
 
       扫码添加微信客服
   </tr>
 </table>
+
+### 1.3 知识星球
+
+知识星球名称：**Nature Skills 以及背后的哲学**，以加入知识星球代替打赏。
+
+<img width="300" height="400" alt="Nature Skills 知识星球" src="https://github.com/user-attachments/assets/64e37909-0a48-4bfb-8471-c2aff971a0f6" />
 
 ### 1.4 商务合作
 
@@ -145,13 +154,7 @@
 npx skills add Yuan1z0825/nature-skills --list
 ```
 
-把全部技能全局安装到 Codex。`nature-shared` 会随全量安装一起加入，因此依赖共享参考资料的技能也能正常工作：
-
-```bash
-npx skills add Yuan1z0825/nature-skills --global --agent codex --skill '*' --yes --copy
-```
-
-只为当前项目安装一个独立技能时，省略 `--global`。例如：
+优先按当前任务选择需要的技能，并保留其共享依赖。只为当前项目安装时，省略 `--global`；需要跨项目使用时再加上它。例如：
 
 ```bash
 npx skills add Yuan1z0825/nature-skills --agent codex --skill nature-figure --yes --copy
@@ -164,7 +167,13 @@ npx skills add Yuan1z0825/nature-skills --global --agent codex \
   --skill nature-reader --skill nature-shared --yes --copy
 ```
 
-也可以把全部技能安装到 CLI 支持的所有 agent：
+如果确实需要完整技能集，也可以全局安装到 Codex。全量选择包含 `nature-shared`：
+
+```bash
+npx skills add Yuan1z0825/nature-skills --global --agent codex --skill '*' --yes --copy
+```
+
+需要把全部技能安装到 CLI 支持的所有 agent 时，使用：
 
 ```bash
 npx skills add Yuan1z0825/nature-skills --all
@@ -307,7 +316,7 @@ git clone https://github.com/Yuan1z0825/nature-skills.git ~/ai-skills/nature-ski
 
 ### 5.3 Codex 安装方式
 
-推荐使用仓库自带脚本安装或更新 Codex skills。脚本会同步 `skills/` 下所有顶层技能目录，并在复制后做 `diff` 验证；它不会覆盖其他无关 Codex skills。
+需要安装或更新完整技能集时，可以使用仓库自带脚本。脚本会同步 `skills/` 下所有顶层技能目录，并在复制后做 `diff` 验证；它不会覆盖其他无关 Codex skills。只需要部分技能时，使用上面的 `npx skills` 按需安装方式。
 
 ```bash
 git clone https://github.com/Yuan1z0825/nature-skills.git
@@ -421,7 +430,46 @@ git clone https://github.com/Yuan1z0825/nature-skills.git ~/.codex/.nature-skill
 
 每个安装目标使用独立日志，路径为 `~/.local/state/nature-skills/<目标目录编号>/autoupdate.log`。拉取到的新技能通常在下一次会话中完整生效。
 
-### 5.4 其他 Agent 场景
+### 5.4 Chatbox 安装与使用
+
+[Chatbox](https://chatboxai.app/zh) 桌面版提供图形化 Skills 管理界面。请使用带有「设置 → 技能（Skills）」入口的版本；本节适用于桌面端。
+
+**从 GitHub 安装**
+
+1. 打开 Chatbox 的「设置 → 技能」，点击「从 GitHub 安装」。
+2. 粘贴 `https://github.com/Yuan1z0825/nature-skills`，点击「扫描」。
+3. 勾选需要的技能，点击「安装已选」。初次体验可选择 `nature-polishing` 和 `nature-shared`；需要整套技能时可以「全选」。
+4. 在「已安装技能」中确认安装结果，并确认需要使用的技能已启用。
+
+`nature-shared` 是共享支持包。使用 `nature-polishing`、`nature-writing`、`nature-response`、`nature-reader` 或 `nature-paper2ppt` 等引用它的技能时，需要一并安装；它不作为独立任务调用。安装单个技能不会自动补齐其他技能依赖。列表可能显示技能的 frontmatter 名称，例如 `nature-proposal-writer` 显示为 `researchwrite`。
+
+**开始使用**
+
+新建对话，选择支持工具调用的模型，开启「智能体模式（Agent Mode）」。把待处理文本粘贴到对话中，并明确写出技能名。例如：
+
+```text
+请使用 nature-polishing，把下面这段中文改写为 Nature 风格英文。
+保持原有学术含义、数值和结论边界，列出主要修改及理由：
+
+[在这里粘贴论文段落]
+```
+
+需要读论文时，可安装 `nature-reader` 和 `nature-shared`，提供论文文件或可访问的本地路径，再请求：
+
+```text
+请使用 nature-reader，把这篇论文做成图文对应的中英文对照 Markdown reader，
+保留公式和来源锚点，并将产物保存到我指定的输出目录。
+```
+
+检查对话中的技能加载和工具执行记录，确认实际加载了所需技能。若未触发，先检查技能开关、智能体模式以及当前模型是否支持工具调用。
+
+**运行依赖与更新**
+
+Skills 安装的是指令和配套文件。Python/R、PDF/PPTX 工具、浏览器和 MCP 服务等运行依赖仍需按具体技能说明配置；涉及本地文件或脚本时，按 Chatbox 提示授权所需目录和命令。生成图片等外部服务需要对应服务的凭据。安装成功不代表这些外部能力已配置完成。
+
+在技能的操作菜单中可「检查更新」并按提示更新；有共享依赖时也要检查 `nature-shared`。如果 GitHub 扫描或下载失败，可从本仓库的「Code → Download ZIP」下载并解压，点击 Chatbox 的「打开技能文件夹」，将所需的完整技能目录及 `nature-shared` 放到该文件夹的同一级，然后刷新技能列表并启用。保留 `references/`、`static/`、脚本和资产；不要只复制 `SKILL.md`。手动复制时，目录名应与 `SKILL.md` 中的 `name` 一致（例如将 `nature-proposal-writer` 目录命名为 `researchwrite`）。手动复制的技能需要手动更新。
+
+### 5.5 其他 Agent 场景
 
 OpenClaw、OpenCode、Hermes 的具体接入方式见 [OpenClaw / OpenCode / Hermes 接入教程](docs/open-source-agent-frameworks.md)。
 
@@ -447,9 +495,12 @@ OpenClaw、OpenCode、Hermes 的具体接入方式见 [OpenClaw / OpenCode / Her
 | [`nature-data`](skills/nature-data/README.md) | Draft | 准备 Data Availability statement、数据仓储方案和 FAIR 检查 | “Data Availability”, “数据可用性”, “repository”, “FAIR metadata” | [详情](skills/nature-data/README.md) |
 | [`nature-statistics`](skills/nature-statistics/README.md) | Draft | 审查、改写或起草统计报告，覆盖实验单位、重复数、p 值、多重比较、效应量、置信区间、图注统计和跨章节数值一致性 | “Nature statistics”, “统计审查”, “statistical analysis”, “p value”, “sample size”, “replicates”, “multiple comparisons”, “图注统计”, “统计分析小节” | [详情](skills/nature-statistics/README.md) |
 | [`nature-reader`](skills/nature-reader/README.md) | Beta | 生成带来源锚点、图文对应、公式渲染和中英文对照的全文 Markdown reader | “nature reader”, “全文 Markdown”, “原文对照”, “图文对应”, “公式渲染”, “全文翻译” | [详情](skills/nature-reader/README.md) |
+| [`nature-paper-xray`](skills/nature-paper-xray/README.md) | Beta | 把一篇论文读到能复述作者的推理：还原真实的出发点、分清承重设计与装饰、公式落到能手算的例子、核对证据边界 | “精读论文”, “讲透这篇论文”, “作者为什么这么设计”, “这个公式怎么推出来的”, “paper x-ray” | [详情](skills/nature-paper-xray/README.md) |
+| [`nature-paper-trans`](skills/nature-paper-trans/README.md) | Beta | 将英文论文 PDF 全文或指定页逐页生图翻译，对照检查后交付保留源页尺寸的中文图片型 PDF；A4 按需指定 | “论文翻译”, “翻译论文 PDF”, “nature paper trans” | [详情](skills/nature-paper-trans/README.md) |
 | [`nature-paper-card`](skills/nature-paper-card/README.md) | Beta | 精读单篇论文并生成有来源约束的 01–16 节 Paper Card，覆盖方法逻辑、实验—结论证据链、结论边界、批判性分析和可检验研究想法 | “nature paper card”, “论文精读”, “Paper Card”, “证据链”, “结论边界” | [详情](skills/nature-paper-card/README.md) |
 | [`nature-response`](skills/nature-response/README.md) | Beta | 解析返修邮件，为互盲审稿人分别生成独立回复，并提供 cover letter、标红稿、LaTeX 模板和返修包一致性检查 | “response to reviewers”, “rebuttal letter”, “cover letter”, “major revision”, “返修邮件”, “审稿意见回复”, “修回信”, “LaTeX 模板” | [详情](skills/nature-response/README.md) |
 | [`nature-paper2ppt`](skills/nature-paper2ppt/README.md) | Beta | 从科研论文生成中文 PPTX 文献汇报 deck | “paper PPT”, “journal club”, “paper to slides”, “论文汇报” | [详情](skills/nature-paper2ppt/README.md) |
+| [`nature-paper2word`](skills/nature-paper2word/README.md) | Beta | 将学术论文与科研报告 Markdown 编译为符合期刊或学校规范的 Word 文档：声明式格式要求、Word 原生可编辑公式、三线表、公式编号与交叉引用、常用引文样式 | “paper to word”, “论文转 Word”, “学位论文排版”, “期刊投稿排版”, “学术 Word” | [详情](skills/nature-paper2word/README.md) |
 | [`nature-image2ppt`](skills/nature-image2ppt/README.md) | Beta | 将幻灯片图片、扫描 PDF 和图片型 PPTX 重建为对象级可编辑 PowerPoint，并执行渲染 QA | “图片转可编辑PPT”, “截图还原PPT”, “扫描PDF转PPTX”, “image to editable PowerPoint” | [详情](skills/nature-image2ppt/README.md) |
 | [`nature-paper-to-patent`](skills/nature-paper-to-patent/README.md) | Beta | 从论文、技术报告或项目材料生成有证据约束的中国发明专利草稿，并支持专利点挖掘、查新和技术交底书迭代 | “paper to patent”, “Chinese patent”, “论文转专利”, “权利要求书”, “技术交底书”, “专利点” | [详情](skills/nature-paper-to-patent/README.md) |
 | [`nature-ref-verifier`](skills/nature-ref-verifier/README.md) | Stable | 参考文献多源交叉验证：逐字段对比作者/标题/年份/卷期/页码，标记卷年冲突、作者编造、页码偏差等 | “verify refs”, “校验文献”, “check references”, “文献验证”, “ref check” | [详情](skills/nature-ref-verifier/README.md) |
@@ -458,6 +509,7 @@ OpenClaw、OpenCode、Hermes 的具体接入方式见 [OpenClaw / OpenCode / Her
 | [`nature-literature-pipeline`](skills/nature-literature-pipeline/README.md) | Stable | 自动化文献发现管线：多源检索、六维评分、精读推送和本地归档 | “literature pipeline”, “每日文献”, “文献推送”, “daily literature push”, “cron” | [详情](skills/nature-literature-pipeline/README.md) |
 | [`nature-experiment-log`](skills/nature-experiment-log/README.md) | Draft | 标准化记录实验图片、语音和文字材料，生成带 YAML frontmatter 的 Obsidian 实验日志并归档原始材料 | “实验日志”, “记录实验”, “experiment log”, “Obsidian vault”, “飞书科研群” | [详情](skills/nature-experiment-log/README.md) |
 | [`nature-proposal-writer`](skills/nature-proposal-writer/README.md) | Beta | proposal-first 科研写作状态机，先建立证据、论证和章节契约，再起草或审查文本 | “researchwrite”, “proposal”, “开题报告”, “研究方案”, “科研写作 QA” | [详情](skills/nature-proposal-writer/README.md) |
+| [`nature-social-science`](skills/nature-social-science/README.md) | Draft | 社科及相邻学科学术写作与选题论证工作台：选题构思、文献版图、证据路线与主张上限、新颖性审计、可行性评估、诚实表述自检 | “社科论文”, “选题”, “research question”, “文献综述”, “开题”, “过度断言” | [详情](skills/nature-social-science/README.md) |
 
 ## 7. 贡献与开发
 
@@ -617,4 +669,4 @@ description: >-
 
 ## 8. Star 历史
 
-[![Star History Chart](assets/star-history-20260828T050054Z.svg)](https://star-history.com/#Yuan1z0825/nature-skills&Date)
+[![Star History Chart](assets/star-history-20261116T022626Z.svg)](https://star-history.com/#Yuan1z0825/nature-skills&Date)

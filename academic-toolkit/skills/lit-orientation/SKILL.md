@@ -5,7 +5,7 @@ license: MIT
 metadata:
   source_spec: "megaprompts/09-litreview-megaprompt.md"
   build_pattern: "Path B (direct conversion)"
-  research_pack_convention: "Agent Integrity Rules verbatim per PR #657 audit; sibling of pulse"
+  research_pack_convention: "Agent Integrity Rules kept verbatim (this-repo adaptation); sibling of pulse"
   version: 1.1.0
 ---
 
@@ -46,7 +46,7 @@ OpenAlex's `cited_by_count` is the citation-count source for the cross-search in
 
 ## Agent Integrity Rules (Research-Pack Convention)
 
-Inherited from the research-pack convention; locked verbatim per PR #657's cross-skill consistency audit.
+Inherited from the research-pack convention; kept verbatim in this repository (upstream cross-skill consistency audit no longer applies here).
 
 - **Source discipline.** Only cite papers returned by THIS session's searches (free lane and/or Consensus). Training knowledge labeled `[Not from search — model knowledge]` and excluded from cited count. Sparse results stated explicitly, never silently filled.
 - **Counting discipline.** Three numbers tracked: searches executed / unique papers received (deduplicated by DOI/title) / papers cited. Every cited paper has a retrievable URL from this session (PubMed, DOI, OpenAlex, or Consensus). Use `citation_tracker.py` for deterministic counts.
@@ -237,7 +237,7 @@ Document the key `docx` library patterns:
 - Tables: dual widths (`columnWidths` + cell `width`), `ShadingType.CLEAR`
 - Validation step after save (zip-integrity check: `python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).testzip()" output.docx` — no output = intact — then confirm the required sections are present)
 
-Reference the **docx skill** for setup patterns and best practices.
+Reference the **docx-export** skill (`academic-toolkit/skills/docx-export/`) for setup patterns and best practices.
 
 ## Output
 
@@ -280,4 +280,4 @@ Plus:
 ---
 
 **Version:** 1.1.0
-**Build pattern:** Path B (direct conversion). Sibling of `pulse` (research-pack shape). v1.1.0: free keyless APIs (PubMed + OpenAlex) became the default search lane; Consensus demoted to optional enhancement; plan-tier detection deleted per the 2026-06 newgen audit + ClawHub rule #3 (no paid-service dependencies).
+**Build pattern:** Path B (direct conversion). Sibling of `pulse` (research-pack shape). v1.1.0: free keyless APIs (PubMed + OpenAlex) became the default search lane; Consensus demoted to optional enhancement; plan-tier detection removed — no paid-service dependencies, the only runtime check is whether the Consensus MCP tools are available.

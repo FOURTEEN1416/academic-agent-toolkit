@@ -35,6 +35,8 @@ Verify academic citations against CrossRef, Semantic Scholar, and OpenAlex. Dete
 
 ## Usage
 
+> **同名工具区分**：本技能脚本为自带的 `scripts/citation_checker.py`（CrossRef/OpenAlex 双源 + Semantic Scholar 可选三源**真伪核验**，支持 `--json`/`--verbose`，退出码 0/1/2）。仓库另有 `academic-toolkit/tools/citation_checker.py`（GB/T 7714 **格式**检查器，仅收位置参数）——两者同名不同物，勿混用。
+
 ### Quick Check (Single File)
 
 ```bash

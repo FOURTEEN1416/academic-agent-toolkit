@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/target-package-manifest.schema.json",
+  "title": "PaperSpine5 target package manifest",
+  "type": "object",
+  "required": ["contract", "contract_version", "subject", "target_authority_sha256", "entries", "archive_artifact_id", "archive_sha256", "status", "external_action_authorized", "manifest_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.target-package-manifest"},
+    "contract_version": {"const": "1.0"},
+    "subject": {"$ref": "quality-subject.schema.json"},
+    "target_authority_sha256": {"$ref": "#/$defs/sha256"},
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["package_path", "artifact_id", "sha256", "revision_id"],
+        "additionalProperties": false,
+        "properties": {
+          "package_path": {"type": "string", "minLength": 1},
+          "artifact_id": {"type": "string", "minLength": 1},
+          "sha256": {"$ref": "#/$defs/sha256"},
+          "revision_id": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "archive_artifact_id": {"type": "string", "minLength": 1},
+    "archive_sha256": {"$ref": "#/$defs/sha256"},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "external_action_authorized": {"const": false},
+    "manifest_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+  "additionalProperties": false
+}

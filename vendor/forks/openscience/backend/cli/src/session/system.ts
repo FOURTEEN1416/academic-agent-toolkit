@@ -1,37 +1,131 @@
-import { Ripgrep } from "../file/ripgrep"
-
+import type { ModelMessage } from "ai"
 import { Instance } from "../project/instance"
 import { SessionFilesystem } from "./filesystem"
 
-import PROMPT_CORE from "./prompt/core.txt"
-import PROMPT_DIRECT from "./prompt/direct.txt"
-import PROMPT_INSPECTION from "./prompt/inspection.txt"
-import type { Provider } from "@/provider/provider"
-import { Config } from "../config/config"
+import PROMPT_RESPONSE from "./prompt/response.txt"
+import PROMPT_SCIENCE from "../agent/prompt/science.txt"
+import PROMPT_ANTHROPIC from "../agent/prompt/anthropic.txt"
+import PROMPT_ASTRA from "../agent/prompt/gpt-astra.txt"
+import PROMPT_GPT from "../agent/prompt/gpt.txt"
+import PROMPT_CODEX from "../agent/prompt/codex.txt"
+import PROMPT_GEMINI from "../agent/prompt/gemini.txt"
+import PROMPT_DEFAULT from "../agent/prompt/default.txt"
+import type { Agent } from "@/agent/agent"
+import { SkillCatalog } from "../skill/catalog"
 import { Skill } from "../skill"
+import { searchSkills } from "../skill/search"
 import { PermissionNext } from "../permission/next"
-import { ComputePrompt } from "../compute/prompt"
 import { ProjectAccess } from "../project/access"
+import { ImageRoute } from "../tool/image-route"
 
 export namespace SystemPrompt {
   const skillPrompts = new WeakMap<Skill.Info[], Map<string, string>>()
 
-  export function instructions(direct = false, inspection = false) {
-    if (direct) return `You are OpenScience.\n\n${PROMPT_DIRECT.trim()}`
-    if (inspection) return `You are OpenScience.\n\n${PROMPT_INSPECTION.trim()}`
-    return PROMPT_CORE.trim()
+  export type Family = "anthropic" | "gpt-astra" | "gpt" | "codex" | "gemini" | "default"
+
+  const FAMILY: Record<Family, string> = {
+    anthropic: PROMPT_ANTHROPIC,
+    "gpt-astra": PROMPT_ASTRA,
+    gpt: PROMPT_GPT,
+    codex: PROMPT_CODEX,
+    gemini: PROMPT_GEMINI,
+    default: PROMPT_DEFAULT,
   }
 
-  export function provider(_model: Provider.Model, direct = false, inspection = false) {
-    return [direct || inspection ? instructions(direct, inspection) : PROMPT_CORE]
+  /** The slot every family file and the specialist template carry; the shared
+   * science block is substituted at render time so it is identical everywhere. */
+  export const SCIENCE_SLOT = "{{SCIENCE}}"
+  export const DOMAIN_SKILLS_SLOT = "{{DOMAIN_SKILLS}}"
+
+  export function science() {
+    return PROMPT_SCIENCE.trim()
   }
 
-  export async function compute(value?: unknown) {
-    return [await ComputePrompt.system(value)]
+  /** Header family by wire model id, in OpenCode's order. */
+  export function family(id: string): Family {
+    const lower = id.toLowerCase()
+    if (lower.includes("gpt-4") || lower.includes("o1") || lower.includes("o3")) return "gpt"
+    if (lower.includes("gpt")) {
+      if (lower.includes("gpt-6") || lower.includes("astra")) return "gpt-astra"
+      if (lower.includes("codex")) return "codex"
+      return "gpt"
+    }
+    if (lower.includes("gemini-")) return "gemini"
+    if (lower.includes("claude")) return "anthropic"
+    return "default"
+  }
+
+  export function response(prompt: string) {
+    return `${prompt.trim()}\n\n${PROMPT_RESPONSE.trim()}`
+  }
+
+  /** The model-family header with the science block filled and the writing
+   * defaults appended: what an agent without a prompt of its own receives. */
+  export function header(model: { api: { id: string } }) {
+    return response(FAMILY[family(model.api.id)].replace(SCIENCE_SLOT, science()))
+  }
+
+  export function provider(model: { api: { id: string } }) {
+    return [header(model)]
+  }
+
+  /** Fill an agent prompt's slots: the science block, and the agent's domain
+   * skill index when it declares skill categories. */
+  export async function render(agent: Agent.Info): Promise<Agent.Info> {
+    if (!agent.prompt) return agent
+    const withScience = agent.prompt.replace(SCIENCE_SLOT, science())
+    if (!withScience.includes(DOMAIN_SKILLS_SLOT)) return { ...agent, prompt: withScience }
+    const index = (await domainSkills(agent.skills ?? [], agent.permission)) ?? ""
+    return { ...agent, prompt: withScience.replace(DOMAIN_SKILLS_SLOT, index).trim() }
+  }
+
+  /** A slash token is an explicit request for a command or skill. */
+  export function slashInvocation(message?: string) {
+    return /(?:^|[\s([{'"])\/([a-z0-9][a-z0-9_-]*)(?=$|[^a-z0-9_/-])/i.test(message ?? "")
+  }
+
+  /** The skills a request names with a slash, as their exact catalog names,
+   * in the order written and without repeats. A token that names no skill
+   * (a command such as /compact, a path fragment) is not one. */
+  export function invokedSkills(message: string | undefined, skills: readonly Pick<Skill.Info, "name">[]) {
+    const names = new Map(skills.map((skill) => [skill.name.toLowerCase(), skill.name]))
+    return [...(message ?? "").matchAll(/(?:^|[\s([{'\"])\/([a-z0-9][a-z0-9_-]*)(?=$|[^a-z0-9_/-])/gi)]
+      .map((match) => match[1].toLowerCase())
+      .map((name) => names.get(name) ?? names.get(SkillCatalog.resolve(name).toLowerCase()))
+      .filter((name): name is string => !!name)
+      .filter((name, index, all) => all.indexOf(name) === index)
+  }
+
+  function sentence(text: string) {
+    const first = text.split(/(?<=[.!?])\s+/)[0] ?? text
+    return first.length > 140 ? `${first.slice(0, 137)}...` : first
+  }
+
+  /** The `<domain-skills>` index of a specialist: every skill in its
+   * categories, one line each, grouped by category. */
+  export async function domainSkills(categories: string[], permission: PermissionNext.Ruleset) {
+    if (!categories.length) return
+    const catalog = (await Skill.catalog(permission)).allowed
+    const groups = categories
+      .map((category) => ({
+        category,
+        skills: catalog.filter((skill) => skill.category === category).sort((a, b) => a.name.localeCompare(b.name)),
+      }))
+      .filter((group) => group.skills.length)
+    if (!groups.length) return
+    return [
+      "<domain-skills>",
+      "Your domain library. Load a skill with skill({name}) when its procedure applies; load one at a time and do not narrate the load.",
+      ...groups.flatMap((group) => [
+        `${group.category}:`,
+        ...group.skills.map((skill) => `- ${skill.name}: ${skill.summary ?? sentence(skill.description)}`),
+      ]),
+      "</domain-skills>",
+    ].join("\n")
   }
 
   export async function availableSkills(permission: PermissionNext.Ruleset, message?: string) {
-    const catalog = await Skill.all()
+    const catalog = (await Skill.catalog(permission)).allowed
     const key = (message?.length ?? 0) <= 8_192 ? JSON.stringify([permission, message ?? ""]) : undefined
     const cache = (() => {
       const current = skillPrompts.get(catalog)
@@ -50,7 +144,7 @@ export namespace SystemPrompt {
       if (cache.size > 32) cache.delete(cache.keys().next().value!)
       return value
     }
-    const skills = catalog.filter((skill) => PermissionNext.evaluate("skill", skill.name, permission).action !== "deny")
+    const skills = catalog
     if (skills.length === 0) {
       return publish(
         [
@@ -73,94 +167,24 @@ export namespace SystemPrompt {
       .map(([category, count]) => `${category} (${count})`)
       .join(", ")
     const total = skills.length === 1 ? "1 skill is" : `${skills.length} skills are`
-    const stop = new Set([
-      "and",
-      "answer",
-      "available",
-      "concise",
-      "final",
-      "for",
-      "from",
-      "most",
-      "outline",
-      "relevant",
-      "skill",
-      "sound",
-      "the",
-      "this",
-      "use",
-      "with",
-      "workflow",
-    ])
-    const words = (value: string) =>
-      new Set((value.toLowerCase().match(/[a-z0-9]+/g) ?? []).filter((word) => word.length > 2 && !stop.has(word)))
-    const query = words(message ?? "")
-    const matches = skills
-      .map((skill) => {
-        const keys = words(`${skill.name} ${skill.category ?? "other"}`)
-        const body = words(skill.description)
-        const score = [...query].reduce((sum, word) => sum + (keys.has(word) ? 4 : body.has(word) ? 1 : 0), 0)
-        return { skill, score }
-      })
-      .filter((item) => item.score > 1)
-      .sort((a, b) => b.score - a.score || a.skill.name.localeCompare(b.skill.name))
-      .slice(0, 8)
+    const matches = searchSkills(message ?? "", skills)
     const likely = matches.length
       ? [
           "Likely matches for this request:",
           ...matches.map(
-            (item) =>
-              `- ${item.skill.name}: ${item.skill.description.slice(0, 120)}${item.skill.description.length > 120 ? "..." : ""}`,
+            (skill) =>
+              `- ${skill.name}: ${skill.description.slice(0, 120)}${skill.description.length > 120 ? "..." : ""}`,
           ),
         ]
       : []
-    const names = new Map(skills.map((skill) => [skill.name.toLowerCase(), skill.name]))
-    const invoked = [...(message ?? "").matchAll(/(?:^|[\s([{'\"])\/([a-z0-9][a-z0-9_-]*)(?=$|[^a-z0-9_/-])/gi)]
-      .map((match) => match[1].toLowerCase())
-      .map((name) => names.get(name))
-      .filter((name): name is string => !!name)
-      .filter((name, index, all) => all.indexOf(name) === index)
-    const route = [
-      {
-        when: "Venue-specific paper formatting, submission checks, or page limits",
-        skills: ["venue-templates", "ml-paper-writing"],
-      },
-      {
-        when: "General manuscript drafting or revision",
-        skills: ["scientific-writing"],
-      },
-      {
-        when: "Citation verification or bibliography repair",
-        skills: ["citation-management", "research-lookup"],
-      },
-      {
-        when: "Technical figures, architectures, workflows, or scientific diagrams",
-        skills: ["scientific-schematics"],
-      },
-      {
-        when: "Illustrations, artwork, photos, or other non-technical images",
-        skills: ["generate-image"],
-      },
-    ]
-      .map((item) => ({
-        ...item,
-        skills: item.skills.map((skill) => names.get(skill)).filter((skill): skill is string => !!skill),
-      }))
-      .filter((item) => item.skills.length > 0)
-    const routing =
-      route.length && invoked.length === 0
-        ? [
-            "<skill-routing>",
-            "When a request clearly matches one of these routes, load the listed skill or skills before the first substantive edit, build, search, or generation step. Do not merely mention the skill in prose.",
-            ...route.map((item) => `- ${item.when}: ${item.skills.join(", ")}`),
-            "For an existing manuscript, preserve its scientific content and existing figures unless the user asks for content or figure changes. When creating or replacing a technical figure, use scientific-schematics and the native generate_image tool so Nano Banana Pro runs through connected BYOK or a funded OpenScience wallet without exposing credentials to shell scripts.",
-            "</skill-routing>",
-          ]
-        : []
+    const invoked = invokedSkills(message, skills)
+    // The loop loads an invoked skill before the first step, so by the time
+    // the model reads this the instructions are already in the transcript;
+    // the block binds the work to them.
     const invoke = invoked.length
       ? [
           "<slash-skill-invocation>",
-          `The user explicitly invoked ${invoked.map((name) => `/${name}`).join(", ")}. Before substantive work, load ${invoked.map((name) => `skill({name:"${name}"})`).join(" and ")} with no preceding text. Treat these explicit skills as the complete requested workflow scope; do not add likely matches or routing-table skills unless a loaded skill names a required dependency. Then answer the surrounding request.`,
+          `The user explicitly invoked ${invoked.map((name) => `/${name}`).join(", ")}. ${invoked.length === 1 ? "Its instructions have been loaded into this conversation" : "Their instructions have been loaded into this conversation"}: follow ${invoked.length === 1 ? "that skill's" : "those skills'"} workflow for the surrounding request, load ${invoked.map((name) => `skill({name:"${name}"})`).join(" and ")} yourself only if no loaded skill result for it is present, and treat these explicit skills as the complete requested workflow scope: do not add likely matches or routing-table skills unless a loaded skill names a required dependency.`,
           "</slash-skill-invocation>",
         ]
       : []
@@ -169,44 +193,190 @@ export namespace SystemPrompt {
       [
         "<available-skills>",
         `${total} callable across: ${list}.`,
-        ...routing,
         ...(invoked.length ? [] : likely),
         invoked.length
           ? "Use only the explicitly invoked skills for this request unless one of their loaded instructions names a required dependency."
-          : "Load a likely match directly, or browse a relevant category when the shortlist is insufficient. Do not guess other names from static routing tables.",
+          : 'Load a likely match by its listed exact name. If no exact name is known or the shortlist is insufficient, use skill({query:"<focused task>"}) and load a returned exact name. Browse a category only when category browsing is useful. Do not invent names from task descriptions or static routing tables.',
         "</available-skills>",
         ...invoke,
       ].join("\n"),
     )
   }
 
-  export async function planModeInstructions(): Promise<string[]> {
-    const config = await Config.get()
-    if (config.experimental?.plan_mode !== true) return []
+  /** The curated core in the order a research task tends to need it. Every
+   * other core skill follows alphabetically, so a new core skill shows up
+   * without a code change. */
+  const CORE_ORDER = [
+    "research-lookup",
+    "literature-review",
+    "brainstorming",
+    "hypotheses",
+    "reproduce",
+    "autoresearch",
+    "compute",
+    "execution-hygiene",
+    "statistical-conventions",
+    "submitted-code",
+    "acceptance-checks",
+    "delegation",
+    "figures",
+    "scientific-visualization",
+    "schematics",
+    "generate-image",
+    "analysis-report",
+    "paper-writing",
+    "ml-paper-writing",
+    "citations",
+    "peer-review",
+    "sources",
+  ]
+
+  /** Library categories worth naming in the index so a provider or database
+   * skill is one exact-name load away, without a search. */
+  const CORE_POINTERS: Array<{ category: string; when: string; limit: number }> = [
+    { category: "cloud-compute", when: "GPU or cloud provider setup; check compute_job targets first", limit: 12 },
+    { category: "databases", when: "a biological, chemical, clinical or scholarly database", limit: 12 },
+  ]
+
+  /**
+   * The always-present skill index for Research: one line per core skill,
+   * then the two library categories that a task may need by exact name.
+   * Bodies are never preloaded; the model loads a skill when it applies.
+   */
+  export async function coreSkills(permission: PermissionNext.Ruleset) {
+    const catalog = (await Skill.catalog(permission)).allowed
+    const core = catalog
+      .filter((skill) => skill.category === "core")
+      .sort((a, b) => {
+        const left = CORE_ORDER.indexOf(a.name)
+        const right = CORE_ORDER.indexOf(b.name)
+        if (left >= 0 && right >= 0) return left - right
+        if (left >= 0) return -1
+        if (right >= 0) return 1
+        return a.name.localeCompare(b.name)
+      })
+    if (!core.length) return
+    const sentence = (text: string) => {
+      const first = text.split(/(?<=[.!?])\s+/)[0] ?? text
+      return first.length > 200 ? `${first.slice(0, 197)}...` : first
+    }
+    const pointers = CORE_POINTERS.flatMap((pointer) => {
+      const names = catalog
+        .filter((skill) => skill.category === pointer.category)
+        .map((skill) => skill.name)
+        .sort()
+      if (!names.length) return []
+      const shown = names.slice(0, pointer.limit)
+      const rest = names.length - shown.length
+      return [
+        `- ${pointer.when}: ${shown.join(", ")}${rest > 0 ? ` (+${rest} more via skill({category:"${pointer.category}"}))` : ""}`,
+      ]
+    })
     return [
-      `<plan-mode>
-Plan Mode is enabled. You have a PlanWrite tool instead of TodoWrite.
-Use PlanWrite to structure your work as a visible plan in the user's sidebar.
-The plan panel shows items in real-time. Treat each item as a step, not a task.
-Update status as you work: pending -> in_progress -> completed.
-Keep only one item in_progress at a time.
-</plan-mode>`,
-    ]
+      "<core-skills>",
+      "Core skills, loaded with skill({name}) when the request matches. Load the skill for each phase as that phase begins (figures before the first plot, schematics before a diagram, generate-image before an illustration, a writing skill before drafting a report or paper), one at a time rather than all up front; do not load a skill on keywords alone, and do not narrate the load. Diagrams, schematics and illustrations are rendered with generate_image, never drawn as TikZ or SVG.",
+      ...core.map((skill) => `- ${skill.name}: ${skill.summary ?? sentence(skill.description)}`),
+      ...(pointers.length ? ["Library skills by exact name for provider and database work:", ...pointers] : []),
+      `Anything else in the ${catalog.length}-skill library: skill({query:"<focused task>"}) and load an exact returned name. A disagreement you discover between two sources about a convention — a coordinate frame, a numbering, a unit, a version, a file's layout — is the moment to search the library for that convention before choosing a side: the skill says which source is the frame, and a wrong choice there shifts every number after it. The data in front of you have a type — counts, summary statistics, a single-cell matrix, survival times, intensities, peaks, a mutation table — and the library holds the field's standard analysis for each; before designing your own pipeline for such data, search the library for the type, because the standard method is what a reader expects and what a hand-rolled one is judged against; analysis-report lists the standard readings by kind of data, and a request that names a method makes that method the primary analysis with yours beside it.`,
+      "</core-skills>",
+    ].join("\n")
   }
 
-  export async function environment(model: { api: { id: string }; providerID: string }, sessionID: string) {
+  /** The one line that stops a model treating its training-time frontier as
+   * the present: the catalog's cutoff, the gap to today, and where the gap
+   * bites (choosing a model, version, baseline or protocol). It is fixed for
+   * the day, so it sits in the cached system prompt beside the date. */
+  export function cutoff(knowledge: string | undefined, now = new Date()) {
+    const parsed = knowledge ? new Date(/^\d{4}-\d{2}$/.test(knowledge) ? `${knowledge}-15` : knowledge) : undefined
+    const known = parsed && !Number.isNaN(parsed.getTime()) ? parsed : undefined
+    const months = known ? Math.max(0, Math.round((now.getTime() - known.getTime()) / (30.44 * 86_400_000))) : undefined
+    const gap =
+      months === undefined
+        ? ""
+        : months < 1
+          ? ", within the last month"
+          : `, about ${months} month${months === 1 ? "" : "s"} before today`
+    const head = known
+      ? `Knowledge cutoff: ${knowledge} (per the model catalog)${gap}.`
+      : "Knowledge cutoff: not listed for this model; assume it is months before today."
+    return `${head} Models, libraries, methods and results released since are not in your training: look up the current generation before pinning a model, version, baseline or protocol, and read "latest" in a dated source as of its date.`
+  }
+
+  /**
+   * Put the session's own details at the start of the first user message.
+   *
+   * They name this session (its ID, scratch folder, connected folders, budget).
+   * In the system prompt they would make every session's prompt different from
+   * the first byte they appear at, and providers cache a prompt only up to its
+   * first difference: a new session would re-read the rest of the system prompt
+   * and, for chat templates that render tools after the system text (DeepSeek,
+   * Qwen, Kimi), every tool definition too. The rules about them stay in the
+   * system prompt (see `environment`), and one of them tells the agent that the
+   * labelled <session-context> block comes from OpenScience, not the user. It is
+   * not a <system-reminder>: those are harness instructions and stay in the
+   * system prompt.
+   * Rebuilt the same each step, they keep the conversation's own prefix stable.
+   */
+  export function withSessionContext(messages: ModelMessage[], session: string | undefined): ModelMessage[] {
+    if (!session) return messages
+    const index = messages.findIndex((message) => message.role === "user")
+    if (index === -1) return messages
+    const first = messages[index] as Extract<ModelMessage, { role: "user" }>
+    const out = [...messages]
+    // Joined into the leading text rather than added as a part of its own, so a
+    // one-text message keeps its shape (providers send it as a plain string;
+    // some relays refuse a content array where they expect one).
+    if (typeof first.content === "string") {
+      out[index] = { ...first, content: `${session}\n\n${first.content}` }
+      return out
+    }
+    const [head, ...rest] = first.content
+    out[index] =
+      head?.type === "text"
+        ? { ...first, content: [{ ...head, text: `${session}\n\n${head.text}` }, ...rest] }
+        : { ...first, content: [{ type: "text", text: session }, ...first.content] }
+    return out
+  }
+
+  /** The durable notice for session details that changed after they were
+   * first sent; its first line is the transcript's row label. */
+  export function sessionContextChanged(session: string) {
+    return ["Session details changed. These replace the ones at the start of the conversation:", session].join("\n")
+  }
+
+  /** The environment in its two places: `rules` (with the project's facts) for
+   * the system prompt, `session` (this session's facts) for the first user
+   * message, via `withSessionContext`. */
+  export type Environment = { rules: string; session: string }
+
+  export async function environment(
+    model: { api: { id: string }; providerID: string; knowledge?: string },
+    sessionID: string,
+    /** What the harness units add (the `env.lines` hook): `lines` are this
+     * session's facts (compute, a budget's length, the checks named), `rules`
+     * the instructions about them. */
+    units: { lines?: string[]; rules?: string[] } = {},
+  ): Promise<Environment> {
     const project = Instance.project
-    const context = await Promise.all([
-      SessionFilesystem.workspace(sessionID),
-      SessionFilesystem.state(sessionID),
-      ProjectAccess.status(project),
-    ])
-    const workspace = context[0]
-    const filesystem = context[1]
-    const projectAccess = context[2]
+    const context = await Promise.all([SessionFilesystem.snapshot(sessionID), ProjectAccess.status(project)])
+    const filesystem = context[0]
+    const workspace = filesystem.workspace.scratchRoot
+    const isolated = filesystem.workspace.mode === "isolated"
+    // A connected read/write folder that is the working directory: relative
+    // paths land in the user's own folder, and scratch stays for side outputs.
+    const folder = filesystem.toolDirectory !== workspace ? filesystem.toolDirectory : undefined
+    // A delegated worker inherits the lead's directory rather than a folder
+    // the user connected; say so, since its files are the lead's deliverables.
+    const shared = filesystem.grants.some(
+      (grant) => grant.source === "parent" && !grant.time.revoked && grant.path === folder,
+    )
+    const projectAccess = context[1]
+    // The folders the person connected. A grant the agent earned through a
+    // tool approval mid-turn is not one of them, and listing it here would
+    // rewrite the cached system prompt the moment it appeared: the agent
+    // already knows what it reached from the tool's own result.
     const sources = filesystem.grants.filter(
-      (grant) =>
-        !grant.time.consumed && !grant.time.revoked && (grant.source === "api" || grant.source === "permission"),
+      (grant) => !grant.time.consumed && !grant.time.revoked && grant.source === "api",
     )
     const access =
       projectAccess.mode === "ask"
@@ -215,43 +385,66 @@ Keep only one item in_progress at a time.
           ? "Approve for me. Routine work in the project is automatically approved inside the sandbox; boundary actions still require approval."
           : "Full access. Project actions may run with unrestricted host file and network access without approval prompts."
     const projectName = project.name?.trim() || "Untitled project"
-    return [
-      [
-        `You are powered by the model named ${model.api.id}. The exact model ID is ${model.providerID}/${model.api.id}`,
-        `Here is some useful information about the environment you are running in:`,
-        `<env>`,
-        `  Project: ${projectName}`,
-        `  Project ID: ${project.id}`,
-        `  Session ID: ${sessionID}`,
-        `  Project files: ${Instance.directory} (durable and shared across this project)`,
-        `  Session scratch: ${workspace} (temporary and isolated to this conversation)`,
-        `  Results: immutable project-wide deliverables saved with the artifact tool`,
-        `  Access mode: ${access}`,
-        `  Connected project folders:`,
-        ...(sources.length
-          ? sources.map(
-              (grant) =>
-                `    - ${grant.path} (${grant.access === "write" ? "read and write" : "read only"}, ${grant.scope} scope)`,
-            )
-          : [`    - none`]),
-        `  Is directory a git repo: ${project.vcs === "git" ? "yes" : "no"}`,
-        `  Platform: ${process.platform}`,
-        `  Today's date: ${new Date().toDateString()}`,
-        `</env>`,
-        `An OpenScience project is a durable research context that may aggregate multiple connected folders and files. Session scratch belongs only to this conversation. Results are immutable deliverables shared project-wide; a normal workspace file is not a Result until artifact save_file returns its Result ID and version.`,
-        `Use Session scratch by default for one-off downloads, analyses, scripts, tables, and plots. Work in Project files only when the user points to existing durable material or asks to keep reusable outputs. Do not create a new project subfolder for an ordinary answer. Promote a file to Results only when the user requests a durable deliverable or a Result-only contract requires it.`,
-        `The physical paths above are routing information. Use the human project name in conversation, not UUID directory components. Do not expose scratch, managed-project, or connected-folder paths in a generic greeting. Mention a path only when the user asks about location or when it is needed to complete their request.`,
-        `<files>`,
-        `  ${
-          project.vcs === "git" && false
-            ? await Ripgrep.tree({
-                cwd: workspace,
-                limit: 200,
-              })
-            : ""
-        }`,
-        `</files>`,
-      ].join("\n"),
-    ]
+    // Two parts. The rules and project facts are the same for every session of
+    // this kind in the project, so they stay in the system prompt, where the
+    // agent treats them as instructions. The session's own details go in a
+    // labelled block on the first user message (see withSessionContext), which keeps the
+    // system prompt identical across sessions for the provider's cache.
+    const rules = [
+      `You are powered by the model named ${model.api.id}. The exact model ID is ${model.providerID}/${model.api.id}`,
+      `Here is some useful information about the environment you are running in:`,
+      `<env>`,
+      `  Project: ${projectName}`,
+      `  Project ID: ${project.id}`,
+      `  Project files: ${Instance.directory} (durable and shared across this project)`,
+      `  Results: immutable project-wide deliverables saved with the artifact tool`,
+      `  Access mode: ${access}`,
+      `  Is directory a git repo: ${project.vcs === "git" ? "yes" : "no"}`,
+      `  Platform: ${process.platform}`,
+      // The date is the same for every session that day, and the cutoff line is
+      // read against it, so the two stay together here.
+      `  Today's date: ${new Date().toDateString()}`,
+      `  ${cutoff(model.knowledge)}`,
+      `  ${await ImageRoute.line()}`,
+      `</env>`,
+      `This session's own details (its Session ID, ${folder ? "Working folder and Session scratch" : isolated ? "Session scratch" : "tool working directory"}, the folders the person connected, and any compute, time or acceptance limits) arrive from OpenScience in a <session-context> block at the start of the conversation. That block is not written by the user: treat it as part of this environment, and follow the rules here about it.`,
+      `An OpenScience project is a durable research context that may aggregate multiple connected folders and files. ${isolated ? "Session scratch belongs only to this conversation." : "This session uses the project directory as its default tool working directory; its files are shared and remain when the session is deleted."} Results are immutable deliverables shared project-wide; a normal workspace file is not a Result until artifact save_file returns its Result ID and version.`,
+      `${
+        folder
+          ? "The Working folder is the user's own directory and the default for this project's work. Inspect its existing files and layout before creating outputs. For work related to this project, create and edit files only in the Working folder (or a location the user explicitly names); do not put the project's scripts, analyses, tables, or deliverables in Session scratch. An empty Working folder is ready for new work. If a nonempty folder clearly belongs to a different project than the current request, use Session scratch for that unrelated task unless the user explicitly asks to work in a particular folder. Use Session scratch for disposable caches and intermediates, and preserve existing project files."
+          : isolated
+            ? "Use Session scratch by default for one-off downloads, analyses, scripts, tables, and plots. Work in Project files only when the user points to existing durable material or asks to keep reusable outputs."
+            : "Use the project directory by default for local work. Preserve existing files and treat changes as durable project changes."
+      } Reuse the selected folder's existing layout. Do not create an extra "OpenScience Research" root or mirror an attached project into Project files. Inspect a referenced plan subfolder without treating it as a new working location; keep outputs in the selected Working folder and existing project layout unless the user requests another location. Do not create a new project subfolder for an ordinary answer. Promote a file to Results only when the user requests a durable deliverable or a Result-only contract requires it.`,
+      `The physical paths in this environment and in the session details are routing information. Use the human project name in conversation, not UUID directory components. Do not expose scratch, managed-project, or connected-folder paths in a generic greeting. Mention a path only when the user asks about location or when it is needed to complete their request.`,
+      ...(units.rules ?? []),
+    ].join("\n")
+    const facts = [
+      `<session-context>`,
+      `Session details from OpenScience (not written by the user):`,
+      `  Session ID: ${sessionID}`,
+      ...(folder
+        ? [
+            shared
+              ? `  Working folder: ${folder} (the lead session's working directory, shared with this worker; relative paths resolve here and files written here are the lead's deliverables)`
+              : `  Working folder: ${folder} (connected read and write folder; relative paths resolve here, and files stay when the session ends)`,
+            `  Session scratch: ${workspace} (temporary and isolated to this conversation; for caches and side outputs)`,
+          ]
+        : isolated
+          ? [
+              `  Session scratch: ${workspace} (temporary and isolated to this conversation; relative paths resolve here, so name a project file by its full path under Project files)`,
+            ]
+          : [`  Tool working directory: ${workspace} (project directory; durable and shared across this project)`]),
+      `  Connected project folders:`,
+      ...(sources.length
+        ? sources.map(
+            (grant) =>
+              `    - ${grant.path} (${grant.access === "write" ? "read and write" : "read only"}, ${grant.scope} scope)`,
+          )
+        : [`    - none`]),
+      ...(units.lines ?? []).map((line) => `  ${line}`),
+      `</session-context>`,
+    ].join("\n")
+    return { rules, session: facts }
   }
 }

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/runner-state.schema.json",
+  "title": "PaperSpine5 Product Runner State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "runner_version", "product_build_id", "stage", "issues", "material_inventory", "run_contract", "interaction", "next_actions", "updated_at", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.runner-state"},
+    "schema_version": {"const": "1.0"},
+    "runner_version": {"enum": ["0.1.0", "0.2.0"]},
+    "product_build_id": {"type": "string", "minLength": 1},
+    "stage": {"enum": ["uninitialized", "awaiting_materials", "awaiting_configuration", "configured", "awaiting_research", "awaiting_contribution", "awaiting_claim_graph", "awaiting_figure_intent", "awaiting_canonical", "awaiting_review", "awaiting_package", "target_package_ready", "blocked_j4"]},
+    "issues": {"type": "array", "items": {"$ref": "runner-issue.schema.json"}},
+    "material_inventory": {"type": ["object", "null"]},
+    "run_contract": {"type": ["object", "null"]},
+    "academic_inputs": {"type": ["object", "null"]},
+    "academic_artifacts": {"type": ["object", "null"]},
+    "academic_base_artifacts": {"type": ["object", "null"]},
+    "successor_migration": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["contract", "schema_version", "migration_id", "source_build_id", "target_build_id", "authority_sha256", "source_identity_sha256", "external_action_authorized"],
+          "properties": {
+            "contract": {"const": "paperspine5.runner-successor-link"},
+            "schema_version": {"const": "1.0"},
+            "migration_id": {"type": "string", "minLength": 1},
+            "source_build_id": {"type": "string", "minLength": 1},
+            "target_build_id": {"type": "string", "minLength": 1},
+            "authority_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "source_identity_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "external_action_authorized": {"const": false}
+          }
+        }
+      ]
+    },
+    "figure_quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "contract_version", "correction_receipts", "target_size_legibility_receipts", "status", "external_action_authorized"],
+      "properties": {
+        "contract": {"const": "paperspine5.figure-quality-projection"},
+        "contract_version": {"const": "1.0"},
+        "correction_receipts": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^figure-correction\\."}},
+        "target_size_legibility_receipts": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^target-size-legibility\\."}},
+        "status": {"enum": ["PASS", "not_evaluated"]},
+        "external_action_authorized": {"const": false}
+      }
+    },
+    "interaction": {"$ref": "interaction-state.schema.json"},
+    "next_actions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "external_action_authorized": {"const": false}
+  }
+}

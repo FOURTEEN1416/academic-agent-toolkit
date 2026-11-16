@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/independent-review-receipt.schema.json",
+  "title": "Content-bound independent review receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "subject", "reviewer", "subject_producers", "reviewed_revision_id", "reviewed_input_hashes", "rubric_sha256", "review_content_sha256", "final_decision", "self_signed_final", "objections"],
+  "properties": {
+    "contract": {"const": "paperspine5.independent-review-receipt"},
+    "subject": {"type": "object"},
+    "reviewer": {"type": "object"},
+    "subject_producers": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "reviewed_revision_id": {"type": "string", "minLength": 1},
+    "reviewed_input_hashes": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+    "rubric_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "review_content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "final_decision": {"enum": ["pass", "blocked"]},
+    "self_signed_final": {"const": false},
+    "objections": {"type": "array", "items": {"type": "object"}}
+  }
+}

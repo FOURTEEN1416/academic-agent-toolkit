@@ -1,15 +1,21 @@
 import { describe, expect, test } from "bun:test"
 import type { FilesystemGrant } from "@/atlas/file-sources"
-import { buildSources, groupSources } from "./sources"
+import { buildSources, defaultSource, groupSources, primarySources } from "./sources"
 import { middle } from "./truncate"
 
-const grant = (id: string, path: string, access: "read" | "write"): FilesystemGrant => ({
+const grant = (
+  id: string,
+  path: string,
+  access: "read" | "write",
+  over: Partial<FilesystemGrant> = {},
+): FilesystemGrant => ({
   id,
   path,
   access,
   scope: "session",
   source: "permission",
   time: { created: 0 },
+  ...over,
 })
 
 describe("pane sources", () => {
@@ -34,6 +40,40 @@ describe("pane sources", () => {
     expect(entry?.id).toBe("trash")
     expect(entry?.group).toBe("Recovery")
     expect(entry?.detail).toContain("30 days")
+  })
+
+  // A delegated conversation is handed its lead's working folder. It browses
+  // it like any other connected folder, but the grant is the lead's, so the
+  // pane must not offer to end it from here.
+  test("marks a folder inherited from a lead session rather than presenting it as one connected here", () => {
+    const list = buildSources({
+      projectRoot: "/p",
+      projectName: "p",
+      grants: [grant("g_own", "/data/rinr", "write"), grant("g_lead", "/data/lead", "write", { source: "parent" })],
+    })
+
+    expect(list.find((s) => s.id === "g_lead")).toMatchObject({ kind: "connected", inherited: true })
+    expect(list.find((s) => s.id === "g_own")?.inherited).toBe(false)
+  })
+
+  // Revoking reaches exactly as far as the grant does, so the row has to carry
+  // how far that is — an installation-wide folder looked like a project one.
+  test("carries the grant's own scope on the folder it lists", () => {
+    const list = buildSources({
+      projectRoot: "/p",
+      projectName: "p",
+      grants: [
+        grant("g_session", "/data/one", "write"),
+        grant("g_project", "/data/two", "write", { scope: "project" }),
+        grant("g_wide", "/data/three", "write", { scope: "installation" }),
+      ],
+    })
+
+    expect(list.find((s) => s.id === "g_session")?.scope).toBe("session")
+    expect(list.find((s) => s.id === "g_project")?.scope).toBe("project")
+    expect(list.find((s) => s.id === "g_wide")?.scope).toBe("installation")
+    // Nothing else in the pane is a grant, so nothing else claims a reach.
+    expect(list.find((s) => s.kind === "project")?.scope).toBeUndefined()
   })
 
   test("marks a read grant read-only so the badge has something true to show", () => {
@@ -127,6 +167,117 @@ describe("pane sources", () => {
     const groups = groupSources(buildSources({ projectRoot: "/p", projectName: "p", grants: [], modal: true }))
 
     expect(groups.map((g) => g.group)).toEqual(["Working files", "Results", "Remote", "Recovery"])
+  })
+})
+
+describe("where the pane opens", () => {
+  const list = buildSources({
+    projectRoot: "/home/keertan/.openscience/projects/prj_1",
+    projectName: "RINR",
+    grants: [grant("g1", "/home/keertan/data/pdebench", "read"), grant("g2", "/home/keertan/codes/RINR", "write")],
+  })
+
+  // The project root is a managed directory that stays empty until something
+  // writes there, so it is the last answer, not the first.
+  test("lands on the conversation's working folder when nothing has been picked", () => {
+    expect(defaultSource(list, { workingRoot: "/home/keertan/codes/RINR" }).id).toBe("g2")
+  })
+
+  test("prefers the pick someone made over the computed default", () => {
+    expect(defaultSource(list, { remembered: "artifacts", workingRoot: "/home/keertan/codes/RINR" }).id).toBe(
+      "artifacts",
+    )
+  })
+
+  test("falls back past a pick that no longer names a source, as a revoked grant does not", () => {
+    expect(defaultSource(list, { remembered: "g_revoked", workingRoot: "/home/keertan/codes/RINR" }).id).toBe("g2")
+    expect(defaultSource(list, { remembered: "g_revoked" }).id).toBe("project")
+  })
+
+  test("uses project files when the session works in no connected folder", () => {
+    expect(defaultSource(list, {}).id).toBe("project")
+    // A working root that names no listed location at all leaves the default
+    // where it was rather than selecting nothing.
+    expect(defaultSource(list, { workingRoot: "/data/elsewhere" }).id).toBe("project")
+  })
+
+  // Pinning "Scratch" in the composer moves the conversation into the session's
+  // own temporary directory. That location has a tab of its own, so the pane
+  // opens on it rather than falling through to the empty project root.
+  test("opens on This session when the conversation works in its own scratch", () => {
+    const withScratch = buildSources({
+      projectRoot: "/home/keertan/.openscience/projects/prj_1",
+      projectName: "RINR",
+      grants: [grant("g2", "/home/keertan/codes/RINR", "write")],
+      sessionRoot: "/scratch/ses_1",
+    })
+
+    expect(defaultSource(withScratch, { workingRoot: "/scratch/ses_1" }).id).toBe("session")
+    // The tab strip is unchanged by it: This session already has a permanent
+    // tab, so nothing is promoted in its name.
+    expect(primarySources(withScratch, "/scratch/ses_1").map((source) => source.id)).toEqual([
+      "project",
+      "g2",
+      "session",
+      "artifacts",
+    ])
+  })
+
+  test("matches the working folder through path spelling rather than string equality", () => {
+    expect(defaultSource(list, { workingRoot: "/home/keertan/codes/RINR/" }).id).toBe("g2")
+    expect(defaultSource(list, { workingRoot: "/home/keertan/codes/./RINR" }).id).toBe("g2")
+  })
+
+  // A Windows volume is case-insensitive, so the server's spelling of the
+  // working folder and the grant's need not agree letter for letter. They did
+  // have to, and a pane on Windows opened on the empty project root instead.
+  test("matches a Windows working folder the server spelled in another case", () => {
+    const windows = buildSources({
+      projectRoot: "C:\\Users\\keertan\\.openscience\\projects\\prj_1",
+      projectName: "RINR",
+      grants: [grant("g1", "C:\\Research\\RINR", "write")],
+    })
+
+    expect(defaultSource(windows, { workingRoot: "c:/research/rinr" }).id).toBe("g1")
+    expect(primarySources(windows, "c:/research/rinr").map((source) => source.id)).toEqual([
+      "project",
+      "g1",
+      "artifacts",
+    ])
+    // POSIX paths keep their case: /Data and /data are two different folders.
+    expect(defaultSource(list, { workingRoot: "/home/keertan/codes/rinr" }).id).toBe("project")
+  })
+})
+
+describe("primary locations", () => {
+  const withGrants = (paths: string[]) =>
+    buildSources({
+      projectRoot: "/p",
+      projectName: "p",
+      grants: paths.map((path, index) => grant(`g${index}`, path, "write")),
+      sessionRoot: "/scratch/ses_1",
+    })
+
+  test("gives connected folders tabs beside project files instead of hiding them behind More", () => {
+    const tabs = primarySources(withGrants(["/data/rinr", "/data/notes"]), "/data/rinr")
+
+    expect(tabs.map((source) => source.id)).toEqual(["project", "g0", "g1", "session", "artifacts"])
+  })
+
+  test("leads with the folder this conversation works in, so the default location is always a tab", () => {
+    const tabs = primarySources(withGrants(["/data/a", "/data/b", "/data/c"]), "/data/c")
+
+    expect(tabs.map((source) => source.id)).toEqual(["project", "g2", "g0", "g1", "session", "artifacts"])
+  })
+
+  test("promotes at most three folders and leaves the rest to the overflow menu", () => {
+    const tabs = primarySources(withGrants(["/data/a", "/data/b", "/data/c", "/data/d"]), "/data/d")
+
+    expect(tabs.filter((source) => source.kind === "connected").map((source) => source.id)).toEqual(["g3", "g0", "g1"])
+  })
+
+  test("keeps the permanent locations when there is nothing connected", () => {
+    expect(primarySources(withGrants([])).map((source) => source.id)).toEqual(["project", "session", "artifacts"])
   })
 })
 

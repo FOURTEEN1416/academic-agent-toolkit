@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0",
+  "selection_policy": "triggered-minimum-set",
+  "automatic_mutation": false,
+  "personas": [
+    {
+      "persona_id": "editor",
+      "role": "editor",
+      "activation": "always",
+      "cost_class": "medium",
+      "job": "Synthesize grounded findings, preserve disagreements, and decide revision order without inventing evidence."
+    },
+    {
+      "persona_id": "methods",
+      "role": "methods",
+      "activation": "strict",
+      "cost_class": "medium",
+      "job": "Audit technical soundness, reproducibility, assumptions, statistics, experiments, and limitations."
+    },
+    {
+      "persona_id": "contribution",
+      "role": "contribution",
+      "activation": "strict",
+      "cost_class": "medium",
+      "job": "Audit the contribution boundary, significance, differentiation, and evidence-to-claim strength."
+    },
+    {
+      "persona_id": "clarity",
+      "role": "clarity",
+      "activation": "strict",
+      "cost_class": "medium",
+      "job": "Audit argument flow, reader effort, figure/table use, captions, and venue-facing clarity."
+    },
+    {
+      "persona_id": "literature",
+      "role": "literature",
+      "activation": "open_literature",
+      "cost_class": "high",
+      "job": "Run auditable live retrieval around the problem, method, and recent temporal neighborhood."
+    },
+    {
+      "persona_id": "historian",
+      "role": "historian",
+      "activation": "historical_context",
+      "cost_class": "medium",
+      "job": "Reconstruct the research trajectory and distinguish durable lineage from recent fashion."
+    },
+    {
+      "persona_id": "baseline_scout",
+      "role": "baseline_scout",
+      "activation": "baseline_trigger",
+      "cost_class": "high",
+      "job": "Adversarially search for missing recent baselines, datasets, and evaluation protocols."
+    },
+    {
+      "persona_id": "fact_checker",
+      "role": "fact_checker",
+      "activation": "claim_trigger",
+      "cost_class": "medium",
+      "job": "Verify suspicious first/best/general/causal claims and record positive or degraded search evidence."
+    },
+    {
+      "persona_id": "critic",
+      "role": "critic",
+      "activation": "cross_lane_findings",
+      "cost_class": "medium",
+      "job": "Connect manuscript, literature, and factual lanes while preserving each lane's evidence boundary."
+    },
+    {
+      "persona_id": "judge",
+      "role": "judge",
+      "activation": "review_conflict",
+      "cost_class": "medium",
+      "job": "Adjudicate material reviewer conflicts from their receipts; never replace human acceptance authority."
+    }
+  ]
+}

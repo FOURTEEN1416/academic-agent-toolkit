@@ -17,6 +17,8 @@ const OPENROUTER_VENDOR_DISPLAY: Record<string, ModelProviderDisplay> = {
   zai: { id: "zai", name: "Z.AI" },
   mistralai: { id: "mistral", name: "Mistral" },
   qwen: { id: "openrouter", name: "Qwen" },
+  minimax: { id: "minimax", name: "MiniMax" },
+  nvidia: { id: "nvidia", name: "NVIDIA" },
 }
 
 const OPENROUTER_PROVIDER_PREFIX: Record<string, string> = {
@@ -28,26 +30,34 @@ const OPENROUTER_PROVIDER_PREFIX: Record<string, string> = {
   zhipuai: "z-ai",
 }
 
-const ANTHROPIC_DASHED_VERSION = /^(claude-(?:opus|sonnet|haiku)-\d+)-(\d+)(?:-\d{8})?$/
+const ANTHROPIC_DASHED_VERSION = /^(claude-(?:opus|sonnet|haiku|fable)-\d+)-(\d+)(?:-\d{8})?$/
 const GLM_PROVIDER_ALIASES = new Set(["zai", "opencode-go", "zai-coding-plan", "zhipuai-coding-plan"])
 
 /** Ordered product roster for the composer. Missing entries are presentation-
  * only placeholders; this list never fabricates a callable provider route. */
 export const COMPOSER_MODEL_ROSTER = [
-  { key: "openai/gpt-5-6-sol", label: "5.6 Sol", provider: "openai" },
-  { key: "openai/gpt-5-6-terra", label: "5.6 Terra", provider: "openai" },
-  { key: "anthropic/claude-opus-5", label: "Opus 5", provider: "anthropic" },
+  { key: "openai/gpt-6-1-sol", label: "6.1 Sol", provider: "openai" },
+  { key: "openai/gpt-6-sol", label: "6 Sol", provider: "openai" },
+  { key: "openai/gpt-6-astra", label: "6 Astra", provider: "openai" },
+  { key: "openai/gpt-6-luna", label: "6 Luna", provider: "openai" },
+  { key: "anthropic/claude-opus-5-5", label: "Opus 5.5", provider: "anthropic" },
+  { key: "anthropic/claude-fable-5-1", label: "Fable 5.1", provider: "anthropic" },
   { key: "moonshotai/kimi-k3", label: "Kimi K3", provider: "moonshotai" },
   { key: "zai/glm-5-3", label: "GLM 5.3", provider: "zai" },
-  { key: "deepseek/deepseek-v4-flash", label: "DeepSeek V4 Flash", provider: "deepseek" },
-  { key: "anthropic/claude-fable-5", label: "Fable 5", provider: "anthropic" },
-  { key: "xai/grok-4-6", label: "Grok 4.6", provider: "xai" },
+  { key: "deepseek/deepseek-v4-1-flash", label: "DeepSeek V4.1 Flash", provider: "deepseek" },
+  { key: "xai/grok-4-7", label: "Grok 4.7", provider: "xai" },
 ] as const
 
 // Manage Models remains the one-time place for changing composer visibility.
 // Keep the release's broader frontier defaults intact; the composer roster
 // above only controls ordering and passive unavailable placeholders.
 export const FRONTIER_MODELS: ReadonlySet<string> = new Set([
+  "openai/gpt-6-1-sol",
+  "openai/gpt-6-astra",
+  "openai/gpt-6-sol",
+  "openai/gpt-6-sol-pro",
+  "openai/gpt-6-luna",
+  "openai/gpt-6-luna-pro",
   "openai/gpt-5-6-sol",
   "openai/gpt-5-6-sol-pro",
   "openai/gpt-5-6-terra",
@@ -61,26 +71,41 @@ export const FRONTIER_MODELS: ReadonlySet<string> = new Set([
   "openai-codex/gpt-5-6-terra",
   "xai/grok-4-5",
   "xai/grok-4-6",
+  "xai/grok-4-7",
   "xai/grok-4-20-multi-agent",
   "meta/muse-spark-1-1",
+  "meta/muse-spark-1-2",
+  "meta/muse-spark-1-3",
   "openai/gpt-5-5",
   "openai/gpt-5-5-pro",
   "openai/gpt-5-5-mini",
   "anthropic/claude-sonnet-5",
   "anthropic/claude-opus-5",
+  "anthropic/claude-opus-5-5",
   "anthropic/claude-fable-5",
+  "anthropic/claude-fable-5-1",
+  "anthropic/claude-haiku-4-5",
   "anthropic/claude-opus-4-8",
   "google/gemini-3-6-flash",
+  "google/gemini-3-7-flash",
+  "google/gemini-3-8-flash",
   "google/gemini-3-1-pro-preview",
   "zai/glm-5-2",
   "zai/glm-5-3",
+  "zai/glm-5-3-flash",
+  "qwen/qwen3-8-max",
+  "qwen/qwen3-8-flash",
+  "minimax/minimax-m3",
+  "nvidia/nemotron-3-ultra-550b-a55b",
   "moonshotai/kimi-k2-7-code",
   "moonshotai/kimi-k3",
+  "xiaomi/mimo-v2-6-pro",
   "deepseek/deepseek-v4-pro",
   "deepseek/deepseek-v4-flash",
+  "deepseek/deepseek-v4-1-flash",
 ])
 
-export function openrouterModelAlias(providerID: string, modelID: string): ModelKey | undefined {
+function openrouterModelAlias(providerID: string, modelID: string): ModelKey | undefined {
   if (providerID === "openrouter") return undefined
   const vendor = OPENROUTER_PROVIDER_PREFIX[providerID] ?? providerID
   const base = modelID.replace(/^~/, "")
@@ -110,31 +135,53 @@ export type InferenceSource = "managed" | "byok" | "chatgpt"
 /** Factual access route for a connected provider; ambiguous routes stay unlabeled. */
 export function inferenceSource(input: {
   providerID: string
-  credential: "env" | "synced" | "config" | "custom" | "api" | "managed"
+  credential: "env" | "config" | "custom" | "api" | "workspace" | "managed"
   billing?: "managed" | "byok" | null
 }): InferenceSource | undefined {
   if (input.providerID === "openai-codex") return "chatgpt"
   if (input.providerID === "openrouter" && input.credential === "managed") return "managed"
-  if (input.credential === "api") return "byok"
+  if (input.credential === "api" || input.credential === "workspace") return "byok"
   if (input.providerID === "openrouter") return input.billing === "byok" ? "byok" : undefined
-  if (input.credential === "env" || input.credential === "synced" || input.credential === "config") return "byok"
+  if (input.credential === "env" || input.credential === "config") return "byok"
   return undefined
 }
 
 export function inferenceSourceLabel(source: InferenceSource | undefined, fallback = "Provider") {
-  if (source === "managed") return "Managed"
+  if (source === "managed") return "Ace"
   if (source === "byok") return "BYOK"
   if (source === "chatgpt") return "ChatGPT"
   return fallback
 }
 
+const LOCAL_RUNTIMES: ReadonlySet<string> = new Set(["ollama", "lmstudio", "llamacpp", "vllm", "jan"])
+
+/** The server withholds a provider's base URL, so the client knows a self-hosted runtime only by its id. */
+export function isLocalProvider(providerID: string): boolean {
+  return LOCAL_RUNTIMES.has(providerID) || providerID.startsWith("local-") || providerID.startsWith("ssh-")
+}
+
+export type ModelFunding = "Wallet" | "Your key" | "Subscription" | "Local"
+
+/** What a request on this exact route is charged to, in the words Model access uses. A route whose credential
+ * cannot be told apart from here (a cloud profile, an ambient gateway key) stays unlabeled rather than guessed. */
+export function modelFunding(input: Parameters<typeof inferenceSource>[0]): ModelFunding | undefined {
+  if (isLocalProvider(input.providerID)) return "Local"
+  if (input.providerID.startsWith("github-copilot")) return "Subscription"
+  const source = inferenceSource(input)
+  if (source === "managed") return "Wallet"
+  if (source === "chatgpt") return "Subscription"
+  if (source === "byok") return "Your key"
+  return undefined
+}
+
+/** Token counts read the way the header pill reads them: `272K`, `1.05M`. */
 export function modelContext(limit: number): string {
   if (limit >= 1_000_000) {
     const value = limit / 1_000_000
-    const rounded = Math.abs(value - Math.round(value)) < 0.1 ? Math.round(value) : Number(value.toFixed(1))
-    return `${rounded.toLocaleString()}m`
+    const rounded = Number(value.toFixed(2))
+    return `${rounded.toLocaleString()}M`
   }
-  if (limit >= 1_000) return `${Math.round(limit / 1_000).toLocaleString()}k`
+  if (limit >= 1_000) return `${Math.round(limit / 1_000).toLocaleString()}K`
   return limit.toLocaleString()
 }
 
@@ -176,12 +223,24 @@ export const isFrontier = (model: ModelKey) =>
   FRONTIER_MODELS.has(canonicalKey(model.providerID, model.modelID)) ||
   FRONTIER_MODELS.has(logicalModelKey(model.providerID, model.modelID))
 
+/** Short labels the composer used for models it no longer pins. A connected
+ * key can still expose these routes, and a returning user should recognise
+ * them by the name they had. */
+const RETIRED_LABELS: Record<string, string> = {
+  "openai/gpt-5-6-sol": "5.6 Sol",
+  "openai/gpt-5-6-terra": "5.6 Terra",
+  "anthropic/claude-opus-5": "Opus 5",
+  "anthropic/claude-fable-5": "Fable 5",
+  "deepseek/deepseek-v4-flash": "DeepSeek V4 Flash",
+  "xai/grok-4-6": "Grok 4.6",
+}
+
 /** Display name for catalog aliases; exact provider/model ids are untouched. */
 export function modelDisplayName(name: string, providerID: string, modelID: string): string {
   const key = logicalModelKey(providerID, modelID)
   const roster = COMPOSER_MODEL_ROSTER.find((model) => model.key === key)
   if (roster) return roster.label
-  return name
+  return RETIRED_LABELS[key] ?? name
 }
 
 export type CatalogModel = {
@@ -231,6 +290,35 @@ export function preservedModelRoute<T extends CatalogModel>(routes: readonly T[]
     if (sameProvider) return sameProvider
   }
   return routes.length === 1 ? routes[0] : undefined
+}
+
+const managedRoute = (route: CatalogModel) =>
+  route.provider.id === "openrouter" || route.provider.id.startsWith("synsci")
+
+/**
+ * The exact route that choosing a logical model selects. The route in use keeps its credential, then the
+ * configured default does; only then does the Model access mode pick a side, and a ChatGPT subscription comes
+ * before the group's first route. A row describes its funding from this same answer, so what it says is what a
+ * click does.
+ */
+export function chosenModelRoute<T extends CatalogModel>(input: {
+  choice: ModelRouteGroup<T>
+  current?: ModelKey
+  configured?: ModelKey
+  billing?: "managed" | "byok" | null
+}): T {
+  const routes = input.choice.routes
+  return (
+    preservedModelRoute(routes, input.current) ??
+    preservedModelRoute(routes, input.configured) ??
+    (input.billing === "managed"
+      ? routes.find(managedRoute)
+      : input.billing === "byok"
+        ? routes.find((route) => !managedRoute(route))
+        : undefined) ??
+    routes.find((route) => route.provider.id === "openai-codex") ??
+    input.choice.model
+  )
 }
 
 /**
@@ -296,6 +384,7 @@ export function groupModelRoutes<T extends CatalogModel>(input: {
 }
 
 export function isChatModel(model: CatalogModel): boolean {
+  if (/(^|\/)gemini-3-pro-image(?:-preview)?$/i.test(model.id)) return false
   if (/(^|[/._-])(?:text-)?embeddings?([/._-]|$)/i.test(model.id)) return false
   if (/(^|[/._-])embed([/._-]|$)/i.test(model.id)) return false
   const output = model.capabilities?.output
@@ -306,14 +395,13 @@ export function isChatModel(model: CatalogModel): boolean {
 
 export function isUserProviderConnection(input: {
   providerID: string
-  source?: "env" | "synced" | "config" | "custom" | "api" | "managed"
-  billing?: "managed" | "byok" | null
+  source?: "env" | "config" | "custom" | "api" | "workspace" | "managed"
 }): boolean {
   // Connected rows are account-backed credentials or keys explicitly saved in
   // this UI. Ambient shell variables and project/config providers can still be
   // used for inference, but they are not integrations and must not masquerade
   // as account state here.
-  return input.source === "api" || input.source === "synced"
+  return input.source === "api" || input.source === "workspace"
 }
 
 export function foldedRouteMode(model: ModelKey, target: CatalogModel): string | undefined {

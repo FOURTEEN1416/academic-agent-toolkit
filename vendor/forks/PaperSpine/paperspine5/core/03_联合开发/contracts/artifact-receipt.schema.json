@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/artifact-receipt.schema.json",
+  "title": "PaperSpine5 content-bound artifact receipt",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["contract", "schema_version", "receipt_id", "artifact_id", "artifact_type", "path", "sha256", "size_bytes", "subject", "authority", "metadata"],
+  "properties": {
+    "contract": {"const": "paperspine5.artifact-receipt"},
+    "schema_version": {"const": "1.0"},
+    "receipt_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "artifact_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "artifact_type": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"},
+    "path": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "size_bytes": {"type": "integer", "minimum": 0},
+    "subject": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["task_id", "revision_id", "input_hashes"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "revision_id": {"type": "string", "minLength": 1},
+        "input_hashes": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "required": ["kind", "producer_id"],
+      "properties": {
+        "kind": {"type": "string", "minLength": 1},
+        "producer_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "metadata": {"type": "object"}
+  }
+}

@@ -1,3 +1,5 @@
+import type { UiI18nKey, UiI18nParams } from "../context/i18n"
+
 const titlecase = (s: string) =>
   s
     .split(/[\s_-]+/)
@@ -27,47 +29,229 @@ export function stripRedactedReasoning(text: string): string {
   return visible.trim() ? visible : ""
 }
 
-const providerReasoningPhase = /\*\*([^*\n]+)\*\*(?:\r?\n[ \t]*)*/g
-const providerStatusOnly =
-  /^(?:planning|preparing|retrieving|exploring|inspecting|testing|verifying|checking|reviewing|analyzing|evaluating|designing|building|running|confirming|adjusting|patching|restarting|summarizing|finalizing)\b[^.!?]*$/i
-
-function statusOnlyReasoning(text: string) {
-  const value = text.trim()
-  if (!value || value.includes("\n") || value.length > 140) return false
-  return providerStatusOnly.test(value)
+/** Private provider continuation is evidence of a step, never displayable prose. */
+export function privateReasoningOnly(text: string): boolean {
+  return text.includes("[REDACTED]") && !stripRedactedReasoning(text)
 }
 
-/**
- * OpenRouter's Responses bridge streams provider summaries as a single signed
- * reasoning part. Each summary phase starts with a bold label, but adjacent
- * phases are not guaranteed to include a separator (`...done.**Next**`). Keep
- * the signed bytes untouched in storage and normalize only the readable UI.
- */
+const reasoningHeading = /^[\p{L}\p{N} ,'/()_&:–—-]+$/u
+const reasoningStatus =
+  /^(?:planning|preparing|retrieving|exploring|inspecting|testing|verifying|checking|reviewing|analyzing|evaluating|designing|building|running|confirming|adjusting|patching|restarting|summarizing|finalizing|thinking|considering next steps)$/i
+
+/** Display-only heading cleanup; the persisted provider text is never changed. */
 export function reasoningDisplayText(text: string): string {
   const visible = stripRedactedReasoning(text)
-  if (!visible) return ""
-  const readable = visible
-    .replace(providerReasoningPhase, "\n\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim()
-  // Some Responses-compatible providers emit the phase label as its own
-  // reasoning part instead of a bold heading. It is useful as the single live
-  // status above the turn, but rendering every one-line label in the transcript
-  // produces the wall of "Planning…" rows that obscures the actual trajectory.
-  return statusOnlyReasoning(readable) ? "" : readable
+  if (!visible || reasoningStatus.test(visible.trim())) return ""
+  if (!visible.includes("**")) return visible
+
+  // Do not interpret heading-like text inside code or math, including an
+  // unfinished literal arriving over the stream. This deliberately errs on the
+  // side of retaining labels rather than deleting potentially meaningful text.
+  const literals: { start: number; end: number }[] = []
+  const delimiters = /^ {0,3}(`{3,}|~{3,})[^\r\n]*(?:\r?\n|$)|`+|(?<!\\)\${1,2}|\\[[(]|<(pre|code)\b[^>]*>|<!--/gim
+  for (const match of visible.matchAll(delimiters)) {
+    if ((literals.at(-1)?.end ?? -1) > match.index) continue
+    const delimiter = match[1] ?? match[0]
+    const start = match.index + match[0].length
+    const closing = match[1]
+      ? new RegExp(`^ {0,3}${delimiter[0]}{${delimiter.length},}[ \\t]*(?:\\r?\\n|$)`, "gm")
+      : match[2]
+        ? new RegExp(`</${match[2]}\\s*>`, "gi")
+        : delimiter.startsWith("`")
+          ? new RegExp("(?<!`)`{" + delimiter.length + "}(?!`)", "g")
+          : delimiter.startsWith("$")
+            ? new RegExp("(?<!\\\\)\\${" + delimiter.length + "}", "g")
+            : undefined
+    if (closing) closing.lastIndex = start
+    const ending = delimiter === "\\[" ? "\\]" : delimiter === "\\(" ? "\\)" : delimiter === "<!--" ? "-->" : delimiter
+    const end = closing ? closing.exec(visible) : undefined
+    const index = closing ? (end?.index ?? -1) : visible.indexOf(ending, start)
+    literals.push({ start: match.index, end: index < 0 ? visible.length : index + (end?.[0].length ?? ending.length) })
+  }
+
+  const headings = /(^ {0,3}|[.!?])\*\*([^*\r\n]+)\*\*[ \t]*\r?\n(?:[ \t]*\r?\n)*/gm
+  const end = visible.trimEnd().length
+  return visible.replace(headings, (match: string, prefix: string, label: string, offset: number) => {
+    if (
+      label.length > 100 ||
+      label.trim().split(/\s+/).length > 12 ||
+      !reasoningHeading.test(label.trim()) ||
+      offset + match.length >= end ||
+      /^(?: {4}|\t)/.test(visible.slice(visible.lastIndexOf("\n", offset - 1) + 1, offset)) ||
+      literals.some((literal) => offset >= literal.start && offset < literal.end)
+    ) {
+      return match
+    }
+    // A bridge can concatenate phases (`...done.**Checking sources**\n...`).
+    // Keep every prose character and insert only the missing paragraph break.
+    const newline = match.includes("\r\n") ? "\r\n" : "\n"
+    if (prefix.trim()) return prefix + newline + newline
+    if (!offset || visible.slice(0, offset).endsWith(newline + newline)) return ""
+    return newline
+  })
 }
 
-/** The most recent provider phase is useful as one compact live status. */
-export function reasoningTopic(text: string): string | undefined {
-  const visible = stripRedactedReasoning(text)
-  let topic: string | undefined
-  for (const match of visible.matchAll(providerReasoningPhase)) topic = match[1]?.trim() || topic
-  if (topic) return topic
-  return statusOnlyReasoning(visible) ? visible.trim() : undefined
+export type ToolOutcome = "pending" | "running" | "done" | "error" | "cancelled"
+
+/** Where a call is in its life. An abort is a cancellation, not a failure of the tool. */
+export function toolOutcome(status: string | undefined, error?: string, exit?: unknown): ToolOutcome {
+  if (status === "completed") return typeof exit === "number" && exit !== 0 ? "error" : "done"
+  if (status === "error") return /\b(?:aborted|cancel+ed)\b/i.test(error ?? "") ? "cancelled" : "error"
+  if (status === "running") return "running"
+  return "pending"
+}
+
+const running: Record<string, UiI18nKey> = {
+  read: "ui.tool.running.read",
+  list: "ui.tool.running.list",
+  glob: "ui.tool.running.glob",
+  grep: "ui.tool.running.grep",
+  codesearch: "ui.tool.running.codesearch",
+  webfetch: "ui.tool.running.webfetch",
+  websearch: "ui.tool.running.websearch",
+  bash: "ui.tool.running.bash",
+  edit: "ui.tool.running.edit",
+  multiedit: "ui.tool.running.edit",
+  write: "ui.tool.running.write",
+  apply_patch: "ui.tool.running.patch",
+}
+
+/** The present-tense label a live call shows in place of its noun title. */
+export function runningLabel(tool: string): UiI18nKey | undefined {
+  return running[tool]
+}
+
+/** The first line of a failure, for the collapsed row. */
+export function errorLine(value: string | undefined) {
+  const line = (value ?? "")
+    .replace(/^Error:\s*/, "")
+    .split(/\r?\n/)
+    .find((item) => item.trim())
+  return line?.trim() ?? ""
+}
+
+export function lineCount(value: string | undefined) {
+  if (!value) return 0
+  const lines = value.split(/\r?\n/)
+  return lines.at(-1) === "" ? lines.length - 1 : lines.length
+}
+
+/** The shell tool appends a metadata trailer on sandbox warnings, timeouts, and aborts; it is not output. */
+export function stripBashMetadata(value?: string) {
+  return (value ?? "").replace(/\s*<bash_metadata>[\s\S]*?<\/bash_metadata>\s*$/g, "")
+}
+
+export type ToolSummary = { key: UiI18nKey; params: UiI18nParams }
+
+const plural = (name: "lines" | "matches" | "files", count: number): ToolSummary => ({
+  key: `ui.tool.summary.${name}.${count === 1 ? "one" : "other"}`,
+  params: { count },
+})
+
+/**
+ * One quiet receipt for a finished call: what it produced, in the units the
+ * tool itself reports (exit code, matches, files, lines). Nothing is guessed
+ * for tools whose body already says it (diffs, kernels, delegation).
+ */
+export function toolSummary(input: {
+  tool: string
+  status?: string
+  output?: string
+  metadata?: Record<string, unknown>
+}): ToolSummary[] {
+  if (input.status !== "completed") return []
+  const metadata = input.metadata ?? {}
+  const output = input.output ?? ""
+  switch (input.tool) {
+    case "bash": {
+      const exit = typeof metadata.exit === "number" && metadata.exit !== 0 ? metadata.exit : undefined
+      const lines = lineCount(stripBashMetadata(output))
+      return [
+        ...(exit === undefined ? [] : [{ key: "ui.tool.summary.exit" as const, params: { code: exit } }]),
+        ...(lines > 0 ? [plural("lines", lines)] : []),
+      ]
+    }
+    case "grep":
+      return typeof metadata.matches === "number" ? [plural("matches", metadata.matches)] : []
+    case "glob":
+    case "list":
+      return typeof metadata.count === "number" ? [plural("files", metadata.count)] : []
+    case "read": {
+      const lines = output.match(/^\d{5}\| /gm)?.length ?? 0
+      return lines > 0 ? [plural("lines", lines)] : []
+    }
+    case "webfetch":
+    case "websearch":
+    case "codesearch": {
+      const lines = lineCount(output)
+      return lines > 0 ? [plural("lines", lines)] : []
+    }
+    default:
+      return []
+  }
+}
+
+export type TaskPhase =
+  | "preparing"
+  | "queued"
+  | "running"
+  | "failed_to_start"
+  | "failed"
+  | "partial"
+  | "timed_out"
+  | "cancelled"
+  | "completed"
+
+/**
+ * The backend records a Task part as soon as the model starts emitting its
+ * arguments and binds a child session only once dispatch succeeds, so a child
+ * id is the only proof that a worker exists. `activeMs` first appears when the
+ * child holds its capacity slot and provider work begins; before that the
+ * worker is queued.
+ */
+export function taskPhase(input: {
+  status?: string
+  error?: string
+  metadata?: Record<string, unknown>
+  /** Whether the bound child session is still working, for a background
+   * dispatch whose own outcome has not been written onto the part. */
+  childBusy?: boolean
+}): TaskPhase {
+  const metadata = input.metadata ?? {}
+  const child = typeof metadata.sessionId === "string" && metadata.sessionId !== ""
+  if (input.status === "error") {
+    if (metadata.cancelled === true || toolOutcome("error", input.error) === "cancelled") return "cancelled"
+    return child ? "failed" : "failed_to_start"
+  }
+  if (input.status === "completed") {
+    if (metadata.outcome === "partial") return "partial"
+    if (metadata.outcome === "timed_out") return "timed_out"
+    if (metadata.outcome === "error") return "failed"
+    // A background dispatch settles at once; the worker's own outcome is
+    // written onto the part when it finishes. While the child is still busy
+    // the worker is running; a child that has gone quiet without writing an
+    // outcome (a record from before outcomes were kept) reads as completed.
+    if (metadata.background === true && metadata.outcome === undefined) return input.childBusy ? "running" : "completed"
+    return "completed"
+  }
+  if (input.status === "running" && child) return metadata.activeMs === undefined ? "queued" : "running"
+  return "preparing"
+}
+
+/** The outcome vocabulary the delegation card is styled by. */
+export function taskOutcome(
+  phase: TaskPhase,
+): "pending" | "running" | "error" | "partial" | "timed_out" | "cancelled" | "completed" {
+  if (phase === "preparing" || phase === "queued") return "pending"
+  if (phase === "failed_to_start" || phase === "failed") return "error"
+  return phase
 }
 
 export function toolErrorDisplay(tool: string, value: string) {
   const cleaned = value.replace(/^Error:\s*/, "")
+  if (toolOutcome("error", cleaned) === "cancelled") {
+    return { title: `${humanizeToolName(tool)} cancelled`, message: cleaned }
+  }
   const malformed = /(?:tool was called with invalid arguments|received invalid arguments or incomplete input)/i.test(
     cleaned,
   )
@@ -108,25 +292,137 @@ const record = (value: unknown): Record<string, unknown> | undefined => {
   return value as Record<string, unknown>
 }
 
+const providerNames: Record<string, string> = {
+  anthropic: "Anthropic",
+  deepseek: "DeepSeek",
+  google: "Google",
+  groq: "Groq",
+  mistral: "Mistral",
+  moonshotai: "Moonshot AI",
+  openai: "OpenAI",
+  "openai-codex": "ChatGPT",
+  openrouter: "OpenRouter",
+  xai: "xAI",
+  zai: "Z.AI",
+}
+
+function providerDisplayName(id: string): string {
+  return providerNames[id] ?? id.charAt(0).toUpperCase() + id.slice(1)
+}
+
+const credentialFailure =
+  /\b(?:api[ -]?key|x-api-key|authentication|unauthori[sz]ed|invalid_api_key|incorrect api key|credential|permission denied)\b/i
+
+/**
+ * A rejected credential is the one provider failure the user can always fix
+ * themselves, so name the provider and where its key lives rather than
+ * repeating the provider's bare "API key is invalid".
+ */
+function credentialErrorText(value: unknown): string | undefined {
+  const error = record(value)
+  const data = record(error?.data)
+  const metadata = record(data?.metadata)
+  const message = typeof data?.message === "string" ? data.message.trim() : ""
+  const status = data?.statusCode
+  const auth =
+    error?.name === "ProviderAuthError" || status === 401 || (status === 403 && credentialFailure.test(message))
+  if (!auth) return
+  const id = typeof data?.providerID === "string" ? data.providerID : metadata?.providerID
+  const provider = typeof id === "string" && id ? providerDisplayName(id) : "The provider"
+  const detail = message ? ` (${message.replace(/[.\s]+$/, "")})` : ""
+  return `${provider} rejected the request's credentials${detail}. Update the key under Settings → Models → Provider API keys, or choose another model.`
+}
+
 export function sessionErrorText(value: unknown): string {
   const error = record(value)
   const data = record(error?.data)
   const message = typeof data?.message === "string" ? data.message : "Request failed"
+  const credential = credentialErrorText(value)
+  if (credential) return credential
   const body = typeof data?.responseBody === "string" ? data.responseBody : ""
-  if (!body.includes('"error":"insufficient_balance"')) return message
+  if (!/"error"\s*:\s*"insufficient_balance"/.test(body)) return message
+  // The managed gateway's 402 carries a recovery contract, and the runtime
+  // has already turned it into a sentence that says what is held, what a
+  // reload is doing, and what to do. Repeating the two bare numbers here
+  // once hid "reserved by requests in flight" behind "$0.09 is available".
+  if (body.includes('"recovery"') && message !== "Request failed") return message
 
   const required = body.match(/"required_cents":\s*(\d+)/)?.[1]
   const available = body.match(/"available_cents":\s*(\d+)/)?.[1]
-  if (!required || !available) return "Managed Credits are temporarily unavailable for this step."
-  return `Managed Credits: this step needs $${(Number(required) / 100).toFixed(2)}; $${(Number(available) / 100).toFixed(2)} is currently available. Pending requests may still be settling.`
+  if (!required || !available) return "The connected provider account has insufficient balance for this step."
+  return `The connected provider account needs $${(Number(required) / 100).toFixed(2)} for this step; $${(Number(available) / 100).toFixed(2)} is available.`
 }
 
-export function sessionErrorDisplay(value: unknown): {
-  state: "paused" | "error"
+export type SessionErrorDisplay = {
+  state: "paused" | "stopped" | "error"
+  /**
+   * Why a stopped turn ended, as far as the runtime recorded it: a Stop press,
+   * an interruption the runtime named (a credential revision), a wait the
+   * runtime gave up on, or a provider that stopped answering.
+   */
+  reason?: "user" | "interrupted" | "timeout" | "provider"
   title?: string
   message: string
   action?: "retry"
-} {
+  /** Machine detail (an HTTP status, a gateway router code, a request id)
+   * kept out of the copy but available on demand for a support report. */
+  detail?: string
+}
+
+/** Gateway router codes and edge request ids are for a support ticket, not
+ * for the sentence the reader acts on. */
+const routerCode = /\b(?:ROUTER|FUNCTION|EDGE|DEPLOYMENT|DNS|MIDDLEWARE|INTERNAL)_[A-Z0-9_]+\b/g
+const requestID = /\b[a-z]{2,4}\d?::[a-z0-9]+(?:-[a-z0-9]+)+\b/g
+const boilerplate = /an error occurred with this application\.?/gi
+
+export function scrubProviderMessage(message: string): { text: string; detail?: string } {
+  const codes = [...message.matchAll(routerCode)].map((m) => m[0])
+  const ids = [...message.matchAll(requestID)].map((m) => m[0])
+  const text = message
+    .replace(routerCode, "")
+    .replace(requestID, "")
+    .replace(boilerplate, "")
+    .replace(/\(\s*\)/g, "")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\s*\n\s*/g, " ")
+    .replace(/\s+([.,;:])/g, "$1")
+    .trim()
+  const detail = [...new Set([...codes, ...ids])].join(" · ")
+  return { text, ...(detail ? { detail } : {}) }
+}
+
+/** The one-line heading for a failed turn, from what the runtime recorded. */
+function errorTitle(value: unknown, message: string): string {
+  const error = record(value)
+  const data = record(error?.data)
+  const status = typeof data?.statusCode === "number" ? data.statusCode : undefined
+  const metadata = record(data?.metadata)
+  if (metadata?.code === "managed_provider_unavailable") return "Provider unavailable"
+  if (credentialErrorText(value)) return "Credentials rejected"
+  if (status === 402 || /insufficient_balance|Wallet cannot fund/i.test(message)) return "Ace is paused"
+  if (status === 429 || /rate limit/i.test(message)) return "Rate limited"
+  if (status === 413 || /context window|too large|prompt is too long|maximum context/i.test(message))
+    return "Request too large"
+  if (status !== undefined && status >= 500) return "The model service did not answer"
+  if (/bad gateway|gateway|could not deliver|connection was interrupted|ECONNRESET|fetch failed|socket/i.test(message))
+    return "The model service did not answer"
+  if (status === 400 || status === 422) return "The request was rejected"
+  return "The turn failed"
+}
+
+/**
+ * A Stop press aborts the turn's controller without a reason, so the SDK's
+ * generic abort text is the only record of it. Every other abort names its
+ * cause in the recorded message.
+ */
+const genericAbort = /^(?:the operation was aborted|signal is aborted without reason|aborted)\.?$/i
+
+/**
+ * A turn that ended early is presented by what the runtime recorded, never by
+ * a generic failure: nothing here implies completed work was undone or that
+ * the turn resumes on its own.
+ */
+export function sessionErrorDisplay(value: unknown): SessionErrorDisplay {
   const error = record(value)
   const data = record(error?.data)
   const metadata = record(data?.metadata)
@@ -135,7 +431,42 @@ export function sessionErrorDisplay(value: unknown): {
   if (state === "paused" && action === "retry") {
     return { state: "paused", title: "Paused", message: sessionErrorText(value), action: "retry" }
   }
-  return { state: "error", message: sessionErrorText(value) }
+  if (error?.name === "MessageAbortedError") {
+    const recorded = typeof data?.message === "string" ? data.message.trim() : ""
+    if (!recorded || genericAbort.test(recorded)) {
+      return {
+        state: "stopped",
+        reason: "user",
+        title: "Stopped",
+        message:
+          "Stopped at your request. Completed steps and written files are kept; nothing continues automatically.",
+      }
+    }
+    return { state: "stopped", reason: "interrupted", title: "Stopped", message: recorded }
+  }
+  if (state === "stopped") {
+    const code = typeof metadata?.code === "string" ? metadata.code : ""
+    return {
+      state: "stopped",
+      reason: /timeout|timed_out/i.test(code) ? "timeout" : "provider",
+      title: "Stopped",
+      message: sessionErrorText(value),
+    }
+  }
+  const scrubbed = scrubProviderMessage(sessionErrorText(value))
+  const status = typeof data?.statusCode === "number" ? ` HTTP ${data.statusCode}` : ""
+  const detail = [scrubbed.detail, status.trim()].filter(Boolean).join(" · ")
+  const message =
+    scrubbed.text ||
+    (status
+      ? `The provider returned${status} and nothing more. Send again to retry.`
+      : "Request failed. Send again to retry.")
+  return {
+    state: "error",
+    title: errorTitle(value, message),
+    message,
+    ...(detail ? { detail } : {}),
+  }
 }
 
 export function savedArtifact(value: unknown): SavedArtifact | undefined {
@@ -190,6 +521,7 @@ export function generatedArtifacts(
 }
 
 const filename = (value: string) => value.replaceAll("\\", "/").split("/").pop() || value
+const absolute = /^(?:\/|[A-Za-z]:[\\/])/
 
 /**
  * A stable receipt label for a scientific execution. Models can provide a
@@ -230,31 +562,93 @@ export function scienceTaskLabel(input: { title?: unknown; code?: unknown; langu
 }
 
 /**
- * Files a turn actually wrote, from its completed tool parts. write/edit/
- * multiedit carry the target in input.filePath; apply_patch lists every
- * changed file (with moves resolved and deletes skipped) in its completed
- * metadata. Python and R tools take only code — kernel-side writes carry no
- * path in the part — so it is deliberately not guessed at here.
+ * Completed file receipts, preferring the runtime-resolved target over the
+ * requested input path. Canonical-only mode supplies precise write/edit/patch
+ * targets for bare chat links; it never guesses paths from shell or kernel code.
+ *
+ * Files a shell command or kernel changed arrive as `patch` parts: the backend
+ * diffs the project after each step and records the real paths, so they are
+ * receipts too. `resolve` runs them through the same host-path resolver the
+ * chat's file links use; a path it does not accept is left out.
  */
 export function writtenFiles(
   parts: ReadonlyArray<{
     type: string
     tool?: string
     state?: { status?: string; input?: unknown; metadata?: unknown }
+    files?: unknown
   }>,
+  options?: { canonicalOnly?: boolean; resolve?: (path: string) => string | undefined },
 ): string[] {
   const files: string[] = []
   const seen = new Set<string>()
-  const push = (value: unknown) => {
-    if (typeof value !== "string" || !value || seen.has(value)) return
-    seen.add(value)
-    files.push(value)
+  const removed = new Set<string>()
+  const resolve = (value: unknown) => {
+    if (typeof value !== "string" || !value) return
+    const result = options?.resolve ? options.resolve(value) : value
+    if (!result || (options?.canonicalOnly && !absolute.test(result))) return
+    return result
+  }
+  const push = (value: unknown, authoritative = true) => {
+    const result = resolve(value)
+    if (!result || seen.has(result) || (!authoritative && removed.has(result))) return
+    if (authoritative) removed.delete(result)
+    seen.add(result)
+    files.push(result)
+  }
+  const remove = (value: unknown) => {
+    const result = resolve(value)
+    if (!result) return
+    removed.add(result)
+    seen.delete(result)
+    const index = files.indexOf(result)
+    if (index >= 0) files.splice(index, 1)
   }
   for (const part of parts) {
-    if (part.type !== "tool" || part.state?.status !== "completed") continue
+    if (part.type === "patch") {
+      // The backend records patch entries as absolute worktree paths; anything
+      // else is not a receipt.
+      for (const file of Array.isArray(part.files) ? part.files : []) {
+        if (typeof file !== "string" || !absolute.test(file)) continue
+        push(file, false)
+      }
+      continue
+    }
+    if (part.type !== "tool" || !part.state) continue
     const input = (part.state.input ?? {}) as Record<string, unknown>
-    if (part.tool === "write" || part.tool === "edit" || part.tool === "multiedit") push(input.filePath)
     const metadata = (part.state.metadata ?? {}) as Record<string, unknown>
+    const settledTask = part.tool === "task" && metadata.outcome === "partial"
+    if (part.state.status !== "completed" && !settledTask) continue
+    if (part.tool === "task") {
+      const evidence = metadata.evidence
+      if (evidence && typeof evidence === "object" && "mutations" in evidence) {
+        const mutations = (evidence as Record<string, unknown>).mutations
+        for (const mutation of Array.isArray(mutations) ? mutations : []) {
+          if (!mutation || typeof mutation !== "object") continue
+          const record = mutation as Record<string, unknown>
+          for (const file of Array.isArray(record.removed) ? record.removed : []) remove(file)
+          const recorded = record.files
+          for (const file of Array.isArray(recorded) ? recorded : []) push(file)
+        }
+      }
+    }
+    if (part.tool === "write" || part.tool === "edit" || part.tool === "multiedit") {
+      const diff = metadata.filediff
+      const canonical =
+        part.tool === "edit" && diff && typeof diff === "object" && "file" in diff ? diff.file : metadata.filepath
+      push(typeof canonical === "string" ? canonical : options?.canonicalOnly ? undefined : input.filePath)
+    }
+    for (const file of Array.isArray(metadata.outputFiles) ? metadata.outputFiles : []) {
+      if (
+        !file ||
+        typeof file !== "object" ||
+        !("path" in file) ||
+        typeof file.path !== "string" ||
+        !absolute.test(file.path)
+      )
+        continue
+      push(file.path)
+    }
     if (["notebook", "python", "r", "rkernel"].includes(part.tool ?? "")) {
       for (const file of Array.isArray(metadata.files) ? metadata.files : []) push(file)
     }
@@ -267,11 +661,42 @@ export function writtenFiles(
     for (const change of changes) {
       if (!change || typeof change !== "object") continue
       const record = change as Record<string, unknown>
+      if (record.type === "delete" || record.movePath) {
+        remove(record.filePath)
+      }
       if (record.type === "delete") continue
       push(record.movePath ?? record.filePath)
     }
   }
   return files
+}
+
+/** Counts come from completed mutation receipts, never from proposed input. */
+export function toolChanges(state: {
+  status?: string
+  metadata?: unknown
+}): { additions: number; deletions: number } | undefined {
+  if (state.status !== "completed" || !state.metadata || typeof state.metadata !== "object") return
+  const metadata = state.metadata as Record<string, unknown>
+  const records = metadata.filediff ? [metadata.filediff] : metadata.files
+  if (!Array.isArray(records) || !records.length) return
+  const total = { additions: 0, deletions: 0 }
+  for (const record of records) {
+    if (!record || typeof record !== "object") return
+    const value = record as Record<string, unknown>
+    if (
+      typeof value.additions !== "number" ||
+      !Number.isSafeInteger(value.additions) ||
+      value.additions < 0 ||
+      typeof value.deletions !== "number" ||
+      !Number.isSafeInteger(value.deletions) ||
+      value.deletions < 0
+    )
+      return
+    total.additions += value.additions
+    total.deletions += value.deletions
+  }
+  return total
 }
 
 /**
@@ -300,18 +725,58 @@ export function skillName(source: {
   return undefined
 }
 
+const loadedPrefix = "Loaded skill: "
+
+/**
+ * Only the completed load result proves that instructions were delivered: it
+ * records the skill's name with its directory and instruction hash, where a
+ * discovery result carries the query as `name` and no directory. The title
+ * prefix remains the fallback for transcripts recorded before that metadata.
+ * Never infer a load from requested inputs.
+ */
+export function loadedSkillName(source: {
+  metadata?: Record<string, unknown>
+  title?: string
+  status?: string
+}): string | undefined {
+  if (source.status !== "completed" || source.metadata?.ok === false) return
+  const metadata = source.metadata ?? {}
+  const name = typeof metadata.name === "string" ? metadata.name.trim() : ""
+  const recorded = typeof metadata.contentHash === "string" || (typeof metadata.dir === "string" && metadata.dir !== "")
+  if (recorded && name) return name
+  const title = source.title?.startsWith(loadedPrefix) ? source.title.slice(loadedPrefix.length).trim() : ""
+  if (!title) return
+  return name || title
+}
+
+/**
+ * The label follows the recorded execution state. A pending part is a call
+ * the model has not finished writing: nothing is being searched or loaded, so
+ * it reads as the plain noun and the row's state glyph says "Preparing". Only
+ * a running call claims an activity; a cancelled call that never started is
+ * not a failed lookup.
+ */
 export function skillActivity(source: {
   metadata?: Record<string, unknown>
   input?: Record<string, unknown>
   title?: string
   status?: string
+  error?: string
 }): { title: string; subtitle?: string } {
-  const used = Array.isArray(source.metadata?.names)
-    ? source.metadata.names.filter((name): name is string => typeof name === "string" && !!name)
-    : []
-  if (used.length > 1) {
-    return { title: `Using ${used.length} skills`, subtitle: used.join(" · ") }
+  const requested = typeof source.input?.name === "string" && source.input.name ? source.input.name : undefined
+  if (source.status === "pending") return { title: "Skill", ...(requested ? { subtitle: requested } : {}) }
+  if (source.status === "error" || source.metadata?.ok === false) {
+    const cancelled =
+      source.metadata?.cancelled === true ||
+      source.metadata?.started === false ||
+      toolOutcome("error", source.error) === "cancelled"
+    if (cancelled) return { title: "Skill", ...(requested ? { subtitle: requested } : {}) }
+    return requested ? { title: "Skill load failed", subtitle: requested } : { title: "Skill lookup failed" }
   }
+  // Models may send discovery fields with an exact load. The completed result
+  // identifies what actually happened, rather than the optional input fields.
+  const loaded = loadedSkillName(source)
+  if (loaded) return { title: `Loaded skill: ${loaded}` }
   const search =
     typeof source.input?.query === "string" ||
     typeof source.input?.category === "string" ||
@@ -319,11 +784,17 @@ export function skillActivity(source: {
     source.title?.startsWith("Skills in category:")
   if (search) {
     const matches = Array.isArray(source.metadata?.matches) ? source.metadata.matches.length : 0
-    return source.status === "completed" && matches > 0
+    if (source.status !== "completed") return { title: "Finding relevant skills" }
+    return matches > 0
       ? { title: `Found ${matches} relevant ${matches === 1 ? "skill" : "skills"}` }
-      : { title: "Finding relevant skills" }
+      : { title: "No matching skills found" }
   }
 
+  const names = Array.isArray(source.metadata?.names)
+    ? source.metadata.names.filter((name): name is string => typeof name === "string" && !!name)
+    : []
+  if (names.length > 1) return { title: `${names.length} skills`, subtitle: names.join(" · ") }
   const name = skillName(source)
-  return name ? { title: `Using ${name}` } : { title: "Finding relevant skills" }
+  if (source.status === "completed") return { title: "Skill result", ...(name ? { subtitle: name } : {}) }
+  return name ? { title: `Loading ${name}` } : { title: "Finding relevant skills" }
 }

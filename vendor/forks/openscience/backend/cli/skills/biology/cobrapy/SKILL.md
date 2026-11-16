@@ -4,7 +4,13 @@ description: Constraint-based metabolic modeling (COBRA). FBA, FVA, gene knockou
 category: biology
 license: GPL-2.0 license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/cobrapy
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # COBRApy - Constraint-Based Reconstruction and Analysis

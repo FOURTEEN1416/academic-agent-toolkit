@@ -11,14 +11,17 @@ Formatting standard for academic proposals:
 - Tables: 10pt, Table Grid style
 """
 import sys
+from pathlib import Path
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 import re
 
-inpath = sys.argv[1]
-outpath = sys.argv[2] if len(sys.argv) > 2 else inpath.replace('.md', '.docx')
+inpath = Path(sys.argv[1])
+outpath = Path(sys.argv[2]) if len(sys.argv) > 2 else inpath.with_suffix('.docx')
+if inpath.resolve() == outpath.resolve() or (outpath.exists() and inpath.samefile(outpath)):
+    raise SystemExit('Output must not overwrite the source Markdown file')
 
 doc = Document()
 
@@ -110,6 +113,11 @@ def table(headers, rows):
     doc.add_paragraph()
 
 
+def is_table_separator(line):
+    cells = line.strip().strip('|').split('|')
+    return bool(cells) and all(re.fullmatch(r'\s*:?-{3,}:?\s*', cell) for cell in cells)
+
+
 # Parse markdown
 with open(inpath, encoding='utf-8') as f:
     lines = f.readlines()
@@ -189,15 +197,16 @@ while i < len(lines):
         i += 1
         continue
 
-    if line.strip().startswith('|') and not line.strip().startswith('|---'):
+    if line.strip().startswith('|') and not is_table_separator(line):
         tbl_lines = [line]
         j = i + 1
-        if j < len(lines) and '|---' in lines[j]:
+        has_separator = j < len(lines) and is_table_separator(lines[j])
+        if has_separator:
             j += 1
         while j < len(lines) and lines[j].strip().startswith('|'):
             tbl_lines.append(lines[j].rstrip('\n'))
             j += 1
-        if len(tbl_lines) >= 2:
+        if len(tbl_lines) >= 2 or has_separator:
             headers = [c.strip() for c in tbl_lines[0].split('|')[1:-1]]
             rows = [[c.strip() for c in l.split('|')[1:-1]] for l in tbl_lines[1:]]
             table(headers, rows)

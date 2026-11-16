@@ -1144,7 +1144,7 @@ export type Config = {
    */
   logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR"
   /**
-   * Command configuration, see https://syntheticsciences.ai/docs/commands
+   * Command configuration
    */
   command?: {
     [key: string]: {
@@ -1201,7 +1201,7 @@ export type Config = {
     [key: string]: AgentConfig | undefined
   }
   /**
-   * Agent configuration, see https://syntheticsciences.ai/docs/agent
+   * Agent configuration
    */
   agent?: {
     plan?: AgentConfig
@@ -1279,27 +1279,6 @@ export type Config = {
     url?: string
   }
   experimental?: {
-    hook?: {
-      file_edited?: {
-        [key: string]: Array<{
-          command: Array<string>
-          environment?: {
-            [key: string]: string
-          }
-        }>
-      }
-      session_completed?: Array<{
-        command: Array<string>
-        environment?: {
-          [key: string]: string
-        }
-      }>
-    }
-    /**
-     * Number of retries for chat completions on failure
-     */
-    chatMaxRetries?: number
-    disable_paste_summary?: boolean
     /**
      * Enable the batch tool
      */
@@ -1571,11 +1550,7 @@ export type McpStatusNeedsClientRegistration = {
 }
 
 export type McpStatus =
-  | McpStatusConnected
-  | McpStatusDisabled
-  | McpStatusFailed
-  | McpStatusNeedsAuth
-  | McpStatusNeedsClientRegistration
+  McpStatusConnected | McpStatusDisabled | McpStatusFailed | McpStatusNeedsAuth | McpStatusNeedsClientRegistration
 
 export type LspStatus = {
   id: string

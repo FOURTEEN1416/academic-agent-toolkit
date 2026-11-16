@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/paperspine-domain-error.schema.json",
+  "title": "PaperSpine shared DomainError",
+  "x-contract-status": "frozen-p0-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "code", "message", "category", "retryable", "task_id", "command_id", "current_version", "details", "trace_id"],
+  "properties": {
+    "contract": {"const": "paperspine.domain-error"},
+    "schema_version": {"const": "1.0"},
+    "code": {"enum": ["validation_failed", "unauthorized", "forbidden", "not_found", "idempotency_conflict", "version_conflict", "capability_mismatch", "unsupported_schema_version", "decision_required", "decision_already_resolved", "effect_failed", "internal_error"]},
+    "message": {"type": "string", "minLength": 1},
+    "category": {"enum": ["validation", "authentication", "authorization", "missing", "conflict", "capability", "decision", "effect", "internal"]},
+    "retryable": {"type": "boolean"},
+    "task_id": {"type": ["string", "null"]},
+    "command_id": {"type": ["string", "null"]},
+    "current_version": {"type": ["integer", "null"], "minimum": 0},
+    "details": {"type": "object"},
+    "trace_id": {"type": ["string", "null"]}
+  }
+}

@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 import os
 from pathlib import Path
 import re
+import threading
+import time
 from typing import Any
 from uuid import uuid4
 
@@ -21,6 +23,9 @@ from .contracts import (
     validate_review_decision,
     write_json_atomic,
 )
+from .manuscript_revision import ManuscriptBuildError, ManuscriptRevisionService
+from .redesign_selection import resolve_redesign_decisions
+from .user_input import build_issue, issue_fingerprint, validate_resolution, write_resolution_receipt
 
 
 STAGES = {
@@ -38,7 +43,7 @@ STAGES = {
     "complete",
     "blocked",
 }
-STATE_SCHEMA_VERSION = "1.2"
+STATE_SCHEMA_VERSION = "1.3"
 PUBLICATION_STAGES = {
     "canonical_paper_ready",
     "target_profile_ready",
@@ -63,6 +68,7 @@ PAPERSPINE_CONFIG_CHOICES = {
     "word_output": {"none", "docx"},
     "translation_package": {"none", "zh"},
     "reference_mode": {"local_first", "specified_paths", "web"},
+    "author_voice_restoration": {"off", "standard", "strict"},
     "humanize_tier": {"none", "light", "medium", "heavy"},
     "detection_platform": {"cnki", "weipu", "general"},
     "ui_language": {"zh", "en"},
@@ -76,7 +82,8 @@ PAPERSPINE_CONFIG_DEFAULTS = {
     "reference_mode": "local_first",
     "reference_paths": ["."],
     "citation_target_count": 20,
-    "humanize_tier": "medium",
+    "author_voice_restoration": "off",
+    "humanize_tier": "none",
     "detection_platform": "general",
     "ui_language": "zh",
     "target_name": "",
@@ -87,6 +94,9 @@ PAPERSPINE_CONFIG_DEFAULTS = {
     "special_requirements": [],
 }
 
+_STATE_LOCKS: dict[str, threading.RLock] = {}
+_STATE_LOCKS_GUARD = threading.Lock()
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -95,14 +105,29 @@ def _now() -> str:
 class IntegrationCoordinator:
     def __init__(self, job_path: str | Path) -> None:
         self.job = load_integration_job(job_path)
+        self.product_projection_read_only = self.job["schema_version"] == "1.1"
         self.state_path = Path(self.job["state_file"])
         self.paper = PaperSpineBridge(self.job)
         self.figmirror = FigMirrorBridge(self.job)
         self.publication = PublicationCycleBridge(self.job)
+        self.manuscript = ManuscriptRevisionService(self.job)
+
+    def _assert_mutation_authority(self) -> None:
+        if self.product_projection_read_only:
+            raise ContractError(
+                "integration job 1.1 is a read-only ProductKernel projection; "
+                "mutations must use ProductRunner/ProductKernel commands"
+            )
+
+    def _state_lock(self) -> threading.RLock:
+        key = str(self.state_path.resolve())
+        with _STATE_LOCKS_GUARD:
+            return _STATE_LOCKS.setdefault(key, threading.RLock())
 
     def initialize(self, *, force: bool = False) -> dict[str, Any]:
         if self.state_path.exists() and not force:
             return self.state()
+        self._assert_mutation_authority()
         state = {
             "schema_version": STATE_SCHEMA_VERSION,
             "job_id": self.job["job_id"],
@@ -110,6 +135,7 @@ class IntegrationCoordinator:
             "next_action": "Validate the PaperSpine handoff and prepare FigMirror requests.",
             "events": [],
             "signals": [],
+            "issues": [],
             "context": {},
             "updated_at": _now(),
         }
@@ -125,6 +151,7 @@ class IntegrationCoordinator:
         if state.get("schema_version") == "1.0":
             previous_stage = state["stage"]
             state["schema_version"] = STATE_SCHEMA_VERSION
+            state.setdefault("issues", [])
             if previous_stage == "complete":
                 state["stage"] = "awaiting_paper_integration"
                 state["next_action"] = (
@@ -139,6 +166,7 @@ class IntegrationCoordinator:
         if state.get("schema_version") == "1.1":
             previous_stage = state["stage"]
             state["schema_version"] = STATE_SCHEMA_VERSION
+            state.setdefault("issues", [])
             if previous_stage == "complete":
                 state["stage"] = "canonical_paper_ready"
                 state["next_action"] = (
@@ -148,6 +176,15 @@ class IntegrationCoordinator:
                 state,
                 "integration.state_migrated",
                 {"from_schema": "1.1", "from_stage": previous_stage},
+            )
+            return self._save(state)
+        if state.get("schema_version") == "1.2":
+            state["schema_version"] = STATE_SCHEMA_VERSION
+            state.setdefault("issues", [])
+            self._event(
+                state,
+                "integration.state_migrated",
+                {"from_schema": "1.2", "from_stage": state["stage"]},
             )
             return self._save(state)
         if state.get("schema_version") != STATE_SCHEMA_VERSION:
@@ -161,11 +198,15 @@ class IntegrationCoordinator:
         return {
             **requests,
             "figures": [
-                figure for figure in requests["figures"] if figure.get("decision") != "keep"
+                figure
+                for figure in requests["figures"]
+                if figure.get("decision") != "keep"
+                and figure.get("publication_role", "main") != "omit"
             ],
         }
 
     def _save(self, state: dict[str, Any]) -> dict[str, Any]:
+        self._assert_mutation_authority()
         state["updated_at"] = _now()
         write_json_atomic(self.state_path, state)
         return state
@@ -175,6 +216,148 @@ class IntegrationCoordinator:
         state.setdefault("events", []).append(
             {"type": event_type, "at": _now(), "payload": payload or {}}
         )
+
+    @staticmethod
+    def _open_issues(state: dict[str, Any]) -> list[dict[str, Any]]:
+        return [issue for issue in state.get("issues", []) if issue.get("status") == "open"]
+
+    def _append_user_input_issue(
+        self,
+        state: dict[str, Any],
+        *,
+        question: str,
+        details: str,
+        missing_fields: list[str] | None = None,
+        missing_materials: list[str] | None = None,
+        allowed_actions: list[str] | None = None,
+        blocked_stage: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        fields = missing_fields or []
+        materials = missing_materials or []
+        actions = allowed_actions or (["provide_material", "answer"] if fields or materials else ["acknowledge"])
+        previous = blocked_stage or (
+            state.get("blocked_from") if state.get("stage") == "blocked" else state.get("stage", "initialized")
+        )
+        fingerprint = issue_fingerprint(
+            question=question,
+            details=details,
+            missing_fields=fields,
+            missing_materials=materials,
+            blocked_stage=previous,
+        )
+        existing = next(
+            (
+                issue
+                for issue in self._open_issues(state)
+                if issue.get("fingerprint") == fingerprint
+            ),
+            None,
+        )
+        if existing is not None:
+            return existing
+        issue = build_issue(
+            issue_id=f"issue-{uuid4().hex}",
+            question=question,
+            details=details,
+            missing_fields=fields,
+            missing_materials=materials,
+            allowed_actions=actions,
+            blocked_stage=previous,
+            resume_state={"blocked_from": previous, "next_action": state.get("next_action")},
+        )
+        if metadata:
+            issue["metadata"] = metadata
+        state.setdefault("issues", []).append(issue)
+        if state.get("stage") != "blocked":
+            state["blocked_from"] = previous
+        state["stage"] = "blocked"
+        state["last_error"] = details
+        state["next_action"] = question
+        self._event(
+            state,
+            "needs_user_input.opened",
+            {"issue_id": issue["issue_id"], "blocked_stage": previous},
+        )
+        return issue
+
+    def create_user_input_issue(self, raw: dict[str, Any]) -> dict[str, Any]:
+        self._assert_mutation_authority()
+        """Create a persisted issue for a core-detected material or fact gap."""
+        state = self.state()
+        for field in ("question", "details"):
+            if not isinstance(raw.get(field), str) or not raw[field].strip():
+                raise ContractError(f"needs_user_input.{field} must be non-empty text")
+        missing_fields = raw.get("missing_fields", [])
+        missing_materials = raw.get("missing_materials", [])
+        allowed_actions = raw.get("allowed_actions")
+        if not isinstance(missing_fields, list) or any(not isinstance(item, str) for item in missing_fields):
+            raise ContractError("needs_user_input.missing_fields must be a text list")
+        if not isinstance(missing_materials, list) or any(not isinstance(item, str) for item in missing_materials):
+            raise ContractError("needs_user_input.missing_materials must be a text list")
+        if allowed_actions is not None and (
+            not isinstance(allowed_actions, list) or any(not isinstance(item, str) for item in allowed_actions)
+        ):
+            raise ContractError("needs_user_input.allowed_actions must be a text list")
+        self._append_user_input_issue(
+            state,
+            question=raw["question"],
+            details=raw["details"],
+            missing_fields=missing_fields,
+            missing_materials=missing_materials,
+            allowed_actions=allowed_actions,
+            metadata=raw.get("metadata") if isinstance(raw.get("metadata"), dict) else None,
+        )
+        return self._save(state)
+
+    def resolve_user_input_issue(self, raw: dict[str, Any]) -> dict[str, Any]:
+        self._assert_mutation_authority()
+        with self._state_lock():
+            return self._resolve_user_input_issue(raw)
+
+    def _resolve_user_input_issue(self, raw: dict[str, Any]) -> dict[str, Any]:
+        state = self.state()
+        issue_id = raw.get("issue_id")
+        if not isinstance(issue_id, str) or not issue_id:
+            raise ContractError("issue_id is required")
+        issue = next((item for item in state.get("issues", []) if item.get("issue_id") == issue_id), None)
+        if issue is None:
+            raise ContractError("needs_user_input issue does not exist")
+        resolution = validate_resolution(issue, raw, Path(self.job["project_root"]).resolve())
+        if issue.get("status") == "resolved":
+            previous = issue.get("resolution") or {}
+            if all(previous.get(key) == resolution.get(key) for key in ("action", "source", "answer", "materials")):
+                return state
+            raise ContractError("issue is already resolved with different acknowledgement content")
+
+        handler = (issue.get("metadata") or {}).get("resolution_handler")
+        if resolution["action"] == "retry" and handler == "manuscript_rebuild":
+            revision_id = (issue.get("metadata") or {}).get("revision_id")
+            self._retry_manuscript_rebuild(state, revision_id)
+        elif resolution["action"] == "retry":
+            raise ContractError("retry is unavailable because this issue has no core resolution handler")
+
+        issue["status"] = "resolved"
+        issue["resolved_at"] = _now()
+        issue["resolution"] = resolution
+        receipt = write_resolution_receipt(Path(self.job["paper"]["output_dir"]), issue)
+        issue["resolution_receipt"] = str(receipt)
+        self._event(
+            state,
+            "needs_user_input.resolved",
+            {"issue_id": issue_id, "action": resolution["action"], "source": resolution["source"]},
+        )
+        if state.get("stage") == "blocked" and not self._open_issues(state):
+            restored = state.get("blocked_from") or issue.get("blocked_stage") or "initialized"
+            state["stage"] = restored
+            state.pop("blocked_from", None)
+            state.pop("last_error", None)
+            state["next_action"] = (
+                issue.get("resume", {}).get("state", {}).get("next_action")
+                or "Continue from the restored workflow stage."
+            )
+            self._event(state, "integration.resumed_after_user_input", {"stage": restored})
+        return self._save(state)
 
     def _block(self, state: dict[str, Any], exc: Exception) -> dict[str, Any]:
         previous = state.get("stage")
@@ -186,8 +369,11 @@ class IntegrationCoordinator:
         return self._save(state)
 
     def resume(self) -> dict[str, Any]:
+        self._assert_mutation_authority()
         state = self.state()
         if state["stage"] == "blocked":
+            if any(issue.get("status") == "open" for issue in state.get("issues", [])):
+                raise ContractError("open needs_user_input issues must be resolved before resume")
             state["stage"] = state.get("blocked_from", "initialized")
             state.pop("last_error", None)
             state.pop("blocked_from", None)
@@ -196,6 +382,7 @@ class IntegrationCoordinator:
         return self.advance()
 
     def advance(self) -> dict[str, Any]:
+        self._assert_mutation_authority()
         state = self.state()
         if state["stage"] in PUBLICATION_STAGES:
             return state
@@ -275,6 +462,8 @@ class IntegrationCoordinator:
                     if not self.figmirror.decision_path.is_file():
                         return state
                     decision = validate_review_decision(load_json(self.figmirror.decision_path), requests)
+                    decision = resolve_redesign_decisions(self.job, requests, decision)
+                    write_json_atomic(self.figmirror.decision_path, decision)
                     if any(
                         panel.get("action") == "revise"
                         for item in decision["figures"]
@@ -290,6 +479,8 @@ class IntegrationCoordinator:
 
                 if state["stage"] == "figures_confirmed":
                     decision = validate_review_decision(load_json(self.figmirror.decision_path), requests)
+                    decision = resolve_redesign_decisions(self.job, requests, decision)
+                    write_json_atomic(self.figmirror.decision_path, decision)
                     assembly = assemble_figures(self.job, requests, decision)
                     state["context"]["assembly_manifest"] = assembly["manifest"]
                     state["context"]["assembly_report"] = assembly["report"]
@@ -318,14 +509,16 @@ class IntegrationCoordinator:
                     if progress.get("is_complete") is True and readiness_complete:
                         state["stage"] = "canonical_paper_ready"
                         state["next_action"] = (
-                            "The canonical paper is complete. Validate a target profile, assemble a target bundle, prepare rebuttal materials, or plan a destination rebuild."
+                            "Review the canonical PDF page by page, edit the controlled manuscript source if needed, and confirm the current PDF/Word hashes before assembling a target bundle."
                         )
                         self._event(
                             state,
                             "paperspine.final_audit_confirmed",
                             {"readiness": readiness},
                         )
-                        return self._save(state)
+                        self._save(state)
+                        self._ensure_manuscript_context(state)
+                        return state
                     state["next_action"] = progress.get("next_action") or (
                         "Continue PaperSpine from its first incomplete stage, then advance this integration again."
                     )
@@ -335,9 +528,24 @@ class IntegrationCoordinator:
                     return state
                 raise ContractError(f"unsupported integration stage: {state['stage']}")
         except Exception as exc:
-            return self._block(state, exc)
+            blocked = self._block(state, exc)
+            detail = str(exc)
+            if isinstance(exc, ContractError) and any(
+                marker in detail.lower() for marker in ("missing", "does not exist", "not available")
+            ):
+                self._append_user_input_issue(
+                    blocked,
+                    question="当前阶段缺少继续所需的材料，请补充后再恢复。",
+                    details=detail,
+                    missing_materials=[detail],
+                    allowed_actions=["answer", "provide_material"],
+                    blocked_stage=blocked.get("blocked_from", "initialized"),
+                )
+                return self._save(blocked)
+            return blocked
 
     def record_decision(self, raw: dict[str, Any]) -> dict[str, Any]:
+        self._assert_mutation_authority()
         state = self.state()
         if state["stage"] in PUBLICATION_STAGES:
             return state
@@ -345,16 +553,31 @@ class IntegrationCoordinator:
             raise ContractError("a review decision is only accepted during awaiting_review")
         requests = self.paper.validate_handoff()[0]
         decision = validate_review_decision(raw, requests)
+        decision = resolve_redesign_decisions(self.job, requests, decision)
         request_by_id = {item["figure_id"]: item for item in requests["figures"]}
+        review_data = self.figmirror.review_data() or {}
+        review_candidates = {
+            item.get("figure_id"): set((item.get("candidates") or {}).keys())
+            for item in review_data.get("figures", [])
+            if isinstance(item, dict) and item.get("figure_id")
+        }
         generated_candidates = set("ABC"[: int(self.job["figure"]["candidate_count"])])
         invalid = [
             item["selected_candidate"]
             for item in decision["figures"]
             if item["selected_candidate"]
             not in (
-                {"existing"}
-                if request_by_id[item["figure_id"]].get("decision") == "keep"
-                else generated_candidates
+                ({"existing"} if request_by_id[item["figure_id"]].get("decision") == "keep" else set())
+                | (
+                    {"existing"}
+                    if request_by_id[item["figure_id"]].get("decision") in {"redesign", "improve"}
+                    else set()
+                )
+                | (
+                    (review_candidates.get(item["figure_id"]) or generated_candidates)
+                    if request_by_id[item["figure_id"]].get("decision") != "keep"
+                    else set()
+                )
             )
         ]
         if invalid:
@@ -382,7 +605,14 @@ class IntegrationCoordinator:
     def _normalize_configuration(raw: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(raw, dict):
             raise ContractError("PaperSpine configuration must be a JSON object")
-        normalized = {**PAPERSPINE_CONFIG_DEFAULTS, **raw}
+        supplied = dict(raw)
+        if "author_voice_restoration" not in supplied:
+            legacy = supplied.get("humanize_tier")
+            if legacy in {"light", "medium", "heavy"}:
+                supplied["author_voice_restoration"] = (
+                    "strict" if legacy == "heavy" else "standard"
+                )
+        normalized = {**PAPERSPINE_CONFIG_DEFAULTS, **supplied}
         for field, allowed in PAPERSPINE_CONFIG_CHOICES.items():
             value = normalized.get(field)
             if value not in allowed:
@@ -426,8 +656,7 @@ class IntegrationCoordinator:
             "special_requirements": "特殊要求",
             "word_output": "Word 输出",
             "translation_package": "翻译包",
-            "humanize_tier": "降 AI 痕迹",
-            "detection_platform": "目标检测平台",
+            "author_voice_restoration": "作者声音恢复",
             "ui_language": "界面语言",
         }
         lines = ["# PaperSpine 配置", ""]
@@ -438,6 +667,7 @@ class IntegrationCoordinator:
         return "\n".join(lines) + "\n"
 
     def save_configuration(self, raw: dict[str, Any]) -> dict[str, Any]:
+        self._assert_mutation_authority()
         state = self.state()
         editable_stage = state.get("blocked_from") if state["stage"] == "blocked" else state["stage"]
         if editable_stage != "initialized":
@@ -452,6 +682,291 @@ class IntegrationCoordinator:
         self._event(state, "paperspine.configuration.saved", {"target_name": config["target_name"]})
         self._save(state)
         return {"status": "OK", "configuration": self.configuration(), "state": state}
+
+    def _ensure_manuscript_context(self, state: dict[str, Any]) -> dict[str, Any]:
+        artifact = self.manuscript.artifact_snapshot()
+        current_hashes = artifact["hashes"]
+        context = state.setdefault("context", {}).get("manuscript_revision")
+        if context is None:
+            source_hash = current_hashes.get("source_sha256") or "missing"
+            context = {
+                "contract": "paperspine5.manuscript-revision-state",
+                "version": "1.0",
+                "revision_id": f"baseline-{source_hash[:12]}",
+                "status": "awaiting_confirmation",
+                "before_hashes": current_hashes,
+                "current_hashes": current_hashes,
+                "invalidated_at": None,
+                "invalidated_at_ns": None,
+                "history": [],
+            }
+            state["context"]["manuscript_revision"] = context
+            self._event(state, "manuscript.confirmation_requested", {"revision_id": context["revision_id"]})
+            self._save(state)
+        elif context.get("current_hashes", {}).get("source_sha256") != current_hashes.get("source_sha256"):
+            # Detect source changes made by an Agent/editor outside the Web UI and
+            # invalidate them exactly like a controlled UI edit.
+            changed_at_ns = time.time_ns()
+            context.setdefault("history", []).append(
+                {
+                    "revision_id": context.get("revision_id"),
+                    "status": context.get("status"),
+                    "current_hashes": context.get("current_hashes"),
+                }
+            )
+            context.update(
+                {
+                    "revision_id": f"external-{uuid4().hex[:12]}",
+                    "status": "awaiting_rebuild",
+                    "before_hashes": context.get("current_hashes"),
+                    "current_hashes": current_hashes,
+                    "invalidated_at": _now(),
+                    "invalidated_at_ns": changed_at_ns,
+                    "change_source": "external",
+                }
+            )
+            self._invalidate_revision_evidence(state, context)
+            self._event(state, "manuscript.external_change_detected", {"revision_id": context["revision_id"]})
+            self._save(state)
+        return context
+
+    def _invalidate_revision_evidence(self, state: dict[str, Any], context: dict[str, Any]) -> None:
+        invalidated_readiness = {name: False for name in FINAL_READINESS_DIMENSIONS}
+        state.setdefault("context", {})["paper_progress"] = {
+            "is_complete": False,
+            "next_stage": "manuscript_revision_revalidation",
+            "next_action": "Re-run PaperSpine profile, length, visual, and all five readiness receipts for the current manuscript hashes.",
+            "readiness": invalidated_readiness,
+            "invalidated_by_revision": context.get("revision_id"),
+        }
+        publication = state["context"].get("publication_cycle") or {}
+        for record in publication.get("history", []):
+            record["valid_for_current_manuscript"] = False
+            record["invalidated_by_revision"] = context.get("revision_id")
+        if publication.get("latest"):
+            publication["latest"]["valid_for_current_manuscript"] = False
+        context["invalidated_receipt_groups"] = ["profile", "length", "visual", "five_dimension"]
+        context.pop("confirmed_at", None)
+        context.pop("confirmed_hashes", None)
+
+    def manuscript_snapshot(self) -> dict[str, Any]:
+        state = self.state()
+        effective_stage = state.get("blocked_from") if state.get("stage") == "blocked" else state.get("stage")
+        if effective_stage not in PUBLICATION_STAGES:
+            return {
+                "available": False,
+                "editing_contract": "canonical-source-sections; PDF is preview-only",
+                "reason": "The canonical manuscript is not ready for revision confirmation.",
+            }
+        try:
+            context = self._ensure_manuscript_context(state)
+            artifact = self.manuscript.artifact_snapshot()
+        except (ContractError, OSError) as exc:
+            return {
+                "available": False,
+                "editing_contract": "canonical-source-sections; PDF is preview-only",
+                "reason": str(exc),
+            }
+        gates = self.manuscript.gate_freshness(context.get("invalidated_at_ns"))
+        gates_valid = bool(gates) and all(group["status"] == "valid" for group in gates.values())
+        confirmed_hashes = context.get("confirmed_hashes") or {}
+        confirmed_current = bool(
+            context.get("status") == "confirmed"
+            and confirmed_hashes
+            and confirmed_hashes == artifact["hashes"]
+            and gates_valid
+        )
+        return {
+            "available": True,
+            **artifact,
+            "revision": context,
+            "gates": gates,
+            "gates_valid": gates_valid,
+            "confirmed_current": confirmed_current,
+            "can_confirm": bool(
+                self.manuscript.products_ready()
+                and gates_valid
+                and self._canonical_readiness(state.get("context", {}).get("paper_progress"))
+            ),
+            "pdf_preview_url": "/api/manuscript/pdf",
+        }
+
+    def save_manuscript_revision(self, raw: dict[str, Any]) -> dict[str, Any]:
+        self._assert_mutation_authority()
+        state = self.state()
+        base_stage = state.get("blocked_from") if state.get("stage") == "blocked" else state.get("stage")
+        if base_stage not in PUBLICATION_STAGES:
+            raise ContractError("manuscript revision is available only after canonical_paper_ready")
+        if self._open_issues(state):
+            raise ContractError("resolve existing needs_user_input issues before saving another manuscript revision")
+        context = self._ensure_manuscript_context(state)
+        revision_id = datetime.now(timezone.utc).strftime("revision-%Y%m%dT%H%M%SZ-") + uuid4().hex[:8]
+        invalidated_at = _now()
+        invalidated_at_ns = time.time_ns()
+        prior = {
+            "revision_id": context.get("revision_id"),
+            "status": context.get("status"),
+            "current_hashes": context.get("current_hashes"),
+            "confirmed_at": context.get("confirmed_at"),
+        }
+        try:
+            result = self.manuscript.apply_revision(raw, revision_id)
+        except ManuscriptBuildError as exc:
+            current_hashes = self.manuscript.hashes()
+            context.setdefault("history", []).append(prior)
+            context.update(
+                {
+                    "revision_id": revision_id,
+                    "status": "rebuild_blocked",
+                    "before_hashes": prior.get("current_hashes"),
+                    "current_hashes": current_hashes,
+                    "failed_candidate_file": exc.failed_candidate_file,
+                    "backup_directory": exc.backup_directory,
+                    "invalidated_at": invalidated_at,
+                    "invalidated_at_ns": invalidated_at_ns,
+                    "change_source": "controlled_web_edit",
+                }
+            )
+            self._invalidate_revision_evidence(state, context)
+            self._append_user_input_issue(
+                state,
+                question="稿件已保存，但 PDF/Word 尚未成功重建；请补齐构建工具后重试。",
+                details=str(exc),
+                missing_materials=exc.missing_tools,
+                allowed_actions=["retry"],
+                blocked_stage=base_stage,
+                metadata={"resolution_handler": "manuscript_rebuild", "revision_id": revision_id},
+            )
+            self._event(state, "manuscript.rebuild_blocked", {"revision_id": revision_id})
+            return self._save(state)
+        context.setdefault("history", []).append(prior)
+        context.update(
+            {
+                "revision_id": revision_id,
+                "status": "awaiting_gate_refresh",
+                "before_hashes": result["before_hashes"],
+                "current_hashes": result["after_hashes"],
+                "backup_directory": result["backup_directory"],
+                "rebuild_receipt": result["rebuild_receipt"],
+                "invalidated_at": invalidated_at,
+                "invalidated_at_ns": invalidated_at_ns,
+                "change_source": "controlled_web_edit",
+            }
+        )
+        self._invalidate_revision_evidence(state, context)
+        state["next_action"] = (
+            "Re-run PaperSpine profile, length, visual, and all five readiness receipts; then confirm the current rebuilt manuscript."
+        )
+        self._event(
+            state,
+            "manuscript.rebuilt_and_receipts_invalidated",
+            {"revision_id": revision_id, "before": result["before_hashes"], "after": result["after_hashes"]},
+        )
+        self._save(state)
+        return self.snapshot()
+
+    def _retry_manuscript_rebuild(self, state: dict[str, Any], revision_id: Any) -> None:
+        context = state.get("context", {}).get("manuscript_revision") or {}
+        if not isinstance(revision_id, str) or revision_id != context.get("revision_id"):
+            raise ContractError("retry revision does not match the current manuscript")
+        failed_candidate = context.get("failed_candidate_file")
+        if not isinstance(failed_candidate, str):
+            raise ContractError("failed manuscript candidate is unavailable for retry")
+        result = self.manuscript.retry_failed_revision(
+            revision_id,
+            failed_candidate,
+            context.get("before_hashes") or {},
+        )
+        context.update(
+            {
+                "status": "awaiting_gate_refresh",
+                "current_hashes": result["after_hashes"],
+                "rebuild_receipt": result["rebuild_receipt"],
+            }
+        )
+        self._event(state, "manuscript.rebuild_retried", {"revision_id": revision_id})
+
+    def restore_manuscript_revision(self, raw: dict[str, Any]) -> dict[str, Any]:
+        self._assert_mutation_authority()
+        state = self.state()
+        base_stage = state.get("blocked_from") if state.get("stage") == "blocked" else state.get("stage")
+        if base_stage not in PUBLICATION_STAGES:
+            raise ContractError("manuscript restore is available only after canonical_paper_ready")
+        restore_from = raw.get("revision_id")
+        if not isinstance(restore_from, str):
+            raise ContractError("revision_id is required for restore")
+        context = self._ensure_manuscript_context(state)
+        new_revision_id = datetime.now(timezone.utc).strftime("restore-%Y%m%dT%H%M%SZ-") + uuid4().hex[:8]
+        invalidated_at = _now()
+        invalidated_at_ns = time.time_ns()
+        result = self.manuscript.restore(restore_from, new_revision_id)
+        context.setdefault("history", []).append(
+            {
+                "revision_id": context.get("revision_id"),
+                "status": context.get("status"),
+                "current_hashes": context.get("current_hashes"),
+            }
+        )
+        context.update(
+            {
+                "revision_id": new_revision_id,
+                "restored_from": restore_from,
+                "status": "awaiting_gate_refresh",
+                "before_hashes": result["before_hashes"],
+                "current_hashes": result["after_hashes"],
+                "backup_directory": result["backup_directory"],
+                "rebuild_receipt": result["rebuild_receipt"],
+                "invalidated_at": invalidated_at,
+                "invalidated_at_ns": invalidated_at_ns,
+                "change_source": "restore",
+            }
+        )
+        self._invalidate_revision_evidence(state, context)
+        self._event(state, "manuscript.restored_and_receipts_invalidated", {"revision_id": new_revision_id})
+        self._save(state)
+        return self.snapshot()
+
+    def confirm_manuscript_revision(self, raw: dict[str, Any]) -> dict[str, Any]:
+        self._assert_mutation_authority()
+        state = self.state()
+        context = self._ensure_manuscript_context(state)
+        revision_id = raw.get("revision_id")
+        if not isinstance(revision_id, str) or revision_id != context.get("revision_id"):
+            raise ContractError("revision_id does not match the current manuscript")
+        artifact = self.manuscript.artifact_snapshot()
+        expected_hashes = raw.get("hashes")
+        if not isinstance(expected_hashes, dict) or expected_hashes != artifact["hashes"]:
+            raise ContractError("confirmation hashes do not match the current PDF/Word/source products")
+        if not self.manuscript.products_ready():
+            raise ContractError("required PDF and Word products must exist before confirmation")
+        progress = self.paper.progress_snapshot()
+        if not self._canonical_readiness(progress):
+            raise ContractError("all five PaperSpine readiness dimensions must pass again before confirmation")
+        gates = self.manuscript.gate_freshness(context.get("invalidated_at_ns"))
+        invalid = [name for name, value in gates.items() if value.get("status") != "valid"]
+        if invalid:
+            raise ContractError(f"manuscript receipt groups have not been refreshed: {invalid}")
+        context.update(
+            {
+                "status": "confirmed",
+                "confirmed_at": _now(),
+                "confirmed_hashes": artifact["hashes"],
+                "current_hashes": artifact["hashes"],
+                "confirmation_source": raw.get("source", "user"),
+                "gate_receipts": gates,
+            }
+        )
+        state.setdefault("context", {})["paper_progress"] = progress
+        state["next_action"] = (
+            "The current rebuilt manuscript is confirmed. Publication Cycle assemble is now available."
+        )
+        self._event(
+            state,
+            "manuscript.revision_confirmed",
+            {"revision_id": revision_id, "hashes": artifact["hashes"]},
+        )
+        self._save(state)
+        return self.snapshot()
 
     def deliverables(self, paper_progress: dict[str, Any] | None = None) -> dict[str, Any]:
         state = self.state()
@@ -482,10 +997,16 @@ class IntegrationCoordinator:
                 or state.get("blocked_from") == "awaiting_external_authorization"
             )
         )
+        manuscript_context = state.get("context", {}).get("manuscript_revision") or {}
+        current_manuscript_confirmed = bool(
+            manuscript_context.get("status") == "confirmed"
+            and manuscript_context.get("confirmed_hashes") == manuscript_context.get("current_hashes")
+        )
         return {
             "ready": bundle_ready,
             "canonical_ready": canonical_ready,
             "bundle_ready": bundle_ready,
+            "manuscript_revision_confirmed": current_manuscript_confirmed,
             "directory": str(final_dir),
             "files": files,
             "manifest": state.get("context", {}).get("assembly_manifest"),
@@ -512,18 +1033,31 @@ class IntegrationCoordinator:
         effective_stage = state.get("blocked_from") if state["stage"] == "blocked" else state["stage"]
         context = state.get("context", {}).get("publication_cycle") or {}
         descriptor = self.publication.describe() if enabled else None
+        manuscript = (
+            self.manuscript_snapshot()
+            if enabled and effective_stage in PUBLICATION_STAGES
+            else {"confirmed_current": False}
+        )
+        allowed_operations = (
+            [item["id"] for item in descriptor.get("operations", [])]
+            if descriptor and effective_stage in PUBLICATION_STAGES
+            else []
+        )
+        if not manuscript.get("confirmed_current"):
+            allowed_operations = [operation for operation in allowed_operations if operation != "assemble"]
         return {
             "enabled": enabled,
             "interface": descriptor,
             "stage": effective_stage,
-            "allowed_operations": (
-                [item["id"] for item in descriptor.get("operations", [])]
-                if descriptor and effective_stage in PUBLICATION_STAGES
-                else []
-            ),
+            "allowed_operations": allowed_operations,
             "latest": context.get("latest"),
             "history": context.get("history", []),
             "canonical_paper_ready": effective_stage in PUBLICATION_STAGES,
+            "assemble_gate": {
+                "status": "open" if manuscript.get("confirmed_current") else "blocked",
+                "revision_id": (manuscript.get("revision") or {}).get("revision_id"),
+                "confirmed_current": bool(manuscript.get("confirmed_current")),
+            },
             "submission_bundle_ready": bool(
                 ((context.get("latest") or {}).get("result") or {})
                 .get("signals", {})
@@ -536,6 +1070,7 @@ class IntegrationCoordinator:
         }
 
     def invoke_publication_cycle(self, raw: dict[str, Any]) -> dict[str, Any]:
+        self._assert_mutation_authority()
         if not self.job["publication"]["enabled"]:
             raise ContractError("Publication Cycle is disabled for this integration job")
         state = self.state()
@@ -554,6 +1089,10 @@ class IntegrationCoordinator:
         )
         if operation_spec is None:
             raise ContractError("publication operation is unsupported")
+        if operation == "assemble" and not self.manuscript_snapshot().get("confirmed_current"):
+            raise ContractError(
+                "Publication Cycle assemble requires confirmation of the current rebuilt manuscript hashes and refreshed gates"
+            )
         raw_inputs = raw.get("inputs", {})
         raw_outputs = raw.get("outputs", {})
         raw_options = raw.get("options", {})
@@ -630,6 +1169,17 @@ class IntegrationCoordinator:
                 "publication_cycle.blocked",
                 {"operation": operation, "findings": findings},
             )
+            for index, finding in enumerate(findings):
+                detail = str(finding)
+                self._append_user_input_issue(
+                    state,
+                    question=f"Publication Cycle 需要补充信息（{index + 1}/{len(findings)}）",
+                    details=detail,
+                    missing_fields=[detail],
+                    allowed_actions=["answer", "provide_material"],
+                    blocked_stage=base_stage,
+                    metadata={"operation": operation, "invocation_id": invocation_id},
+                )
             return self._save(state)
 
         stage_map = {
@@ -666,6 +1216,7 @@ class IntegrationCoordinator:
         )
 
     def record_signal(self, raw: dict[str, Any]) -> dict[str, Any]:
+        self._assert_mutation_authority()
         state = self.state()
         if raw.get("schema_version") != "1.0" or raw.get("job_id") != self.job["job_id"]:
             raise ContractError("signal does not match this integration job")
@@ -704,6 +1255,7 @@ class IntegrationCoordinator:
         publication_context = state.get("context", {}).get("publication_cycle") or {}
         latest_publication = (publication_context.get("latest") or {}).get("result") or {}
         post_paper = effective_stage in PUBLICATION_STAGES
+        manuscript_context = state.get("context", {}).get("manuscript_revision") or {}
         after_candidates = stage in {
             "awaiting_review",
             "figures_confirmed",
@@ -771,6 +1323,20 @@ class IntegrationCoordinator:
                 "evidence": "integration_state.json#context.paper_progress",
             },
             {
+                "phase": "manuscript_revision_and_confirmation",
+                "status": (
+                    "complete"
+                    if manuscript_context.get("status") == "confirmed"
+                    else "active"
+                    if post_paper
+                    else "pending"
+                ),
+                "evidence": manuscript_context.get("rebuild_receipt")
+                or "integration_state.json#context.manuscript_revision",
+                "revision_id": manuscript_context.get("revision_id"),
+                "confirmed_hashes": manuscript_context.get("confirmed_hashes"),
+            },
+            {
                 "phase": "publication_cycle",
                 "status": (
                     "target_bundle_ready"
@@ -787,7 +1353,7 @@ class IntegrationCoordinator:
             },
         ]
         return {
-            "schema_version": "1.1",
+            "schema_version": "1.2",
             "job_id": self.job["job_id"],
             "status": (
                 "blocked"
@@ -842,6 +1408,7 @@ class IntegrationCoordinator:
             "host_next": self.host_next(),
             "configuration": self.configuration(),
             "deliverables": self.deliverables(paper_progress),
+            "manuscript": self.manuscript_snapshot(),
             "publication_cycle": self.publication_cycle_snapshot(),
             "body_contract": self.body_contract(required=False),
             "workflow": self.workflow_snapshot(

@@ -22,6 +22,7 @@ from uuid import uuid4
 from ..agent_bridge import StepAction, StepResult
 from ..storage.artifact_manifest import ArtifactManifest, FingerprintSession
 from ..contracts.execution_protocol import validate_execution_evidence, write_execution_evidence
+from execution.presentation import coded_reason
 from ..gates.quality_gates import (QualityGate, _agent_self_reference_hit, annotate_check_result,
                             resolve_check_severity,
                             SEVERITY_BLOCKING, SEVERITY_FIXABLE, SEVERITY_ADVISORY)
@@ -876,8 +877,11 @@ class WorkflowRunner:
                        f"{'；'.join(reasons)}；"
                        "需 retry --by <操作者> --override-reason <理由> 显式覆盖并留痕（不是批准）")
         else:
+            # ENG-3 消息码化：用户视图只给「错误码 + 一行原因 + 修复示例」；
+            # 完整诊断文本仍在 report/diagnostics 与 step_failed 事件 payload 里。
             message = "; ".join(
-                f"{name}: {report['checks'][name].get('reason', 'failed')}" for name in failure_names)
+                f"{name}: {coded_reason(report['checks'][name].get('reason', 'failed'))}"
+                for name in failure_names)
         response = {"status": status, "step_id": step.id, "message": message, "diagnostics": report}
         state = {"status": status, "attempt_id": step.attempt_id, "validation": report,
                  "quality_gates": gate, "contract_tier": report.get("contract_tier", "delivery"),
@@ -1918,11 +1922,11 @@ class WorkflowRunner:
         # agent_bridge.StepAction 的 G2 字段由并行合同层补入；本层用 dataclass
         # 字段探测保持向前/向后兼容，避免在旧接口上 TypeError。
         if "contract_tier" in StepAction.__dataclass_fields__:
-            # delivery 直连保持旧接入的 None（证据侧按 workflow metadata 判别）；
-            # explore 与候选交付显式下发档位，防止手拼证据挂错档。
-            tier = _workflow_tier(workflow)
-            values["contract_tier"] = (tier if tier != "delivery"
-                                       or workflow.metadata.get("delivery_candidate") else None)
+            # ENG-2：普通 delivery 步骤也显式下发档位（原先 delivery 直连置 None，
+            # 证据侧只能按 workflow metadata 二次判别，手拼证据易挂错档）。
+            # 统一显式携带后，execution_protocol 按 action.contract_tier 逐单校验
+            # evidence 声明档位，不一致即拒绝。
+            values["contract_tier"] = _workflow_tier(workflow)
         if "requires_collection" in StepAction.__dataclass_fields__:
             values["requires_collection"] = bool(workflow.metadata.get("delivery_candidate"))
         return StepAction(**values)

@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "job_id", "status", "stage", "figure_counts", "phases", "next_action"],
   "properties": {
-    "schema_version": {"const": "1.1"},
+    "schema_version": {"const": "1.2"},
     "job_id": {"type": "string", "minLength": 1},
     "status": {"enum": ["in_progress", "blocked", "canonical_paper_ready", "ready_for_external_authorization"]},
     "stage": {
@@ -37,8 +37,8 @@
     },
     "phases": {
       "type": "array",
-      "minItems": 8,
-      "maxItems": 8,
+      "minItems": 9,
+      "maxItems": 9,
       "items": {
         "type": "object",
         "additionalProperties": true,
@@ -53,6 +53,7 @@
               "manuscript_reference_integration",
               "final_pixel_and_paper_audit",
               "canonical_paper_ready",
+              "manuscript_revision_and_confirmation",
               "publication_cycle"
             ]
           },

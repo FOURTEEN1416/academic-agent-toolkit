@@ -2,9 +2,10 @@ import { afterAll, afterEach, describe, expect, test } from "bun:test"
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import type { JSX } from "solid-js"
-import { createServer } from "vite"
+import { createTestServer as createServer } from "../../test/vite"
 import solid from "vite-plugin-solid"
 import type { PaneFile } from "./FilesPane"
+import type { PaneSource } from "./files/sources"
 
 const server = await createServer({
   root: fileURLToPath(new URL("../..", import.meta.url)),
@@ -23,11 +24,14 @@ const server = await createServer({
 const solidjs = (await server.ssrLoadModule("solid-js")) as typeof import("solid-js")
 const web = (await server.ssrLoadModule("solid-js/web")) as typeof import("solid-js/web")
 const subject = (await server.ssrLoadModule("/src/atlas/FilesPane.tsx")) as typeof import("./FilesPane")
+const notifications = (await server.ssrLoadModule("/src/atlas/Toast.tsx")) as typeof import("./Toast")
+const uiToast = (await server.ssrLoadModule("@synsci/ui/toast")) as typeof import("@synsci/ui/toast")
 const cleanups: Array<() => void> = []
 
 afterAll(() => server.close())
 afterEach(() => {
   cleanups.splice(0).forEach((fn) => fn())
+  uiToast.toaster.clear()
   document.body.replaceChildren()
   // The pane remembers its last source; without this, whichever test ran first
   // would decide what every later one opens on.
@@ -43,6 +47,11 @@ const mount = (view: () => JSX.Element) => {
   cleanups.push(web.render(view, host))
   return host
 }
+
+/** The app's one notification region, so a toast the pane raises has somewhere
+ * to land. It portals to the document, not into the pane. */
+const mountNotifications = () => mount(() => web.createComponent(notifications.ToastContainer, {}))
+const visibleToasts = () => [...document.querySelectorAll('[data-component="toast"]')]
 
 // GET /file returns a bare array body (backend/cli/src/server/routes/file.ts:158-182),
 // never a {data} wrapper — that shape belongs only to the generated client's
@@ -111,24 +120,44 @@ const DIRECTORY = "/home/keertan/proj"
 const SESSION = "ses_1"
 
 // parseFilesystemSnapshot rejects the whole payload if any field is off, so
-// this mirrors the server's shape exactly.
-const snapshot = (grants: unknown[]) => ({
+// this mirrors the server's shape exactly. `toolDirectory` is where the server
+// says relative paths land — what the composer's "Working in …" chip names.
+const snapshot = (grants: unknown[], toolDirectory?: string) => ({
   version: 1,
   revision: 3,
   sessionID: SESSION,
   projectID: "prj_1",
   directory: DIRECTORY,
   grants,
+  ...(toolDirectory ? { toolDirectory } : {}),
   enforcement: { broker: "enforced", processWrite: "grant_only", processRead: "policy_only" },
 })
 
-const grant = (id: string, path: string, access: "read" | "write") => ({
+const grant = (
+  id: string,
+  path: string,
+  access: "read" | "write",
+  created = 1,
+  over: Record<string, unknown> = {},
+) => ({
   id,
   path,
   access,
   scope: "project",
   source: "api",
-  time: { created: 1 },
+  time: { created },
+  ...over,
+})
+
+/** The session's own temporary directory, which the pane offers as "This
+ * session" and the composer's chip calls "Scratch". */
+const scratchGrant = (path: string) => ({
+  id: "fsg_scratch",
+  path,
+  access: "write",
+  scope: "session",
+  source: "workspace",
+  time: { created: 0 },
 })
 
 describe("files pane", () => {
@@ -144,7 +173,356 @@ describe("files pane", () => {
     })
   })
 
-  test("opens on shared project files when nothing has been picked yet", async () => {
+  // #646: "Project files" is the managed ~/.openscience/projects/<id>
+  // directory. It greeted every new pane with "This folder is empty" while the
+  // folder the conversation was working in sat behind the More menu.
+  test("opens on the folder this conversation works in rather than the empty project root", async () => {
+    const listed: string[] = []
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        directory: DIRECTORY,
+        request: async (path, _init, query) => {
+          if (path === `/session/${SESSION}/filesystem`)
+            return listing(snapshot([grant("fsg_rinr", "/home/keertan/codes/RINR", "write")]))
+          if (path === "/file") listed.push(String(query?.path))
+          return listing([])
+        },
+      }),
+    )
+    await settle()
+
+    expect(host.querySelector('[data-workspace-id="fsg_rinr"]')?.getAttribute("aria-selected")).toBe("true")
+    expect(host.querySelector('[data-workspace-source="project"]')?.getAttribute("aria-selected")).toBe("false")
+    expect(listed).toContain("/home/keertan/codes/RINR")
+  })
+
+  // #659: a delegated conversation is handed its lead's working folder. The
+  // grant is inherited rather than connected here, the pane listed only the
+  // folders connected here, and so it opened on the empty project root while
+  // the agent wrote into a folder with no row at all.
+  test("opens on a working folder inherited from the session that delegated this one", async () => {
+    const listed: string[] = []
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        directory: DIRECTORY,
+        request: async (path, _init, query) => {
+          if (path === `/session/${SESSION}/filesystem`)
+            return listing(
+              snapshot(
+                [grant("fsg_lead", "/home/keertan/codes/RINR", "write", 1, { source: "parent", scope: "session" })],
+                "/home/keertan/codes/RINR",
+              ),
+            )
+          if (path === "/file") listed.push(String(query?.path))
+          return listing([])
+        },
+      }),
+    )
+    await settle()
+
+    expect(host.querySelector('[data-workspace-id="fsg_lead"]')?.getAttribute("aria-selected")).toBe("true")
+    expect(listed).toContain("/home/keertan/codes/RINR")
+
+    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
+
+    expect(host.querySelector('[data-source-item="fsg_lead"]')).not.toBeNull()
+    // The lead granted it, so the lead ends it. Revoking from here would take
+    // authority the reader never gave.
+    expect(host.querySelector('[data-source-revoke="fsg_lead"]')).toBeNull()
+  })
+
+  // An installation-wide approval is not this project's connected folder, so
+  // the list leaves it out — unless it is the folder this conversation works
+  // in, which has to be reachable from the pane that browses it.
+  test("opens on a working folder approved installation-wide", async () => {
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        directory: DIRECTORY,
+        request: async (path) => {
+          if (path === `/session/${SESSION}/filesystem`)
+            return listing(
+              snapshot(
+                [
+                  grant("fsg_wide", "/home/keertan/data/shared", "write", 1, { scope: "installation" }),
+                  grant("fsg_other", "/home/keertan/data/elsewhere", "read", 2, { scope: "installation" }),
+                ],
+                "/home/keertan/data/shared",
+              ),
+            )
+          return listing([])
+        },
+      }),
+    )
+    await settle()
+
+    expect(host.querySelector('[data-workspace-id="fsg_wide"]')?.getAttribute("aria-selected")).toBe("true")
+
+    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
+
+    expect(host.querySelector('[data-source-item="fsg_other"]')).toBeNull()
+    // Approved everywhere is still a folder connected somewhere: ending it
+    // from the row that browses it is the same control as any other.
+    expect(host.querySelector('[data-source-revoke="fsg_wide"]')).not.toBeNull()
+  })
+
+  // #659: the pane resolved its location from a snapshot that had not arrived,
+  // so it listed the managed project root — empty by design — and replaced it
+  // with the working folder a frame later.
+  test("waits for the grant snapshot instead of flashing the empty project root", async () => {
+    const listed: string[] = []
+    let arrive: (() => void) | undefined
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        directory: DIRECTORY,
+        request: async (path, _init, query) => {
+          if (path === `/session/${SESSION}/filesystem`) {
+            await new Promise<void>((resolve) => (arrive = resolve))
+            return listing(snapshot([grant("fsg_rinr", "/home/keertan/codes/RINR", "write")]))
+          }
+          if (path === "/file") listed.push(String(query?.path))
+          return listing([])
+        },
+      }),
+    )
+    await settle()
+
+    expect(listed).toEqual([])
+    expect(host.querySelector("[data-files-loading]")).not.toBeNull()
+    expect(host.querySelector("[data-folder-empty]")).toBeNull()
+
+    arrive!()
+    await settle()
+
+    expect(listed).toEqual(["/home/keertan/codes/RINR"])
+    expect(host.querySelector('[data-workspace-id="fsg_rinr"]')?.getAttribute("aria-selected")).toBe("true")
+    expect(host.querySelector("[data-files-loading]")).toBeNull()
+  })
+
+  // #667: the right pane can be left on Files, so the pane mounts on the first
+  // paint of a session — before the sync store has placed that session in this
+  // project. Holding the listing on the proven session id missed that window
+  // entirely: the pane listed the project root, swapped to the loader when the
+  // store landed, then to the working folder (rows, loader, rows).
+  test("holds the first listing on a session the sync store has not placed yet", async () => {
+    const listed: Array<Record<string, string>> = []
+    let arrive: (() => void) | undefined
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        // The route names the session; nothing has proved it is this project's.
+        belongs: () => false,
+        directory: DIRECTORY,
+        request: async (path, _init, query) => {
+          if (path === `/session/${SESSION}/filesystem`) {
+            await new Promise<void>((resolve) => (arrive = resolve))
+            return listing(snapshot([grant("fsg_rinr", "/home/keertan/codes/RINR", "write")]))
+          }
+          if (path === "/file") listed.push(query ?? {})
+          return listing([])
+        },
+      }),
+    )
+    await settle()
+
+    expect(listed).toEqual([])
+    expect(host.querySelector("[data-files-loading]")).not.toBeNull()
+    expect(host.querySelector("[data-folder-empty]")).toBeNull()
+
+    arrive!()
+    await settle()
+
+    // The snapshot the server answered for this project is the proof the store
+    // had not given yet, so the pane opens on the working folder and lists it
+    // under the session's own capability rather than waiting for a second
+    // answer to the same question.
+    expect(listed).toEqual([{ path: "/home/keertan/codes/RINR", sessionID: SESSION }])
+    expect(host.querySelector('[data-workspace-id="fsg_rinr"]')?.getAttribute("aria-selected")).toBe("true")
+    expect(host.querySelector("[data-files-loading]")).toBeNull()
+  })
+
+  // The hold must never outlive the answer. A session that is not this
+  // project's is refused, and a refusal is an answer: the pane lists the
+  // project root, which needs no session, instead of holding a loader on a
+  // proof that is not coming.
+  test("lists the project root when the route names a session this project does not own", async () => {
+    const listed: Array<Record<string, string>> = []
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        belongs: () => false,
+        directory: DIRECTORY,
+        request: async (path, _init, query) => {
+          if (path === `/session/${SESSION}/filesystem`) return new Response("session not found", { status: 404 })
+          if (path === "/file") listed.push(query ?? {})
+          return listing([])
+        },
+      }),
+    )
+    await settle()
+
+    expect(host.querySelector("[data-files-loading]")).toBeNull()
+    expect(listed).toEqual([{ path: DIRECTORY }])
+    expect(host.querySelector('[data-workspace-source="project"]')?.getAttribute("aria-selected")).toBe("true")
+  })
+
+  // The landing route reaches the pane with a project and no session at all.
+  // There is no snapshot to wait for there, so there is nothing to hold.
+  test("holds nothing on a route with no session", async () => {
+    const listed: string[] = []
+    const host = mount(() =>
+      subject.FilesPane({
+        directory: DIRECTORY,
+        request: async (path, _init, query) => {
+          if (path === "/file") listed.push(String(query?.path))
+          return listing([])
+        },
+      }),
+    )
+    await settle()
+
+    expect(host.querySelector("[data-files-loading]")).toBeNull()
+    expect(listed).toEqual([DIRECTORY])
+  })
+
+  // The composer can pin any connected folder as the working one, and the pane
+  // has to follow that choice rather than the newest grant: otherwise the
+  // composer says one folder and Files opens on another.
+  test("follows the working folder the composer pins, not the newest connected one", async () => {
+    const listed: string[] = []
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        directory: DIRECTORY,
+        request: async (path, _init, query) => {
+          if (path === `/session/${SESSION}/filesystem`)
+            return listing(
+              snapshot(
+                [
+                  grant("fsg_notes", "/home/keertan/codes/notes", "write", 1),
+                  grant("fsg_rinr", "/home/keertan/codes/RINR", "write", 9),
+                ],
+                "/home/keertan/codes/notes",
+              ),
+            )
+          if (path === "/file") listed.push(String(query?.path))
+          return listing([])
+        },
+      }),
+    )
+    await settle()
+
+    expect(host.querySelector('[data-workspace-id="fsg_notes"]')?.getAttribute("aria-selected")).toBe("true")
+    expect(host.querySelector('[data-workspace-id="fsg_rinr"]')?.getAttribute("aria-selected")).toBe("false")
+    expect(listed).toContain("/home/keertan/codes/notes")
+  })
+
+  // Pinning "Scratch" is the other half of that choice: the conversation works
+  // in its own temporary directory, which the pane calls "This session".
+  test("opens on This session when the composer pins Scratch", async () => {
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        directory: DIRECTORY,
+        request: async (path) => {
+          if (path === `/session/${SESSION}/filesystem`)
+            return listing(
+              snapshot(
+                [scratchGrant("/scratch/ses_1"), grant("fsg_rinr", "/home/keertan/codes/RINR", "write", 9)],
+                "/scratch/ses_1",
+              ),
+            )
+          return listing([])
+        },
+      }),
+    )
+    await settle()
+
+    expect(host.querySelector('[data-workspace-source="session"]')?.getAttribute("aria-selected")).toBe("true")
+    expect(host.querySelector('[data-workspace-id="fsg_rinr"]')?.getAttribute("aria-selected")).toBe("false")
+  })
+
+  test("keeps an explicit pick over the working folder it would otherwise open on", async () => {
+    startOn("project")
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        directory: DIRECTORY,
+        request: async (path) => {
+          if (path === `/session/${SESSION}/filesystem`)
+            return listing(snapshot([grant("fsg_rinr", "/home/keertan/codes/RINR", "write")]))
+          return listing([])
+        },
+      }),
+    )
+    await settle()
+
+    expect(host.querySelector('[data-workspace-source="project"]')?.getAttribute("aria-selected")).toBe("true")
+  })
+
+  test("gives connected folders their own tabs instead of hiding them behind More", async () => {
+    const paths = ["/data/one", "/data/two", "/data/three", "/data/four"]
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        directory: DIRECTORY,
+        request: async (path) => {
+          if (path === `/session/${SESSION}/filesystem`)
+            return listing(snapshot(paths.map((folder, index) => grant(`fsg_${index}`, folder, "read"))))
+          return listing([])
+        },
+      }),
+    )
+    await settle()
+
+    const tabs = [...host.querySelectorAll('[data-workspace-source="connected"]')]
+    expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(["one", "two", "three"])
+    // Every one of them draws the same link, so each says which folder it is
+    // without being selected: in its label, to a screen reader, and in full on
+    // hover.
+    expect(tabs.map((tab) => tab.getAttribute("aria-selected"))).toEqual(["false", "false", "false"])
+    expect(tabs.map((tab) => tab.getAttribute("aria-label"))).toEqual([
+      "one. /data/one",
+      "two. /data/two",
+      "three. /data/three",
+    ])
+    expect(tabs.map((tab) => tab.getAttribute("title"))).toEqual(["/data/one", "/data/two", "/data/three"])
+    // The fourth is not lost: the overflow menu still lists every location.
+    expect(host.querySelector('[data-workspace-id="fsg_3"]')).toBeNull()
+    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
+    expect(host.querySelector('[data-source-item="fsg_3"]')).not.toBeNull()
+  })
+
+  test("browses a connected folder from its tab", async () => {
+    const listed: string[] = []
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        directory: DIRECTORY,
+        request: async (path, _init, query) => {
+          if (path === `/session/${SESSION}/filesystem`)
+            return listing(snapshot([grant("fsg_1", "/data/spatial", "read")]))
+          if (path === "/file") {
+            listed.push(String(query?.path))
+            return listing([{ name: "cells.csv", type: "file", size: 12 }])
+          }
+          return listing([])
+        },
+      }),
+    )
+    await settle()
+
+    host.querySelector<HTMLButtonElement>('[data-workspace-id="fsg_1"]')?.click()
+    await settle()
+
+    expect(listed).toContain("/data/spatial")
+    expect(host.querySelector('[data-file-row="cells.csv"]')).not.toBeNull()
+  })
+
+  test("opens on shared project files when nothing is picked and no folder is connected", async () => {
     const host = mount(() =>
       subject.FilesPane({
         request: async (path) => {
@@ -181,46 +559,6 @@ describe("files pane", () => {
     // The artifact catalog owns its own count + retention summary; the shell
     // does not repeat the same context line above it.
     expect(host.querySelector("[data-source-context]")).toBeNull()
-  })
-
-  test("keeps primary workspaces out of More", async () => {
-    const workspace = {
-      ...grant("fsg_workspace", "/home/keertan/.openscience/workspaces/ses_1", "write"),
-      scope: "session",
-      source: "workspace",
-    }
-    const connected = grant("fsg_dataset", "/home/keertan/data/pdebench", "read")
-    const host = mount(() =>
-      subject.FilesPane({
-        session: SESSION,
-        directory: DIRECTORY,
-        request: async (path) => {
-          if (path === `/session/${SESSION}/filesystem`)
-            return new Response(JSON.stringify(snapshot([workspace, connected])), {
-              status: 200,
-              headers: { "Content-Type": "application/json" },
-            })
-          if (path === "/settings/compute") return listing({ providers: [] })
-          if (path.startsWith("/file/artifact-store")) return listing([])
-          return listing([])
-        },
-      }),
-    )
-    await settle()
-
-    expect(host.querySelector('[data-workspace-source="project"]')).not.toBeNull()
-    expect(host.querySelector('[data-workspace-source="session"]')).not.toBeNull()
-    expect(host.querySelector('[data-workspace-source="artifacts"]')).not.toBeNull()
-
-    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
-    await settle()
-
-    expect(host.querySelector('[data-source-item="project"]')).toBeNull()
-    expect(host.querySelector('[data-source-item="session"]')).toBeNull()
-    expect(host.querySelector('[data-source-item="artifacts"]')).toBeNull()
-    expect(host.querySelector('[data-source-item="fsg_dataset"]')).not.toBeNull()
-    expect(host.querySelector('[data-source-item="trash"]')).not.toBeNull()
-    expect(host.querySelector("[data-source-add]")).not.toBeNull()
   })
 
   test("uses the human project name instead of a managed storage UUID", async () => {
@@ -503,8 +841,11 @@ describe("files pane", () => {
     host.querySelector<HTMLButtonElement>('[data-file-row="alpha"]')?.click()
     await settle()
 
-    expect(host.querySelector("[data-files-loading]")).not.toBeNull()
-    expect(host.querySelector<HTMLButtonElement>('[data-file-row="beta"]')?.disabled).toBe(true)
+    const loading = host.querySelector("[data-files-loading]")
+    expect(loading).not.toBeNull()
+    expect(loading?.querySelector("synsci-loader")?.getAttribute("caption")).toMatch(/^Loading /)
+    expect(loading?.textContent).toMatch(/^Loading /)
+    expect(host.querySelector<HTMLButtonElement>('[data-file-row="beta"]')).toBeNull()
     expect(host.textContent).not.toContain("This folder is empty.")
 
     // The click that used to produce volume/alpha/beta.
@@ -746,6 +1087,185 @@ describe("files pane", () => {
     expect(host.querySelector('[data-file-row="current.csv"]')).not.toBeNull()
   })
 
+  test("never offers parent rows as files in a folder whose listing failed", async () => {
+    const opened: PaneFile[] = []
+    const host = mount(() =>
+      subject.FilesPane({
+        directory: DIRECTORY,
+        session: SESSION,
+        onOpenFile: (file) => opened.push(file),
+        request: async (route, _init, query) => {
+          if (route !== "/file") return listing([])
+          if (query?.path === DIRECTORY)
+            return listing([
+              { name: "child", type: "directory" },
+              { name: "parent.txt", type: "file" },
+            ])
+          return new Response("missing child", { status: 404 })
+        },
+      }),
+    )
+    await settle()
+    host.querySelector<HTMLButtonElement>('[data-file-row="child"]')?.click()
+    await settle()
+    expect(host.querySelector("[data-files-error]")).not.toBeNull()
+    expect(host.querySelector('[data-file-row="parent.txt"]')).toBeNull()
+    expect(host.querySelector("[data-file-rename]")).toBeNull()
+    expect(opened).toEqual([])
+    host.querySelector<HTMLButtonElement>("[data-file-up]")?.click()
+    await settle()
+    expect(host.querySelector('[data-file-row="parent.txt"]')).not.toBeNull()
+  })
+
+  test("resets a nested folder and hides old rows immediately when the project changes", async () => {
+    const [directory, setDirectory] = solidjs.createSignal("/project/old")
+    const paths: string[] = []
+    let complete!: (response: Response) => void
+    const next = new Promise<Response>((resolve) => (complete = resolve))
+    const host = mount(() =>
+      subject.FilesPane({
+        get directory() {
+          return directory()
+        },
+        request: async (route, _init, query) => {
+          if (route !== "/file") return listing([])
+          paths.push(query!.path)
+          if (query?.path === "/project/new") return next
+          return listing(
+            query?.path.endsWith("/child")
+              ? [{ name: "old.txt", type: "file" }]
+              : [{ name: "child", type: "directory" }],
+          )
+        },
+      }),
+    )
+    await settle()
+    host.querySelector<HTMLButtonElement>('[data-file-row="child"]')?.click()
+    await settle()
+    setDirectory("/project/new")
+    await settle()
+    expect(host.querySelector('[data-file-row="old.txt"]')).toBeNull()
+    expect(paths).toContain("/project/new")
+    expect(paths).not.toContain("/project/new/child")
+    complete(new Response("unavailable", { status: 503 }))
+    await settle()
+    expect(host.querySelector('[data-file-row="old.txt"]')).toBeNull()
+  })
+
+  test("invalidates delayed rename and trash confirmation across session or project changes", async () => {
+    const [directory, setDirectory] = solidjs.createSignal(DIRECTORY)
+    const [session, setSession] = solidjs.createSignal(SESSION)
+    let rename!: (name: string) => Promise<unknown>
+    let trash!: () => Promise<unknown>
+    const writes: string[] = []
+    const host = mount(() =>
+      subject.FilesPane({
+        get directory() {
+          return directory()
+        },
+        get session() {
+          return session()
+        },
+        onRenameFile: (_row, submit) => {
+          rename = submit
+        },
+        onTrashFile: (_row, submit) => {
+          trash = submit
+        },
+        request: async (route, init) => {
+          if (init?.method) writes.push(route)
+          return listing(route === "/file" ? [{ name: "same.txt", type: "file" }] : [])
+        },
+      }),
+    )
+    await settle()
+    host.querySelector<HTMLButtonElement>('[data-file-rename="same.txt"]')?.click()
+    host.querySelector<HTMLButtonElement>('[data-file-trash="same.txt"]')?.click()
+    setSession("ses_other")
+    await settle()
+    await rename("renamed.txt")
+    await trash()
+    expect(writes).toEqual([])
+    host.querySelector<HTMLButtonElement>('[data-file-trash="same.txt"]')?.click()
+    setDirectory("/project/other")
+    await settle()
+    setDirectory(DIRECTORY)
+    await settle()
+    await trash()
+    expect(writes).toEqual([])
+  })
+
+  test("late mutations cannot refresh or report errors in another project", async () => {
+    const [directory, setDirectory] = solidjs.createSignal(DIRECTORY)
+    let complete!: (response: Response) => void
+    const pending = new Promise<Response>((resolve) => (complete = resolve))
+    let reads = 0
+    const host = mount(() =>
+      subject.FilesPane({
+        get directory() {
+          return directory()
+        },
+        session: SESSION,
+        onTrashFile: (_row, submit) => {
+          void submit()
+        },
+        request: async (route, init) => {
+          if (init?.method === "POST") return pending
+          if (route === "/file") reads++
+          return listing(route === "/file" ? [{ name: "same.txt", type: "file" }] : [])
+        },
+      }),
+    )
+    await settle()
+    host.querySelector<HTMLButtonElement>('[data-file-trash="same.txt"]')?.click()
+    setDirectory("/project/other")
+    await settle()
+    const before = reads
+    complete(new Response("wrong project", { status: 403 }))
+    await settle()
+    expect(reads).toBe(before)
+    expect(host.textContent).not.toContain("wrong project")
+    expect(host.querySelector('[data-file-row="same.txt"]')).not.toBeNull()
+  })
+
+  test("blocks entering another folder during a pending mutation and releases controls afterwards", async () => {
+    let complete!: (response: Response) => void
+    const pending = new Promise<Response>((resolve) => (complete = resolve))
+    const paths: string[] = []
+    const host = mount(() =>
+      subject.FilesPane({
+        directory: DIRECTORY,
+        session: SESSION,
+        onTrashFile: (_row, submit) => {
+          void submit()
+        },
+        request: async (route, init, query) => {
+          if (init?.method === "POST") return pending
+          if (route !== "/file") return listing([])
+          paths.push(query!.path)
+          return listing([
+            { name: "child", type: "directory" },
+            { name: "same.txt", type: "file" },
+          ])
+        },
+      }),
+    )
+    await settle()
+    host.querySelector<HTMLButtonElement>('[data-file-trash="same.txt"]')!.click()
+    await settle()
+    const child = host.querySelector<HTMLButtonElement>('[data-file-row="child"]')!
+    expect(child.disabled).toBe(true)
+    child.click()
+    expect(paths).toEqual([DIRECTORY])
+    complete(listing({}))
+    await settle()
+    expect(host.querySelector<HTMLButtonElement>('[data-file-row="child"]')?.disabled).toBe(false)
+    host.querySelector<HTMLButtonElement>('[data-file-row="child"]')!.click()
+    await settle()
+    expect(paths).toContain(`${DIRECTORY}/child`)
+    expect(host.querySelector('[data-file-trash="same.txt"]')).not.toBeNull()
+  })
+
   test("omits a route session until the active project owns it", () => {
     expect(
       subject.filesSessionForProject({ candidate: "ses_previous", explicit: false, belongsToProject: false }),
@@ -965,34 +1485,6 @@ describe("files pane", () => {
     })
   })
 
-  test("lists saved Results under Results rather than reporting an empty folder", async () => {
-    // The artifacts source short-circuited to [] and fell through to the file
-    // table's "This folder is empty." — so a project with artifacts in it said
-    // it had none. The active half of the snapshot was already being loaded
-    // for the trash view; only the rendering was missing.
-    const host = mount(() =>
-      subject.FilesPane({
-        request: async (path) => {
-          if (path.startsWith("/file/artifact-store?state=trash")) return listing([])
-          if (path.startsWith("/file/artifact-store")) return listing([saved("art_9", "peak_fit.ipynb")])
-          // A real listing would answer here; reaching it for the artifacts
-          // source is the bug that mislabels project files as artifacts.
-          return listing([{ name: "SHOULD_NOT_APPEAR.py", type: "file", size: 1 }])
-        },
-      }),
-    )
-    await settle()
-
-    host.querySelector<HTMLButtonElement>('[data-workspace-source="artifacts"]')?.click()
-    await settle()
-
-    const names = [...host.querySelectorAll("[data-card-open]")].map((node) => node.getAttribute("aria-label"))
-    expect(names).toEqual(["Open peak_fit.ipynb, version 2 of 2"])
-    expect(host.querySelector("[data-artifact-grid]")).not.toBeNull()
-    expect(host.textContent).not.toContain("This folder is empty.")
-    expect(host.textContent).not.toContain("SHOULD_NOT_APPEAR.py")
-  })
-
   test("renders artifacts as a grid, never as file-table rows", async () => {
     const host = mount(() =>
       subject.FilesPane({
@@ -1141,30 +1633,197 @@ describe("files pane", () => {
     expect(changed).toBeGreaterThan(0)
   })
 
-  test("keeps grant revocation out of the working-files source menu", async () => {
+  // #647: the grant existed, the route existed, and nothing in the workspace
+  // called it — a folder could be connected but never disconnected.
+  const connected = (
+    grants: Array<{ id: string; path: string; access: "read" | "write" }>,
+    over: { revoke?: () => Response } = {},
+  ) => {
     const calls: Array<{ path: string; method?: string }> = []
+    const live = new Set(grants.map((entry) => entry.id))
+    const request = async (path: string, init?: RequestInit, query?: Record<string, string>) => {
+      calls.push({ path, method: init?.method })
+      if (init?.method === "DELETE" && path.startsWith(`/session/${SESSION}/filesystem/`)) {
+        if (over.revoke) return over.revoke()
+        live.delete(path.split("/").at(-1)!)
+        return listing({ id: path.split("/").at(-1) })
+      }
+      if (path === `/session/${SESSION}/filesystem`)
+        return listing(
+          snapshot(
+            grants.filter((entry) => live.has(entry.id)).map((entry) => grant(entry.id, entry.path, entry.access)),
+          ),
+        )
+      if (path === "/file") return listing([{ name: `${query?.path ?? ""}/file.py`, type: "file", size: 1 }])
+      return listing([])
+    }
+    return { calls, request }
+  }
+
+  const revoke = (host: HTMLElement, id: string) => {
+    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
+    host.querySelector<HTMLButtonElement>(`[data-source-revoke="${id}"]`)?.click()
+  }
+
+  test("revokes a connected folder through the session route and moves the pane off it", async () => {
+    const { calls, request } = connected([{ id: "fsg_1", path: "/home/keertan/data/pdebench", access: "write" }])
+    let confirm: (() => Promise<unknown>) | undefined
     const host = mount(() =>
       subject.FilesPane({
         session: SESSION,
         directory: DIRECTORY,
-        request: async (path, init) => {
-          calls.push({ path, method: init?.method })
-          if (path === `/session/${SESSION}/filesystem`)
-            return new Response(JSON.stringify(snapshot([grant("fsg_1", "/home/keertan/data/pdebench", "write")])), {
-              status: 200,
-              headers: { "Content-Type": "application/json" },
-            })
-          return listing([])
-        },
+        request,
+        onRevokeSource: (_source, submit) => void (confirm = submit),
+      }),
+    )
+    await settle()
+    expect(host.querySelector('[data-workspace-id="fsg_1"]')?.getAttribute("aria-selected")).toBe("true")
+
+    revoke(host, "fsg_1")
+    // The confirmation is what calls the route: the click alone must not.
+    expect(calls.some((call) => call.method === "DELETE")).toBe(false)
+
+    await confirm!()
+    await settle()
+
+    expect(calls).toContainEqual({ path: `/session/${SESSION}/filesystem/fsg_1`, method: "DELETE" })
+    expect(host.querySelector('[data-workspace-id="fsg_1"]')).toBeNull()
+    expect(host.querySelector('[data-workspace-source="project"]')?.getAttribute("aria-selected")).toBe("true")
+  })
+
+  test("forgets a revoked folder so the pane does not reopen on it", async () => {
+    startOn("fsg_1")
+    const { request } = connected([{ id: "fsg_1", path: "/home/keertan/data/pdebench", access: "read" }])
+    let confirm: (() => Promise<unknown>) | undefined
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        directory: DIRECTORY,
+        request,
+        onRevokeSource: (_source, submit) => void (confirm = submit),
       }),
     )
     await settle()
 
-    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
-    expect(host.querySelector('[data-source-item="fsg_1"]')?.textContent).toContain("pdebench")
+    revoke(host, "fsg_1")
+    await confirm!()
+    await settle()
 
-    expect(host.querySelector('[data-source-revoke="fsg_1"]')).toBeNull()
-    expect(calls.some((call) => call.method === "DELETE")).toBe(false)
+    expect(host.querySelector('[data-workspace-id="fsg_1"]')).toBeNull()
+    expect(globalThis.localStorage?.getItem("openscience:files-source")).toBeNull()
+  })
+
+  // #667: Customize → Permissions already says "Every project / This project /
+  // This session" for these grants. The pane's confirmation named only the
+  // path, so ending a folder approved for the whole installation read like a
+  // decision about this project alone.
+  const confirmationFor = async (scope: "session" | "project" | "installation", access: "read" | "write" = "write") => {
+    let picked: PaneSource | undefined
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        directory: DIRECTORY,
+        request: async (path) => {
+          if (path === `/session/${SESSION}/filesystem`)
+            return listing(snapshot([grant("fsg_1", "/home/keertan/data/pdebench", access, 1, { scope })]))
+          return listing([])
+        },
+        onRevokeSource: (source) => void (picked = source),
+      }),
+    )
+    await settle()
+    revoke(host, "fsg_1")
+    return subject.revokeConfirmation(picked!)
+  }
+
+  test("says an installation-wide revoke takes the folder from every project", async () => {
+    const confirmation = await confirmationFor("installation")
+
+    expect(confirmation.title).toBe("Revoke access to pdebench?")
+    expect(confirmation.message).toBe(
+      "OpenScience will no longer read or write files in /home/keertan/data/pdebench. " +
+        "Every project loses access to this folder, not only this one. " +
+        "Affected kernels are stopped so the folder cannot stay mounted. " +
+        "Nothing inside it is moved, changed, or deleted.",
+    )
+  })
+
+  test("says a project revoke is this project's", async () => {
+    const confirmation = await confirmationFor("project", "read")
+
+    expect(confirmation.message).toContain("no longer read files in /home/keertan/data/pdebench.")
+    expect(confirmation.message).toContain("This project loses access to this folder.")
+    expect(confirmation.message).not.toContain("Every project")
+  })
+
+  test("says a session revoke is this session's", async () => {
+    const confirmation = await confirmationFor("session")
+
+    expect(confirmation.message).toContain("This session loses access to this folder.")
+    expect(confirmation.message).not.toContain("This project loses")
+  })
+
+  test("says so with a notification when a revoke fails, and keeps the folder listed", async () => {
+    const { request } = connected([{ id: "fsg_1", path: "/home/keertan/data/pdebench", access: "write" }], {
+      revoke: () => new Response("grant belongs to another session", { status: 400 }),
+    })
+    let confirm: (() => Promise<unknown>) | undefined
+    mountNotifications()
+    const host = mount(() =>
+      subject.FilesPane({
+        session: SESSION,
+        directory: DIRECTORY,
+        request,
+        onRevokeSource: (_source, submit) => void (confirm = submit),
+      }),
+    )
+    await settle()
+
+    revoke(host, "fsg_1")
+    await confirm!()
+    await settle()
+
+    expect(
+      visibleToasts()
+        .map((node) => node.textContent)
+        .join(" "),
+    ).toContain("Access to pdebench could not be revoked")
+    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
+    expect(host.querySelector('[data-source-item="fsg_1"]')).not.toBeNull()
+  })
+
+  // A confirmation can outlive the session it was raised for. Confirming then
+  // sent nothing and reported nothing, so the folder stayed connected while
+  // the person who confirmed was told nothing at all.
+  test("reports a revoke it has no session to send, and sends nothing", async () => {
+    const calls: Array<{ path: string; method?: string }> = []
+    const transport = async (path: string, init?: RequestInit) => {
+      calls.push({ path, method: init?.method })
+      return listing({ id: "fsg_1" })
+    }
+    const owner = { sessionID: SESSION, projectID: "prj_1", directory: DIRECTORY }
+
+    expect(
+      await subject.revokeGrant({ transport, grantID: "fsg_1", reason: "Send a message first: the session is new." }),
+    ).toEqual({ ok: false, detail: "Send a message first: the session is new." })
+    // With no reason of the pane's own it still says something true.
+    expect(await subject.revokeGrant({ transport, grantID: "fsg_1" })).toMatchObject({ ok: false })
+    expect(calls).toEqual([])
+
+    expect(await subject.revokeGrant({ transport, owner, grantID: "fsg_1" })).toEqual({ ok: true })
+    expect(calls).toEqual([{ path: `/session/${SESSION}/filesystem/fsg_1`, method: "DELETE" }])
+  })
+
+  test("reports the server's refusal in one line a person can act on", async () => {
+    const transport = async () => new Response("grant belongs to another session", { status: 400 })
+
+    expect(
+      await subject.revokeGrant({
+        transport,
+        owner: { sessionID: SESSION, projectID: "prj_1", directory: DIRECTORY },
+        grantID: "fsg_1",
+      }),
+    ).toEqual({ ok: false, detail: "grant belongs to another session" })
   })
 
   test("connects a folder from the source menu with an explicit write choice", async () => {
@@ -1175,7 +1834,7 @@ describe("files pane", () => {
         session: SESSION,
         directory: DIRECTORY,
         request: async (path, init) => {
-          if (path === `/session/${SESSION}/filesystem` && init?.method === "POST") {
+          if (path === "/project/current/filesystem" && init?.method === "POST") {
             posted.push(JSON.parse(String(init.body)))
             store.granted = true
             return listing([])
@@ -1214,7 +1873,7 @@ describe("files pane", () => {
     form!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))
     await settle()
 
-    expect(posted).toEqual([{ path: "/home/keertan/data/pdebench", access: "write", scope: "project" }])
+    expect(posted).toEqual([{ path: "/home/keertan/data/pdebench", access: "write" }])
     expect(host.querySelector("[data-connect-scope]")).toBeNull()
     expect(host.querySelector(".files-connect")).toBeNull()
 
@@ -1248,9 +1907,8 @@ describe("files pane", () => {
     expect(host.querySelector(".files-notice")).toBeNull()
   })
 
-  test("says why a folder cannot be connected before a session exists, instead of doing nothing", async () => {
-    // The landing route (/:dir/session) reaches this pane with a project but no
-    // session id, and a grant is minted against a session.
+  test("connects a project folder before a session exists", async () => {
+    // The project owns the folder connection before its first conversation.
     const posted: string[] = []
     const host = mount(() =>
       subject.FilesPane({
@@ -1271,18 +1929,16 @@ describe("files pane", () => {
     input.dispatchEvent(new Event("input", { bubbles: true }))
 
     const submit = host.querySelector<HTMLButtonElement>("[data-connect-submit]")!
-    expect(submit.disabled).toBe(true)
-    expect(host.querySelector("[data-connect-blocked]")?.textContent).toContain("has not started yet")
+    expect(submit.disabled).toBe(false)
+    expect(host.querySelector("[data-connect-blocked]")).toBeNull()
 
-    // Enter in the path field submits past the disabled button — the reason
-    // must reach the user there too.
     host
       .querySelector<HTMLFormElement>(".files-connect")!
       .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))
     await settle()
 
-    expect(posted).toEqual([])
-    expect(host.querySelector(".files-notice")?.textContent).toContain("has not started yet")
+    expect(posted).toEqual(["/project/current/filesystem"])
+    expect(host.querySelector(".files-connect")).toBeNull()
   })
 
   test("delegates local files to the inspector's single work-tab owner", async () => {
@@ -1414,7 +2070,7 @@ describe("files pane", () => {
         session: SESSION,
         directory: DIRECTORY,
         request: async (path, init) => {
-          if (path === `/session/${SESSION}/filesystem` && init?.method === "POST") {
+          if (path === "/project/current/filesystem" && init?.method === "POST") {
             store.granted = true
             return listing([])
           }
@@ -1450,43 +2106,5 @@ describe("files pane", () => {
     expect(host.querySelector('[data-source-item="fsg_2"]')).not.toBeNull()
     expect(host.querySelector('[data-source-item="trash"]')?.getAttribute("aria-checked")).toBe("true")
     expect(host.querySelector("[data-trash-list]")).not.toBeNull()
-  })
-
-  test("wires Browse… through the dialog host to the FolderPicker and back into the path field", () => {
-    // A source-text guard, and a weaker one than a mount: it pins that the wire
-    // is written, not that clicking Browse… produces a picker. A mount cannot
-    // reach this path at all, verified by probe rather than assumed:
-    //   - the standalone seam leaves `dialog` undefined, so <Show when={dialog}>
-    //     never renders the Browse… button (the connect form does render);
-    //   - dropping the seam to get a real dialog throws "SDK context must be
-    //     used within a context provider" before the pane mounts;
-    //   - mounting FolderPicker directly throws "GlobalSDK context must be used
-    //     within a context provider".
-    // Rendering it for real needs SDK, sync, router, dialog, global-SDK and
-    // global-sync providers plus a server to walk. A refactor that severs any
-    // link below would pass every behavioural test in this file, which is
-    // exactly why this exists.
-    const source = readFileSync(fileURLToPath(new URL("./FilesPane.tsx", import.meta.url)), "utf8")
-
-    expect(source).toContain('import { FolderPicker } from "@/atlas/FolderPicker"')
-    expect(source).toContain("platform?.openDirectoryPickerDialog")
-    expect(source).toContain("dialog?.show(")
-    expect(source).toContain("<FolderPicker")
-    expect(source).toContain('kind="folder"')
-    // The picker answers with one path or several; either way one lands in the
-    // same store field the path input renders.
-    expect(source).toContain("const picked = Array.isArray(result) ? result[0] : result")
-    expect(source).toContain('if (picked) setConnect("path", picked)')
-    expect(source).toContain("onClick={browse}")
-    expect(source).toContain("value={connect.path}")
-  })
-
-  test("routes local files to the persisted inspector strip instead of mounting a second viewer", () => {
-    const source = readFileSync(fileURLToPath(new URL("./FilesPane.tsx", import.meta.url)), "utf8")
-
-    expect(source).toContain('import { uiStore } from "@/atlas/store/ui"')
-    expect(source).toContain("if (props.onOpenFile) return props.onOpenFile(file)")
-    expect(source).toContain("uiStore.openFile(projectRoot(), file.path)")
-    expect(source).not.toContain('import { FileView } from "@/atlas/FilePreview"')
   })
 })

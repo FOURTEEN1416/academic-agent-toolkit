@@ -1,12 +1,12 @@
 import z from "zod"
 import { Tool } from "./tool"
+import { displayPath } from "./display-path"
 import * as path from "path"
 import DESCRIPTION from "./ls.txt"
-import { Instance } from "../project/instance"
 import { Ripgrep } from "../file/ripgrep"
 import { assertExternalDirectory, isAuthorizedPath, sessionToolDirectory } from "./external-directory"
 
-export const IGNORE_PATTERNS = [
+const IGNORE_PATTERNS = [
   "node_modules/",
   "__pycache__/",
   ".git/",
@@ -34,6 +34,42 @@ export const IGNORE_PATTERNS = [
 ]
 
 const LIMIT = 100
+
+/** The tree is text for the model, so it is cut on both separators and always
+ *  rendered with `/`. ripgrep prints the host separator, and a POSIX-only split
+ *  put every nested Windows file under one key that `path.dirname` could never
+ *  reach, so `list` reported only the root-level files. */
+export function renderTree(files: string[]) {
+  const parent = (dir: string) => {
+    const at = dir.lastIndexOf("/")
+    return at < 0 ? "" : dir.slice(0, at)
+  }
+  const base = (dir: string) => dir.slice(parent(dir).length === 0 ? 0 : parent(dir).length + 1)
+  const dirs = new Set<string>([""])
+  const filesByDir = new Map<string, string[]>()
+  for (const file of files) {
+    const parts = file.split(/[/\\]/)
+    const name = parts.pop()
+    if (name === undefined) continue
+    let dir = ""
+    for (const part of parts) {
+      dir = dir === "" ? part : `${dir}/${part}`
+      dirs.add(dir)
+    }
+    if (!filesByDir.has(dir)) filesByDir.set(dir, [])
+    filesByDir.get(dir)!.push(name)
+  }
+  const render = (dir: string, depth: number): string => {
+    let output = dir === "" ? "" : `${"  ".repeat(depth)}${base(dir)}/\n`
+    const children = Array.from(dirs)
+      .filter((child) => child !== dir && parent(child) === dir)
+      .sort()
+    for (const child of children) output += render(child, depth + 1)
+    for (const name of (filesByDir.get(dir) ?? []).sort()) output += `${"  ".repeat(depth + 1)}${name}\n`
+    return output
+  }
+  return render("", 0)
+}
 
 export const ListTool = Tool.define("list", {
   description: DESCRIPTION,
@@ -71,56 +107,10 @@ export const ListTool = Tool.define("list", {
       if (files.length >= LIMIT) break
     }
 
-    // Build directory structure
-    const dirs = new Set<string>()
-    const filesByDir = new Map<string, string[]>()
-
-    for (const file of files) {
-      const dir = path.dirname(file)
-      const parts = dir === "." ? [] : dir.split("/")
-
-      // Add all parent directories
-      for (let i = 0; i <= parts.length; i++) {
-        const dirPath = i === 0 ? "." : parts.slice(0, i).join("/")
-        dirs.add(dirPath)
-      }
-
-      // Add file to its directory
-      if (!filesByDir.has(dir)) filesByDir.set(dir, [])
-      filesByDir.get(dir)!.push(path.basename(file))
-    }
-
-    function renderDir(dirPath: string, depth: number): string {
-      const indent = "  ".repeat(depth)
-      let output = ""
-
-      if (depth > 0) {
-        output += `${indent}${path.basename(dirPath)}/\n`
-      }
-
-      const childIndent = "  ".repeat(depth + 1)
-      const children = Array.from(dirs)
-        .filter((d) => path.dirname(d) === dirPath && d !== dirPath)
-        .sort()
-
-      // Render subdirectories first
-      for (const child of children) {
-        output += renderDir(child, depth + 1)
-      }
-
-      // Render files
-      const files = filesByDir.get(dirPath) || []
-      for (const file of files.sort()) {
-        output += `${childIndent}${file}\n`
-      }
-
-      return output
-    }
-
-    const output = `${searchPath}/\n` + renderDir(".", 0)
+    const output = `${searchPath}/\n` + renderTree(files)
 
     return {
-      title: path.relative(Instance.worktree, searchPath),
+      title: await displayPath(searchPath, ctx.sessionID),
       metadata: {
         count: files.length,
         truncated: files.length >= LIMIT,

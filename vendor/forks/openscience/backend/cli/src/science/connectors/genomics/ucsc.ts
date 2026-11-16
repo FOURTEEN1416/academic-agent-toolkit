@@ -67,8 +67,8 @@ export const ucsc: Connector = {
         { signal: opts?.signal },
       )
       return toHits(genome, envelope, limit)
-    } catch {
-      return []
+    } catch (error) {
+      throw error
     }
   },
 
@@ -81,11 +81,18 @@ export const ucsc: Connector = {
       const chrom = coords[1]
       const start = Number(coords[2].replace(/,/g, ""))
       const end = Number(coords[3].replace(/,/g, ""))
-      if (Number.isFinite(start) && Number.isFinite(end) && end > start) {
+      // A browser position is 1-based and inclusive, but the API documents
+      // `start` as 0-relative and `end` as 1-relative, so the start shifts down
+      // by one base. Without that the caller got the wrong first base and a
+      // sequence one base short. `>=` rather than `>` because a single-base
+      // position is the common single-nucleotide lookup, and rejecting it
+      // sent the query to /search instead, returning whatever a full-text
+      // search happened to match.
+      if (Number.isFinite(start) && Number.isFinite(end) && start >= 1 && end >= start) {
         const capped = Math.min(end, start + 50_000)
         return getJSON<Rec>(
           `${API}/getData/sequence?genome=${encodeURIComponent(genome)}&chrom=${encodeURIComponent(chrom)}` +
-            `&start=${start}&end=${capped}`,
+            `&start=${start - 1}&end=${capped}`,
           { signal: opts?.signal },
         )
       }
@@ -96,8 +103,8 @@ export const ucsc: Connector = {
         `${API}/search?search=${encodeURIComponent(target)}&genome=${encodeURIComponent(genome)}`,
         { signal: opts?.signal },
       )
-    } catch {
-      return {}
+    } catch (error) {
+      throw error
     }
   },
 }

@@ -1,6 +1,7 @@
 import { createEffect, createMemo, For, on, Show, type JSX } from "solid-js"
 import { createStore } from "solid-js/store"
 import { preloadTerminal, Terminal, type TerminalController, type TerminalSearchResult } from "@/components/terminal"
+import { useLanguage } from "@/context/language"
 import { useSDK } from "@/context/sdk"
 import { useTerminal } from "@/context/terminal"
 import {
@@ -21,6 +22,7 @@ const EMPTY_RESULT: TerminalSearchResult = { current: 0, total: 0 }
 
 export function TerminalSurface(props: { active?: boolean } = {}): JSX.Element {
   preloadTerminal()
+  const language = useLanguage()
   const sdk = useSDK()
   const terminal = useTerminal()
   const authority = useExecutionAuthority("terminal")
@@ -72,7 +74,7 @@ export function TerminalSurface(props: { active?: boolean } = {}): JSX.Element {
     ),
   )
 
-  const launch = () => {
+  const launch = (program?: "claude") => {
     if (!available() || state.starting) return
     if (!authority.allowed()) {
       setState("error", authority.message() ?? "This session cannot start a terminal.")
@@ -80,7 +82,7 @@ export function TerminalSurface(props: { active?: boolean } = {}): JSX.Element {
     }
     setState({ starting: true, connecting: true, error: "" })
     void terminal
-      .new()
+      .new({ program })
       .then(() => setState("error", ""))
       .catch((cause: unknown) => {
         setState({
@@ -149,7 +151,7 @@ export function TerminalSurface(props: { active?: boolean } = {}): JSX.Element {
         fallback={
           <div class="terminal-surface__empty">
             <span class="terminal-surface__empty-mark" aria-hidden="true">
-              <IconTerminal size={17} strokeWidth={1.35} />
+              <IconTerminal size={16} strokeWidth={1.5} />
             </span>
             <strong>Local terminal unavailable</strong>
             <p>Connect to the local OpenScience server to run commands inside this project.</p>
@@ -169,13 +171,13 @@ export function TerminalSurface(props: { active?: boolean } = {}): JSX.Element {
             fallback={
               <div class="terminal-surface__empty">
                 <span class="terminal-surface__empty-mark" aria-hidden="true">
-                  <IconTerminal size={17} strokeWidth={1.35} />
+                  <IconTerminal size={16} strokeWidth={1.5} />
                 </span>
                 <strong>Project terminal</strong>
                 <p>Start a clean shell in this session. Open another tab only when you need parallel work.</p>
                 <button
                   type="button"
-                  onClick={launch}
+                  onClick={() => launch()}
                   disabled={state.starting || !authority.allowed()}
                   title={authority.message()}
                   data-modal-initial-focus
@@ -206,7 +208,7 @@ export function TerminalSurface(props: { active?: boolean } = {}): JSX.Element {
                         aria-label={`Close ${pty.title}`}
                         onClick={() => void terminal.close(pty.id)}
                       >
-                        <IconX size={10} strokeWidth={1.7} />
+                        <IconX size={10} strokeWidth={1.5} />
                       </button>
                     </div>
                   )}
@@ -215,12 +217,23 @@ export function TerminalSurface(props: { active?: boolean } = {}): JSX.Element {
               <button
                 type="button"
                 class="terminal-surface__new"
-                onClick={launch}
+                onClick={() => launch("claude")}
+                disabled={!available() || state.starting || !authority.allowed()}
+                title={authority.message() ?? language.t("terminal.claude.description")}
+                aria-label={language.t("terminal.claude.open")}
+              >
+                <IconTerminal size={12} strokeWidth={1.5} />
+                <span>Claude Code</span>
+              </button>
+              <button
+                type="button"
+                class="terminal-surface__new"
+                onClick={() => launch()}
                 disabled={!available() || state.starting || !authority.allowed()}
                 title={authority.message() ?? "New terminal"}
                 aria-label={state.starting ? "Starting terminal" : "New terminal"}
               >
-                <IconPlus size={12} strokeWidth={1.7} />
+                <IconPlus size={12} strokeWidth={1.5} />
                 <span>{state.starting ? "Starting…" : "New"}</span>
               </button>
             </div>
@@ -267,7 +280,7 @@ export function TerminalSurface(props: { active?: boolean } = {}): JSX.Element {
                   <IconChevronRight size={12} strokeWidth={1.5} />
                 </button>
                 <button type="button" onClick={closeSearch} aria-label="Close search" title="Close search (Esc)">
-                  <IconX size={11} strokeWidth={1.6} />
+                  <IconX size={12} strokeWidth={1.5} />
                 </button>
               </form>
             </Show>
@@ -276,7 +289,7 @@ export function TerminalSurface(props: { active?: boolean } = {}): JSX.Element {
               <Show when={state.connecting}>
                 <div class="terminal-surface__connecting" role="status" aria-live="polite">
                   <span class="terminal-surface__connecting-mark" aria-hidden="true">
-                    <IconTerminal size={14} strokeWidth={1.35} />
+                    <IconTerminal size={14} strokeWidth={1.5} />
                   </span>
                   <span>Starting terminal…</span>
                 </div>

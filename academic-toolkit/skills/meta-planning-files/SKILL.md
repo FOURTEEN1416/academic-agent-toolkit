@@ -27,6 +27,8 @@ Before ANY complex task:
 3. **Update after each phase** - mark [x] and change status
 4. **Read before deciding** - refresh goals in attention window
 
+> **Scope boundary:** inside this repository, project-level planning lives in `dev-docs/task_plan.md` (single source of truth). The `task_plan.md` created by this skill is scoped to the task's own working directory — do not create one at the repo root.
+
 ## The 3-File Pattern
 
 For every non-trivial task, create THREE files:
@@ -161,11 +163,11 @@ Every error goes in the "Errors Encountered" section. This builds knowledge for 
 
 ## Advanced Patterns
 
-See [reference.md](reference.md) for:
+See [reference.md](reference.md) *(not bundled in this repo — registered in [ASSET-GAP.md](ASSET-GAP.md))* for:
 - Attention manipulation techniques
 - Error recovery patterns
 - Context optimization from Manus
 
-See [examples.md](examples.md) for:
+See [examples.md](examples.md) *(not bundled in this repo — registered in [ASSET-GAP.md](ASSET-GAP.md))* for:
 - Real task examples
 - Complex workflow patterns

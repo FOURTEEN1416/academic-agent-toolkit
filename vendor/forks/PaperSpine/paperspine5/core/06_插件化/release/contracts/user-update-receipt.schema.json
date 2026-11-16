@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/release/user-update-receipt.schema.json",
+  "title": "PaperSpine5 user update transaction receipt",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "contract",
+    "schema_version",
+    "install_kind",
+    "operation",
+    "operation_id",
+    "request_sha256",
+    "status",
+    "created_at",
+    "installations",
+    "blockers",
+    "warnings",
+    "rollback_performed",
+    "requested_target_applied",
+    "compensation_performed",
+    "current_installation_restored",
+    "retryable",
+    "requires_new_session",
+    "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {
+      "enum": [
+        "paperspine5.plugin-update-receipt",
+        "paperspine5.skill-update-receipt"
+      ]
+    },
+    "schema_version": {"const": "1.0"},
+    "install_kind": {"enum": ["plugin", "skill"]},
+    "operation": {"enum": ["upgrade", "rollback"]},
+    "operation_id": {"type": "string", "minLength": 1},
+    "request_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"enum": ["committed", "noop", "blocked", "rolled_back", "rollback_failed"]},
+    "created_at": {"type": "string", "minLength": 1},
+    "candidate_build_id": {"type": ["string", "null"]},
+    "installations": {"type": "array", "items": {"type": "object"}},
+    "blockers": {"type": "array", "items": {"type": "object"}},
+    "warnings": {"type": "array", "items": {"type": "object"}},
+    "rollback_performed": {
+      "type": "boolean",
+      "description": "For upgrade failures, true only when upgrade mutations were fully compensated. For rollback operations, true only when the requested previous target was committed."
+    },
+    "requested_target_applied": {
+      "type": "boolean",
+      "description": "True only when the operation's requested candidate or rollback target is the final active installation."
+    },
+    "compensation_performed": {
+      "type": "boolean",
+      "description": "True when failed operation mutations required a compensating restore."
+    },
+    "current_installation_restored": {
+      "type": "boolean",
+      "description": "True when compensation or a no-mutation failure leaves the pre-operation installation intact."
+    },
+    "retryable": {
+      "type": "boolean",
+      "description": "True only when a new operation id may safely retry after reviewing blockers."
+    },
+    "requires_new_session": {"type": "boolean"},
+    "external_action_authorized": {"const": false}
+    ,
+    "discovery_migration": {"$ref": "#/$defs/discoveryLink"},
+    "discovery_restore": {
+      "anyOf": [
+        {"$ref": "#/$defs/discoveryLink"},
+        {"type": "null"}
+      ]
+    },
+    "activation_phases": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "activation_journal": {
+      "anyOf": [
+        {"$ref": "#/$defs/activationJournalLink"},
+        {"type": "null"}
+      ]
+    },
+    "recovery": {"type": "object"}
+    ,
+    "cache_reconciliation": {
+      "anyOf": [
+        {"$ref": "#/$defs/cacheReconciliationLink"},
+        {"type": "null"}
+      ]
+    },
+    "cache_reconciliation_restore": {
+      "anyOf": [
+        {"$ref": "#/$defs/cacheReconciliationRestoreLink"},
+        {"type": "null"}
+      ]
+    }
+  },
+  "$defs": {
+    "discoveryLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "schema_version",
+        "operation",
+        "operation_id",
+        "status",
+        "receipt_path",
+        "receipt_sha256",
+        "item_count",
+        "external_action_authorized"
+      ],
+      "properties": {
+        "contract": {"const": "paperspine.skill-discovery-migration-receipt"},
+        "schema_version": {"const": "1.0"},
+        "operation": {"enum": ["migrate", "restore"]},
+        "operation_id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["committed", "noop"]},
+        "receipt_path": {"type": "string", "minLength": 1},
+        "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "item_count": {"type": "integer", "minimum": 0},
+        "external_action_authorized": {"const": false}
+      }
+    },
+    "activationJournalLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "schema_version",
+        "operation_id",
+        "status",
+        "journal_path",
+        "journal_sha256",
+        "phase_count"
+      ],
+      "properties": {
+        "contract": {"const": "paperspine5.plugin-activation-journal"},
+        "schema_version": {"const": "1.0"},
+        "operation_id": {"type": "string", "minLength": 1},
+        "status": {
+          "enum": ["in_progress", "committed", "blocked", "rolled_back", "rollback_failed"]
+        },
+        "journal_path": {"type": "string", "minLength": 1},
+        "journal_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "phase_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "cacheReconciliationLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract", "schema_version", "operation_id", "status",
+        "receipt_path", "receipt_sha256", "self_sha256", "file_count",
+        "total_bytes", "external_action_authorized"
+      ],
+      "properties": {
+        "contract": {
+          "enum": [
+            "paperspine5.plugin-cache-reconciliation-receipt",
+            "paperspine5.skill-managed-suite-reconciliation-receipt"
+          ]
+        },
+        "schema_version": {"const": "1.0"},
+        "operation_id": {"type": "string", "minLength": 1},
+        "status": {"const": "committed"},
+        "receipt_path": {"type": "string", "minLength": 1},
+        "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "self_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "file_count": {"type": "integer", "minimum": 1},
+        "total_bytes": {"type": "integer", "minimum": 16},
+        "path_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "external_action_authorized": {"const": false}
+      }
+    },
+    "cacheReconciliationRestoreLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract", "schema_version", "operation_id", "status",
+        "receipt_path", "receipt_sha256", "self_sha256", "file_count",
+        "external_action_authorized"
+      ],
+      "properties": {
+        "contract": {
+          "enum": [
+            "paperspine5.plugin-cache-reconciliation-restore-receipt",
+            "paperspine5.skill-managed-suite-reconciliation-restore-receipt"
+          ]
+        },
+        "schema_version": {"const": "1.0"},
+        "operation_id": {"type": "string", "minLength": 1},
+        "status": {"const": "committed"},
+        "receipt_path": {"type": "string", "minLength": 1},
+        "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "self_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "file_count": {"type": "integer", "minimum": 1},
+        "total_bytes": {"type": "integer", "minimum": 16},
+        "path_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "external_action_authorized": {"const": false}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"install_kind": {"const": "plugin"}}},
+      "then": {"properties": {"contract": {"const": "paperspine5.plugin-update-receipt"}}}
+    },
+    {
+      "if": {"properties": {"install_kind": {"const": "skill"}}},
+      "then": {"properties": {"contract": {"const": "paperspine5.skill-update-receipt"}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "rollback"}}},
+      "then": {
+        "properties": {
+          "status": {"enum": ["committed", "blocked", "rollback_failed"]}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {"const": "rollback"},
+          "status": {"const": "committed"}
+        },
+        "required": ["operation", "status"]
+      },
+      "then": {
+        "properties": {
+          "rollback_performed": {"const": true},
+          "requested_target_applied": {"const": true},
+          "compensation_performed": {"const": false}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {"const": "rollback"},
+          "status": {"enum": ["blocked", "rollback_failed"]}
+        },
+        "required": ["operation", "status"]
+      },
+      "then": {
+        "properties": {
+          "rollback_performed": {"const": false},
+          "requested_target_applied": {"const": false}
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/publication-review-closure.schema.json",
+  "title": "PaperSpine5 independent publication review closure",
+  "type": "object",
+  "required": ["contract", "contract_version", "subject", "manuscript_head_sha256", "initial_review_sha256", "revision_diff_sha256", "re_review_sha256", "reviewer_id", "objection_ids", "closed_by_revision", "target_obligation_findings", "final_claim_index_sha256", "status", "external_action_authorized", "closure_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.publication-review-closure"},
+    "contract_version": {"const": "1.0"},
+    "subject": {"$ref": "quality-subject.schema.json"},
+    "manuscript_head_sha256": {"$ref": "#/$defs/sha256"},
+    "initial_review_sha256": {"$ref": "#/$defs/sha256"},
+    "revision_diff_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+    "re_review_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+    "reviewer_id": {"type": "string", "minLength": 1},
+    "objection_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "closed_by_revision": {"type": "boolean"},
+    "target_obligation_findings": {
+      "type": "array",
+      "items": {"$ref": "target-obligation-finding.schema.json"}
+    },
+    "final_claim_index_sha256": {"$ref": "#/$defs/sha256"},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "external_action_authorized": {"const": false},
+    "closure_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+  "additionalProperties": false
+}

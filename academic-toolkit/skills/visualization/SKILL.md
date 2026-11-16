@@ -5,6 +5,8 @@ description: "Visualization Skill——把数据和模型结果画成”评委�
 
 # Visualization Skill
 
+> **⚠️ Legacy（旧代技能）**：本技能为早期快速参考件。**竞赛/论文出图请走 `paper-figure`（主链，含 FIGURE_MANIFEST 账本与 save_fig 护栏）**；本技能仅作快速片段参考，其自创 `COLORS` 色板与 `SimHei` 字体片段不作为新交付基线——配色以 `skills/paper-figure-palette` 注册表、字体与样式以 `skills/_utils/academic.mplstyle` 为准。
+
 ## 用途
 把数据和模型结果画成"评委一眼能看懂"的图。**图好 = 论文档次 +1 档**。
 

@@ -4,9 +4,15 @@ description: Cheminformatics toolkit for fine-grained molecular control. SMILES/
 category: chemistry
 license: BSD-3-Clause license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/rdkit
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Cheminformatics, Molecules, SMILES, Fingerprints, Drug Discovery]
 dependencies: ["rdkit-pypi>=2024.3.1"]
 ---

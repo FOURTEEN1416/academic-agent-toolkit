@@ -8,6 +8,7 @@ import { tmpdir } from "../fixture/fixture"
 import { FileTrash } from "../../src/file/trash"
 import { Session } from "../../src/session"
 import { SessionFilesystem } from "../../src/session/filesystem"
+import { Storage } from "../../src/storage/storage"
 
 const baseCtx = {
   sessionID: "test",
@@ -173,7 +174,7 @@ describe("tool.apply_patch freeform", () => {
         expect(await fs.readFile(path.join(fixture.path, "nested", "new.txt"), "utf-8")).toBe("created\n")
         expect(await fs.readFile(modifyPath, "utf-8")).toBe("line1\nchanged\n")
         await expect(fs.readFile(deletePath, "utf-8")).rejects.toThrow()
-        expect(result.output).toContain("A nested/new.txt")
+        expect(result.output).toContain(`A ${path.join("nested", "new.txt")}`)
         expect(await FileTrash.list(Instance.project.id)).toHaveLength(1)
       },
     })
@@ -226,18 +227,25 @@ describe("tool.apply_patch freeform", () => {
     await Instance.provide({
       directory: fixture.path,
       fn: async () => {
-        const target = path.join(fixture.path, "delete.txt")
-        await fs.writeFile(target, "obsolete\n", "utf8")
-        const result = await execute({ patchText: "*** Begin Patch\n*** Delete File: delete.txt\n*** End Patch" }, ctx)
+        try {
+          const target = path.join(fixture.path, "delete.txt")
+          await fs.writeFile(target, "obsolete\n", "utf8")
+          const result = await execute(
+            { patchText: "*** Begin Patch\n*** Delete File: delete.txt\n*** End Patch" },
+            ctx,
+          )
 
-        expect(calls).toHaveLength(1)
-        expect(calls[0]?.metadata.files).toMatchObject([{ type: "delete", before: "obsolete\n", after: "" }])
-        expect(result.metadata.trash).toHaveLength(1)
-        expect(result.output).toContain("Recoverable for 30 days: ftr_")
-        await expect(fs.readFile(target)).rejects.toThrow()
-        expect(await FileTrash.list(Instance.project.id)).toMatchObject([
-          { id: result.metadata.trash[0]?.id, originalPath: target, state: "trash" },
-        ])
+          expect(calls).toHaveLength(1)
+          expect(calls[0]?.metadata.files).toMatchObject([{ type: "delete", before: "obsolete\n", after: "" }])
+          expect(result.metadata.trash).toHaveLength(1)
+          expect(result.output).toContain("Recoverable for 30 days: ftr_")
+          await expect(fs.readFile(target)).rejects.toThrow()
+          expect(await FileTrash.list(Instance.project.id)).toMatchObject([
+            { id: result.metadata.trash[0]?.id, originalPath: target, state: "trash" },
+          ])
+        } finally {
+          await Instance.dispose()
+        }
       },
     })
   })
@@ -264,7 +272,7 @@ describe("tool.apply_patch freeform", () => {
 
         const moveFile = permissionCall.metadata.files[0]
         expect(moveFile.type).toBe("move")
-        expect(moveFile.relativePath).toBe("renamed/dir/name.txt")
+        expect(moveFile.relativePath).toBe(path.join("renamed", "dir", "name.txt"))
         expect(moveFile.movePath).toBe(path.join(fixture.path, "renamed/dir/name.txt"))
         expect(moveFile.before).toBe("old content\n")
         expect(moveFile.after).toBe("new content\n")
@@ -341,18 +349,49 @@ describe("tool.apply_patch freeform", () => {
     await Instance.provide({
       directory: fixture.path,
       fn: async () => {
-        const original = path.join(fixture.path, "old", "name.txt")
-        await fs.mkdir(path.dirname(original), { recursive: true })
-        await fs.writeFile(original, "old content\n", "utf-8")
+        try {
+          const original = path.join(fixture.path, "old", "name.txt")
+          await fs.mkdir(path.dirname(original), { recursive: true })
+          await fs.writeFile(original, "old content\n", "utf-8")
 
-        const patchText =
-          "*** Begin Patch\n*** Update File: old/name.txt\n*** Move to: renamed/dir/name.txt\n@@\n-old content\n+new content\n*** End Patch"
+          const patchText =
+            "*** Begin Patch\n*** Update File: old/name.txt\n*** Move to: renamed/dir/name.txt\n@@\n-old content\n+new content\n*** End Patch"
 
-        await execute({ patchText }, ctx)
+          await execute({ patchText }, ctx)
 
-        const moved = path.join(fixture.path, "renamed", "dir", "name.txt")
-        await expect(fs.readFile(original, "utf-8")).rejects.toThrow()
-        expect(await fs.readFile(moved, "utf-8")).toBe("new content\n")
+          const moved = path.join(fixture.path, "renamed", "dir", "name.txt")
+          await expect(fs.readFile(original, "utf-8")).rejects.toThrow()
+          expect(await fs.readFile(moved, "utf-8")).toBe("new content\n")
+        } finally {
+          await Instance.dispose()
+        }
+      },
+    })
+  })
+
+  test("renames a file when the update carries no hunk", async () => {
+    // The tool description allows an update "optionally with a rename", so a
+    // `Move to` with no `@@` below it is valid input and has to keep working:
+    // there is no change line here for the malformed-shape check to trip on.
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        try {
+          const original = path.join(fixture.path, "a.txt")
+          await fs.writeFile(original, "keep me\n", "utf-8")
+
+          const patchText = "*** Begin Patch\n*** Update File: a.txt\n*** Move to: b.txt\n*** End Patch"
+          await execute({ patchText }, ctx)
+
+          const moved = path.join(fixture.path, "b.txt")
+          await expect(fs.readFile(original, "utf-8")).rejects.toThrow()
+          expect(await fs.readFile(moved, "utf-8")).toBe("keep me\n")
+        } finally {
+          await Instance.dispose()
+        }
       },
     })
   })
@@ -502,6 +541,57 @@ describe("tool.apply_patch freeform", () => {
     })
   })
 
+  test("refuses distinct uint64 file IDs that round to the same Number", async () => {
+    await using fixture = await tmpdir()
+    const target = path.join(fixture.path, "identity.txt")
+    await fs.writeFile(target, "approved\n")
+    const first = (1n << 64n) - 2n
+    const second = first + 1n
+    expect(Number(first)).toBe(Number(second))
+    let replaced = false
+    const original = fs.open.bind(fs)
+    // The host cannot allocate chosen inode numbers. Substitute only its stat
+    // metadata; approval, file replacement, reads and patch execution stay real.
+    const open = spyOn(fs, "open").mockImplementation(async (file, flags, mode) => {
+      const handle = await original(file, flags, mode)
+      if (String(file) !== target) return handle
+      const stat = handle.stat.bind(handle)
+      Object.defineProperty(handle, "stat", {
+        value: async (options?: { bigint?: boolean }) => {
+          const current = options?.bigint ? await stat({ bigint: true }) : await stat()
+          const ino = replaced ? second : first
+          return Object.assign(current, { ino: options?.bigint ? ino : Number(ino) })
+        },
+      })
+      return handle
+    })
+    try {
+      await Instance.provide({
+        directory: fixture.path,
+        fn: async () => {
+          await expect(
+            execute(
+              { patchText: "*** Begin Patch\n*** Update File: identity.txt\n@@\n-approved\n+agent\n*** End Patch" },
+              {
+                ...baseCtx,
+                ask: async () => {
+                  const replacement = path.join(fixture.path, "replacement.txt")
+                  await fs.writeFile(replacement, "approved\n")
+                  await fs.rename(replacement, target)
+                  replaced = true
+                },
+              },
+            ),
+          ).rejects.toThrow("identity changed after approval")
+          expect(await fs.readFile(target, "utf8")).toBe("approved\n")
+          expect((await fs.readdir(fixture.path)).filter((name) => name.startsWith(".openscience-"))).toEqual([])
+        },
+      })
+    } finally {
+      open.mockRestore()
+    }
+  })
+
   test("rejects update when target file is missing", async () => {
     await using fixture = await tmpdir()
     const { ctx } = makeCtx()
@@ -582,6 +672,133 @@ describe("tool.apply_patch freeform", () => {
           ),
         )
         expect(await fs.readFile(target, "utf-8")).toBe("line1\nline2\n")
+      },
+    })
+  })
+
+  test("rejects an update section that has no hunk header", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "a.py")
+        await fs.writeFile(target, "    old\n", "utf-8")
+
+        const patchText = "*** Begin Patch\n*** Update File: a.py\n-    old\n+    new\n*** End Patch"
+
+        await expect(execute({ patchText }, ctx)).rejects.toThrow()
+        expect(await fs.readFile(target, "utf-8")).toBe("    old\n")
+      },
+    })
+  })
+
+  test("rejects a hunk line that lost its prefix", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "notes.txt")
+        await fs.writeFile(target, "one\ntwo\nthree\n", "utf-8")
+
+        const patchText = "*** Begin Patch\n*** Update File: notes.txt\n@@\n-one\n+ONE\ntwo\n+extra\n*** End Patch"
+
+        await expect(execute({ patchText }, ctx)).rejects.toThrow()
+        expect(await fs.readFile(target, "utf-8")).toBe("one\ntwo\nthree\n")
+      },
+    })
+  })
+
+  test("applies a hunk followed by a blank line before End Patch", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "notes.txt")
+        await fs.writeFile(target, "one\ntwo\n", "utf-8")
+
+        const patchText = "*** Begin Patch\n*** Update File: notes.txt\n@@\n-one\n+ONE\n\n\n*** End Patch"
+        await execute({ patchText }, ctx)
+
+        expect(await fs.readFile(target, "utf-8")).toBe("ONE\ntwo\n")
+      },
+    })
+  })
+
+  test("applies sections separated by blank lines", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        await fs.writeFile(path.join(fixture.path, "a.txt"), "alpha\n", "utf-8")
+        await fs.writeFile(path.join(fixture.path, "b.txt"), "beta\n", "utf-8")
+
+        const patchText = [
+          "*** Begin Patch",
+          "*** Update File: a.txt",
+          "@@",
+          "-alpha",
+          "+ALPHA",
+          "",
+          "*** Update File: b.txt",
+          "@@",
+          "-beta",
+          "+BETA",
+          "",
+          "*** Add File: c.txt",
+          "+gamma",
+          "*** End Patch",
+        ].join("\n")
+        await execute({ patchText }, ctx)
+
+        expect(await fs.readFile(path.join(fixture.path, "a.txt"), "utf-8")).toBe("ALPHA\n")
+        expect(await fs.readFile(path.join(fixture.path, "b.txt"), "utf-8")).toBe("BETA\n")
+        expect(await fs.readFile(path.join(fixture.path, "c.txt"), "utf-8")).toBe("gamma\n")
+      },
+    })
+  })
+
+  test("reads an empty line inside a hunk as blank context", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "m.txt")
+        await fs.writeFile(target, "a\nb\nx\na\n\nb\n", "utf-8")
+
+        // Only the second `b` sits below a blank line; dropping the blank would
+        // anchor the hunk on the first one.
+        const patchText = "*** Begin Patch\n*** Update File: m.txt\n@@\n a\n\n-b\n+B\n*** End Patch"
+        await execute({ patchText }, ctx)
+
+        expect(await fs.readFile(target, "utf-8")).toBe("a\nb\nx\na\n\nB\n")
+      },
+    })
+  })
+
+  test("rejects an update section with neither a hunk nor a move", async () => {
+    await using fixture = await tmpdir()
+    const { ctx } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "a.txt")
+        await fs.writeFile(target, "keep\n", "utf-8")
+
+        const patchText = "*** Begin Patch\n*** Update File: a.txt\n\n*** End Patch"
+
+        await expect(execute({ patchText }, ctx)).rejects.toThrow("no @@ hunk")
+        expect(await fs.readFile(target, "utf-8")).toBe("keep\n")
       },
     })
   })
@@ -784,6 +1001,116 @@ EOF`
         await execute({ patchText }, ctx)
         // Result has ASCII quotes because that's what the patch specifies
         expect(await fs.readFile(target, "utf-8")).toBe(`He said "hi"\nsome${emDash}dash\nend\n`)
+      },
+    })
+  })
+})
+
+describe("tool.apply_patch legacy session authority", () => {
+  test("a session without a project-root grant can delete and move project files it may overwrite", async () => {
+    await using fixture = await tmpdir({ git: true })
+    const { ctx, calls } = makeCtx()
+
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        // Project mode resolves patch paths against the project directory, as
+        // the affected desktop sessions did.
+        const session = await Session.create({ workspace: "project" })
+        // A migrated session never had a project-root grant. Revoking one is
+        // deliberately different: that history must continue to deny access.
+        await Storage.update<SessionFilesystem.State>(
+          ["session_filesystem", Instance.project.id, session.id],
+          (draft) => {
+            draft.grants = draft.grants.filter((grant) => grant.path !== Instance.directory)
+            draft.revision++
+          },
+        )
+        const legacyCtx = { ...ctx, sessionID: session.id }
+        const obsolete = path.join(fixture.path, "plans", "obsolete.md")
+        const renamed = path.join(fixture.path, "plans", "renamed.md")
+        await fs.mkdir(path.dirname(obsolete), { recursive: true })
+        await fs.writeFile(obsolete, "old plan\n", "utf-8")
+        await fs.writeFile(renamed, "keep\n", "utf-8")
+
+        const result = await execute(
+          {
+            patchText:
+              "*** Begin Patch\n*** Delete File: plans/obsolete.md\n*** Update File: plans/renamed.md\n*** Move to: plans/archive/renamed.md\n@@\n-keep\n+kept\n*** End Patch",
+          },
+          legacyCtx,
+        )
+        expect(calls).toHaveLength(1)
+        expect(calls[0]?.metadata.files.map((file) => file.type)).toEqual(["delete", "move"])
+        await expect(fs.readFile(obsolete, "utf-8")).rejects.toThrow()
+        await expect(fs.readFile(renamed, "utf-8")).rejects.toThrow()
+        expect(await fs.readFile(path.join(fixture.path, "plans", "archive", "renamed.md"), "utf-8")).toBe("kept\n")
+        expect(result.output).toContain(`D ${path.join("plans", "obsolete.md")}`)
+        expect(await FileTrash.list(Instance.project.id)).toHaveLength(2)
+      },
+    })
+  })
+
+  test("revoked project authority cannot be treated as a legacy missing grant", async () => {
+    await using fixture = await tmpdir({ git: true })
+    const { ctx } = makeCtx()
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const session = await Session.create({ workspace: "project" })
+        const grants = (await SessionFilesystem.list(session.id)).filter((grant) => grant.path === Instance.directory)
+        expect(grants.length).toBeGreaterThan(0)
+        for (const grant of grants) await SessionFilesystem.revoke(session.id, grant.id)
+        const target = path.join(fixture.path, "retained.txt")
+        await fs.writeFile(target, "retain\n")
+        await expect(
+          execute(
+            { patchText: "*** Begin Patch\n*** Delete File: retained.txt\n*** End Patch" },
+            {
+              ...ctx,
+              sessionID: session.id,
+            },
+          ),
+        ).rejects.toThrow()
+        expect(await fs.readFile(target, "utf8")).toBe("retain\n")
+        expect(await FileTrash.list(Instance.project.id)).toEqual([])
+      },
+    })
+  })
+})
+
+describe("tool.apply_patch insert-only hunks", () => {
+  test("an insert-only hunk lands after the context it names, not at end of file", async () => {
+    await using fixture = await tmpdir({ git: true })
+    const { ctx } = makeCtx()
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "m.py")
+        const before = "import os\n\ndef main():\n    print(1)\n\ndef cleanup():\n    pass\n\nmain()\n"
+        await fs.writeFile(target, before, "utf-8")
+        // The @@ header names where the line belongs. Appending instead drops
+        // it after the top-level call, outside every function.
+        const patchText = "*** Begin Patch\n*** Update File: m.py\n@@ def main():\n+    print(2)\n*** End Patch"
+        await execute({ patchText }, ctx)
+        expect(await fs.readFile(target, "utf-8")).toBe(
+          "import os\n\ndef main():\n    print(2)\n    print(1)\n\ndef cleanup():\n    pass\n\nmain()\n",
+        )
+      },
+    })
+  })
+
+  test("an insert-only hunk with no context still appends", async () => {
+    await using fixture = await tmpdir({ git: true })
+    const { ctx } = makeCtx()
+    await Instance.provide({
+      directory: fixture.path,
+      fn: async () => {
+        const target = path.join(fixture.path, "n.txt")
+        await fs.writeFile(target, "one\ntwo\n", "utf-8")
+        const patchText = "*** Begin Patch\n*** Update File: n.txt\n@@\n+three\n*** End Patch"
+        await execute({ patchText }, ctx)
+        expect(await fs.readFile(target, "utf-8")).toBe("one\ntwo\nthree\n")
       },
     })
   })

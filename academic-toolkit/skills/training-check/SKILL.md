@@ -15,7 +15,7 @@ Periodically read WandB metrics during training to catch problems early. Do not 
 
 - WANDB_ENTITY and WANDB_PROJECT: read from AGENTS.md or passed as argument (format: `entity/project/run_id`)
 - CHECK_INTERVAL: starts at 10 minutes, then gradually increases if consistently healthy: 10 min → 20 min → 30 min → 60 min (cap)
-- REVIEWER_MODEL = `gpt-5.4` — 仅对模糊情形经评审桥复核
+- REVIEWER_MODEL — 由执行环境 / 项目 AGENTS.md 的评审桥配置注入，本技能不写死具体型号；仅对模糊情形经评审桥复核
 
 ## When to Use
 

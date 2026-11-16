@@ -1,8 +1,54 @@
 import { describe, test, expect } from "bun:test"
 import katex from "katex"
-import { openFileLink, resolveFileLinks, resolveImages, resolveInlineFileLinks, sanitize } from "./markdown"
+import DOMPurify from "dompurify"
+import morphdom from "morphdom"
+import { parseMarkdown } from "../context/marked"
+import {
+  openFileLink,
+  resolveFileLinks,
+  resolveImages,
+  resolveInlineFileLinks,
+  resolveInlineFileTarget,
+  sanitize,
+} from "./markdown"
 
 const tex = "\\delta\\omega/\\omega < 10^{-6}"
+
+test("sandbox result URLs survive parsing and sanitization and open exactly once in Files", async () => {
+  const path = "/Users/me/.openscience/workspaces/session/mean sem.png"
+  const root = document.createElement("div")
+  root.innerHTML = sanitize(
+    await parseMarkdown(`[View plot](sandbox:${encodeURI(path)})\n\n![plot](sandbox:${encodeURI(path)})`),
+  )
+  expect(root.querySelector("a")?.getAttribute("href")).toBe(path)
+  expect(root.querySelector("img")?.getAttribute("src")).toBe(path)
+  const opened: string[] = []
+  resolveFileLinks(root, (href) => (href === path ? path : undefined))
+  root.addEventListener("click", (event) => openFileLink(root, event, (file) => opened.push(file)))
+  root.querySelector("a")!.click()
+  expect(opened).toEqual([path])
+  expect(root.querySelector("a")?.hasAttribute("target")).toBe(false)
+})
+
+test("local URL normalization covers native HTML without allowing remote or executable schemes", () => {
+  const root = document.createElement("div")
+  root.innerHTML = sanitize(
+    '<a href="sandbox:/tmp/a%22%3E%3Cimg%3E.csv">result</a><a href="file:///C:/data/plot.png">windows</a>',
+  )
+  expect(root.querySelectorAll("a")[0].getAttribute("href")).toBe('/tmp/a"><img>.csv')
+  expect(root.querySelectorAll("a")[1].getAttribute("href")).toBe("/C:/data/plot.png")
+  expect(root.querySelector("img")).toBeNull()
+  for (const url of [
+    "sandbox://remote.test/a.csv",
+    "sandbox:javascript:alert(1)",
+    "sandbox:/%2Fevil.test/a",
+    "sandbox:/tmp/a%00.csv",
+    "javascript:alert(1)",
+  ]) {
+    root.innerHTML = sanitize(`<a href="${url}">unsafe</a>`)
+    expect(root.querySelector("a")?.hasAttribute("href")).toBe(false)
+  }
+})
 
 describe("sanitize (KaTeX MathML annotation)", () => {
   test("keeps the <annotation> wrapper so raw TeX doesn't leak as visible text", () => {
@@ -83,11 +129,8 @@ describe("local Markdown file links", () => {
       "<code>results/table.csv</code><code>/workspace/project/plot.py</code><code>/private/tmp/scan.py</code>"
     const opened: string[] = []
 
-    resolveInlineFileLinks(
-      root,
-      (path) => (path.startsWith("/private/tmp/") ? undefined : path),
-      (path) => opened.push(path),
-    )
+    resolveInlineFileLinks(root, (path) => (path.startsWith("/private/tmp/") ? undefined : path))
+    root.addEventListener("click", (event) => openFileLink(root, event, (path) => opened.push(path)))
 
     const paths = Array.from(root.querySelectorAll("code")).map((node) => node.getAttribute("data-file-path"))
     expect(paths).toEqual(["results/table.csv", "/workspace/project/plot.py", null])
@@ -95,6 +138,80 @@ describe("local Markdown file links", () => {
       .querySelectorAll("code")
       .forEach((node) => node.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true })))
     expect(opened).toEqual(["results/table.csv", "/workspace/project/plot.py"])
+  })
+
+  test("prefers exactly one authorized canonical receipt only for a bare inline filename", () => {
+    const paths = ["/work/project/TWITTER_THREAD.md", "/work/project/PLAN.md"]
+    const resolve = (path: string) => (path.startsWith("/private/") ? undefined : path)
+    expect(resolveInlineFileTarget("TWITTER_THREAD.md", paths, resolve)).toBe(paths[0])
+    expect(resolveInlineFileTarget("./TWITTER_THREAD.md", paths, resolve)).toBe("./TWITTER_THREAD.md")
+    expect(resolveInlineFileTarget("/scratch/TWITTER_THREAD.md", paths, resolve)).toBe("/scratch/TWITTER_THREAD.md")
+    expect(resolveInlineFileTarget("other.md", paths, resolve)).toBe("other.md")
+    expect(resolveInlineFileTarget("TWITTER_THREAD.md", ["/private/TWITTER_THREAD.md"], resolve)).toBeUndefined()
+    expect(
+      resolveInlineFileTarget("TWITTER_THREAD.md", [...paths, "/scratch/TWITTER_THREAD.md"], resolve),
+    ).toBeUndefined()
+    expect(resolveInlineFileTarget("TWITTER_THREAD.md", [paths[0], paths[0]], resolve)).toBe(paths[0])
+    expect(resolveInlineFileTarget("plan.md", ["C:\\Project\\PLAN.md"], resolve)).toBe("C:\\Project\\PLAN.md")
+    const receiptPaths: string[] = []
+    const receipt = (path: string) => {
+      receiptPaths.push(path)
+      return path
+    }
+    expect(resolveInlineFileTarget("note.md", ["/private/note.md"], resolve, receipt)).toBe("/private/note.md")
+    expect(resolveInlineFileTarget("/private/note.md", ["/private/note.md"], resolve, receipt)).toBeUndefined()
+    expect(resolveInlineFileTarget("other.md", ["/private/note.md"], resolve, receipt)).toBe("other.md")
+    expect(
+      resolveInlineFileTarget("note.md", ["/private/note.md", "/second/note.md"], resolve, receipt),
+    ).toBeUndefined()
+    expect(receiptPaths).toEqual(["/private/note.md"])
+  })
+
+  test("reconciled inline links click once using current provenance and support Enter", () => {
+    const root = document.createElement("div")
+    const opened: string[] = []
+    root.addEventListener("click", (event) => openFileLink(root, event, (path) => opened.push(path)))
+    root.addEventListener("keydown", (event) => openFileLink(root, event, (path) => opened.push(path)))
+    const update = (path: string) => {
+      const next = document.createElement("div")
+      next.innerHTML = "<code>TWITTER_THREAD.md</code>"
+      resolveInlineFileLinks(next, () => path)
+      morphdom(root, next, { childrenOnly: true })
+    }
+    update("/scratch/TWITTER_THREAD.md")
+    const code = root.querySelector("code")!
+    update("/work/project/TWITTER_THREAD.md")
+    expect(root.querySelector("code")).toBe(code)
+    code.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }))
+    code.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }))
+    code.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true, cancelable: true }))
+    expect(opened).toEqual(["/work/project/TWITTER_THREAD.md", "/work/project/TWITTER_THREAD.md"])
+    expect(code.getAttribute("role")).toBe("link")
+    expect(code.getAttribute("tabindex")).toBe("0")
+    expect(code.getAttribute("title")).toBe("/work/project/TWITTER_THREAD.md")
+
+    resolveInlineFileLinks(root, () => undefined)
+    code.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }))
+    expect(opened).toHaveLength(2)
+    expect(code.hasAttribute("data-file-path")).toBe(false)
+    expect(code.hasAttribute("tabindex")).toBe(false)
+  })
+
+  test("does not trust forged file annotations or replace explicit anchor destinations", () => {
+    const root = document.createElement("div")
+    root.innerHTML = sanitize(
+      '<code data-file-link="true" data-file-path="/secret/key">note.md</code><a data-file-link="true" data-file-path="/secret/key">fake</a><a href="/work/original.md"><code>note.md</code></a>',
+    )
+    expect(root.querySelector("[data-file-path]")).toBeNull()
+    resolveFileLinks(root, (path) => (path === "/work/original.md" ? path : undefined))
+    resolveInlineFileLinks(root, (path) => (path === "note.md" ? undefined : path))
+    const opened: string[] = []
+    root.addEventListener("click", (event) => openFileLink(root, event, (path) => opened.push(path)))
+    root
+      .querySelectorAll("code, a:not([href])")
+      .forEach((node) => node.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true })))
+    expect(opened).toEqual(["/work/original.md"])
+    expect(root.querySelector("a code")?.hasAttribute("data-file-path")).toBe(false)
   })
 
   test("opens relative and absolute PDF/file anchors in-app", () => {
@@ -151,4 +268,19 @@ describe("local Markdown file links", () => {
     expect(new Set((links[0].getAttribute("rel") ?? "").split(/\s+/))).toEqual(new Set(["noopener", "noreferrer"]))
     expect(links[1].hasAttribute("target")).toBe(false)
   })
+})
+
+test("unsupported sanitizers display escaped source without introducing HTML", () => {
+  const supported = DOMPurify.isSupported
+  Object.defineProperty(DOMPurify, "isSupported", { value: false, configurable: true })
+  try {
+    const source = "<img src=x onerror=\"alert(1)\"> & 'quoted'"
+    const root = document.createElement("div")
+    root.innerHTML = sanitize("<script>unsafe()</script>", source)
+    expect(root.textContent).toBe(source)
+    expect(root.querySelector("img, script")).toBeNull()
+    expect(sanitize("<script>unsafe()</script>")).toBe("")
+  } finally {
+    Object.defineProperty(DOMPurify, "isSupported", { value: supported, configurable: true })
+  }
 })

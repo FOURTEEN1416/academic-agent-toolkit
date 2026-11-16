@@ -2,7 +2,7 @@
 
 <h1><code>Figures for Papers</code></h1>
 
-<br>[![LinkedIn](https://img.shields.io/badge/LinkedIn-Chen-blue)](https://www.linkedin.com/in/chenliu1996/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Chen-blue)](https://www.linkedin.com/in/chenliu1996/)
 [![Twitter Follow](https://img.shields.io/twitter/follow/Chen.svg?style=social)](https://x.com/ChenLiu_1996)
 [![Google Scholar](https://img.shields.io/badge/Google_Scholar-Chen-4a86cf?logo=google-scholar&logoColor=white)](https://scholar.google.com/citations?user=3rDjnykAAAAJ&sortby=pubdate)
 
@@ -15,7 +15,6 @@ This is a centralized repository of my own **Python scripts for high-quality fig
 These figures are published at top venues, including ***Nature Machine Intelligence***, ***ICML***, ***NeurIPS***, ***ECCV***, etc. &#127881; 
 
 Please feel free to cite any of these papers if you find them relevant or helpful. &#127891; 
-<br>在**符合学术规范的前提**下，欢迎大家狠狠引用。 &#127891; 
 
 <br>
 
@@ -171,6 +170,7 @@ Restart the agent (or refresh its skill list) after linking. You can then invoke
 [![Project Page](https://img.shields.io/badge/Project_Page-B9DEF1)](https://xixiaouab.github.io/VIGIL/)
 [![arXiv](https://img.shields.io/badge/arXiv-VIGIL-firebrick)](https://arxiv.org/abs/2606.26387)
 [![PDF](https://img.shields.io/badge/PDF-DADBDD)](https://arxiv.org/pdf/2606.26387)
+[![GitHub Stars](https://img.shields.io/github/stars/xixiaouab/VIGIL.svg?style=social\&label=Stars)](https://github.com/xixiaouab/VIGIL)
 ```bibtex
 @inproceedings{xiao2026vigil,
   title={Staying VIGILant: Mitigating Visual Laziness via Counterfactual Visual Alignment in MLLMs},
@@ -183,16 +183,17 @@ Restart the agent (or refresh its skill list) after linking. You can then invoke
 
 </details>
 <details>
-<summary>RNAGenScape</summary>
+<summary>RNAGenScape (NeurIPS 2026)</summary>
 
 [![arXiv](https://img.shields.io/badge/arXiv-RNAGenScape-firebrick)](https://arxiv.org/abs/2510.24736)
 [![PDF](https://img.shields.io/badge/PDF-DADBDD)](https://arxiv.org/pdf/2510.24736)
+[![GitHub Stars](https://img.shields.io/github/stars/ChenLiu-1996/RNAGenScape.svg?style=social\&label=Stars)](https://github.com/ChenLiu-1996/RNAGenScape)
 ```bibtex
-@article{liao2025rnagenscape,
+@article{liao2026rnagenscape,
   title={RNAGenScape: Property-Guided, Optimized Generation of mRNA Sequences with Manifold Langevin Dynamics},
   author={Liao, Danqi and Liu, Chen and Sun, Xingzhi and Tang, Di{\'e} and Wang, Haochen and Youlten, Scott and Gopinath, Srikar Krishna and Lee, Haejeong and Strayer, Ethan C and Giraldez, Antonio J and Krishnaswamy, Smita},
-  journal={arXiv preprint arXiv:2510.24736},
-  year={2025}
+  booktitle={Advances in Neural Information Processing Systems},
+  year={2026}
 }
 ```
 
@@ -210,9 +211,7 @@ Restart the agent (or refresh its skill list) after linking. You can then invoke
 @inproceedings{han2025creativity,
   title={Creativity or brute force? using brainteasers as a window into the problem-solving abilities of large language models},
   author={Han, Sophia and Dai, Howard and Xia, Stephen and Zhang, Grant and Liu, Chen and Chen, Lichang and Nguyen, Hoang H and Mei, Hongyuan and Mao, Jiayuan and McCoy, R Thomas},
-  journal={Advances in Neural Information Processing Systems},
-  volume={38},
-  pages={146950--147004},
+  booktitle={Advances in Neural Information Processing Systems},
   year={2025}
 }
 ```

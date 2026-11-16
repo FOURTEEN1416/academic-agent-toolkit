@@ -266,7 +266,7 @@ Word 输出最常被识别为「AI 写的」就是因为下面这 6 条没遵守
 - `PROPOSAL.md` — 最终开题报告（主产出）
 ## ⛔⛔⛔ FIGURE_MANIFEST（机器可读对账清单，必须输出）
 
-**写完上面的图表清单后，在产出文档（PAPER_PLAN.md / PROBLEM_ANALYSIS.md / 等）的**最后**追加一个机器可读的清单区块。下游 paper-figure / paper-figure-drawio / 写作 SKILL / workflow_engine.py 都按此清单对账。少一张就触发 AUTO-RECOVER。**
+**写完上面的图表清单后，在 PROPOSAL.md（本技能主产出）的**最后**追加一个机器可读的清单区块。下游 paper-figure / paper-figure-drawio / 写作 SKILL / workflow_engine.py 都按此清单对账。少一张就触发 AUTO-RECOVER。**
 
 格式严格按此输出：
 
@@ -295,19 +295,14 @@ Word 输出最常被识别为「AI 写的」就是因为下面这 6 条没遵守
 - **如果用户禁用了 skip_figures / skip_drawio**，对应类别留空但 BEGIN/END 标记必须存在
 - **纯文字论文（无图）**：写 `**总数：ALL=0**` 但 BEGIN/END 标记仍必须存在
 
-⛔ **结束前必跑产出验证**（如果产出文档是 PAPER_PLAN.md / PROBLEM_ANALYSIS.md / TOPIC_PLAN.md）：
+⛔ **结束前必跑产出验证**（对账目标为本技能主产出 PROPOSAL.md）：
 
 ```bash
-# 自动找产出文档
-PLAN_FILE=""
-for f in PAPER_PLAN.md PROBLEM_ANALYSIS.md TOPIC_PLAN.md MODELING_REPORT.md; do
-  [ -f "$f" ] && PLAN_FILE="$f" && break
-done
-if [ -n "$PLAN_FILE" ]; then
-  if grep -q '<!-- BEGIN FIGURE_MANIFEST -->' "$PLAN_FILE" && grep -q '<!-- END FIGURE_MANIFEST -->' "$PLAN_FILE"; then
+if [ -f PROPOSAL.md ]; then
+  if grep -q '<!-- BEGIN FIGURE_MANIFEST -->' PROPOSAL.md && grep -q '<!-- END FIGURE_MANIFEST -->' PROPOSAL.md; then
     echo "✅ FIGURE_MANIFEST 区块存在"
   else
-    echo "❌ FIGURE_MANIFEST 区块缺失，必须按上面格式追加（即使无图也要写 ALL=0）"
+    echo "❌ FIGURE_MANIFEST 区块缺失，必须按上面格式追加到 PROPOSAL.md 末尾（即使无图也要写 ALL=0）"
   fi
 fi
 ```
@@ -319,21 +314,17 @@ fi
 
 ```bash
 echo "=== FIGURE_MANIFEST 对账 ==="
-PLAN_FILE=""
-for f in PROBLEM_ANALYSIS.md PAPER_PLAN.md MODELING_REPORT.md TOPIC_PLAN.md; do
-  [ -f "$f" ] && grep -q "<!-- BEGIN FIGURE_MANIFEST -->" "$f" && { PLAN_FILE="$f"; break; }
-done
-if [ -n "$PLAN_FILE" ]; then
-    START=$(grep -n "<!-- BEGIN FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
-    END=$(grep -n "<!-- END FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
-    EXPECTED_FIGS=$(sed -n "${START},${END}p" "$PLAN_FILE" | grep -oE "^[[:space:]]*-[[:space:]]+(fig_[a-zA-Z0-9_]+|tikz_[a-zA-Z0-9_]+)" | sed "s/^[[:space:]]*-[[:space:]]*//")
+if [ -f PROPOSAL.md ] && grep -q "<!-- BEGIN FIGURE_MANIFEST -->" PROPOSAL.md; then
+    START=$(grep -n "<!-- BEGIN FIGURE_MANIFEST -->" PROPOSAL.md | head -1 | cut -d: -f1)
+    END=$(grep -n "<!-- END FIGURE_MANIFEST -->" PROPOSAL.md | head -1 | cut -d: -f1)
+    EXPECTED_FIGS=$(sed -n "${START},${END}p" PROPOSAL.md | grep -oE "^[[:space:]]*-[[:space:]]+(fig_[a-zA-Z0-9_]+|tikz_[a-zA-Z0-9_]+)" | sed "s/^[[:space:]]*-[[:space:]]*//")
     manifest_missing=0
     for name in $EXPECTED_FIGS; do
         if ! ls figures/${name}.png figures/${name}.pdf figures/${name}.drawio 2>/dev/null | head -1 | grep -q .; then
             echo "❌ MANIFEST: $name 文件不存在"
             manifest_missing=$((manifest_missing + 1))
-        elif ! grep -qE "${name}\.(png|pdf)" paper/main.md 2>/dev/null; then
-            echo "❌ MANIFEST: $name 文件存在但 paper/main.md 未引用"
+        elif ! grep -qE "${name}\.(png|pdf)" PROPOSAL.md 2>/dev/null; then
+            echo "❌ MANIFEST: $name 文件存在但 PROPOSAL.md 未引用"
             manifest_missing=$((manifest_missing + 1))
         fi
     done
@@ -343,7 +334,7 @@ if [ -n "$PLAN_FILE" ]; then
         echo "✅ FIGURE_MANIFEST 全部嵌入"
     fi
 else
-    echo "(规划文档无 FIGURE_MANIFEST, 跳过对账)"
+    echo "(PROPOSAL.md 无 FIGURE_MANIFEST, 跳过对账)"
 fi
 ```
 

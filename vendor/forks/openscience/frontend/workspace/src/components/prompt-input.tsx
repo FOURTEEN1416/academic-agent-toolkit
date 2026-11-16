@@ -30,6 +30,7 @@ import {
 } from "@/context/prompt"
 import { useLayout } from "@/context/layout"
 import { useSDK } from "@/context/sdk"
+import { useGlobalSDK } from "@/context/global-sdk"
 import { useNavigate, useParams } from "@solidjs/router"
 import { useSync } from "@/context/sync"
 import { useComments } from "@/context/comments"
@@ -54,9 +55,19 @@ import { showToast } from "@synsci/ui/toast"
 import { uiStore } from "@/atlas/store/ui"
 import { confirmDialog } from "@/atlas/dialogs"
 import { projectHref, projectPathname } from "@/utils/project-route"
+import { createMediaQuery } from "@solid-primitives/media"
 import { ModelSettingsPopover } from "./model-settings-popover"
-import { enabledSkills, skillAction, visibleSkills } from "@/atlas/skill-permissions"
+import { ComposerTools } from "./composer-tools"
+import {
+  loadedSkillNamesThisTurn,
+  recordRecentSkill,
+  skillAction,
+  skillCatalogSnapshot,
+  skillPreferences,
+  SKILL_PREFERENCES_EVENT,
+} from "@/atlas/skill-permissions"
 import { DialogSettings } from "./dialog-settings"
+import { WorkingFolderChip, type WorkingRootChoice } from "./working-folder"
 import "./prompt-input.css"
 import {
   ATTACHMENT_ACCEPT,
@@ -78,17 +89,25 @@ import {
   publishCapabilityPreferences,
 } from "./prompt-capabilities"
 import { canRestoreFailedSubmission } from "./prompt-submission"
+import { getNodeLength, isPillNode, setCursorPosition } from "./prompt-editor-cursor"
+import { applyHighlight, clearHighlight, slashTokenRanges } from "./prompt-highlight"
+import { submitComposerPrompt, type ComposerPromptInput } from "./prompt-runtime"
 import { requestFailure, requestStatus } from "@/utils/request-error"
 import {
+  slashBlurb,
   slashGroup,
   slashIcon,
   slashMode,
+  slashMatches,
+  slashOptionId,
   slashActionSkill,
   slashEdit,
-  slashSource,
   slashTokenAt,
   SLASH_NATIVE,
+  SLASH_SESSION,
+  SLASH_QUERY_LIMIT,
   sortSlash,
+  sortSlashGroups,
   type SlashCommand,
   type SlashMode,
 } from "./prompt-slash"
@@ -155,8 +174,10 @@ const ResearchSlider: Component<{
   }
 
   return (
-    <div class="workspace-composer__research-slider">
-      <span class="workspace-composer__research-slider-label">{props.label}</span>
+    <div class="workspace-composer__research-setting workspace-composer__research-slider">
+      <span class="workspace-composer__research-setting-label workspace-composer__research-slider-label">
+        {props.label}
+      </span>
       <div role="radiogroup" aria-label={props.label} onKeyDown={move}>
         <For each={props.options}>
           {(option) => (
@@ -180,6 +201,7 @@ const ResearchSlider: Component<{
 export const PromptInput: Component<PromptInputProps> = (props) => {
   const navigate = useNavigate()
   const sdk = useSDK()
+  const globalSDK = useGlobalSDK()
   const sync = useSync()
   const globalSync = useGlobalSync()
   const platform = usePlatform()
@@ -204,9 +226,13 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     if (!response.ok) throw new Error(text || `${response.status} ${response.statusText}`)
     return JSON.parse(text) as T
   }
-  const [capabilities, capabilityActions] = createResource(() =>
+  const [capabilitiesResource, capabilityActions] = createResource(() =>
     settings<CapabilityPreferences>("/settings/preferences"),
   )
+  // Reading an errored resource throws into the app's only error boundary,
+  // so one failed preferences request took the whole workspace down. The
+  // composer runs with defaults until the preferences arrive.
+  const capabilities = () => (capabilitiesResource.error ? undefined : capabilitiesResource.latest)
   onMount(() => {
     const update = (event: Event) => {
       if (!(event instanceof CustomEvent)) return
@@ -238,6 +264,13 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       })
   }
   const delegation = createMemo(() => delegationSettings(capabilities()))
+  const narrow = createMediaQuery("(max-width: 719px)")
+  const configuredConnectorCount = createMemo(
+    () =>
+      Object.values(globalSync.data.config.mcp ?? {}).filter(
+        (value) => !!value && typeof value === "object" && "type" in value,
+      ).length,
+  )
   const saveDelegation = (patch: { level?: DelegationLevel; autonomy?: DelegationAutonomy }) => {
     const current = delegation()
     const next = {
@@ -263,10 +296,21 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   const loadResearchAccess = async (projectID: string): Promise<ResearchAccessSnapshot> => {
     return projectAccess(projectID)
   }
-  const [researchAccess, researchAccessControls] = createResource(() => sdk.projectID || false, loadResearchAccess)
+  const [researchAccess, researchAccessControls] = createResource(
+    () => sdk.projectID || false,
+    async (projectID) => ({ projectID, value: await loadResearchAccess(projectID) }),
+  )
   const [researchAccessSaving, setResearchAccessSaving] = createSignal(false)
+  // Where a not-yet-created session will work; the chip sends it with create.
+  const [pendingWorkingRoot, setPendingWorkingRoot] = createSignal<WorkingRootChoice>(undefined)
+  const currentResearchAccess = () => {
+    if (researchAccess.error) return
+    const current = researchAccess.latest
+    if (!current || current.projectID !== sdk.projectID) return
+    return current.value
+  }
   const selectedResearchAccess = createMemo(() => {
-    const current = researchAccess()
+    const current = currentResearchAccess()
     return current ? researchAccessMode(current) : DEFAULT_RESEARCH_ACCESS_MODE
   })
   const researchAccessLabel = createMemo(() => accessLabel(selectedResearchAccess()))
@@ -274,14 +318,14 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   const applyResearchAccess = async (mode: ResearchAccessMode, target: HTMLButtonElement) => {
     target.focus()
     const projectID = sdk.projectID
-    const initial = researchAccess()
+    const initial = currentResearchAccess()
     if (!projectID || !initial || researchAccessSaving()) return
     if (researchAccessMode(initial) === mode) return
     if (mode === "full") {
       const confirmed = await confirmDialog(dialog, {
         title: "Enable Full access?",
         message:
-          "Full access disables the execution sandbox. OpenScience may run commands with unrestricted file and network access without asking for action approval.",
+          "Full access disables the execution sandbox and routine action prompts, including package installs. Paid compute still asks once: approve a Modal job for the session or project and its time allowance covers the jobs that follow, until it is spent.",
         confirmLabel: "Enable Full access",
         danger: true,
       })
@@ -295,7 +339,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ mode, ...(mode === "ask" ? {} : { root: initial.root }) }),
       })
-      researchAccessControls.mutate(confirmed)
+      researchAccessControls.mutate({ projectID, value: confirmed })
       const effective = researchAccessMode(confirmed)
       if (effective !== mode) {
         showToast({
@@ -419,12 +463,6 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     choice.click()
   }
 
-  const dismissResearchTools = (event: PointerEvent) => {
-    if (!researchToolsRef?.open) return
-    if (event.target instanceof Node && researchToolsRef.contains(event.target)) return
-    closeResearchTools()
-  }
-
   const commentInReview = (path: string) => {
     const sessionID = params.id
     if (!sessionID) return false
@@ -481,6 +519,25 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       },
   )
   const working = createMemo(() => status()?.type !== "idle")
+  // A background worker outlives the turn that dispatched it: the lead is
+  // idle and the composer open while the worker's report is still on its
+  // way, arriving as a new turn. Say so where the person is about to type.
+  const backgroundWorkers = createMemo(() => {
+    const sessionID = params.id
+    if (!sessionID || working()) return 0
+    let count = 0
+    for (const message of sync.data.message[sessionID] ?? []) {
+      if (message.role !== "assistant") continue
+      for (const part of sync.data.part[message.id] ?? []) {
+        if (part.type !== "tool" || part.tool !== "task" || part.state.status !== "completed") continue
+        const metadata = part.state.metadata as { background?: boolean; outcome?: string; jobId?: string } | undefined
+        if (metadata?.background !== true || metadata.outcome !== undefined || !metadata.jobId) continue
+        const child = sync.data.session_status[metadata.jobId]
+        if (child && child.type !== "idle") count++
+      }
+    }
+    return count
+  })
   const imageAttachments = createMemo(
     () => prompt.current().filter((part) => part.type === "image") as ImageAttachmentPart[],
   )
@@ -514,6 +571,14 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   const placeholder = createMemo(() => {
     if (submitting()) return "Sending…"
     if (store.mode === "shell") return language.t("prompt.placeholder.shell")
+    // Enter adds to the running turn; only the button and Esc stop it, so a
+    // message typed mid-turn is never lost to an accidental abort.
+    if (working() && !store.intent && commentCount() === 0) return language.t("prompt.placeholder.working")
+    if (backgroundWorkers() > 0 && !store.intent && commentCount() === 0)
+      return language.t(
+        backgroundWorkers() === 1 ? "prompt.placeholder.backgroundWorker" : "prompt.placeholder.backgroundWorkers",
+        { count: backgroundWorkers() },
+      )
     if (store.intent === "plan") return "Describe your task to generate a plan…"
     if (store.intent === "goal") return "Describe your goal and the measurable outcome…"
     if (commentCount() > 1) return language.t("prompt.placeholder.summarizeComments")
@@ -522,8 +587,20 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   })
 
   const MAX_HISTORY = 100
+  // History exists to recall text, not to re-send screenshots: image parts
+  // are persisted without their data (a single attachment can be 20 MB and
+  // the store holds 100 entries). Entries written before this are stripped
+  // when they load.
+  const stripImages = (entry: Prompt): Prompt =>
+    entry.map((part) => (part.type === "image" ? { ...part, dataUrl: "" } : part))
+  const stripHistory = (value: unknown) => {
+    if (!value || typeof value !== "object") return value
+    const entries = (value as { entries?: unknown }).entries
+    if (!Array.isArray(entries)) return value
+    return { ...value, entries: entries.map((entry) => (Array.isArray(entry) ? stripImages(entry as Prompt) : entry)) }
+  }
   const [history, setHistory] = persisted(
-    Persist.global("prompt-history", ["prompt-history.v1"]),
+    { ...Persist.global("prompt-history", ["prompt-history.v1"]), migrate: stripHistory },
     createStore<{
       entries: Prompt[]
     }>({
@@ -531,7 +608,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     }),
   )
   const [shellHistory, setShellHistory] = persisted(
-    Persist.global("prompt-history-shell", ["prompt-history-shell.v1"]),
+    { ...Persist.global("prompt-history-shell", ["prompt-history-shell.v1"]), migrate: stripHistory },
     createStore<{
       entries: Prompt[]
     }>({
@@ -554,7 +631,15 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   const promptLength = (prompt: Prompt) =>
     prompt.reduce((len, part) => len + ("content" in part ? part.content.length : 0), 0)
 
-  const applyHistoryPrompt = (p: Prompt, position: "start" | "end") => {
+  // Persisted history carries image parts without their data; those cannot
+  // be re-sent, so restore only the parts that still have content.
+  const restorable = (p: Prompt): Prompt => {
+    const parts = p.filter((part) => part.type !== "image" || !!part.dataUrl)
+    return parts.length ? parts : DEFAULT_PROMPT
+  }
+
+  const applyHistoryPrompt = (entry: Prompt, position: "start" | "end") => {
+    const p = restorable(entry)
     const length = position === "start" ? 0 : promptLength(p)
     setStore("applyingHistory", true)
     prompt.set(p, length)
@@ -713,14 +798,12 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     document.addEventListener("dragover", handleGlobalDragOver)
     document.addEventListener("dragleave", handleGlobalDragLeave)
     document.addEventListener("drop", handleGlobalDrop)
-    document.addEventListener("pointerdown", dismissResearchTools)
     if (!params.id || params.id === "new") queueMicrotask(() => editorRef.focus())
   })
   onCleanup(() => {
     document.removeEventListener("dragover", handleGlobalDragOver)
     document.removeEventListener("dragleave", handleGlobalDragLeave)
     document.removeEventListener("drop", handleGlobalDrop)
-    document.removeEventListener("pointerdown", dismissResearchTools)
   })
 
   createEffect(() => {
@@ -734,13 +817,28 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   })
 
   type AtOption =
-    | { type: "agent"; name: string; display: string }
+    | { type: "agent"; name: string; display: string; description?: string }
     | { type: "file"; path: string; display: string; recent?: boolean }
 
-  // Research is the only user-facing agent. Existing transcripts can still
-  // render legacy agent parts, but the composer advertises capabilities and
-  // files rather than exposing an internal-worker picker.
-  const agentList = createMemo<AtOption[]>(() => [])
+  // Subagents a person may hand a job to directly: `@explore find …` sends
+  // the message as a brief to that worker (the runtime turns the mention into
+  // a Task). Hidden workers stay out of the list; primary agents are picked
+  // with the agent chip, not mentioned.
+  const agentList = createMemo<AtOption[]>(() => {
+    const agents = Array.isArray(sync.data.agent) ? sync.data.agent : []
+    return (
+      agents
+        .filter((agent) => agent.mode === "subagent" && !agent.hidden)
+        // The filter matches the name only: a description that happens to
+        // contain the typed letters is not a reason to list a worker.
+        .map((agent) => ({
+          type: "agent" as const,
+          name: agent.name,
+          display: agent.name,
+          description: agent.description,
+        }))
+    )
+  })
 
   const handleAtSelect = (option: AtOption | undefined) => {
     if (!option) return
@@ -756,16 +854,24 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     return x.type === "agent" ? `agent:${x.name}` : `file:${x.path}`
   }
 
+  // Open tabs ride at the top of the picker as "Recent"; a handful is a
+  // shortcut, the whole tab strip would bury the search results.
+  const AT_RECENT = 5
+
   const {
+    grouped: atGrouped,
+    groups: atGroups,
+    filter: atFilter,
     flat: atFlat,
     active: atActive,
     setActive: setAtActive,
     onInput: atOnInput,
     onKeyDown: atOnKeyDown,
+    select: selectAt,
   } = useFilteredList<AtOption>({
     items: async (query) => {
       const agents = agentList()
-      const open = recent()
+      const open = recent().slice(0, AT_RECENT)
       const seen = new Set(open)
       const pinned: AtOption[] = open.map((path) => ({ type: "file", path, display: path, recent: true }))
       const paths = await files.searchFilesAndDirectories(query)
@@ -830,6 +936,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     setActive: setConversationActive,
     onInput: conversationOnInput,
     onKeyDown: conversationOnKeyDown,
+    select: selectConversation,
   } = useFilteredList<ConversationOption>({
     items: async () => conversationOptions(),
     key: (option) => option?.sourceSessionID,
@@ -838,18 +945,52 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     onSelect: handleConversationSelect,
   })
 
+  const skillStorage = (() => {
+    try {
+      return globalThis.localStorage
+    } catch {
+      return undefined
+    }
+  })()
+  const [skillPreferenceRevision, setSkillPreferenceRevision] = createSignal(0)
+  onMount(() => {
+    const refresh = () => setSkillPreferenceRevision((value) => value + 1)
+    globalThis.addEventListener(SKILL_PREFERENCES_EVENT, refresh)
+    globalThis.addEventListener("storage", refresh)
+    onCleanup(() => {
+      globalThis.removeEventListener(SKILL_PREFERENCES_EVENT, refresh)
+      globalThis.removeEventListener("storage", refresh)
+    })
+  })
+  const currentSkillPreferences = createMemo(() => {
+    skillPreferenceRevision()
+    return skillPreferences(skillStorage)
+  })
+  const loadedSkills = createMemo(() => {
+    const sessionID = params.id
+    if (!sessionID || sessionID === "new") return []
+    return loadedSkillNamesThisTurn(sync.data.message[sessionID] ?? [], sync.data.part)
+  })
+  const skillSnapshot = createMemo(() => {
+    const preferences = currentSkillPreferences()
+    return skillCatalogSnapshot(sync.data.skill ?? [], {
+      permission: sync.data.config.permission,
+      pinned: preferences.pinned,
+      recent: preferences.recent,
+      loadedThisTurn: loadedSkills(),
+    })
+  })
+
   const slashCommands = createMemo<SlashCommand[]>(() => {
     const usage: Record<string, string> = {
       compact: "/compact [focus]",
-      context: "/context",
-      plan: "/plan",
-      goal: "/goal",
-      status: "/status",
+      plan: "/plan [objective]",
+      goal: "/goal [objective]",
     }
     const catalog = new Map(sync.data.command.map((item) => [item.name, item]))
-    const enabled = enabledSkills(sync.data.skill ?? [], [], sync.data.config.permission)
+    const permitted = (name: string) => skillAction(sync.data.config.permission, name) !== "deny"
     const local = command.options
-      .filter((item) => item.slash && !item.disabled)
+      .filter((item) => item.slash && !item.disabled && (item.slash !== "stop" || working()))
       .map((item) => ({
         id: item.id,
         actionID: item.id,
@@ -863,9 +1004,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         type: "action" as const,
       }))
     const localTriggers = new Set(local.map((item) => item.trigger))
-    const builtin = SLASH_NATIVE.filter(
-      (name) => !localTriggers.has(name) && skillAction(sync.data.config.permission, name) !== "deny",
-    ).map((name) => {
+    const builtin = SLASH_NATIVE.filter((name) => !localTriggers.has(name) && permitted(name)).map((name) => {
       const item = catalog.get(name)
       return {
         id: `command.${name}`,
@@ -874,81 +1013,109 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         description: item?.description,
         usage: usage[name],
         source: "builtin" as const,
-        category: ((["compact", "context", "status"] as string[]).includes(name) ? "session" : "research") as
-          | "session"
-          | "research",
+        category: (name === "compact" ? "session" : "research") as "session" | "research",
         type: slashMode({ trigger: name }) ? ("mode" as const) : ("action" as const),
       }
     })
-
-    const reserved = new Set<string>([...SLASH_NATIVE, ...local.map((item) => item.trigger)])
-
-    // Surface installed skills as slash entries. Selecting one prefills a
-    // "Use the <name> skill: " prompt that the agent matches against its
-    // built-in skill tool — lazy invocation, no new pipeline. A real command
-    // owns its trigger when names collide, so it is never repeated as a skill.
-    // Hide skills tagged `entry: false` (internal helpers).
-    const skills = enabled
-      .filter((skill) => !reserved.has(skill.name))
-      .map((s) => ({
-        id: `skill.${s.name}`,
-        trigger: s.name,
-        title: s.name,
-        description: s.description?.slice(0, 120) ?? "",
-        usage: `/${s.name} [request]`,
-        source: "skill" as const,
-        category: "skill" as const,
-        type: slashActionSkill(s.name) ? ("action" as const) : ("skill" as const),
-      }))
-
-    return [...builtin, ...local, ...skills].toSorted(sortSlash)
-  })
-
-  const slashItems = (query: string) => {
-    const items = slashCommands()
-    if (!query.trim()) return items
-
-    const shown = new Set(items.map((item) => item.trigger))
-    const governed = new Set(visibleSkills(sync.data.skill ?? [], []).map((skill) => skill.name))
-    const commands: SlashCommand[] = sync.data.command
-      .filter(
-        (item) =>
-          item.source === "builtin" &&
-          !shown.has(item.name) &&
-          ((!governed.has(item.name) && !SLASH_NATIVE.some((name) => name === item.name)) ||
-            skillAction(sync.data.config.permission, item.name) !== "deny"),
-      )
+    // The rarer built-ins ride along as session actions. `stop` only makes
+    // sense while a turn is running, and a local action owns its trigger.
+    const session = SLASH_SESSION.filter(
+      (name) => name !== "stop" && !localTriggers.has(name) && catalog.has(name) && permitted(name),
+    ).map((name) => {
+      const item = catalog.get(name)!
+      return {
+        id: `command.${name}`,
+        trigger: name,
+        title: name,
+        description: item.description,
+        usage: item.usage,
+        source: "builtin" as const,
+        category: (item.category ?? "session") as SlashCommand["category"],
+        type: "action" as const,
+      }
+    })
+    const project = sync.data.command
+      .filter((item) => item.source !== "builtin" && !localTriggers.has(item.name) && permitted(item.name))
       .map((item) => ({
         id: `command.${item.name}`,
         trigger: item.name,
         title: item.name,
         description: item.description,
         usage: item.usage,
-        source: "builtin",
-        category: item.category ?? "session",
-        type: slashMode({ trigger: item.name }) ? "mode" : "action",
+        source: (item.source === "mcp" ? "mcp" : "project") as SlashCommand["source"],
+        category: (item.category ?? "project") as SlashCommand["category"],
+        type: "action" as const,
       }))
 
-    const all = store.slashInline
-      ? items.filter((item) => item.type === "skill" || item.type === "mode")
-      : [...items, ...commands]
-    const needle = query.trim().replace(/^\/+/, "").toLowerCase()
-    const trigger = (item: SlashCommand) => item.trigger.toLowerCase()
-    const exact = all.filter((item) => trigger(item) === needle)
-    if (exact.length) return exact
+    const reserved = new Set<string>([
+      ...builtin.map((item) => item.trigger),
+      ...local.map((item) => item.trigger),
+      ...session.map((item) => item.trigger),
+      ...project.map((item) => item.trigger),
+    ])
 
-    const prefix = all.filter((item) => trigger(item).startsWith(needle))
-    if (prefix.length) return prefix
+    // Every permitted, user-facing skill is a slash entry. Selecting one
+    // prefills `/<name> ` and the agent's skill tool takes it from there. A
+    // real command owns its trigger when names collide.
+    const loaded = new Set(skillSnapshot().loadedThisTurn.map((skill) => skill.name))
+    const pinned = new Set(skillSnapshot().pinned.map((skill) => skill.name))
+    const recent = new Set(skillSnapshot().recent.map((skill) => skill.name))
+    // `stop` is also shipped as a skill so the agent can honour it; the menu
+    // only offers it while a turn is running.
+    const skills = skillSnapshot()
+      .allowed.filter((skill) => !reserved.has(skill.name) && (skill.name !== "stop" || working()))
+      .map((s) => ({
+        id: `skill.${s.name}`,
+        trigger: s.name,
+        title: s.name,
+        description: slashBlurb(s.summary || s.description),
+        usage: `/${s.name} [request]`,
+        searchText: [s.description, ...(s.tags ?? [])].filter(Boolean).join(" "),
+        source: "skill" as const,
+        category: "skill" as const,
+        type: slashActionSkill(s.name) ? ("action" as const) : ("skill" as const),
+        skillCategory: s.category,
+        skillTags: s.tags,
+        skillState: (loaded.has(s.name)
+          ? "loaded"
+          : pinned.has(s.name)
+            ? "pinned"
+            : recent.has(s.name)
+              ? "recent"
+              : s.recommended
+                ? "recommended"
+                : undefined) as SlashCommand["skillState"],
+      }))
 
-    const contained = all.filter((item) => trigger(item).includes(needle))
-    if (contained.length) return contained
+    return [...builtin, ...local, ...session, ...project, ...skills].map((item) => ({
+      ...item,
+      description: slashBlurb(item.description),
+    }))
+  })
 
-    const terms = needle.split(/\s+/)
-    return all.filter((item) => {
-      const text = [item.trigger, item.title, item.description, item.usage].filter(Boolean).join(" ").toLowerCase()
-      return terms.every((term) => text.includes(term))
-    })
+  const slashItems = (query: string) => {
+    const items = store.slashInline
+      ? slashCommands().filter((item) => item.type === "skill" || item.type === "mode")
+      : slashCommands()
+    return slashMatches(items, query, SLASH_QUERY_LIMIT)
   }
+
+  // A selected skill or command stays plain text in the prompt but reads as a
+  // token: every known `/trigger` in any composer on the page is painted
+  // through one document-level highlight, recomputed after each prompt change.
+  const SLASH_HIGHLIGHT = "composer-slash"
+  const paintSlashTokens = () => {
+    const triggers = new Set(slashCommands().map((item) => item.trigger))
+    const editors = document.querySelectorAll<HTMLElement>('[data-component="prompt-input"]')
+    const ranges = Array.from(editors).flatMap((editor) => slashTokenRanges(editor, triggers))
+    applyHighlight(SLASH_HIGHLIGHT, ranges)
+  }
+  createEffect(
+    on([() => prompt.current(), slashCommands], () => {
+      requestAnimationFrame(paintSlashTokens)
+    }),
+  )
+  onCleanup(() => clearHighlight(SLASH_HIGHLIGHT))
 
   const setIntent = (intent: SlashMode | null) => {
     setStore("intent", intent)
@@ -963,7 +1130,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     setIntent(intent)
   }
 
-  const replaceSlash = (value: string) => {
+  const replaceSlash = (value: string, restoreFocus = true) => {
     const selection = window.getSelection()
     const cursor = getCursorPosition(editorRef)
     const text = prompt
@@ -988,13 +1155,33 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     selection.removeAllRanges()
     selection.addRange(range)
     handleInput()
-    requestAnimationFrame(() => editorRef.focus({ preventScroll: true }))
+    if (restoreFocus) requestAnimationFrame(() => editorRef.focus({ preventScroll: true }))
     return true
+  }
+
+  const insertEditorText = (cursor: number, value: string) => {
+    editorRef.focus({ preventScroll: true })
+    setCursorPosition(editorRef, cursor)
+    const selection = window.getSelection()
+    if (!selection || selection.rangeCount === 0) return cursor
+
+    const range = selection.getRangeAt(0)
+    const node = document.createTextNode(value)
+    range.deleteContents()
+    range.insertNode(node)
+    range.setStart(node, value.length)
+    range.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(range)
+    handleInput()
+    return cursor + value.length
   }
 
   const handleSlashSelect = (cmd: SlashCommand | undefined) => {
     if (!cmd) return
     setStore("popover", null)
+
+    if (cmd.source === "skill") recordRecentSkill(cmd.trigger, skillStorage)
 
     const intent = slashMode(cmd)
     if (intent) {
@@ -1020,22 +1207,49 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   }
 
   const {
-    grouped: slashGrouped,
+    groups: slashGroups,
     flat: slashFlat,
     active: slashActive,
     setActive: setSlashActive,
     onInput: slashOnInput,
     onKeyDown: slashOnKeyDown,
     refetch: slashRefetch,
+    select: selectSlash,
   } = useFilteredList<SlashCommand>({
     items: slashItems,
     key: (x) => x?.id,
-    filterKeys: ["trigger", "title", "description", "usage"],
+    filterKeys: ["trigger", "title", "description", "usage", "searchText"],
     groupBy: slashGroup,
     sortBy: sortSlash,
-    sortGroupsBy: (a, b) => (a.category === "Commands" ? -1 : b.category === "Commands" ? 1 : 0),
+    sortGroupsBy: sortSlashGroups,
     onSelect: handleSlashSelect,
   })
+
+  // A bare `/` lists the whole library. Rows mount in slices so opening the
+  // menu stays cheap; the slice grows as the user scrolls or arrows past it.
+  const SLASH_SLICE = 48
+  const [slashRendered, setSlashRendered] = createSignal(SLASH_SLICE)
+  const slashVisible = createMemo(() => {
+    let remaining = slashRendered()
+    const result: Array<{ category: string; items: SlashCommand[] }> = []
+    for (const group of slashGroups()) {
+      if (remaining <= 0) break
+      const items = group.items.slice(0, remaining)
+      result.push({ category: group.category, items })
+      remaining -= items.length
+    }
+    return result
+  })
+  const revealSlash = () => setSlashRendered((current) => Math.min(slashFlat().length, current + SLASH_SLICE))
+
+  // Keyboard navigation may land on a row that is not mounted yet.
+  createEffect(() => {
+    const activeId = slashActive()
+    if (!activeId) return
+    const index = slashFlat().findIndex((item) => item.id === activeId)
+    if (index >= slashRendered()) setSlashRendered(index + SLASH_SLICE)
+  })
+  createEffect(on(slashGroups, () => setSlashRendered(SLASH_SLICE), { defer: true }))
 
   const createPill = (part: FileAttachmentPart | AgentPart | ConversationAttachmentPart) => {
     const pill = document.createElement("span")
@@ -1097,11 +1311,86 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     }),
   )
 
+  const scrollPopoverRow = (viewport: HTMLElement | undefined, element: HTMLElement | null) => {
+    if (!viewport || !element) return
+    const frame = viewport.getBoundingClientRect()
+    const top = frame.top + viewport.clientTop
+    const bottom = top + viewport.clientHeight
+    const row = element.getBoundingClientRect()
+    if (row.top < top) {
+      viewport.scrollTop -= top - row.top
+      return
+    }
+    if (row.bottom > bottom) viewport.scrollTop += row.bottom - bottom
+  }
+
   const scrollSlashActive = () => {
     const activeId = slashActive()
     if (!activeId || !slashPopoverRef) return
-    const element = slashPopoverRef.querySelector(`[data-slash-id="${activeId}"]`)
-    element?.scrollIntoView({ block: "nearest", behavior: "auto" })
+    scrollPopoverRow(slashPopoverRef, slashPopoverRef.querySelector<HTMLElement>(`[data-slash-id="${activeId}"]`))
+  }
+
+  // The @ picker reads the way Cursor's does: the name first, its folder
+  // dimmed beside it, grouped under "Recent" and "Files & folders", and the
+  // active row's place in the tree drawn in a pane alongside the list.
+  let atPopoverRef: HTMLDivElement | undefined
+  const atVisible = createMemo(() => {
+    const label = (category: string) => {
+      if (category === "agent") return "Agents"
+      if (category === "recent") return "Recent"
+      if (category === "file") return atFilter().trim() ? "" : "Files & folders"
+      return ""
+    }
+    return atGroups().map((group) => ({
+      category: group.category,
+      label: label(group.category),
+      items: group.items,
+    }))
+  })
+  const atCurrent = createMemo(() => {
+    const active = atActive()
+    return atFlat().find((item) => atKey(item) === active) ?? atFlat()[0]
+  })
+  const atPreview = createMemo(() => {
+    const item = atCurrent()
+    if (!item || item.type !== "file") return
+    const folder = item.path.endsWith("/")
+    const segments = item.path.split("/").filter(Boolean)
+    if (segments.length < 2) return
+    return segments.map((name, index) => ({
+      name,
+      depth: index,
+      path: segments.slice(0, index + 1).join("/"),
+      type: index < segments.length - 1 || folder ? ("directory" as const) : ("file" as const),
+      last: index === segments.length - 1,
+    }))
+  })
+  const atOptionId = (item: AtOption) => `composer-at-${atKey(item).replace(/[^a-zA-Z0-9_-]/g, "_")}`
+  // The worker's description, first clause only, dimmed beside its name the
+  // way a file's folder is.
+  const agentSummary = (item: AtOption) => {
+    if (item.type !== "agent" || !item.description) return
+    const first = item.description.split(/(?<=[.;:])\s/)[0] ?? item.description
+    return first.length > 72 ? `${first.slice(0, 69).trimEnd()}…` : first
+  }
+  const atRowMeta = (item: Extract<AtOption, { type: "file" }>) => {
+    const folder = item.path.endsWith("/")
+    const trimmed = folder ? item.path.slice(0, -1) : item.path
+    const parent = getDirectory(trimmed)
+    // The folder icon says what the row is; a trailing slash would only repeat it.
+    return {
+      folder,
+      name: getFilename(trimmed),
+      parent: parent && parent !== "." ? parent.replace(/\/$/, "") : "",
+    }
+  }
+  const scrollAtActive = () => {
+    const item = atCurrent()
+    if (!item || !atPopoverRef) return
+    scrollPopoverRow(
+      atPopoverRef,
+      atPopoverRef.querySelector<HTMLElement>(`[data-at-key="${CSS.escape(atKey(item))}"]`),
+    )
   }
 
   const selectPopoverActive = () => {
@@ -1110,7 +1399,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       if (items.length === 0) return
       const active = atActive()
       const item = items.find((entry) => atKey(entry) === active) ?? items[0]
-      handleAtSelect(item)
+      selectAt(item)
       return
     }
 
@@ -1119,7 +1408,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       if (items.length === 0) return
       const active = conversationActive()
       const item = items.find((entry) => entry.sourceSessionID === active) ?? items[0]
-      handleConversationSelect(item)
+      selectConversation(item)
       return
     }
 
@@ -1128,7 +1417,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       if (items.length === 0) return
       const active = slashActive()
       const item = items.find((entry) => entry.id === active) ?? items[0]
-      handleSlashSelect(item)
+      selectSlash(item)
     }
   }
 
@@ -1298,7 +1587,6 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
 
     const shellMode = store.mode === "shell"
     const slashMatch = shellMode ? undefined : slashTokenAt(rawText, cursorPosition)
-    const keepSlashFocus = !!slashMatch && document.activeElement === editorRef
 
     if (!shellMode) {
       const atMatch = rawText.substring(0, cursorPosition).match(/@(\S*)$/)
@@ -1333,15 +1621,6 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     mirror.input = true
     prompt.set([...rawParts, ...images], cursorPosition)
     queueScroll()
-    if (keepSlashFocus) {
-      requestAnimationFrame(() => {
-        if (document.activeElement !== editorRef) {
-          editorRef.focus({ preventScroll: true })
-          setCursorPosition(editorRef, cursorPosition)
-        }
-        if (slashTokenAt(editorRef.textContent ?? "", getCursorPosition(editorRef))) setStore("popover", "slash")
-      })
-    }
   }
 
   const setRangeEdge = (range: Range, edge: "start" | "end", offset: number) => {
@@ -1351,9 +1630,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     for (const node of nodes) {
       const length = getNodeLength(node)
       const isText = node.nodeType === Node.TEXT_NODE
-      const isPill =
-        node.nodeType === Node.ELEMENT_NODE &&
-        ["file", "agent", "conversation"].includes((node as HTMLElement).dataset.type ?? "")
+      const isPill = isPillNode(node)
       const isBreak = node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).tagName === "BR"
 
       if (isText && remaining <= length) {
@@ -1455,10 +1732,11 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       .map((p) => ("content" in p ? p.content : ""))
       .join("")
       .trim()
-    const hasImages = prompt.some((part) => part.type === "image")
-    if (!text && !hasImages) return
+    // Image data is stripped from history, so an image-only submission would
+    // restore as an empty, unsendable entry; only text-bearing prompts are kept.
+    if (!text) return
 
-    const entry = clonePromptParts(prompt)
+    const entry = stripImages(clonePromptParts(prompt))
     const currentHistory = mode === "shell" ? shellHistory : history
     const setCurrentHistory = mode === "shell" ? setShellHistory : setHistory
     const lastEntry = currentHistory.entries[0]
@@ -1564,6 +1842,10 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       return
     }
 
+    // Arrow, Tab, and Enter belong to the OS input-method candidate window
+    // while composing. Never let the slash list consume them.
+    if (store.popover && isImeComposing(event)) return
+
     const ctrl = event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey
 
     if (store.popover) {
@@ -1577,6 +1859,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       if (nav || ctrlNav) {
         if (store.popover === "at") {
           atOnKeyDown(event)
+          requestAnimationFrame(scrollAtActive)
           event.preventDefault()
           return
         }
@@ -1605,6 +1888,16 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         event.preventDefault()
       }
       return
+    }
+
+    // Tab in an empty composer cycles the primary agents, as in OpenCode;
+    // with one agent there is nothing to cycle and Tab keeps moving focus.
+    if (event.key === "Tab" && !event.ctrlKey && !event.metaKey && !event.altKey && !store.popover) {
+      if (local.agent.list().length > 1 && !prompt.dirty()) {
+        local.agent.move(event.shiftKey ? -1 : 1)
+        event.preventDefault()
+        return
+      }
     }
 
     if (event.key === "ArrowUp" || event.key === "ArrowDown") {
@@ -1662,14 +1955,6 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     // flight while the composer is showing its immediate acknowledgement.
     if (submitting()) return
 
-    // While a response is active this control is Stop, regardless of whether
-    // the user has started drafting the next message. Preserve that draft and
-    // terminate the active response instead of accidentally submitting it.
-    if (working()) {
-      abort()
-      return
-    }
-
     const currentPrompt = prompt.current()
     const text = action ? `/${action}` : currentPrompt.map((part) => ("content" in part ? part.content : "")).join("")
     const images = action ? [] : imageAttachments().slice()
@@ -1709,6 +1994,17 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       return true
     }
 
+    // Acknowledge Enter before the first network boundary. Persisting up to
+    // 100 history entries can synchronously serialize several megabytes, so
+    // keep that work off the input event's critical path.
+    const acknowledgeSubmit = () => {
+      setSubmitting(true)
+      clearInput()
+      if (!action) window.setTimeout(() => addToHistory(currentPrompt, mode), 0)
+      setStore("historyIndex", -1)
+      setStore("savedPrompt", null)
+    }
+
     const researchEffort = "normal" as const
     const delegationConfig = delegation()
     const delegationEnabled = delegationConfig.level !== "off"
@@ -1718,11 +2014,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     const native = command?.source === "builtin" && command.menu
     const active = info()
     if (native && active && mode === "normal" && images.length === 0) {
-      setSubmitting(true)
-      clearInput()
-      if (!action) window.setTimeout(() => addToHistory(currentPrompt, mode), 0)
-      setStore("historyIndex", -1)
-      setStore("savedPrompt", null)
+      acknowledgeSubmit()
       props.onSubmit?.()
       const request = {
         sessionID: active.id,
@@ -1764,20 +2056,14 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     const agent = currentAgent.name
     const variant = local.model.variant.prompt()
     const tier = local.model.tier.prompt()
+    const contextLimit = local.model.context.prompt()
 
     const restoreBootstrap = () => {
       setSubmitting(false)
       restoreInput()
     }
 
-    // Acknowledge Enter before the first network boundary. Persisting up to
-    // 100 history entries can synchronously serialize several megabytes, so
-    // keep that work off the input event's critical path.
-    setSubmitting(true)
-    clearInput()
-    if (!action) window.setTimeout(() => addToHistory(currentPrompt, mode), 0)
-    setStore("historyIndex", -1)
-    setStore("savedPrompt", null)
+    acknowledgeSubmit()
 
     const projectDirectory = sdk.directory
     const isNewSession = !params.id || params.id === "new"
@@ -1836,8 +2122,9 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
           ? store.bootstrapID
           : Identifier.descending("session")
       setStore({ bootstrapID: candidate, bootstrapDirectory: sessionDirectory })
+      const workingRoot = pendingWorkingRoot()
       session = await client.session
-        .create({ id: candidate })
+        .create({ id: candidate, ...(workingRoot ? { workingRoot } : {}) })
         .then((x) => x.data ?? undefined)
         .catch(async (err) => {
           const recovery = await client.session
@@ -1903,6 +2190,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         delegationSettings: delegationConfig,
         variant,
         tier,
+        context: contextLimit,
         parts: images.map((attachment) => ({
           id: Identifier.ascending("part"),
           type: "file" as const,
@@ -1930,7 +2218,25 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     if (text.startsWith("/")) {
       const [cmdName, ...args] = text.split(" ")
       const commandName = cmdName.slice(1)
-      const customCommand = sync.data.command.find((c) => c.name === commandName)
+      // Catalogs load after first paint; an early slash command must not become
+      // ordinary prompt text just because that background request is pending.
+      const commands =
+        sessionDirectory === projectDirectory && sync.data.command.some((command) => command.name === commandName)
+          ? sync.data.command
+          : await client.command
+              .list()
+              .then((response) => response.data)
+              .catch((error) => {
+                const failure = requestFailure(error, "Load commands")
+                showToast({ title: failure.title, description: failure.description })
+                return undefined
+              })
+      if (!commands) {
+        setSubmitting(false)
+        restoreInputAfterFailure()
+        return
+      }
+      const customCommand = commands.find((command) => command.name === commandName)
       if (customCommand) {
         const request = {
           sessionID: session.id,
@@ -1943,6 +2249,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
           delegationSettings: delegationConfig,
           variant,
           tier,
+          context: contextLimit,
           parts: images.map((attachment) => ({
             id: Identifier.ascending("part"),
             type: "file" as const,
@@ -2108,7 +2415,8 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       filename: attachment.filename,
     }))
 
-    const messageID = Identifier.ascending("message")
+    const known = sessionDirectory === projectDirectory ? sync.data : globalSync.child(sessionDirectory)[0]
+    const messageID = Identifier.after("message", known.message[session.id]?.at(-1)?.id)
     const textPart = {
       id: Identifier.ascending("part"),
       type: "text" as const,
@@ -2123,7 +2431,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
       ...agentAttachmentParts,
       ...imageAttachmentParts,
     ]
-    const sendParts = requestParts as unknown as Parameters<typeof client.session.prompt>[0]["parts"]
+    const sendParts = requestParts as unknown as ComposerPromptInput["parts"]
 
     const optimisticParts = requestParts.map((part) => ({
       ...part,
@@ -2211,6 +2519,36 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     addOptimisticMessage()
     setSubmitting(false)
 
+    // The server renumbers a message whose id would sort below one it created
+    // after the send (a step of the running turn, when the message is queued),
+    // so the stored copy can arrive under another id. Its text part keeps
+    // this id, which is how the optimistic copy knows to step aside.
+    const settle = globalSDK.event.on(sessionDirectory, (event) => {
+      if (event.type !== "message.part.updated" || event.properties.part.id !== textPart.id) return
+      settle()
+      if (event.properties.part.messageID !== messageID) removeOptimisticMessage()
+    })
+
+    const restoreSubmission = () => {
+      settle()
+      if (sessionDirectory === projectDirectory) {
+        sync.set("session_status", session.id, { type: "idle" })
+      }
+      removeOptimisticMessage()
+      for (const item of commentItems) {
+        prompt.context.add({
+          type: "file",
+          path: item.path,
+          selection: item.selection,
+          comment: item.comment,
+          commentID: item.commentID,
+          commentOrigin: item.commentOrigin,
+          preview: item.preview,
+        })
+      }
+      restoreInputAfterFailure()
+    }
+
     const waitForWorktree = async () => {
       const worktree = WorktreeState.get(sessionDirectory)
       if (!worktree || worktree.status !== "pending") return true
@@ -2221,26 +2559,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
 
       const controller = new AbortController()
 
-      const cleanup = () => {
-        if (sessionDirectory === projectDirectory) {
-          sync.set("session_status", session.id, { type: "idle" })
-        }
-        removeOptimisticMessage()
-        for (const item of commentItems) {
-          prompt.context.add({
-            type: "file",
-            path: item.path,
-            selection: item.selection,
-            comment: item.comment,
-            commentID: item.commentID,
-            commentOrigin: item.commentOrigin,
-            preview: item.preview,
-          })
-        }
-        restoreInputAfterFailure()
-      }
-
-      pending.set(session.id, { abort: controller, cleanup })
+      pending.set(session.id, { abort: controller, cleanup: restoreSubmission })
 
       const abort = new Promise<Awaited<ReturnType<typeof WorktreeState.wait>>>((resolve) => {
         if (controller.signal.aborted) {
@@ -2277,10 +2596,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     const send = async () => {
       const ok = await waitForWorktree()
       if (!ok) return
-      const request: Parameters<typeof client.session.prompt>[0] & {
-        effort: "normal"
-        delegationSettings: DelegationSettings
-      } = {
+      const request: ComposerPromptInput = {
         sessionID: session.id,
         agent,
         model,
@@ -2291,30 +2607,30 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         delegationSettings: delegationConfig,
         variant,
         tier,
+        context: contextLimit,
       }
-      await client.session.prompt(request)
+      const controller = new AbortController()
+      pending.set(session.id, { abort: controller, cleanup: restoreSubmission })
+      if (sessionDirectory === projectDirectory) {
+        sync.set("session_status", session.id, { type: "busy" })
+      }
+      const submitted = () => {
+        if (pending.get(session.id)?.abort === controller) pending.delete(session.id)
+      }
+      // Stop owns capability negotiation locally; once submission begins the
+      // session's server cancellation path owns the running request.
+      await submitComposerPrompt(client, request, controller.signal, submitted)
+        .catch((error) => {
+          if (!controller.signal.aborted) throw error
+        })
+        .finally(submitted)
     }
 
     void send().catch((err) => {
       pending.delete(session.id)
-      if (sessionDirectory === projectDirectory) {
-        sync.set("session_status", session.id, { type: "idle" })
-      }
       const failure = requestFailure(err, "Send prompt")
       showToast({ title: failure.title, description: failure.description })
-      removeOptimisticMessage()
-      for (const item of commentItems) {
-        prompt.context.add({
-          type: "file",
-          path: item.path,
-          selection: item.selection,
-          comment: item.comment,
-          commentID: item.commentID,
-          commentOrigin: item.commentOrigin,
-          preview: item.preview,
-        })
-      }
-      restoreInputAfterFailure()
+      restoreSubmission()
     })
   }
 
@@ -2325,7 +2641,6 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
     editorRef.textContent = text
     prompt.set([{ type: "text", content: text, start: 0, end: text.length }], text.length)
     uiStore.setPrefill(undefined)
-    uiStore.setPrefillSend(false)
     requestAnimationFrame(() => {
       editorRef.focus()
       setCursorPosition(editorRef, text.length)
@@ -2340,59 +2655,126 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
         <div
           ref={(el) => {
             if (store.popover === "slash") slashPopoverRef = el
+            if (store.popover === "at") atPopoverRef = el
           }}
           class="workspace-composer__suggestions absolute inset-x-0 -top-3 -translate-y-full origin-bottom-left
                  min-h-10 overflow-auto no-scrollbar flex flex-col"
+          id={store.popover === "slash" ? "composer-slash-listbox" : undefined}
+          role={store.popover === "slash" ? "listbox" : undefined}
+          aria-label={store.popover === "slash" ? "Commands and skills" : undefined}
           onMouseDown={(e) => e.preventDefault()}
         >
           <Switch>
             <Match when={store.popover === "at"}>
               <Show
                 when={atFlat().length > 0}
-                fallback={<div class="text-text-weak px-2 py-1">{language.t("prompt.popover.emptyResults")}</div>}
+                fallback={
+                  // The file search is a network round trip and the rows only appear once the
+                  // answer to the query being typed arrives, so an empty list mid-search is not
+                  // yet "nothing matches".
+                  <div class="workspace-composer__suggestion-empty">
+                    <Show when={atGrouped.loading} fallback={language.t("prompt.popover.emptyResults")}>
+                      {language.t("prompt.popover.searching")}
+                    </Show>
+                  </div>
+                }
               >
-                <For each={atFlat().slice(0, 10)}>
-                  {(item) => (
-                    <button
-                      classList={{
-                        "workspace-composer__suggestion w-full flex items-center gap-x-2": true,
-                        "bg-surface-raised-base-hover": atActive() === atKey(item),
-                      }}
-                      onClick={() => handleAtSelect(item)}
-                      onMouseEnter={() => setAtActive(atKey(item))}
-                    >
-                      <Show
-                        when={item.type === "agent"}
-                        fallback={
-                          <>
-                            <FileIcon
-                              node={{ path: (item as { type: "file"; path: string }).path, type: "file" }}
-                              class="shrink-0 size-4"
-                            />
-                            <div class="flex items-center text-14-regular min-w-0">
-                              <span class="text-text-weak whitespace-nowrap truncate min-w-0">
-                                {(() => {
-                                  const path = (item as { type: "file"; path: string }).path
-                                  return path.endsWith("/") ? path : getDirectory(path)
-                                })()}
-                              </span>
-                              <Show when={!(item as { type: "file"; path: string }).path.endsWith("/")}>
-                                <span class="text-text-strong whitespace-nowrap">
-                                  {getFilename((item as { type: "file"; path: string }).path)}
-                                </span>
-                              </Show>
+                <div class="workspace-composer__at" data-preview={atPreview() ? "true" : undefined}>
+                  <div
+                    class="workspace-composer__at-list"
+                    id="composer-at-listbox"
+                    role="listbox"
+                    aria-label="Files and folders"
+                  >
+                    <For each={atVisible()}>
+                      {(group) => (
+                        <section class="workspace-composer__slash-group" aria-label={group.label || "Results"}>
+                          <Show when={group.label}>
+                            <header class="workspace-composer__slash-heading" aria-hidden="true">
+                              {group.label}
+                            </header>
+                          </Show>
+                          <For each={group.items}>
+                            {(item) => (
+                              <button
+                                type="button"
+                                id={atOptionId(item)}
+                                role="option"
+                                aria-selected={atActive() === atKey(item)}
+                                data-at-key={atKey(item)}
+                                classList={{
+                                  "workspace-composer__at-row": true,
+                                  "is-active": atActive() === atKey(item),
+                                }}
+                                onClick={() => selectAt(item)}
+                                onMouseEnter={() => setAtActive(atKey(item))}
+                              >
+                                <Show
+                                  when={item.type === "file" ? item : undefined}
+                                  fallback={
+                                    <>
+                                      <span class="workspace-composer__at-icon" aria-hidden="true">
+                                        <Icon name="brain" size="small" />
+                                      </span>
+                                      <span class="workspace-composer__at-name">
+                                        @{(item as { type: "agent"; name: string }).name}
+                                      </span>
+                                      <Show when={agentSummary(item)}>
+                                        {(summary) => (
+                                          <span class="workspace-composer__at-path" title={summary()}>
+                                            {summary()}
+                                          </span>
+                                        )}
+                                      </Show>
+                                    </>
+                                  }
+                                >
+                                  {(file) => {
+                                    const meta = () => atRowMeta(file())
+                                    return (
+                                      <>
+                                        <span class="workspace-composer__at-icon" aria-hidden="true">
+                                          <FileIcon
+                                            node={{ path: file().path, type: meta().folder ? "directory" : "file" }}
+                                            class="size-4"
+                                          />
+                                        </span>
+                                        <span class="workspace-composer__at-name">{meta().name}</span>
+                                        <Show when={meta().parent}>
+                                          <span class="workspace-composer__at-path" title={file().path}>
+                                            {meta().parent}
+                                          </span>
+                                        </Show>
+                                      </>
+                                    )
+                                  }}
+                                </Show>
+                              </button>
+                            )}
+                          </For>
+                        </section>
+                      )}
+                    </For>
+                  </div>
+                  <Show when={atPreview()}>
+                    {(crumbs) => (
+                      <aside class="workspace-composer__at-preview" aria-hidden="true">
+                        <For each={crumbs()}>
+                          {(crumb) => (
+                            <div
+                              class="workspace-composer__at-crumb"
+                              data-last={crumb.last ? "true" : undefined}
+                              style={{ "--depth": crumb.depth }}
+                            >
+                              <FileIcon node={{ path: crumb.path, type: crumb.type }} class="size-4" />
+                              <span>{crumb.name}</span>
                             </div>
-                          </>
-                        }
-                      >
-                        <Icon name="brain" size="small" class="text-icon-info-active shrink-0" />
-                        <span class="text-14-regular text-text-strong whitespace-nowrap">
-                          @{(item as { type: "agent"; name: string }).name}
-                        </span>
-                      </Show>
-                    </button>
-                  )}
-                </For>
+                          )}
+                        </For>
+                      </aside>
+                    )}
+                  </Show>
+                </div>
               </Show>
             </Match>
             <Match when={store.popover === "conversation"}>
@@ -2411,7 +2793,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                         "workspace-composer__suggestion workspace-composer__conversation-row": true,
                         "bg-surface-raised-base-hover": conversationActive() === item.sourceSessionID,
                       }}
-                      onClick={() => handleConversationSelect(item)}
+                      onClick={() => selectConversation(item)}
                       onMouseEnter={() => setConversationActive(item.sourceSessionID)}
                     >
                       <span class="workspace-composer__conversation-mark" aria-hidden="true">
@@ -2429,36 +2811,41 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
             <Match when={store.popover === "slash"}>
               <Show
                 when={slashFlat().length > 0}
-                fallback={<div class="text-text-weak px-2 py-1">{language.t("prompt.popover.emptyCommands")}</div>}
+                fallback={
+                  <div class="workspace-composer__suggestion-empty">{language.t("prompt.popover.emptyCommands")}</div>
+                }
               >
-                <For each={slashGrouped()}>
+                {/* A suggestion refresh must not suspend the session and detach the focused editor. */}
+                <For each={slashVisible()}>
                   {(group) => (
-                    <section class="workspace-composer__slash-group" aria-label={group.category}>
-                      <Show when={group.category === "Skills"}>
-                        <header class="workspace-composer__slash-heading">Skills</header>
+                    <section class="workspace-composer__slash-group" aria-label={group.category || "Results"}>
+                      <Show when={group.category}>
+                        <header class="workspace-composer__slash-heading" aria-hidden="true">
+                          {group.category}
+                        </header>
                       </Show>
                       <For each={group.items}>
                         {(cmd) => (
                           <button
+                            type="button"
+                            id={slashOptionId(cmd)}
+                            role="option"
+                            aria-selected={slashActive() === cmd.id}
                             data-slash-id={cmd.id}
                             classList={{
-                              "workspace-composer__suggestion workspace-composer__slash-row w-full": true,
-                              "bg-surface-raised-base-hover": slashActive() === cmd.id,
+                              "workspace-composer__slash-row": true,
+                              "is-active": slashActive() === cmd.id,
                             }}
-                            onClick={() => handleSlashSelect(cmd)}
+                            onClick={() => selectSlash(cmd)}
                             onMouseEnter={() => setSlashActive(cmd.id)}
                           >
-                            <span class="workspace-composer__slash-icon">
+                            <span class="workspace-composer__slash-icon" aria-hidden="true">
                               <Icon name={slashIcon(cmd)} size="small" />
                             </span>
                             <span class="workspace-composer__slash-name">/{cmd.trigger}</span>
-                            <span class="workspace-composer__slash-detail truncate">
-                              {cmd.description || cmd.title}
-                            </span>
-                            <Show when={command.keybind(cmd.id) || slashSource(cmd)}>
-                              <span class="workspace-composer__slash-meta">
-                                {command.keybind(cmd.id) || slashSource(cmd)}
-                              </span>
+                            <span class="workspace-composer__slash-detail">{cmd.description || cmd.title}</span>
+                            <Show when={command.keybind(cmd.id) || cmd.meta}>
+                              <span class="workspace-composer__slash-meta">{command.keybind(cmd.id) || cmd.meta}</span>
                             </Show>
                           </button>
                         )}
@@ -2466,6 +2853,18 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                     </section>
                   )}
                 </For>
+                <Show when={slashRendered() < slashFlat().length}>
+                  <div
+                    class="workspace-composer__slash-sentinel"
+                    ref={(el) => {
+                      const observer = new IntersectionObserver((entries) => {
+                        if (entries.some((entry) => entry.isIntersecting)) revealSlash()
+                      })
+                      observer.observe(el)
+                      onCleanup(() => observer.disconnect())
+                    }}
+                  />
+                </Show>
               </Show>
             </Match>
           </Switch>
@@ -2628,10 +3027,27 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
               editorRef = el
               props.ref?.(el)
             }}
-            role="textbox"
+            role="combobox"
             aria-multiline="true"
             aria-label={placeholder()}
             aria-busy={submitting()}
+            aria-autocomplete="list"
+            aria-haspopup="listbox"
+            aria-expanded={store.popover === "slash" || store.popover === "at"}
+            aria-controls={
+              store.popover === "slash"
+                ? "composer-slash-listbox"
+                : store.popover === "at"
+                  ? "composer-at-listbox"
+                  : undefined
+            }
+            aria-activedescendant={
+              store.popover === "slash" && slashActive()
+                ? slashOptionId({ id: slashActive()! })
+                : store.popover === "at" && atCurrent()
+                  ? atOptionId(atCurrent()!)
+                  : undefined
+            }
             dir="auto"
             contenteditable={submitting() ? "false" : "true"}
             onInput={handleInput}
@@ -2641,7 +3057,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
             onKeyDown={handleKeyDown}
             classList={{
               "select-text": true,
-              "focus:outline-none whitespace-pre-wrap": true,
+              "focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-border-strong focus-visible:outline-offset-2 whitespace-pre-wrap": true,
               "[&_[data-type=file]]:text-syntax-property": true,
               "[&_[data-type=agent]]:text-syntax-type": true,
               "[&_[data-type=conversation]]:text-syntax-keyword": true,
@@ -2692,42 +3108,29 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                     <Icon name="paperclip" class="size-4" />
                   </Button>
                 </Tooltip>
-                <details
-                  ref={(element) => (researchToolsRef = element)}
-                  class="workspace-composer__research-tools"
-                  onToggle={(event) => {
-                    if (event.currentTarget.open) return
-                    resetResearchTools()
+                <ComposerTools
+                  ref={(element) => {
+                    researchToolsRef = element
                   }}
-                  onKeyDown={(event) => {
-                    if (event.key !== "Escape") return
-                    event.preventDefault()
-                    closeResearchTools()
-                    researchToolsRef?.querySelector("summary")?.focus()
-                  }}
+                  onClose={resetResearchTools}
                 >
-                  <summary aria-label="Research tools">
-                    <span class="workspace-composer__research-tools-label">Research</span>
-                    <Icon name="chevron-down" size="small" />
-                  </summary>
-                  <div class="workspace-composer__research-tools-menu" role="group" aria-label="Research tools">
-                    <section class="workspace-composer__research-controls" aria-label="Research roles">
-                      <ResearchSlider
-                        label="Delegation"
-                        value={delegation().level}
-                        options={DELEGATION_LEVELS}
-                        disabled={!capabilities()}
-                        onSelect={(value) => saveDelegation({ level: value as DelegationLevel })}
-                      />
-                      <Show when={delegation().level !== "off"}>
-                        <ResearchSlider
-                          label="Independence"
-                          value={delegation().autonomy}
-                          options={DELEGATION_AUTONOMY}
-                          onSelect={(value) => saveDelegation({ autonomy: value as DelegationAutonomy })}
-                        />
-                      </Show>
-                      <div class="workspace-composer__research-divider" />
+                  <section class="workspace-composer__research-controls" aria-label="Research roles">
+                    <ResearchSlider
+                      label="Delegation"
+                      value={delegation().level}
+                      options={DELEGATION_LEVELS}
+                      disabled={!capabilities()}
+                      onSelect={(value) => saveDelegation({ level: value as DelegationLevel })}
+                    />
+                    {/* Independence governs the lead's own questions, not only
+                          delegated work, so it stays visible with delegation off. */}
+                    <ResearchSlider
+                      label="Independence"
+                      value={delegation().autonomy}
+                      options={DELEGATION_AUTONOMY}
+                      onSelect={(value) => saveDelegation({ autonomy: value as DelegationAutonomy })}
+                    />
+                    <div class="workspace-composer__research-access">
                       <Show
                         when={!researchAccess.error}
                         fallback={
@@ -2740,10 +3143,13 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                           </button>
                         }
                       >
-                        <details class="workspace-composer__research-choice" onToggle={toggleResearchChoice}>
+                        <details
+                          class="workspace-composer__research-setting workspace-composer__research-choice"
+                          onToggle={toggleResearchChoice}
+                        >
                           <summary aria-label={`Action approval, ${researchAccessLabel()}`}>
-                            <span>Action approval</span>
-                            <strong aria-live="polite">
+                            <span class="workspace-composer__research-setting-label">Action approval</span>
+                            <strong class="workspace-composer__research-setting-value" aria-live="polite">
                               {researchAccessSaving() ? "Saving…" : researchAccessLabel()}
                             </strong>
                             <Icon name="chevron-right" size="small" />
@@ -2764,11 +3170,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                                   data-tone={option.value === "full" ? "warning" : undefined}
                                   aria-checked={selectedResearchAccess() === option.value}
                                   tabindex={selectedResearchAccess() === option.value ? 0 : -1}
-                                  disabled={
-                                    researchAccess.loading ||
-                                    researchAccessSaving() ||
-                                    (option.value !== "full" && researchAccess()?.sandboxStatus.available === false)
-                                  }
+                                  disabled={researchAccess.loading || researchAccessSaving()}
                                   onClick={(event) => {
                                     void applyResearchAccess(option.value, event.currentTarget)
                                     event.currentTarget.closest("details")?.removeAttribute("open")
@@ -2777,8 +3179,9 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                                   <span>
                                     <strong>{option.label}</strong>
                                     <small>
-                                      {option.value !== "full" && researchAccess()?.sandboxStatus.available === false
-                                        ? `Unavailable: ${researchAccess()?.sandboxStatus.reason ?? "sandbox backend not installed"}`
+                                      {option.value !== "full" &&
+                                      currentResearchAccess()?.sandboxStatus.available === false
+                                        ? `Fail-closed until setup: ${currentResearchAccess()?.sandboxStatus.reason ?? "sandbox backend not installed"}`
                                         : option.description}
                                     </small>
                                   </span>
@@ -2791,9 +3194,39 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                           </div>
                         </details>
                       </Show>
-                    </section>
-                  </div>
-                </details>
+                      <button
+                        type="button"
+                        class="workspace-composer__research-setting workspace-composer__research-control workspace-composer__research-connectors"
+                        onClick={() => {
+                          closeResearchTools()
+                          dialog.show(() => <DialogSettings initial="connectors" />)
+                        }}
+                      >
+                        <span class="workspace-composer__research-setting-label">MCP servers</span>
+                        <strong class="workspace-composer__research-setting-value">
+                          {configuredConnectorCount() === 0
+                            ? "None configured"
+                            : `${configuredConnectorCount()} configured`}
+                        </strong>
+                        <Icon name="chevron-right" size="small" />
+                      </button>
+                    </div>
+                  </section>
+                </ComposerTools>
+                <WorkingFolderChip
+                  client={sdk.client}
+                  watch={(refresh) => {
+                    const filesystem = sdk.event.on("session.filesystem.changed", () => refresh())
+                    const project = sdk.event.on("project.updated", () => refresh())
+                    return () => {
+                      filesystem()
+                      project()
+                    }
+                  }}
+                  sessionID={params.id && params.id !== "new" ? params.id : undefined}
+                  pending={pendingWorkingRoot()}
+                  onPending={setPendingWorkingRoot}
+                />
                 <Show when={store.intent}>
                   {(intent) => (
                     <Tooltip placement="top" value={`Exit ${intent()} mode`}>
@@ -2820,6 +3253,20 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
             role="group"
             aria-label="Model, effort, and send"
           >
+            <Show when={local.agent.list().length > 1}>
+              <Tooltip placement="top" value={language.t("prompt.agent.tooltip")}>
+                <Button
+                  variant="ghost"
+                  class="model-settings-trigger--label min-w-0"
+                  data-prompt-agent
+                  aria-label={language.t("prompt.agent.label", { name: local.agent.current()?.name ?? "" })}
+                  onClick={() => local.agent.move(1)}
+                >
+                  <Icon name="sparkles" size="small" class="shrink-0 text-text-weak" />
+                  <span class="truncate">{local.agent.current()?.name}</span>
+                </Button>
+              </Tooltip>
+            </Show>
             <ModelSettingsPopover />
             <Tooltip
               placement="top"
@@ -2849,6 +3296,13 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                 class="workspace-composer__send rounded-full"
                 data-composer-action={working() ? "stop" : prompt.dirty() ? "send" : "idle"}
                 aria-label={working() ? language.t("prompt.action.stop") : language.t("prompt.action.send")}
+                onClick={(event: MouseEvent) => {
+                  // The button is Stop while a response runs; Enter in the
+                  // editor still submits, so the draft joins the turn instead.
+                  if (!working()) return
+                  event.preventDefault()
+                  void abort()
+                }}
               />
             </Tooltip>
           </div>
@@ -2874,11 +3328,6 @@ function createTextFragment(content: string): DocumentFragment {
   return fragment
 }
 
-function getNodeLength(node: Node): number {
-  if (node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).tagName === "BR") return 1
-  return (node.textContent ?? "").replace(/\u200B/g, "").length
-}
-
 function getTextLength(node: Node): number {
   if (node.nodeType === Node.TEXT_NODE) return (node.textContent ?? "").replace(/\u200B/g, "").length
   if (node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).tagName === "BR") return 1
@@ -2898,68 +3347,4 @@ function getCursorPosition(parent: HTMLElement): number {
   preCaretRange.selectNodeContents(parent)
   preCaretRange.setEnd(range.startContainer, range.startOffset)
   return getTextLength(preCaretRange.cloneContents())
-}
-
-function setCursorPosition(parent: HTMLElement, position: number) {
-  let remaining = position
-  let node = parent.firstChild
-  while (node) {
-    const length = getNodeLength(node)
-    const isText = node.nodeType === Node.TEXT_NODE
-    const isPill =
-      node.nodeType === Node.ELEMENT_NODE &&
-      ((node as HTMLElement).dataset.type === "file" || (node as HTMLElement).dataset.type === "agent")
-    const isBreak = node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).tagName === "BR"
-
-    if (isText && remaining <= length) {
-      const range = document.createRange()
-      const selection = window.getSelection()
-      range.setStart(node, remaining)
-      range.collapse(true)
-      selection?.removeAllRanges()
-      selection?.addRange(range)
-      return
-    }
-
-    if ((isPill || isBreak) && remaining <= length) {
-      const range = document.createRange()
-      const selection = window.getSelection()
-      if (remaining === 0) {
-        range.setStartBefore(node)
-      }
-      if (remaining > 0 && isPill) {
-        range.setStartAfter(node)
-      }
-      if (remaining > 0 && isBreak) {
-        const next = node.nextSibling
-        if (next && next.nodeType === Node.TEXT_NODE) {
-          range.setStart(next, 0)
-        }
-        if (!next || next.nodeType !== Node.TEXT_NODE) {
-          range.setStartAfter(node)
-        }
-      }
-      range.collapse(true)
-      selection?.removeAllRanges()
-      selection?.addRange(range)
-      return
-    }
-
-    remaining -= length
-    node = node.nextSibling
-  }
-
-  const fallbackRange = document.createRange()
-  const fallbackSelection = window.getSelection()
-  const last = parent.lastChild
-  if (last && last.nodeType === Node.TEXT_NODE) {
-    const len = last.textContent ? last.textContent.length : 0
-    fallbackRange.setStart(last, len)
-  }
-  if (!last || last.nodeType !== Node.TEXT_NODE) {
-    fallbackRange.selectNodeContents(parent)
-  }
-  fallbackRange.collapse(false)
-  fallbackSelection?.removeAllRanges()
-  fallbackSelection?.addRange(fallbackRange)
 }

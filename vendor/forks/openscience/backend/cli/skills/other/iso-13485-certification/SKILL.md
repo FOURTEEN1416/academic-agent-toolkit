@@ -4,7 +4,13 @@ description: Comprehensive toolkit for preparing ISO 13485 certification documen
 category: other
 license: MIT license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/iso-13485-certification
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # ISO 13485 Certification Documentation Assistant

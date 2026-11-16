@@ -14,7 +14,7 @@ import { showToast } from "@synsci/ui/toast"
 import { useGlobalSDK } from "@/context/global-sdk"
 import { usePlatform } from "@/context/platform"
 import { settingsApi } from "./api"
-import { PanelBody, PanelHeader, PanelScroll, Section } from "./_shared"
+import { PanelBody, PanelHeader, PanelScroll, Section, steady } from "./_shared"
 import "./preference-panels.css"
 import "./sandbox.css"
 
@@ -71,7 +71,7 @@ const Sandbox: Component = () => {
   const call = <T,>(path: string, init?: RequestInit) =>
     settingsApi<T>(sdk.url, fetchFn, `/settings/sandbox${path}`, init)
 
-  const [data, { mutate, refetch }] = createResource(() => call<Payload>(""))
+  const [data, { mutate, refetch }] = steady(createResource(() => call<Payload>("")))
   const [busyKeys, setBusyKeys] = createSignal<ReadonlySet<WriteKey>>(new Set())
   const [saving, setSaving] = createSignal(false)
   const [test, setTest] = createSignal<SelfTest>()
@@ -196,27 +196,20 @@ const Sandbox: Component = () => {
         class="settings-preferences-panel settings-preferences-panel--sandbox"
         aria-busy={saving() ? "true" : undefined}
       >
-        <PanelHeader
-          title="Sandbox"
-          description="Isolate local terminals, kernels, and shell commands."
-          toolbar={
-            <span class="settings-sandbox-save-state" role="status" aria-live="polite">
-              {saving() ? "Saving…" : ""}
-            </span>
-          }
-        />
+        <PanelHeader title="Sandbox" description="Isolate local terminals, kernels, and shell commands." />
         <PanelBody>
           <Show when={data.error}>
             <div class="settings-alert" data-tone="critical" role="alert">
               <span>Sandbox settings could not be loaded. {String(data.error)}</span>
-              <button
-                type="button"
-                class="settings-inline-action"
+              <Button
+                size="small"
+                variant="secondary"
+                class="settings-panel-action"
                 disabled={data.loading || saving()}
                 onClick={() => void refetch()}
               >
                 Retry
-              </button>
+              </Button>
             </div>
           </Show>
           <Show
@@ -233,7 +226,14 @@ const Sandbox: Component = () => {
           >
             <Section
               title="Protection"
-              description="Permissions approve a command; the sandbox limits what it can reach."
+              description={
+                <>
+                  Permissions approve a command; the sandbox limits what it can reach.
+                  <span class="settings-sandbox-save-state" role="status" aria-live="polite">
+                    {saving() ? " Saving…" : ""}
+                  </span>
+                </>
+              }
             >
               <div class="settings-card settings-preferences-card">
                 <div class="settings-row settings-sandbox-control-row settings-sandbox-enable-row">
@@ -258,42 +258,36 @@ const Sandbox: Component = () => {
                 </div>
                 <Show
                   when={status()}
-                  fallback={<div class="settings-panel-loading-copy">Checking native containment…</div>}
+                  fallback={
+                    <div class="settings-panel-loading__rows" role="status" aria-label="Checking native containment">
+                      <span />
+                    </div>
+                  }
                 >
                   {(s) => (
                     <>
-                      <button
-                        type="button"
-                        class="settings-row settings-sandbox-status-row"
-                        aria-expanded={showBackendDetails()}
-                        aria-controls={backendDetailsId}
-                        onClick={() => setShowBackendDetails((value) => !value)}
-                      >
-                        <span
-                          class="settings-sandbox-status-mark"
-                          data-tone={s().available ? "success" : "warning"}
-                          aria-hidden="true"
-                        >
-                          <Icon name={s().available ? "check" : "stop"} size="small" />
-                        </span>
+                      <div class="settings-row settings-sandbox-status-row">
                         <span class="settings-row-copy">
-                          <strong>{s().available ? "Native containment available" : "Sandbox unavailable"}</strong>
+                          <strong>Native containment</strong>
                           <span>
                             {s().available
-                              ? `${s().backend} on ${s().platform}`
-                              : `No supported backend on ${s().platform}`}
+                              ? `${s().backend} on ${s().platform}. `
+                              : `No supported backend on ${s().platform}. `}
+                            <button
+                              type="button"
+                              class="settings-inline-link"
+                              aria-expanded={showBackendDetails()}
+                              aria-controls={backendDetailsId}
+                              onClick={() => setShowBackendDetails((value) => !value)}
+                            >
+                              {showBackendDetails() ? "Hide details" : "Details"}
+                            </button>
                           </span>
                         </span>
-                        <span class="settings-preference-status" data-tone={s().available ? "success" : "warning"}>
+                        <span class="settings-preference-status" data-tone={s().available ? undefined : "warning"}>
                           {s().available ? "Available" : "Unavailable"}
                         </span>
-                        <Icon
-                          name="chevron-down"
-                          size="small"
-                          class="settings-sandbox-disclosure-icon"
-                          classList={{ "settings-sandbox-disclosure-icon--open": showBackendDetails() }}
-                        />
-                      </button>
+                      </div>
                       <Show when={showBackendDetails()}>
                         <div id={backendDetailsId} class="settings-sandbox-backend-details">
                           <dl>
@@ -377,6 +371,7 @@ const Sandbox: Component = () => {
                       </span>
                     </div>
                     <Select
+                      aria-label="Network access"
                       options={NETWORK_OPTS}
                       current={NETWORK_OPTS.find((o) => o.value === effectiveNetwork())}
                       value={(o) => o.value}
@@ -395,6 +390,7 @@ const Sandbox: Component = () => {
                       <span>Choose what happens if filesystem isolation cannot start.</span>
                     </div>
                     <Select
+                      aria-label="Fallback behavior"
                       options={UNAVAILABLE_OPTS}
                       current={UNAVAILABLE_OPTS.find((o) => o.value === (config().onUnavailable ?? "error"))}
                       value={(o) => o.value}
@@ -413,7 +409,6 @@ const Sandbox: Component = () => {
 
               <Section
                 title="Extra writable paths"
-                count={(config().allowWrite ?? []).length}
                 description="Absolute paths outside the workspace and temporary directories that the sandbox may modify."
               >
                 <div class="settings-card settings-preferences-card">
@@ -441,7 +436,9 @@ const Sandbox: Component = () => {
                     <For each={config().allowWrite ?? []}>
                       {(p) => (
                         <div class="settings-row settings-sandbox-path-row">
-                          <code title={p}>{p}</code>
+                          <span class="settings-sandbox-path" title={p}>
+                            {p}
+                          </span>
                           <button
                             type="button"
                             class="settings-preference-action"

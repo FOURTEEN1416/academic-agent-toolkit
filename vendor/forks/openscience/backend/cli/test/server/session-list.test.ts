@@ -4,20 +4,21 @@ import { Instance } from "../../src/project/instance"
 import { Server } from "../../src/server/server"
 import { Session } from "../../src/session"
 import { Log } from "../../src/util/log"
+import { tmpdir } from "../fixture/fixture"
 
 const projectRoot = path.join(__dirname, "../..")
 Log.init({ print: false })
 
 describe("session.list", () => {
   test("filters by directory", async () => {
+    await using other = await tmpdir()
     await Instance.provide({
       directory: projectRoot,
       fn: async () => {
         const first = await Session.create({})
 
-        const otherDir = path.join(projectRoot, "..", "__session_list_other")
         const second = await Instance.provide({
-          directory: otherDir,
+          directory: other.path,
           fn: async () => Session.create({}),
         })
 
@@ -32,6 +33,25 @@ describe("session.list", () => {
 
         expect(ids).toContain(first.id)
         expect(ids).not.toContain(second.id)
+      },
+    })
+  })
+
+  test("applies the limit before appending a match", async () => {
+    await Instance.provide({
+      directory: projectRoot,
+      fn: async () => {
+        await Session.create({})
+        await Session.create({})
+        const fetch = Server.internalFetch()
+
+        const empty = await fetch(`http://openscience.internal/session?limit=0`)
+        expect(empty.status).toBe(200)
+        expect(await empty.json()).toEqual([])
+
+        const single = await fetch(`http://openscience.internal/session?limit=1`)
+        expect(single.status).toBe(200)
+        expect(((await single.json()) as unknown[]).length).toBe(1)
       },
     })
   })

@@ -1,21 +1,54 @@
-import { For, Show, createSignal, createUniqueId, type JSX, type ParentComponent, type Component } from "solid-js"
+import {
+  For,
+  Show,
+  createSignal,
+  createUniqueId,
+  onMount,
+  type JSX,
+  type ParentComponent,
+  type Component,
+  type Resource,
+} from "solid-js"
 import { Icon } from "@synsci/ui/icon"
 import type { IconProps } from "@synsci/ui/icon"
 import { DropdownMenu } from "@synsci/ui/dropdown-menu"
 
 // These menus render inside the modal settings Dialog. Kobalte portals a
-// dropdown to document.body by default, which lands OUTSIDE the dialog's
-// dismissable layer — the dialog then treats the open as an outside
-// interaction and closes the menu instantly. Mounting the portal into the
-// enclosing dialog content nests the layers so the menu opens and stays open.
+// dropdown to document.body by default, outside the dialog's accessible and
+// dismissable layer. Mount the portal inside the enclosing dialog so its
+// items stay accessible and interactions belong to that dialog.
 // Falls back to the default body portal when not inside a dialog.
 function useDialogMount() {
   const [mount, setMount] = createSignal<HTMLElement>()
+  let trigger: HTMLElement | undefined
+  const update = () => setMount(trigger?.closest<HTMLElement>('[data-slot="dialog-content"]') ?? undefined)
   const anchor = (el: HTMLElement) => {
-    const content = el.closest<HTMLElement>('[data-slot="dialog-content"]')
-    if (content) setMount(content)
+    trigger = el
   }
-  return { mount, anchor }
+  // Ref callbacks can run before attachment. Resolve once connected, and
+  // again when opening in case the trigger has moved into another layer.
+  onMount(update)
+  const open = (value: boolean) => {
+    if (value) update()
+  }
+  return { mount, anchor, open }
+}
+
+// Panels render under the panel stack's Suspense boundary, and a resource read
+// re-suspends on every refetch. Left alone, a Rescan or Save swapped the whole
+// panel for its loading skeleton and reset the scroll position. Reading
+// `latest` keeps the current content on screen while a refresh resolves; the
+// first load still suspends into the skeleton as before.
+export function steady<T, A>(value: [Resource<T>, A]): [Resource<T>, A] {
+  const [resource, actions] = value
+  const read = (() => resource.latest) as Resource<T>
+  Object.defineProperties(read, {
+    state: { get: () => resource.state },
+    error: { get: () => resource.error },
+    loading: { get: () => resource.loading },
+    latest: { get: () => resource.latest },
+  })
+  return [read, actions]
 }
 
 // Shared visual language for the OpenScience settings panels. Matches the
@@ -41,6 +74,10 @@ export const PanelHeader: Component<{ title: string; description: string; toolba
 
 export const PanelBody: ParentComponent = (props) => <div class="settings-page-body min-w-0">{props.children}</div>
 
+/** A section is a muted label with at most one quiet line beneath it. A
+ * count or an action belongs in a row, never at the heading's right edge:
+ * `count` and `action` are accepted for callers that still pass them and
+ * are not drawn. */
 export const Section: ParentComponent<{
   title: string
   description?: JSX.Element
@@ -59,38 +96,81 @@ export const Section: ParentComponent<{
             <p>{props.description}</p>
           </Show>
         </div>
-        <Show
-          when={props.action}
-          fallback={
-            <Show when={props.count !== undefined}>
-              <span>{props.count}</span>
-            </Show>
-          }
-        >
-          {props.action}
-        </Show>
       </div>
       {props.children}
     </section>
   )
 }
 
-export const RowCopy: Component<{ title: string; description?: string; mono?: boolean }> = (props) => (
+/** The copy of every row: a 14px medium title and a 12px muted line under
+ * it, in the one type stack. `mono` is accepted and not drawn: a path or a
+ * command reads as text here, like everything else on the page. */
+export const RowCopy: Component<{ title: string; description?: JSX.Element; mono?: boolean }> = (props) => (
   <div class="settings-list-copy">
-    <strong classList={{ "font-mono": props.mono }}>{props.title}</strong>
+    <strong>{props.title}</strong>
     <Show when={props.description}>
       <span class="whitespace-normal text-ellipsis">{props.description}</span>
     </Show>
   </div>
 )
 
-// Muted sentence-case subheader with a trailing count.
+/** One row: copy on the left, one control on the right. A row that opens
+ * something is a button whose control is a chevron; a row that reports a
+ * state says it in plain muted text before its control. */
+export const SettingsRow: ParentComponent<{
+  title: string
+  description?: JSX.Element
+  status?: JSX.Element
+  logo?: JSX.Element
+  onClick?: () => void
+  ariaLabel?: string
+}> = (props) => {
+  const body = (
+    <>
+      <Show when={props.logo}>
+        <span class="settings-row-logo" aria-hidden="true">
+          {props.logo}
+        </span>
+      </Show>
+      <RowCopy title={props.title} description={props.description} />
+      <Show when={props.status}>
+        <span class="settings-row-status">{props.status}</span>
+      </Show>
+      <Show when={props.children}>
+        <div class="settings-row-control">{props.children}</div>
+      </Show>
+    </>
+  )
+  return (
+    <Show
+      when={props.onClick}
+      fallback={
+        <div class="settings-row settings-row--grammar min-w-0" data-row="grammar">
+          {body}
+        </div>
+      }
+    >
+      {(onClick) => (
+        <button
+          type="button"
+          class="settings-row settings-row--grammar min-w-0"
+          data-row="grammar"
+          data-interactive="true"
+          aria-label={props.ariaLabel}
+          onClick={() => onClick()()}
+        >
+          {body}
+          <Icon name="chevron-right" size="small" class="settings-row-chevron" />
+        </button>
+      )}
+    </Show>
+  )
+}
+
+// Muted sentence-case subheader. A count is not drawn; it belongs in a row.
 export const SectionLabel: Component<{ label: string; count?: number }> = (props) => (
   <div class="settings-section-heading settings-section-heading--compact">
     <h3 class="settings-section-label min-w-0 break-words">{props.label}</h3>
-    <Show when={props.count !== undefined}>
-      <span>{props.count}</span>
-    </Show>
   </div>
 )
 
@@ -108,40 +188,14 @@ export const Row: ParentComponent<{ onClick?: () => void }> = (props) => (
   </Show>
 )
 
-export const EmptyState: Component<{ icon: IconProps["name"]; title: string; hint?: string }> = (props) => (
-  <div class="settings-empty-state min-w-0">
-    <div class="settings-empty-state__icon">
-      <Icon name={props.icon} size="normal" />
-    </div>
-    <span class="text-14-medium text-text-strong">{props.title}</span>
-    <Show when={props.hint}>
-      <p class="text-12-regular text-text-weak leading-relaxed max-w-[380px]">{props.hint}</p>
-    </Show>
-  </div>
+/** An empty list says so in one quiet line inside its card, as every other
+ * empty card does; `icon` is accepted for callers that still pass it. */
+export const EmptyState: Component<{ icon?: IconProps["name"]; title: string; hint?: string }> = (props) => (
+  <p class="settings-card-empty min-w-0" role="status">
+    {props.title}
+    <Show when={props.hint}> {props.hint}</Show>
+  </p>
 )
-
-// Leading identity tile for a list row — the shared visual anchor that makes the
-// Specialists and Connectors lists read as one family. Pass a `monogram` (takes
-// the tint as its colour, for a specialist's identity) or an `icon` (stays
-// neutral on the tinted tile, for a connector's type). `tint` (hex or a CSS var)
-// washes the tile background; omit it for a neutral tile.
-export const Avatar: Component<{ tint?: string; icon?: IconProps["name"]; monogram?: string }> = (props) => (
-  <div
-    class="settings-avatar"
-    data-tinted={props.tint ? "true" : undefined}
-    style={{
-      background: props.tint ? `color-mix(in srgb, ${props.tint} 14%, transparent)` : undefined,
-      color: props.monogram && props.tint ? props.tint : "var(--color-icon-strong-base)",
-    }}
-  >
-    <Show when={props.icon} fallback={<span>{props.monogram}</span>}>
-      <Icon name={props.icon!} size="small" />
-    </Show>
-  </div>
-)
-
-// Small inline metadata badge (a specialist's mode, a connector's type).
-export const Chip: ParentComponent = (props) => <span class="settings-chip">{props.children}</span>
 
 // ── Toolbar pieces ──────────────────────────────────────────────────────────
 
@@ -194,7 +248,7 @@ export const FilterMenu: Component<{
   const active = () => props.options.find((o) => o.id === props.value) ?? props.options[0]
   const dialog = useDialogMount()
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={dialog.open}>
       <DropdownMenu.Trigger
         ref={dialog.anchor}
         aria-label={props.ariaLabel}
@@ -234,7 +288,7 @@ export interface AddItem {
 export const AddMenu: Component<{ label: string; items: AddItem[] }> = (props) => {
   const dialog = useDialogMount()
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={dialog.open}>
       <DropdownMenu.Trigger
         ref={dialog.anchor}
         aria-label={props.label}
@@ -278,6 +332,7 @@ export const FormField: Component<{
   multiline?: boolean
   disabled?: boolean
   mono?: boolean
+  secret?: boolean
 }> = (props) => (
   <label class="flex min-w-0 flex-col gap-1.5">
     <span class="text-12-medium text-text-strong">{props.label}</span>
@@ -285,11 +340,13 @@ export const FormField: Component<{
       when={props.multiline}
       fallback={
         <input
-          type="text"
+          type={props.secret ? "password" : "text"}
+          autocomplete={props.secret ? "new-password" : undefined}
           value={props.value}
           disabled={props.disabled}
           placeholder={props.placeholder}
           class="settings-field"
+          classList={{ "font-mono": props.mono }}
           onInput={(e) => props.onInput(e.currentTarget.value)}
         />
       }

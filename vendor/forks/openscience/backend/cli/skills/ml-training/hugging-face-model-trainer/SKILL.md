@@ -3,10 +3,18 @@ name: hugging-face-model-trainer
 description: This skill should be used when users want to train or fine-tune language models using TRL (Transformer Reinforcement Learning) on Hugging Face Jobs infrastructure. Covers SFT, DPO, GRPO and reward modeling training methods, plus GGUF conversion for local deployment. Includes guidance on the TRL Jobs package, UV scripts with PEP 723 format, dataset preparation and validation, hardware selection, cost estimation, Trackio monitoring, Hub authentication, and model persistence. Should be invoked for tasks involving cloud GPU training, GGUF conversion, or when users mention training on Hugging Face Jobs without local GPU setup.
 category: ml-training
 version: 1.0.0
-author: Synthetic Sciences
+author: Hugging Face
 license: MIT
 tags: [Hugging Face, Fine-Tuning, Transformers, Training]
 dependencies: [huggingface-hub, trl, peft, transformers, accelerate, trackio, datasets]
+metadata:
+  upstream: huggingface/skills
+  upstream-url: https://github.com/huggingface/skills
+  upstream-path: skills/huggingface-llm-trainer
+  upstream-license: Apache-2.0
+  upstream-relationship: derived
+  skill-author: Hugging Face
+  adapted-by: Synthetic Sciences
 ---
 
 # TRL Training on Hugging Face Jobs
@@ -131,7 +139,7 @@ HuggingFace token is auto-injected by openscience when connected via the dashboa
 [ -n "$HF_TOKEN" ] && echo "HF_TOKEN set" || echo "NOT SET"
 ```
 
-If not set: connect HuggingFace at https://app.syntheticsciences.ai -> Services, then restart openscience.
+If not set: add your Hugging Face token in Customize → Tools or export `HF_TOKEN` locally.
 
 ## Quick Start: Three Approaches
 

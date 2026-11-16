@@ -30,22 +30,29 @@ If no flags are provided, run in standard mode.
 Run all checks in this order and report each as `pass`, `warn`, or `fail`.
 
 1. Python runtime
-- Resolve `python3` first, then `python`.
+- Resolve `python3` first, then `python`. A name that is on PATH but cannot report
+  its own version does not win the resolution: fall through to the next candidate.
+  (Windows ships a `python3` App Execution Alias that is a Microsoft Store stub, not
+  an interpreter, and it sits on PATH ahead of a python.org install.) A name that
+  cannot be launched at all counts as the same kind of dud, and is reported as a
+  failed check rather than ending the run.
 - Require version >= 3.10.
 - `fail` if no Python interpreter is found.
 - `fail` if version is below 3.10.
 
 2. Playwright availability for PNG export
-- Check whether Playwright import works in the active Python interpreter (`import playwright`).
-- Check whether Chromium is installed for Playwright (`playwright install --help` availability is sufficient for command presence; prefer also checking browser cache when practical).
-- If missing, mark `warn` and print exact setup hint:
-  - `pip install playwright && playwright install chromium`
+- Check whether Playwright import works in the active Python interpreter (`import playwright`); an optional package version attribute is not required.
+- Verify the default headless Chromium can launch in that interpreter and close it after the probe. This includes a supported headless-shell-only installation; the full Chromium executable path is not required for default PNG export. Bound browser startup to 5 seconds and the subprocess probe to 10 seconds, then terminate the owned probe tree on timeout. Windows tree cleanup and parent reaping each have an additional 2-second limit; report cleanup failures as warnings.
+- If missing, mark `warn` and report that the host environment must provision
+  an approved Playwright installation and compatible browser.
 - Never auto-install dependencies.
 
 3. Expected script presence (maintainer-checkout mode only)
 - Verify these repository scripts exist:
   - `scripts/verify-drawio-import.py`
   - `scripts/verify-mermaid-import.py`
+  - `scripts/verify-excalidraw-import.py`
+  - `scripts/verify-plantuml-import.py`
   - `scripts/verify-motion.py`
   - `scripts/lint-skin.py`
   - `scripts/verify-docs-sync.py`
@@ -58,11 +65,15 @@ Run all checks in this order and report each as `pass`, `warn`, or `fail`.
   - `commands/export-diagram.md` -> `references/export.md`
   - `commands/import-drawio.md` -> `references/import-drawio.md`
   - `commands/import-mermaid.md` -> `references/import-mermaid.md`
+  - `commands/import-excalidraw.md` -> `references/import-excalidraw.md`
+  - `commands/import-plantuml.md` -> `references/import-plantuml.md`
   - `commands/profile.md` -> `references/profiles.md`
   - `commands/doctor.md` -> `references/doctor.md`
 - Verify Pi prompt files exist and point to their references:
   - `prompts/export-diagram.md` -> `references/export.md`
   - `prompts/import-mermaid.md` -> `references/import-mermaid.md`
+  - `prompts/import-excalidraw.md` -> `references/import-excalidraw.md`
+  - `prompts/import-plantuml.md` -> `references/import-plantuml.md`
   - `prompts/profile.md` -> `references/profiles.md`
   - `prompts/doctor.md` -> `references/doctor.md`
 - Missing files are `fail`.
@@ -114,6 +125,6 @@ Doctor summary: WARN (6 pass, 2 warn, 0 fail)
 ...
 
 Next actions
-- Install PNG export dependencies: pip install playwright && playwright install chromium
+- Provision an approved PNG export renderer, then re-run the doctor check
 - Re-run: /diagram-design:doctor --strict
 ```

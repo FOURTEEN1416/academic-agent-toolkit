@@ -8,12 +8,49 @@ metadata:
   data_access_level: verified_only
   task_type: open-ended
   related_skills:
-    - academic-paper
-    - academic-pipeline
+    - comp-contest-research
+    - auto-review-loop
+    - paper-write
 ---
 
 
 <!--ACAT-ADAPTED: 资产补齐自 franklee16/academic-research-skills@5debcd2efb68（academic-paper-reviewer），正文未改；上游 research-lookup 类 API 依赖以执行环境的网页检索/抓取工具（web_search/web_fetch 类）替代。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+
+<!-- ==================== 本仓适配块（Academic Agent Toolkit, 2026-11-16 评审族修复批 C-review-1） ==================== -->
+## 本仓适配：资产缺口与最小可用评审模板
+
+**上游资产未随仓（20 项，已登记 ASSET-GAP.md）**：上游 ARS 的 `agents/`（7 份 agent 定义）、`templates/`（3 份模板）、`examples/`（2 份示例）、`shared/`（路由/模式/合同文件，其中 `shared/sprint_contract.schema.json` 已于 2026-11-16 自 vendor fork 回填）与部分 `scripts/` 校验器未随本仓集成。**缺件时按下述最小模板执行，不阻塞评审流程。**
+
+**最小内联评审报告模板（无 `templates/peer_review_report_template.md` 时使用）**——每位评审人输出一份，结构如下：
+
+```markdown
+## Reviewer Report: <EIC / Methodology / Domain / Perspective / Devil's Advocate>
+
+**Paper**: <标题/文件名>    **Field**: <学科>    **Methodology type**: <类型>
+
+### Summary (<=150 words)
+<用自己的话概括论文主张与证据链，不复述摘要>
+
+### Strengths
+1. <具体优点，指明位置（节/页/图表）>
+
+### Weaknesses
+| # | Severity (CRITICAL/MAJOR/MINOR) | Dimension | Location | Issue | Suggested Fix |
+|---|---|---|---|---|---|
+| 1 | MAJOR | methodology | §3.2, p.5 | <问题：哪里错、为何错> | <可执行的修复建议> |
+
+### Scores (0-10)
+originality=<n> rigor=<n> clarity=<n> significance=<n> reproducibility=<n>
+
+### Recommendation
+Accept / Minor Revision / Major Revision / Reject（附一句理由）
+```
+
+Editorial Decision 汇总时逐条引用上述 Weaknesses 编号，禁止合成评审中不存在的新意见；Devil's Advocate 的 CRITICAL 发现未解决时不得给出 Accept。 scored rubric 的完整 7 维口径见 `references/quality_rubrics.md`（在盘）。
+
+**本仓流程衔接**：评审产出（Revision Roadmap）交 paper-write 族修订；单次独立评审也可直接用本技能；闭环迭代见 auto-review-loop。
+<!-- ==================== 本仓适配块结束 ==================== -->
+
 # Academic Paper Reviewer v1.10.0 — Multi-Perspective Academic Paper Review Agent Team
 
 Simulates a complete international journal peer review process: automatically identifies the paper's field, dynamically configures 5 reviewers (Editor-in-Chief + 3 peer reviewers + Devil's Advocate) who review from four non-overlapping perspectives — methodology, domain expertise, cross-disciplinary viewpoints, and core argument challenges — ultimately producing a structured Editorial Decision and Revision Roadmap.
@@ -23,7 +60,7 @@ Simulates a complete international journal peer review process: automatically id
 2. Added `re-review` mode — verification review, focused on checking whether revisions address the review comments
 3. Expanded review team from 4 to 5 members
 
-> **Routing discipline (v3.9.2):** see `AGENTS.md` "Routing Discipline (v3.9.2)" + `shared/references/intent_clarification_protocol.md` for cross-skill routing rules. This skill assumes routing has already settled — ambiguous cross-phase materials should have been clarified upstream.
+> **Routing discipline（本仓口径，原上游 v3.9.2 条款）:** 上游的 `AGENTS.md` "Routing Discipline (v3.9.2)" 与 `shared/references/intent_clarification_protocol.md`（未随仓，见 ASSET-GAP）在本仓由驱动引擎/Agent 的路由层承担：本技能假定路由已定——模糊的跨阶段材料应在上游澄清后再进入评审；评审修订链回 paper-write 族。
 
 ---
 
@@ -52,9 +89,9 @@ Review this paper: [paste paper or provide file]
 
 | Scenario | Skill to Use |
 |----------|-------------|
-| Need to write a paper (not review) | `academic-paper` |
+| Need to write a paper (not review) | `paper-write` 族（上游 `academic-paper` 本仓未收编） |
 | Need in-depth investigation of a research topic | `comp-contest-research` |
-| Need to revise a paper (already have review comments) | `academic-paper` (revision mode) |
+| Need to revise a paper (already have review comments) | `paper-write` 族修订模式（上游 `academic-paper` revision mode 本仓未收编） |
 
 ### Quick Mode Selection Guide
 
@@ -146,7 +183,7 @@ User: "Review this paper"
          - Arbitration and argumentation for disputed issues
          - Devil's Advocate CRITICAL issues are specially flagged in the Editorial Decision
          - Editorial Decision Letter
-         - Revision Roadmap (prioritized, can be directly input to academic-paper revision mode)
+         - Revision Roadmap (prioritized, can be directly input to paper-write 族 revision mode；上游 academic-paper 本仓未收编)
      |
 === Phase 2.5: REVISION COACHING (Socratic Revision Guidance) ===
      |
@@ -180,23 +217,23 @@ User: "Review this paper"
 
 ## Phase-by-phase Invocation Contract (v3.9.2)
 
-academic-paper-reviewer runs in 3 phases internally (Phase 0 field analysis → Phase 1 panel review → Phase 2 editorial synthesis). Within the full ARS pipeline, this skill sits at the orchestrator's Phase 5 (Review), but each agent inside the reviewer skill is single-phase relative to the skill's own phase numbering.
+academic-paper-reviewer runs in 3 phases internally (Phase 0 field analysis → Phase 1 panel review → Phase 2 editorial synthesis). Within the full ARS pipeline, this skill sits at the orchestrator's Phase 5 (Review), but each agent inside the reviewer skill is single-phase relative to the skill's own phase numbering. **本仓适配：`academic-pipeline` 编排技能未收编，由当前驱动 Agent/引擎直接调用本技能。**
 
 Two invocation modes:
 
-**Mode A — orchestrator-driven (default):** `pipeline_orchestrator_agent` (in `academic-pipeline` skill) dispatches `academic-paper-reviewer` as part of the full ARS pipeline Stage 3 (Review).
+**Mode A — orchestrator-driven (default, 上游语境):** 上游由 `pipeline_orchestrator_agent`（属 `academic-pipeline` 技能，**本仓未收编**）dispatches `academic-paper-reviewer` as part of the full ARS pipeline Stage 3 (Review)。本仓等价路径：引擎工作流或驱动 Agent 直接调用本技能。
 
-**Mode B — phase-by-phase (cross-session resume):** User invokes one reviewer agent per phase across sessions, or runs the full reviewer panel standalone via `/ars-review` equivalent.
+**Mode B — phase-by-phase (cross-session resume):** User invokes one reviewer agent per phase across sessions, or runs the full reviewer panel standalone via `/ars-review` equivalent（本仓以等价的明确用户指令承担，无 `/ars-*` 命令面）.
 
-In Mode B, **single-phase agents (Bucket A per `docs/design/2026-05-18-ars-v3.9.2-agent-phase-classification.md`) stay strictly within their assigned phase for writes**. The 6 Bucket A agents in academic-paper-reviewer are: `eic_agent`, `methodology_reviewer`, `domain_reviewer`, `perspective_reviewer`, `devils_advocate_reviewer` (all Phase 1 panel) + `editorial_synthesizer` (Phase 2 synthesis). Reading the full paper draft is **expected** for all reviewers — without context they cannot evaluate.
+In Mode B, **single-phase agents (Bucket A per `docs/design/2026-05-18-ars-v3.9.2-agent-phase-classification.md`，该设计文档未随仓，见 ASSET-GAP) stay strictly within their assigned phase for writes**. The 6 Bucket A agents in academic-paper-reviewer are: `eic_agent`, `methodology_reviewer`, `domain_reviewer`, `perspective_reviewer`, `devils_advocate_reviewer` (all Phase 1 panel) + `editorial_synthesizer` (Phase 2 synthesis). Reading the full paper draft is **expected** for all reviewers — without context they cannot evaluate.
 
 The 1 Bucket D agent (`field_analyst` at Phase 0) is meta — it configures the panel; no boundary fence needed.
 
 The v3.6.2 Sprint Contract Protocol (paper-blind Phase 1 + paper-visible Phase 2 + data delimiter) additionally constrains all reviewer agents' within-phase discipline. Phase Boundary (phase scope) and Sprint Contract (within-phase paper-blind/paper-visible discipline) both apply — neither overrides the other.
 
-Routing into Mode B requires explicit user signal — `/ars-<mode>` slash command or `[direct-mode]` prefix. Ambiguous cross-phase input defaults to clarification per `AGENTS.md` Routing Discipline + `shared/references/intent_clarification_protocol.md`.
+Routing into Mode B requires explicit user signal — `/ars-<mode>` slash command or `[direct-mode]` prefix（上游命令面，本仓以等价的明确用户指令承担）. Ambiguous cross-phase input defaults to clarification per routing discipline（上游 `AGENTS.md` Routing Discipline 与 `shared/references/intent_clarification_protocol.md` 未随仓，见 ASSET-GAP；本仓由驱动路由层承担澄清）.
 
-**Enforcement (v3.9.2):** prompt-level via Phase Boundary blocks on Bucket A agents + advisory verifier (`scripts/check_pipeline_integrity.py`). Deterministic PreToolUse hook + multi-phase envelope deferred to v3.10 active conductor (#134).
+**Enforcement (v3.9.2):** prompt-level via Phase Boundary blocks on Bucket A agents + advisory verifier (`scripts/check_pipeline_integrity.py`，在盘). Deterministic PreToolUse hook + multi-phase envelope deferred to v3.10 active conductor (#134)——上游后续计划，本仓未实现。
 
 ---
 
@@ -280,17 +317,19 @@ The Editorial Decision Letter structure is detailed in `templates/editorial_deci
 ### Upstream/Downstream Relationships
 
 ```
-comp-contest-research --> academic-paper --> [integrity check] --> academic-paper-reviewer --> academic-paper (revision) --> academic-paper-reviewer (re-review) --> [final integrity] --> finalize
+comp-contest-research --> paper-write 族 --> [integrity check] --> academic-paper-reviewer --> paper-write 族 (revision) --> academic-paper-reviewer (re-review) --> [final integrity] --> finalize
    (research)       (writing)         (integrity audit)      (review)                    (revision)                    (verification review)                (final verification)   (finalization)
 ```
+
+> 上游 ARS 原链路中的 `academic-paper` 本仓未收编，写作/修订环节由 paper-write 族承接。
 
 ### Specific Integration Methods
 
 | Integration Direction | Description |
 |----------------------|-------------|
-| **Upstream: academic-paper -> reviewer** | Receives the complete paper output from `academic-paper` full mode, directly enters Phase 0 |
+| **Upstream: paper-write 族 -> reviewer** | Receives the complete paper output from `paper-write` 族 full mode, directly enters Phase 0（上游为 `academic-paper`，本仓未收编） |
 | **Upstream: integrity check -> reviewer** | In the Pipeline, the paper must pass integrity check before entering reviewer |
-| **Downstream: reviewer -> academic-paper** | The Revision Roadmap format can be directly used as reviewer feedback input for `academic-paper` revision mode |
+| **Downstream: reviewer -> paper-write 族** | The Revision Roadmap format can be directly used as reviewer feedback input for `paper-write` 族 revision mode（上游为 `academic-paper`，本仓未收编） |
 | **Downstream: reviewer (re-review) -> integrity** | After re-review completes, proceeds to final integrity verification |
 
 ### Pipeline Usage Example
@@ -390,12 +429,14 @@ Follows the paper's language. Academic terms remain in English. User can overrid
 
 ## Related Skills
 
-| Skill | Relationship |
-|-------|-------------|
-| `academic-paper` | Upstream (provides paper) + Downstream (receives revision roadmap) |
-| `comp-contest-research` | Upstream (provides research foundation) |
-| `tw-hei-intelligence` | Auxiliary (verifies higher education data accuracy) |
-| `academic-pipeline` | Orchestrated by (Stage 3 + Stage 3') |
+| Skill | Relationship | 本仓状态 |
+|-------|-------------|---------|
+| `academic-paper` | Upstream (provides paper) + Downstream (receives revision roadmap) | **本仓未收编**——评审修订链改回 paper-write 族 |
+| `comp-contest-research` | Upstream (provides research foundation) | 在盘可用 |
+| `tw-hei-intelligence` | Auxiliary (verifies higher education data accuracy) | **本仓未收编**——高教数据核验按需以检索工具替代 |
+| `academic-pipeline` | Orchestrated by (Stage 3 + Stage 3') | **本仓未收编**——由驱动引擎/Agent 直接编排本技能 |
+| `auto-review-loop` | 闭环迭代入口（研究内容多轮迭代） | 在盘可用 |
+| `paper-write` 族 | Downstream（接收 Revision Roadmap 做修订） | 在盘可用 |
 
 ---
 
@@ -416,7 +457,7 @@ Follows the paper's language. Academic terms remain in English. User can overrid
 | Skill Version | 1.10.0 |
 | Last Updated | 2026-06-01 |
 | Maintainer | Cheng-I Wu |
-| Dependent Skills | academic-paper v1.0+ (upstream/downstream integration) |
+| Dependent Skills | paper-write 族（上游 academic-paper v1.0+ 集成关系，本仓由 paper-write 族承接） |
 | Role | Multi-perspective academic paper review simulator |
 
 ---

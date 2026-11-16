@@ -306,8 +306,7 @@ For detailed guidance, load these reference files:
 This skill works synergistically with:
 
 - **scientific-schematics**: For technical diagrams and flowcharts
-- **market-research-reports**: Infographics for business reports
-- **scientific-slides**: Infographic elements for presentations
+- **Business reports / slide decks**: coordinate with business-report and presentation skills (to be expanded in this repo)
 - **generate-image** *(not bundled in this repo — unavailable; fall back to the executing agent's native image generation when available)*: For non-infographic visual content
 
 ---

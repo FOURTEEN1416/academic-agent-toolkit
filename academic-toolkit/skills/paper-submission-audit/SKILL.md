@@ -7,7 +7,7 @@ description: "Use when a manuscript nears submission: preflight audit for claim 
 
 ## Overview
 
-Use this skill for late-stage manuscript QA. It is narrower than `manuscript-optimizer`: do not use it to redesign a paper from scratch. Use it when the structure mostly exists and the main task is to catch the failures that survive normal revision cycles.
+Use this skill for late-stage manuscript QA. It is narrower than `paper-manuscript-optimize`: do not use it to redesign a paper from scratch. Use it when the structure mostly exists and the main task is to catch the failures that survive normal revision cycles.
 
 The core rule is simple: never treat a clean-looking manuscript as submission-ready until the front half, figures, legends, methods, supplement, and venue expectations have been checked against each other.
 
@@ -28,7 +28,7 @@ Do not use this skill for:
 - Early brainstorming
 - Initial section drafting
 - Citation discovery from scratch
-- Heavy structural rewrites that belong in `manuscript-optimizer`
+- Heavy structural rewrites that belong in `paper-manuscript-optimize`
 
 ## Audit Order
 

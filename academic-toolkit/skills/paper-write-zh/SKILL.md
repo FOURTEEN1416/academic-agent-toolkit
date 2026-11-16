@@ -838,29 +838,21 @@ bash _utils/writing_check.sh paper/ 2>/dev/null || bash skills/shared-scripts/wr
 
 ```bash
 
-# 通用 paper 审计：
+# 通用 paper 审计：[13] 正文结论与 results.json 一致（防"最优解 X 但正文写 Y"）；
 
-#   [13] 正文结论与 results.json 一致（防"最优解 X 但正文写 Y"）
-
-#   [14] 事件源归属（防"凭变量名脑补撞击 / 命中 / 拦截"）
+# [14] 事件源归属（防"凭变量名脑补撞击 / 命中 / 拦截"）。
 
 # 即使没 PROBLEM_FACTS.json（普通学术 / 课程论文 / 人文社科），也会以"简化模式"跑独立审计。
 
-if [ -f _utils/facts_audit.py ]; then
+# 审计已并入共享脚本 paper_write_audit.sh（_utils/ 与 shared-scripts/ 双副本），同时执行 figure embedding check 与 FIGURE_MANIFEST audit：
 
-    python3 _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
+bash _utils/paper_write_audit.sh --mode latex   # 本目录无 _utils 时: bash skills/shared-scripts/paper_write_audit.sh --mode latex
 
-    PRC=$?
-
-    if [ "$PRC" = "1" ]; then
-
-        echo "❌ 通用 paper-stage 审计未通过 — 必须按上面提示修正正文 / results.json 后重新跑"
-
-    fi
-
-fi
+# 审计输出由程序采集留痕，不再写入手写审计文件；有引擎 finish 时以 output_contract/paper_write_gate 自动核验为准。
 
 ```
+
+**怎么读结果**：输出 `❌` / `MISSING:` / `⛔` 即有缺件、图未嵌入或正文与 results.json 不一致——按提示修正后重跑至无 `❌`。
 
 
 

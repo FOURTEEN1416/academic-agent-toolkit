@@ -104,6 +104,8 @@
   const supportOpeners = [...document.querySelectorAll("[data-support-open]")];
   const supportClosers = [...document.querySelectorAll("[data-support-close]")];
   const supportConfirm = document.querySelector("[data-support-confirm]");
+  const supportMethods = [...document.querySelectorAll("[data-support-method]")];
+  const supportCards = [...document.querySelectorAll("[data-support-card]")];
   let supportReturnFocus = null;
   let supportThanksTimer = 0;
 
@@ -121,6 +123,9 @@
   };
 
   supportOpeners.forEach((button) => button.addEventListener("click", () => openSupportDialog(button)));
+  if (new URLSearchParams(window.location.search).get("support") === "1") {
+    window.requestAnimationFrame(() => openSupportDialog(supportOpeners[0] || null));
+  }
   supportClosers.forEach((button) => button.addEventListener("click", closeSupportDialog));
 
   if (supportDialog) {
@@ -143,6 +148,20 @@
       if (event.target === supportThanks && event.animationName === "support-overlay") hideSupportThanks();
     });
   }
+
+  supportMethods.forEach((method) => method.addEventListener("click", () => {
+    const selected = method.dataset.supportMethod;
+    supportMethods.forEach((item) => {
+      const active = item === method;
+      item.classList.toggle("is-active", active);
+      item.setAttribute("aria-selected", String(active));
+    });
+    supportCards.forEach((card) => {
+      const active = card.dataset.supportCard === selected;
+      card.classList.toggle("is-active", active);
+      card.hidden = !active;
+    });
+  }));
 
   if (supportConfirm) {
     supportConfirm.addEventListener("click", () => {
@@ -216,13 +235,13 @@
   const buildInstallPrompt = (manifest, primary) => {
     const manifestUrl = manifest.release_assets?.manifest_url || new URL(manifestPath, window.location.href).href;
     if (locale.startsWith("en")) {
-      return `Install PaperSpine5 ${manifest.version} from zero:\n1. Read ${manifestUrl}.\n2. Choose exactly one package for the current host. Prefer ${primary.file} for ordinary Codex or Claude Code Skill installation; use a native host package only when that host integration is required.\n3. Download the selected artifact from its download_url, compute SHA-256, and compare it character-for-character with the manifest. Stop on any mismatch.\n4. Extract into a new persistent directory. Read README.md, INSTALL.md, UPDATE.md, and UNINSTALL.md before changing the host.\n5. For the universal package on Windows/Codex run .\\install.ps1 -Target codex; use -Target claude-code for Claude Code. On macOS/Linux run bash install.sh --host codex or --host claude-code.\n6. Do not overwrite settings.json, config.toml, or unrelated Skills. Ask before installing Python 3 or optional scientific-figure dependencies.\n7. Require runtime health PASS, then open a new task or restart the host and verify PaperSpine5 is discovered.\n8. Launch the 127.0.0.1 workspace only for a real integration_job.json. Never invent a paper job or expose the local server publicly.\n9. Report the URL, bytes, SHA-256, install target, backup, runtime health, host rediscovery, and workspace snapshot separately. Mark every untested layer NOT VERIFIED.`;
+      return `Install PaperSpine5 ${manifest.version} from zero:\n1. Read ${manifestUrl}.\n2. Default to a full platform suite: detect the operating system and CPU, then select the exactly matching Windows x64, Linux x86_64, macOS arm64, or macOS x86_64 suite. This release provides only full platform suites; the historical Skill-only archive lacks the Web core and runtime.\n3. Download the selected artifact from its download_url, compute SHA-256, and compare both the digest and byte count character-for-character with the manifest. Stop on any mismatch.\n4. Read README.md, INSTALL.md, UPDATE.md, and UNINSTALL.md before changing the host.\n5. On Windows x64 run: powershell -ExecutionPolicy Bypass -File .\\install.ps1 -Target codex -CleanLegacy. On macOS/Linux run: sh ./install.sh --target codex --clean-legacy. Use the documented Claude Code or both-host target if requested.\n6. Do not overwrite settings.json, config.toml, or unrelated Skills. The self-contained suites must not install a system Python.\n7. Require first-start REST/MCP READY, then restart the host and verify paper-spine is discovered.\n8. When the user starts paper work, the installed paper-spine Skill creates or resumes the same public task and opens its bound 127.0.0.1 workbench URL. Let the user save configuration there and have the host read it back before proceeding. Do not create a sample paper task as an installation test or expose the local server publicly.\n9. Report the URL, platform, bytes, SHA-256, install target, backup, runtime health, host rediscovery, and workspace snapshot separately. Mark every untested layer NOT VERIFIED. macOS is unsigned and unnotarized; Linux support is glibc x86_64 only.`;
     }
-    return `请从零开始下载并安装 PaperSpine5 ${manifest.version}：\n1. 读取 ${manifestUrl}；\n2. 根据当前宿主只选择一个包。普通 Codex / Claude Code 优先用 ${primary.file}；需要宿主原生插件时再选对应插件包；\n3. 从 manifest 的 download_url 下载 ZIP，计算 SHA-256，并与 manifest 中同名制品逐字符比较；不一致立即停止；\n4. 解压到新的持久目录，先阅读 README.md、INSTALL.md、UPDATE.md 与 UNINSTALL.md；\n5. 通用包在 Windows/Codex 运行 .\\install.ps1 -Target codex；Claude Code 改为 -Target claude-code。macOS/Linux 运行 bash install.sh --host codex 或 --host claude-code；\n6. 不覆盖 settings.json、config.toml 或无关 Skill；如缺少 Python 3 或可选科研图依赖，先说明来源与改动范围，再征得许可；\n7. 必须确认 runtime health 返回 PASS，并在安装后开启新任务或重启宿主，确认 PaperSpine5 可被发现；\n8. 只有存在真实 integration_job.json 时才启动 127.0.0.1 本地网页；不生成假论文任务，不暴露到公网；\n9. 最后分别报告下载 URL、文件字节数、SHA-256、安装目标、备份、runtime health、宿主重新发现和网页 snapshot。未验证项写 NOT VERIFIED。`;
+    return `请从零开始下载并安装 PaperSpine5 ${manifest.version}：\n1. 读取 ${manifestUrl}；\n2. 默认安装平台套件：识别操作系统与 CPU，并选择完全匹配的 Windows x64、Linux x86_64、macOS arm64 或 macOS x86_64 套件；本次发布只提供完整平台套件，历史独立 Skill 包缺少 Web 核心和运行时，不用于安装；\n3. 从 manifest 的 download_url 下载制品，同时核对字节数和 SHA-256；任一不一致立即停止；\n4. 改动宿主前先阅读 README.md、INSTALL.md、UPDATE.md 与 UNINSTALL.md；\n5. Windows x64 运行 powershell -ExecutionPolicy Bypass -File .\\install.ps1 -Target codex -CleanLegacy；macOS/Linux 运行 sh ./install.sh --target codex --clean-legacy；如需 Claude Code 或双宿主，使用文档中的对应 target；\n6. 不覆盖 settings.json、config.toml 或无关 Skill；自包含 suite 不应安装系统 Python；\n7. 必须确认 first-start 的 REST/MCP READY，重启宿主后确认发现 paper-spine；\n8. 用户开始论文工作时，由已安装的 paper-spine Skill 创建或恢复同一公开任务，打开其绑定的 127.0.0.1 工作台链接；用户保存配置后，宿主读回再继续。不为安装自检创建演示论文任务，不把服务暴露到公网；\n9. 分别报告下载 URL、平台、字节数、SHA-256、安装目标、备份、runtime health、宿主重新发现和网页 snapshot。未验证项写 NOT VERIFIED。macOS 尚未签名和 notarize；Linux 仅声明 glibc x86_64。`;
   };
 
   const disableReleaseLinks = () => {
-    document.querySelectorAll("#primary-download, #artifact-grid a").forEach((link) => {
+    document.querySelectorAll("#primary-download, [data-artifact-kind]").forEach((link) => {
       link.removeAttribute("href");
       link.setAttribute("aria-disabled", "true");
     });
@@ -231,20 +250,32 @@
   };
 
   const applyReleaseManifest = (manifest) => {
-    if (manifest.product !== "PaperSpine5" || manifest.version !== "0.3.0-rc.1" || !Array.isArray(manifest.artifacts) || manifest.artifacts.length !== 4) {
+    if (manifest.product !== "PaperSpine5" || !manifest.version || !Array.isArray(manifest.artifacts) || manifest.artifacts.length < 2) {
       throw new Error("unexpected release manifest");
     }
-    const primary = manifest.artifacts.find((item) => item.kind === "universal-skill");
-    if (!primary?.download_url || !primary.sha256 || !Number.isInteger(primary.bytes)) throw new Error("primary artifact is incomplete");
+    const primary = manifest.artifacts.find((item) => item.kind === "suite");
+    if (!primary?.download_url || !primary.sha256 || !Number.isInteger(primary.bytes)) throw new Error("primary suite artifact is incomplete");
     const primaryLink = document.getElementById("primary-download");
-    if (primaryLink) primaryLink.href = primary.download_url;
-    document.querySelectorAll("#artifact-grid a[data-artifact-kind]").forEach((link) => {
+    if (primaryLink) {
+      primaryLink.href = primary.download_url;
+      primaryLink.removeAttribute("aria-disabled");
+    }
+    document.querySelectorAll("[data-artifact-kind]").forEach((link) => {
       const artifact = manifest.artifacts.find((item) => item.kind === link.dataset.artifactKind);
-      if (!artifact?.download_url) return;
+      if (!artifact?.download_url || !artifact.sha256 || !Number.isInteger(artifact.bytes)) {
+        link.removeAttribute("href");
+        link.setAttribute("aria-disabled", "true");
+        return;
+      }
       link.href = artifact.download_url;
-      link.classList.toggle("is-primary", artifact.kind === "universal-skill");
+      link.removeAttribute("aria-disabled");
+      link.classList.toggle("is-primary", artifact.kind === "suite");
       link.dataset.sha256 = artifact.sha256;
       link.title = `${artifact.file} · ${formatReleaseBytes(artifact.bytes)} bytes · SHA-256 ${artifact.sha256}`;
+    });
+    document.querySelectorAll("[data-artifact-size]").forEach((node) => {
+      const artifact = manifest.artifacts.find((item) => item.kind === node.dataset.artifactSize);
+      if (Number.isInteger(artifact?.bytes)) node.textContent = `${(artifact.bytes / 1000000).toFixed(2)} MB`;
     });
     const version = document.getElementById("release-version");
     const size = document.getElementById("release-size");

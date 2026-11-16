@@ -54,24 +54,30 @@ export namespace Locale {
       const minutes = Math.floor((input % 3600000) / 60000)
       return `${hours}h ${minutes}m`
     }
-    const hours = Math.floor(input / 3600000)
-    const days = Math.floor((input % 3600000) / 86400000)
+    const days = Math.floor(input / 86400000)
+    // The remainder inside the current day, not inside the current hour: the
+    // operands were swapped, so days always came out zero and hours unbounded.
+    const hours = Math.floor((input % 86400000) / 3600000)
     return `${days}d ${hours}h`
   }
 
   export function truncate(str: string, len: number): string {
-    if (str.length <= len) return str
-    return str.slice(0, len - 1) + "…"
+    const budget = Math.max(1, Math.trunc(len))
+    if (str.length <= budget) return str
+    return str.slice(0, budget - 1) + "…"
   }
 
   export function truncateMiddle(str: string, maxLength: number = 35): string {
-    if (str.length <= maxLength) return str
+    const budget = Math.max(1, Math.trunc(maxLength))
+    if (str.length <= budget) return str
 
     const ellipsis = "…"
-    const keepStart = Math.ceil((maxLength - ellipsis.length) / 2)
-    const keepEnd = Math.floor((maxLength - ellipsis.length) / 2)
+    const keepStart = Math.ceil((budget - ellipsis.length) / 2)
+    const keepEnd = Math.floor((budget - ellipsis.length) / 2)
 
-    return str.slice(0, keepStart) + ellipsis + str.slice(-keepEnd)
+    // slice(-0) would capture the whole string when keepEnd is zero.
+    const end = keepEnd > 0 ? str.slice(-keepEnd) : ""
+    return str.slice(0, keepStart) + ellipsis + end
   }
 
   export function pluralize(count: number, singular: string, plural: string): string {

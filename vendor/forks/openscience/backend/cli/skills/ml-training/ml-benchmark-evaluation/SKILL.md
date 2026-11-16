@@ -158,6 +158,28 @@ print(f"nRMSE = {mean:.4e} ± {std:.4e} (n={len(seeds)} seeds)")
 
 **Minimum for publication:** 3 seeds for key results, report mean ± std.
 
+### Preserve the execution evidence
+
+- Freeze the task/data hash, model revision, full treatment and decoding configuration,
+  evaluator revision, environment and all random-seed policies before a measured run.
+- Keep evaluator seeds and hidden tests outside the candidate's readable workspace.
+  Retain the actual private seed ledger in protected evaluator storage and record its
+  hash in the public run manifest. A hash without a retained ledger cannot reproduce
+  the evaluation. Do not expose private seeds merely to make a run reproducible.
+- Record every attempted sample, including invalid outputs, timeouts, judge failures
+  and retries. Keep raw judge responses, subprocess exit status and stderr alongside
+  normalized scores; never silently drop failures from the denominator.
+- A successful notebook or tool invocation does not prove its nested test process
+  passed. Check that subprocess's exit code and test summary. Report fake-provider,
+  CPU, container and live-model checks separately; passing one does not establish
+  the others.
+- Verify shared environments and required imports before delegating dependent work.
+  Pass the tested executable path and wait for setup's terminal result. A created
+  virtual-environment directory alone is not a readiness check.
+- Write run results atomically and validate manifest identity, expected samples and
+  checksums before marking them complete. Resume only matching partial work; do not
+  count an interrupted run as completed or mix different models into one frontier.
+
 ## 6. Honest Reporting Template
 
 ```markdown

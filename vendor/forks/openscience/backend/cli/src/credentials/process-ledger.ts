@@ -1,4 +1,5 @@
 import crypto from "node:crypto"
+import type { ChildProcess } from "node:child_process"
 import fs from "node:fs/promises"
 import path from "node:path"
 import { Global } from "../global"
@@ -6,14 +7,20 @@ import { DataRootBarrier } from "../global/data-root-barrier"
 import { DarwinResponsibility } from "../process/darwin-responsibility"
 import { DARWIN_RESPONSIBILITY_ACTIVATION_SUFFIX } from "../process/darwin-responsibility-launcher"
 import { WindowsJob } from "../process/windows-job"
+import { WindowsJobLauncher } from "../process/windows-job-launcher"
 import { AuthorityProcessLedger } from "../project/authority-process"
 import { FileLease } from "../util/file-lease"
 
 export namespace CredentialProcessLedger {
   export type Kind = "command" | "compute" | "lsp" | "mcp" | "provider" | "modal-volume" | "local-runtime"
 
+  /** Version 2 entries record whether the child inherited the synchronized
+   * workspace overlay. Version 1 entries predate that stamp, so an
+   * overlay-scoped revoke treats them as stamped (fail closed). */
+  const VERSION = 2
+
   interface Entry {
-    version: 1
+    version: 1 | 2
     id: string
     kind: Kind
     pid: number
@@ -27,6 +34,10 @@ export namespace CredentialProcessLedger {
     project_id?: string
     session_id?: string
     authority_generation?: string
+    /** Workspace whose synchronized credential overlay the child's environment
+     * carried at spawn. Absent on a version 2 entry means the child was built
+     * from kernelEnv or an allowlist and never held the overlay. */
+    overlay?: string
   }
 
   export interface Scope {
@@ -34,6 +45,9 @@ export namespace CredentialProcessLedger {
     kind?: Kind
     projectID?: string
     sessionID?: string
+    /** Match only children stamped with a synced workspace overlay. An expired
+     * overlay grant reaches exactly those children and nothing else. */
+    overlay?: boolean
   }
 
   export interface RevokeOptions {
@@ -51,7 +65,7 @@ export namespace CredentialProcessLedger {
     if (!value || typeof value !== "object") return false
     const item = value as Partial<Entry>
     return (
-      item.version === 1 &&
+      (item.version === 1 || item.version === VERSION) &&
       typeof item.id === "string" &&
       !!item.id &&
       (item.kind === "command" ||
@@ -77,7 +91,8 @@ export namespace CredentialProcessLedger {
       typeof item.created_at === "string" &&
       (item.project_id === undefined || typeof item.project_id === "string") &&
       (item.session_id === undefined || typeof item.session_id === "string") &&
-      (item.authority_generation === undefined || typeof item.authority_generation === "string")
+      (item.authority_generation === undefined || typeof item.authority_generation === "string") &&
+      (item.overlay === undefined || (typeof item.overlay === "string" && !!item.overlay))
     )
   }
 
@@ -87,10 +102,16 @@ export namespace CredentialProcessLedger {
       throw error
     })
     if (text === undefined) return []
-    const parsed: unknown = JSON.parse(text)
-    if (!Array.isArray(parsed) || !parsed.every(valid)) {
-      throw new Error(`Credential process ledger ${filepath} is corrupt; refusing unsafe process revocation`)
+    // Syntax and schema corruption both refuse revocation with the ledger path.
+    const corrupt = (cause?: unknown) =>
+      new Error(`Credential process ledger ${filepath} is corrupt; refusing unsafe process revocation`, { cause })
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(text)
+    } catch (error) {
+      throw corrupt(error)
     }
+    if (!Array.isArray(parsed) || !parsed.every(valid)) throw corrupt()
     return parsed
   }
 
@@ -437,7 +458,12 @@ export namespace CredentialProcessLedger {
     projectID?: string
     sessionID?: string
     authorityGeneration?: string
+    /** Workspace whose synchronized overlay the child's environment carries,
+     * as reported by OpenScience.withSubprocessEnv. Never inferred here: a
+     * child built from kernelEnv or an allowlist registers without it. */
+    overlay?: string
     windowsRelease?: string
+    subreaper?: ChildProcess
   }): Promise<boolean> {
     if ((process.platform === "win32" || process.platform === "darwin") && !input.windowsRelease) {
       throw new Error(
@@ -468,6 +494,21 @@ export namespace CredentialProcessLedger {
         `Credential-bearing ${input.kind} child ${input.pid} is not its own process-group leader; refusing an unreapable spawn`,
       )
     }
+    // Existing non-command launchers publish containment through their release
+    // gate. Commands additionally prove the exact process-local handle that
+    // CommandRuntime bound to a gate minted by wrap().
+    const subreaper =
+      process.platform === "linux" &&
+      (input.kind === "command"
+        ? !!input.windowsRelease &&
+          input.subreaper?.pid === input.pid &&
+          WindowsJobLauncher.isLinuxSubreaper(input.subreaper)
+        : !!input.windowsRelease)
+    if (process.platform === "linux" && input.kind === "command" && !subreaper) {
+      throw new Error(
+        `Credential-bearing command child ${input.pid} was not launched behind the verified Linux child-subreaper registration gate`,
+      )
+    }
     // Close the capture/check window before publishing durable ownership.
     if (!(await owns(input.pid, processIdentity))) return false
     return serialized(async () => {
@@ -484,19 +525,20 @@ export namespace CredentialProcessLedger {
           ? WindowsJob.assign({ id: input.id, pid: input.pid, expectedIdentity: processIdentity })
           : undefined
       const next: Entry = {
-        version: 1,
+        version: VERSION,
         id: input.id,
         kind: input.kind,
         pid: input.pid,
         detached: input.detached,
         ...(windowsJob ? { windows_job: windowsJob } : {}),
-        ...(process.platform === "linux" && input.windowsRelease ? { linux_subreaper: true } : {}),
+        ...(subreaper ? { linux_subreaper: true } : {}),
         identity: processIdentity,
         owner_pid: process.pid,
         created_at: new Date().toISOString(),
         ...(input.projectID ? { project_id: input.projectID } : {}),
         ...(input.sessionID ? { session_id: input.sessionID } : {}),
         ...(input.authorityGeneration ? { authority_generation: input.authorityGeneration } : {}),
+        ...(input.overlay ? { overlay: input.overlay } : {}),
       }
       if (index < 0) entries.push(next)
       else entries[index] = next
@@ -504,15 +546,6 @@ export namespace CredentialProcessLedger {
         if (windowsJob) WindowsJob.terminate(windowsJob)
         throw error
       })
-      if (windowsJob && input.windowsRelease) {
-        try {
-          WindowsJob.release(input.windowsRelease, input.pid)
-        } catch (error) {
-          await teardownGroup(next)
-          await write(entries.filter((entry) => entry.id !== input.id))
-          throw error
-        }
-      }
       if (process.platform === "darwin" && input.windowsRelease) {
         try {
           await fs.writeFile(input.windowsRelease, String(input.pid), { encoding: "utf8", flag: "wx", mode: 0o600 })
@@ -540,17 +573,6 @@ export namespace CredentialProcessLedger {
         const position = entries.findIndex((entry) => entry.id === input.id)
         if (position >= 0) entries[position] = next
         await write(entries)
-        try {
-          await fs.writeFile(`${input.windowsRelease}${DARWIN_RESPONSIBILITY_ACTIVATION_SUFFIX}`, String(input.pid), {
-            encoding: "utf8",
-            flag: "wx",
-            mode: 0o600,
-          })
-        } catch (error) {
-          await teardownGroup(next)
-          await write(entries.filter((entry) => entry.id !== input.id))
-          throw error
-        }
       }
       if (darwinResponsibility && !DarwinResponsibility.uniquelyOwns(darwinResponsibility, input.pid)) {
         await teardownGroup(next)
@@ -569,6 +591,22 @@ export namespace CredentialProcessLedger {
         if (next.detached || windowsJob) await teardownGroup(next)
         await write(entries.filter((entry) => entry.id !== input.id))
         return false
+      }
+      // Verify ownership while the workload is still gated. After activation,
+      // a short successful probe may exit before another identity check runs.
+      try {
+        if (windowsJob && input.windowsRelease) WindowsJob.release(input.windowsRelease, input.pid)
+        if (darwinResponsibility) {
+          await fs.writeFile(`${input.windowsRelease}${DARWIN_RESPONSIBILITY_ACTIVATION_SUFFIX}`, String(input.pid), {
+            encoding: "utf8",
+            flag: "wx",
+            mode: 0o600,
+          })
+        }
+      } catch (error) {
+        await teardownGroup(next)
+        await write(entries.filter((entry) => entry.id !== input.id))
+        throw error
       }
       return true
     })
@@ -635,12 +673,19 @@ export namespace CredentialProcessLedger {
     detached: boolean
   }): Promise<boolean> {
     return teardown({
-      version: 1,
+      version: VERSION,
       ...input,
       ...(process.platform === "win32" ? { windows_job: undefined } : {}),
       owner_pid: 0,
       created_at: new Date(0).toISOString(),
     })
+  }
+
+  /** Whether an overlay-scoped revoke reaches `entry`. A version 1 entry was
+   * written before the stamp existed and may have inherited the overlay, so
+   * it is treated as stamped. */
+  function stamped(entry: Entry): boolean {
+    return entry.version < VERSION || !!entry.overlay
   }
 
   /** Kill exact, identity-matched children even when their owner server died. */
@@ -657,7 +702,8 @@ export namespace CredentialProcessLedger {
             : (!scope?.id || entry.id === scope.id) &&
               (!scope?.kind || entry.kind === scope.kind) &&
               (!scope?.projectID || !entry.project_id || entry.project_id === scope.projectID) &&
-              (!scope?.sessionID || !entry.session_id || entry.session_id === scope.sessionID)
+              (!scope?.sessionID || !entry.session_id || entry.session_id === scope.sessionID) &&
+              (!scope?.overlay || stamped(entry))
         if (!match) {
           retained.push(entry)
           continue

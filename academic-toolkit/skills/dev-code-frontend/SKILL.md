@@ -70,6 +70,11 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
 4. 一个文件写完就落盘，再写下一个，不要囤在上下文里。
 
 ⛔ **结束前必跑产出验证**：
+
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验（`RUN.md`、前端入口 `package.json`/`index.html` 等）；修复返回的具体问题，不复制执行验证脚本。
+
+以下脚本仅作**无引擎合同时的人工兜底**；其中 daisyUI/Tailwind 引用检查**超出引擎 code 合同范围**，属本技能兜底项（是否升入 output_contract 另行评估）：
+
 ```bash
 echo "=== 前端编码产出验证 ==="
 PASS=true

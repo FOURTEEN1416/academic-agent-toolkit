@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/claim-scope-authority.schema.json",
+  "title": "Independent source claim scope and retention authority",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "contract_version", "claim_graph_sha256", "reviewer_id", "producer_ids", "self_signed_final", "final_decision", "claims"],
+  "properties": {
+    "contract": {"const": "paperspine5.claim-scope-authority"},
+    "contract_version": {"const": "1.0"},
+    "claim_graph_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "reviewer_id": {"type": "string", "minLength": 1},
+    "producer_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "self_signed_final": {"const": false},
+    "final_decision": {"enum": ["pass", "blocked"]},
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim_id", "required", "required_surfaces", "omission_allowed"],
+        "properties": {
+          "claim_id": {"type": "string", "minLength": 1},
+          "required": {"type": "boolean"},
+          "required_surfaces": {"type": "array", "uniqueItems": true, "items": {"enum": ["title", "abstract", "conclusion", "caption", "body"]}},
+          "omission_allowed": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}

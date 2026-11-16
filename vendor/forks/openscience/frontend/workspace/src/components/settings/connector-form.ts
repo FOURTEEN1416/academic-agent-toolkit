@@ -1,15 +1,18 @@
+import { ConnectorFormError } from "./form-error"
 import type { Config } from "@synsci/sdk/v2/client"
+import { McpUrl } from "@synsci/util/mcp-url"
 import { formatConnectorCommand, parseConnectorCommand } from "./connector-command"
 
 type McpConfig = NonNullable<Config["mcp"]>[string]
 export type McpType = "local" | "remote"
 export type OAuthMode = "off" | "auto" | "client"
 export type ConfiguredMcp = Extract<McpConfig, { type: McpType }>
-export type ConnectorIdentityIcon = "cloud" | "console" | "discord" | "folder" | "github" | "server"
+type ConnectorIdentityIcon = "cloud" | "console" | "discord" | "folder" | "github" | "server"
 
 export interface ConnectorIdentity {
   icon: ConnectorIdentityIcon
   label: string
+  providerLogo?: string
 }
 
 const MASK = "••••••••"
@@ -26,7 +29,20 @@ export interface ConnectorFormState {
   clientSecret: string
   scope: string
   timeout: string
+  initiallyDisabled: boolean
+  requireClientSecret: boolean
   previous?: ConfiguredMcp
+}
+
+export interface CatalogConnectorSetup {
+  type: "remote"
+  name: string
+  url: string
+  oauth: "auto" | "client" | "off"
+  scope?: string
+  confidential_client?: boolean
+  one_click_disabled?: boolean
+  one_click_connect?: boolean
 }
 
 export function blankConnectorForm(type: McpType): ConnectorFormState {
@@ -42,19 +58,96 @@ export function blankConnectorForm(type: McpType): ConnectorFormState {
     clientSecret: "",
     scope: "",
     timeout: "",
+    initiallyDisabled: false,
+    requireClientSecret: false,
+  }
+}
+
+export function connectorFormFromCatalog(setup: CatalogConnectorSetup): ConnectorFormState {
+  return {
+    ...blankConnectorForm("remote"),
+    name: setup.name,
+    url: setup.url,
+    oauth: setup.oauth,
+    scope: setup.scope ?? "",
+    initiallyDisabled: true,
+    requireClientSecret: setup.confidential_client === true,
+  }
+}
+
+/** Build the only state a reviewed one-click preset may persist. It lands off;
+ * enabling it or starting browser OAuth remains a separate user action. */
+export function catalogPresetConfig(setup: CatalogConnectorSetup) {
+  if (
+    (!setup.one_click_disabled && !setup.one_click_connect) ||
+    setup.oauth === "client" ||
+    (setup.one_click_connect && setup.oauth !== "auto")
+  ) {
+    throw new Error("This catalog entry requires setup review")
+  }
+  const disabled = buildConnectorConfig(connectorFormFromCatalog(setup))
+  if (disabled.type !== "remote" || disabled.enabled !== false) {
+    throw new Error("Catalog preset must be saved disabled")
+  }
+  return disabled
+}
+
+export function connectorConflictsWithCatalogPreset(config: ConfiguredMcp | undefined, setup: CatalogConnectorSetup) {
+  if (!config) return false
+  return (
+    !connectorMatchesCatalogSetup(config, setup) ||
+    config.type !== "remote" ||
+    Boolean(config.headers && Object.keys(config.headers).length) ||
+    Boolean(config.timeout)
+  )
+}
+
+export function connectorMatchesCatalogSetup(
+  config: ConfiguredMcp | undefined,
+  setup: {
+    type: "remote"
+    url: string
+    oauth: "auto" | "client" | "off"
+    scope?: string
+    confidential_client?: boolean
+  },
+) {
+  if (config?.type !== "remote") return false
+  try {
+    if (new URL(config.url).href !== new URL(setup.url).href) return false
+    if (setup.oauth === "off") return config.oauth === false
+    if (setup.oauth === "auto") {
+      return config.oauth !== false && (!config.oauth || !("clientId" in config.oauth))
+    }
+    if (!config.oauth || !("clientId" in config.oauth) || !config.oauth.clientId) return false
+    if (setup.confidential_client && !config.oauth.clientSecret) return false
+    return setup.scope === undefined || config.oauth.scope === setup.scope
+  } catch {
+    return false
   }
 }
 
 /**
  * Gives common connectors a recognizable identity without pretending every
  * MCP server has a bespoke brand asset. Unknown entries fall back to their
- * transport, so a hosted server never looks identical to a local process.
+ * transport, so a remote server never looks identical to a local process.
  */
 export function connectorIdentity(name: string, config: ConfiguredMcp): ConnectorIdentity {
   const target = config.type === "remote" ? config.url : [name, ...config.command].join(" ")
   const haystack = `${name} ${target}`.toLowerCase()
 
-  if (haystack.includes("github")) return { icon: "github", label: "GitHub" }
+  if (haystack.includes("givemeanode") || haystack.includes("mcp.givemeanode.com")) {
+    return { icon: "cloud", label: "GiveMeANode", providerLogo: "givemeanode" }
+  }
+  if (haystack.includes("github")) return { icon: "github", label: "GitHub", providerLogo: "github" }
+  if (haystack.includes("benchling")) return { icon: "cloud", label: "Benchling", providerLogo: "benchling" }
+  if (haystack.includes("dropbox")) return { icon: "cloud", label: "Dropbox", providerLogo: "dropbox" }
+  if (name.trim().toLowerCase() === "box" || haystack.includes("mcp.box.com")) {
+    return { icon: "cloud", label: "Box", providerLogo: "box" }
+  }
+  if (name.trim().toLowerCase() === "aws-s3" || haystack.includes("aws-mcp.")) {
+    return { icon: "cloud", label: "Amazon S3", providerLogo: "aws" }
+  }
   if (haystack.includes("discord")) return { icon: "discord", label: "Discord" }
   if (/file[ -]?system|local[ -]?files|workspace[ -]?files/u.test(haystack)) {
     return { icon: "folder", label: "Filesystem" }
@@ -62,7 +155,7 @@ export function connectorIdentity(name: string, config: ConfiguredMcp): Connecto
   if (/postgres|database|supabase|sqlite/u.test(haystack)) {
     return { icon: "server", label: "Database server" }
   }
-  if (config.type === "remote") return { icon: "cloud", label: "Hosted server" }
+  if (config.type === "remote") return { icon: "cloud", label: "Remote server" }
   return { icon: "console", label: "Local process" }
 }
 
@@ -118,7 +211,7 @@ function restoreRecord(value: Record<string, string> | undefined, previous: Reco
     Object.entries(value).map(([key, entry]) => {
       if (entry !== MASK) return [key, entry]
       const stored = previous?.[key]
-      if (stored === undefined) throw new Error(`Replace the masked value for ${key} before saving`)
+      if (stored === undefined) throw new ConnectorFormError("settings.validation.masked", { key })
       return [key, stored]
     }),
   )
@@ -127,10 +220,17 @@ function restoreRecord(value: Record<string, string> | undefined, previous: Reco
 function parseRecord(text: string, label: string) {
   const trimmed = text.trim()
   if (!trimmed) return undefined
-  const parsed = JSON.parse(trimmed)
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error(`${label} must be a JSON object`)
+  const parsed = (() => {
+    try {
+      return JSON.parse(trimmed) as unknown
+    } catch {
+      throw new ConnectorFormError("settings.validation.json", { label })
+    }
+  })()
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+    throw new ConnectorFormError("settings.validation.object", { label })
   for (const [key, value] of Object.entries(parsed)) {
-    if (typeof value !== "string") throw new Error(`${label}.${key} must be a string`)
+    if (typeof value !== "string") throw new ConnectorFormError("settings.validation.string", { label, key })
   }
   return parsed as Record<string, string>
 }
@@ -138,12 +238,12 @@ function parseRecord(text: string, label: string) {
 export function buildConnectorConfig(state: ConnectorFormState): ConfiguredMcp {
   const timeout = state.timeout.trim() ? Number(state.timeout) : undefined
   if (timeout !== undefined && (!Number.isInteger(timeout) || timeout <= 0)) {
-    throw new Error("Timeout must be a positive whole number of milliseconds")
+    throw new ConnectorFormError("settings.validation.timeout")
   }
-  const enabled = state.previous?.enabled
+  const enabled = state.previous?.enabled ?? (state.initiallyDisabled ? false : undefined)
   if (state.type === "local") {
     const command = parseConnectorCommand(state.command)
-    if (command.length === 0) throw new Error("Command is required")
+    if (command.length === 0) throw new ConnectorFormError("settings.validation.command")
     const previous = state.previous?.type === "local" ? state.previous : undefined
     const environment = restoreRecord(parseRecord(state.env, "Environment"), previous?.environment)
     return {
@@ -154,11 +254,16 @@ export function buildConnectorConfig(state: ConnectorFormState): ConfiguredMcp {
       ...(timeout ? { timeout } : {}),
     }
   }
-  if (!URL.canParse(state.url.trim())) throw new Error("Remote URL is invalid")
+  if (!URL.canParse(state.url.trim())) throw new ConnectorFormError("settings.validation.remote")
+  const problem = McpUrl.endpointProblem(state.url.trim())
+  if (problem) throw new ConnectorFormError("settings.validation.remote", {}, problem)
   const previous = state.previous?.type === "remote" ? state.previous : undefined
   const headers = restoreRecord(parseRecord(state.headers, "Headers"), previous?.headers)
   const oauth = typeof previous?.oauth === "object" ? previous.oauth : undefined
   const secret = state.clientSecret.trim() === MASK ? oauth?.clientSecret : state.clientSecret.trim()
+  if (state.oauth === "client" && !state.clientId.trim()) throw new ConnectorFormError("settings.validation.clientId")
+  if (state.oauth === "client" && state.requireClientSecret && !secret)
+    throw new ConnectorFormError("settings.validation.clientSecret")
   return {
     type: "remote",
     url: state.url.trim(),

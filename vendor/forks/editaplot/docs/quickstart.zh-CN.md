@@ -1,14 +1,31 @@
 # 中文快速开始
 
-## 30 秒版本
+## 先跑通第一张图
 
-前提：Windows 10/11 x64 实体电脑、64 位 CPython 3.10–3.12，以及本机已安装
-Origin/OriginPro 2021–2026b 范围内的版本。Origin 2024b（10.15）是当前唯一完整实机基线；
-其他目标版本会经过本机握手、真实 smoke 和模板能力检查后报告兼容状态。Origin 2020b 及更早版本、
+第一次用，我建议只记住三步：**下载完整仓库 → 让 Codex 安装和检查 → 附上表格，确认后绘图**。
+不用先学 Git，也不用自己逐条输入绘图命令。把下面这段话交给 Codex：
+
+```text
+请从 https://github.com/hang-jin/editaplot 的最新 main 下载并保留完整仓库（含 runtime），
+运行 editaplot.cmd setup 和 doctor。需要安装 Python 时先征得我的同意，不要安装或修改 Origin。
+环境检查通过后，请用 $editaplot 只读理解我提供的表格，推荐图形并让我确认，再调用 Origin 绘图。
+请把可编辑 OPJU、PNG、PDF、TIF 和检查结果保存在原始数据旁的新文件夹中。
+```
+
+如果环境已经装好，就在新对话里附上数据，从“请用 $editaplot 只读理解这份表格”开始。
+下面是具体环境要求、操作细节和常见问题；不需要把它们全部背下来。
+
+## 环境与安装细节
+
+前提：Windows 10/11 x64 实体电脑、64 位 CPython 3.11 或 3.12（新安装推荐 3.12），以及本机已安装
+Origin/OriginPro 2021–2026b 范围内的版本。当前 CPython 3.12.14 + Pillow 13.0.0 + Origin 2024b
+（10.15.132）已通过 smoke、6 个代表性案例及独立工程重开检查，不代表全部路线或全部版本逐一实测；
+Python 3.11 尚无实机声明，旧 3.10 记录保留为历史证据。其他环境仍须经过本机能力检查。Origin 2020b 及更早版本、
 macOS、Linux、WSL、Wine/CrossOver、Parallels 与其他虚拟机不支持。
 
-我当前公开了 41 条 Origin 绘图路线，保留 50 张通过完整验证的 PNG 作为审计资产，其中
-48 张用于页面展示。新加入的三维双密度路线只接受用户上游提供的两条密度曲线和每组一个
+我当前公开了 45 条 Origin 绘图路线，资产清单保留 54 张实机导出的 PNG，其中
+45 张用于页面展示，每个模板只选一张代表图。其余 9 张配色或模式案例的图片、样例数据和绘图功能
+仍然保留；例如 SHAP 三套配色、稳态 PL 和 PR 曲线都可以照常选择。三维双密度路线只接受用户上游提供的两条密度曲线和每组一个
 Z=0 基线焦点，不会自动运行 KDE、找峰或求交点。热力图页面只展示真实 Origin 生成的 30×30 高密度案例；小矩阵和
 40×40 案例只留作回归历史，不会重复出现在图库中。
 
@@ -16,13 +33,19 @@ Z=0 基线焦点，不会自动运行 KDE、找峰或求交点。热力图页面
 
 ```powershell
 .\editaplot.cmd setup
+.\editaplot.cmd doctor
 ```
 
 不要只复制 `skill/editaplot`，那样没有绘图 runtime。会 Git 的用户可以 `git clone`；不会 Git
 或没有 GitHub 账号的用户可以下载 Source ZIP 并完整解压。完整步骤见[安装指南](installation.md)。
-我让启动器先复用已有的 64 位 CPython 3.10–3.12；若完全没有兼容 Python，Codex 必须先向你
+我让启动器先复用已有的 64 位 CPython 3.11/3.12；若完全没有兼容 Python，Codex 必须先向你
 说明这是系统级变更并征得明确同意，才可通过官方 winget 以用户范围安装 Python 3.12。
 EditaPlot 永不自动安装 Origin。
+
+安全依赖现锁定 Pillow 13.0.0，不再以 Python 3.10 运行。已有用户更新完整仓库后重跑 `setup`：
+新环境使用兼容解释器，旧环境保留在 `.editaplot-venv.retained-*`，不改全局 Python。
+缺少兼容解释器或安装失败时会停止，不会自动退回旧版 Pillow；备份也不会被自动选作运行环境。
+旧方案如提示 `analysis_changed`，请重新理解数据、确认并生成方案，不要手改 JSON。
 
 给 Codex 的最小权限是：读取完整仓库、数据和可选参考图；写入仓库、当前用户
 `$HOME\.codex\skills\editaplot` 及数据父文件夹；运行本地 `editaplot.cmd`、PowerShell、Python

@@ -237,30 +237,13 @@ if [ "$PASS" != true ]; then echo "⛔ 产出验证失败 — 必须补全后重
 
 - 独立公式：`$$E = mc^2$$`
 
-- **编号公式：编号一律写进公式内部用 `\tag{n}`**，引擎自动提取并右对齐显示成 `(n)`
+**公式编号与合法写法约定（铁律）**：统一见共享单源（_utils/ 与 shared-scripts/ 双副本）：
 
-```markdown
-模型可表示为：
-
-$$y_i = \beta_0 + \beta_1 x_i + \varepsilon_i \tag{1}$$
-
-其中 $\beta_0$、$\beta_1$ 为待估参数。多行写法：
-
-$$
-\min_{\mathbf{x}} \sum_{i=1}^{n} c_i x_i \tag{2}
-$$
+```bash
+cat _utils/docx_formula_conventions.md 2>/dev/null || cat skills/shared-scripts/docx_formula_conventions.md
 ```
 
-> ⛔ **禁止把编号写在闭合定界符那一行（`$$ (1)`）** —— 旧版本这里的文字说明写
-> 「另起一行 `(1)`」、示例又把 `(1)` 塞进 `$$` 内，两种写法自相矛盾，AI 于是拼出了
-> 第三种形态 `$$ (1)`。带尾巴的 `$$` 一旦编号不是纯数字（如 `(8′)`、全角 `（5）`、
-> 编号后还有字），引擎认不出它是闭合行，会从那一行起一路往后吞，把后续正文、公式、
-> `![](figures/xxx.png)` 图片引用全当成数学内容 → **公式一个字一个字竖排、图片加载失败**
-> （实测事故：一篇论文 17 处块级公式全中招；引擎侧已加固为"以 `$$` 开头即认闭合"，
-> 但**写法仍须按 `\tag{n}`**——它是 KaTeX / MathJax / Pandoc 通认的标准写法）。
-
-⛔ **禁止 `\begin{equation}`、`\begin{align}`** —— 引擎不处理这些 LaTeX 环境。
-⛔ **`\[...\]` 也不要用于独立公式** —— 引擎虽能识别，但会渲染成**行内**公式（不居中、不带编号），达不到独立公式的效果。
+要点：块级公式一律 `\tag{n}` 编号（引擎自动提取并右对齐显示成 `(n)`）、闭合 `$$` 独占一行、禁止 `$$ (1)` 带尾巴（引擎会从那行起往后吞，公式竖排、图片加载失败）、禁 `\begin{equation}`/`\begin{align}`、`\[...\]` 不用于独立公式、`\begin{cases}`/`\begin{aligned}` 可用。
 
 
 
@@ -1490,31 +1473,21 @@ fi
 
 ```bash
 
-# 通用 paper 审计：
+# 通用 paper 审计：[13] 正文结论与 results.json 一致（防"最优解 X 但正文写 Y"）；
 
-#   [13] 正文结论与 results.json 一致（防"最优解 X 但正文写 Y"）
-
-#   [14] 事件源归属（防"凭变量名脑补撞击 / 命中 / 拦截"）
+# [14] 事件源归属（防"凭变量名脑补撞击 / 命中 / 拦截"）。
 
 # 即使没 PROBLEM_FACTS.json（普通学术 / 课程论文 / 人文社科），也会以"简化模式"跑独立审计。
 
-PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+# 审计已并入共享脚本 paper_write_audit.sh（_utils/ 与 shared-scripts/ 双副本），同时执行 figure embedding check 与 FIGURE_MANIFEST audit：
 
-if [ -f _utils/facts_audit.py ]; then
+bash _utils/paper_write_audit.sh --mode docx   # 本目录无 _utils 时: bash skills/shared-scripts/paper_write_audit.sh --mode docx
 
-    $PYTHON _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
-
-    PRC=$?
-
-    if [ "$PRC" = "1" ]; then
-
-        echo "❌ 通用 paper-stage 审计未通过 — 必须按上面提示修正正文 / results.json 后重新跑"
-
-    fi
-
-fi
+# 审计输出由程序采集留痕，不再写入手写审计文件；有引擎 finish 时以 output_contract/paper_write_gate 自动核验为准。
 
 ```
+
+**怎么读结果**：输出 `❌` / `MISSING:` / `⛔` 即有缺件、图/表未嵌入或正文与 results.json 不一致——按提示修正后重跑至无 `❌`。
 
 
 

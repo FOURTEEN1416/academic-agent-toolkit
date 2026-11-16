@@ -8,23 +8,29 @@ import { iconNames, type IconName } from "@synsci/ui/icons/provider"
 import { useDialog } from "@synsci/ui/context/dialog"
 import { Switch } from "@synsci/ui/switch"
 import { createEffect, createMemo, createSignal, For, onCleanup, Show, type Component, type JSX } from "solid-js"
+import { createStore } from "solid-js/store"
 import { useLocal } from "@/context/local"
 import { useSync } from "@/context/sync"
+import { useGlobalSync } from "@/context/global-sync"
 import {
+  chosenModelRoute,
   COMPOSER_MODEL_ROSTER,
   displayProviderForModel,
   groupModelRoutes,
+  inferenceSource,
   logicalModelKey,
   modelContext,
   modelDisplayName,
+  modelFunding,
   modelSummary,
   parseModelRoute,
-  preservedModelRoute,
 } from "@/context/model-catalog"
 import { DialogSettings } from "./dialog-settings"
 import { modelGroup, modelGroupLabel, modelGroupLabelRank } from "./model-groups"
-import { exactRouteFastMode } from "./model-fast"
+import { exactRouteFastMode, type FastMode } from "./model-fast"
+import { rateBasis, rateLine, routeRates, type RouteRates } from "@/context/model-pricing"
 import { modelControl } from "./model-presentation"
+import { composerOverlays, registerOverlay } from "./overlay-group"
 import { curateQuickModelRows, curateQuickModels } from "./model-quick"
 import "./model-settings-popover.css"
 
@@ -52,7 +58,7 @@ export function modelRadioTabKey(keys: string[], selected?: string, focused?: st
   return keys[0]
 }
 
-export function modelRadioNavigationTarget(scope: HTMLElement, target: EventTarget | null, key: string) {
+function modelRadioNavigationTarget(scope: HTMLElement, target: EventTarget | null, key: string) {
   if (!MODEL_RADIO_KEYS.includes(key as (typeof MODEL_RADIO_KEYS)[number])) return undefined
   if (!(target instanceof HTMLElement) || target.getAttribute("role") !== "radio") return undefined
   const items = Array.from(scope.querySelectorAll<HTMLButtonElement>('[role="radio"]:not([disabled])')).filter(
@@ -104,14 +110,15 @@ const ModelMark: Component<{ id: string; name: string }> = (props) => (
 )
 
 export { modelSummary } from "@/context/model-catalog"
-export { inferenceSource, inferenceSourceLabel, type InferenceSource } from "@/context/model-catalog"
+export { inferenceSource, inferenceSourceLabel } from "@/context/model-catalog"
 
 type ModelOptionListProps = {
   id: string
-  kind: "effort" | "route"
+  kind: "effort" | "route" | "context"
   title: string
   current: string
   options: Array<{ id: string; label: string }>
+  compact?: boolean
   onSelect: (id: string) => void
   onDone?: () => void
 }
@@ -138,11 +145,26 @@ export const ModelOptionList: Component<ModelOptionListProps> = (props) => {
     select(value)
   }
 
+  // Compact lists sit on a six-track grid with two tracks per option: three
+  // to a row, and a short last row (5 → 3 + 2, 7 → 3 + 3 + 1) centres its
+  // options instead of leaving a dead cell. Four options make two rows of two.
+  const columns = () => (props.options.length === 4 ? 2 : Math.min(3, props.options.length))
+  const placement = (index: number) => {
+    const per = columns()
+    const span = 6 / per
+    const count = props.options.length
+    const rest = count % per
+    const lastRow = index >= count - rest
+    if (!rest || !lastRow || rest === per) return { "grid-column": `span ${span}` }
+    const offset = (6 - rest * span) / 2
+    return { "grid-column": `${offset + (index - (count - rest)) * span + 1} / span ${span}` }
+  }
+
   return (
-    <div data-model-option-group={props.kind} class="flex flex-col">
+    <div data-model-option-group={props.kind} data-model-options-compact={props.compact ? "" : undefined}>
       <div id={props.id} role="radiogroup" aria-label={props.title} class="flex flex-col" onKeyDown={onKeyDown}>
         <For each={props.options}>
-          {(option) => (
+          {(option, index) => (
             <button
               type="button"
               role="radio"
@@ -151,6 +173,7 @@ export const ModelOptionList: Component<ModelOptionListProps> = (props) => {
               aria-checked={selected() === option.id}
               tabindex={selected() === option.id ? 0 : -1}
               class={row}
+              style={props.compact ? placement(index()) : undefined}
               onClick={() => {
                 select(option.id)
                 props.onDone?.()
@@ -159,7 +182,7 @@ export const ModelOptionList: Component<ModelOptionListProps> = (props) => {
               <span class="model-settings-setting">
                 <span data-model-menu-label>{option.label}</span>
               </span>
-              <Show when={selected() === option.id}>
+              <Show when={!props.compact && selected() === option.id}>
                 <Icon name="check" size="small" class="model-settings-check" aria-hidden="true" />
               </Show>
             </button>
@@ -184,7 +207,7 @@ type ModelPopoverSurfaceProps = {
   children: JSX.Element
 }
 
-const ModelPopoverSurface: Component<ModelPopoverSurfaceProps> = (props) => {
+export const ModelPopoverSurface: Component<ModelPopoverSurfaceProps> = (props) => {
   let content: HTMLElement | undefined
 
   return (
@@ -199,7 +222,7 @@ const ModelPopoverSurface: Component<ModelPopoverSurfaceProps> = (props) => {
         data-model-settings-popover
         data-model-popover-kind={props.kind}
         data-model-settings-view={props.view}
-        class="z-50 outline-none"
+        class="z-50 outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-border-strong focus-visible:outline-offset-2"
         onKeyDown={props.onKeyDown}
         onOpenAutoFocus={(event) => {
           if (!props.initialFocus) return
@@ -251,39 +274,160 @@ const ModelPopoverSurface: Component<ModelPopoverSurfaceProps> = (props) => {
 type ModelEffortPanelProps = {
   current: string
   options: Array<{ id: string; label: string }>
-  fast?: { active: boolean }
+  fast?: FastMode
+  context?: { current: string; options: Array<{ id: string; label: string }> }
+  /** What the route charges, present once its pricing is known. */
+  rates?: RouteRates
   onEffortSelect: (id: string) => void
   onTierSelect: (id: "standard" | "fast") => void
+  onContextSelect?: (id: string) => void
+  unavailable?: { loading: boolean; error: boolean; refresh: () => void }
 }
 
-export const ModelEffortPanel: Component<ModelEffortPanelProps> = (props) => (
-  <div data-model-effort-panel>
-    <Show when={props.options.length > 0}>
-      <section class="model-settings-option-section" aria-label="Reasoning effort">
-        <div class="model-settings-heading">Effort</div>
-        <ModelOptionList
-          id="model-effort-options"
-          kind="effort"
-          title="Reasoning effort"
-          current={props.current}
-          options={props.options}
-          onSelect={props.onEffortSelect}
-        />
-      </section>
-    </Show>
-    <Show when={props.fast}>
-      {(fast) => (
-        <section class="model-settings-option-section model-settings-speed-section" aria-label="Fast mode">
-          <div data-model-fast-toggle>
-            <Switch checked={fast().active} onChange={(checked) => props.onTierSelect(checked ? "fast" : "standard")}>
-              <span class="model-settings-fast-label">Fast mode</span>
-            </Switch>
+export const ModelEffortPanel: Component<ModelEffortPanelProps> = (props) => {
+  // The first pricing tier is the step a long prompt pays; a context cap at
+  // or below its threshold means the step is never reached.
+  const cap = () => {
+    const value = Number(props.context?.current)
+    return Number.isFinite(value) && value > 0 ? value : undefined
+  }
+  const step = () => {
+    const tier = props.rates?.tiers[0]
+    if (!tier || !props.context || props.context.options.length < 2) return
+    const limit = cap()
+    if (limit !== undefined && limit <= tier.threshold) return
+    return tier
+  }
+  return (
+    <div data-model-effort-panel>
+      <Show when={props.unavailable}>
+        {(unavailable) => (
+          <section
+            class="model-settings-option-section model-settings-options-unavailable"
+            aria-label={props.options.length > 0 ? "Current rates unavailable" : "Model options unavailable"}
+          >
+            <p>
+              {props.options.length > 0
+                ? "Current Ace rates have not loaded. Verified effort choices are still available."
+                : "Model options and current rates aren’t available yet for this Ace workspace."}
+            </p>
+            <Show when={unavailable().error}>
+              <p role="alert">Could not refresh model options. Try again.</p>
+            </Show>
+            <Button
+              type="button"
+              variant="secondary"
+              data-model-options-refresh
+              disabled={unavailable().loading}
+              onClick={() => unavailable().refresh()}
+            >
+              {unavailable().loading ? "Refreshing…" : "Refresh options"}
+            </Button>
+          </section>
+        )}
+      </Show>
+      <Show when={props.options.length > 0}>
+        <section
+          class="model-settings-option-section"
+          aria-label={
+            props.options.some((option) => option.id.endsWith("-tokens")) ? "Thinking budget" : "Reasoning effort"
+          }
+        >
+          <div class="model-settings-heading">
+            {props.options.some((option) => option.id.endsWith("-tokens")) ? "Thinking budget" : "Effort"}
           </div>
+          <ModelOptionList
+            id="model-effort-options"
+            kind="effort"
+            title={
+              props.options.some((option) => option.id.endsWith("-tokens")) ? "Thinking budget" : "Reasoning effort"
+            }
+            current={props.current}
+            options={props.options}
+            compact
+            onSelect={props.onEffortSelect}
+          />
         </section>
-      )}
-    </Show>
-  </div>
-)
+      </Show>
+      <Show when={props.fast}>
+        {(fast) => (
+          <section class="model-settings-option-section model-settings-speed-section" aria-label="Fast mode">
+            <div class="model-settings-heading">Speed</div>
+            <div data-model-fast-toggle data-disabled={fast().offered ? undefined : "true"}>
+              <Switch
+                checked={fast().active}
+                disabled={!fast().offered}
+                onChange={(checked) => props.onTierSelect(checked ? "fast" : "standard")}
+              >
+                <span class="model-settings-fast-label">Fast mode</span>
+              </Switch>
+            </div>
+            <Show when={fast().note}>
+              {(note) => (
+                <p class="model-settings-consequence" data-model-fast-note>
+                  {note()}
+                </p>
+              )}
+            </Show>
+          </section>
+        )}
+      </Show>
+      <Show when={props.context && props.context.options.length > 1 ? props.context : undefined}>
+        {(context) => (
+          <section class="model-settings-option-section" aria-label="Context window">
+            <div class="model-settings-heading">Context window</div>
+            <ModelOptionList
+              id="model-context-options"
+              kind="context"
+              title="Context window"
+              current={context().current}
+              options={context().options}
+              compact
+              onSelect={(id) => props.onContextSelect?.(id)}
+            />
+          </section>
+        )}
+      </Show>
+      {/* The selected Wallet or provider rate follows Fast and context choices. */}
+      <Show when={props.rates}>
+        {(rates) => {
+          const effective = () => (props.fast?.active && rates().fast ? rates().fast! : rates().standard)
+          const maximum = () => (props.fast?.active && rates().fast ? rates().fastMaximum : rates().maximum)
+          return (
+            <section
+              class="model-settings-option-section model-settings-rate-section"
+              aria-label="Rate"
+              data-maximum={maximum() ? "true" : undefined}
+            >
+              <div
+                class="model-settings-rate"
+                data-model-rate
+                title={rateBasis(rates(), Boolean(props.fast?.active && rates().fast))}
+              >
+                <span class="model-settings-heading">Rate</span>
+                <span class="model-settings-rate-value">
+                  {rateLine(effective(), maximum())}
+                  <span class="model-settings-unit"> /1M tokens</span>
+                </span>
+              </div>
+              <Show when={step()}>
+                {(tier) => (
+                  <div class="model-settings-rate model-settings-rate--step" data-model-rate-step>
+                    <span class="model-settings-heading">Past {modelContext(tier().threshold)}</span>
+                    <span class="model-settings-rate-value">
+                      {rateLine(props.fast?.active && tier().fast ? tier().fast! : tier().standard, maximum())}
+                      <span class="model-settings-unit"> /1M tokens</span>
+                    </span>
+                  </div>
+                )}
+              </Show>
+            </section>
+          )
+        }}
+      </Show>
+    </div>
+  )
+}
 
 type ModelEffortPopoverProps = ModelEffortPanelProps & {
   value: string
@@ -316,11 +460,17 @@ export const ModelEffortPopover: Component<ModelEffortPopoverProps> = (props) =>
         data-model-effort-chip
         aria-label={
           props.options.length > 0
-            ? `Reasoning effort: ${props.value}.${props.fast?.active ? " Fast mode on." : ""} Reasoning options`
-            : `Fast mode: ${props.fast?.active ? "on" : "off"}. Model options`
+            ? `Reasoning effort: ${props.value}.${props.fast?.active ? " Fast mode on." : ""}${props.unavailable ? " Current rates unavailable." : ""} Reasoning options`
+            : props.unavailable
+              ? "Model options unavailable. Refresh model options"
+              : props.fast
+                ? `Fast mode: ${props.fast.active ? "on" : "off"}. Model options`
+                : `Context window: ${props.context?.options.find((option) => option.id === props.context?.current)?.label ?? "Default"}. Model options`
         }
       >
-        <strong>{props.options.length > 0 ? props.value : "Fast"}</strong>
+        <strong>
+          {props.options.length > 0 ? props.value : props.unavailable ? "Options" : props.fast ? "Fast" : "Context"}
+        </strong>
         <Show when={props.fast?.active && props.options.length > 0}>
           <span data-model-fast-indicator aria-hidden="true">
             Fast
@@ -336,7 +486,11 @@ export const ModelEffortPopover: Component<ModelEffortPopoverProps> = (props) =>
         initialFocus={
           props.options.length > 0
             ? '[data-model-option="effort"][aria-checked="true"]'
-            : '[data-model-fast-toggle] [data-slot="switch-input"]'
+            : props.unavailable
+              ? "[data-model-options-refresh]"
+              : props.fast
+                ? '[data-model-fast-toggle] [data-slot="switch-input"]'
+                : '[data-model-option="context"][aria-checked="true"]'
         }
         contentRef={(element) => (content = element)}
       >
@@ -344,8 +498,12 @@ export const ModelEffortPopover: Component<ModelEffortPopoverProps> = (props) =>
           current={props.current}
           options={props.options}
           fast={props.fast}
+          context={props.context}
+          rates={props.rates}
           onEffortSelect={props.onEffortSelect}
           onTierSelect={props.onTierSelect}
+          onContextSelect={props.onContextSelect}
+          unavailable={props.unavailable}
         />
       </ModelPopoverSurface>
     </Kobalte>
@@ -355,6 +513,7 @@ export const ModelEffortPopover: Component<ModelEffortPopoverProps> = (props) =>
 export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (props) => {
   const local = useLocal()
   const sync = useSync()
+  const globalSync = useGlobalSync()
   const dialog = useDialog()
   const mobile = createMediaQuery("(max-width: 719px)")
   const [open, setOpen] = createSignal(false)
@@ -367,6 +526,8 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
   const [quickFocus, setQuickFocus] = createSignal("")
   const [catalogFocus, setCatalogFocus] = createSignal("")
   const [notice, setNotice] = createSignal("")
+  const [options, setOptions] = createStore({ loading: false, error: false })
+  const optionRequests = { revision: 0 }
   const refs = { content: undefined as HTMLElement | undefined }
   const current = createMemo(() => local.model.current())
   const exact = (model: NonNullable<ReturnType<typeof current>>) => `${model.provider.id}/${model.id}`
@@ -504,12 +665,6 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
     catalogQuery()
     const total = catalog().length
     setCatalogLimit(Math.min(CATALOG_FIRST_CHUNK, total))
-    if (total <= CATALOG_FIRST_CHUNK) return
-    let frame = requestAnimationFrame(function load() {
-      setCatalogLimit((current) => Math.min(total, current + CATALOG_CHUNK))
-      if (catalogLimit() < total) frame = requestAnimationFrame(load)
-    })
-    onCleanup(() => cancelAnimationFrame(frame))
   })
 
   const searchCatalog = (value: string) => {
@@ -539,7 +694,13 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
   const close = () => {
     setOpen(false)
     resetMenu()
+    composerOverlays.close("model")
   }
+
+  // The composer footer holds four menus; the group is what makes opening one
+  // close the rest, whichever of them the person reaches for next.
+  registerOverlay(composerOverlays, "model", close)
+  registerOverlay(composerOverlays, "effort", () => setEffortOpen(false))
 
   const control = createMemo(() =>
     modelControl({
@@ -552,8 +713,46 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
     }),
   )
   const fast = createMemo(() => {
-    return exactRouteFastMode(current(), local.model.tier.current())
+    return exactRouteFastMode(current(), local.model.tier.current(), local.model.list())
   })
+  // The rate table is the route's own price list; a subscription has none.
+  const rates = createMemo(() => {
+    const model = current()
+    if (!model) return
+    const access =
+      inferenceSource({
+        providerID: model.provider.id,
+        credential: model.provider.source,
+        billing: sync.data.config.billing?.llm,
+      }) ?? (model.provider.id.startsWith("synsci") ? "managed" : "byok")
+    return routeRates({
+      access,
+      pricing: model.pricing,
+      cost: model.cost,
+      fast: model.modes?.fast?.cost,
+      fastPricing: model.modes?.fast?.pricing,
+    })
+  })
+  const unavailable = createMemo(() => current()?.provider.source === "managed" && !current()?.pricing)
+  const optionsKey = createMemo(() => `${sync.data.project ?? ""}/${current()?.provider.id}/${current()?.id}`)
+  createEffect(() => {
+    optionsKey()
+    optionRequests.revision++
+    setOptions({ loading: false, error: false })
+  })
+  const refreshOptions = async () => {
+    if (options.loading) return
+    const key = optionsKey()
+    const revision = ++optionRequests.revision
+    setOptions({ loading: true, error: false })
+    // The user asked: skip the server's pricing cache and failure cooldown.
+    const failed = await globalSync.refreshProviders({ force: true }).then(
+      () => false,
+      () => true,
+    )
+    if (key !== optionsKey() || revision !== optionRequests.revision) return
+    setOptions({ loading: false, error: failed })
+  }
 
   createEffect(() => {
     const value = control()
@@ -572,23 +771,29 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
       refs.content?.querySelector<HTMLElement>(selector)?.focus({ preventScroll: true })
     })
 
-  const selectChoice = (choice: ReturnType<typeof choices>[number]) => {
+  const chosenRoute = (choice: ReturnType<typeof choices>[number]) => {
     const selected = current()
-    const configured = parseModelRoute(sync.data.config.model)
-    const billing = sync.data.config.billing?.llm
-    const model =
-      preservedModelRoute(
-        choice.routes,
-        selected ? { providerID: selected.provider.id, modelID: selected.id } : undefined,
-      ) ??
-      preservedModelRoute(choice.routes, configured) ??
-      (billing === "managed"
-        ? choice.routes.find((route) => route.provider.id === "openrouter")
-        : billing === "byok"
-          ? choice.routes.find((route) => route.provider.id !== "openrouter")
-          : undefined) ??
-      choice.routes.find((route) => route.provider.id === "openai-codex") ??
-      choice.model
+    return chosenModelRoute({
+      choice,
+      current: selected ? { providerID: selected.provider.id, modelID: selected.id } : undefined,
+      configured: parseModelRoute(sync.data.config.model),
+      billing: sync.data.config.billing?.llm,
+    })
+  }
+  // A logical model can be served by a key and by the Wallet at once; the row names the one a click selects.
+  const funding = (choice: ReturnType<typeof choices>[number]) => {
+    const route = chosenRoute(choice)
+    return modelFunding({
+      providerID: route.provider.id,
+      credential: route.provider.source,
+      billing: sync.data.config.billing?.llm,
+    })
+  }
+  const byline = (choice: ReturnType<typeof choices>[number], facts: string) =>
+    [funding(choice), facts].filter(Boolean).join(" · ")
+
+  const selectChoice = (choice: ReturnType<typeof choices>[number]) => {
+    const model = chosenRoute(choice)
     local.model.set({ providerID: model.provider.id, modelID: model.id }, { recent: true })
     close()
   }
@@ -640,9 +845,9 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
       <Kobalte
         open={open()}
         onOpenChange={(next) => {
-          setOpen(next)
-          if (next) setEffortOpen(false)
-          if (!next) resetMenu()
+          if (!next) return close()
+          setOpen(true)
+          composerOverlays.open("model")
         }}
         modal={mobile()}
         placement="top-end"
@@ -716,19 +921,27 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
                           id: model.provider,
                           name: providerLabels[model.provider] ?? model.provider,
                         })
+                        // No connected provider serves this model yet. The row
+                        // leads to the connection settings instead of dead-ending.
                         return (
-                          <div
+                          <button
+                            type="button"
+                            data-model-menu-item
                             data-model-quick
                             data-model-unavailable
                             class={`${row} model-settings-unavailable`}
-                            aria-label={`${model.label}, unavailable`}
+                            aria-label={`${model.label}, ${provider().name} not connected. Connect a provider`}
+                            onClick={manage}
                           >
                             <ModelMark id={provider().id} name={provider().name} />
                             <span class="model-settings-model">
                               <strong>{model.label}</strong>
-                              <small>{`${provider().name} · Unavailable`}</small>
+                              <small>{`${provider().name} · Connect to use`}</small>
                             </span>
-                          </div>
+                            <span aria-hidden="true" data-model-menu-value>
+                              ›
+                            </span>
+                          </button>
                         )
                       }
 
@@ -747,7 +960,8 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
                           data-model-routes={choice.routes.length}
                           aria-checked={selected()}
                           tabindex={quickTab() === choice.key ? 0 : -1}
-                          aria-label={`${choiceName(choice)}, ${provider().name}`}
+                          data-model-funding={funding(choice)}
+                          aria-label={[choiceName(choice), provider().name, funding(choice)].filter(Boolean).join(", ")}
                           class={row}
                           onFocus={() => setQuickFocus(choice.key)}
                           onClick={() => selectChoice(choice)}
@@ -755,7 +969,9 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
                           <ModelMark id={provider().id} name={provider().name} />
                           <span class="model-settings-model">
                             <strong>{choiceName(choice)}</strong>
-                            <small>{`${provider().name} · ${modelContext(model.limit.context)} context`}</small>
+                            <small>
+                              {byline(choice, `${provider().name} · ${modelContext(model.limit.context)} context`)}
+                            </small>
                           </span>
                           <Show when={selected()}>
                             <Icon name="check" size="small" class="model-settings-check" aria-hidden="true" />
@@ -836,9 +1052,15 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
                                   data-model-routes={choice.routes.length}
                                   aria-checked={selected()}
                                   tabindex={catalogTab() === choice.key ? 0 : -1}
-                                  aria-label={`${choiceName(choice)}, ${provider().name}, ${modelContext(
-                                    model.limit.context,
-                                  )} context`}
+                                  data-model-funding={funding(choice)}
+                                  aria-label={[
+                                    choiceName(choice),
+                                    provider().name,
+                                    `${modelContext(model.limit.context)} context`,
+                                    funding(choice),
+                                  ]
+                                    .filter(Boolean)
+                                    .join(", ")}
                                   class={row}
                                   onFocus={() => setCatalogFocus(choice.key)}
                                   onClick={() => selectChoice(choice)}
@@ -847,11 +1069,14 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
                                   <span class="model-settings-model">
                                     <strong>{choiceName(choice)}</strong>
                                     <small>
-                                      {modelSummary({
-                                        reasoning: model.capabilities.reasoning,
-                                        context: model.limit.context,
-                                        provider: provider().name,
-                                      })}
+                                      {byline(
+                                        choice,
+                                        modelSummary({
+                                          reasoning: model.capabilities.reasoning,
+                                          context: model.limit.context,
+                                          provider: provider().name,
+                                        }),
+                                      )}
                                     </small>
                                   </span>
                                   <Show when={selected()}>
@@ -865,12 +1090,26 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
                       )}
                     </For>
                     <Show when={catalog().length === 0}>
-                      <p class="model-settings-empty">No models match “{query()}”.</p>
+                      <p class="model-settings-empty">
+                        {query().trim()
+                          ? `No models match “${query()}”.`
+                          : "No models are connected yet. Add a provider key, sign in, or connect a local model under Manage models."}
+                      </p>
                     </Show>
                     <Show when={catalogLimit() < catalog().length}>
-                      <p class="model-settings-catalog-progress" role="status">
-                        Loading more models…
-                      </p>
+                      <div class="model-settings-catalog-progress">
+                        <span>
+                          Showing {catalogLimit()} of {catalog().length}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCatalogLimit((current) => Math.min(catalog().length, current + CATALOG_CHUNK))
+                          }
+                        >
+                          Show more
+                        </button>
+                      </div>
                     </Show>
                   </Show>
                 </div>
@@ -889,22 +1128,42 @@ export const ModelSettingsPopover: Component<{ trigger?: "label" | "icon" }> = (
           </Show>
         </ModelPopoverSurface>
       </Kobalte>
-      <Show when={props.trigger !== "icon" && (control().effort || fast())}>
+      <Show
+        when={
+          props.trigger !== "icon" &&
+          (control().effort || fast() || local.model.context.list().length > 1 || unavailable())
+        }
+      >
         <ModelEffortPopover
           value={control().effort?.value ?? "Fast"}
           current={control().effort?.current.id ?? "standard"}
           options={control().effort?.options ?? []}
           fast={fast()}
+          rates={rates()}
+          unavailable={
+            unavailable()
+              ? { loading: options.loading, error: options.error, refresh: () => void refreshOptions() }
+              : undefined
+          }
+          context={{
+            current: String(local.model.context.current()),
+            // The options are sizes; the segmented control already says
+            // "choose one", so "cap" and "Full" only added words.
+            options: local.model.context.list().map((value) => ({
+              id: String(value),
+              label: modelContext(value),
+            })),
+          }}
           open={effortOpen()}
           onOpenChange={(next) => {
             setEffortOpen(next)
-            if (!next) return
-            setOpen(false)
-            resetMenu()
+            if (next) composerOverlays.open("effort")
+            else composerOverlays.close("effort")
           }}
           modal={mobile()}
           onEffortSelect={(id) => local.model.variant.set(id)}
           onTierSelect={(id) => local.model.tier.set(id)}
+          onContextSelect={(id) => local.model.context.set(Number(id))}
         />
       </Show>
     </div>

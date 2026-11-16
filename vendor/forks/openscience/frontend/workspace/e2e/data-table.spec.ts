@@ -19,7 +19,13 @@ test("explores, filters, plots, sorts, and exports a scientific CSV", async ({ p
 
     const table = page.locator('[data-component="data-table"]')
     await expect(table).toBeVisible()
-    await expect(table.getByText("4 rows", { exact: true })).toBeVisible()
+    // The dimensions sit in the file's header line beside the name, not in
+    // the table's own toolbar.
+    await expect(
+      page
+        .locator('[data-component="file-view"] [data-slot="file-viewer-controls"]')
+        .getByText("4 rows", { exact: true }),
+    ).toBeVisible()
     await expect(table.getByText("treated, high", { exact: true })).toBeVisible()
 
     const filter = table.getByLabel("Filter rows")

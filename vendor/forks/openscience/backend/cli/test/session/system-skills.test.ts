@@ -4,6 +4,11 @@ import { SystemPrompt } from "../../src/session/system"
 import { Instance } from "../../src/project/instance"
 import { ProjectTrust } from "../../src/project/trust"
 import { Skill } from "../../src/skill"
+import { SkillTool } from "../../src/tool/skill"
+import type { Tool } from "../../src/tool/tool"
+import { Agent } from "../../src/agent/agent"
+import { Session } from "../../src/session"
+import { PermissionNext } from "../../src/permission/next"
 import { tmpdir } from "../fixture/fixture"
 
 async function trust() {
@@ -106,6 +111,7 @@ test("availableSkills injects call-first routing only for a known slash skill", 
       expect(known).toContain("complete requested workflow scope")
       expect(known).not.toContain("<skill-routing>")
       expect(known).not.toContain("Likely matches for this request")
+      expect(known).not.toContain("skill({query:")
       expect(upper).toContain('skill({name:"scanpy"})')
       expect(inline).toContain('skill({name:"scanpy"})')
       expect(punctuated).toContain('skill({name:"scanpy"})')
@@ -181,6 +187,54 @@ test("availableSkills blocks skill calls when the registry is empty", async () =
   })
 })
 
+test("availableSkills discovery guidance leads to callable exact names under the same permissions", async () => {
+  await using tmp = await tmpdir({
+    git: true,
+    init: async (dir) => {
+      await writeSkill(dir, "plotly", "visualization", "Interactive charts, scatter plots, and histograms.")
+      await writeSkill(dir, "private-plots", "visualization", "Interactive charts, scatter plots, and histograms.")
+      await writeSkill(dir, "pysam", "biology", "Read and write sequence alignment files.")
+    },
+  })
+
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      await trust()
+      const research = await Agent.get("research")
+      if (!research) throw new Error("Research agent is unavailable")
+      const permission: PermissionNext.Ruleset = [
+        { permission: "skill", pattern: "*", action: "allow" },
+        { permission: "skill", pattern: "private-plots", action: "deny" },
+      ]
+      const query = "interactive charts and histograms"
+      const section = await SystemPrompt.availableSkills(permission, query)
+      expect(section).toContain('skill({query:"<focused task>"})')
+      expect(section).toContain("load a returned exact name")
+      expect(section).not.toContain("private-plots")
+      const names = [...section.matchAll(/^- ([^:]+):/gm)].map((match) => match[1])
+      const session = await Session.create({ title: "Skill discovery contract" })
+      const tool = await SkillTool.init({ agent: { ...research, permission } })
+      const context: Tool.Context = {
+        sessionID: session.id,
+        messageID: "msg_skill_discovery",
+        agent: research.name,
+        abort: new AbortController().signal,
+        messages: [],
+        metadata: () => {},
+        ask: (request) => PermissionNext.ask({ ...request, sessionID: session.id, ruleset: permission }),
+      }
+      const matches = await tool.execute({ query }, context)
+      expect(matches.metadata.matches).toEqual(names)
+      expect(names).toEqual(["plotly"])
+      const loaded = await tool.execute({ name: names[0] }, context)
+      expect(loaded.metadata.name).toBe("plotly")
+      expect(loaded.output).toContain("# plotly")
+      await expect(tool.execute({ name: "private-plots" }, context)).rejects.toThrow("not found")
+    },
+  })
+})
+
 test("availableSkills cache follows real skill catalog invalidation", async () => {
   await using tmp = await tmpdir({
     git: true,
@@ -204,13 +258,16 @@ test("availableSkills cache follows real skill catalog invalidation", async () =
   })
 })
 
-test("availableSkills gives explicit routes for venue and figure work", async () => {
+test("coreSkills indexes the core category in task order and points at provider and database skills by name", async () => {
   await using tmp = await tmpdir({
     git: true,
     init: async (dir) => {
-      await writeSkill(dir, "venue-templates", "writing")
-      await writeSkill(dir, "ml-paper-writing", "writing")
-      await writeSkill(dir, "scientific-schematics", "visualization")
+      await writeSkill(dir, "peer-review", "core", "Referee a manuscript. Long second sentence that must not appear.")
+      await writeSkill(dir, "research-lookup", "core", "One focused question answered from a fetched source.")
+      await writeSkill(dir, "zeta-core", "core", "A core skill outside the fixed order sorts last.")
+      await writeSkill(dir, "runpod-gpu-cloud", "cloud-compute", "RunPod GPU pods.")
+      await writeSkill(dir, "uniprot-database", "databases", "UniProt REST API.")
+      await writeSkill(dir, "scanpy", "biology", "Single-cell analysis.")
     },
   })
 
@@ -218,15 +275,57 @@ test("availableSkills gives explicit routes for venue and figure work", async ()
     directory: tmp.path,
     fn: async () => {
       await trust()
-      const section = await SystemPrompt.availableSkills([])
-      expect(section).toContain("<skill-routing>")
-      expect(section).toContain(
-        "Venue-specific paper formatting, submission checks, or page limits: venue-templates, ml-paper-writing",
+      const index = (await SystemPrompt.coreSkills([]))!
+      const lines = index.split("\n")
+      expect(lines[0]).toBe("<core-skills>")
+      const research = lines.findIndex((line) => line.startsWith("- research-lookup:"))
+      const review = lines.findIndex((line) => line.startsWith("- peer-review:"))
+      const zeta = lines.findIndex((line) => line.startsWith("- zeta-core:"))
+      expect(research).toBeGreaterThan(0)
+      expect(research).toBeLessThan(review)
+      expect(review).toBeLessThan(zeta)
+      // First sentence only, and library skills never appear as core lines.
+      expect(index).toContain("- peer-review: Referee a manuscript.")
+      expect(index).not.toContain("Long second sentence")
+      expect(index).not.toContain("- scanpy:")
+      expect(index).toContain("check compute_job targets first: runpod-gpu-cloud")
+      expect(index).toContain("database: uniprot-database")
+      expect(index).toContain("6-skill library")
+      // A discovered disagreement about a convention routes to the library
+      // before a side is chosen; the cue sits on the search line the lead reads.
+      expect(index).toContain("search the library for that convention before choosing a side")
+    },
+  })
+})
+
+test("coreSkills is absent without a core category, and a summary replaces the description line", async () => {
+  await using tmp = await tmpdir({
+    git: true,
+    init: async (dir) => {
+      await writeSkill(dir, "scanpy", "biology")
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      await trust()
+      expect(await SystemPrompt.coreSkills([])).toBeUndefined()
+      await Bun.write(
+        path.join(tmp.path, ".openscience", "skill", "figures", "SKILL.md"),
+        `---
+name: figures
+description: Makes publication-quality plots. Use whenever results are plotted.
+summary: "Publication plots from real data: sized for the page."
+category: core
+---
+
+# figures
+`,
       )
-      expect(section).toContain(
-        "Technical figures, architectures, workflows, or scientific diagrams: scientific-schematics",
+      await Skill.invalidate()
+      expect(await SystemPrompt.coreSkills([])).toContain(
+        "- figures: Publication plots from real data: sized for the page.",
       )
-      expect(section).toContain("load the listed skill or skills before the first substantive edit")
     },
   })
 })

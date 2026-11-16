@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/canonical-manuscript-revision.schema.json",
+  "title": "PaperSpine5 canonical manuscript revision",
+  "type": "object",
+  "required": ["contract", "contract_version", "subject", "artifacts", "status", "external_action_authorized", "revision_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.canonical-manuscript-revision"},
+    "contract_version": {"const": "1.0"},
+    "subject": {"$ref": "quality-subject.schema.json"},
+    "artifacts": {
+      "type": "object",
+      "required": ["source", "pdf", "word"],
+      "additionalProperties": false,
+      "properties": {
+        "source": {"$ref": "#/$defs/artifact"},
+        "pdf": {"$ref": "#/$defs/artifact"},
+        "word": {"$ref": "#/$defs/artifact"}
+      }
+    },
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "external_action_authorized": {"const": false},
+    "revision_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "artifact": {
+      "type": "object",
+      "required": ["artifact_id", "sha256", "revision_id", "build_status"],
+      "additionalProperties": true,
+      "properties": {
+        "artifact_id": {"type": "string", "minLength": 1, "description": "Exact registered input identity for this role, including versioned IDs. J9/J10 resolve it through the persisted canonical revision and current manuscript head; fixed manuscript_source/pdf/word aliases are not required."},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "revision_id": {"type": "string", "minLength": 1},
+        "build_status": {"const": "PASS"}
+      }
+    }
+  },
+  "additionalProperties": false
+}

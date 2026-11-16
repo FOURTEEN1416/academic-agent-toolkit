@@ -8,6 +8,8 @@ run from Codex, Claude Code, OpenClaw, or a plain terminal.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -17,18 +19,24 @@ import tempfile
 import urllib.error
 import urllib.request
 import zipfile
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import datetime, timedelta, timezone
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 DEFAULT_MANIFEST_URL = (
     "https://raw.githubusercontent.com/WUBING2023/PaperSpine/main/dist/paperspine_version.json"
+)
+DEFAULT_STABLE_CHANNEL = (
+    "https://raw.githubusercontent.com/WUBING2023/PaperSpine/main/website/downloads/update-channel.json"
 )
 # Stage 5a: archive_url points to a fixed tag so users never pull in-flight main.
 DEFAULT_ARCHIVE_URL = "https://github.com/WUBING2023/PaperSpine/archive/refs/tags/v4.0.0.zip"
 CONFIG_HOME_ENV = "PAPERSPINE_CONFIG_HOME"
 VERSION_FILE = "paperspine_version.json"
 INSTALL_STATE_FILE = "install_state.json"
+UPDATE_POLICY_FILE = "update_policy.json"
+UPDATE_POLICY_SCHEMA = "1.0"
+DEFAULT_AUTO_UPDATE_INTERVAL_HOURS = 24
 
 # Stage 2a: published suite is a single orchestrator skill.
 SUITE_SKILLS = (
@@ -42,10 +50,31 @@ class UpdateError(RuntimeError):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Check and update local PaperSpine installs.")
-    parser.add_argument("--check-only", action="store_true", help="Only check whether an update is available.")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--check-only", action="store_true", help="Only check whether an update is available.")
+    mode.add_argument(
+        "--auto",
+        action="store_true",
+        help="Run the opt-in, interval-limited automatic update preflight.",
+    )
+    mode.add_argument(
+        "--enable-auto-update",
+        action="store_true",
+        help="Enable automatic updates for later PaperSpine launches.",
+    )
+    mode.add_argument(
+        "--disable-auto-update",
+        action="store_true",
+        help="Disable automatic updates.",
+    )
+    mode.add_argument(
+        "--auto-status",
+        action="store_true",
+        help="Show automatic-update policy and last check result without using the network.",
+    )
     parser.add_argument(
         "--target",
-        choices=("all", "codex", "claude", "openclaw"),
+        choices=("all", "codex", "claude", "openclaw", "hermes"),
         default="all",
         help="Install target to update. Default: all.",
     )
@@ -61,7 +90,37 @@ def parse_args() -> argparse.Namespace:
         help="Optional repo zip, repo directory, or URL. Tests can pass a local zip.",
     )
     parser.add_argument("--yes", action="store_true", help="Update without interactive confirmation.")
-    return parser.parse_args()
+    parser.add_argument(
+        "--interval-hours",
+        type=int,
+        default=None,
+        help="Automatic-update interval (1-168 hours). Used with --enable-auto-update.",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="With --auto, bypass the interval once; automatic updates must still be enabled.",
+    )
+    parser.add_argument("--preflight", action="store_true",
+                        help="Check on every invocation and update this managed suite unless explicitly disabled.")
+    parser.add_argument("--skill-root", type=Path, default=None,
+                        help="Managed paper-spine Skill directory; defaults to this installed script's parent.")
+    parser.add_argument("--control-root", type=Path, default=None,
+                        help="Stable updater control directory; reuses this suite's existing control when possible.")
+    parser.add_argument("--source", default=None,
+                        help="Stable update channel for --preflight; defaults to the saved channel or official channel.")
+    args = parser.parse_args()
+    if args.preflight and (args.auto or args.enable_auto_update or args.disable_auto_update or args.auto_status):
+        parser.error("--preflight cannot be combined with legacy automatic-update policy commands.")
+    if (args.skill_root is not None or args.control_root is not None or args.source is not None) and not args.preflight:
+        parser.error("--skill-root, --control-root and --source require --preflight.")
+    if args.interval_hours is not None and not 1 <= args.interval_hours <= 168:
+        parser.error("--interval-hours must be between 1 and 168.")
+    if args.interval_hours is not None and not args.enable_auto_update:
+        parser.error("--interval-hours requires --enable-auto-update.")
+    if args.force and not args.auto:
+        parser.error("--force requires --auto.")
+    return args
 
 
 def config_home(args: argparse.Namespace) -> Path:
@@ -74,7 +133,7 @@ def config_home(args: argparse.Namespace) -> Path:
 
 
 def read_json(path: Path) -> dict[str, Any]:
-    with path.open("r", encoding="utf-8") as handle:
+    with path.open("r", encoding="utf-8-sig") as handle:
         data = json.load(handle)
     if not isinstance(data, dict):
         raise UpdateError(f"JSON root must be an object: {path}")
@@ -86,15 +145,111 @@ def write_json(path: Path, data: dict[str, Any]) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def version_key(version: str) -> tuple[int, int, int, int, int]:
-    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:-rc\.(\d+))?", version.strip())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def iso_utc(value: datetime) -> str:
+    return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def default_update_policy() -> dict[str, Any]:
+    return {
+        "schema_version": UPDATE_POLICY_SCHEMA,
+        "auto_update": False,
+        "interval_hours": DEFAULT_AUTO_UPDATE_INTERVAL_HOURS,
+        "target": "all",
+        "last_checked_at": None,
+        "last_result": "never_checked",
+        "last_error": None,
+    }
+
+
+def load_update_policy(config_dir: Path) -> dict[str, Any]:
+    path = config_dir / UPDATE_POLICY_FILE
+    if not path.exists():
+        return default_update_policy()
+    try:
+        stored = read_json(path)
+    except (OSError, json.JSONDecodeError, UpdateError) as exc:
+        raise UpdateError(f"Invalid automatic-update policy: {path} ({exc})") from exc
+    policy = default_update_policy()
+    policy.update(stored)
+    if policy.get("schema_version") != UPDATE_POLICY_SCHEMA:
+        raise UpdateError(
+            f"Unsupported automatic-update policy schema: {policy.get('schema_version')}"
+        )
+    interval = policy.get("interval_hours")
+    if not isinstance(interval, int) or not 1 <= interval <= 168:
+        raise UpdateError("Automatic-update interval must be an integer between 1 and 168 hours.")
+    if policy.get("target") not in {"all", "codex", "claude", "openclaw", "hermes"}:
+        raise UpdateError(f"Unsupported automatic-update target: {policy.get('target')}")
+    if not isinstance(policy.get("auto_update"), bool):
+        raise UpdateError("Automatic-update policy auto_update must be true or false.")
+    return policy
+
+
+def save_update_policy(config_dir: Path, policy: dict[str, Any]) -> None:
+    write_json(config_dir / UPDATE_POLICY_FILE, policy)
+
+
+def auto_update_due(policy: dict[str, Any], *, now: datetime | None = None) -> bool:
+    last_checked = policy.get("last_checked_at")
+    if not last_checked:
+        return True
+    try:
+        checked_at = datetime.fromisoformat(str(last_checked).replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise UpdateError(f"Invalid last_checked_at in automatic-update policy: {last_checked}") from exc
+    if checked_at.tzinfo is None:
+        raise UpdateError("Automatic-update policy last_checked_at must include a timezone.")
+    current_time = now or utc_now()
+    return current_time >= checked_at + timedelta(hours=int(policy["interval_hours"]))
+
+
+def describe_update_policy(policy: dict[str, Any]) -> str:
+    state = "enabled" if policy["auto_update"] else "disabled"
+    return (
+        f"PaperSpine automatic updates: {state}; interval={policy['interval_hours']}h; "
+        f"target={policy['target']}; last_checked={policy.get('last_checked_at') or 'never'}; "
+        f"last_result={policy.get('last_result') or 'unknown'}"
+    )
+
+
+def version_key(
+    version: str,
+) -> tuple[int, int, int, int, tuple[tuple[int, int | str], ...]]:
+    """Return a SemVer precedence key while ignoring build metadata.
+
+    PaperSpine prereleases are used for shadow migrations (for example
+    ``0.4.0-alpha.1``), so restricting the updater to ``rc.N`` makes a safe
+    staged release impossible.  The token shape keeps numeric identifiers
+    below non-numeric identifiers exactly as SemVer 2.0.0 requires.
+    """
+    match = re.fullmatch(
+        r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+        r"(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?"
+        r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?",
+        version.strip(),
+    )
     if not match:
         raise UpdateError(f"Unsupported PaperSpine version: {version}")
     major, minor, patch = (int(match.group(i)) for i in range(1, 4))
-    rc = match.group(4)
-    if rc is None:
-        return (major, minor, patch, 1, 0)
-    return (major, minor, patch, 0, int(rc))
+    prerelease = match.group(4)
+    if prerelease is None:
+        return (major, minor, patch, 1, ())
+
+    identifiers: list[tuple[int, int | str]] = []
+    for identifier in prerelease.split("."):
+        if identifier.isdigit():
+            if len(identifier) > 1 and identifier.startswith("0"):
+                raise UpdateError(
+                    f"Numeric SemVer prerelease identifiers must not have leading zeros: {version}"
+                )
+            identifiers.append((0, int(identifier)))
+        else:
+            identifiers.append((1, identifier))
+    return (major, minor, patch, 0, tuple(identifiers))
 
 
 def compare_versions(left: str, right: str) -> int:
@@ -271,80 +426,168 @@ def replace_tree(src: Path, dest: Path) -> None:
 
 def copy_file(src: Path, dest: Path) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src, dest)
+    tmp = dest.parent / f".{dest.name}.paperspine-update-tmp"
+    if tmp.exists():
+        tmp.unlink()
+    shutil.copy2(src, tmp)
+    tmp.replace(dest)
 
 
 def target_paths(target: str) -> dict[str, Path]:
     home = Path.home()
     paths = {
-        "codex": Path(os.environ.get("PAPERSPINE_CODEX_SKILLS_DIR", home / ".codex" / "skills")),
+        "codex_skills": Path(
+            os.environ.get("PAPERSPINE_CODEX_SKILLS_DIR", home / ".codex" / "skills")
+        ),
+        "codex_prompts": Path(
+            os.environ.get("PAPERSPINE_CODEX_PROMPTS_DIR", home / ".codex" / "prompts")
+        ),
         "claude_skills": Path(os.environ.get("PAPERSPINE_CLAUDE_SKILLS_DIR", home / ".claude" / "skills")),
         "claude_commands": Path(os.environ.get("PAPERSPINE_CLAUDE_COMMANDS_DIR", home / ".claude" / "commands")),
-        "openclaw": Path(os.environ.get("PAPERSPINE_OPENCLAW_SKILLS_DIR", home / ".openclaw" / "skills")),
+        "openclaw_skills": Path(
+            os.environ.get("PAPERSPINE_OPENCLAW_SKILLS_DIR", home / ".openclaw" / "skills")
+        ),
+        "hermes_skills": Path(
+            os.environ.get(
+                "PAPERSPINE_HERMES_SKILLS_DIR",
+                home / "AppData" / "Local" / "hermes" / "skills",
+            )
+        ),
     }
     if target == "codex":
-        return {"codex": paths["codex"]}
+        return {key: paths[key] for key in ("codex_skills", "codex_prompts")}
     if target == "claude":
         return {"claude_skills": paths["claude_skills"], "claude_commands": paths["claude_commands"]}
     if target == "openclaw":
-        return {"openclaw": paths["openclaw"]}
+        return {"openclaw_skills": paths["openclaw_skills"]}
+    if target == "hermes":
+        return {"hermes_skills": paths["hermes_skills"]}
     return paths
 
 
 def target_names(target: str) -> list[str]:
     if target == "all":
-        return ["codex", "claude", "openclaw"]
+        return ["codex", "claude", "openclaw", "hermes"]
     return [target]
 
 
-def install_target(root: Path, target: str) -> list[str]:
-    paths = target_paths(target)
-    current_skills = {d.name for d in (root / "dist" / "claude" / "skills").iterdir() if d.is_dir()}
-    current_commands = {f.name for f in (root / "dist" / "claude" / "commands").glob("*.md")}
-    installed: list[str] = []
+def stale_skill_entries(skills_root: Path) -> list[tuple[None, Path]]:
+    if not skills_root.exists():
+        return []
+    return [
+        (None, path)
+        for path in skills_root.iterdir()
+        if path.is_dir() and path.name.startswith("paper-spine") and path.name != "paper-spine"
+    ]
 
-    if "codex" in paths:
-        source = root / "dist" / "codex" / "skills"
-        for skill_dir in source.iterdir():
-            if skill_dir.is_dir():
-                replace_tree(skill_dir, paths["codex"] / skill_dir.name)
-        # Clean up skills no longer in dist
-        if paths["codex"].exists():
-            for existing in paths["codex"].iterdir():
-                if existing.is_dir() and existing.name.startswith("paper-spine") and existing.name not in current_skills:
-                    shutil.rmtree(existing)
-        installed.append("codex")
+
+def installation_entries(root: Path, target: str) -> list[tuple[Path | None, Path]]:
+    paths = target_paths(target)
+    entries: list[tuple[Path | None, Path]] = []
+    if "codex_skills" in paths:
+        entries.extend(
+            [
+                (
+                    root / "dist" / "codex" / "skills" / "paper-spine",
+                    paths["codex_skills"] / "paper-spine",
+                ),
+                (
+                    root / "dist" / "codex" / "prompts" / "paperspine.md",
+                    paths["codex_prompts"] / "paperspine.md",
+                ),
+            ]
+        )
+        entries.extend(stale_skill_entries(paths["codex_skills"]))
     if "claude_skills" in paths:
-        source = root / "dist" / "claude" / "skills"
-        for skill_dir in source.iterdir():
-            if skill_dir.is_dir():
-                replace_tree(skill_dir, paths["claude_skills"] / skill_dir.name)
-        # Clean up stale skills
-        if paths["claude_skills"].exists():
-            for existing in paths["claude_skills"].iterdir():
-                if existing.is_dir() and existing.name.startswith("paper-spine") and existing.name not in current_skills:
-                    shutil.rmtree(existing)
-        # Install commands
-        commands_source = root / "dist" / "claude" / "commands"
-        paths["claude_commands"].mkdir(parents=True, exist_ok=True)
-        for command_file in commands_source.glob("*.md"):
-            copy_file(command_file, paths["claude_commands"] / command_file.name)
-        # Clean up stale commands
-        for existing in paths["claude_commands"].glob("*.md"):
-            if existing.name.startswith("paperspine") and existing.name not in current_commands:
-                existing.unlink()
-        installed.append("claude")
-    if "openclaw" in paths:
-        source = root / "dist" / "openclaw" / "skills"
-        for skill_dir in source.iterdir():
-            if skill_dir.is_dir():
-                replace_tree(skill_dir, paths["openclaw"] / skill_dir.name)
-        if paths["openclaw"].exists():
-            for existing in paths["openclaw"].iterdir():
-                if existing.is_dir() and existing.name.startswith("paper-spine") and existing.name not in current_skills:
-                    shutil.rmtree(existing)
-        installed.append("openclaw")
-    return installed
+        entries.extend(
+            [
+                (
+                    root / "dist" / "claude" / "skills" / "paper-spine",
+                    paths["claude_skills"] / "paper-spine",
+                ),
+                (
+                    root / "dist" / "claude" / "commands" / "paperspine.md",
+                    paths["claude_commands"] / "paperspine.md",
+                ),
+            ]
+        )
+        entries.extend(stale_skill_entries(paths["claude_skills"]))
+        if paths["claude_commands"].exists():
+            entries.extend(
+                (None, path)
+                for path in paths["claude_commands"].glob("paperspine*.md")
+                if path.name != "paperspine.md"
+            )
+    if "openclaw_skills" in paths:
+        entries.append(
+            (
+                root / "dist" / "openclaw" / "skills" / "paper-spine",
+                paths["openclaw_skills"] / "paper-spine",
+            )
+        )
+        entries.extend(stale_skill_entries(paths["openclaw_skills"]))
+    if "hermes_skills" in paths:
+        entries.append(
+            (
+                root / "dist" / "hermes" / "skills" / "academic-writing" / "paper-spine",
+                paths["hermes_skills"] / "academic-writing" / "paper-spine",
+            )
+        )
+        entries.extend(
+            stale_skill_entries(paths["hermes_skills"] / "academic-writing")
+        )
+    return entries
+
+
+def restore_installation(backups: list[tuple[Path, Path | None]]) -> None:
+    for dest, backup in reversed(backups):
+        if dest.exists():
+            shutil.rmtree(dest) if dest.is_dir() else dest.unlink()
+        if backup is None:
+            continue
+        if backup.is_dir():
+            shutil.copytree(backup, dest)
+        else:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(backup, dest)
+
+
+def install_target(root: Path, target: str) -> list[str]:
+    entries = installation_entries(root, target)
+    with tempfile.TemporaryDirectory(prefix="paperspine-rollback-") as tmp:
+        backup_root = Path(tmp)
+        backups: list[tuple[Path, Path | None]] = []
+        try:
+            for index, (_, dest) in enumerate(entries):
+                if not dest.exists():
+                    backups.append((dest, None))
+                    continue
+                backup = backup_root / str(index)
+                if dest.is_dir():
+                    shutil.copytree(dest, backup)
+                else:
+                    backup.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(dest, backup)
+                backups.append((dest, backup))
+        except OSError as exc:
+            raise UpdateError(f"Unable to prepare update rollback data: {exc}") from exc
+        try:
+            for source, dest in entries:
+                if source is None:
+                    shutil.rmtree(dest) if dest.is_dir() else dest.unlink()
+                elif source.is_dir():
+                    replace_tree(source, dest)
+                else:
+                    copy_file(source, dest)
+        except OSError as exc:
+            try:
+                restore_installation(backups)
+            except OSError as rollback_exc:
+                raise UpdateError(
+                    f"Installation failed ({exc}); rollback also failed ({rollback_exc})."
+                ) from rollback_exc
+            raise UpdateError(f"Installation failed and was rolled back: {exc}") from exc
+    return target_names(target)
 
 
 def resolve_claude_settings_dir() -> Path:
@@ -388,7 +631,7 @@ def sync_skill_overrides(claude_settings_dir: Path) -> None:
 def write_install_state(config_dir: Path, manifest: dict[str, Any], targets: list[str]) -> None:
     state = {
         "installed_version": manifest["version"],
-        "installed_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "installed_at": iso_utc(utc_now()),
         "source": {
             "repository": manifest.get("repository"),
             "channel": manifest.get("channel"),
@@ -402,7 +645,7 @@ def write_install_state(config_dir: Path, manifest: dict[str, Any], targets: lis
 
 
 def confirm_update(current: str, latest: str, args: argparse.Namespace) -> bool:
-    if args.yes:
+    if args.yes or args.auto:
         return True
     if not sys.stdin.isatty():
         raise UpdateError("Update available but --yes was not provided in a non-interactive session.")
@@ -410,10 +653,10 @@ def confirm_update(current: str, latest: str, args: argparse.Namespace) -> bool:
     return answer in {"y", "yes"}
 
 
-def run(args: argparse.Namespace) -> int:
+def run_update(args: argparse.Namespace, *, checked_manifest: dict[str, Any] | None = None) -> int:
     config_dir = config_home(args)
     current = local_version(config_dir)
-    manifest = latest_manifest(args)
+    manifest = checked_manifest if checked_manifest is not None else latest_manifest(args)
     latest = str(manifest.get("version") or "")
     if not latest:
         raise UpdateError("Latest manifest does not contain a version.")
@@ -423,7 +666,8 @@ def run(args: argparse.Namespace) -> int:
         print(f"PaperSpine is already latest: {current}")
         if comparison == 0 and not args.check_only:
             write_install_state(config_dir, manifest, target_names(args.target))
-            sync_skill_overrides(resolve_claude_settings_dir())
+            if "claude" in target_names(args.target):
+                sync_skill_overrides(resolve_claude_settings_dir())
         return 0
 
     print(f"PaperSpine update available: {current} -> {latest}")
@@ -445,7 +689,241 @@ def run(args: argparse.Namespace) -> int:
         write_install_state(config_dir, package_manifest, installed)
     print(f"PaperSpine updated to {latest}: {', '.join(installed)}")
     print(f"Global config preserved: {config_dir / 'config.json'}")
+    print("Reload or restart the host before starting or resuming a PaperSpine workflow.")
     return 0
+
+
+def configure_auto_update(args: argparse.Namespace) -> int:
+    config_dir = config_home(args)
+    policy = load_update_policy(config_dir)
+    if args.enable_auto_update:
+        policy["auto_update"] = True
+        policy["interval_hours"] = args.interval_hours or policy["interval_hours"]
+        policy["target"] = args.target
+        policy["last_result"] = "enabled_waiting_for_preflight"
+        policy["last_error"] = None
+        save_update_policy(config_dir, policy)
+        print(describe_update_policy(policy))
+        return 0
+    if args.disable_auto_update:
+        policy["auto_update"] = False
+        policy["last_result"] = "disabled_by_user"
+        policy["last_error"] = None
+        save_update_policy(config_dir, policy)
+        print(describe_update_policy(policy))
+        return 0
+    print(describe_update_policy(policy))
+    if policy.get("last_error"):
+        print(f"Last automatic-update error: {policy['last_error']}")
+    return 0
+
+
+def run_auto_update(args: argparse.Namespace) -> int:
+    config_dir = config_home(args)
+    policy = load_update_policy(config_dir)
+    if not policy["auto_update"]:
+        print("PaperSpine automatic updates are disabled.")
+        return 0
+    if not args.force and not auto_update_due(policy):
+        print(describe_update_policy(policy))
+        print("PaperSpine automatic update check is not due.")
+        return 0
+
+    args.target = str(policy["target"])
+    checked_at = utc_now()
+    try:
+        result = run_update(args)
+    except UpdateError as exc:
+        policy["last_checked_at"] = iso_utc(checked_at)
+        policy["last_result"] = "error"
+        policy["last_error"] = str(exc)
+        save_update_policy(config_dir, policy)
+        raise
+    policy["last_checked_at"] = iso_utc(checked_at)
+    policy["last_result"] = "updated_or_current"
+    policy["last_error"] = None
+    save_update_policy(config_dir, policy)
+    return result
+
+
+
+def _managed_installation(skill_root: Path) -> tuple[Path, dict[str, Any], dict[str, Any]] | None:
+    pointer_path = skill_root / "references" / "installed-suite.json"
+    if not pointer_path.is_file():
+        return None
+    try:
+        pointer = read_json(pointer_path)
+        root_value = pointer.get("suite_root")
+        if not isinstance(root_value, str) or not Path(root_value).is_absolute():
+            raise UpdateError("installed suite_root must be an absolute directory")
+        suite = Path(root_value).resolve()
+        manifest = read_json(suite / "suite-manifest.json")
+    except (OSError, ValueError) as exc:
+        raise UpdateError(f"Installed suite identity is unreadable: {pointer_path} ({exc})") from exc
+    if (pointer.get("contract") != "paperspine5.installed-suite-pointer"
+            or pointer.get("schema_version") != "1.0" or pointer.get("product_id") != "paperspine5"
+            or not pointer.get("build_id") or not pointer.get("content_index_sha256")
+            or manifest.get("contract") != "paperspine5.suite-manifest"
+            or manifest.get("schema_version") != "1.0"
+            or manifest.get("suite", {}).get("product_id") != "paperspine5"
+            or manifest.get("suite", {}).get("build_id") != pointer["build_id"]
+            or manifest.get("content", {}).get("index_sha256") != pointer["content_index_sha256"]):
+        raise UpdateError("Installed suite pointer and manifest identity do not match.")
+    if not (skill_root / "SKILL.md").is_file():
+        raise UpdateError("Managed installation is missing its SKILL.md.")
+    return suite, pointer, manifest
+
+
+def _stable_entry(suite: Path, pointer: dict[str, Any], manifest: dict[str, Any]) -> Path:
+    # This is a generated projection of the canonical bootstrap, not another implementation.
+    embedded = Path(__file__).resolve().with_name("paperspine_stable_update.py")
+    if embedded.is_file():
+        return embedded
+    relative = str(pointer.get("updater_entry", "release/stable_updater.py"))
+    path = PurePosixPath(relative)
+    if path.is_absolute() or ".." in path.parts or "\\" in relative or ":" in relative:
+        raise UpdateError("Installed updater_entry must stay inside its suite.")
+    entry = (suite / relative).resolve()
+    if not entry.is_relative_to(suite) or not entry.is_file():
+        raise UpdateError("Installed stable updater entry is missing or outside its suite.")
+    records = [item for item in manifest.get("content", {}).get("files", [])
+               if item.get("path") == relative]
+    if (len(records) != 1
+            or hashlib.sha256(entry.read_bytes()).hexdigest() != records[0].get("sha256")):
+        raise UpdateError("Installed stable updater differs from its suite content index.")
+    return entry
+
+
+def _stable_control(skill_root: Path, suite: Path | None, explicit: Path | None) -> tuple[Path, dict[str, Any]]:
+    def settings_at(root: Path) -> dict[str, Any]:
+        path = root / "settings.json"
+        settings = read_json(path) if path.is_file() else {}
+        if settings and settings.get("protocol") != "paperspine-updater/1":
+            raise UpdateError("Stable updater settings use an unsupported protocol.")
+        return settings
+
+    def matches(settings: dict[str, Any]) -> bool:
+        return bool(settings.get("skill_root") and Path(settings["skill_root"]).resolve() == skill_root)
+
+    if explicit is not None:
+        root = explicit.resolve()
+        settings = settings_at(root)
+        if settings and not matches(settings):
+            raise UpdateError("The selected control directory belongs to another Skill installation.")
+        return root, settings
+    if suite is not None and suite.parent.parent.name == "transactions":
+        root = suite.parent.parent.parent
+        settings = settings_at(root)
+        if matches(settings):
+            return root, settings
+    root = Path.home() / ".paperspine5" / "updater"
+    settings = settings_at(root)
+    if settings and not matches(settings):
+        # Keep independently installed hosts from replacing one another's settings.
+        key = hashlib.sha256(os.path.normcase(str(skill_root)).encode("utf-8")).hexdigest()[:16]
+        root = root.with_name("updater-" + key)
+        settings = settings_at(root)
+        if settings and not matches(settings):
+            raise UpdateError("The per-installation updater control directory belongs to another Skill.")
+    return root, settings
+
+
+def _load_stable_updater(entry: Path):
+    spec = importlib.util.spec_from_file_location("paperspine_preflight_bootstrap", entry)
+    if spec is None or spec.loader is None:
+        raise UpdateError("Cannot load the installed stable updater.")
+    module = importlib.util.module_from_spec(spec)
+    previous = sys.dont_write_bytecode
+    try:
+        sys.dont_write_bytecode = True
+        spec.loader.exec_module(module)
+    finally:
+        sys.dont_write_bytecode = previous
+    if (getattr(module, "PROTOCOL", None) != "paperspine-updater/1"
+            or not callable(getattr(module, "check", None)) or not callable(getattr(module, "auto", None))):
+        raise UpdateError("This old updater cannot run a preflight. Install the current updater entry; no blind apply was attempted.")
+    return module
+
+
+def _preflight_offline(skill_root: Path, exc: BaseException) -> int:
+    print(json.dumps({"status": "check_unavailable", "continue_existing": True,
+                      "installation": str(skill_root),
+                      "message": "Update check is unavailable; continue with the existing installation.",
+                      "error": str(exc)}, ensure_ascii=False))
+    return 0
+
+
+def run_preflight(args: argparse.Namespace) -> int:
+    config_dir = config_home(args)
+    if (config_dir / UPDATE_POLICY_FILE).is_file() and not load_update_policy(config_dir)["auto_update"]:
+        print(json.dumps({"status": "disabled", "continue_existing": True,
+                          "message": "Automatic updates were explicitly disabled; no network check was made."}))
+        return 0
+    skill_root = (args.skill_root or Path(__file__).resolve().parents[1]).resolve()
+    try:
+        managed = _managed_installation(skill_root)
+        embedded = Path(__file__).resolve().with_name("paperspine_stable_update.py")
+        if managed is None and not embedded.is_file():
+            if args.skill_root is not None or args.source is not None or args.control_root is not None:
+                raise UpdateError("This is a standalone Skill, not a managed suite. Use the legacy --target updater without suite options.")
+            if not (skill_root / "SKILL.md").is_file():
+                raise UpdateError("No installed Skill was found. Supply --skill-root for a managed installation.")
+            # Keep standalone installations on their existing component channel.
+            # Only the metadata request may degrade to continuing offline.
+            try:
+                manifest = latest_manifest(args)
+            except UpdateError as exc:
+                if isinstance(exc.__cause__, (urllib.error.URLError, TimeoutError, ConnectionError)):
+                    return _preflight_offline(skill_root, exc)
+                raise
+            args.yes = True
+            print("Standalone Skill: using the existing component updater; no suite migration is performed.")
+            return run_update(args, checked_manifest=manifest)
+        if managed is None:
+            if skill_root.name != "paper-spine" or not (skill_root / "SKILL.md").is_file():
+                raise UpdateError("No canonical installed paper-spine Skill was found.")
+            suite, entry = None, embedded
+        else:
+            suite, pointer, manifest = managed
+            entry = _stable_entry(suite, pointer, manifest)
+        if args.repo_archive is not None:
+            raise UpdateError("Managed preflight uses --source, not the legacy --repo-archive option.")
+        control, settings = _stable_control(skill_root, suite, args.control_root)
+        source = args.source or settings.get("channel") or DEFAULT_STABLE_CHANNEL
+        module = _load_stable_updater(entry)
+        try:
+            checked = module.check(source, skill_root=skill_root, control_root=control)
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+            return _preflight_offline(skill_root, exc)
+        if checked.get("status") not in ("up_to_date", "update_available", "recovery_required"):
+            raise UpdateError(f"Stable updater returned an unsuccessful check: {checked}")
+        if args.check_only:
+            result = checked
+        else:
+            # All errors after precheck are fatal: never describe a failed install as offline success.
+            result = module.auto(source, skill_root=skill_root, control_root=control,
+                                 data_roots=settings.get("data_roots", []), confirmed=True)
+        if result.get("status") not in ("up_to_date", "committed", "update_available", "recovery_required"):
+            raise UpdateError(f"Stable updater returned an unsuccessful result: {result}")
+        print(json.dumps({key: value for key, value in result.items() if key not in ("before", "after")},
+                         ensure_ascii=False, indent=2))
+        if result.get("status") == "recovery_required":
+            return 1
+        return 2 if args.check_only and result.get("status") == "update_available" else 0
+    except UpdateError:
+        raise
+    except Exception as exc:
+        raise UpdateError(f"Managed update preflight failed: {exc}") from exc
+
+
+def run(args: argparse.Namespace) -> int:
+    if getattr(args, "preflight", False):
+        return run_preflight(args)
+    if args.enable_auto_update or args.disable_auto_update or args.auto_status:
+        return configure_auto_update(args)
+    if args.auto:
+        return run_auto_update(args)
+    return run_update(args)
 
 
 def main() -> int:

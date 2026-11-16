@@ -277,6 +277,36 @@ describe("tool.read truncation", () => {
     })
   })
 
+  test("a PDF longer than a provider accepts is read without being attached", async () => {
+    // A provider refuses a request carrying a PDF over its page limit, and
+    // refuses the identical request on every retry; a 376-page scanned thesis
+    // read whole would have ended the run. The page count is what the raw
+    // bytes declare.
+    const pdf = (pages: number) =>
+      `%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Count ${pages} >> endobj\n` +
+      Array.from({ length: pages }, (_, i) => `${i + 3} 0 obj << /Type /Page /Parent 2 0 R >> endobj\n`).join("") +
+      "trailer << /Root 1 0 R >>\n%%EOF\n"
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await fs.writeFile(path.join(dir, "thesis.pdf"), pdf(376))
+        await fs.writeFile(path.join(dir, "note.pdf"), pdf(3))
+      },
+    })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const read = await ReadTool.init()
+        const long = await read.execute({ filePath: path.join(tmp.path, "thesis.pdf") }, ctx)
+        expect(long.attachments ?? []).toEqual([])
+        expect(long.output).toContain("376 pages, over the 100-page limit")
+        expect(long.output).toContain("do not attach it again")
+        const short = await read.execute({ filePath: path.join(tmp.path, "note.pdf") }, ctx)
+        expect(short.attachments?.length).toBe(1)
+        expect(short.attachments?.[0].mime).toBe("application/pdf")
+      },
+    })
+  })
+
   test("rejects invalid line windows before touching the file", async () => {
     const read = await ReadTool.init()
     await expect(read.execute({ filePath: "missing.txt", offset: -1 }, ctx)).rejects.toThrow("invalid arguments")
@@ -431,7 +461,8 @@ describe("tool.read truncation", () => {
           { ...ctx, extra: { model: { providerID: "openrouter", id: "openai/gpt-5.6-sol" } } },
         )
         expect(result.attachments).toHaveLength(1)
-        expect(result.output).toBe("Image read successfully")
+        expect(result.output).toBe("Image read successfully: 2560×1422 PNG, 2625 KB.")
+        expect(result.metadata).toMatchObject({ image: { mime: "image/png", width: 2560, height: 1422 } })
       },
     })
   })
@@ -484,6 +515,60 @@ describe("tool.read loaded instructions", () => {
         expect(result.output).toContain("Test Instructions")
         expect(result.metadata.loaded).toBeDefined()
         expect(result.metadata.loaded).toContain(path.join(tmp.path, "subdir", "AGENTS.md"))
+      },
+    })
+  })
+})
+
+describe("tool.read line accounting", () => {
+  test("a newline-terminated file reports the lines it has and no phantom last one", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await Bun.write(path.join(dir, "terminated.txt"), "a\nb\n")
+        await Bun.write(path.join(dir, "unterminated.txt"), "a\nb")
+        await Bun.write(path.join(dir, "single.txt"), "only\n")
+      },
+    })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const read = await ReadTool.init()
+        const terminated = await read.execute({ filePath: path.join(tmp.path, "terminated.txt") }, ctx)
+        // The trailing newline ends the last line, it does not start a new one.
+        expect(terminated.output).toContain("(End of file - total 2 lines)")
+        expect(terminated.output).not.toContain("00003|")
+
+        const single = await read.execute({ filePath: path.join(tmp.path, "single.txt") }, ctx)
+        expect(single.output).toContain("(End of file - total 1 lines)")
+        expect(single.output).not.toContain("00002|")
+
+        // A file with no trailing newline keeps its partial last line.
+        const unterminated = await read.execute({ filePath: path.join(tmp.path, "unterminated.txt") }, ctx)
+        expect(unterminated.output).toContain("(End of file - total 2 lines)")
+        expect(unterminated.output).toContain("00002| b")
+      },
+    })
+  })
+
+  test("offset paging agrees with the reported total", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await Bun.write(path.join(dir, "rows.txt"), ["one", "two", "three", ""].join("\n"))
+      },
+    })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const read = await ReadTool.init()
+        const first = await read.execute({ filePath: path.join(tmp.path, "rows.txt"), limit: 2 }, ctx)
+        expect(first.output).toContain("File has more lines")
+        const rest = await read.execute({ filePath: path.join(tmp.path, "rows.txt"), offset: 2 }, ctx)
+        // The hint points past the last real line, so offset 3 is empty and
+        // offset 2 is the final line.
+        expect(rest.output).toContain("(End of file - total 3 lines)")
+        const past = await read.execute({ filePath: path.join(tmp.path, "rows.txt"), offset: 3 }, ctx)
+        expect(past.output).not.toContain("00004|")
+        expect(past.output).toContain("(End of file - total 3 lines)")
       },
     })
   })

@@ -3,10 +3,18 @@ name: nemo-guardrails
 description: NVIDIA's runtime safety framework for LLM applications. Features jailbreak detection, input/output validation, fact-checking, hallucination detection, PII filtering, toxicity detection. Uses Colang 2.0 DSL for programmable rails. Production-ready, runs on T4 GPU.
 category: llm-tools
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Safety Alignment, NeMo Guardrails, NVIDIA, Jailbreak Detection, Guardrails, Colang, Runtime Safety, Hallucination Detection, PII Filtering, Production]
 dependencies: [nemoguardrails]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 07-safety-alignment/nemo-guardrails
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # NeMo Guardrails - Programmable Safety for LLMs
@@ -266,12 +274,6 @@ async def strict_fact_check(context):
 
 ## Advanced topics
 
-**Colang 2.0 DSL**: See [references/colang-guide.md](references/colang-guide.md) for flow syntax, actions, variables, and advanced patterns.
-
-**Integration guide**: See [references/integrations.md](references/integrations.md) for LlamaGuard, Presidio, ActiveFence, and custom models.
-
-**Performance optimization**: See [references/performance.md](references/performance.md) for latency reduction, caching, and batching strategies.
-
 ## Hardware requirements
 
 - **GPU**: Optional (CPU works, GPU faster)
@@ -293,6 +295,4 @@ async def strict_fact_check(context):
 - Examples: https://github.com/NVIDIA/NeMo-Guardrails/tree/main/examples
 - Version: v0.9.0+ (v0.12.0 expected)
 - Production: NVIDIA enterprise deployments
-
-
 

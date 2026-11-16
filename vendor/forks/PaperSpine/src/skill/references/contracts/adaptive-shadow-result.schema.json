@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "paperspine.adaptive-shadow.result/0.1-shadow",
+  "title": "PaperSpine adaptive claim-surface shadow result",
+  "type": "object",
+  "required": [
+    "contract",
+    "interface_version",
+    "request_sha256",
+    "revision_id",
+    "ok",
+    "outcome",
+    "stage",
+    "claim_id",
+    "findings",
+    "advisory_findings",
+    "coverage_status",
+    "legacy_status_observed",
+    "legacy_pass_tainted",
+    "assurance_vector",
+    "signals",
+    "authority_boundary"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine.adaptive-shadow.result"},
+    "interface_version": {"const": "0.1-shadow"},
+    "request_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "revision_id": {"type": ["string", "null"]},
+    "ok": {"type": "boolean"},
+    "outcome": {"enum": ["CLAIM_SURFACE_AUDITED", "BLOCKED"]},
+    "stage": {"enum": ["claim_surface_audited", "adaptive_shadow_blocked"]},
+    "claim_id": {"type": ["string", "null"]},
+    "findings": {"type": "array", "items": {"type": "string"}},
+    "advisory_findings": {"type": "array", "items": {"type": "string"}},
+    "coverage_status": {"enum": ["SUFFICIENT_FOR_SHADOW", "INSUFFICIENT"]},
+    "legacy_status_observed": {"enum": ["PASS", "FAIL", "BLOCKED", "UNKNOWN", "NOT_RUN", "MISSING"]},
+    "legacy_pass_tainted": {"type": "boolean"},
+    "assurance_vector": {
+      "type": "object",
+      "required": [
+        "truth_authority_permission",
+        "process_assurance",
+        "quality_optimization",
+        "noncompensatory"
+      ],
+      "properties": {
+        "truth_authority_permission": {"enum": ["PASS", "FAIL"]},
+        "process_assurance": {"enum": ["PASS", "FAIL"]},
+        "quality_optimization": {"enum": ["PASS", "FAIL"]},
+        "noncompensatory": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "signals": {
+      "type": "object",
+      "required": [
+        "shadow_only",
+        "legacy_authority_unchanged",
+        "claim_surface_audited",
+        "manuscript_ready",
+        "delivery_ready",
+        "submission_ready",
+        "external_action_authorized"
+      ],
+      "properties": {
+        "shadow_only": {"const": true},
+        "legacy_authority_unchanged": {"const": true},
+        "claim_surface_audited": {"type": "boolean"},
+        "manuscript_ready": {"const": false},
+        "delivery_ready": {"const": false},
+        "submission_ready": {"const": false},
+        "external_action_authorized": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": true
+}

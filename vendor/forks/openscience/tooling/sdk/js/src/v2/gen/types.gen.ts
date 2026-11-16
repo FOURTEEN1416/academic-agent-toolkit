@@ -20,9 +20,14 @@ export type Project = {
      */
     start?: string
   }
+  origin?: "openscience"
   time: {
     created: number
     updated: number
+    /**
+     * Last substantive session or file activity, not metadata refresh
+     */
+    activity?: number
     initialized?: number
     archived?: number
   }
@@ -106,18 +111,18 @@ export type EventProjectTrustChanged = {
   }
 }
 
-export type EventLspClientDiagnostics = {
-  type: "lsp.client.diagnostics"
+export type EventAccountUpdated = {
+  type: "account.updated"
   properties: {
-    serverID: string
-    path: string
+    refreshed_at: number
+    error?: string
   }
 }
 
-export type EventLspUpdated = {
-  type: "lsp.updated"
+export type EventAccountLogin = {
+  type: "account.login"
   properties: {
-    [key: string]: unknown
+    approval_url: string
   }
 }
 
@@ -139,57 +144,29 @@ export type EventSessionFilesystemChanged = {
       path: string
       access: "read" | "write"
       scope: "once" | "session" | "project" | "installation"
-      source: "workspace" | "permission" | "api" | "tool" | "handoff"
+      source: "workspace" | "project" | "skill" | "permission" | "api" | "tool" | "handoff" | "parent"
       time: {
         created: number
         consumed?: number
         revoked?: number
       }
     }
+    narrowing?: boolean
   }
 }
 
-export type EventProjectAccessChanged = {
-  type: "project.access.changed"
+export type EventLspClientDiagnostics = {
+  type: "lsp.client.diagnostics"
   properties: {
-    status: {
-      projectID: string
-      root: string
-      revision: number
-      trustRevision: number
-      mode: "ask" | "approve" | "full"
-      requestedMode: "ask" | "approve" | "full"
-      source: "default" | "legacy" | "persisted"
-      trusted: boolean
-      managed: boolean
-      sandbox: {
-        enabled: boolean
-        network: "allow" | "deny"
-        allowWrite: Array<string>
-        onUnavailable: "warn" | "error" | "allow"
-        requireProjectTrust: boolean
-      }
-      sandboxStatus: {
-        available: boolean
-        backend: "seatbelt" | "bubblewrap" | "none"
-        reason?: string
-      }
-    }
-    narrowing: boolean
+    serverID: string
+    path: string
   }
 }
 
-export type EventVcsBranchUpdated = {
-  type: "vcs.branch.updated"
+export type EventLspUpdated = {
+  type: "lsp.updated"
   properties: {
-    branch?: string
-  }
-}
-
-export type EventFileEdited = {
-  type: "file.edited"
-  properties: {
-    file: string
+    [key: string]: unknown
   }
 }
 
@@ -231,10 +208,11 @@ export type UserMessage = {
       }
     | {
         type: "continuation"
-        kind: "output" | "contract" | "review" | "review-summary" | "compaction" | "task"
+        kind: "output" | "contract" | "review" | "review-summary" | "compaction" | "task" | "context" | "harness"
         text: string
         epoch: string
         transaction: string
+        routing?: string
         progress?: string
         repair?: boolean
       }
@@ -246,6 +224,10 @@ export type UserMessage = {
         focus?: string
         handoffFile?: string
         trigger?: "proactive" | "overflow" | "manual"
+        recovery?: {
+          type: "preflight"
+          continuationID: string
+        }
         before?: number
         headTokens?: number
         continuationID?: string
@@ -258,20 +240,33 @@ export type UserMessage = {
       providerID: string
       modelID: string
     }
+    /**
+     * Explicit user model override for this run
+     */
+    workerModelOverride?: boolean
     autonomy?: "interactive" | "balanced" | "autonomous"
   }
   variant?: string
   tier?: string
+  context?: number
   inference?: {
     source: "managed" | "byok" | "chatgpt" | "local" | "oauth" | "unknown"
     effort: string
   }
+  deadline?: number
 }
 
 export type ProviderAuthError = {
   name: "ProviderAuthError"
   data: {
     providerID: string
+    message: string
+  }
+}
+
+export type MessageContextWindowError = {
+  name: "MessageContextWindowError"
+  data: {
     message: string
   }
 }
@@ -313,6 +308,21 @@ export type ApiError = {
   }
 }
 
+export type ContextComposition = {
+  source: "estimate"
+  total: number
+  tokens: {
+    system: number
+    definitions?: number
+    text: number
+    reasoning: number
+    tool: number
+    skills: number
+    image: number
+    document?: number
+  }
+}
+
 export type AssistantMessage = {
   id: string
   sessionID: string
@@ -321,7 +331,13 @@ export type AssistantMessage = {
     created: number
     completed?: number
   }
-  error?: ProviderAuthError | UnknownError | MessageOutputLengthError | MessageAbortedError | ApiError
+  error?:
+    | ProviderAuthError
+    | MessageContextWindowError
+    | UnknownError
+    | MessageOutputLengthError
+    | MessageAbortedError
+    | ApiError
   parentID: string
   modelID: string
   providerID: string
@@ -329,6 +345,7 @@ export type AssistantMessage = {
     step: number
   }
   reasoningEffort?: string
+  tier?: string
   mode: string
   agent: string
   path: {
@@ -337,6 +354,7 @@ export type AssistantMessage = {
   }
   summary?: boolean
   cost: number
+  contextComposition?: ContextComposition
   tokens: {
     input: number
     output: number
@@ -384,36 +402,6 @@ export type TextPart = {
   }
 }
 
-export type SubtaskPart = {
-  id: string
-  sessionID: string
-  messageID: string
-  type: "subtask"
-  prompt: string
-  description: string
-  agent: string
-  model?: {
-    providerID: string
-    modelID: string
-  }
-  command?: string
-}
-
-export type ReasoningPart = {
-  id: string
-  sessionID: string
-  messageID: string
-  type: "reasoning"
-  text: string
-  metadata?: {
-    [key: string]: unknown
-  }
-  time: {
-    start: number
-    end?: number
-  }
-}
-
 export type FilePartSourceText = {
   value: string
   start: number
@@ -454,6 +442,45 @@ export type ResourceSource = {
 }
 
 export type FilePartSource = FileSource | SymbolSource | ResourceSource
+
+export type SubtaskAttachment = {
+  type: "file"
+  mime: string
+  filename?: string
+  url: string
+  source?: FilePartSource
+}
+
+export type SubtaskPart = {
+  id: string
+  sessionID: string
+  messageID: string
+  type: "subtask"
+  prompt: string
+  description: string
+  agent: string
+  model?: {
+    providerID: string
+    modelID: string
+  }
+  command?: string
+  attachments?: Array<SubtaskAttachment>
+}
+
+export type ReasoningPart = {
+  id: string
+  sessionID: string
+  messageID: string
+  type: "reasoning"
+  text: string
+  metadata?: {
+    [key: string]: unknown
+  }
+  time: {
+    start: number
+    end?: number
+  }
+}
 
 export type FilePart = {
   id: string
@@ -552,6 +579,29 @@ export type StepFinishPart = {
   sessionID: string
   messageID: string
   type: "step-finish"
+  usage?: {
+    route: "managed" | "byok" | "chatgpt" | "subscription" | "local" | "custom"
+    provider: string
+    model: string
+    time: number
+    call?: string
+    hold?: string
+    providerRequest?: string
+    reported?: {
+      input_tokens: number | null
+      output_tokens: number | null
+      total_tokens: number | null
+      reasoning_tokens: number | null
+      cached_input_tokens: number | null
+      cache_creation_input_tokens: number | null
+    }
+    reportedCostUSD?: number | null
+    cost?: {
+      source: "subscription" | "provider_response" | "wallet_calculated" | "catalog_estimate" | "unknown"
+      amountUSD: number | null
+    }
+  }
+  tier?: string
   reason: string
   snapshot?: string
   cost: number
@@ -629,6 +679,9 @@ export type CompactionPart = {
   focus?: string
   handoffFile?: string
   trigger?: "proactive" | "overflow" | "manual"
+  rootID?: string
+  before?: number
+  after?: number
 }
 
 export type Part =
@@ -663,6 +716,43 @@ export type EventMessagePartRemoved = {
   }
 }
 
+export type EventProjectAccessChanged = {
+  type: "project.access.changed"
+  properties: {
+    status: {
+      projectID: string
+      root: string
+      revision: number
+      trustRevision: number
+      mode: "ask" | "approve" | "full"
+      requestedMode: "ask" | "approve" | "full"
+      source: "default" | "legacy" | "persisted"
+      trusted: boolean
+      managed: boolean
+      sandbox: {
+        enabled: boolean
+        network: "allow" | "deny"
+        allowWrite: Array<string>
+        onUnavailable: "warn" | "error" | "allow"
+        requireProjectTrust: boolean
+      }
+      sandboxStatus: {
+        available: boolean
+        backend: "seatbelt" | "bubblewrap" | "none"
+        reason?: string
+      }
+    }
+    narrowing: boolean
+  }
+}
+
+export type EventVcsBranchUpdated = {
+  type: "vcs.branch.updated"
+  properties: {
+    branch?: string
+  }
+}
+
 export type PermissionRequest = {
   id: string
   sessionID: string
@@ -683,6 +773,14 @@ export type EventPermissionAsked = {
   properties: PermissionRequest
 }
 
+export type EventPermissionCancelled = {
+  type: "permission.cancelled"
+  properties: {
+    sessionID: string
+    requestID: string
+  }
+}
+
 export type EventPermissionReplied = {
   type: "permission.replied"
   properties: {
@@ -690,6 +788,75 @@ export type EventPermissionReplied = {
     requestID: string
     reply: "once" | "session" | "project" | "always" | "reject"
   }
+}
+
+export type EventSkillUpdated = {
+  type: "skill.updated"
+  properties: {
+    [key: string]: unknown
+  }
+}
+
+export type EventSessionContext = {
+  type: "session.context"
+  properties: {
+    sessionID: string
+    tokens: {
+      system: number
+      definitions?: number
+      text: number
+      reasoning: number
+      tool: number
+      skills: number
+      image: number
+      document?: number
+    }
+    images: number
+    total: number
+    budget?: {
+      total: number
+      newest: number
+      history: number
+      usable: number
+      soft: number
+      hard: number
+    }
+  }
+}
+
+export type EventSessionCompaction = {
+  type: "session.compaction"
+  properties: {
+    sessionID: string
+    trigger: "proactive" | "overflow" | "manual"
+    mechanism: "prune" | "summary"
+    before?: number
+    after?: number
+    reclaimed: number
+  }
+}
+
+export type SessionRequestProgress = {
+  sessionID: string
+  messageID: string
+  attempt: number
+  agent: string
+  providerID: string
+  modelID: string
+  phase:
+    "preparing" | "connecting" | "waiting_first_token" | "streaming" | "conflict_wait" | "retry_wait" | "done" | "error"
+  since: number
+  elapsedMs: number
+  retryAfterMs?: number
+  detail?: string
+  firstOutputMs?: number
+  lastOutputAt?: number
+  stalls: number
+}
+
+export type EventSessionRequestProgress = {
+  type: "session.request.progress"
+  properties: SessionRequestProgress
 }
 
 export type SessionStatus =
@@ -787,6 +954,14 @@ export type EventQuestionReplied = {
   }
 }
 
+export type EventQuestionCancelled = {
+  type: "question.cancelled"
+  properties: {
+    sessionID: string
+    requestID: string
+  }
+}
+
 export type EventQuestionRejected = {
   type: "question.rejected"
   properties: {
@@ -795,47 +970,17 @@ export type EventQuestionRejected = {
   }
 }
 
-export type EventSessionContext = {
-  type: "session.context"
-  properties: {
-    sessionID: string
-    tokens: {
-      system: number
-      text: number
-      reasoning: number
-      tool: number
-      skills: number
-      image: number
-    }
-    images: number
-    total: number
-    budget?: {
-      total: number
-      newest: number
-      history: number
-      usable: number
-      soft: number
-      hard: number
-    }
-  }
-}
-
-export type EventSessionCompaction = {
-  type: "session.compaction"
-  properties: {
-    sessionID: string
-    trigger: "proactive" | "overflow" | "manual"
-    mechanism: "prune" | "summary"
-    before?: number
-    after?: number
-    reclaimed: number
-  }
-}
-
 export type EventSessionCompacted = {
   type: "session.compacted"
   properties: {
     sessionID: string
+  }
+}
+
+export type EventFileEdited = {
+  type: "file.edited"
+  properties: {
+    file: string
   }
 }
 
@@ -863,6 +1008,622 @@ export type EventTodoUpdated = {
   properties: {
     sessionID: string
     todos: Array<Todo>
+  }
+}
+
+export type ExperimentRun = {
+  id: string
+  projectID: string
+  studyID?: string
+  ideaID?: string
+  jobID?: string
+  sessionID?: string
+  name: string
+  status: "running" | "finished" | "failed" | "killed" | "cancelled"
+  source: "job" | "kernel" | "external"
+  config: {
+    [key: string]: unknown
+  }
+  provenance?: {
+    format: "openscience.provenance.v1"
+    kind: "kernel" | "local_compute" | "remote_compute" | "artifact_version"
+    identity: {
+      project_id:
+        | {
+            status: "available"
+            value: string
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+      session_id:
+        | {
+            status: "available"
+            value: string
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+      run_id:
+        | {
+            status: "available"
+            value: string
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+    }
+    input: {
+      code:
+        | {
+            status: "available"
+            value: string
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+      cwd:
+        | {
+            status: "available"
+            value: string
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+      code_state:
+        | {
+            status: "available"
+            value: {
+              repository:
+                | {
+                    status: "available"
+                    value: string
+                  }
+                | {
+                    status: "unavailable"
+                    reason:
+                      | "not_applicable"
+                      | "not_captured"
+                      | "not_implemented"
+                      | "not_published"
+                      | "not_versioned"
+                      | "remote_unverified"
+                  }
+              branch:
+                | {
+                    status: "available"
+                    value: string
+                  }
+                | {
+                    status: "unavailable"
+                    reason:
+                      | "not_applicable"
+                      | "not_captured"
+                      | "not_implemented"
+                      | "not_published"
+                      | "not_versioned"
+                      | "remote_unverified"
+                  }
+              commit:
+                | {
+                    status: "available"
+                    value: string
+                  }
+                | {
+                    status: "unavailable"
+                    reason:
+                      | "not_applicable"
+                      | "not_captured"
+                      | "not_implemented"
+                      | "not_published"
+                      | "not_versioned"
+                      | "remote_unverified"
+                  }
+              dirty:
+                | {
+                    status: "available"
+                    value: boolean
+                  }
+                | {
+                    status: "unavailable"
+                    reason:
+                      | "not_applicable"
+                      | "not_captured"
+                      | "not_implemented"
+                      | "not_published"
+                      | "not_versioned"
+                      | "remote_unverified"
+                  }
+            }
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+    }
+    environment: {
+      host:
+        | {
+            status: "available"
+            value: {
+              platform: string
+              arch: string
+              runtimes: {
+                [key: string]: string
+              }
+            }
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+      kernel:
+        | {
+            status: "available"
+            value: {
+              id: string
+              language: string
+              environment_name:
+                | {
+                    status: "available"
+                    value: string
+                  }
+                | {
+                    status: "unavailable"
+                    reason:
+                      | "not_applicable"
+                      | "not_captured"
+                      | "not_implemented"
+                      | "not_published"
+                      | "not_versioned"
+                      | "remote_unverified"
+                  }
+              interpreter:
+                | {
+                    status: "available"
+                    value: {
+                      name: string
+                      binary: string
+                      version:
+                        | {
+                            status: "available"
+                            value: string
+                          }
+                        | {
+                            status: "unavailable"
+                            reason:
+                              | "not_applicable"
+                              | "not_captured"
+                              | "not_implemented"
+                              | "not_published"
+                              | "not_versioned"
+                              | "remote_unverified"
+                          }
+                    }
+                  }
+                | {
+                    status: "unavailable"
+                    reason:
+                      | "not_applicable"
+                      | "not_captured"
+                      | "not_implemented"
+                      | "not_published"
+                      | "not_versioned"
+                      | "remote_unverified"
+                  }
+              incarnation:
+                | {
+                    status: "available"
+                    value: number
+                  }
+                | {
+                    status: "unavailable"
+                    reason:
+                      | "not_applicable"
+                      | "not_captured"
+                      | "not_implemented"
+                      | "not_published"
+                      | "not_versioned"
+                      | "remote_unverified"
+                  }
+              process_id:
+                | {
+                    status: "available"
+                    value: number
+                  }
+                | {
+                    status: "unavailable"
+                    reason:
+                      | "not_applicable"
+                      | "not_captured"
+                      | "not_implemented"
+                      | "not_published"
+                      | "not_versioned"
+                      | "remote_unverified"
+                  }
+              process_started_at:
+                | {
+                    status: "available"
+                    value: string
+                  }
+                | {
+                    status: "unavailable"
+                    reason:
+                      | "not_applicable"
+                      | "not_captured"
+                      | "not_implemented"
+                      | "not_published"
+                      | "not_versioned"
+                      | "remote_unverified"
+                  }
+            }
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+    }
+    outputs: {
+      status: "queued" | "running" | "succeeded" | "failed" | "cancelled" | "interrupted" | "inconclusive"
+      items: Array<{
+        kind: "stream" | "display" | "result" | "error" | "artifact" | "checkpoint"
+        label: string
+        artifact_id:
+          | {
+              status: "available"
+              value: string
+            }
+          | {
+              status: "unavailable"
+              reason:
+                | "not_applicable"
+                | "not_captured"
+                | "not_implemented"
+                | "not_published"
+                | "not_versioned"
+                | "remote_unverified"
+            }
+        path:
+          | {
+              status: "available"
+              value: string
+            }
+          | {
+              status: "unavailable"
+              reason:
+                | "not_applicable"
+                | "not_captured"
+                | "not_implemented"
+                | "not_published"
+                | "not_versioned"
+                | "remote_unverified"
+            }
+        sha256: string
+        size: number
+        version_id:
+          | {
+              status: "available"
+              value: string
+            }
+          | {
+              status: "unavailable"
+              reason:
+                | "not_applicable"
+                | "not_captured"
+                | "not_implemented"
+                | "not_published"
+                | "not_versioned"
+                | "remote_unverified"
+            }
+        version:
+          | {
+              status: "available"
+              value: number
+            }
+          | {
+              status: "unavailable"
+              reason:
+                | "not_applicable"
+                | "not_captured"
+                | "not_implemented"
+                | "not_published"
+                | "not_versioned"
+                | "remote_unverified"
+            }
+        created_at:
+          | {
+              status: "available"
+              value: string
+            }
+          | {
+              status: "unavailable"
+              reason:
+                | "not_applicable"
+                | "not_captured"
+                | "not_implemented"
+                | "not_published"
+                | "not_versioned"
+                | "remote_unverified"
+            }
+      }>
+    }
+    timestamps: {
+      created_at:
+        | {
+            status: "available"
+            value: string
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+      started_at:
+        | {
+            status: "available"
+            value: string
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+      completed_at:
+        | {
+            status: "available"
+            value: string
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+    }
+    handoff: {
+      /**
+       * @deprecated Compatibility field. Managed compute is retired and this value is always unavailable.
+       */
+      atlas_compute_id:
+        | {
+            status: "available"
+            value: string
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+      atlas_run_id:
+        | {
+            status: "available"
+            value: string
+          }
+        | {
+            status: "unavailable"
+            reason:
+              | "not_applicable"
+              | "not_captured"
+              | "not_implemented"
+              | "not_published"
+              | "not_versioned"
+              | "remote_unverified"
+          }
+    }
+    scientific_capability?: {
+      id: string
+      version: string
+      manifest_sha256: string
+      profile: "task" | "smoke"
+      runtime_digest: string
+      execution_network?: "none"
+      lock_digest?: string
+    }
+  }
+  summary: {
+    [key: string]: unknown
+  }
+  headline: number | null
+  baselineDelta: number | null
+  points: number
+  lastStep: number | null
+  slot: number | null
+  killReason?: string
+  createdAt: number
+  startedAt: number | null
+  endedAt: number | null
+}
+
+export type EventExperimentRunUpdated = {
+  type: "experiment.run.updated"
+  properties: {
+    run: ExperimentRun
+  }
+}
+
+export type EventExperimentRunPoints = {
+  type: "experiment.run.points"
+  properties: {
+    runID: string
+    keys: Array<string>
+    lastStep: number | null
+  }
+}
+
+export type StudyBudget = {
+  maxRuns?: number
+  maxHours?: number
+  maxCostUSD?: number
+  target?: number
+  runMinutes?: number
+}
+
+export type StudyDirective = {
+  id: string
+  text: string
+  createdAt: number
+  active: boolean
+}
+
+export type Study = {
+  id: string
+  projectID: string
+  sessionID: string
+  name: string
+  purpose: string
+  question?: string
+  hypothesis?: string
+  metric: string
+  direction: "minimize" | "maximize"
+  status: "running" | "paused" | "halted" | "concluded"
+  root: string
+  target:
+    | {
+        kind: "local"
+      }
+    | {
+        kind: "ssh"
+        host_id: string
+      }
+    | {
+        kind: "modal"
+        gpu?: string
+      }
+  concurrency: number
+  killCriteria: string
+  budget: StudyBudget
+  review: boolean
+  baselineRunID?: string
+  bestRunID?: string
+  turns: number
+  costUSD: number
+  lessons: string
+  directives: Array<StudyDirective>
+  conclusion?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export type EventExperimentStudyUpdated = {
+  type: "experiment.study.updated"
+  properties: {
+    study: Study
+  }
+}
+
+export type StudyIdea = {
+  id: string
+  studyID: string
+  title: string
+  description: string
+  why: string
+  ev: number
+  priority: number
+  status: "queued" | "running" | "kept" | "reverted" | "failed" | "dropped"
+  source: "seed" | "agent" | "human" | "lesson"
+  config: {
+    [key: string]: unknown
+  }
+  runID?: string
+  analysis?: string
+  conclusion?: string
+  createdAt: number
+  startedAt: number | null
+  endedAt: number | null
+}
+
+export type EventExperimentIdeaUpdated = {
+  type: "experiment.idea.updated"
+  properties: {
+    idea: StudyIdea
+  }
+}
+
+export type StudyEvent = {
+  id: string
+  studyID: string
+  runID?: string
+  kind: string
+  message: string
+  createdAt: number
+}
+
+export type EventExperimentStudyEvent = {
+  type: "experiment.study.event"
+  properties: {
+    event: StudyEvent
   }
 }
 
@@ -906,15 +1667,16 @@ export type Session = {
   slug: string
   projectID: string
   directory: string
+  /**
+   * Default tool directory: owned scratch or the existing project directory.
+   */
+  workspace?: "isolated" | "project"
   parentID?: string
   summary?: {
     additions: number
     deletions: number
     files: number
     diffs?: Array<FileDiff>
-  }
-  share?: {
-    url: string
   }
   title: string
   version: string
@@ -931,6 +1693,8 @@ export type Session = {
     partID?: string
     snapshot?: string
     diff?: string
+    turns?: number
+    files?: Array<string>
   }
 }
 
@@ -967,20 +1731,20 @@ export type EventSessionError = {
   type: "session.error"
   properties: {
     sessionID?: string
-    error?: ProviderAuthError | UnknownError | MessageOutputLengthError | MessageAbortedError | ApiError
-  }
-}
-
-export type EventSkillUpdated = {
-  type: "skill.updated"
-  properties: {
-    [key: string]: unknown
+    error?:
+      | ProviderAuthError
+      | MessageContextWindowError
+      | UnknownError
+      | MessageOutputLengthError
+      | MessageAbortedError
+      | ApiError
   }
 }
 
 export type Pty = {
   id: string
   title: string
+  program?: "claude"
   command: string
   args: Array<string>
   cwd: string
@@ -1013,6 +1777,7 @@ export type Pty = {
     generation: string
     directory?: string
     workspace: string
+    scratch?: string
     readable: Array<string>
     writable: Array<string>
     sandbox: {
@@ -1092,28 +1857,39 @@ export type Event =
   | EventProjectUpdated
   | EventServerInstanceDisposed
   | EventProjectTrustChanged
-  | EventLspClientDiagnostics
-  | EventLspUpdated
+  | EventAccountUpdated
+  | EventAccountLogin
   | EventFileWatcherUpdated
   | EventSessionFilesystemChanged
-  | EventProjectAccessChanged
-  | EventVcsBranchUpdated
-  | EventFileEdited
+  | EventLspClientDiagnostics
+  | EventLspUpdated
   | EventMessageUpdated
   | EventMessageRemoved
   | EventMessagePartUpdated
   | EventMessagePartRemoved
+  | EventProjectAccessChanged
+  | EventVcsBranchUpdated
   | EventPermissionAsked
+  | EventPermissionCancelled
   | EventPermissionReplied
+  | EventSkillUpdated
+  | EventSessionContext
+  | EventSessionCompaction
+  | EventSessionRequestProgress
   | EventSessionStatus
   | EventSessionIdle
   | EventQuestionAsked
   | EventQuestionReplied
+  | EventQuestionCancelled
   | EventQuestionRejected
-  | EventSessionContext
-  | EventSessionCompaction
   | EventSessionCompacted
+  | EventFileEdited
   | EventTodoUpdated
+  | EventExperimentRunUpdated
+  | EventExperimentRunPoints
+  | EventExperimentStudyUpdated
+  | EventExperimentIdeaUpdated
+  | EventExperimentStudyEvent
   | EventMcpToolsChanged
   | EventMcpBrowserOpenFailed
   | EventCommandExecuted
@@ -1122,7 +1898,6 @@ export type Event =
   | EventSessionDeleted
   | EventSessionDiff
   | EventSessionError
-  | EventSkillUpdated
   | EventPtyCreated
   | EventPtyUpdated
   | EventPtyExited
@@ -1574,6 +2349,14 @@ export type PermissionConfig =
 
 export type AgentConfig = {
   model?: string
+  /**
+   * Model variant (reasoning effort) used when this agent runs on its own configured model
+   */
+  variant?: string
+  /**
+   * Skill categories indexed in this agent's <domain-skills> block (specialist agents)
+   */
+  skills?: Array<string>
   temperature?: number
   top_p?: number
   prompt?: string
@@ -1597,9 +2380,9 @@ export type AgentConfig = {
     [key: string]: unknown
   }
   /**
-   * Hex color code for the agent (e.g., #FF5733)
+   * Hex color code (e.g., #FF5733) or a theme color (primary, secondary, accent, success, warning, error, info)
    */
-  color?: string
+  color?: string | "primary" | "secondary" | "accent" | "success" | "warning" | "error" | "info"
   /**
    * Maximum number of agentic iterations before forcing text-only response
    */
@@ -1624,6 +2407,7 @@ export type ProviderConfig = {
       name?: string
       family?: string
       release_date?: string
+      knowledge?: string
       attachment?: boolean
       reasoning?: boolean
       reasoning_options?: Array<
@@ -1652,6 +2436,16 @@ export type ProviderConfig = {
         output: number
         cache_read?: number
         cache_write?: number
+        tiers?: Array<{
+          input: number
+          output: number
+          cache_read?: number
+          cache_write?: number
+          tier: {
+            type: "context"
+            size: number
+          }
+        }>
         context_over_200k?: {
           input: number
           output: number
@@ -1719,6 +2513,10 @@ export type ProviderConfig = {
   blacklist?: Array<string>
   options?: {
     apiKey?: string
+    /**
+     * Keep saved connection settings inactive without a credential.
+     */
+    requiresCredential?: boolean
     baseURL?: string
     /**
      * Shell command whose stdout is a short-lived bearer token. Sent as 'Authorization: Bearer <token>' on every request and re-minted automatically before the token's JWT exp (or every request for a non-JWT token). Use for providers behind rotating/SSO-minted credentials.
@@ -1733,13 +2531,21 @@ export type ProviderConfig = {
      */
     setCacheKey?: boolean
     /**
-     * Optional total wall-clock timeout in milliseconds for a provider request. No total timeout is applied by default. Use idleTimeout to bound silent connections without cutting off active generations.
+     * Optional total wall-clock timeout in milliseconds for a provider request. No total timeout is applied by default. The response stays open until completion, explicit cancellation, or a configured deadline; connectTimeout separately bounds the wait for response headers.
      */
     timeout?: number | false
     /**
-     * Optional maximum provider inactivity in milliseconds while connecting or waiting for the next response-body chunk. Disabled by default; when configured it resets on each body chunk and does not cap total generation time.
+     * Maximum provider response-body inactivity in milliseconds. Remote endpoints, including the managed Ace gateway, default to 600000 (10 minutes); local endpoints (loopback or .local base URLs and bundled local providers) default to disabled. Set false to disable.
      */
     idleTimeout?: number | false
+    /**
+     * Maximum wait for provider response headers in milliseconds, including connection setup and upstream admission. Defaults to 300000 (5 minutes), to 600000 (10 minutes) for the managed Ace gateway, which sends headers only once the upstream body begins, and to disabled for local endpoints (loopback or .local base URLs and the ollama, lmstudio, llamacpp, vllm and jan providers), which send headers only after prompt processing. Set false to disable.
+     */
+    connectTimeout?: number | false
+    /**
+     * Optional maximum wait for new readable model output or tool-call activity in milliseconds. Disabled by default because providers can reason without publishing text. When configured, transport keepalives do not reset it; tool execution and local processing suspend it. Set false to disable.
+     */
+    outputIdleTimeout?: number | false
     [key: string]: unknown
   }
 }
@@ -1790,7 +2596,7 @@ export type McpRemoteConfig = {
    */
   type: "remote"
   /**
-   * URL of the remote MCP server
+   * HTTPS URL of the remote MCP server
    */
   url: string
   /**
@@ -1857,7 +2663,7 @@ export type Config = {
   logLevel?: LogLevel
   server?: ServerConfig
   /**
-   * Command configuration, see https://syntheticsciences.ai/docs/commands
+   * Command configuration
    */
   command?: {
     [key: string]: {
@@ -1876,6 +2682,10 @@ export type Config = {
      * Additional paths to skill folders
      */
     paths?: Array<string>
+    /**
+     * Skills excluded from agent discovery and loading. Does not change skill permissions or uninstall files.
+     */
+    disabled?: Array<string>
   }
   watcher?: {
     ignore?: Array<string>
@@ -1907,17 +2717,61 @@ export type Config = {
    */
   default_agent?: string
   /**
-   * How LLM inference is paid for when using Ace or user-owned credentials. Legacy compute is ignored.
+   * User-approved limits and model policy for bounded Task subagents; main-agent calls are excluded
+   */
+  subagents?: {
+    enabled?: boolean
+    model?: string
+    usd?: number
+    tokens?: number
+    deadlineMs?: number
+    usdIncrease?: number
+    tokenIncrease?: number
+  }
+  /**
+   * How many levels of subagents a session may nest (default 1: only the lead dispatches workers)
+   */
+  subagent_depth?: number
+  /**
+   * Harness units, each on by default; set one to false to remove its behaviour
+   */
+  harness?: {
+    "headless-policy"?: boolean
+    redirect?: boolean
+    deliverables?: boolean
+    acceptance?: boolean
+    /**
+     * Under autonomous autonomy, a final answer that asks the user to upload, provide, confirm or choose is answered once: proceed on the inputs as supplied, state the assumption, deliver; a turn that asked before calling any tool is told to stop instead when the message asked for no work
+     */
+    unattended?: boolean
+    /**
+     * When the deliverable is a written report, one fresh-context read of the request against the report before the turn ends, and one continuation with what the report does not address
+     */
+    review?: boolean
+    budget?: boolean
+    /**
+     * Spend visibility beside the time budget; an optional soft ceiling injects a wrap-up reminder
+     */
+    cost?:
+      | boolean
+      | {
+          max_usd?: number
+        }
+    "durable-jobs"?: boolean
+    workers?: boolean
+  }
+  /**
+   * Provider access configuration for Ace or user-owned credentials.
    */
   billing?: {
     /**
-     * How LLM inference is paid for. 'managed' uses Credits; 'byok' uses your own provider API keys or first-party OAuth (ChatGPT/Claude Pro/Copilot) and is never billed. Unset or null = auto-detect from the resolved credential.
+     * How LLM inference is paid for. 'managed' pays from the purchased Wallet; 'byok' uses only user-owned keys, subscriptions, or local models.
      */
     llm?: "managed" | "byok" | null
     /**
-     * @deprecated Retained only so existing 2.x config files keep parsing. Managed compute is retired; all compute uses user-owned routes regardless of this value.
+     * @deprecated Retained so existing 2.x config files keep parsing. Compute always uses user-owned routes.
      */
-    compute?: "managed" | "byok"
+    compute?: "byok"
   }
   /**
    * Custom username to display in conversations instead of system username
@@ -1932,7 +2786,7 @@ export type Config = {
     [key: string]: AgentConfig | undefined
   }
   /**
-   * Agent configuration, see https://syntheticsciences.ai/docs/agents
+   * Agent configuration
    */
   agent?: {
     plan?: AgentConfig
@@ -2017,7 +2871,11 @@ export type Config = {
      */
     prune?: boolean
     /**
-     * Compact when context exceeds this fraction of the model window (default: 0.75)
+     * Experimental. When a tool call is pruned, also shorten its long string arguments (a patch body, a script) to a preview in what the model re-reads. The stored input stays complete and a write that reproduces a preview is refused. Default: false.
+     */
+    pruneInputs?: boolean
+    /**
+     * @deprecated Ignored. Automatic compaction uses the model's usable context capacity.
      */
     threshold?: number
     /**
@@ -2032,37 +2890,16 @@ export type Config = {
      * Token budget for the verbatim recent tail during compaction (default: clamp(0.20*usable, 8000, 32000))
      */
     tailTokens?: number
+    /**
+     * How many recent images travel in full with each model request; once the cap is exceeded the older half are released together and become text placeholders that can be read again (default: 20)
+     */
+    recentImages?: number
   }
   experimental?: {
-    hook?: {
-      file_edited?: {
-        [key: string]: Array<{
-          command: Array<string>
-          environment?: {
-            [key: string]: string
-          }
-        }>
-      }
-      session_completed?: Array<{
-        command: Array<string>
-        environment?: {
-          [key: string]: string
-        }
-      }>
-    }
-    /**
-     * Number of retries for chat completions on failure
-     */
-    chatMaxRetries?: number
-    disable_paste_summary?: boolean
     /**
      * Enable the batch tool
      */
     batch_tool?: boolean
-    /**
-     * Enable OpenTelemetry spans for AI SDK calls (using the 'experimental_telemetry' flag)
-     */
-    openTelemetry?: boolean
     /**
      * Tools that should only be available to primary agents.
      */
@@ -2089,6 +2926,27 @@ export type NotFoundError = {
   }
 }
 
+export type CliShimStatus = {
+  home: string
+  directory: string
+  path: string
+  exists: boolean
+  target?: string
+  current: boolean
+  ours: boolean
+  onPath: boolean
+  shell: string
+  line: string
+  config?: string
+  installable: boolean
+  reason?: string
+}
+
+export type ApiAuth = {
+  type: "api"
+  key: string
+}
+
 export type OAuth = {
   type: "oauth"
   refresh: string
@@ -2096,11 +2954,6 @@ export type OAuth = {
   expires: number
   accountId?: string
   enterpriseUrl?: string
-}
-
-export type ApiAuth = {
-  type: "api"
-  key: string
 }
 
 export type WellKnownAuth = {
@@ -2153,6 +3006,15 @@ export type Model = {
       read: number
       write: number
     }
+    tiers?: Array<{
+      input: number
+      output: number
+      cache: {
+        read: number
+        write: number
+      }
+      threshold: number
+    }>
     experimentalOver200K?: {
       input: number
       output: number
@@ -2161,6 +3023,14 @@ export type Model = {
         write: number
       }
     }
+  }
+  pricing?: {
+    upstream_provider: "anthropic" | "gemini" | "xai" | "meta" | "openrouter"
+    hosting_provider?: "azure" | "openai" | "anthropic" | "gemini" | "xai" | "bedrock" | "openrouter"
+    funding_fee_bps?: number
+    billing_basis?: string
+    audited_at?: string
+    source_url?: string
   }
   limit: {
     context: number
@@ -2175,9 +3045,11 @@ export type Model = {
     [key: string]: string
   }
   release_date: string
+  knowledge?: string
   reasoningOptions?: Array<{
     [key: string]: unknown
   }>
+  contextOptions?: Array<number>
   variants?: {
     [key: string]: {
       [key: string]: unknown
@@ -2193,6 +3065,23 @@ export type Model = {
           read: number
           write: number
         }
+        tiers?: Array<{
+          input: number
+          output: number
+          cache: {
+            read: number
+            write: number
+          }
+          threshold: number
+        }>
+      }
+      pricing?: {
+        upstream_provider: "anthropic" | "gemini" | "xai" | "meta" | "openrouter"
+        hosting_provider?: "azure" | "openai" | "anthropic" | "gemini" | "xai" | "bedrock" | "openrouter"
+        funding_fee_bps?: number
+        billing_basis?: string
+        audited_at?: string
+        source_url?: string
       }
       provider?: {
         body?: {
@@ -2209,7 +3098,7 @@ export type Model = {
 export type Provider = {
   id: string
   name: string
-  source: "env" | "synced" | "config" | "custom" | "api" | "managed"
+  source: "env" | "config" | "custom" | "api" | "workspace" | "managed"
   env: Array<string>
   key?: string
   options: {
@@ -2305,11 +3194,76 @@ export type SubtaskPartInput = {
     modelID: string
   }
   command?: string
+  attachments?: Array<SubtaskAttachment>
 }
 
 export type RuntimePromptAccepted = {
   runID: string
   acceptedAt: number
+}
+
+export type RuntimeRun = {
+  runID: string
+  sessionID: string
+  requestID?: string
+  messageID: string
+  state: "accepted" | "running" | "completed" | "failed" | "cancelled" | "interrupted"
+  acceptedAt: number
+  updatedAt: number
+  completedAt?: number
+  resultMessageID?: string
+  error?: {
+    code: string
+    message: string
+  }
+}
+
+export type RuntimeDecisionResult = {
+  sessionID: string
+  requestID: string
+  status: "resolved" | "indeterminate"
+  decidedAt: number
+}
+
+export type RuntimeDecisionInput =
+  | {
+      sessionID: string
+      kind: "permission"
+      requestID: string
+      reply: "once" | "session" | "project" | "always" | "reject"
+      message?: string
+    }
+  | {
+      sessionID: string
+      kind: "question"
+      requestID: string
+      answers: Array<QuestionAnswer>
+    }
+  | {
+      sessionID: string
+      kind: "question_reject"
+      requestID: string
+    }
+
+export type RuntimeCapabilities = {
+  protocolVersion: "1.0"
+  serverVersion: string
+  idempotentPrompts: true
+  richInputs: true
+  runSnapshots: true
+  eventRetention: number
+  crashRecovery: "interrupt"
+  decisionScope: "connected_runtime"
+}
+
+export type RuntimeSnapshot = {
+  sessionID: string
+  runs: Array<RuntimeRun>
+  oldestSequence: number
+  latestSequence: number
+  permissions: Array<PermissionRequest>
+  questions: Array<QuestionRequest>
+  decisionScope: "connected_runtime"
 }
 
 export type RuntimeEvent = {
@@ -2337,6 +3291,33 @@ export type PermissionStanding = {
   pattern: string
   scope: PermissionStandingScope
   created: number
+}
+
+export type ExperimentSeries = Array<{
+  runID: string
+  key: string
+  points: Array<{
+    step: number
+    value: number
+  }>
+}>
+
+export type LocalGpu = {
+  index: number
+  name: string
+  memoryTotalMB: number
+  memoryUsedMB: number
+  utilization: number
+  temperatureC: number | null
+}
+
+export type StudyOverview = {
+  study: Study
+  ideas: Array<StudyIdea>
+  runs: Array<ExperimentRun>
+  events: Array<StudyEvent>
+  baseline?: ExperimentRun
+  best?: ExperimentRun
 }
 
 export type ProviderAuthMethod = {
@@ -2392,6 +3373,8 @@ export type FileContent = {
   mimeType?: string
   size?: number
   truncated?: boolean
+  revision?: string
+  writable?: boolean
 }
 
 export type File = {
@@ -2424,11 +3407,7 @@ export type McpStatusNeedsClientRegistration = {
 }
 
 export type McpStatus =
-  | McpStatusConnected
-  | McpStatusDisabled
-  | McpStatusFailed
-  | McpStatusNeedsAuth
-  | McpStatusNeedsClientRegistration
+  McpStatusConnected | McpStatusDisabled | McpStatusFailed | McpStatusNeedsAuth | McpStatusNeedsClientRegistration
 
 export type McpInspection = {
   status: McpStatus
@@ -2452,6 +3431,47 @@ export type McpInspection = {
     resources?: string
     prompts?: string
   }
+}
+
+export type McpAuthStart =
+  | {
+      state: "pending"
+      authorizationUrl: string
+      flowId: string
+    }
+  | {
+      state: "settled"
+      result: McpStatus
+    }
+
+export type McpAuthPending =
+  | {
+      pending: true
+      authorizationUrl: string
+      flowId: string
+    }
+  | {
+      pending: false
+    }
+
+export type SkillRoot = {
+  path: string
+  kind: "bundled" | "project" | "user" | "installed" | "config" | "runtime"
+  skills: number
+  shadowed: number
+}
+
+export type ShadowedSkill = {
+  name: string
+  location: string
+  origin: "default" | "installed" | "user" | "project"
+  by: string
+}
+
+export type SkillRoots = {
+  roots: Array<SkillRoot>
+  shadowed: Array<ShadowedSkill>
+  revision: number
 }
 
 export type Path = {
@@ -2495,11 +3515,14 @@ export type Agent = {
     modelID: string
     providerID: string
   }
+  variant?: string
   prompt?: string
   options: {
     [key: string]: unknown
   }
   steps?: number
+  skills?: Array<string>
+  unlocks?: Array<string>
 }
 
 export type LspStatus = {
@@ -2544,6 +3567,7 @@ export type GlobalProjectCreateData = {
       path: string
       access?: "read" | "write"
     }>
+    operation_id?: string
   }
   path?: never
   query?: never
@@ -2555,11 +3579,19 @@ export type GlobalProjectCreateErrors = {
    * Bad request
    */
   400: BadRequestError
+  /**
+   * Operation id was already bound to a different project draft
+   */
+  409: unknown
 }
 
 export type GlobalProjectCreateError = GlobalProjectCreateErrors[keyof GlobalProjectCreateErrors]
 
 export type GlobalProjectCreateResponses = {
+  /**
+   * Existing project information for a replayed operation
+   */
+  200: Project
   /**
    * Created project information
    */
@@ -2714,26 +3746,6 @@ export type GlobalDisposeResponses = {
 
 export type GlobalDisposeResponse = GlobalDisposeResponses[keyof GlobalDisposeResponses]
 
-export type GlobalSyncData = {
-  body?: never
-  path?: never
-  query?: never
-  url: "/global/sync"
-}
-
-export type GlobalSyncResponses = {
-  /**
-   * Services synced
-   */
-  200: {
-    user?: unknown
-    credentials: number
-    last_synced: number
-  }
-}
-
-export type GlobalSyncResponse = GlobalSyncResponses[keyof GlobalSyncResponses]
-
 export type AccountSessionData = {
   body?: never
   path?: never
@@ -2743,7 +3755,7 @@ export type AccountSessionData = {
 
 export type AccountSessionResponses = {
   /**
-   * Local session status
+   * Session status
    */
   200: {
     session: boolean
@@ -2765,19 +3777,128 @@ export type AccountGetResponses = {
    */
   200: {
     session: boolean
+    refreshing: boolean
+    refreshed_at: number | null
+    error?: string
     user?: unknown
     balance_usd: number | null
+    available_usd: number | null
     billing_mode: {
       mode: "byok" | "managed"
       balance_cents: number
       balance_usd: number
       managed_supported: boolean
       managed_unlocked: boolean
+      ace_enabled?: boolean
+      ace_access_enabled?: boolean
+      auto_reload_enabled?: boolean
     } | null
+    funding_context: {
+      type: "personal" | "organization"
+      organization_id?: string
+      available: boolean
+      locked: boolean
+      organizations: Array<{
+        organization_id: string
+        name: string
+        slug: string
+        is_personal: boolean
+        status: string
+        role: string
+        membership_status: string
+        funding_available: boolean
+        effective_permissions: Array<string>
+      }>
+    }
+    credential: {
+      type: "personal" | "organization"
+      legacy: boolean
+      origin: "browser" | "key"
+    } | null
+    credential_sync?: unknown
   }
 }
 
 export type AccountGetResponse = AccountGetResponses[keyof AccountGetResponses]
+
+export type AccountFundingContextGetData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/account/funding-context"
+}
+
+export type AccountFundingContextGetResponses = {
+  /**
+   * Funding context
+   */
+  200: {
+    type: "personal" | "organization"
+    organization_id?: string
+    available: boolean
+    locked: boolean
+    organizations: Array<{
+      organization_id: string
+      name: string
+      slug: string
+      is_personal: boolean
+      status: string
+      role: string
+      membership_status: string
+      funding_available: boolean
+      effective_permissions: Array<string>
+    }>
+  }
+}
+
+export type AccountFundingContextGetResponse =
+  AccountFundingContextGetResponses[keyof AccountFundingContextGetResponses]
+
+export type AccountFundingContextSetData = {
+  body?: {
+    organization_id: string | null
+  }
+  path?: never
+  query?: never
+  url: "/account/funding-context"
+}
+
+export type AccountFundingContextSetErrors = {
+  /**
+   * Invalid workspace
+   */
+  400: {
+    error: string
+  }
+}
+
+export type AccountFundingContextSetError = AccountFundingContextSetErrors[keyof AccountFundingContextSetErrors]
+
+export type AccountFundingContextSetResponses = {
+  /**
+   * Funding context
+   */
+  200: {
+    type: "personal" | "organization"
+    organization_id?: string
+    available: boolean
+    locked: boolean
+    organizations: Array<{
+      organization_id: string
+      name: string
+      slug: string
+      is_personal: boolean
+      status: string
+      role: string
+      membership_status: string
+      funding_available: boolean
+      effective_permissions: Array<string>
+    }>
+  }
+}
+
+export type AccountFundingContextSetResponse =
+  AccountFundingContextSetResponses[keyof AccountFundingContextSetResponses]
 
 export type AccountBalanceData = {
   body?: never
@@ -2831,7 +3952,7 @@ export type AccountDeviceRevokeData = {
 
 export type AccountDeviceRevokeResponses = {
   /**
-   * Device revoked
+   * Revoked
    */
   200: boolean
 }
@@ -2855,6 +3976,9 @@ export type AccountBillingModeGetResponses = {
     balance_usd: number
     managed_supported: boolean
     managed_unlocked: boolean
+    ace_enabled?: boolean
+    ace_access_enabled?: boolean
+    auto_reload_enabled?: boolean
   } | null
 }
 
@@ -2879,6 +4003,9 @@ export type AccountBillingModeSetResponses = {
     balance_usd: number
     managed_supported: boolean
     managed_unlocked: boolean
+    ace_enabled?: boolean
+    ace_access_enabled?: boolean
+    auto_reload_enabled?: boolean
   } | null
 }
 
@@ -2969,11 +4096,83 @@ export type SettingsCredentialsListResponses = {
       set_fields: Array<string>
       updated_at: string | null
       source: "local" | "account" | null
+      organization_id: string | null
     }>
   }
 }
 
 export type SettingsCredentialsListResponse = SettingsCredentialsListResponses[keyof SettingsCredentialsListResponses]
+
+export type SettingsCredentialsHostData = {
+  body?: never
+  path?: never
+  query?: {
+    fresh?: "true" | "false"
+  }
+  url: "/settings/credentials/host"
+}
+
+export type SettingsCredentialsHostResponses = {
+  /**
+   * Host credential status
+   */
+  200: Array<{
+    service: "github" | "huggingface"
+    available: boolean
+    source?: "environment" | "gh" | "huggingface-cli" | "token-file"
+  }>
+}
+
+export type SettingsCredentialsHostResponse = SettingsCredentialsHostResponses[keyof SettingsCredentialsHostResponses]
+
+export type SettingsCredentialsImportHostData = {
+  body?: {
+    service: "github" | "huggingface"
+  }
+  path?: never
+  query?: never
+  url: "/settings/credentials/host/import"
+}
+
+export type SettingsCredentialsImportHostErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type SettingsCredentialsImportHostError =
+  SettingsCredentialsImportHostErrors[keyof SettingsCredentialsImportHostErrors]
+
+export type SettingsCredentialsImportHostResponses = {
+  /**
+   * Services
+   */
+  200: {
+    services: Array<{
+      id: string
+      label: string
+      description: string
+      category: "compute" | "integration"
+      custom: boolean
+      fields: Array<{
+        name: string
+        label: string
+        type: "password" | "text" | "textarea"
+        optional: boolean
+        placeholder?: string
+      }>
+      connected: boolean
+      set_fields: Array<string>
+      updated_at: string | null
+      source: "local" | "account" | null
+      organization_id: string | null
+    }>
+  }
+}
+
+export type SettingsCredentialsImportHostResponse =
+  SettingsCredentialsImportHostResponses[keyof SettingsCredentialsImportHostResponses]
 
 export type SettingsCredentialsRemoveData = {
   body?: never
@@ -3006,6 +4205,7 @@ export type SettingsCredentialsRemoveResponses = {
       set_fields: Array<string>
       updated_at: string | null
       source: "local" | "account" | null
+      organization_id: string | null
     }>
   }
 }
@@ -3049,6 +4249,7 @@ export type SettingsCredentialsSetResponses = {
       set_fields: Array<string>
       updated_at: string | null
       source: "local" | "account" | null
+      organization_id: string | null
     }>
   }
 }
@@ -3058,7 +4259,9 @@ export type SettingsCredentialsSetResponse = SettingsCredentialsSetResponses[key
 export type SettingsStorageUsageData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    refresh?: "1"
+  }
   url: "/settings/storage"
 }
 
@@ -3074,9 +4277,20 @@ export type SettingsStorageUsageResponses = {
     state_dir: string
     pointer: string | null
     total_bytes: number
+    cache_bytes: number
     scanning: boolean
     updated_at: string | null
     scan_error: string | null
+    relocation: {
+      id?: string
+      phase: "copying" | "ready" | "publishing" | "published" | "switched" | "recovery_required"
+      source?: string
+      target?: string
+      started_at?: string
+      updated_at?: string
+      active?: boolean
+      error?: string
+    } | null
     entries: Array<{
       name: string
       path: string
@@ -3087,6 +4301,26 @@ export type SettingsStorageUsageResponses = {
 }
 
 export type SettingsStorageUsageResponse = SettingsStorageUsageResponses[keyof SettingsStorageUsageResponses]
+
+export type SettingsStorageClearCacheData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/settings/storage/cache"
+}
+
+export type SettingsStorageClearCacheResponses = {
+  /**
+   * Cache cleared
+   */
+  200: {
+    ok: true
+    entries: number
+  }
+}
+
+export type SettingsStorageClearCacheResponse =
+  SettingsStorageClearCacheResponses[keyof SettingsStorageClearCacheResponses]
 
 export type SettingsStorageResetLocationData = {
   body?: never
@@ -3168,12 +4402,18 @@ export type SettingsComputeGetResponses = {
     providers?: Array<{
       id: string
       name: string
-      verified: boolean
+      integration: "integrated" | "cli_credential"
       placeholder: string
       hint: string
+      credential: {
+        label: string
+        environment: string
+        aliases: Array<string>
+        docs_url: string
+      }
       connected: boolean
       enabled: boolean
-      source: "stored" | "account" | "modal_toml" | null
+      source: "stored" | "modal_toml" | null
       connected_at: string | null
       last_used: string | null
     }>
@@ -3183,6 +4423,9 @@ export type SettingsComputeGetResponses = {
       host: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
+      proxy_jump_host_keys?: Array<string>
       scheduler?: "none" | "slurm" | "pbs"
       workdir?: string
       /**
@@ -3198,6 +4441,8 @@ export type SettingsComputeGetResponses = {
       hostname?: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
     }>
     modal?: {
       app?: string
@@ -3237,6 +4482,19 @@ export type SettingsComputeEnvironmentsRepairData = {
   url: "/settings/compute/environments/repair"
 }
 
+export type SettingsComputeEnvironmentsRepairErrors = {
+  /**
+   * A starter could not be set up; the message is the interpreter's own error
+   */
+  409: {
+    error: "environment_setup_failed"
+    message: string
+  }
+}
+
+export type SettingsComputeEnvironmentsRepairError =
+  SettingsComputeEnvironmentsRepairErrors[keyof SettingsComputeEnvironmentsRepairErrors]
+
 export type SettingsComputeEnvironmentsRepairResponses = {
   /**
    * Updated
@@ -3245,12 +4503,18 @@ export type SettingsComputeEnvironmentsRepairResponses = {
     providers?: Array<{
       id: string
       name: string
-      verified: boolean
+      integration: "integrated" | "cli_credential"
       placeholder: string
       hint: string
+      credential: {
+        label: string
+        environment: string
+        aliases: Array<string>
+        docs_url: string
+      }
       connected: boolean
       enabled: boolean
-      source: "stored" | "account" | "modal_toml" | null
+      source: "stored" | "modal_toml" | null
       connected_at: string | null
       last_used: string | null
     }>
@@ -3260,6 +4524,9 @@ export type SettingsComputeEnvironmentsRepairResponses = {
       host: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
+      proxy_jump_host_keys?: Array<string>
       scheduler?: "none" | "slurm" | "pbs"
       workdir?: string
       /**
@@ -3275,6 +4542,8 @@ export type SettingsComputeEnvironmentsRepairResponses = {
       hostname?: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
     }>
     modal?: {
       app?: string
@@ -3325,12 +4594,18 @@ export type SettingsComputeProviderDisconnectResponses = {
     providers?: Array<{
       id: string
       name: string
-      verified: boolean
+      integration: "integrated" | "cli_credential"
       placeholder: string
       hint: string
+      credential: {
+        label: string
+        environment: string
+        aliases: Array<string>
+        docs_url: string
+      }
       connected: boolean
       enabled: boolean
-      source: "stored" | "account" | "modal_toml" | null
+      source: "stored" | "modal_toml" | null
       connected_at: string | null
       last_used: string | null
     }>
@@ -3340,6 +4615,9 @@ export type SettingsComputeProviderDisconnectResponses = {
       host: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
+      proxy_jump_host_keys?: Array<string>
       scheduler?: "none" | "slurm" | "pbs"
       workdir?: string
       /**
@@ -3355,6 +4633,8 @@ export type SettingsComputeProviderDisconnectResponses = {
       hostname?: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
     }>
     modal?: {
       app?: string
@@ -3417,12 +4697,18 @@ export type SettingsComputeProviderConnectResponses = {
     providers?: Array<{
       id: string
       name: string
-      verified: boolean
+      integration: "integrated" | "cli_credential"
       placeholder: string
       hint: string
+      credential: {
+        label: string
+        environment: string
+        aliases: Array<string>
+        docs_url: string
+      }
       connected: boolean
       enabled: boolean
-      source: "stored" | "account" | "modal_toml" | null
+      source: "stored" | "modal_toml" | null
       connected_at: string | null
       last_used: string | null
     }>
@@ -3432,6 +4718,9 @@ export type SettingsComputeProviderConnectResponses = {
       host: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
+      proxy_jump_host_keys?: Array<string>
       scheduler?: "none" | "slurm" | "pbs"
       workdir?: string
       /**
@@ -3447,6 +4736,8 @@ export type SettingsComputeProviderConnectResponses = {
       hostname?: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
     }>
     modal?: {
       app?: string
@@ -3509,12 +4800,18 @@ export type SettingsComputeProviderEnabledResponses = {
     providers?: Array<{
       id: string
       name: string
-      verified: boolean
+      integration: "integrated" | "cli_credential"
       placeholder: string
       hint: string
+      credential: {
+        label: string
+        environment: string
+        aliases: Array<string>
+        docs_url: string
+      }
       connected: boolean
       enabled: boolean
-      source: "stored" | "account" | "modal_toml" | null
+      source: "stored" | "modal_toml" | null
       connected_at: string | null
       last_used: string | null
     }>
@@ -3524,6 +4821,9 @@ export type SettingsComputeProviderEnabledResponses = {
       host: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
+      proxy_jump_host_keys?: Array<string>
       scheduler?: "none" | "slurm" | "pbs"
       workdir?: string
       /**
@@ -3539,6 +4839,8 @@ export type SettingsComputeProviderEnabledResponses = {
       hostname?: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
     }>
     modal?: {
       app?: string
@@ -3572,6 +4874,42 @@ export type SettingsComputeProviderEnabledResponses = {
 export type SettingsComputeProviderEnabledResponse =
   SettingsComputeProviderEnabledResponses[keyof SettingsComputeProviderEnabledResponses]
 
+export type SettingsComputeProviderDoctorData = {
+  body?: never
+  path: {
+    id: string
+  }
+  query?: never
+  url: "/settings/compute/provider/{id}/doctor"
+}
+
+export type SettingsComputeProviderDoctorErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type SettingsComputeProviderDoctorError =
+  SettingsComputeProviderDoctorErrors[keyof SettingsComputeProviderDoctorErrors]
+
+export type SettingsComputeProviderDoctorResponses = {
+  /**
+   * Connection check result
+   */
+  200: {
+    ok: boolean
+    provider: string
+    cli: string
+    command: string
+    checked_at: string
+    error?: string
+  }
+}
+
+export type SettingsComputeProviderDoctorResponse =
+  SettingsComputeProviderDoctorResponses[keyof SettingsComputeProviderDoctorResponses]
+
 export type SettingsComputeModalUpdateData = {
   body?: {
     app?: string
@@ -3602,12 +4940,18 @@ export type SettingsComputeModalUpdateResponses = {
     providers?: Array<{
       id: string
       name: string
-      verified: boolean
+      integration: "integrated" | "cli_credential"
       placeholder: string
       hint: string
+      credential: {
+        label: string
+        environment: string
+        aliases: Array<string>
+        docs_url: string
+      }
       connected: boolean
       enabled: boolean
-      source: "stored" | "account" | "modal_toml" | null
+      source: "stored" | "modal_toml" | null
       connected_at: string | null
       last_used: string | null
     }>
@@ -3617,6 +4961,9 @@ export type SettingsComputeModalUpdateResponses = {
       host: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
+      proxy_jump_host_keys?: Array<string>
       scheduler?: "none" | "slurm" | "pbs"
       workdir?: string
       /**
@@ -3632,6 +4979,8 @@ export type SettingsComputeModalUpdateResponses = {
       hostname?: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
     }>
     modal?: {
       app?: string
@@ -3787,12 +5136,18 @@ export type SettingsComputeModalConfigureResponses = {
     providers?: Array<{
       id: string
       name: string
-      verified: boolean
+      integration: "integrated" | "cli_credential"
       placeholder: string
       hint: string
+      credential: {
+        label: string
+        environment: string
+        aliases: Array<string>
+        docs_url: string
+      }
       connected: boolean
       enabled: boolean
-      source: "stored" | "account" | "modal_toml" | null
+      source: "stored" | "modal_toml" | null
       connected_at: string | null
       last_used: string | null
     }>
@@ -3802,6 +5157,9 @@ export type SettingsComputeModalConfigureResponses = {
       host: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
+      proxy_jump_host_keys?: Array<string>
       scheduler?: "none" | "slurm" | "pbs"
       workdir?: string
       /**
@@ -3817,6 +5175,8 @@ export type SettingsComputeModalConfigureResponses = {
       hostname?: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
     }>
     modal?: {
       app?: string
@@ -3885,6 +5245,8 @@ export type SettingsComputeSshAddData = {
     host: string
     user?: string
     port?: number
+    identity_file?: string
+    proxy_jump?: string
     scheduler?: "none" | "slurm" | "pbs"
     workdir?: string
     /**
@@ -3915,12 +5277,18 @@ export type SettingsComputeSshAddResponses = {
     providers?: Array<{
       id: string
       name: string
-      verified: boolean
+      integration: "integrated" | "cli_credential"
       placeholder: string
       hint: string
+      credential: {
+        label: string
+        environment: string
+        aliases: Array<string>
+        docs_url: string
+      }
       connected: boolean
       enabled: boolean
-      source: "stored" | "account" | "modal_toml" | null
+      source: "stored" | "modal_toml" | null
       connected_at: string | null
       last_used: string | null
     }>
@@ -3930,6 +5298,9 @@ export type SettingsComputeSshAddResponses = {
       host: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
+      proxy_jump_host_keys?: Array<string>
       scheduler?: "none" | "slurm" | "pbs"
       workdir?: string
       /**
@@ -3945,6 +5316,8 @@ export type SettingsComputeSshAddResponses = {
       hostname?: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
     }>
     modal?: {
       app?: string
@@ -4010,6 +5383,7 @@ export type SettingsComputeSshTestResponses = {
     pbs: boolean
     fingerprint?: string
     host_key?: string
+    proxy_jump_host_keys?: Array<string>
     error?: string
   }
 }
@@ -4033,12 +5407,18 @@ export type SettingsComputeSshRemoveResponses = {
     providers?: Array<{
       id: string
       name: string
-      verified: boolean
+      integration: "integrated" | "cli_credential"
       placeholder: string
       hint: string
+      credential: {
+        label: string
+        environment: string
+        aliases: Array<string>
+        docs_url: string
+      }
       connected: boolean
       enabled: boolean
-      source: "stored" | "account" | "modal_toml" | null
+      source: "stored" | "modal_toml" | null
       connected_at: string | null
       last_used: string | null
     }>
@@ -4048,6 +5428,9 @@ export type SettingsComputeSshRemoveResponses = {
       host: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
+      proxy_jump_host_keys?: Array<string>
       scheduler?: "none" | "slurm" | "pbs"
       workdir?: string
       /**
@@ -4063,6 +5446,8 @@ export type SettingsComputeSshRemoveResponses = {
       hostname?: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
     }>
     modal?: {
       app?: string
@@ -4128,12 +5513,18 @@ export type SettingsComputeSshUpdateResponses = {
     providers?: Array<{
       id: string
       name: string
-      verified: boolean
+      integration: "integrated" | "cli_credential"
       placeholder: string
       hint: string
+      credential: {
+        label: string
+        environment: string
+        aliases: Array<string>
+        docs_url: string
+      }
       connected: boolean
       enabled: boolean
-      source: "stored" | "account" | "modal_toml" | null
+      source: "stored" | "modal_toml" | null
       connected_at: string | null
       last_used: string | null
     }>
@@ -4143,6 +5534,9 @@ export type SettingsComputeSshUpdateResponses = {
       host: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
+      proxy_jump_host_keys?: Array<string>
       scheduler?: "none" | "slurm" | "pbs"
       workdir?: string
       /**
@@ -4158,6 +5552,8 @@ export type SettingsComputeSshUpdateResponses = {
       hostname?: string
       user?: string
       port?: number
+      identity_file?: string
+      proxy_jump?: string
     }>
     modal?: {
       app?: string
@@ -4208,6 +5604,20 @@ export type SettingsComputeJobsListResponses = {
     id: string
     name: string
     purpose?: string
+    capability?: {
+      id: string
+      version: string
+      manifest_sha256: string
+      profile: "task" | "smoke"
+      runtime_digest: string
+    }
+    capability_execution?: {
+      network: "none"
+      lock_digest: string
+      pip_requirements: string
+      runtime_binary?: string
+      runtime_root?: string
+    }
     command: string
     cwd?: string
     target:
@@ -4270,6 +5680,20 @@ export type SettingsComputeJobsListResponses = {
       bun: string
       node: string
       python?: string
+      capture_scope?: "execution_host" | "submitter"
+      execution_environment?: {
+        target: "local" | "ssh" | "modal"
+        cwd?: string
+        profile?: string
+        /**
+         * Selected runtime, not proof that arbitrary shell code used Python. Missing fields were not measured.
+         */
+        python?: {
+          role: "selected_default" | "capability"
+          executable?: string
+          version?: string
+        }
+      }
       git?: {
         repository?: string
         branch?: string
@@ -4751,6 +6175,15 @@ export type SettingsComputeJobsListResponses = {
                 | "remote_unverified"
             }
       }
+      scientific_capability?: {
+        id: string
+        version: string
+        manifest_sha256: string
+        profile: "task" | "smoke"
+        runtime_digest: string
+        execution_network?: "none"
+        lock_digest?: string
+      }
     }
     capture_error?: string
     cleanup_error?: string
@@ -4784,6 +6217,7 @@ export type SettingsComputeJobsListResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -4855,6 +6289,10 @@ export type SettingsComputeJobsListResponses = {
       environment?: string
       image: string
       packages?: Array<string>
+      package_lock?: {
+        digest: string
+        requirements: string
+      }
       secret_refs?: Array<"nvidia_nim" | "nvidia_ngc">
       gpu: string
       network: "unrestricted" | "none"
@@ -4863,6 +6301,7 @@ export type SettingsComputeJobsListResponses = {
         path: string
         size: number
         sha256: string
+        named?: boolean
       }>
       upload_bytes: number
       approval: string
@@ -4878,6 +6317,9 @@ export type SettingsComputeJobsListResponses = {
         host: string
         user?: string
         port?: number
+        identity_file?: string
+        proxy_jump?: string
+        proxy_jump_host_keys?: Array<string>
         scheduler?: "none" | "slurm" | "pbs"
         workdir?: string
         /**
@@ -4943,6 +6385,21 @@ export type SettingsComputeJobsStartData = {
     approval?: string
     sessionID: string
     default_uploads?: boolean
+    exclude_uploads?: Array<string>
+    capability?: {
+      id: string
+      version: string
+      manifest_sha256: string
+      profile: "task" | "smoke"
+      runtime_digest: string
+    }
+    capability_execution?: {
+      network: "none"
+      lock_digest: string
+      pip_requirements: string
+      runtime_binary?: string
+      runtime_root?: string
+    }
   }
   path?: never
   query?: {
@@ -4956,6 +6413,10 @@ export type SettingsComputeJobsStartErrors = {
    * Bad request
    */
   400: BadRequestError
+  /**
+   * Conflict with the current state; refresh and retry
+   */
+  409: unknown
 }
 
 export type SettingsComputeJobsStartError = SettingsComputeJobsStartErrors[keyof SettingsComputeJobsStartErrors]
@@ -4968,6 +6429,20 @@ export type SettingsComputeJobsStartResponses = {
     id: string
     name: string
     purpose?: string
+    capability?: {
+      id: string
+      version: string
+      manifest_sha256: string
+      profile: "task" | "smoke"
+      runtime_digest: string
+    }
+    capability_execution?: {
+      network: "none"
+      lock_digest: string
+      pip_requirements: string
+      runtime_binary?: string
+      runtime_root?: string
+    }
     command: string
     cwd?: string
     target:
@@ -5030,6 +6505,20 @@ export type SettingsComputeJobsStartResponses = {
       bun: string
       node: string
       python?: string
+      capture_scope?: "execution_host" | "submitter"
+      execution_environment?: {
+        target: "local" | "ssh" | "modal"
+        cwd?: string
+        profile?: string
+        /**
+         * Selected runtime, not proof that arbitrary shell code used Python. Missing fields were not measured.
+         */
+        python?: {
+          role: "selected_default" | "capability"
+          executable?: string
+          version?: string
+        }
+      }
       git?: {
         repository?: string
         branch?: string
@@ -5511,6 +7000,15 @@ export type SettingsComputeJobsStartResponses = {
                 | "remote_unverified"
             }
       }
+      scientific_capability?: {
+        id: string
+        version: string
+        manifest_sha256: string
+        profile: "task" | "smoke"
+        runtime_digest: string
+        execution_network?: "none"
+        lock_digest?: string
+      }
     }
     capture_error?: string
     cleanup_error?: string
@@ -5544,6 +7042,7 @@ export type SettingsComputeJobsStartResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -5615,6 +7114,10 @@ export type SettingsComputeJobsStartResponses = {
       environment?: string
       image: string
       packages?: Array<string>
+      package_lock?: {
+        digest: string
+        requirements: string
+      }
       secret_refs?: Array<"nvidia_nim" | "nvidia_ngc">
       gpu: string
       network: "unrestricted" | "none"
@@ -5623,6 +7126,7 @@ export type SettingsComputeJobsStartResponses = {
         path: string
         size: number
         sha256: string
+        named?: boolean
       }>
       upload_bytes: number
       approval: string
@@ -5638,6 +7142,9 @@ export type SettingsComputeJobsStartResponses = {
         host: string
         user?: string
         port?: number
+        identity_file?: string
+        proxy_jump?: string
+        proxy_jump_host_keys?: Array<string>
         scheduler?: "none" | "slurm" | "pbs"
         workdir?: string
         /**
@@ -5704,6 +7211,21 @@ export type SettingsComputeJobsPlanData = {
     approval?: string
     sessionID: string
     default_uploads?: boolean
+    exclude_uploads?: Array<string>
+    capability?: {
+      id: string
+      version: string
+      manifest_sha256: string
+      profile: "task" | "smoke"
+      runtime_digest: string
+    }
+    capability_execution?: {
+      network: "none"
+      lock_digest: string
+      pip_requirements: string
+      runtime_binary?: string
+      runtime_root?: string
+    }
   }
   path?: never
   query?: {
@@ -5717,6 +7239,10 @@ export type SettingsComputeJobsPlanErrors = {
    * Bad request
    */
   400: BadRequestError
+  /**
+   * Conflict with the current state; refresh and retry
+   */
+  409: unknown
 }
 
 export type SettingsComputeJobsPlanError = SettingsComputeJobsPlanErrors[keyof SettingsComputeJobsPlanErrors]
@@ -5742,6 +7268,8 @@ export type SettingsComputeJobsPlanResponses = {
         }
         artifact_patterns: Array<string>
         checkpoint?: string
+        capability_runtime_digest?: string
+        network?: "deny"
         warning: string
       }
     | {
@@ -5752,6 +7280,10 @@ export type SettingsComputeJobsPlanResponses = {
         environment?: string
         image: string
         packages: Array<string>
+        package_lock?: {
+          digest: string
+          requirements: string
+        }
         secret_refs: Array<"nvidia_nim" | "nvidia_ngc">
         gpu: string
         resources?: {
@@ -5768,6 +7300,7 @@ export type SettingsComputeJobsPlanResponses = {
           path: string
           size: number
           sha256: string
+          named?: boolean
         }>
         upload_bytes: number
         outputs: Array<string>
@@ -5781,6 +7314,9 @@ export type SettingsComputeJobsPlanResponses = {
         host: string
         user?: string
         port?: number
+        identity_file?: string
+        proxy_jump?: string
+        proxy_jump_host_key_digests?: Array<string>
         label: string
         scheduler: "none" | "slurm" | "pbs"
         host_notes?: string
@@ -5916,6 +7452,10 @@ export type SettingsComputeJobsRetryErrors = {
    * Not found
    */
   404: NotFoundError
+  /**
+   * Conflict with the current state; refresh and retry
+   */
+  409: unknown
 }
 
 export type SettingsComputeJobsRetryError = SettingsComputeJobsRetryErrors[keyof SettingsComputeJobsRetryErrors]
@@ -5928,6 +7468,20 @@ export type SettingsComputeJobsRetryResponses = {
     id: string
     name: string
     purpose?: string
+    capability?: {
+      id: string
+      version: string
+      manifest_sha256: string
+      profile: "task" | "smoke"
+      runtime_digest: string
+    }
+    capability_execution?: {
+      network: "none"
+      lock_digest: string
+      pip_requirements: string
+      runtime_binary?: string
+      runtime_root?: string
+    }
     command: string
     cwd?: string
     target:
@@ -5990,6 +7544,20 @@ export type SettingsComputeJobsRetryResponses = {
       bun: string
       node: string
       python?: string
+      capture_scope?: "execution_host" | "submitter"
+      execution_environment?: {
+        target: "local" | "ssh" | "modal"
+        cwd?: string
+        profile?: string
+        /**
+         * Selected runtime, not proof that arbitrary shell code used Python. Missing fields were not measured.
+         */
+        python?: {
+          role: "selected_default" | "capability"
+          executable?: string
+          version?: string
+        }
+      }
       git?: {
         repository?: string
         branch?: string
@@ -6471,6 +8039,15 @@ export type SettingsComputeJobsRetryResponses = {
                 | "remote_unverified"
             }
       }
+      scientific_capability?: {
+        id: string
+        version: string
+        manifest_sha256: string
+        profile: "task" | "smoke"
+        runtime_digest: string
+        execution_network?: "none"
+        lock_digest?: string
+      }
     }
     capture_error?: string
     cleanup_error?: string
@@ -6504,6 +8081,7 @@ export type SettingsComputeJobsRetryResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -6575,6 +8153,10 @@ export type SettingsComputeJobsRetryResponses = {
       environment?: string
       image: string
       packages?: Array<string>
+      package_lock?: {
+        digest: string
+        requirements: string
+      }
       secret_refs?: Array<"nvidia_nim" | "nvidia_ngc">
       gpu: string
       network: "unrestricted" | "none"
@@ -6583,6 +8165,7 @@ export type SettingsComputeJobsRetryResponses = {
         path: string
         size: number
         sha256: string
+        named?: boolean
       }>
       upload_bytes: number
       approval: string
@@ -6598,6 +8181,9 @@ export type SettingsComputeJobsRetryResponses = {
         host: string
         user?: string
         port?: number
+        identity_file?: string
+        proxy_jump?: string
+        proxy_jump_host_keys?: Array<string>
         scheduler?: "none" | "slurm" | "pbs"
         workdir?: string
         /**
@@ -6645,6 +8231,10 @@ export type SettingsComputeJobsReleaseErrors = {
    * Not found
    */
   404: NotFoundError
+  /**
+   * Conflict with the current state; refresh and retry
+   */
+  409: unknown
 }
 
 export type SettingsComputeJobsReleaseError = SettingsComputeJobsReleaseErrors[keyof SettingsComputeJobsReleaseErrors]
@@ -6657,6 +8247,20 @@ export type SettingsComputeJobsReleaseResponses = {
     id: string
     name: string
     purpose?: string
+    capability?: {
+      id: string
+      version: string
+      manifest_sha256: string
+      profile: "task" | "smoke"
+      runtime_digest: string
+    }
+    capability_execution?: {
+      network: "none"
+      lock_digest: string
+      pip_requirements: string
+      runtime_binary?: string
+      runtime_root?: string
+    }
     command: string
     cwd?: string
     target:
@@ -6719,6 +8323,20 @@ export type SettingsComputeJobsReleaseResponses = {
       bun: string
       node: string
       python?: string
+      capture_scope?: "execution_host" | "submitter"
+      execution_environment?: {
+        target: "local" | "ssh" | "modal"
+        cwd?: string
+        profile?: string
+        /**
+         * Selected runtime, not proof that arbitrary shell code used Python. Missing fields were not measured.
+         */
+        python?: {
+          role: "selected_default" | "capability"
+          executable?: string
+          version?: string
+        }
+      }
       git?: {
         repository?: string
         branch?: string
@@ -7200,6 +8818,15 @@ export type SettingsComputeJobsReleaseResponses = {
                 | "remote_unverified"
             }
       }
+      scientific_capability?: {
+        id: string
+        version: string
+        manifest_sha256: string
+        profile: "task" | "smoke"
+        runtime_digest: string
+        execution_network?: "none"
+        lock_digest?: string
+      }
     }
     capture_error?: string
     cleanup_error?: string
@@ -7233,6 +8860,7 @@ export type SettingsComputeJobsReleaseResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -7304,6 +8932,10 @@ export type SettingsComputeJobsReleaseResponses = {
       environment?: string
       image: string
       packages?: Array<string>
+      package_lock?: {
+        digest: string
+        requirements: string
+      }
       secret_refs?: Array<"nvidia_nim" | "nvidia_ngc">
       gpu: string
       network: "unrestricted" | "none"
@@ -7312,6 +8944,7 @@ export type SettingsComputeJobsReleaseResponses = {
         path: string
         size: number
         sha256: string
+        named?: boolean
       }>
       upload_bytes: number
       approval: string
@@ -7327,6 +8960,9 @@ export type SettingsComputeJobsReleaseResponses = {
         host: string
         user?: string
         port?: number
+        identity_file?: string
+        proxy_jump?: string
+        proxy_jump_host_keys?: Array<string>
         scheduler?: "none" | "slurm" | "pbs"
         workdir?: string
         /**
@@ -7382,6 +9018,20 @@ export type SettingsComputeJobsCancelResponses = {
     id: string
     name: string
     purpose?: string
+    capability?: {
+      id: string
+      version: string
+      manifest_sha256: string
+      profile: "task" | "smoke"
+      runtime_digest: string
+    }
+    capability_execution?: {
+      network: "none"
+      lock_digest: string
+      pip_requirements: string
+      runtime_binary?: string
+      runtime_root?: string
+    }
     command: string
     cwd?: string
     target:
@@ -7444,6 +9094,20 @@ export type SettingsComputeJobsCancelResponses = {
       bun: string
       node: string
       python?: string
+      capture_scope?: "execution_host" | "submitter"
+      execution_environment?: {
+        target: "local" | "ssh" | "modal"
+        cwd?: string
+        profile?: string
+        /**
+         * Selected runtime, not proof that arbitrary shell code used Python. Missing fields were not measured.
+         */
+        python?: {
+          role: "selected_default" | "capability"
+          executable?: string
+          version?: string
+        }
+      }
       git?: {
         repository?: string
         branch?: string
@@ -7925,6 +9589,15 @@ export type SettingsComputeJobsCancelResponses = {
                 | "remote_unverified"
             }
       }
+      scientific_capability?: {
+        id: string
+        version: string
+        manifest_sha256: string
+        profile: "task" | "smoke"
+        runtime_digest: string
+        execution_network?: "none"
+        lock_digest?: string
+      }
     }
     capture_error?: string
     cleanup_error?: string
@@ -7958,6 +9631,7 @@ export type SettingsComputeJobsCancelResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -8029,6 +9703,10 @@ export type SettingsComputeJobsCancelResponses = {
       environment?: string
       image: string
       packages?: Array<string>
+      package_lock?: {
+        digest: string
+        requirements: string
+      }
       secret_refs?: Array<"nvidia_nim" | "nvidia_ngc">
       gpu: string
       network: "unrestricted" | "none"
@@ -8037,6 +9715,7 @@ export type SettingsComputeJobsCancelResponses = {
         path: string
         size: number
         sha256: string
+        named?: boolean
       }>
       upload_bytes: number
       approval: string
@@ -8052,6 +9731,9 @@ export type SettingsComputeJobsCancelResponses = {
         host: string
         user?: string
         port?: number
+        identity_file?: string
+        proxy_jump?: string
+        proxy_jump_host_keys?: Array<string>
         scheduler?: "none" | "slurm" | "pbs"
         workdir?: string
         /**
@@ -8100,6 +9782,7 @@ export type SettingsPreferencesGetResponses = {
     show_trace?: boolean
     show_local_models?: boolean
     desktop_onboarding_version?: number
+    desktop_onboarding_step?: "account" | "ace" | "connect" | "done"
     atlas_enabled?: boolean
     delegation_enabled?: boolean
     delegation_specialist?: string | null
@@ -8123,6 +9806,7 @@ export type SettingsPreferencesUpdateData = {
     show_trace?: boolean
     show_local_models?: boolean
     desktop_onboarding_version?: number
+    desktop_onboarding_step?: "account" | "ace" | "connect" | "done"
     atlas_enabled?: boolean
     delegation_enabled?: boolean
     delegation_specialist?: string | null
@@ -8153,6 +9837,7 @@ export type SettingsPreferencesUpdateResponses = {
     show_trace?: boolean
     show_local_models?: boolean
     desktop_onboarding_version?: number
+    desktop_onboarding_step?: "account" | "ace" | "connect" | "done"
     atlas_enabled?: boolean
     delegation_enabled?: boolean
     delegation_specialist?: string | null
@@ -8168,6 +9853,392 @@ export type SettingsPreferencesUpdateResponses = {
 
 export type SettingsPreferencesUpdateResponse =
   SettingsPreferencesUpdateResponses[keyof SettingsPreferencesUpdateResponses]
+
+export type SettingsUsageLoggingGetData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/settings/usage-logging"
+}
+
+export type SettingsUsageLoggingGetResponses = {
+  /**
+   * Session trace sharing
+   */
+  200: {
+    enabled: boolean
+    signedIn: boolean
+    queued: number
+    quarantined: number
+    delivered: number
+    lastDelivery?: string
+    oldestQueuedAt?: string
+    stalled?: boolean
+    lastAttempt?: {
+      deliveryID: string
+      startedAt: string
+      completedAt?: string
+      httpStatus?: number
+      state: "pending" | "response_received" | "rejected" | "acknowledged" | "partial" | "unknown"
+    }
+    rejection?: {
+      eventID: string
+      reason: string
+    }
+    error?: string
+  }
+}
+
+export type SettingsUsageLoggingGetResponse = SettingsUsageLoggingGetResponses[keyof SettingsUsageLoggingGetResponses]
+
+export type SettingsUsageLoggingUpdateData = {
+  body?: {
+    enabled: boolean
+  }
+  path?: never
+  query?: never
+  url: "/settings/usage-logging"
+}
+
+export type SettingsUsageLoggingUpdateResponses = {
+  /**
+   * Session trace sharing
+   */
+  200: {
+    enabled: boolean
+    signedIn: boolean
+    queued: number
+    quarantined: number
+    delivered: number
+    lastDelivery?: string
+    oldestQueuedAt?: string
+    stalled?: boolean
+    lastAttempt?: {
+      deliveryID: string
+      startedAt: string
+      completedAt?: string
+      httpStatus?: number
+      state: "pending" | "response_received" | "rejected" | "acknowledged" | "partial" | "unknown"
+    }
+    rejection?: {
+      eventID: string
+      reason: string
+    }
+    error?: string
+  }
+}
+
+export type SettingsUsageLoggingUpdateResponse =
+  SettingsUsageLoggingUpdateResponses[keyof SettingsUsageLoggingUpdateResponses]
+
+export type SettingsUsageLoggingHealthData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/settings/usage-logging/health"
+}
+
+export type SettingsUsageLoggingHealthResponses = {
+  /**
+   * Server reconciliation or an explicit unavailable state
+   */
+  200:
+    | {
+        state: "available"
+        report: {
+          schema_version: 1
+          scope: "account_installation_workspace"
+          since: string
+          until: string
+          checked_at: string
+          status: "healthy" | "attention" | "no_data" | "incomplete"
+          receipts: {
+            deliveries: number
+            receipt_only?: number
+            replayed_only?: number
+            anomalous: number
+            orphaned_events: number
+          }
+          usage: {
+            responses: number
+            projected: number
+            missing_projection: number
+            unknown_input: number
+            unknown_output: number
+            unknown_reasoning: number
+            unknown_cache_read: number
+            unknown_cache_write: number
+          }
+          attempts?: {
+            calls: number
+            dispatched: number
+            completed: number
+            failed: number
+            cancelled: number
+            timed_out: number
+            pending: number
+            unclassified_requests: number
+          }
+          managed: {
+            attempts_without_response?: number
+            unknown_attempt_charge?: number
+            responses: number
+            pending: number
+            settled: number
+            not_charged: number
+            missing_call_id: number
+            missing_link: number
+            ambiguous_link: number
+            missing_hold: number
+            hold_mismatch: number
+            settled_missing_charge: number
+            duplicate_charge: number
+            token_mismatch: number
+            charge_amount_mismatch: number
+            unknown_charge_amount: number
+          }
+        }
+      }
+    | {
+        state: "unavailable"
+        reason:
+          "signed_out" | "unsupported" | "unauthorized" | "server_unavailable" | "invalid_report" | "account_changed"
+      }
+}
+
+export type SettingsUsageLoggingHealthResponse =
+  SettingsUsageLoggingHealthResponses[keyof SettingsUsageLoggingHealthResponses]
+
+export type SettingsUsageImportsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/settings/usage/imports"
+}
+
+export type SettingsUsageImportsResponses = {
+  /**
+   * Billing imports
+   */
+  200: Array<{
+    id: string
+    provider: string
+    accountLabel: string
+    importedAt: string
+    records: number
+  }>
+}
+
+export type SettingsUsageImportsResponse = SettingsUsageImportsResponses[keyof SettingsUsageImportsResponses]
+
+export type SettingsUsageImportBillingData = {
+  body?: {
+    schema_version: 1
+    provider: string
+    account_label: string
+    currency: "USD"
+    records: Array<{
+      billing_id: string
+      kind?: "charge" | "credit"
+      provider_request_id?: string
+      occurred_at: string
+      model?: string
+      requested_model?: string
+      amount_usd: string
+    }>
+  }
+  path?: never
+  query?: never
+  url: "/settings/usage/imports"
+}
+
+export type SettingsUsageImportBillingResponses = {
+  /**
+   * Imported billing evidence
+   */
+  200: {
+    id: string
+    provider: string
+    accountLabel: string
+    importedAt: string
+    records: number
+  }
+}
+
+export type SettingsUsageImportBillingResponse =
+  SettingsUsageImportBillingResponses[keyof SettingsUsageImportBillingResponses]
+
+export type SettingsUsageRemoveImportData = {
+  body?: never
+  path: {
+    id: string
+  }
+  query?: never
+  url: "/settings/usage/imports/{id}"
+}
+
+export type SettingsUsageRemoveImportResponses = {
+  /**
+   * Removed
+   */
+  200: boolean
+}
+
+export type SettingsUsageRemoveImportResponse =
+  SettingsUsageRemoveImportResponses[keyof SettingsUsageRemoveImportResponses]
+
+export type SettingsUsageBillingData = {
+  body?: never
+  path?: never
+  query?: {
+    start?: string
+    end?: string
+  }
+  url: "/settings/usage/billing"
+}
+
+export type SettingsUsageBillingResponses = {
+  /**
+   * Billing records
+   */
+  200: Array<{
+    kind: "charge" | "credit"
+    id: string
+    provider: string
+    accountLabel: string
+    billingID: string
+    providerRequestID?: string
+    occurredAt: string
+    model?: string
+    requestedModel?: string
+    amountUSD: string
+    match: "matched" | "unmatched" | "ambiguous"
+    callID?: string
+    sessionID?: string
+  }>
+}
+
+export type SettingsUsageBillingResponse = SettingsUsageBillingResponses[keyof SettingsUsageBillingResponses]
+
+export type SettingsUsageLocalData = {
+  body?: never
+  path?: never
+  query?: {
+    start?: string
+    end?: string
+  }
+  url: "/settings/usage/local"
+}
+
+export type SettingsUsageLocalErrors = {
+  /**
+   * Account read deadline expired
+   */
+  503: string
+}
+
+export type SettingsUsageLocalError = SettingsUsageLocalErrors[keyof SettingsUsageLocalErrors]
+
+export type SettingsUsageLocalResponses = {
+  /**
+   * Usage
+   */
+  200: {
+    connected: boolean
+    rows: Array<{
+      date: string
+      provider: string
+      model: string
+      route: "managed" | "byok" | "local" | "chatgpt" | "subscription" | "custom" | "unknown"
+      calls: number
+      input: number
+      output: number
+      reasoning: number
+      cacheRead: number
+      cacheWrite: number
+      tokens: number
+      cost: number
+      costs?: Array<{
+        source:
+          | "wallet_receipt"
+          | "provider_response"
+          | "catalog_estimate"
+          | "imported_billing"
+          | "imported_credit"
+          | "wallet_calculated"
+          | "recorded_unclassified"
+          | "subscription"
+          | "no_provider_charge"
+          | "unknown"
+        amountUSD: string | null
+        known: number
+        unknown: number
+      }>
+    }>
+  }
+}
+
+export type SettingsUsageLocalResponse = SettingsUsageLocalResponses[keyof SettingsUsageLocalResponses]
+
+export type SettingsUsageManagedData = {
+  body?: never
+  path?: never
+  query?: {
+    start?: string
+    end?: string
+  }
+  url: "/settings/usage/managed"
+}
+
+export type SettingsUsageManagedErrors = {
+  /**
+   * Account read deadline expired
+   */
+  503: string
+}
+
+export type SettingsUsageManagedError = SettingsUsageManagedErrors[keyof SettingsUsageManagedErrors]
+
+export type SettingsUsageManagedResponses = {
+  /**
+   * Usage
+   */
+  200: {
+    connected: boolean
+    rows: Array<{
+      date: string
+      provider: string
+      model: string
+      route: "managed" | "byok" | "local" | "chatgpt" | "subscription" | "custom" | "unknown"
+      calls: number
+      input: number
+      output: number
+      reasoning: number
+      cacheRead: number
+      cacheWrite: number
+      tokens: number
+      cost: number
+      costs?: Array<{
+        source:
+          | "wallet_receipt"
+          | "provider_response"
+          | "catalog_estimate"
+          | "imported_billing"
+          | "imported_credit"
+          | "wallet_calculated"
+          | "recorded_unclassified"
+          | "subscription"
+          | "no_provider_charge"
+          | "unknown"
+        amountUSD: string | null
+        known: number
+        unknown: number
+      }>
+    }>
+  }
+}
+
+export type SettingsUsageManagedResponse = SettingsUsageManagedResponses[keyof SettingsUsageManagedResponses]
 
 export type PostSettingsLocalStartData = {
   body?: {
@@ -8203,6 +10274,7 @@ export type PostSettingsLocalSshData = {
     localPort?: number
     key?: string
     name?: string
+    contextLimit?: number
   }
   path?: never
   query?: never
@@ -8269,109 +10341,6 @@ export type PutSettingsSandboxResponses = {
   200: unknown
 }
 
-export type SettingsBillingGetData = {
-  body?: never
-  path?: never
-  query?: never
-  url: "/settings/billing"
-}
-
-export type SettingsBillingGetResponses = {
-  /**
-   * Billing state
-   */
-  200: {
-    llm: "managed" | "byok" | null
-    /**
-     * @deprecated Compatibility field. Compute always uses user-owned infrastructure.
-     */
-    compute: "managed" | "byok"
-    wallet: {
-      /**
-       * Whether a Synthetic Sciences session is available
-       */
-      signedIn: boolean
-      /**
-       * Credit balance in USD; null when signed out or unavailable
-       */
-      balanceUsd: number | null
-    }
-  }
-}
-
-export type SettingsBillingGetResponse = SettingsBillingGetResponses[keyof SettingsBillingGetResponses]
-
-export type SettingsBillingUpdateData = {
-  body?: {
-    llm?: "managed" | "byok" | null
-    /**
-     * @deprecated Accepted for 2.x clients and ignored. Compute always uses user-owned infrastructure.
-     */
-    compute?: "managed" | "byok"
-  }
-  path?: never
-  query?: never
-  url: "/settings/billing"
-}
-
-export type SettingsBillingUpdateResponses = {
-  /**
-   * Updated billing state
-   */
-  200: {
-    llm: "managed" | "byok" | null
-    /**
-     * @deprecated Compatibility field. Compute always uses user-owned infrastructure.
-     */
-    compute: "managed" | "byok"
-    wallet: {
-      /**
-       * Whether a Synthetic Sciences session is available
-       */
-      signedIn: boolean
-      /**
-       * Credit balance in USD; null when signed out or unavailable
-       */
-      balanceUsd: number | null
-    }
-  }
-}
-
-export type SettingsBillingUpdateResponse = SettingsBillingUpdateResponses[keyof SettingsBillingUpdateResponses]
-
-export type SettingsWalletGetData = {
-  body?: never
-  path?: never
-  query?: never
-  url: "/settings/wallet"
-}
-
-export type SettingsWalletGetResponses = {
-  /**
-   * Wallet state
-   */
-  200: {
-    signedIn: boolean
-    /**
-     * Wallet balance in USD; null when signed out or unavailable
-     */
-    balanceUsd: number | null
-    billingMode: "managed" | "byok" | null
-    managedSupported: boolean
-    aceEnabled: boolean
-    lifetimeSpentUsd: number | null
-    transactions: Array<{
-      id: string
-      amountCents: number
-      source: string
-      description: string
-      createdAt: string
-    }>
-  }
-}
-
-export type SettingsWalletGetResponse = SettingsWalletGetResponses[keyof SettingsWalletGetResponses]
-
 export type SettingsUpdatesCheckData = {
   body?: never
   path?: never
@@ -8402,6 +10371,19 @@ export type SettingsUpdatesInstallData = {
   url: "/settings/updates"
 }
 
+export type SettingsUpdatesInstallErrors = {
+  /**
+   * The current installation cannot be updated automatically
+   */
+  409: {
+    error: string
+    blockers?: Array<string>
+    pausable?: boolean
+  }
+}
+
+export type SettingsUpdatesInstallError = SettingsUpdatesInstallErrors[keyof SettingsUpdatesInstallErrors]
+
 export type SettingsUpdatesInstallResponses = {
   /**
    * Installation result
@@ -8421,153 +10403,649 @@ export type SettingsUpdatesInstallResponses = {
 
 export type SettingsUpdatesInstallResponse = SettingsUpdatesInstallResponses[keyof SettingsUpdatesInstallResponses]
 
-export type SettingsResearchToolsGetData = {
+export type SettingsUpdatesStateData = {
   body?: never
   path?: never
   query?: never
-  url: "/settings/research-tools"
+  url: "/settings/updates/state"
 }
 
-export type SettingsResearchToolsGetResponses = {
+export type SettingsUpdatesStateResponses = {
   /**
-   * Research tools status
+   * Desktop update state
    */
   200: {
-    signedIn: boolean
-    /**
-     * @deprecated Compatibility summary. Billing is wallet-based and has no search quota.
-     */
-    plan: {
+    phase:
+      | "idle"
+      | "downloading"
+      | "extracting"
+      | "verifying"
+      | "ready"
+      | "restarting"
+      | "restart_blocked"
+      | "succeeded"
+      | "failed"
+    version?: string
+    transferred?: number
+    total?: number
+    progress?: number
+    completed_at?: string
+    error?: string
+    migration_required?: boolean
+  }
+}
+
+export type SettingsUpdatesStateResponse = SettingsUpdatesStateResponses[keyof SettingsUpdatesStateResponses]
+
+export type SettingsUpdatesCancelData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/settings/updates/stage"
+}
+
+export type SettingsUpdatesCancelResponses = {
+  /**
+   * Desktop update discarded
+   */
+  200: {
+    phase:
+      | "idle"
+      | "downloading"
+      | "extracting"
+      | "verifying"
+      | "ready"
+      | "restarting"
+      | "restart_blocked"
+      | "succeeded"
+      | "failed"
+    version?: string
+    transferred?: number
+    total?: number
+    progress?: number
+    completed_at?: string
+    error?: string
+    migration_required?: boolean
+  }
+}
+
+export type SettingsUpdatesCancelResponse = SettingsUpdatesCancelResponses[keyof SettingsUpdatesCancelResponses]
+
+export type SettingsUpdatesStageData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/settings/updates/stage"
+}
+
+export type SettingsUpdatesStageResponses = {
+  /**
+   * Desktop update staging began
+   */
+  202: {
+    phase:
+      | "idle"
+      | "downloading"
+      | "extracting"
+      | "verifying"
+      | "ready"
+      | "restarting"
+      | "restart_blocked"
+      | "succeeded"
+      | "failed"
+    version?: string
+    transferred?: number
+    total?: number
+    progress?: number
+    completed_at?: string
+    error?: string
+    migration_required?: boolean
+  }
+}
+
+export type SettingsUpdatesStageResponse = SettingsUpdatesStageResponses[keyof SettingsUpdatesStageResponses]
+
+export type SettingsUpdatesApplyData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/settings/updates/apply"
+}
+
+export type SettingsUpdatesApplyErrors = {
+  /**
+   * Active work must finish before restart
+   */
+  409: {
+    error: string
+    blockers?: Array<string>
+    pausable?: boolean
+  }
+}
+
+export type SettingsUpdatesApplyError = SettingsUpdatesApplyErrors[keyof SettingsUpdatesApplyErrors]
+
+export type SettingsUpdatesApplyResponses = {
+  /**
+   * Desktop restart scheduled
+   */
+  202: {
+    phase:
+      | "idle"
+      | "downloading"
+      | "extracting"
+      | "verifying"
+      | "ready"
+      | "restarting"
+      | "restart_blocked"
+      | "succeeded"
+      | "failed"
+    version?: string
+    transferred?: number
+    total?: number
+    progress?: number
+    completed_at?: string
+    error?: string
+    migration_required?: boolean
+  }
+}
+
+export type SettingsUpdatesApplyResponse = SettingsUpdatesApplyResponses[keyof SettingsUpdatesApplyResponses]
+
+export type SettingsUpdatesDisposeData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/settings/updates/dispose"
+}
+
+export type SettingsUpdatesDisposeErrors = {
+  /**
+   * The desktop capability token is missing or invalid
+   */
+  401: {
+    error: string
+    blockers?: Array<string>
+    pausable?: boolean
+  }
+  /**
+   * Runtime disposal did not finish within the bounded handoff
+   */
+  503: {
+    error: string
+    blockers?: Array<string>
+    pausable?: boolean
+  }
+}
+
+export type SettingsUpdatesDisposeError = SettingsUpdatesDisposeErrors[keyof SettingsUpdatesDisposeErrors]
+
+export type SettingsUpdatesDisposeResponses = {
+  /**
+   * Every process-local runtime was released
+   */
+  204: void
+}
+
+export type SettingsUpdatesDisposeResponse = SettingsUpdatesDisposeResponses[keyof SettingsUpdatesDisposeResponses]
+
+export type SettingsCliStatusData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/settings/cli"
+}
+
+export type SettingsCliStatusResponses = {
+  /**
+   * Command-line tool status
+   */
+  200: CliShimStatus
+}
+
+export type SettingsCliStatusResponse = SettingsCliStatusResponses[keyof SettingsCliStatusResponses]
+
+export type SettingsCliInstallData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/settings/cli/install"
+}
+
+export type SettingsCliInstallErrors = {
+  /**
+   * This copy of OpenScience may not own the command-line tool; the reason is the one the status reports
+   */
+  409: {
+    error: string
+  }
+  /**
+   * The system refused a write; the message says what could not be done
+   */
+  500: {
+    error: string
+  }
+}
+
+export type SettingsCliInstallError = SettingsCliInstallErrors[keyof SettingsCliInstallErrors]
+
+export type SettingsCliInstallResponses = {
+  /**
+   * Command-line tool status after the install
+   */
+  200: CliShimStatus
+}
+
+export type SettingsCliInstallResponse = SettingsCliInstallResponses[keyof SettingsCliInstallResponses]
+
+export type SettingsScientificToolsData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/settings/scientific-tools"
+}
+
+export type SettingsScientificToolsResponses = {
+  /**
+   * Scientific tools catalog
+   */
+  200: {
+    schema_version: 1
+    capabilities: Array<{
+      schema_version: 2
       id: string
-      label: string
-      status: string | null
+      version: string
+      name: string
+      category:
+        | "analysis"
+        | "visualization"
+        | "bioinformatics"
+        | "cheminformatics"
+        | "structure"
+        | "docking"
+        | "protein_design"
+        | "genomics"
+        | "molecular_modeling"
+        | "quantum"
+        | "mass_spectrometry"
+        | "chromatography"
+        | "synthesis"
+        | "document"
+      summary: string
+      maturity: "verified" | "experimental" | "blocked"
+      availability: {
+        local: "ready" | "configured" | "setup_needed" | "degraded" | "unavailable" | "not_applicable"
+        hosted: "ready" | "configured" | "setup_needed" | "degraded" | "unavailable" | "not_applicable"
+      }
+      basis: string
+      source: {
+        kind: "pypi" | "conda" | "github" | "system" | "nvidia_nim"
+        name: string
+        version: string
+        reference: string
+        license?: string
+      }
+      runtime?: {
+        kind: "python_pack"
+        pack_id: string
+        python: string
+        targets: Array<"local" | "modal">
+        local_platforms: Array<"darwin-arm64" | "darwin-x64" | "linux-arm64" | "linux-x64" | "windows-x64">
+        local_locks: {
+          [key: string]: string
+        }
+        image: string
+        lock_digest: string
+        packages: Array<string>
+        pip_requirements: string
+        resources: {
+          cpus: number
+          memory_gb: number
+          time_minutes: number
+          gpu: "none"
+        }
+        network: {
+          build: "package_index_only"
+          execution: "none"
+        }
+      }
+      smoke?: {
+        id: string
+        script_digest: string
+        language: "python"
+        result_path: string
+        artifacts: Array<string>
+        max_artifact_bytes: number
+        timeout_seconds: number
+        summary: string
+        invariants: Array<string>
+      }
+      hosted?: {
+        kind: "nvidia_nim"
+        adapter_id:
+          | "boltz2"
+          | "diffdock"
+          | "evo2"
+          | "genmol"
+          | "molmim"
+          | "msa-search"
+          | "openfold2"
+          | "openfold3"
+          | "proteinmpnn"
+          | "rfdiffusion"
+        credential: "nvidia_nim"
+        docs_url: string
+        terms_url: string
+      }
+      setup?: {
+        instructions: string
+        requirements?: Array<string>
+      }
+      blocker?: string
+      current_availability: {
+        local: "ready" | "configured" | "setup_needed" | "degraded" | "unavailable" | "not_applicable"
+        hosted: "ready" | "configured" | "setup_needed" | "degraded" | "unavailable" | "not_applicable"
+      }
+    }>
+    evidence: {
+      [key: string]: {
+        schema_version: 1
+        capability: {
+          id: string
+          version: string
+          manifest_sha256: string
+          profile: "smoke"
+          runtime_digest: string
+        }
+        target: "local" | "modal"
+        job_id: string
+        app_version: string
+        release_sha?: string
+        verified_at: string
+        metrics: {
+          [key: string]: string | number | boolean
+        }
+        artifacts: Array<{
+          path: string
+          size: number
+          sha256: string
+        }>
+      }
     }
-    search: {
-      route: "credits" | "managed" | "community"
-      state: "available" | "basic" | "conditional" | "near_limit" | "critical" | "exhausted" | "unavailable"
-      enabled: boolean
-      balanceUsd: number | null
-      /**
-       * @deprecated Always null; enhanced search draws from the shared wallet.
-       */
-      limit: number | null
-      /**
-       * @deprecated Always null; enhanced search draws from the shared wallet.
-       */
-      used: number | null
-      /**
-       * @deprecated Always null; use balanceUsd.
-       */
-      remaining: number | null
-      /**
-       * @deprecated Always null; wallet credits do not reset.
-       */
-      resetAt: string | null
-      communityFlagEnabled: boolean
-    }
-    telemetry: {
-      analyticsEnabled: boolean
-      researchContentEnabled: boolean
-      userOwnedContentEnabled: boolean
-      source: "default" | "local" | "account"
-      signedIn: boolean
-      consentVersion: string
-      pending: boolean
-      corrupt: boolean
-      deletionAvailable: boolean
-      queuedEvents: number
-      quarantinedEvents: number
+    connectors: Array<{
+      schema_version: 1
+      id: "github" | "benchling" | "box" | "dropbox" | "s3" | "givemeanode" | "parallel-search"
+      name: string
+      provider: string
+      recommended?: boolean
+      status: "official_setup" | "manual_review" | "unavailable"
+      summary: string
+      source_url: string
+      reviewed_at: string
+      read_operations: Array<string>
+      upstream_write_operations: Array<string>
+      writes_enabled_by_catalog: false
+      safety: string
+      requirements: Array<string>
+      setup?: {
+        type: "remote"
+        name: string
+        url: string
+        oauth: "auto" | "client" | "off"
+        scope?: string
+        confidential_client?: boolean
+        one_click_disabled?: boolean
+        one_click_connect?: boolean
+      }
+      revision: string
+    }>
+    counts: {
+      total: number
+      packaged: number
+      hosted: number
+      verified: number
+      experimental: number
+      blocked: number
     }
   }
 }
 
-export type SettingsResearchToolsGetResponse =
-  SettingsResearchToolsGetResponses[keyof SettingsResearchToolsGetResponses]
+export type SettingsScientificToolsResponse = SettingsScientificToolsResponses[keyof SettingsScientificToolsResponses]
 
-export type SettingsResearchToolsTelemetryUpdateData = {
+export type SettingsScientificToolSetupData = {
+  body?: never
+  path: {
+    id: string
+  }
+  query?: never
+  url: "/settings/scientific-tools/{id}/setup"
+}
+
+export type SettingsScientificToolSetupErrors = {
+  /**
+   * Unknown capability
+   */
+  404: {
+    error: "not_found" | "not_installable"
+    message: string
+  }
+  /**
+   * Capability has no packaged local runtime
+   */
+  409: {
+    error: "not_found" | "not_installable"
+    message: string
+  }
+}
+
+export type SettingsScientificToolSetupError =
+  SettingsScientificToolSetupErrors[keyof SettingsScientificToolSetupErrors]
+
+export type SettingsScientificToolSetupResponses = {
+  /**
+   * Scientific tool runtime installed
+   */
+  200: {
+    capability: string
+    state: "ready"
+    environment: string
+    python: string
+    packages: {
+      [key: string]: string
+    }
+    lock_digest: string
+    conda_lock_sha256: string
+  }
+}
+
+export type SettingsScientificToolSetupResponse =
+  SettingsScientificToolSetupResponses[keyof SettingsScientificToolSetupResponses]
+
+export type SettingsBillingGetData = {
+  body?: never
+  path?: never
+  query?: never
+  url: "/settings/billing"
+}
+
+export type SettingsBillingGetResponses = {
+  /**
+   * Billing state
+   */
+  200: {
+    llm: "managed" | "byok" | null
+    compute: "byok"
+    wallet: {
+      signedIn: boolean
+      balanceUsd: number | null
+    }
+  }
+}
+
+export type SettingsBillingGetResponse = SettingsBillingGetResponses[keyof SettingsBillingGetResponses]
+
+export type SettingsBillingUpdateData = {
   body?: {
-    userOwnedContentEnabled: boolean
+    llm?: "managed" | "byok" | null
+    compute?: "byok"
   }
   path?: never
   query?: never
-  url: "/settings/research-tools/telemetry"
+  url: "/settings/billing"
 }
 
-export type SettingsResearchToolsTelemetryUpdateResponses = {
+export type SettingsBillingUpdateResponses = {
   /**
-   * Updated research tools status
+   * Billing state
+   */
+  200: {
+    llm: "managed" | "byok" | null
+    compute: "byok"
+    wallet: {
+      signedIn: boolean
+      balanceUsd: number | null
+    }
+  }
+}
+
+export type SettingsBillingUpdateResponse = SettingsBillingUpdateResponses[keyof SettingsBillingUpdateResponses]
+
+export type SettingsWalletGetData = {
+  body?: never
+  path?: never
+  query?: {
+    /**
+     * Return a fast account summary without ledger history
+     */
+    summary?: "true" | "false"
+  }
+  url: "/settings/wallet"
+}
+
+export type SettingsWalletGetResponses = {
+  /**
+   * Wallet state
    */
   200: {
     signedIn: boolean
-    /**
-     * @deprecated Compatibility summary. Billing is wallet-based and has no search quota.
-     */
-    plan: {
+    balanceUsd: number | null
+    availableUsd: number | null
+    balanceRedacted?: boolean
+    accessVerified?: boolean
+    billingMode: "managed" | "byok" | null
+    managedSupported: boolean
+    managedUnlocked: boolean
+    aceEnabled: boolean
+    autoReloadEnabled: boolean
+    aceContract: {
+      activationAuthorizationUsd: number
+      reloadThresholdUsd: number
+      reloadAmountUsd: number
+      processingFeeDisclosedSeparately: boolean
+      reloadControlledByAce: boolean
+    }
+    lifetimeSpentUsd: number | null
+    transactions: Array<{
       id: string
-      label: string
-      status: string | null
+      amountCents: number
+      source: string
+      description: string
+      createdAt: string
+    }>
+    workspace?: {
+      organizationId: string
+      name: string
+      personal: boolean
     }
-    search: {
-      route: "credits" | "managed" | "community"
-      state: "available" | "basic" | "conditional" | "near_limit" | "critical" | "exhausted" | "unavailable"
-      enabled: boolean
-      balanceUsd: number | null
-      /**
-       * @deprecated Always null; enhanced search draws from the shared wallet.
-       */
-      limit: number | null
-      /**
-       * @deprecated Always null; enhanced search draws from the shared wallet.
-       */
-      used: number | null
-      /**
-       * @deprecated Always null; use balanceUsd.
-       */
-      remaining: number | null
-      /**
-       * @deprecated Always null; wallet credits do not reset.
-       */
-      resetAt: string | null
-      communityFlagEnabled: boolean
-    }
-    telemetry: {
-      analyticsEnabled: boolean
-      researchContentEnabled: boolean
-      userOwnedContentEnabled: boolean
-      source: "default" | "local" | "account"
-      signedIn: boolean
-      consentVersion: string
-      pending: boolean
-      corrupt: boolean
-      deletionAvailable: boolean
-      queuedEvents: number
-      quarantinedEvents: number
-    }
+    origin?: "browser" | "key"
+    refreshing: boolean
+    refreshedAt: number | null
+    error?: string
   }
 }
 
-export type SettingsResearchToolsTelemetryUpdateResponse =
-  SettingsResearchToolsTelemetryUpdateResponses[keyof SettingsResearchToolsTelemetryUpdateResponses]
+export type SettingsWalletGetResponse = SettingsWalletGetResponses[keyof SettingsWalletGetResponses]
 
-export type SettingsResearchToolsTelemetryDeleteData = {
+export type SettingsSearchData = {
   body?: never
   path?: never
   query?: never
-  url: "/settings/research-tools/telemetry/account-data"
+  url: "/settings/search"
 }
 
-export type SettingsResearchToolsTelemetryDeleteResponses = {
+export type SettingsSearchResponses = {
   /**
-   * Deletion status
+   * Search setup
    */
   200: {
-    ok: boolean
-    message?: string
+    configured: boolean
   }
 }
 
-export type SettingsResearchToolsTelemetryDeleteResponse =
-  SettingsResearchToolsTelemetryDeleteResponses[keyof SettingsResearchToolsTelemetryDeleteResponses]
+export type SettingsSearchResponse = SettingsSearchResponses[keyof SettingsSearchResponses]
+
+export type AuthConnectionData = {
+  body?: {
+    key?: string
+    baseURL?: string
+    api?: "responses" | "chat"
+  }
+  path: {
+    providerID: string
+  }
+  query?: never
+  url: "/auth/{providerID}/connection"
+}
+
+export type AuthConnectionResponses = {
+  /**
+   * Saved connection
+   */
+  200: boolean
+}
+
+export type AuthConnectionResponse = AuthConnectionResponses[keyof AuthConnectionResponses]
+
+export type AuthOnboardingData = {
+  body?: ApiAuth
+  path: {
+    providerID: string
+  }
+  query?: never
+  url: "/auth/{providerID}/onboarding"
+}
+
+export type AuthOnboardingErrors = {
+  /**
+   * The provider refused the key; nothing was saved
+   */
+  400: {
+    error: string
+  }
+  /**
+   * Configuration failed and compensation was attempted
+   */
+  500: {
+    error: string
+  }
+}
+
+export type AuthOnboardingError = AuthOnboardingErrors[keyof AuthOnboardingErrors]
+
+export type AuthOnboardingResponses = {
+  /**
+   * Provider credential and BYOK mode configured
+   */
+  200: {
+    configured: true
+    /**
+     * true: the provider accepted the key; false: it could not be reached; absent: no check applies
+     */
+    verified?: boolean
+  }
+}
+
+export type AuthOnboardingResponse = AuthOnboardingResponses[keyof AuthOnboardingResponses]
 
 export type AuthRemoveData = {
   body?: never
@@ -8627,6 +11105,9 @@ export type ProjectListData = {
   body?: never
   path?: never
   query?: {
+    /**
+     * @deprecated
+     */
     directory?: string
   }
   url: "/project"
@@ -8658,6 +11139,214 @@ export type ProjectCurrentResponses = {
 }
 
 export type ProjectCurrentResponse = ProjectCurrentResponses[keyof ProjectCurrentResponses]
+
+export type ProjectFilesystemListData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/project/current/filesystem"
+}
+
+export type ProjectFilesystemListResponses = {
+  /**
+   * Project folder access
+   */
+  200: {
+    version: 1
+    revision: number
+    projectID: string
+    grants: Array<{
+      id: string
+      path: string
+      access: "read" | "write"
+      scope: "project"
+      source: "workspace" | "project" | "skill" | "permission" | "api" | "tool" | "handoff" | "parent"
+      time: {
+        created: number
+        consumed?: number
+        revoked?: number
+      }
+    }>
+    workingRoot?: "scratch" | string
+    directory: string
+    toolDirectory?: string
+    enforcement: {
+      broker: "enforced"
+      processWrite: "grant_only"
+      processRead: "grant_only" | "policy_only"
+    }
+  }
+}
+
+export type ProjectFilesystemListResponse = ProjectFilesystemListResponses[keyof ProjectFilesystemListResponses]
+
+export type ProjectFilesystemConnectData = {
+  body?: {
+    path: string
+    access: "read" | "write"
+  }
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/project/current/filesystem"
+}
+
+export type ProjectFilesystemConnectErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type ProjectFilesystemConnectError = ProjectFilesystemConnectErrors[keyof ProjectFilesystemConnectErrors]
+
+export type ProjectFilesystemConnectResponses = {
+  /**
+   * Connected folder
+   */
+  200: {
+    id: string
+    path: string
+    access: "read" | "write"
+    scope: "once" | "session" | "project" | "installation"
+    source: "workspace" | "project" | "skill" | "permission" | "api" | "tool" | "handoff" | "parent"
+    time: {
+      created: number
+      consumed?: number
+      revoked?: number
+    }
+  }
+}
+
+export type ProjectFilesystemConnectResponse =
+  ProjectFilesystemConnectResponses[keyof ProjectFilesystemConnectResponses]
+
+export type ProjectFilesystemRevokeData = {
+  body?: never
+  path: {
+    grantID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/project/current/filesystem/{grantID}"
+}
+
+export type ProjectFilesystemRevokeErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ProjectFilesystemRevokeError = ProjectFilesystemRevokeErrors[keyof ProjectFilesystemRevokeErrors]
+
+export type ProjectFilesystemRevokeResponses = {
+  /**
+   * Revoked folder access
+   */
+  200: {
+    id: string
+    path: string
+    access: "read" | "write"
+    scope: "once" | "session" | "project" | "installation"
+    source: "workspace" | "project" | "skill" | "permission" | "api" | "tool" | "handoff" | "parent"
+    time: {
+      created: number
+      consumed?: number
+      revoked?: number
+    }
+  }
+}
+
+export type ProjectFilesystemRevokeResponse = ProjectFilesystemRevokeResponses[keyof ProjectFilesystemRevokeResponses]
+
+export type ProjectFilesystemWorkingRootData = {
+  body?: {
+    workingRoot: "scratch" | string | null
+  }
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/project/current/working-root"
+}
+
+export type ProjectFilesystemWorkingRootErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type ProjectFilesystemWorkingRootError =
+  ProjectFilesystemWorkingRootErrors[keyof ProjectFilesystemWorkingRootErrors]
+
+export type ProjectFilesystemWorkingRootResponses = {
+  /**
+   * Updated project folders
+   */
+  200: {
+    version: 1
+    revision: number
+    projectID: string
+    grants: Array<{
+      id: string
+      path: string
+      access: "read" | "write"
+      scope: "project"
+      source: "workspace" | "project" | "skill" | "permission" | "api" | "tool" | "handoff" | "parent"
+      time: {
+        created: number
+        consumed?: number
+        revoked?: number
+      }
+    }>
+    workingRoot?: "scratch" | string
+    directory: string
+    toolDirectory?: string
+    enforcement: {
+      broker: "enforced"
+      processWrite: "grant_only"
+      processRead: "grant_only" | "policy_only"
+    }
+  }
+}
+
+export type ProjectFilesystemWorkingRootResponse =
+  ProjectFilesystemWorkingRootResponses[keyof ProjectFilesystemWorkingRootResponses]
+
+export type ProjectWorkingRootsData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/project/current/working-roots"
+}
+
+export type ProjectWorkingRootsResponses = {
+  /**
+   * Connected read/write folder grants
+   */
+  200: Array<{
+    id: string
+    path: string
+    access: "read" | "write"
+    scope: "once" | "session" | "project" | "installation"
+    source: "workspace" | "project" | "skill" | "permission" | "api" | "tool" | "handoff" | "parent"
+    time: {
+      created: number
+      consumed?: number
+      revoked?: number
+    }
+  }>
+}
+
+export type ProjectWorkingRootsResponse = ProjectWorkingRootsResponses[keyof ProjectWorkingRootsResponses]
 
 export type ProjectTrustGetData = {
   body?: never
@@ -8949,6 +11638,7 @@ export type ProjectExecutionResponses = {
     generation: string
     directory?: string
     workspace: string
+    scratch?: string
     readable: Array<string>
     writable: Array<string>
     sandbox: {
@@ -9045,6 +11735,7 @@ export type PtyCreateData = {
   body?: {
     sessionID: string
     title?: string
+    program?: "claude"
   }
   path?: never
   query?: {
@@ -9437,6 +12128,301 @@ export type ExperimentalResourceListResponses = {
 export type ExperimentalResourceListResponse =
   ExperimentalResourceListResponses[keyof ExperimentalResourceListResponses]
 
+export type SessionSubagentBudgetData = {
+  body?: never
+  path: {
+    sessionID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/session/{sessionID}/subagents/budget"
+}
+
+export type SessionSubagentBudgetErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type SessionSubagentBudgetError = SessionSubagentBudgetErrors[keyof SessionSubagentBudgetErrors]
+
+export type SessionSubagentBudgetResponses = {
+  /**
+   * Shared subagent pools and assignments; main-agent inference is excluded
+   */
+  200: {
+    enabled?: boolean
+    version: 1
+    projectID: string
+    rootSessionID: string
+    revision: number
+    limits: {
+      usd: number
+      tokens: number
+    }
+    workers: {
+      [key: string]: {
+        sessionID: string
+        parentSessionID: string
+        rootSessionID: string
+        assignmentID: string
+        objective: string
+        description?: string
+        expectedOutput: string
+        model: {
+          providerID: string
+          modelID: string
+        }
+        variant?: string
+        route: string
+        unit: "usd" | "tokens"
+        limit: number
+        spent: number
+        active: boolean
+        acceptedAt?: number
+        deadline: number
+        stopReason?:
+          | "budget_limit"
+          | "token_limit"
+          | "deadline"
+          | "route_changed"
+          | "pricing_unavailable"
+          | "setup_required"
+          | "budget_wrapup"
+          | "deadline_wrapup"
+          | "cancelled"
+        wrapup?: boolean
+        wrapupReason?: "budget_wrapup" | "deadline_wrapup"
+        handoffCallID?: string
+        handoff?: string
+        outcome?: "completed" | "partial" | "error"
+        reportReason?: string
+        agent?: string
+        deleted?: boolean
+        calls: {
+          [key: string]: {
+            amount: number
+            state: "pending" | "settled"
+            consumed?: number
+          }
+        }
+      }
+    }
+    approvals: {
+      [key: string]: {
+        unit: "usd" | "tokens"
+        amount: number
+        revision: number
+      }
+    }
+    continuations?: {
+      [key: string]: {
+        childID: string
+        userID: string
+        messageID: string
+        partID: string
+        callID: string
+        amount: number
+        completed: boolean
+      }
+    }
+    available: {
+      usd: number
+      tokens: number
+    }
+    continuationCapacity: {
+      [key: string]: {
+        available: number
+        ancestorLimited: boolean
+      }
+    }
+  } | null
+}
+
+export type SessionSubagentBudgetResponse = SessionSubagentBudgetResponses[keyof SessionSubagentBudgetResponses]
+
+export type SessionContinueSubagentData = {
+  body?: {
+    key: string
+  }
+  path: {
+    sessionID: string
+    childID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/session/{sessionID}/subagents/{childID}/continue"
+}
+
+export type SessionContinueSubagentErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+  /**
+   * Conflict with the current state; refresh and retry
+   */
+  409: unknown
+}
+
+export type SessionContinueSubagentError = SessionContinueSubagentErrors[keyof SessionContinueSubagentErrors]
+
+export type SessionContinueSubagentResponses = {
+  /**
+   * Accepted a new Task call for the same child
+   */
+  202: {
+    sessionID: string
+    callID: string
+  }
+}
+
+export type SessionContinueSubagentResponse = SessionContinueSubagentResponses[keyof SessionContinueSubagentResponses]
+
+export type SessionIncreaseSubagentBudgetData = {
+  body?:
+    | {
+        unit: "usd"
+        amount: number
+        revision: number
+        key: string
+      }
+    | {
+        unit: "tokens"
+        amount: number
+        revision: number
+        key: string
+      }
+  path: {
+    sessionID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/session/{sessionID}/subagents/budget/increase"
+}
+
+export type SessionIncreaseSubagentBudgetErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+  /**
+   * Conflict with the current state; refresh and retry
+   */
+  409: unknown
+}
+
+export type SessionIncreaseSubagentBudgetError =
+  SessionIncreaseSubagentBudgetErrors[keyof SessionIncreaseSubagentBudgetErrors]
+
+export type SessionIncreaseSubagentBudgetResponses = {
+  /**
+   * User-approved pool total; existing usage is preserved
+   */
+  200: {
+    enabled?: boolean
+    version: 1
+    projectID: string
+    rootSessionID: string
+    revision: number
+    limits: {
+      usd: number
+      tokens: number
+    }
+    workers: {
+      [key: string]: {
+        sessionID: string
+        parentSessionID: string
+        rootSessionID: string
+        assignmentID: string
+        objective: string
+        description?: string
+        expectedOutput: string
+        model: {
+          providerID: string
+          modelID: string
+        }
+        variant?: string
+        route: string
+        unit: "usd" | "tokens"
+        limit: number
+        spent: number
+        active: boolean
+        acceptedAt?: number
+        deadline: number
+        stopReason?:
+          | "budget_limit"
+          | "token_limit"
+          | "deadline"
+          | "route_changed"
+          | "pricing_unavailable"
+          | "setup_required"
+          | "budget_wrapup"
+          | "deadline_wrapup"
+          | "cancelled"
+        wrapup?: boolean
+        wrapupReason?: "budget_wrapup" | "deadline_wrapup"
+        handoffCallID?: string
+        handoff?: string
+        outcome?: "completed" | "partial" | "error"
+        reportReason?: string
+        agent?: string
+        deleted?: boolean
+        calls: {
+          [key: string]: {
+            amount: number
+            state: "pending" | "settled"
+            consumed?: number
+          }
+        }
+      }
+    }
+    approvals: {
+      [key: string]: {
+        unit: "usd" | "tokens"
+        amount: number
+        revision: number
+      }
+    }
+    continuations?: {
+      [key: string]: {
+        childID: string
+        userID: string
+        messageID: string
+        partID: string
+        callID: string
+        amount: number
+        completed: boolean
+      }
+    }
+    available: {
+      usd: number
+      tokens: number
+    }
+    continuationCapacity: {
+      [key: string]: {
+        available: number
+        ancestorLimited: boolean
+      }
+    }
+  }
+}
+
+export type SessionIncreaseSubagentBudgetResponse =
+  SessionIncreaseSubagentBudgetResponses[keyof SessionIncreaseSubagentBudgetResponses]
+
 export type SessionListData = {
   body?: never
   path?: never
@@ -9480,6 +12466,11 @@ export type SessionCreateData = {
     parentID?: string
     title?: string
     permission?: PermissionRuleset
+    workspace?: "isolated" | "project"
+    /**
+     * Pin relative tool paths to a connected read/write folder, or to scratch. Omit for automatic.
+     */
+    workingRoot?: "scratch" | string
   }
   path?: never
   query?: {
@@ -9493,6 +12484,10 @@ export type SessionCreateErrors = {
    * Bad request
    */
   400: BadRequestError
+  /**
+   * Conflict with the current state; refresh and retry
+   */
+  409: unknown
 }
 
 export type SessionCreateError = SessionCreateErrors[keyof SessionCreateErrors]
@@ -9673,6 +12668,62 @@ export type SessionChildrenResponses = {
 
 export type SessionChildrenResponse = SessionChildrenResponses[keyof SessionChildrenResponses]
 
+export type SessionReceiptsData = {
+  body?: never
+  path: {
+    sessionID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/session/{sessionID}/receipts"
+}
+
+export type SessionReceiptsErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type SessionReceiptsError = SessionReceiptsErrors[keyof SessionReceiptsErrors]
+
+export type SessionReceiptsResponses = {
+  /**
+   * Settled ledger evidence, with pending and missing calls explicit
+   */
+  200: {
+    rootSessionID: string
+    sessions: number
+    managedCalls: number
+    missingCallIDs: number
+    state: "available" | "unavailable"
+    reason?: "signed_out" | "unsupported" | "unauthorized" | "server_unavailable" | "invalid_report" | "account_changed"
+    checkedAt?: string
+    chargedMicrousd?: string
+    calls: Array<{
+      call_id: string
+      state: "missing" | "pending" | "not_charged" | "settled" | "inconsistent" | "unknown"
+      hold_id: string | null
+      receipt_id: string | null
+    }>
+    receipts: Array<{
+      receipt_id: string
+      hold_id: string
+      charged_microusd: string
+      settled_at: string
+      provider: string
+      model: string
+    }>
+  }
+}
+
+export type SessionReceiptsResponse = SessionReceiptsResponses[keyof SessionReceiptsResponses]
+
 export type SessionTraceData = {
   body?: never
   path: {
@@ -9835,7 +12886,7 @@ export type SessionTraceResponses = {
       tool: string
       query?: string
       signature: string
-      status: "pending" | "running" | "completed" | "error"
+      status: "pending" | "running" | "completed" | "partial" | "error"
       dedupeHit: boolean
       dedupeOf?: {
         messageID: string
@@ -9850,7 +12901,7 @@ export type SessionTraceResponses = {
       toolID: string
       messageID: string
       language: "python" | "r"
-      status: "pending" | "running" | "completed" | "error"
+      status: "pending" | "running" | "completed" | "partial" | "error"
       startedAt?: number
       completedAt?: number
       durationMs?: number
@@ -10020,15 +13071,7 @@ export type SessionTraceResponses = {
          * Primary workflow domain. Use weather for forecast postprocessing or meteorology, posttrain for fine-tuning/alignment/checkpoint training, evidence for literature synthesis, and ml for other machine-learning experiments.
          */
         domain:
-          | "general"
-          | "statistics"
-          | "biology"
-          | "physics"
-          | "chemistry"
-          | "ml"
-          | "weather"
-          | "posttrain"
-          | "evidence"
+          "general" | "statistics" | "biology" | "physics" | "chemistry" | "ml" | "weather" | "posttrain" | "evidence"
         template: "minimal" | "empirical" | "evidence"
         stages: Array<{
           id: string
@@ -10226,13 +13269,14 @@ export type SessionFilesystemListResponses = {
       path: string
       access: "read" | "write"
       scope: "once" | "session" | "project" | "installation"
-      source: "workspace" | "permission" | "api" | "tool" | "handoff"
+      source: "workspace" | "project" | "skill" | "permission" | "api" | "tool" | "handoff" | "parent"
       time: {
         created: number
         consumed?: number
         revoked?: number
       }
     }>
+    workingRoot?: "scratch" | string
     workspace: {
       schemaVersion: 1
       workspaceID: string
@@ -10248,6 +13292,7 @@ export type SessionFilesystemListResponses = {
       trashRoot?: string
       size: number
     }
+    toolDirectory: string
     enforcement: {
       broker: "enforced"
       processWrite: "grant_only"
@@ -10295,7 +13340,7 @@ export type SessionFilesystemGrantResponses = {
     path: string
     access: "read" | "write"
     scope: "once" | "session" | "project" | "installation"
-    source: "workspace" | "permission" | "api" | "tool" | "handoff"
+    source: "workspace" | "project" | "skill" | "permission" | "api" | "tool" | "handoff" | "parent"
     time: {
       created: number
       consumed?: number
@@ -10305,6 +13350,83 @@ export type SessionFilesystemGrantResponses = {
 }
 
 export type SessionFilesystemGrantResponse = SessionFilesystemGrantResponses[keyof SessionFilesystemGrantResponses]
+
+export type SessionFilesystemWorkingRootData = {
+  body?: {
+    workingRoot: "scratch" | string | null
+  }
+  path: {
+    sessionID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/session/{sessionID}/filesystem/working-root"
+}
+
+export type SessionFilesystemWorkingRootErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type SessionFilesystemWorkingRootError =
+  SessionFilesystemWorkingRootErrors[keyof SessionFilesystemWorkingRootErrors]
+
+export type SessionFilesystemWorkingRootResponses = {
+  /**
+   * Versioned filesystem grant state
+   */
+  200: {
+    version: 1
+    revision: number
+    sessionID: string
+    projectID: string
+    directory: string
+    grants: Array<{
+      id: string
+      path: string
+      access: "read" | "write"
+      scope: "once" | "session" | "project" | "installation"
+      source: "workspace" | "project" | "skill" | "permission" | "api" | "tool" | "handoff" | "parent"
+      time: {
+        created: number
+        consumed?: number
+        revoked?: number
+      }
+    }>
+    workingRoot?: "scratch" | string
+    workspace: {
+      schemaVersion: 1
+      workspaceID: string
+      projectID: string
+      sessionID: string
+      scratchRoot: string
+      mode: "isolated" | "legacy"
+      state: "active" | "stopped" | "trash"
+      grantRevision: number
+      createdAt: number
+      lastUsedAt: number
+      trashedAt?: number
+      trashRoot?: string
+      size: number
+    }
+    toolDirectory: string
+    enforcement: {
+      broker: "enforced"
+      processWrite: "grant_only"
+      processRead: "grant_only" | "policy_only"
+    }
+  }
+}
+
+export type SessionFilesystemWorkingRootResponse =
+  SessionFilesystemWorkingRootResponses[keyof SessionFilesystemWorkingRootResponses]
 
 export type SessionFilesystemRevokeData = {
   body?: never
@@ -10340,7 +13462,7 @@ export type SessionFilesystemRevokeResponses = {
     path: string
     access: "read" | "write"
     scope: "once" | "session" | "project" | "installation"
-    source: "workspace" | "permission" | "api" | "tool" | "handoff"
+    source: "workspace" | "project" | "skill" | "permission" | "api" | "tool" | "handoff" | "parent"
     time: {
       created: number
       consumed?: number
@@ -10606,11 +13728,17 @@ export type SessionPromptData = {
         providerID: string
         modelID: string
       }
+      /**
+       * Explicit user model override for this run
+       */
+      workerModelOverride?: boolean
       autonomy?: "interactive" | "balanced" | "autonomous"
     }
     system?: string
     variant?: string
     tier?: string
+    context?: number
+    deadline?: number
     parts: Array<TextPartInput | FilePartInput | AgentPartInput | ConversationPartInput | SubtaskPartInput>
   }
   path: {
@@ -10804,11 +13932,17 @@ export type SessionPromptAsyncData = {
         providerID: string
         modelID: string
       }
+      /**
+       * Explicit user model override for this run
+       */
+      workerModelOverride?: boolean
       autonomy?: "interactive" | "balanced" | "autonomous"
     }
     system?: string
     variant?: string
     tier?: string
+    context?: number
+    deadline?: number
     parts: Array<TextPartInput | FilePartInput | AgentPartInput | ConversationPartInput | SubtaskPartInput>
   }
   path: {
@@ -10860,10 +13994,15 @@ export type SessionCommandData = {
         providerID: string
         modelID: string
       }
+      /**
+       * Explicit user model override for this run
+       */
+      workerModelOverride?: boolean
       autonomy?: "interactive" | "balanced" | "autonomous"
     }
     variant?: string
     tier?: string
+    context?: number
     parts?: Array<{
       id?: string
       type: "file"
@@ -10982,9 +14121,24 @@ export type SessionRevertError = SessionRevertErrors[keyof SessionRevertErrors]
 
 export type SessionRevertResponses = {
   /**
-   * Updated session
+   * Completed undo transaction
    */
-  200: Session
+  200: {
+    status: "reverted" | "unchanged"
+    session: Session
+    turns: number
+    files: Array<string>
+    filesystem: {
+      status: "applied" | "noop" | "partial"
+      restored: Array<string>
+      removed: Array<string>
+      skipped: Array<string>
+      errors: Array<{
+        file: string
+        message: string
+      }>
+    }
+  }
 }
 
 export type SessionRevertResponse = SessionRevertResponses[keyof SessionRevertResponses]
@@ -11061,7 +14215,30 @@ export type PermissionRespondResponse = PermissionRespondResponses[keyof Permiss
 export type RuntimePromptData = {
   body?: {
     sessionID: string
-    message: string
+    messageID?: string
+    model?: {
+      providerID: string
+      modelID: string
+    }
+    variant?: string
+    tier?: string
+    context?: number
+    delegation?: boolean
+    delegationSettings?: {
+      level?: "off" | "light" | "standard" | "high"
+      workerModel?: {
+        providerID: string
+        modelID: string
+      }
+      /**
+       * Explicit user model override for this run
+       */
+      workerModelOverride?: boolean
+      autonomy?: "interactive" | "balanced" | "autonomous"
+    }
+    requestID?: string
+    message?: string
+    parts?: Array<TextPartInput | FilePartInput | AgentPartInput | ConversationPartInput | SubtaskPartInput>
     effort: "normal" | "ultra"
   }
   path?: never
@@ -11090,6 +14267,138 @@ export type RuntimePromptResponses = {
 }
 
 export type RuntimePromptResponse = RuntimePromptResponses[keyof RuntimePromptResponses]
+
+export type RuntimeCancelData = {
+  body?: {
+    sessionID: string
+    runID: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/runtime/cancel"
+}
+
+export type RuntimeCancelErrors = {
+  /**
+   * Session or run not found
+   */
+  404: unknown
+}
+
+export type RuntimeCancelResponses = {
+  /**
+   * Current run state
+   */
+  200: RuntimeRun
+}
+
+export type RuntimeCancelResponse = RuntimeCancelResponses[keyof RuntimeCancelResponses]
+
+export type RuntimeDecideData = {
+  body?: RuntimeDecisionInput
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/runtime/decision"
+}
+
+export type RuntimeDecideErrors = {
+  /**
+   * Invalid answer
+   */
+  400: unknown
+  /**
+   * Session not found
+   */
+  404: unknown
+  /**
+   * Conflicting or expired decision
+   */
+  409: unknown
+}
+
+export type RuntimeDecideResponses = {
+  /**
+   * Decision receipt
+   */
+  200: RuntimeDecisionResult
+}
+
+export type RuntimeDecideResponse = RuntimeDecideResponses[keyof RuntimeDecideResponses]
+
+export type RuntimeCapabilitiesData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/runtime/capabilities"
+}
+
+export type RuntimeCapabilitiesResponses = {
+  /**
+   * Runtime capabilities
+   */
+  200: RuntimeCapabilities
+}
+
+export type RuntimeCapabilitiesResponse = RuntimeCapabilitiesResponses[keyof RuntimeCapabilitiesResponses]
+
+export type RuntimeGetRunData = {
+  body?: never
+  path?: never
+  query: {
+    directory?: string
+    sessionID: string
+    runID: string
+  }
+  url: "/runtime/run"
+}
+
+export type RuntimeGetRunErrors = {
+  /**
+   * Session or run not found
+   */
+  404: unknown
+}
+
+export type RuntimeGetRunResponses = {
+  /**
+   * Research run
+   */
+  200: RuntimeRun
+}
+
+export type RuntimeGetRunResponse = RuntimeGetRunResponses[keyof RuntimeGetRunResponses]
+
+export type RuntimeSnapshotData = {
+  body?: never
+  path?: never
+  query: {
+    directory?: string
+    sessionID: string
+  }
+  url: "/runtime/snapshot"
+}
+
+export type RuntimeSnapshotErrors = {
+  /**
+   * Session not found
+   */
+  404: unknown
+}
+
+export type RuntimeSnapshotResponses = {
+  /**
+   * Runtime snapshot
+   */
+  200: RuntimeSnapshot
+}
+
+export type RuntimeSnapshotResponse = RuntimeSnapshotResponses[keyof RuntimeSnapshotResponses]
 
 export type RuntimeReplayData = {
   body?: never
@@ -11367,11 +14676,472 @@ export type QuestionRejectResponses = {
 
 export type QuestionRejectResponse = QuestionRejectResponses[keyof QuestionRejectResponses]
 
+export type ExperimentsRunsData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    study_id?: string
+    status?: "running" | "finished" | "failed" | "killed" | "cancelled"
+    limit?: number
+  }
+  url: "/experiments/runs"
+}
+
+export type ExperimentsRunsResponses = {
+  /**
+   * Runs
+   */
+  200: Array<ExperimentRun>
+}
+
+export type ExperimentsRunsResponse = ExperimentsRunsResponses[keyof ExperimentsRunsResponses]
+
+export type ExperimentsRunData = {
+  body?: never
+  path: {
+    runID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/runs/{runID}"
+}
+
+export type ExperimentsRunErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentsRunError = ExperimentsRunErrors[keyof ExperimentsRunErrors]
+
+export type ExperimentsRunResponses = {
+  /**
+   * Run
+   */
+  200: ExperimentRun
+}
+
+export type ExperimentsRunResponse = ExperimentsRunResponses[keyof ExperimentsRunResponses]
+
+export type ExperimentsSeriesData = {
+  body?: never
+  path?: never
+  query: {
+    directory?: string
+    run_ids: string
+    keys?: string
+    max?: number
+  }
+  url: "/experiments/series"
+}
+
+export type ExperimentsSeriesResponses = {
+  /**
+   * Series
+   */
+  200: ExperimentSeries
+}
+
+export type ExperimentsSeriesResponse = ExperimentsSeriesResponses[keyof ExperimentsSeriesResponses]
+
+export type ExperimentsKeysData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    run_ids?: string
+    study_id?: string
+  }
+  url: "/experiments/keys"
+}
+
+export type ExperimentsKeysResponses = {
+  /**
+   * Keys
+   */
+  200: Array<string>
+}
+
+export type ExperimentsKeysResponse = ExperimentsKeysResponses[keyof ExperimentsKeysResponses]
+
+export type ExperimentsGpusData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/gpus"
+}
+
+export type ExperimentsGpusResponses = {
+  /**
+   * GPUs
+   */
+  200: Array<LocalGpu>
+}
+
+export type ExperimentsGpusResponse = ExperimentsGpusResponses[keyof ExperimentsGpusResponses]
+
+export type ExperimentsStudiesData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/studies"
+}
+
+export type ExperimentsStudiesResponses = {
+  /**
+   * Studies
+   */
+  200: Array<Study>
+}
+
+export type ExperimentsStudiesResponse = ExperimentsStudiesResponses[keyof ExperimentsStudiesResponses]
+
+export type ExperimentsStudyData = {
+  body?: never
+  path: {
+    studyID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/studies/{studyID}"
+}
+
+export type ExperimentsStudyErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentsStudyError = ExperimentsStudyErrors[keyof ExperimentsStudyErrors]
+
+export type ExperimentsStudyResponses = {
+  /**
+   * Overview
+   */
+  200: StudyOverview
+}
+
+export type ExperimentsStudyResponse = ExperimentsStudyResponses[keyof ExperimentsStudyResponses]
+
+export type ExperimentsStudyUpdateData = {
+  body?: {
+    question?: string
+    hypothesis?: string
+  }
+  path: {
+    studyID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/studies/{studyID}"
+}
+
+export type ExperimentsStudyUpdateErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentsStudyUpdateError = ExperimentsStudyUpdateErrors[keyof ExperimentsStudyUpdateErrors]
+
+export type ExperimentsStudyUpdateResponses = {
+  /**
+   * Study
+   */
+  200: Study
+}
+
+export type ExperimentsStudyUpdateResponse = ExperimentsStudyUpdateResponses[keyof ExperimentsStudyUpdateResponses]
+
+export type ExperimentsStudyControlData = {
+  body?: never
+  path: {
+    studyID: string
+    action: "pause" | "resume" | "halt" | "render"
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/studies/{studyID}/{action}"
+}
+
+export type ExperimentsStudyControlErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentsStudyControlError = ExperimentsStudyControlErrors[keyof ExperimentsStudyControlErrors]
+
+export type ExperimentsStudyControlResponses = {
+  /**
+   * Study
+   */
+  200: Study
+}
+
+export type ExperimentsStudyControlResponse = ExperimentsStudyControlResponses[keyof ExperimentsStudyControlResponses]
+
+export type ExperimentsDirectiveData = {
+  body?: {
+    text: string
+  }
+  path: {
+    studyID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/studies/{studyID}/directives"
+}
+
+export type ExperimentsDirectiveErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentsDirectiveError = ExperimentsDirectiveErrors[keyof ExperimentsDirectiveErrors]
+
+export type ExperimentsDirectiveResponses = {
+  /**
+   * Study
+   */
+  200: Study
+}
+
+export type ExperimentsDirectiveResponse = ExperimentsDirectiveResponses[keyof ExperimentsDirectiveResponses]
+
+export type ExperimentsRetireDirectiveData = {
+  body?: never
+  path: {
+    studyID: string
+    directiveID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/studies/{studyID}/directives/{directiveID}/retire"
+}
+
+export type ExperimentsRetireDirectiveErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentsRetireDirectiveError = ExperimentsRetireDirectiveErrors[keyof ExperimentsRetireDirectiveErrors]
+
+export type ExperimentsRetireDirectiveResponses = {
+  /**
+   * Study
+   */
+  200: Study
+}
+
+export type ExperimentsRetireDirectiveResponse =
+  ExperimentsRetireDirectiveResponses[keyof ExperimentsRetireDirectiveResponses]
+
+export type ExperimentsIdeaData = {
+  body?: {
+    priority?: number
+    status?: "queued" | "dropped"
+  }
+  path: {
+    studyID: string
+    ideaID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/studies/{studyID}/ideas/{ideaID}"
+}
+
+export type ExperimentsIdeaErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentsIdeaError = ExperimentsIdeaErrors[keyof ExperimentsIdeaErrors]
+
+export type ExperimentsIdeaResponses = {
+  /**
+   * Idea
+   */
+  200: StudyIdea
+}
+
+export type ExperimentsIdeaResponse = ExperimentsIdeaResponses[keyof ExperimentsIdeaResponses]
+
+export type ExperimentsIngestRunData = {
+  body?: {
+    name: string
+    project?: string
+    config?: {
+      [key: string]: unknown
+    }
+    study_id?: string
+    session_id?: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/ingest/runs"
+}
+
+export type ExperimentsIngestRunResponses = {
+  /**
+   * Run identity
+   */
+  200: {
+    id: string
+    token: string
+  }
+}
+
+export type ExperimentsIngestRunResponse = ExperimentsIngestRunResponses[keyof ExperimentsIngestRunResponses]
+
+export type ExperimentsIngestPointsData = {
+  body?: {
+    points: Array<{
+      key: string
+      step: number
+      value: number
+      ts?: number
+    }>
+  }
+  path: {
+    runID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/ingest/runs/{runID}/points"
+}
+
+export type ExperimentsIngestPointsErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentsIngestPointsError = ExperimentsIngestPointsErrors[keyof ExperimentsIngestPointsErrors]
+
+export type ExperimentsIngestPointsResponses = {
+  /**
+   * Accepted count
+   */
+  200: {
+    accepted: number
+  }
+}
+
+export type ExperimentsIngestPointsResponse = ExperimentsIngestPointsResponses[keyof ExperimentsIngestPointsResponses]
+
+export type ExperimentsIngestSummaryData = {
+  body?: {
+    summary: {
+      [key: string]: unknown
+    }
+  }
+  path: {
+    runID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/ingest/runs/{runID}/summary"
+}
+
+export type ExperimentsIngestSummaryErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentsIngestSummaryError = ExperimentsIngestSummaryErrors[keyof ExperimentsIngestSummaryErrors]
+
+export type ExperimentsIngestSummaryResponses = {
+  /**
+   * Run
+   */
+  200: ExperimentRun
+}
+
+export type ExperimentsIngestSummaryResponse =
+  ExperimentsIngestSummaryResponses[keyof ExperimentsIngestSummaryResponses]
+
+export type ExperimentsIngestFinishData = {
+  body?: {
+    status?: "finished" | "failed"
+  }
+  path: {
+    runID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/experiments/ingest/runs/{runID}/finish"
+}
+
+export type ExperimentsIngestFinishErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type ExperimentsIngestFinishError = ExperimentsIngestFinishErrors[keyof ExperimentsIngestFinishErrors]
+
+export type ExperimentsIngestFinishResponses = {
+  /**
+   * Run
+   */
+  200: ExperimentRun
+}
+
+export type ExperimentsIngestFinishResponse = ExperimentsIngestFinishResponses[keyof ExperimentsIngestFinishResponses]
+
 export type ProviderListData = {
   body?: never
   path?: never
   query?: {
     directory?: string
+    /**
+     * Re-read managed model pricing now, skipping its cache and failure cooldown
+     */
+    refresh?: "true" | "false"
   }
   url: "/provider"
 }
@@ -11592,6 +15362,7 @@ export type FileReadData = {
     directory?: string
     path: string
     sessionID?: string
+    projectPreview?: "true" | "false"
   }
   url: "/file/content"
 }
@@ -11616,13 +15387,21 @@ export type FileWriteData = {
   body?: {
     path: string
     content: string
-    sessionID: string
+    sessionID?: string
+    expectedRevision?: string
   }
   path?: never
   query?: {
     directory?: string
   }
   url: "/file/content"
+}
+
+export type FileWriteErrors = {
+  /**
+   * The file no longer matches the editor's read revision
+   */
+  409: unknown
 }
 
 export type FileWriteResponses = {
@@ -11641,6 +15420,7 @@ export type FileResolveReferenceData = {
     directory?: string
     path: string
     sessionID: string
+    projectPreview?: "true" | "false"
   }
   url: "/file/resolve"
 }
@@ -11669,6 +15449,7 @@ export type FileResolveReferenceResponses = {
   200: {
     path: string | null
     writable: boolean | null
+    scope: "project" | "session" | null
   }
 }
 
@@ -11700,8 +15481,8 @@ export type FileTrashListResponses = {
     store?: "data" | "workspace"
     payloadPath?: string
     payloadIdentity?: {
-      dev: number
-      ino: number
+      dev: number | string
+      ino: number | string
       size: number
       mode: number
       mtimeMs: number
@@ -11720,7 +15501,7 @@ export type FileTrashListResponse = FileTrashListResponses[keyof FileTrashListRe
 export type FileTrashCreateData = {
   body?: {
     path: string
-    sessionID: string
+    sessionID?: string
   }
   path?: never
   query?: {
@@ -11753,8 +15534,8 @@ export type FileTrashCreateResponses = {
     store?: "data" | "workspace"
     payloadPath?: string
     payloadIdentity?: {
-      dev: number
-      ino: number
+      dev: number | string
+      ino: number | string
       size: number
       mode: number
       mtimeMs: number
@@ -11772,7 +15553,7 @@ export type FileTrashCreateResponse = FileTrashCreateResponses[keyof FileTrashCr
 
 export type FileTrashRestoreData = {
   body?: {
-    sessionID: string
+    sessionID?: string
   }
   path: {
     id: string
@@ -11811,8 +15592,8 @@ export type FileTrashRestoreResponses = {
     store?: "data" | "workspace"
     payloadPath?: string
     payloadIdentity?: {
-      dev: number
-      ino: number
+      dev: number | string
+      ino: number | string
       size: number
       mode: number
       mtimeMs: number
@@ -11830,7 +15611,7 @@ export type FileTrashRestoreResponse = FileTrashRestoreResponses[keyof FileTrash
 
 export type FileTrashPurgeData = {
   body?: {
-    sessionID: string
+    sessionID?: string
   }
   path: {
     id: string
@@ -11865,8 +15646,8 @@ export type FileTrashPurgeResponses = {
     store?: "data" | "workspace"
     payloadPath?: string
     payloadIdentity?: {
-      dev: number
-      ino: number
+      dev: number | string
+      ino: number | string
       size: number
       mode: number
       mtimeMs: number
@@ -11886,7 +15667,7 @@ export type FileRenameData = {
   body?: {
     from: string
     to: string
-    sessionID: string
+    sessionID?: string
   }
   path?: never
   query?: {
@@ -11959,6 +15740,7 @@ export type FileRawData = {
     sessionID?: string
     maxBytes?: number
     inline?: "true" | "false"
+    projectPreview?: "true" | "false"
   }
   url: "/file/raw"
 }
@@ -13654,6 +17436,7 @@ export type KernelsListResponses = {
         generation: string
         directory?: string
         workspace: string
+        scratch?: string
         readable: Array<string>
         writable: Array<string>
         sandbox: {
@@ -13786,6 +17569,7 @@ export type KernelsRestartByIdResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -13917,6 +17701,7 @@ export type KernelsStopByIdResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -14048,6 +17833,7 @@ export type KernelsInterruptByIdResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -14223,6 +18009,7 @@ export type KernelsStatusResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -14354,6 +18141,7 @@ export type KernelsRestartResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -14485,6 +18273,7 @@ export type KernelsStopResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -14616,6 +18405,7 @@ export type KernelsInterruptResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -14825,6 +18615,7 @@ export type NotebookKernelsResponses = {
         generation: string
         directory?: string
         workspace: string
+        scratch?: string
         readable: Array<string>
         writable: Array<string>
         sandbox: {
@@ -14957,6 +18748,7 @@ export type NotebookKernelRestartResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -15088,6 +18880,7 @@ export type NotebookKernelStopResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -15219,6 +19012,7 @@ export type NotebookKernelInterruptResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -15395,6 +19189,7 @@ export type NotebookStatusResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -15527,6 +19322,7 @@ export type NotebookRestartResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -15659,6 +19455,7 @@ export type NotebookStopResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -15791,6 +19588,7 @@ export type NotebookInterruptResponses = {
       generation: string
       directory?: string
       workspace: string
+      scratch?: string
       readable: Array<string>
       writable: Array<string>
       sandbox: {
@@ -16166,17 +19964,98 @@ export type McpAuthStartError = McpAuthStartErrors[keyof McpAuthStartErrors]
 
 export type McpAuthStartResponses = {
   /**
-   * OAuth flow started
+   * OAuth flow started or existing credentials settled
    */
-  200: {
-    /**
-     * URL to open in browser for authorization
-     */
-    authorizationUrl: string
-  }
+  200: McpAuthStart
 }
 
 export type McpAuthStartResponse = McpAuthStartResponses[keyof McpAuthStartResponses]
+
+export type McpAuthCancelData = {
+  body?: never
+  path: {
+    name: string
+  }
+  query: {
+    directory?: string
+    flow_id: string
+  }
+  url: "/mcp/{name}/auth/pending"
+}
+
+export type McpAuthCancelErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type McpAuthCancelError = McpAuthCancelErrors[keyof McpAuthCancelErrors]
+
+export type McpAuthCancelResponses = {
+  /**
+   * Pending OAuth flow cancelled
+   */
+  200: {
+    success: true
+  }
+}
+
+export type McpAuthCancelResponse = McpAuthCancelResponses[keyof McpAuthCancelResponses]
+
+export type McpAuthPendingData = {
+  body?: never
+  path: {
+    name: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/mcp/{name}/auth/pending"
+}
+
+export type McpAuthPendingResponses = {
+  /**
+   * Pending OAuth operation
+   */
+  200: McpAuthPending
+}
+
+export type McpAuthPendingResponse = McpAuthPendingResponses[keyof McpAuthPendingResponses]
+
+export type McpAuthWaitData = {
+  body?: never
+  path: {
+    name: string
+  }
+  query: {
+    directory?: string
+    flow_id: string
+  }
+  url: "/mcp/{name}/auth/wait"
+}
+
+export type McpAuthWaitErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type McpAuthWaitError = McpAuthWaitErrors[keyof McpAuthWaitErrors]
+
+export type McpAuthWaitResponses = {
+  /**
+   * OAuth authentication completed
+   */
+  200: McpStatus
+}
+
+export type McpAuthWaitResponse = McpAuthWaitResponses[keyof McpAuthWaitResponses]
 
 export type McpAuthCallbackData = {
   body?: {
@@ -16289,6 +20168,118 @@ export type McpDisconnectResponses = {
 
 export type McpDisconnectResponse = McpDisconnectResponses[keyof McpDisconnectResponses]
 
+export type SettingsSkillsRemoveRootData = {
+  body?: never
+  path?: never
+  query: {
+    directory?: string
+    path: string
+    /**
+     * Write the path to skills.paths in the global or the project config so it survives a restart.
+     */
+    persist?: "global" | "project"
+  }
+  url: "/settings/skills/paths"
+}
+
+export type SettingsSkillsRemoveRootErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type SettingsSkillsRemoveRootError = SettingsSkillsRemoveRootErrors[keyof SettingsSkillsRemoveRootErrors]
+
+export type SettingsSkillsRemoveRootResponses = {
+  /**
+   * Roots after the removal
+   */
+  200: SkillRoots
+}
+
+export type SettingsSkillsRemoveRootResponse =
+  SettingsSkillsRemoveRootResponses[keyof SettingsSkillsRemoveRootResponses]
+
+export type SettingsSkillsRootsData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/settings/skills/paths"
+}
+
+export type SettingsSkillsRootsResponses = {
+  /**
+   * Skill roots
+   */
+  200: SkillRoots
+}
+
+export type SettingsSkillsRootsResponse = SettingsSkillsRootsResponses[keyof SettingsSkillsRootsResponses]
+
+export type SettingsSkillsAddRootData = {
+  body?: {
+    /**
+     * Absolute path, or relative to the project directory; ~ is expanded.
+     */
+    path: string
+    /**
+     * Write the path to skills.paths in the global or the project config so it survives a restart.
+     */
+    persist?: "global" | "project"
+  }
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/settings/skills/paths"
+}
+
+export type SettingsSkillsAddRootErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Conflict with the current state; refresh and retry
+   */
+  409: unknown
+}
+
+export type SettingsSkillsAddRootError = SettingsSkillsAddRootErrors[keyof SettingsSkillsAddRootErrors]
+
+export type SettingsSkillsAddRootResponses = {
+  /**
+   * The registered root
+   */
+  201: SkillRoot
+}
+
+export type SettingsSkillsAddRootResponse = SettingsSkillsAddRootResponses[keyof SettingsSkillsAddRootResponses]
+
+export type SettingsSkillsReloadData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/settings/skills/reload"
+}
+
+export type SettingsSkillsReloadResponses = {
+  /**
+   * Catalog size after the rescan
+   */
+  200: {
+    skills: number
+    revision: number
+  }
+}
+
+export type SettingsSkillsReloadResponse = SettingsSkillsReloadResponses[keyof SettingsSkillsReloadResponses]
+
 export type SettingsSkillsInstallData = {
   body?: {
     /**
@@ -16394,60 +20385,6 @@ export type SettingsNetworkSetResponses = {
 }
 
 export type SettingsNetworkSetResponse = SettingsNetworkSetResponses[keyof SettingsNetworkSetResponses]
-
-export type SettingsUsageGetData = {
-  body?: never
-  path?: never
-  query?: {
-    directory?: string
-  }
-  url: "/settings/usage"
-}
-
-export type SettingsUsageGetResponses = {
-  /**
-   * Usage summary
-   */
-  200: {
-    sessions: number
-    total: {
-      cost: number
-      tokens: {
-        input: number
-        output: number
-        reasoning: number
-        cache_read: number
-        cache_write: number
-      }
-    }
-    latest: {
-      id: string
-      title: string
-      cost: number
-      tokens: {
-        input: number
-        output: number
-        reasoning: number
-        cache_read: number
-        cache_write: number
-      }
-    } | null
-    weekly: Array<{
-      date: string
-      cost: number
-      tokens: number
-    }>
-    by_model: Array<{
-      key: string
-      provider: string
-      model: string
-      cost: number
-      tokens: number
-    }>
-  }
-}
-
-export type SettingsUsageGetResponse = SettingsUsageGetResponses[keyof SettingsUsageGetResponses]
 
 export type InstanceDisposeData = {
   body?: never
@@ -16601,6 +20538,7 @@ export type AppSkillsResponses = {
   200: Array<{
     name: string
     description: string
+    summary?: string
     location: string
     category?: string
     tags?: Array<string>
@@ -16621,10 +20559,51 @@ export type AppSkillsResponses = {
     }
     origin: "default" | "installed" | "user" | "project"
     entry?: boolean
+    shadows?: Array<string>
+    permission_action: PermissionAction
+    recommended: boolean
+    /**
+     * Selected for on-demand use; permissions remain independently enforced.
+     */
+    enabled?: boolean
+    disabled_by?: "server" | "project"
   }>
 }
 
 export type AppSkillsResponse = AppSkillsResponses[keyof AppSkillsResponses]
+
+export type AppSkillContentData = {
+  body?: never
+  path: {
+    name: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/skill/{name}/content"
+}
+
+export type AppSkillContentErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type AppSkillContentError = AppSkillContentErrors[keyof AppSkillContentErrors]
+
+export type AppSkillContentResponses = {
+  /**
+   * Skill content
+   */
+  200: {
+    name: string
+    location: string
+    content: string
+  }
+}
+
+export type AppSkillContentResponse = AppSkillContentResponses[keyof AppSkillContentResponses]
 
 export type AppSkillDeleteData = {
   body?: never
@@ -16666,6 +20645,7 @@ export type AppSkillWriteResponses = {
   200: {
     name: string
     description: string
+    summary?: string
     location: string
     category?: string
     tags?: Array<string>
@@ -16686,6 +20666,7 @@ export type AppSkillWriteResponses = {
     }
     origin: "default" | "installed" | "user" | "project"
     entry?: boolean
+    shadows?: Array<string>
   }
 }
 

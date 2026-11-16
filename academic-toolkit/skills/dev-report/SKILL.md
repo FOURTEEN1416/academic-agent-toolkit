@@ -152,6 +152,11 @@ ls figures/shot_*.png 2>/dev/null && echo "→ 上面这些直接引用进'系�
 若 `paper/main.tex`(或 main.md) 已有部分内容，在其基础上续写完善。
 
 ⛔ **结束前必跑产出验证**：
+
+产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
+
+以下脚本仅作**无引擎合同时的人工兜底**；其中 PDF 模式 `paper/main.tex` 字节下限等检查若未列入当前模板合同，属本技能兜底项（是否升入 output_contract 另行评估）：
+
 ```bash
 echo "=== 项目报告产出验证 ==="
 PASS=true

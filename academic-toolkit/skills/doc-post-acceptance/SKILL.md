@@ -144,7 +144,7 @@ This skill provides a comprehensive post-acceptance workflow covering three key 
 
 ## Reference Files
 
-Load only what is needed:
-- `references/design-guidelines.md` - visual design guidance
-- `references/deliverable-checklists.md` - slide/poster/promo-specific checklists
-- `examples/post-acceptance-plan.md` - compact delivery plan example
+Load only what is needed（未随仓资产已登记 ASSET-GAP.md；交付计划示例要点：按 slides/poster/promo 三线列交付物、负责人、截止日与复用素材清单）:
+- `references/design-guidelines.md` - visual design guidance（缺失，见 ASSET-GAP）
+- `references/deliverable-checklists.md` - slide/poster/promo-specific checklists（缺失，见 ASSET-GAP）
+- `examples/post-acceptance-plan.md` - compact delivery plan example（缺失，见 ASSET-GAP）

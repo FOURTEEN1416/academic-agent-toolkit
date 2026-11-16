@@ -4,9 +4,15 @@ description: Comprehensive molecular biology toolkit. Use for sequence manipulat
 category: biology
 license: Unknown
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/biopython
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Bioinformatics, Sequences, FASTA, GenBank, NCBI, PDB]
 dependencies: ["biopython>=1.84", "numpy>=1.25.0"]
 ---

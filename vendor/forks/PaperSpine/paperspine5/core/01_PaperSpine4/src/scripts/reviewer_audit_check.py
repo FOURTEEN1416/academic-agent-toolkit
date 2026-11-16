@@ -7,8 +7,8 @@ sections are present and non-empty:
 1. Reviewer Value Map — must carry all six fixed criterion rows
    (Novelty, Significance, Technical soundness, Evidence sufficiency, Clarity,
    Venue fit).
-2. Reviewer Objection Register — must have >=1 data row that carries both a
-   Severity and a Preemptive fix.
+2. Reviewer Objection Register — records genuine objections with Severity and
+   Preemptive fix, or explicitly reports none within an identified review scope.
 3. Editorial Fit Map — must be present with non-empty body content.
 
 word_guard-style CLI: output_dir positional + --json/--markdown/--write,
@@ -57,6 +57,9 @@ class ReviewerAuditResult:
     found_criteria: list[str] = field(default_factory=list)
     missing_criteria: list[str] = field(default_factory=list)
     objection_row_count: int = 0
+    zero_objections_declared: bool = False
+    review_scope: str = ""
+    check_kind: str = "document_structure_only_not_independent_review"
     findings: list[str] = field(default_factory=list)
 
 
@@ -180,9 +183,34 @@ def check_objection_register(body: str | None, result: ReviewerAuditResult) -> N
     rows = [r for r in rows if any(cell.strip() for cell in r)]
     result.objection_row_count = len(rows)
     if not rows:
+        # A scoped negative result is legitimate. An empty table or a generic
+        # 'reviewed everything' statement does not identify what was reviewed.
+        scope = re.search(
+            r"(?im)^\s*(?:[-*]\s*)?(?:review(?:ed)? scope|审阅范围|审查范围)\s*[:：]\s*(.+)$",
+            body,
+        )
+        scoped_body = section_body(body, "review scope")
+        scope_text = scope.group(1).strip() if scope else (scoped_body or "").strip()
+        concrete_scope = re.search(
+            r"[\w./\\-]+\.(?:tex|md|pdf|docx|bib|csv|json)\b|"
+            r"\b(?:section|figure|table|appendix)\s+[A-Z0-9]+\b|第[一二三四五六七八九十\d]+[章节]|[图表]\s*\d+",
+            scope_text, re.I,
+        )
+        no_objections = re.search(
+            r"(?im)^\s*(?:[-*]\s*)?(?:outcome\s*:\s*)?"
+            r"(?:no (?:genuine )?objections(?: found| identified)?|"
+            r"zero (?:genuine )?objections|未发现(?:真实)?异议|无(?:真实)?异议)"
+            r"(?:[.。;；]|\s+(?:within|after|in|for)\b|\s*$)", body,
+        )
+        if no_objections and concrete_scope:
+            result.zero_objections_declared = True
+            result.review_scope = scope_text
+            result.objection_register_ok = True
+            return
         result.findings.append(
-            "Reviewer Objection Register has no objection rows. Add at least one "
-            "row with a Severity and a Preemptive fix."
+            "Reviewer Objection Register has no objection rows. Record the actual "
+            "review scope (file/section/figure locators) and explicitly state that no "
+            "genuine objections were found, or record the genuine objections."
         )
         return
     header_lower = [c.lower() for c in header]

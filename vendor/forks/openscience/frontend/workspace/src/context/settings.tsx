@@ -3,13 +3,13 @@ import { createEffect, createMemo } from "solid-js"
 import { createSimpleContext } from "@synsci/ui/context"
 import { persisted } from "@/utils/persist"
 
-export interface NotificationSettings {
+interface NotificationSettings {
   agent: boolean
   permissions: boolean
   errors: boolean
 }
 
-export interface SoundSettings {
+interface SoundSettings {
   enabled: boolean
   volume: number
   agent: string

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/author-voice-receipt.schema.json",
+  "title": "PaperSpine authorial-voice restoration validation receipt",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["ok", "status", "contract", "schema_version", "mode", "original_sha256", "revised_sha256", "hard_findings", "advisory_findings", "invariants", "style_deviation", "diagnostics", "author_confirmation", "semantic_audit"],
+  "properties": {
+    "ok": {"type": "boolean"},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "contract": {"const": "paperspine.author-voice-restoration"},
+    "schema_version": {"const": "1.0"},
+    "mode": {"enum": ["rewrite", "no_op", ""]},
+    "original_sha256": {"type": "string"},
+    "revised_sha256": {"type": "string"},
+    "hard_findings": {"type": "array", "items": {"type": "object"}},
+    "advisory_findings": {"type": "array", "items": {"type": "object"}},
+    "invariants": {"type": "object"},
+    "style_deviation": {"type": "object"},
+    "diagnostics": {"type": "array", "items": {"type": "object"}},
+    "author_confirmation": {"enum": ["confirmed", "pending", "rejected"]},
+    "semantic_audit": {"type": "string"}
+  }
+}

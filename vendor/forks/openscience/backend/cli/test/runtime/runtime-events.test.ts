@@ -180,6 +180,76 @@ describe("public runtime event journal", () => {
     })
   })
 
+  test("coalesces progress while the durable stream is slower than its batching window", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const session = await Session.create({})
+        let release!: () => void
+        const gate = new Promise<void>((resolve) => (release = resolve))
+        let blocked = false
+        const deltas: string[] = []
+        const unsubscribeBus = Bus.subscribe(MessageV2.Event.PartUpdated, (event) => {
+          if (event.properties.delta) deltas.push(event.properties.delta)
+        })
+        const unsubscribe = RuntimeEvents.subscribe(session.id, async (event) => {
+          if (event.type !== "message.part.updated" || blocked) return
+          blocked = true
+          await gate
+        })
+        try {
+          await RuntimeEvents.begin({
+            sessionID: session.id,
+            runID: "run_progress_backpressure",
+            acceptedAt: 100,
+            effort: "normal",
+          })
+          let text = ""
+          const publish = async (delta: string) => {
+            text += delta
+            await Bus.publish(MessageV2.Event.PartUpdated, {
+              part: {
+                id: "prt_backpressure",
+                sessionID: session.id,
+                messageID: "msg_backpressure",
+                type: "text",
+                text,
+              },
+              delta,
+            })
+          }
+          await publish("a")
+          await waitUntil(() => blocked)
+          for (const delta of ["b", "c", "d", "e"]) {
+            await publish(delta)
+            await Bun.sleep(RuntimeEvents.PROGRESS_INTERVAL_MS + 20)
+          }
+          const replay = RuntimeEvents.replay(session.id)
+          release()
+          expect((await replay).events).toMatchObject([
+            { sequence: 1, type: "runtime.accepted" },
+            { sequence: 2, properties: { part: { text: "a" }, delta: "a" } },
+            { sequence: 3, properties: { part: { text: "abcde" }, delta: "bcde" } },
+          ])
+          expect(deltas).toEqual(["a", "b", "c", "d", "e"])
+          await RuntimeEvents.finish({
+            sessionID: session.id,
+            runID: "run_progress_backpressure",
+            messageID: "msg_backpressure",
+          })
+          expect((await RuntimeEvents.replay(session.id, 3)).events).toMatchObject([
+            { sequence: 4, type: "runtime.completed" },
+          ])
+        } finally {
+          release()
+          unsubscribe()
+          unsubscribeBus()
+        }
+      },
+    })
+  })
+
   test("isolates cyclic subscriber rejections from durable capture and healthy subscribers", async () => {
     await using tmp = await tmpdir({ git: true })
     await Instance.provide({
@@ -209,17 +279,18 @@ describe("public runtime event journal", () => {
               properties: { sessionID: session.id, value: 1 },
             }),
           ).resolves.toBeUndefined()
+          // Capture places the event in its stream; the durable write and the
+          // subscriber delivery run on that stream's queue, which replay drains.
+          expect((await RuntimeEvents.replay(session.id)).events.at(-1)).toMatchObject({
+            runID: "run_subscriber_isolation",
+            type: Tick.type,
+            properties: { sessionID: session.id, value: 1 },
+          })
+          expect(received).toMatchObject([{ runID: "run_subscriber_isolation", type: Tick.type }])
         } finally {
           unsubscribeFailing()
           unsubscribeHealthy()
         }
-
-        expect(received).toMatchObject([{ runID: "run_subscriber_isolation", type: Tick.type }])
-        expect((await RuntimeEvents.replay(session.id)).events.at(-1)).toMatchObject({
-          runID: "run_subscriber_isolation",
-          type: Tick.type,
-          properties: { sessionID: session.id, value: 1 },
-        })
         await RuntimeEvents.finish({
           sessionID: session.id,
           runID: "run_subscriber_isolation",
@@ -722,6 +793,7 @@ describe("/runtime routes", () => {
           const accepted = (await response.json()) as { runID: string; acceptedAt: number }
           expect(accepted.runID).toStartWith("run_")
           expect(accepted.acceptedAt).toBeGreaterThan(0)
+          await waitUntil(() => promptCall.mock.calls.length > 0)
           expect(promptCall.mock.calls[0]?.[0].agent).toBe("research")
 
           const replay = await RuntimeRoutes().request(`/events/replay?sessionID=${session.id}&afterSequence=0`)
@@ -841,6 +913,125 @@ describe("/runtime routes", () => {
         expect(text).not.toContain("id: 1")
         controller.abort()
         await reader.cancel()
+      },
+    })
+  })
+})
+
+describe("delegated child sessions in the public runtime journal", () => {
+  test("captures descendants' events under the parent's active run", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const parent = await Session.create({})
+        const child = await Session.create({ parentID: parent.id })
+        const grandchild = await Session.create({ parentID: child.id })
+        const stranger = await Session.create({})
+        await Bus.publish(Tick, { sessionID: child.id, value: 0 })
+        await RuntimeEvents.begin({ sessionID: parent.id, runID: "run_delegated", acceptedAt: 100, effort: "normal" })
+        await Bus.publish(Tick, { sessionID: child.id, value: 1 })
+        await Bus.publish(Tick, { sessionID: grandchild.id, value: 2 })
+        await Bus.publish(Tick, { sessionID: stranger.id, value: 3 })
+        await RuntimeEvents.finish({ sessionID: parent.id, runID: "run_delegated", messageID: "msg_delegated" })
+        await Bus.publish(Tick, { sessionID: child.id, value: 4 })
+
+        expect((await RuntimeEvents.replay(parent.id)).events).toMatchObject([
+          { type: "runtime.accepted", runID: "run_delegated" },
+          {
+            type: Tick.type,
+            runID: "run_delegated",
+            sessionID: parent.id,
+            properties: { sessionID: child.id, value: 1 },
+          },
+          { type: Tick.type, runID: "run_delegated", properties: { sessionID: grandchild.id, value: 2 } },
+          { type: "runtime.completed" },
+        ])
+        expect((await RuntimeEvents.replay(child.id)).events).toHaveLength(0)
+        expect((await RuntimeEvents.replay(stranger.id)).events).toHaveLength(0)
+        expect(await RuntimeEvents.belongs(parent.id, grandchild.id)).toBe(true)
+        expect(await RuntimeEvents.belongs(parent.id, parent.id)).toBe(true)
+        expect(await RuntimeEvents.belongs(child.id, parent.id)).toBe(false)
+        expect(await RuntimeEvents.belongs(parent.id, stranger.id)).toBe(false)
+      },
+    })
+  })
+
+  test("a child's own active run keeps its events out of the parent's journal", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const parent = await Session.create({})
+        const child = await Session.create({ parentID: parent.id })
+        await RuntimeEvents.begin({ sessionID: parent.id, runID: "run_parent", acceptedAt: 100, effort: "normal" })
+        await RuntimeEvents.begin({ sessionID: child.id, runID: "run_child", acceptedAt: 101, effort: "normal" })
+        await Bus.publish(Tick, { sessionID: child.id, value: 1 })
+        await RuntimeEvents.finish({ sessionID: child.id, runID: "run_child", messageID: "msg_child" })
+        await Bus.publish(Tick, { sessionID: child.id, value: 2 })
+        await RuntimeEvents.finish({ sessionID: parent.id, runID: "run_parent", messageID: "msg_parent" })
+
+        expect((await RuntimeEvents.replay(child.id)).events).toMatchObject([
+          { type: "runtime.accepted", runID: "run_child" },
+          { type: Tick.type, runID: "run_child", properties: { value: 1 } },
+          { type: "runtime.completed", runID: "run_child" },
+        ])
+        expect((await RuntimeEvents.replay(parent.id)).events).toMatchObject([
+          { type: "runtime.accepted", runID: "run_parent" },
+          { type: Tick.type, runID: "run_parent", properties: { sessionID: child.id, value: 2 } },
+          { type: "runtime.completed", runID: "run_parent" },
+        ])
+      },
+    })
+  })
+})
+
+describe("terminal event idempotency", () => {
+  test("a second finalization of the same run returns the recorded terminal event instead of failing", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const session = await Session.create({})
+        try {
+          await RuntimeEvents.begin({ sessionID: session.id, runID: "run_settled", acceptedAt: 100, effort: "normal" })
+          const completed = await RuntimeEvents.finish({
+            sessionID: session.id,
+            runID: "run_settled",
+            messageID: "msg_done",
+          })
+          expect(completed.type).toBe("runtime.completed")
+
+          // A cancellation request that lost the race with normal settlement
+          // reports the run as inactive rather than a phantom active run.
+          const late = await RuntimeEvents.cancel({ sessionID: session.id, runID: "run_settled", source: "user" })
+          expect(late).toEqual({ status: "inactive" })
+
+          // The other finalization path reaching the same run after settlement
+          // gets the recorded terminal event back instead of an ActiveRunError.
+          const again = await RuntimeEvents.finish({
+            sessionID: session.id,
+            runID: "run_settled",
+            messageID: "msg_done",
+          })
+          expect(again).toMatchObject({ runID: "run_settled", type: "runtime.completed" })
+          expect(again.sequence).toBe(completed.sequence)
+
+          const replay = await RuntimeEvents.replay(session.id)
+          expect(
+            replay.events
+              .filter((event) => event.runID === "run_settled" && event.type.startsWith("runtime."))
+              .map((event) => event.type),
+          ).toEqual(["runtime.accepted", "runtime.completed"])
+          expect(RuntimeEvents.activeRunID(session.id)).toBeUndefined()
+
+          // A different run that was never recorded is still a real conflict.
+          await expect(
+            RuntimeEvents.finish({ sessionID: session.id, runID: "run_never_started", messageID: "msg_x" }),
+          ).rejects.toBeInstanceOf(RuntimeEvents.ActiveRunError)
+        } finally {
+          await Session.remove(session.id)
+        }
       },
     })
   })

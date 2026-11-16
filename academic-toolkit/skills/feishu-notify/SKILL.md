@@ -152,5 +152,6 @@ Skills send these events at these moments:
 - **Config file absent = mode off.** No error, no warning, no log.
 - **Push mode is fire-and-forget.** Send curl, check exit code, move on.
 - **Interactive timeout = auto-proceed.** Don't hang forever waiting for a reply.
-- **Respect `AUTO_PROCEED`**: In interactive mode, if the user doesn't reply within timeout, use the same auto-proceed logic as the calling skill.
+- **Respect `AUTO_PROCEED`**: In interactive mode, if the user doesn't reply within timeout, use the same auto-proceed logic as the calling skill — non-approval events only (see the approval-boundary rule below).
+- **审批边界（2026-11-16）：** Feishu 回执（含 interactive approve/reply）只作**通知与人工介入入口**，不替代 `workflow_cli approve --checkpoint` 的真实批准；带署名义务的 checkpoint 必须走引擎真实批准链路，人工批准不可代替。超时 `AUTO_PROCEED` 仅适用**非审批类事件**；审批类事件超时应保持等待或升级，不得自动通过。
 - **No secrets in notifications.** Never include API keys, tokens, or passwords in Feishu messages.

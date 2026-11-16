@@ -4,7 +4,13 @@ description: Therapeutics Data Commons. AI-ready drug discovery datasets (ADME, 
 category: chemistry
 license: MIT license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/pytdc
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # PyTDC (Therapeutics Data Commons)

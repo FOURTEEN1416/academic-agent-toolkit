@@ -730,3 +730,203 @@ echo "Bib entries: $bib_count, Cited keys: $cited_count"
 - Tables: three-line style (booktabs)
 - Backup existing `paper/` before overwriting
 </output_conventions>
+
+<comp_figure_narrative>
+## Figure-Text Narrative Hard Rules (comp-paper-en / comp-paper-en-docx / comp-paper-zh-docx shared contract)
+
+竞赛写作技能共用的图文叙事铁律。语法差异按技能套用：LaTeX 技能（comp-paper-en）图注用 `\caption{}`（主体 ≤14 词）；docx 技能（comp-paper-en-docx / comp-paper-zh-docx）图注用 `![alt](path)` alt 文字（中文主体 ≤20 字 / 英文 ≤14 词，不含「图 N：」前缀）。
+
+- **⛔⛔ Figures must be drawn out by the argument, not stamped with a template sentence (hard rule)**: embed every figure in the prose so the argument itself leads into it — the reader reaches this point and naturally needs to see this figure. The one test that matters: **it reads as a smooth narrative, not as one label slapped on each figure in turn.**（图要由论证自然引出，而不是套模板句。）
+
+- **✅ Three goals to reach (goals, NOT a sentence template, and NOT a fixed structure to copy for every figure)**: make the reader understand (1) what this figure shows, (2) what earlier point it follows from, (3) what conclusion it supports. How you weave these into the paragraph — in what order, in what sentence structure — is up to you as the prose dictates: state the conclusion then show the figure as evidence, or describe the phenomenon then bring in the figure to explain it. **What varies is HOW you write (structure, entry angle, order); what does NOT vary is HOW DEEP you go.**（要变的是「怎么写」，不变的是「写多深」。）
+
+- **⛔⛔ Depth floor for post-figure analysis (hard rule)**: the discussion around each figure must **never be dispatched in a single sentence**. Each figure's prose (lead-in + follow-up combined) **must land all three of the following, none omissible**: (1) **concrete numbers** — the key figures read off the plot (max radius 4.229 m, 7.59% shorter, peak 1.72 m/s), not a vague "clear trend"; for purely qualitative figures state the qualitative feature clearly, **do NOT invent numbers**; (2) **comparison or trend** — against a baseline / other scheme / the previous sub-problem, or how a quantity varies along some axis; (3) **inference or linkage** — what this figure proves, what bottleneck it exposes, which next step it leads into. If you cannot do all three, the figure adds nothing to the argument and should not be included.（图后解读深度底线：具体数值、对比/趋势、推论/衔接，三者缺一不可。）
+
+  - **❌ Perfunctory anti-example (forbidden)**: "The arc-length optimization and comparison are shown in Fig. 25: multiple starts converge to the same optimal neighborhood, and the optimum stays below the baseline." — one sentence, no numbers, no quantified comparison, cut off abruptly.
+
+  - **✅ Benchmark example (the fullness to emulate)**: "Fig. 15 shows the collision radius decreasing strictly monotonically as the pitch grows: as the pitch rises from 0.4 m to 0.55 m, the collision radius falls from 7.04 m to 2.289 m; the intersection of the data points with the R_t = 4.5 m threshold line lands exactly at the critical pitch p_min = 0.448 m, with the left side unable to spiral in and the right side able to. The moderate slope near the intersection indicates that the critical-pitch inversion is stable and the bisection is well-conditioned." — numbers, monotonic trend, threshold crossing, and a stability inference all present, in natural non-formulaic prose.
+
+- **⛔⛔ No formulaic sentence patterns**: never write every figure with the same skeleton, especially the "[figure type] (Fig. N) + verb + one-line conclusion" opener (e.g. "The waterfall chart (Fig. 33) decomposes…", "The radar chart (Fig. 34) compares…", "The heatmap (Fig. 35) shows…" — several figures in a row opening this way is a failure). **For adjacent figures and figures in the same section, vary the entry angle and sentence structure**: lead from the prior conclusion, from the question being answered, from an anomaly visible in the figure, or fold the figure into an argument already in flow without a dedicated opening sentence. Write like a good paper, not like issuing an identically-formatted caption card for each figure.（严禁句式套路化：相邻的图、同一节里的图，切入角度和句式必须换着来。）
+
+- **✅ Figure numbers MUST be cited explicitly (academic norm, fully compatible with "no formulaic patterns")**: every figure must be named in the prose ("Fig. N" / "图 N") so the reader can map the paragraph to the exact figure — this is a hard requirement; do not drop figure numbers just to avoid templating. **What varies is the citation's sentence structure and position, not whether you cite.** Rotate among these entry styles, and don't use the same one for two adjacent figures: sentence-start ("In the pipeline of Fig. 3, the third stage…"), mid-sentence parenthetical ("…this premise holds (see Fig. 2)"), verb-led ("Observing the three curves in Fig. 4…"), figure-as-subject ("Fig. 5 compares…"), or post-hoc confirmation ("…this conclusion is confirmed in Fig. 6."). The number must always appear — just don't open every figure with the one "Fig. N + verb + one-line conclusion" pattern.（图号必须显式引用，切入句式轮换。）
+
+- **⛔⛔ (docx mode) Post-figure paragraph openers must rotate**: docx embeds images in place, which tempts every paragraph to open with "图 N…". Figure-as-subject openers ("图 3 的…" / "Fig. 3 shows…") are allowed but must not dominate: **two adjacent post-figure paragraphs must not both open with "图 N…"**, and figure-as-subject openers must stay ≤ half of the post-figure paragraphs in a section. Prefer leading with the finding and bracketing the figure number ("长势峰值与亩产相关最强（r=0.759，见图 8）", "由图 10 可读出…", "碰撞半径随螺距增大严格单调下降（图 15）：…").（图后解读段开头必须轮换：相邻两段不许都以「图 N…」起句；图号作主语打头的段落整节占比不超过一半。）
+
+- **⛔ No boilerplate placeholders**: sentences like "as shown in Fig. X", "the figure below shows the results", "Fig. X is the flowchart", "如图所示" carry no real information and would hold true for any figure — they count as nothing. If you cannot say what is unique about this figure and why it matters to the argument, the figure adds nothing and should not be included ("if it's not useful, better not to include it").（严禁套话占位。）
+
+- **⛔ Keep captions SHORT — a label**: LaTeX `\caption{}` / docx alt text holds only a short noun phrase naming what the figure is; criteria, parameters, axis meanings, and conclusions go into the prose, not the caption (long ones wrap to ugly multi-line blocks). Anti-example (LaTeX) `\caption{Coverage-radius geometry: station as center, R=3km coverage circle, dispatch distance and response-time criterion}` → short form `\caption{Station coverage-radius geometry}`; anti-example (docx 中文) `![图 3：覆盖半径几何示意：站点为圆心、R=3km 覆盖圆、区域出车距离与响应时间判据](...)` → 正例 `![图 3：站点覆盖半径几何示意](...)`. See the caption-length rule above; the compile/final-verification step scans caption length and flags overruns.（图注只写简短标签。）
+
+- **⛔ No two figures directly adjacent**: no consecutive `\begin{figure}...\end{figure}` environments (LaTeX) or two `![...](...)` lines back-to-back (docx) with no prose paragraph between them; if two figures must appear back-to-back, write a transition paragraph explaining their logical relationship. Every figure/table must also be followed by ≥5 lines of analysis text (data interpretation + comparison + conclusion) before the next figure.（严禁两图直接相邻；每张图后至少 5 行分析文字。）
+
+- **⛔ (LaTeX mode) Logic diagrams occupy their own figure**: flowchart / architecture / roadmap / pipeline / framework / TikZ geometry·algorithm sketches must never be placed two side-by-side — shrinking to half text-width makes node text illegible. Data-result figures may still be combined via a single matplotlib-composed PDF. Float specifiers: figures/tables/pseudocode use `[H]` (`\begin{figure}[H]` / `\begin{table}[H]` / `\begin{algorithm}[H]`); never `[htbp]` for tables (floats push them to section end leaving half a blank page); long tables use `\begin{longtable}`. Sizing: `\includegraphics[width=0.85\textwidth,keepaspectratio]`; ⛔ no small `height=0.38\textheight` cap (with keepaspectratio it only shrinks near-square/tall figures); only `height=0.9\textheight` as an overflow guard.（LaTeX 场景：逻辑图独占 figure、[H] 原位、禁 height 压制。）
+</comp_figure_narrative>
+
+<comp_abstract_discipline>
+## Summary/Abstract Paragraphing & Bold Discipline (comp-paper-en / comp-paper-en-docx / comp-paper-zh-docx shared contract)
+
+竞赛写作技能共用的摘要分段与加粗纪律。语法差异按技能套用：LaTeX 技能（comp-paper-en）用 `\textbf{}`；docx 技能（comp-paper-en-docx / comp-paper-zh-docx）用 markdown `**加粗**`（`\textbf{}` 在 docx 会原样显示成乱码）。段首惯用语按技能：en 用 "For Problem X"，en-docx 用 "For Sub-problem X"，zh-docx 用「针对问题 X」。
+
+**Bold only these three "conclusion anchors"（只加粗三类结论锚点）**:
+
+1. **Key result numbers** (final answers): e.g. `**2376.8**`, `**98.7%**`, `**<3%**`, `**12.4 km**`
+2. **Core method/model names**: e.g. `**NSGA-II**`, `**XGBoost**`, `**灰色预测 GM(1,1)**` — bold each name only at its first/conclusion appearance, not every mention
+3. **The single most critical noun** in a conclusion sentence
+
+**Bold discipline (avoid over-bolding — less is more，宁少勿多)**:
+
+- **1~3 bolds per paragraph, ≤ 12 total**. More than that is wrong.
+- **Never** bold: whole sentences, background, connectives, or the same method name repeatedly.
+- ⛔ Use the skill's own bold syntax only (`\textbf{}` for LaTeX, `**xxx**` for docx/markdown) — the other one renders as literal garbage.
+- ⛔ Do **not** touch the `Keywords` / `**关键词**：` label line — that bold is the label itself.
+- ⛔ Bold only wraps text; **numbers must still be pulled truthfully from the body**, never changed or fabricated for emphasis.
+
+Example: `We build an **NSGA-II** multi-objective model, achieving optimal cost **2376.8**, a **12.3%** reduction over baseline.` / `本文针对调度问题构建 **NSGA-II** 多目标模型，求得最优成本 **2376.8 万元**，较基线降低 **12.3%**。`
+
+**⛔⛔ Break the Summary Sheet into per-problem paragraphs — never cram two or more problems into one block.** Paragraph skeleton:
+
+- Paragraph 1: background + overall modeling approach
+- Then one paragraph per problem, **each starting with "For Problem X" / 「针对问题 X」 and standing alone** (method + specific numbers)
+- Final paragraph: model evaluation / strengths / outlook
+- **Separate paragraphs with a blank line.** A judge must be able to locate each problem's answer at a glance.
+
+**⛔ Hard rule: a single paragraph must NOT contain two or more "For Problem X" / 「针对问题 X」 openers.** Correct ✅ — each opener is its own paragraph, blank line between; wrong ❌ — "For Problem 2, MAPE 14.93%. For Problem 3, predicted values are 952.8, 1570.5." crammed into one paragraph（docx 导出后会更难拆）。
+
+**Paragraph self-check loop（写完摘要后必跑，检测→修复→复检）**: run the per-skill self-check script (LaTeX scans `paper/sections/0_summary.tex` for multiple `[Ff]or [Pp]roblem` in one paragraph; docx scans the `## 摘要` section of `paper/main.md` for multiple 「针对问题」 per markdown-paragraph). If it exits 1, go back, insert a blank line before each crammed opener so it becomes its own paragraph, then rerun until it passes before moving on. **闭环规则：自检不过不进下一步。**
+
+**What goes in each paragraph — hard criteria（每段内容判据）**:
+
+| Sentence | Content | Optional? |
+|---|---|---|
+| 1st | The problem's background, in one sentence — do not elaborate | Required |
+| **2nd** | **What this paper did** — what process was analyzed, which factors were jointly considered, what model was built | **Most important; never omit** |
+| 3rd | Real-world significance / where the model is applied | Optional |
+
+⛔ The 2nd sentence is the face of the whole summary. It must convey the **analysis and the scope considered**, not just a model name. Pattern: `This paper studies …, analyzes the … process, jointly considers …, builds a … model, and applies it to …`
+
+**[Middle paragraphs] one per sub-problem, each carrying all three elements:**
+
+1. **Which problem** — open by naming the sub-problem this paragraph handles
+2. **What method** — the governing law/principle relied on, how the data was processed, how it was discretized, how it was solved. Chain it with *first … then … finally …* so the judge sees the path
+3. **What result** — specific numbers, plus what analysis was run on them (error, verification, comparison)
+
+⛔ **Name the methods down to the level of the theorems and conditions** — not "a model was built". What should appear: the governing laws (Fourier's law, conservation of energy, Newton's law of cooling), the boundary-condition types (Dirichlet / Robin, coupling conditions), the discretization and solver (implicit backward difference, Thomas algorithm, enumeration to fix a coefficient), and parameter values (initial temperature 37 °C). These specifics are the evidence that the work was actually done; "built a model and solved it" is something any team can write.
+
+⛔ **Point at the output file when there is one** (`see problem1.xlsx`) — that is how a judge confirms you actually computed it.
+
+⛔ **Number fidelity**: every number in the summary must be grep-verified against the body chapters / RESULTS.md (LaTeX: loop `grep -oE '[0-9]+\.[0-9]+'` over the summary file and check each number appears in body or RESULTS.md; docx: numbers must match `paper/main.md` body text exactly). Summary is written AFTER the body — never invent numbers.（摘要数字必须从正文如实摘出并回验；先写正文再写摘要。）
+
+**Bold-markup convention note**: LaTeX summary files use `\textbf{...}`; docx/markdown summaries use `**...**`. The compile/export step owns final rendering; this contract owns placement and count discipline.
+</comp_abstract_discipline>
+
+<comp_optimization_writing>
+## Optimization / Programming Model Writing (comp-paper-en / comp-paper-en-docx / comp-paper-zh-docx shared contract)
+
+竞赛写作技能共用的优化模型三要素写法。
+
+**When this applies**: the model contains `\min` / `\max`, or the problem asks for something optimal (minimum cost, maximum coverage, siting, assignment, scheduling, routing, blending). **Does not apply** to statistical modeling (index systems / DEA / PCA / regression / forecasting) — those follow the "theoretical basis → formulas → parameters" order.（适用：出现 min/max 或最优/选址/指派/排班/调度/配比类决策问题；统计建模不适用。）
+
+> The three elements of an optimization problem are **decision variables, objective function, and constraints**. Strong papers usually expose them in that recognition order; the hard requirement is that each element is clearly distinguishable. Melting them into one blob of formulas is the fastest way for a judge to conclude you never worked out what you were deciding.（三要素：决策变量、目标函数、约束条件；糊成一坨 = 评委找不到你在决定什么。）
+
+**Decision variables → objective → constraints → domains is the preferred reading order, not a mandatory set of subsections.** Complex models need separate blocks; a small model may use one paragraph and one aligned display.（惯用顺序；不要求切成三个固定小节，复杂模型分块、简单模型一段 + 一个 aligned 公式即可。）
+
+**⛔ Subsection titles inside a sub-problem chapter must name the model** (chapter-level generic names stay). Optimization chapters slide into placeholder titles that tell a judge nothing while skimming（小节标题要带模型信息）:
+
+| ❌ Placeholder | ✅ Informative |
+|---|---|
+| Model Formulation / 模型建立 | A 0-1 Integer Programming Model for Service-Station Siting / 基于 0-1 整数规划的服务站选址模型 |
+| Model Solution / 模型求解 | Branch-and-Cut Solution and the Optimal Siting Plan |
+| Sensitivity Analysis (as a subsection) | Effect of the Budget Cap on the Number of Stations Opened / 预算上限变动对选址数量的影响 |
+
+⛔ The table only says titles must carry information; it does not prescribe chapter numbers. Restatement, sensitivity, and evaluation are available semantic roles, not mandatory verbatim chapter names.
+
+**① Decision variables** — state five things: **symbol, meaning, type, index range, and why that type**（符号、含义、类型、下标范围、类型理由，五件事）. Binary variables must be written as a piecewise definition spelling out what each value means in the real problem; never just `$y_j \in \{0,1\}$`:
+
+```latex
+Let $x_{ij}$ indicate whether demand point $i$ is assigned to station $j$. Assignment either holds
+or it does not — there is no partial assignment — so $x_{ij}$ is binary:
+\begin{equation}
+x_{ij}=\begin{cases}
+1, & \text{demand point } i \text{ is served by station } j,\\
+0, & \text{otherwise},
+\end{cases}\qquad i=1,\dots,m;\ j=1,\dots,n
+\end{equation}
+```
+
+⛔ **Never skip the type justification**: why integer (people/vehicles are indivisible), why binary (open or not, no middle state), why continuous (an arbitrarily divisible flow or ratio). Writing "$x_j$ is an integer" with no reason reads as not having thought it through.（类型理由不能省。）
+
+**② Objective function** — its own display equation, immediately followed by one sentence on where the objective comes from (quote the problem statement; keep it consistent with the objective-traceability table in `MODELING_REPORT.md`)（目标函数独立成式 + 一句交代来源，引赛题原话，与建模报告目标溯源表同口径）:
+
+```latex
+The problem requires "minimizing total construction and operating cost while covering every demand
+point", so total cost is minimized:
+\begin{equation}
+\min\ Z=\sum_{j=1}^{n} f_j y_j+\sum_{i=1}^{m}\sum_{j=1}^{n} c_{ij} d_i x_{ij}
+\end{equation}
+where the first term is the fixed construction cost of the stations and the second is transport cost.
+```
+
+For multi-objective models, state how the objectives are combined (weighting / lexicographic / Pareto), how the weights were set, and how units were normalized.（多目标要说清合并方式、权重依据、量纲统一。）
+
+**③ Constraints** — introduce with `s.t.`, list them vertically, **number each one, and give every constraint its real-world meaning**（约束逐条编号 + 每条给现实含义；docx 公式引擎场景可按容量/守恒/时间窗/逻辑联动分组，每组一个带编号的 aligned 公式，组后自然段解释业务含义；成品论文默认不出现 C1/H1、审计项等内部标签）:
+
+```latex
+\begin{equation}
+\begin{aligned}
+\text{s.t.}\quad
+& \sum_{j=1}^{n} x_{ij}=1, && i=1,\dots,m\\
+& \sum_{i=1}^{m} d_i x_{ij}\le Q_j y_j, && j=1,\dots,n\\
+& x_{ij}\le y_j, && \forall i,j
+\end{aligned}
+\end{equation}
+```
+
+Then explain: the first line forces every demand point to be served by exactly one station (the problem forbids split deliveries); the second caps the demand assigned to station $j$ at its capacity $Q_j$; the third prevents assigning demand to a station that was never opened.
+
+⛔ Formulas with no accompanying meaning leave the judge unable to tell whether you missed a constraint — this is the single most common deduction.（公式不配含义是最常见扣分点。）
+
+**Constraint-type checklist (for finding gaps, not a requirement to have all of them)**: demand coverage / budget or resource cap / per-site capacity / fixed total / at-most-or-at-least-k / mutual exclusion / logical linking (big-M) / time windows / flow balance / degree constraints and subtour elimination.（查漏清单。）
+
+⛔ **Linearization tricks must be explained.** For big-M, piecewise linearization, absolute-value conversion, or turning a `max` into constraints, say what the nonlinear form was and why the rewrite is equivalent. Example: $x_j\le My_j$ forces $y_j=1$ whenever $x_j>0$, which turns the fixed cost $f_jy_j$ — incurred only when the station opens — into a linear term. Justify the magnitude of $M$ (derive it from a data upper bound; do not write 99999).（线性化技巧必须解释；M 取数据上界，不写 99999。）
+
+**④ Variable domains + model classification** — list non-negativity / integrality / bounds on their own line, then add a paragraph stating the problem class (LP / ILP / MILP / NLP / multi-objective / dynamic programming), **the size** (number of variables and constraints, computed from the index ranges), and **why this solution method** (exact solver vs. heuristic; if heuristic, why an exact solve is not viable — NP-hardness, size blow-up).（变量取值范围 + 模型定性与规模 + 解法理由。）
+
+**⛔ Anti-pattern** (the judge cannot tell what you are deciding):
+
+```latex
+We build the optimization model $\min\sum c_{ij}x_{ij}+\sum f_jy_j$ subject to
+$\sum_j x_{ij}=1$, $\sum_i d_ix_{ij}\le Q_j$, $x_{ij},y_j\in\{0,1\}$, and solve it with Gurobi.
+```
+
+Problems: none of $x_{ij}$, $y_j$, $c_{ij}$, $f_j$, $Q_j$ is defined; no reason given for binary; neither constraint is tied to a sentence in the problem statement; no model class or size; "solve it with Gurobi" never says why an exact solve is possible.
+
+**⛔ Consistency with upstream**: the three elements must match `MODELING_REPORT.md` — the objective must appear in its objective/constraint traceability table, and the number of constraints must not fall below the key constraints registered during modeling. Do not invent a constraint that modeling never had, and do not quietly drop one that it did.（与上游建模合同一致：不新编、不悄漏。）
+
+**Solution section — argue why the solution is credible, do not recount how the algorithm works**（求解小节写「为什么这个解可信」，不是算法怎么工作）:
+
+A modeling-contest paper is judged on the **model** and the **solution**, not on algorithm exposition. Judges care whether the model is right and whether the solution can be trusted — not whether you can explain how a genetic algorithm works. **Keep algorithm description short: name, one clause on its role, citation.**
+
+| Write this (the bulk of the section) | Not this (textbook material, one clause at most) |
+|---|---|
+| Why this solution method (size / NP-hardness / whether an exact solve is viable) | How GA selection, crossover, and mutation operate |
+| Evidence the solution is credible: cross-validation across methods, comparison against a bound, constraint checks | Derivation of the Metropolis criterion in SA |
+| Key implementation choices and their rationale (decomposition, linearization, seeding) | Line-by-line pseudocode, $O(n^2)$ derivations |
+| How tight the constraints are at the solution (which is near-active, how much slack) | History and literature of the algorithm family |
+
+What must come across — how you arrange it, and whether it needs a section of its own, is determined by the problem: why this solution method (size, NP-hardness, whether an exact solve is viable); key implementation choices and their basis (decomposition, linearization, multi-start seeding); **evidence the solution is credible**: whether independently-motivated methods agree (and the relative spread), comparison against a bound or a no-action baseline, constraint-by-constraint verification, which constraint is nearest to active and how much slack remains.
+
+⛔ **Do not impose a fixed section name or a fixed number of points.** Some problems need a single paragraph (small model, stock solver returns the answer); others warrant a section of their own. The only test is whether a reader ends up convinced the solution is right. An empty section heading is worse than no heading.（是否单独设节由题目定，空标题比没有更糟。）
+
+⛔ The one hard ratio: **words spent on "why the solution is credible" must not fall below words spent on "how the algorithm works".** The former is what judges read; the latter is textbook material.（硬比例：「解为什么可信」的字数不得少于「算法怎么工作」。）
+
+⛔ **Do not add pseudocode or complexity analysis to pad length** — that is a CS-paper convention. In a modeling paper they belong in the appendix: put algorithm parameters (initial temperature, cooling rate, iteration count, solver time limit, random seed) in an appendix table, and keep one sentence in the body: "the full pipeline runs under a fixed random seed and is reproducible; parameters are listed in Appendix X."（不为篇幅写伪代码与复杂度分析；参数进附录表。）
+
+⛔ **Honesty boundary**: an analytic or relaxation bound **is not a feasible solution**. The gap between it and the optimum only confirms the optimum is not anomalously low — it **must not** be presented as remaining room for improvement.（下界不是可行方案，差值不能解读成优化空间。）
+
+⛔ **Expand toward modeling depth and result credibility, never toward algorithm exposition.** When a section is thin, add: justification of each assumption, refinement of definitions, comparison against baselines and expectations, sensitivity and robustness, constraint-tightness analysis, and the operational meaning of the conclusions. Test: if the body spends more words on "how the algorithm works" than on "why the solution is credible", the emphasis is inverted.（扩写只往建模深度与结果可信度扩。）
+
+**Innovations are required, not optional**（创新点必须明确写出，位置不限：独立小节/并入优点/结论章；条数与判据以 `innovation_contract.md` 为唯一真源）. Real runs routinely ship only strengths and weaknesses, leaving judges to hunt for what was actually new. Write 2-4 items, each as "conventional approach → what this paper does → what difference it makes", kept at the **modeling** level (not the tooling level); the difference must carry a baseline delta or ablation evidence where available.
+
+- ✅ Real: redefining the satisfaction rate against a stock-out floor, avoiding the degenerate case where the naive definition makes every station fully satisfied; injecting the Sub-problem 1 score into the Sub-problem 2 objective so the two sub-problems are genuinely coupled rather than adjacent
+- ❌ Filler: implemented in Python; compared three algorithms; clean figures; "the model accounts for many factors"
+- ⛔ Test: if the claim would hold for any other problem ("we used machine learning", "we ran a sensitivity analysis"), it is not an innovation for this problem — cut it. Two substantive items beat five hollow ones.
+</comp_optimization_writing>

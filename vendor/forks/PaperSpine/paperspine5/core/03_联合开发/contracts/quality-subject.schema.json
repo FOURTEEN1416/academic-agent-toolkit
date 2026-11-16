@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/quality-subject.schema.json",
+  "title": "Immutable quality subject",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["task_id", "revision_id", "input_hashes"],
+  "properties": {
+    "task_id": {"type": "string", "minLength": 1},
+    "revision_id": {"type": "string", "minLength": 1},
+    "input_hashes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    }
+  }
+}

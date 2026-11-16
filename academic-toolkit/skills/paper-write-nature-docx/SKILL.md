@@ -575,7 +575,7 @@ For each result:
 
 
 
-⛔ References: Nature ≥ 30; Nature Methods/Communications ≥ 50; Cell ≥ 70. **⛔ Authenticity over count**: these are targets for *真实检索到的* references — NEVER fabricate entries to hit the number. If real retrieval falls short, keep the real ones and note the gap; do not invent citations.
+⛔ References 参考区间: Nature 30–40; Nature Methods/Communications 50–60; Cell 70–80（经验参考区间，非硬下限）。**⛔ Authenticity over count**: these are targets for *真实检索到的* references — NEVER fabricate entries to hit the number. If real retrieval falls short, keep the real ones and note the gap; do not invent citations.
 
 
 
@@ -951,175 +951,18 @@ Every scalar you need is in `RESULTS.md` or the range/sample above. If one scala
 
 ## ⛔ Figure embedding verification (MUST pass before finishing — file existence + actual reference in paper/main.md both required)
 
-
+已并入共享脚本 `paper_write_audit.sh`（paper-write 族单一实现，_utils/ 与 shared-scripts/ 双副本）。**怎么跑**：
 
 ```bash
-
-echo "=== Figure embedding check (docx mode: file + ![]() / image reference in paper/main.md) ==="
-
-missing=0
-
-
-
-# Markdown docx mode: figure files referenced via ![](figures/xxx.png) or relative path
-
-for img in figures/*.png figures/*.pdf figures/*.jpg figures/*.svg; do
-
-    [ -f "$img" ] || continue
-
-    bn=$(basename "$img")
-
-    # Skip placeholder files
-
-    [ "$bn" = "latex_includes.tex" ] && continue
-
-    if [ -f paper/main.md ]; then
-
-        if ! grep -q "$bn" paper/main.md; then
-
-            echo "MISSING: $bn — produced but not embedded in paper/main.md"
-
-            missing=$((missing + 1))
-
-        fi
-
-    fi
-
-done
-
-
-
-# Also check TABLE_*.md files are embedded
-
-for tbl in figures/TABLE_*.md; do
-
-    [ -f "$tbl" ] || continue
-
-    bn=$(basename "$tbl")
-
-    if [ -f paper/main.md ]; then
-
-        if ! grep -q "$bn" paper/main.md; then
-
-            echo "MISSING: $bn — table file produced but not referenced in paper/main.md"
-
-            missing=$((missing + 1))
-
-        fi
-
-    fi
-
-done
-
-
-
-echo "Total missing embeddings: $missing"
-
-[ "$missing" -gt 0 ] && echo "⛔ DO NOT finish until missing = 0. Embed each missing figure/table into paper/main.md via ![caption](figures/xxx.png) or cat figures/TABLE_xxx.md."
-
+bash _utils/paper_write_audit.sh --mode docx   # 本目录无 _utils 时: bash skills/shared-scripts/paper_write_audit.sh --mode docx
 ```
 
-
-
----
-
-
+**怎么读结果**：任何 `MISSING:` / `❌` 行或 `Total missing embeddings > 0` 都表示有图/表未嵌入 paper/main.md——逐项补齐后重跑至 0；`⛔ DO NOT finish until missing = 0.`。题注过长（>14 词）会报 `Captions too long`，把判据/参数/结论移入正文后重跑。该脚本同时执行下方 FIGURE_MANIFEST audit 与 universal paper audit；审计留痕由程序采集，不再手写 AUDIT_REPORT 审计文件；有引擎 finish 时以 output_contract/`paper_write_gate` 自动核验为准，本脚本为无引擎合同场景的兜底预检。
 
 ## ⛔ FIGURE_MANIFEST audit (run before finishing — must produce + embed every planned figure)
 
-
-
-```bash
-
-echo "=== FIGURE_MANIFEST audit ==="
-
-PLAN_FILE=""
-
-for f in PROBLEM_ANALYSIS.md PAPER_PLAN.md MODELING_REPORT.md TOPIC_PLAN.md; do
-
-  [ -f "$f" ] && grep -q "<!-- BEGIN FIGURE_MANIFEST -->" "$f" && { PLAN_FILE="$f"; break; }
-
-done
-
-if [ -n "$PLAN_FILE" ]; then
-
-    START=$(grep -n "<!-- BEGIN FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
-
-    END=$(grep -n "<!-- END FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
-
-    EXPECTED_FIGS=$(sed -n "${START},${END}p" "$PLAN_FILE" | grep -oE "^[[:space:]]*-[[:space:]]+(fig_[a-zA-Z0-9_]+|tikz_[a-zA-Z0-9_]+)" | sed "s/^[[:space:]]*-[[:space:]]*//")
-
-    manifest_missing=0
-
-    for name in $EXPECTED_FIGS; do
-
-        if ! ls figures/${name}.png figures/${name}.pdf figures/${name}.drawio 2>/dev/null | head -1 | grep -q .; then
-
-            echo "❌ MANIFEST: $name file missing"
-
-            manifest_missing=$((manifest_missing + 1))
-
-        elif ! grep -qE "${name}\.(png|pdf)" paper/main.md 2>/dev/null; then
-
-            echo "❌ MANIFEST: $name exists but not embedded"
-
-            manifest_missing=$((manifest_missing + 1))
-
-        fi
-
-    done
-
-    if [ "$manifest_missing" -gt 0 ]; then
-
-        echo "⛔ FIGURE_MANIFEST audit failed ($manifest_missing missing)"
-
-    else
-
-        echo "✅ FIGURE_MANIFEST fully embedded"
-
-    fi
-
-fi
-
-```
-
-
+已并入共享脚本 `paper_write_audit.sh`（见上节，随 `bash _utils/paper_write_audit.sh --mode docx` 一并执行）。**怎么读结果**：`✅ FIGURE_MANIFEST fully embedded` = 通过；`❌ MANIFEST: ...` / `⛔ FIGURE_MANIFEST audit failed (N missing)` = 计划图缺文件（.png/.pdf/.drawio）或未嵌入 paper/main.md——补产/补嵌后重跑。判据与原内联版逐项一致。
 
 ## ⛔ Universal paper-stage audit (shared across all writing steps)
 
-
-
-Before finishing writing / compiling, run the universal audit. Works without `PROBLEM_FACTS.json`:
-
-
-
-```bash
-
-# Universal paper audit:
-
-#   [13] Conclusion consistency: paper text ↔ results.json (prevent "optimal=X but paper says Y")
-
-#   [14] Event source attribution (prevent "guessing source from variable name")
-
-# Falls back to simplified mode if no PROBLEM_FACTS.json (general academic / course / humanities).
-
-PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
-
-if [ -f _utils/facts_audit.py ]; then
-
-    $PYTHON _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
-
-    PRC=$?
-
-    if [ "$PRC" = "1" ]; then
-
-        echo "❌ Universal paper-stage audit failed — fix paper text / results.json before finishing"
-
-    fi
-
-fi
-
-```
-
-
-
+已并入共享脚本 `paper_write_audit.sh`（见上节，随 `bash _utils/paper_write_audit.sh --mode docx` 一并执行；内部调 `_utils/facts_audit.py --stage paper`，无 `PROBLEM_FACTS.json` 时自动走简化模式）。检查项：[13] 正文结论与 results.json 一致（防"最优解 X 但正文写 Y"）；[14] 事件源归属。**怎么读结果**：输出 `❌ Universal paper-stage audit failed` = 修正正文/results.json 后重跑。审计输出由程序采集留痕，不再手写 AUDIT_REPORT 审计文件。

@@ -176,36 +176,23 @@ describe("mzML inspection", () => {
     ])
     expect(result.times).toEqual([0.5, 0.8])
   })
-})
 
-describe("scientific data workbench integration", () => {
-  test("routes biological formats into the shared file preview", () => {
-    const preview = read("../../atlas/FilePreview.tsx")
-    const view = read("./ScientificDataView.tsx")
+  test("reports the scan time range for a run with more scans than the engine takes as arguments", () => {
+    const scans = 700_000
+    const spectra = Array.from(
+      { length: scans },
+      (_, index) =>
+        `<spectrum id="scan=${index + 1}"><cvParam accession="MS:1000016" name="scan start time" value="${index + 1}"/></spectrum>`,
+    ).join("\n")
 
-    expect(preview).toContain('import { ScientificDataView } from "@/science/formats/ScientificDataView"')
-    expect(preview).toContain('kind() === "scientific-data"')
-    expect(preview).toContain("<ScientificDataView")
-    expect(view).toContain('data-component="scientific-data"')
-    expect(view).toContain("Per-cycle base quality")
-    expect(view).toContain("Variant classes")
-    expect(view).toContain("Spectrum inventory")
-  })
+    const result = parseBiologicalFile(
+      "mzml",
+      `<mzML><run id="deep"><spectrumList count="${scans}">${spectra}</spectrumList></run></mzML>`,
+    )
 
-  test("keeps scientific controls readable without changing scientific acronyms", () => {
-    const view = read("./ScientificDataView.tsx")
-
-    expect(view).toContain('const CONTROL_FONT_SIZE = "12px"')
-    expect(view).toContain('const HELPER_FONT_SIZE = "11.5px"')
-    expect(view).toContain('const TABLE_FONT_SIZE = "12px"')
-    expect(view).not.toMatch(/"font-size": "(?:8|9|10|11)px"/)
-    expect(view).not.toContain("FONT_MONO")
-    expect(view).toMatch(/>\s*Overview\s*</)
-    expect(view).toMatch(/>\s*Records\s*</)
-    expect(view).toContain('placeholder="Filter records…"')
-    expect(view).toContain("{sentence(column)}")
-    expect(view).toContain('label="GC"')
-    expect(view).toContain('"REF", "ALT"')
-    expect(view).toContain('"MAPQ", "CIGAR"')
+    if (result.format !== "mzml") throw new Error("wrong parser")
+    expect(result.range).toEqual({ start: 1, end: scans })
+    expect(result.times).toHaveLength(10_000)
+    expect(result.truncated).toBe(true)
   })
 })

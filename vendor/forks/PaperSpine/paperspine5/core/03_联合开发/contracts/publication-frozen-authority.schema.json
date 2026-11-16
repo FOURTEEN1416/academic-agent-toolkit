@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/publication-frozen-authority.schema.json",
+  "title": "PaperSpine5 frozen W4 authority projection",
+  "type": "object",
+  "required": ["contract", "schema_version", "status", "frozen", "subject", "authorities", "projection_sha256", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.frozen-authority-projection"},
+    "schema_version": {"const": "1.0"},
+    "status": {"const": "PASS"},
+    "frozen": {"const": true},
+    "subject": {"$ref": "quality-subject.schema.json"},
+    "authorities": {
+      "type": "object",
+      "required": ["direction_authority", "target_authority", "claim_evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "direction_authority": {"$ref": "#/$defs/authority"},
+        "target_authority": {"$ref": "#/$defs/authority"},
+        "claim_evidence": {"$ref": "#/$defs/authority"}
+      }
+    },
+    "projection_sha256": {"$ref": "#/$defs/sha256"},
+    "external_action_authorized": {"const": false}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authority": {
+      "type": "object",
+      "required": ["artifact_id", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  },
+  "additionalProperties": false
+}

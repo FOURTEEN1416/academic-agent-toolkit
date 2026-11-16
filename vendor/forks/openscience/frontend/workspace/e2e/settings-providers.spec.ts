@@ -5,6 +5,7 @@ test("models settings exposes provider connection controls", async ({ page, goto
   await gotoSession()
 
   const dialog = await openSettings(page)
+  await dialog.getByRole("button", { name: "Models", exact: true }).click()
 
   await expect(dialog.getByRole("heading", { name: "Models", exact: true })).toBeVisible()
   await expect(dialog.getByRole("heading", { name: "Connections", exact: true })).toBeVisible()
@@ -24,10 +25,13 @@ test("Models keeps ChatGPT Codex access first-class", async ({ page, gotoSession
   await gotoSession()
 
   const dialog = await openSettings(page)
+  await dialog.getByRole("button", { name: "Models", exact: true }).click()
 
   await expect(dialog.getByRole("heading", { name: "Models", exact: true })).toBeVisible()
-  await expect(dialog.getByRole("heading", { name: "Model access", exact: true })).toBeVisible()
+  await expect(dialog.getByRole("heading", { name: "Connections", exact: true })).toBeVisible()
   await expect(dialog.getByText("ChatGPT / Codex", { exact: true }).first()).toBeVisible()
+  // Money and identity live on Ace, not among the connections.
+  await expect(dialog.getByRole("heading", { name: "Model access", exact: true })).toHaveCount(0)
 })
 
 test("models settings saves and removes a local provider key", async ({ page, gotoSession, sdk }) => {
@@ -36,6 +40,7 @@ test("models settings saves and removes a local provider key", async ({ page, go
   try {
     await gotoSession()
     const dialog = await openSettings(page)
+    await dialog.getByRole("button", { name: "Models", exact: true }).click()
 
     await dialog.getByRole("button", { name: "Add key", exact: true }).click()
     await dialog.getByRole("button", { name: /^Model provider / }).click()

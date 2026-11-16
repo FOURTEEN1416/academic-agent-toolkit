@@ -1,6 +1,10 @@
 # CLAUDE.md: OpenScience
 
-## Project Overview
+Read `AGENTS.md` first: repository map, commands, conventions, and the CI/release
+rules. This file keeps the product facts and the prompt-architecture guide that
+help when the shipped agent misbehaves.
+
+## Product facts
 
 **OpenScience (`openscience`)** is an open-source, model-agnostic AI research agent for ML engineering and scientific work. Built with Bun and TypeScript, it ships as native binaries for Linux, macOS, and Windows.
 
@@ -11,120 +15,158 @@
 - **Config file**: `openscience.json`
 - **Provider ID**: `synsci` (Atlas wire contract, do not rename)
 
-## Repository Structure
+## Prompt architecture
 
-Single git repo organized by runtime boundary.
+In this guide, `src/...` paths are relative to `backend/cli`; prompt paths such as
+`agent/prompt/...` and `session/prompt/...` are relative to `backend/cli/src`.
+
+The Research loop is shared across providers. Prompt selection, scientific context,
+model options and API serialization are separate steps. The harness is OpenCode's
+Build path with science in skills, agents, headers and a few switchable units;
+the loop itself does not implement scientific or deliverable policy. Opt-in
+subagent allowances and deadlines are runtime admission/cancellation controls,
+independent of optional harness switches; see
+[ADR 0002](docs/adr/0002-subagent-runtime-admission.md).
 
 ```text
-frontend/          workspace (browser UI), docs/share site, and shared UI
-backend/           CLI/server, skills, sessions, and provider integrations
-tooling/           SDK, plugin runtime, repo automation, launcher, utilities, and patches
+Agent registry + selected model + current user message
+    -> agent prompt, otherwise the model-family header with the science block
+    -> environment rules and project facts, project instructions, core-skills index, posture reminder (system)
+    -> this session's details (+ harness env lines) in a <session-context> block on the first user message
+    -> system-transform plugin, then parameter/header hooks
+    -> provider message/tool normalization and inference options
+    -> provider API
+    -> on a final answer or a tripped guard, the harness units may continue or redirect
 ```
 
-## Development
+### Header selection
 
-```bash
-# Run CLI in dev mode
-bun run dev
+`LLM.prompts` in `src/session/llm.ts` selects an explicit `agent.prompt` first.
+An agent without one (`research`, `plan`) receives the model-family header:
+`SystemPrompt.provider(model)` in `src/session/system.ts` routes by wire model
+id in OpenCode's order (`gpt-4`/`o1`/`o3` and other `gpt` → `gpt.txt`;
+`gpt-6`/`astra` → `gpt-astra.txt`; `codex` → `codex.txt`; `gemini-` →
+`gemini.txt`; `claude` → `anthropic.txt`; otherwise `default.txt`). Each family
+file carries one `{{SCIENCE}}` slot that the runtime fills with
+`agent/prompt/science.txt` (Evidence and files; Methods and deliverables;
+Manuscripts and figures), so the science text is byte-identical across
+families. `session/prompt/response.txt` is appended to every header.
 
-# Build all platform binaries
-cd backend/cli && bun run build
+Specialist agents (`ml`, `biology`, `physics`, `chemistry`, `data`) have their
+own prompt: `agent/prompt/specialist.txt` with the same `{{SCIENCE}}` slot and
+a `{{DOMAIN_SKILLS}}` slot that `SystemPrompt.render` fills from the agent's
+skill categories at prompt time. An agent's configured `prompt` replaces its
+built-in header, as before. On the `openai-codex` OAuth route a primary agent's
+header travels in `options.instructions`; a worker's prompt stays in context
+beneath the family header.
 
-# Typecheck
-bun run typecheck
+### Context and reminders
 
-# Run tests
-cd backend/cli && bun test
-```
+`src/session/prompt.ts` assembles the system context before invoking
+`LLM.stream`: the environment's rules and project facts (`SystemPrompt.environment`
+part one: model, project, access mode, platform, date and cutoff, and the rules
+about folders, Results and paths), project instructions, the `<core-skills>`
+index for the lead (or the full catalog on an explicit `/skill` invocation), and
+the system reminders. This session's own details (part two: Session ID, working
+folder or scratch, connected folders, and the `lines` harness units add through
+the `env.lines` hook: compute, a budget's length, the checks and outputs named)
+are facts, not rules; the units' `rules` about them (what a budget means, that
+the checks must pass) join part one. `SystemPrompt.withSessionContext` joins the facts to the start of the first user message
+in a `<session-context>` block that the system prompt names as coming from
+OpenScience. The block is sent as first built for the whole session (kept in
+`SessionTraceStore`); a later change is told once as a durable harness message,
+as a change in the offered tools is. After compaction replaces the message
+it rides, the next request carries the current details. Rules stay in the system prompt; `<system-reminder>` blocks are
+harness instructions and stay there too. The system prompt and tools then stay
+byte-identical across a project's sessions, which providers need to reuse a
+cached prompt; keep anything that names a session or a per-turn figure out of
+the system context. The one standing reminder is the
+posture line from `researchEffortReminder` (effort, delegation level,
+independence); Plan receives `session/prompt/plan.txt` instead. There is no
+keyword-based tool selection and no quick/direct/inspection routing.
 
-## Prompt Architecture (Dual-Layer)
+### Tool surface
 
-The CLI uses a **dual-layer prompt system**: provider-level system prompts + agent-level workflow prompts.
+`ToolRegistry.tools` in `src/tool/registry.ts` offers a tool when the agent's
+ruleset does not deny it (`ToolVisibility.enabled`) and it is in the shared
+default set, unlocked by a skill loaded in the current task epoch
+(`allowed-tools`), or named by an explicit allow rule of the agent
+(`Agent.Info.unlocks`). `apply_patch` replaces `edit`/`write` for GPT-family
+wire ids; `research_search` needs a configured search provider; `question`
+needs a client that can ask. `src/tool/visibility.ts` holds the rules.
 
-```
-User request with agent name (e.g., "research")
-  │
-  ├─ Layer 1: SYSTEM role ← provider-neutral product contract
-  │   src/session/system.ts supplies one contract to every model
-  │
-  └─ Layer 2: USER role injection ← agent prompt (task-specific)
-      src/session/prompt.ts selects by agent name + tier
-```
+### Harness units and hook points
 
-### Session prompts (`src/session/prompt/`)
+`src/harness/*` are internal plugins registered at boot behind
+`harness.<unit>` config switches (all on by default): `redirect`,
+`deliverables`, `acceptance`, `unattended`, `review`, `budget`, `cost`, plus
+the switches `headless-policy`, `durable-jobs`, `workers`. The loop offers two hook points:
+`loop.before_finish` (the model returned a final answer, or a guard ended the
+turn; a unit may inject a bounded continuation) and `loop.guard` (a repetition
+guard tripped; a unit may redirect instead of stopping). Injected continuations
+are durable synthetic user messages of kind `harness`. `deliverables` checks
+that the named outputs exist and parse; `acceptance` runs the verification
+contract the first request states (a recognised build or test command, tokens
+banned under a path) and continues the turn with the grader's own output when
+it fails; `unattended` answers a final question once under autonomous
+autonomy; `review` reads a written-report deliverable against the request in a
+fresh context (agent `reader`, `agent/prompt/reader.txt`) and continues once
+with the gaps.
 
-| File                                | Purpose                                  |
-| ----------------------------------- | ---------------------------------------- |
-| `core.txt`                          | Provider-neutral operating contract      |
-| `plan.txt`                          | Read-only Plan mode contract             |
-| `build-switch.txt`, `max-steps.txt` | Mode transition and step-limit utilities |
+### Provider transport and plugins
 
-Routing logic: `src/session/system.ts` supplies the same product contract to every model.
+On ordinary routes, `LLM.stream` joins the selected header, caller system context,
+last-user custom system context into a system block.
+`experimental.chat.system.transform` can transform or append blocks. An
+empty replacement restores the original; appended blocks are regrouped when the
+first block is unchanged. `chat.params` and `chat.headers` then adjust inference
+parameters and request headers. `ProviderTransform.message` normalizes both
+streaming and non-streaming SDK requests, including media, tool IDs, reasoning
+replay, cache annotations and provider-option namespaces.
 
-### Agent prompts (`src/agent/prompt/`)
+Inference settings follow provider defaults, model options, tier options, agent
+options and the selected variant, followed by plugin adjustments. A tier may route
+to another underlying model. Inspect the resolved route and outgoing parameters,
+not only the displayed model name or an effort label.
 
-| File                    | Active role                                    |
-| ----------------------- | ---------------------------------------------- |
-| `research.txt`          | `research`, the single user-facing harness     |
-| `explore.txt`           | Hidden Explore profile and compatibility alias |
-| `biology.txt`           | Hidden domain compatibility profile            |
-| `physics.txt`           | Hidden domain compatibility profile            |
-| `ml.txt`                | Hidden domain compatibility profile            |
-| `write.txt`             | Hidden writing compatibility profile           |
-| `literature-review.txt` | Hidden literature-review compatibility profile |
-| `critique.txt`          | Hidden critique compatibility profile          |
-| `physics-critique.txt`  | Hidden physics-critique compatibility profile  |
-| `compaction.txt`        | Hidden system agent                            |
-| `title.txt`             | Hidden system agent                            |
+### Active prompt files
 
-`execute` uses the shared execution contract rather than a separate prompt file. Plan mode lives in `src/session/prompt/plan.txt`. Routing logic in `src/session/prompt.ts` injects the Research effort contract and preserves the hidden compatibility prompts.
+| File                                                                                              | Role                                                                |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `agent/prompt/{anthropic,gpt-astra,gpt,codex,gemini,default}.txt` + `session/prompt/response.txt` | Model-family headers for research and plan, with writing defaults   |
+| `agent/prompt/science.txt`                                                                        | The shared science block filled into every `{{SCIENCE}}` slot       |
+| `agent/prompt/specialist.txt`                                                                     | The specialist worker template (`{{SCIENCE}}`, `{{DOMAIN_SKILLS}}`) |
+| `agent/prompt/explore.txt`                                                                        | The scout worker                                                    |
+| `agent/prompt/compaction.txt`, `title.txt`, `summary.txt`                                         | Internal summarization, UI-label and lab-notebook agents            |
+| `session/prompt/plan.txt`, `build-switch.txt`, `max-steps.txt`                                    | Plan, mode-transition and step-limit guidance                       |
+| `tool/task.txt`, `tool/recall.txt`, `tool/literature.txt`                                         | Tool contracts the model reads                                      |
 
-### Agent registry (`src/agent/agent.ts`)
+## Agent registry
 
-Defines built-in agents with `Agent.Info` schema: `name`, `mode` (primary/subagent/all), `hidden`, `model`, `prompt`, `permission`, `temperature`, `steps`.
+`src/agent/agent.ts` defines the built-in profiles and merges configured
+overrides: `research` (primary, default), `plan` (primary, hidden), `explore`
+(subagent), the specialists `ml`, `biology`, `physics`, `chemistry`, `data`
+(subagents built from one template plus their skill categories), and the
+internal `compaction`, `title`, `summary`. No built-in agent carries a model;
+`agent.<name>.model`, `.variant` and `.skills` in `openscience.json` configure
+one, and a configured `permission` rule that names a tool unlocks it for that
+agent. Recommended models live in the documentation.
 
-**Default harness**: `research` (the single user-facing default; also the plan-exit target)
-**Internal task profiles**: `explore`, `execute` (hidden; selected by work type rather than domain branding)
-**Mode**: `plan` (read-only)
-**Compatibility profiles** (hidden): `task`, `biology`, `physics`, `ml`, `write`, `literature-review`, `critique`, `physics-critique`
-**System agents**: `compaction`, `title`
+## Trace a behavior problem
 
-Custom agents can be added via config file (`openscience.json` → `agent` key). See `src/cli/cmd/agent.ts` for the creation CLI.
+1. Resolve the active agent, its configured prompt and permissions in
+   `src/agent/agent.ts`; check the actual model/API/auth route.
+2. Follow header selection through `LLM.prompts`, then context and reminders in
+   `src/session/prompt.ts`. Compare the current user turn with resumed history.
+3. Inspect plugin transforms, the exact offered tools and schemas, and the final
+   provider request. `SessionHarness` fingerprints selected contract bytes and
+   schemas; it does not by itself prove the entire final wire payload or billing.
+4. Check `src/provider/transform.ts`, the selected provider/plugin implementation
+   and SDK patches for option names, tool/result formats, cache and reasoning
+   requirements. Prompt prose cannot repair an invalid API request.
+5. For premature stops or repeated turns, inspect actual tool outcomes, terminal
+   errors, cancellation and `src/session/loop-state.ts`. A provider finish label
+   alone is not always a reliable indication that a local tool result was consumed.
 
-## RCA & Debugging Guide
-
-### Agent misbehaving? Trace the prompt chain:
-
-1. **Which agent is active?** → `src/agent/agent.ts`, find the agent by name, check its `mode`, `model`, `prompt` fields
-2. **Which prompt is injected?** → `src/session/prompt.ts`, follow the `input.agent.name` switch
-3. **Which system prompt?** → `src/session/system.ts`, `SystemPrompt.provider(model)` returns the shared product contract
-
-### Common failure patterns:
-
-| Symptom                               | Likely cause                                                        | Where to look                                              |
-| ------------------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------- |
-| Agent over-processes a simple request | Workflow prompt is too procedural                                   | `src/agent/prompt/{agent}.txt`, preserve adaptive behavior |
-| Wrong model used                      | Agent/model config incorrect                                        | `src/agent/agent.ts` + `openscience.json` `agent` config   |
-| Agent delegates excessively           | Delegation posture or independent-work guidance regressed           | `src/tool/task.txt` + `src/session/prompt.ts`              |
-| Delegation loops or stalls            | Task profile, capacity queue, or durable-attempt contract regressed | `src/tool/task.ts` + `src/session/loop-state.ts`           |
-| Sub-agent returns empty               | Context exhaustion, provider failure, or a custom-agent step limit  | `src/agent/agent.ts` + child session trace                 |
-| Custom agent not appearing            | Config not in `openscience.json` or wrong `mode`                    | Config file `agent` key → `src/agent/agent.ts`             |
-
-### Key files for prompt debugging (read these first):
-
-```
-src/agent/agent.ts          # Agent definitions, what agents exist and their config
-src/agent/prompt/*.txt      # Agent behavior, what the agent is told to do
-src/session/prompt.ts       # Routing, which prompt gets injected for which agent
-src/session/system.ts       # Provider routing, which system prompt for which model
-```
-
-## Style Guide
-
-See `AGENTS.md` for full style guide. Key points:
-
-- Prefer `const` over `let`, avoid `else`, single-word variable names
-- Use Bun APIs (`Bun.file()`, etc.)
-- Rely on type inference, avoid explicit annotations
-- No mocks in tests, test real implementations
-- No `any` type
+Use local request fixtures before paid model comparisons. Keep model-specific
+prompt quality experiments separate from required transport and lifecycle fixes.

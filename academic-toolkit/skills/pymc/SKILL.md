@@ -16,7 +16,7 @@ PyMC is a Python library for Bayesian modeling and probabilistic programming. Bu
 
 ## Current Version and Setup
 
-PyMC 6.0.1 is the current stable release as of June 2026. It requires Python 3.12+, uses PyTensor 3 as the computational graph backend, and defaults to compiled backends such as Numba. For reproducible local environments, pin the version:
+PyMC 6.0.1 is the current stable release as of June 2026（版本快照，以安装时稳定版为准）. It requires Python 3.12+, uses PyTensor 3 as the computational graph backend, and defaults to compiled backends such as Numba. For reproducible local environments, pin the version:
 
 ```bash
 uv pip install "pymc[nutpie]==6.0.1"

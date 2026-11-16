@@ -224,7 +224,7 @@ describe("session filesystem grants", () => {
               path: root,
               access: "write",
               scope: "session",
-              source: "api",
+              source: "project",
             }),
           )
           expect(await SessionFilesystem.processReadRoots(session.id)).toEqual(
@@ -232,10 +232,10 @@ describe("session filesystem grants", () => {
           )
           await expect(
             SessionFilesystem.authorize({ sessionID: session.id, path: paper, access: "read" }),
-          ).resolves.toMatchObject({ path: paper, grant: { source: "api" } })
+          ).resolves.toMatchObject({ path: paper, grant: { source: "project" } })
           await expect(
             SessionFilesystem.authorize({ sessionID: session.id, path: revision, access: "write" }),
-          ).resolves.toMatchObject({ path: revision, grant: { source: "api" } })
+          ).resolves.toMatchObject({ path: revision, grant: { source: "project" } })
           await expect(
             SessionFilesystem.grant({
               sessionID: session.id,
@@ -304,7 +304,7 @@ describe("session filesystem grants", () => {
           }),
         )
         expect(await SessionFilesystem.list(session.id)).toContainEqual(
-          expect.objectContaining({ path: tmp.path, access: "write", scope: "session", source: "api" }),
+          expect.objectContaining({ path: tmp.path, access: "write", scope: "session", source: "project" }),
         )
 
         const grant = await SessionFilesystem.grant({
@@ -335,7 +335,7 @@ describe("session filesystem grants", () => {
         }),
       )
       expect(grants).toContainEqual(
-        expect.objectContaining({ path: tmp.path, access: "write", scope: "session", source: "api" }),
+        expect.objectContaining({ path: tmp.path, access: "write", scope: "session", source: "project" }),
       )
       await expect(
         SessionFilesystem.authorize({
@@ -771,14 +771,14 @@ describe("session filesystem grants", () => {
     })
   })
 
-  test("materializes Always as installation scope across projects and revokes it everywhere", async () => {
+  test("keeps an Always folder approval inside the project that granted it", async () => {
     await using external = await tmpdir({
       init: (dir) => Bun.write(path.join(dir, "shared.txt"), "installation"),
     })
     await using first = await tmpdir()
     await using second = await tmpdir()
 
-    const grantID = await Instance.provide({
+    await Instance.provide({
       directory: first.path,
       fn: async () => {
         const session = await Session.create({})
@@ -796,18 +796,18 @@ describe("session filesystem grants", () => {
           ruleset: [],
         })
         const prompt = await wait(session.id)
-        if (!prompt) throw new Error("installation permission was not requested")
+        if (!prompt) throw new Error("folder permission was not requested")
         await PermissionNext.reply({ requestID: prompt.id, reply: "always" })
         await request
-        const grant = (await SessionFilesystem.list(session.id)).find(
-          (item) => item.path === external.path && item.scope === "installation",
-        )
-        expect(grant).toBeDefined()
+        const grants = await SessionFilesystem.list(session.id)
+        const grant = grants.find((item) => item.path === external.path)
+        // The widest folder scope is the project; nothing is written machine-wide.
+        expect(grant).toMatchObject({ scope: "project", source: "permission" })
+        expect(grants.some((item) => item.scope === "installation")).toBe(false)
         expect((await File.read(path.join(external.path, "shared.txt"), { sessionID: session.id })).content).toBe(
           "installation",
         )
         await Session.remove(session.id)
-        return grant!.id
       },
     })
 
@@ -816,16 +816,102 @@ describe("session filesystem grants", () => {
       fn: async () => {
         const session = await Session.create({})
         const target = path.join(external.path, "shared.txt")
-        expect((await File.read(target, { sessionID: session.id })).content).toBe("installation")
-        const revoked = await SessionFilesystem.revoke(session.id, grantID)
-        expect(revoked).toMatchObject({ id: grantID, scope: "installation", time: { revoked: expect.any(Number) } })
+        // Another project never inherits that approval.
+        expect((await SessionFilesystem.list(session.id)).some((item) => item.path === external.path)).toBe(false)
         await expect(File.read(target, { sessionID: session.id })).rejects.toBeInstanceOf(SessionFilesystem.DeniedError)
         await Session.remove(session.id)
       },
     })
   })
 
-  test("stops live compute in every project when installation authority changes", async () => {
+  test("ignores legacy installation-wide grants and clamps new ones to the project", async () => {
+    await using external = await tmpdir({
+      init: (dir) => Bun.write(path.join(dir, "shared.txt"), "legacy"),
+    })
+    await using first = await tmpdir()
+    await using second = await tmpdir()
+
+    await Instance.provide({
+      directory: first.path,
+      fn: async () => {
+        const session = await Session.create({})
+        const grant = await SessionFilesystem.grant({
+          sessionID: session.id,
+          path: external.path,
+          access: "read",
+          scope: "installation",
+        })
+        expect(grant.scope).toBe("project")
+        expect((await File.read(path.join(external.path, "shared.txt"), { sessionID: session.id })).content).toBe(
+          "legacy",
+        )
+        await Session.remove(session.id)
+      },
+    })
+
+    // A record left behind by an older release must not reach another project.
+    await Storage.write(["installation_filesystem"], {
+      version: 1,
+      revision: 2,
+      grants: [
+        {
+          id: `fsg_${crypto.randomUUID()}`,
+          path: external.path,
+          access: "read",
+          scope: "installation",
+          source: "permission",
+          time: { created: Date.now() },
+        },
+      ],
+    })
+    await Instance.provide({
+      directory: second.path,
+      fn: async () => {
+        const session = await Session.create({})
+        expect((await SessionFilesystem.list(session.id)).some((item) => item.scope === "installation")).toBe(false)
+        await expect(
+          File.read(path.join(external.path, "shared.txt"), { sessionID: session.id }),
+        ).rejects.toBeInstanceOf(SessionFilesystem.DeniedError)
+        await Session.remove(session.id)
+      },
+    })
+  })
+
+  for (const scope of ["session", "project"] as const)
+    test(`${scope} write additions keep working-folder changes conservative`, async () => {
+      await using fixture = await tmpdir()
+      await using first = await tmpdir()
+      await using second = await tmpdir()
+      await withSession(fixture.path, async (session) => {
+        const changes: Array<boolean | undefined> = []
+        const unsubscribe = Bus.subscribe(SessionFilesystem.Event.Changed, (event) => {
+          if (event.properties.sessionID === session.id) changes.push(event.properties.narrowing)
+        })
+        try {
+          await SessionFilesystem.grant({ sessionID: session.id, path: first.path, access: "write", scope })
+          expect(await SessionFilesystem.toolDirectory(session.id)).toBe(first.path)
+          expect(changes.at(-1)).toBe(true)
+
+          await SessionFilesystem.setProjectWorkingRoot("scratch")
+          const added = await SessionFilesystem.grant({
+            sessionID: session.id,
+            path: second.path,
+            access: "write",
+            scope,
+          })
+          expect(await SessionFilesystem.toolDirectory(session.id)).toBe(await SessionFilesystem.workspace(session.id))
+          // A project addition may also revive another session's explicitly
+          // selected folder, so it remains conservative without scanning them.
+          expect(changes.at(-1)).toBe(scope === "project")
+          await SessionFilesystem.revoke(session.id, added.id)
+          expect(changes.at(-1)).toBe(true)
+        } finally {
+          unsubscribe()
+        }
+      })
+    })
+
+  test("stops live compute only in the project whose folder authority narrows", async () => {
     if (!Sandbox.available()) return
     await using external = await tmpdir()
     await using first = await tmpdir()
@@ -871,7 +957,18 @@ describe("session filesystem grants", () => {
       },
     })
 
-    const grant = await Instance.provide({
+    const entered = Promise.withResolvers<void>()
+    const release = Promise.withResolvers<void>()
+    const unsubscribe = await Instance.provide({
+      directory: first.path,
+      fn: () =>
+        Bus.subscribe(SessionFilesystem.Event.Changed, async (event) => {
+          if (event.properties.sessionID !== one.session.id || event.properties.grant.path !== external.path) return
+          entered.resolve()
+          await release.promise
+        }),
+    })
+    const granting = Instance.provide({
       directory: first.path,
       fn: async () =>
         SessionFilesystem.grant({
@@ -881,16 +978,56 @@ describe("session filesystem grants", () => {
           scope: "installation",
         }),
     })
-    const stopped = await Promise.all([
-      ComputeJobs.wait(one.job.id, { root: roots.first, workspace: one.workspace, timeout: 5_000 }),
-      ComputeJobs.wait(two.job.id, { root: roots.second, workspace: two.workspace, timeout: 5_000 }),
-    ])
-    expect(stopped.map((job) => job.status)).toEqual(["cancelled", "cancelled"])
+    void granting.catch(entered.reject)
+    try {
+      await entered.promise
+      // Keep the publisher inside its bus callback until the actual bootstrap
+      // watcher observes and settles the pending event. This reproduces the
+      // CI race without depending on a poll landing inside a short disk write.
+      let settled = false
+      for (let attempt = 0; attempt < 250; attempt++) {
+        const signal = await Storage.read<{ pending: boolean }>(["authority", "revision"])
+        if (!signal.pending) {
+          settled = true
+          break
+        }
+        await Bun.sleep(20)
+      }
+      expect(settled).toBe(true)
+    } finally {
+      release.resolve()
+      unsubscribe()
+      await granting
+    }
+    const grant = await granting
+    expect(grant.scope).toBe("project")
+    // A grant that arrived widens authority; the job launched under the
+    // narrower set is still within bounds and keeps running.
+    expect((await ComputeJobs.get(one.job.id, { root: roots.first, workspace: one.workspace }))?.status).toBe("running")
+    // Revoking it narrows authority and stops the job, in this project only.
+    await Instance.provide({
+      directory: first.path,
+      fn: () => SessionFilesystem.revoke(one.session.id, grant.id),
+    })
+    const stopped = await ComputeJobs.wait(one.job.id, { root: roots.first, workspace: one.workspace, timeout: 5_000 })
+    expect(stopped.status).toBe("cancelled")
+    const untouched = await ComputeJobs.get(two.job.id, { root: roots.second, workspace: two.workspace })
+    if (untouched?.status !== "running") {
+      // This has failed on CI without a trail. Name every actor that can end
+      // a job before the assertion does: the job record itself, and the
+      // durable authority and credential revisions other tests may have left.
+      const authority = await Storage.read(["authority", "revision"]).catch(() => undefined)
+      const credential = await Bun.file(path.join(Global.Path.data, "credential-revision.json"))
+        .json()
+        .catch(() => undefined)
+      console.error("untouched job was not running", JSON.stringify({ untouched, authority, credential }, null, 2))
+    }
+    expect(untouched?.status).toBe("running")
+    await ComputeJobs.cancel(two.job.id, { root: roots.second, workspace: two.workspace })
 
     await Instance.provide({
       directory: first.path,
       fn: async () => {
-        await SessionFilesystem.revoke(one.session.id, grant.id)
         await Session.remove(one.session.id)
         await Instance.dispose()
       },
@@ -1088,6 +1225,134 @@ describe("session filesystem grants", () => {
 })
 
 describe("file access uses session grants", () => {
+  test("resolves shortened conversation links inside ignored connected folders without confusing duplicates", async () => {
+    await using source = await tmpdir({
+      git: true,
+      init: async (directory) => {
+        await Bun.write(path.join(directory, ".gitignore"), "draft/\nsecond/\n")
+        await Bun.write(path.join(directory, "draft", "figs", "overview.png"), "image fixture")
+        await Bun.write(path.join(directory, "draft", "paper.tex"), "paper fixture")
+        await Bun.write(path.join(directory, "draft", "paper[final].tex"), "literal filename fixture")
+      },
+    })
+    await using project = await tmpdir()
+    await withSession(project.path, async (session) => {
+      const grant = await SessionFilesystem.grant({
+        sessionID: session.id,
+        path: source.path,
+        access: "read",
+        scope: "project",
+      })
+      for (const reference of ["paper.tex", "figs/overview.png", "draft/figs/overview.png"]) {
+        const resolved = await File.resolveReference(reference, { sessionID: session.id })
+        expect(resolved).toBe(
+          path.join(source.path, "draft", reference === "paper.tex" ? reference : "figs/overview.png"),
+        )
+        expect((await File.read(resolved!, { sessionID: session.id })).writable).toBe(false)
+      }
+      expect(await File.resolveReference("paper[final].tex", { sessionID: session.id })).toBe(
+        path.join(source.path, "draft", "paper[final].tex"),
+      )
+      await Bun.write(path.join(source.path, "second", "figs", "overview.png"), "second image")
+      expect(await File.resolveReference("figs/overview.png", { sessionID: session.id })).toBeUndefined()
+      expect(await File.resolveReference("../paper.tex", { sessionID: session.id })).toBeUndefined()
+      expect(
+        await File.resolveReference(path.join(source.path, "absent", "paper.tex"), { sessionID: session.id }),
+      ).toBeUndefined()
+      await SessionFilesystem.revoke(session.id, grant.id)
+      expect(await File.resolveReference("paper.tex", { sessionID: session.id })).toBeUndefined()
+    })
+  })
+
+  test("resolves exact canonical output receipts without crossing session authority", async () => {
+    await using external = await tmpdir({ init: (directory) => Bun.write(path.join(directory, "secret.json"), "{}") })
+    await using tmp = await tmpdir()
+    await withSession(tmp.path, async (session) => {
+      const sibling = await Session.create({ parentID: session.id })
+      await using cleanup = { [Symbol.asyncDispose]: () => Session.remove(sibling.id) }
+      const scratch = await SessionFilesystem.workspace(session.id)
+      const siblingScratch = await SessionFilesystem.workspace(sibling.id)
+      const projectFile = path.join(tmp.path, "result.json")
+      const scratchFile = path.join(scratch, "result.json")
+      const siblingFile = path.join(siblingScratch, "private.json")
+      const recoveryFile = path.join(tmp.path, ".openscience-trash", "hidden.json")
+      await Promise.all([projectFile, scratchFile, siblingFile, recoveryFile].map((target) => Bun.write(target, "{}")))
+      await fs.symlink(external.path, path.join(tmp.path, "linked"), process.platform === "win32" ? "junction" : "dir")
+      const grants = await SessionFilesystem.list(session.id)
+      const resolve = async (target: string, sessionID = session.id) => {
+        const response = await FileRoutes().request(`/file/resolve?${new URLSearchParams({ path: target, sessionID })}`)
+        expect(response.status).toBe(200)
+        return response.json()
+      }
+      for (const target of [projectFile, scratchFile]) {
+        expect(await resolve(target)).toEqual({ path: target, writable: true, scope: "session" })
+        const content = await FileRoutes().request(
+          `/file/content?${new URLSearchParams({ path: target, sessionID: session.id })}`,
+        )
+        expect(content.status).toBe(200)
+        expect(await content.json()).toMatchObject({ content: "{}" })
+      }
+      for (const target of [
+        "result.json", // Relative basename remains ambiguous across the two authorized roots.
+        path.join(scratch, "missing", "result.json"), // An absolute miss must not search for a namesake.
+        path.join(external.path, "secret.json"),
+        path.join(tmp.path, "linked", "secret.json"),
+        siblingFile,
+        scratch, // Directories and protected recovery files are not output receipts.
+        recoveryFile,
+      ]) {
+        expect(await resolve(target)).toEqual({ path: null, writable: null, scope: null })
+      }
+      expect(await resolve(scratchFile, sibling.id)).toEqual({ path: null, writable: null, scope: null })
+      await fs.rm(scratchFile)
+      expect(await resolve(scratchFile)).toEqual({ path: null, writable: null, scope: null })
+      expect(await SessionFilesystem.list(session.id)).toEqual(grants)
+    })
+  })
+
+  test("resolves session-owned tool output links without granting sibling or process access", async () => {
+    await using tmp = await tmpdir()
+    await withSession(tmp.path, async (session) => {
+      const sibling = await Session.create({})
+      await using cleanup = { [Symbol.asyncDispose]: () => Session.remove(sibling.id) }
+      const output = await Truncate.output("trajectory evidence\n".repeat(20), {
+        maxLines: 2,
+        sessionID: session.id,
+      })
+      if (!output.truncated) throw new Error("expected a managed tool output")
+      const target = await fs.realpath(output.outputPath)
+      const name = path.basename(target)
+      expect(await SessionFilesystem.processReadRoots(session.id)).not.toContain(target)
+      expect(await File.resolveReference(name, { sessionID: session.id })).toBe(target)
+      expect(await File.resolveReference(target, { sessionID: session.id })).toBe(target)
+      expect((await File.read(target, { sessionID: session.id })).content).toContain("trajectory evidence")
+      expect(await File.resolveReference(name, { sessionID: sibling.id })).toBeUndefined()
+      expect(await File.resolveReference(target, { sessionID: sibling.id })).toBeUndefined()
+      await expect(File.read(target, { sessionID: sibling.id })).rejects.toBeInstanceOf(SessionFilesystem.DeniedError)
+      const grant = (await SessionFilesystem.list(session.id)).find(
+        (item) => item.path === target && item.source === "tool",
+      )
+      if (!grant) throw new Error("missing tool output grant")
+      await SessionFilesystem.revoke(session.id, grant.id)
+      expect(await File.resolveReference(name, { sessionID: session.id })).toBeUndefined()
+      expect(await File.resolveReference(target, { sessionID: session.id })).toBeUndefined()
+    })
+  })
+
+  test("does not resolve a project file after the session's project read grant is revoked", async () => {
+    await using tmp = await tmpdir({
+      init: (directory) => Bun.write(path.join(directory, "revoked.csv"), "value\nprivate\n"),
+    })
+    await withSession(tmp.path, async (session) => {
+      expect(await File.resolveReference("revoked.csv", { sessionID: session.id })).toBe(
+        path.join(tmp.path, "revoked.csv"),
+      )
+      const grants = (await SessionFilesystem.list(session.id)).filter((grant) => grant.path === tmp.path)
+      for (const grant of grants) await SessionFilesystem.revoke(session.id, grant.id)
+      expect(await File.resolveReference("revoked.csv", { sessionID: session.id })).toBeUndefined()
+    })
+  })
+
   test("resolves chat file references across connected project roots without guessing ambiguous files", async () => {
     await using source = await tmpdir({
       init: async (directory) => {
@@ -1119,11 +1384,19 @@ describe("file access uses session grants", () => {
 
       const nested = await resolve("ioai_final/board.py")
       expect(nested.status).toBe(200)
-      expect(await nested.json()).toEqual({ path: path.join(source.path, "ioai_final", "board.py"), writable: false })
+      expect(await nested.json()).toEqual({
+        path: path.join(source.path, "ioai_final", "board.py"),
+        writable: false,
+        scope: "session",
+      })
 
       const bare = await resolve("unique.csv")
       expect(bare.status).toBe(200)
-      expect(await bare.json()).toEqual({ path: path.join(source.path, "reports", "unique.csv"), writable: false })
+      expect(await bare.json()).toEqual({
+        path: path.join(source.path, "reports", "unique.csv"),
+        writable: false,
+        scope: "session",
+      })
 
       await SessionFilesystem.grant({
         sessionID: session.id,
@@ -1131,15 +1404,21 @@ describe("file access uses session grants", () => {
         access: "read",
         scope: "project",
       })
-      expect(await (await resolve("unique.csv")).json()).toEqual({ path: null, writable: null })
-      expect(await (await resolve("../board.py")).json()).toEqual({ path: null, writable: null })
+      expect(await (await resolve("unique.csv")).json()).toEqual({ path: null, writable: null, scope: null })
+      expect(await (await resolve("../board.py")).json()).toEqual({ path: null, writable: null, scope: null })
       expect(await (await resolve(path.join(source.path, "ioai_final", "board.py"))).json()).toEqual({
-        path: null,
-        writable: null,
+        path: path.join(source.path, "ioai_final", "board.py"),
+        writable: false,
+        scope: "session",
       })
 
       await SessionFilesystem.revoke(session.id, sourceGrant.id)
-      expect(await (await resolve("ioai_final/board.py")).json()).toEqual({ path: null, writable: null })
+      expect(await (await resolve("ioai_final/board.py")).json()).toEqual({ path: null, writable: null, scope: null })
+      expect(await (await resolve(path.join(source.path, "ioai_final", "board.py"))).json()).toEqual({
+        path: null,
+        writable: null,
+        scope: null,
+      })
       await expect(
         File.read(path.join(source.path, "ioai_final", "board.py"), { sessionID: session.id }),
       ).rejects.toBeInstanceOf(SessionFilesystem.DeniedError)
@@ -1247,7 +1526,7 @@ describe("file access uses session grants", () => {
     })
   })
 
-  test("HTTP writes require a session and the wrong session cannot read or write a grant", async () => {
+  test("HTTP writes cannot use another session’s private grant, including without a session", async () => {
     await using external = await tmpdir({
       init: (dir) => Bun.write(path.join(dir, "data.txt"), "external"),
     })
@@ -1284,7 +1563,7 @@ describe("file access uses session grants", () => {
             }),
           })
 
-        expect((await write()).status).toBe(400)
+        expect((await write()).status).toBe(403)
         expect((await write(other.id)).status).toBe(403)
         expect((await fetch(`${url("/file/content")}&sessionID=${encodeURIComponent(other.id)}`)).status).toBe(403)
         expect((await write(owner.id)).status).toBe(200)

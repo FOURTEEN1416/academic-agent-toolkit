@@ -51,12 +51,20 @@ except ImportError:
     MATPLOTLIB_AVAILABLE = False
 
 try:
-    from brenda_queries import (
-        search_enzymes_by_product, search_enzymes_by_substrate,
-        get_environmental_parameters, compare_across_organisms,
-        get_substrate_specificity, get_cofactor_requirements,
-        find_thermophilic_homologs, find_ph_stable_variants
-    )
+    if __package__:
+        from .brenda_queries import (
+            search_enzymes_by_product, search_enzymes_by_substrate, search_by_pattern,
+            get_environmental_parameters, compare_across_organisms,
+            get_substrate_specificity, get_cofactor_requirements,
+            find_thermophilic_homologs, find_ph_stable_variants
+        )
+    else:
+        from brenda_queries import (
+            search_enzymes_by_product, search_enzymes_by_substrate, search_by_pattern,
+            get_environmental_parameters, compare_across_organisms,
+            get_substrate_specificity, get_cofactor_requirements,
+            find_thermophilic_homologs, find_ph_stable_variants
+        )
     BRENDA_QUERIES_AVAILABLE = True
 except ImportError:
     print("Warning: brenda_queries not available")
@@ -234,6 +242,12 @@ def infer_transformation_type(substrate: str, product: str) -> List[str]:
     substrate_info = identify_metabolite(substrate)
     product_info = identify_metabolite(product)
 
+    # identify_metabolite classifies the lowercased name, so the substring probes
+    # below have to compare the same spelling or an uppercase metabolite silently
+    # falls through to 'generic'.
+    substrate_name = substrate.lower()
+    product_name = product.lower()
+
     transformations = []
 
     # Check for oxidation/reduction patterns
@@ -245,19 +259,19 @@ def infer_transformation_type(substrate: str, product: str) -> List[str]:
         transformations.append('oxidation')
 
     # Check for phosphorylation/dephosphorylation
-    if 'phosphate' in product and 'phosphate' not in substrate:
+    if 'phosphate' in product_name and 'phosphate' not in substrate_name:
         transformations.append('phosphorylation')
-    elif 'phosphate' in substrate and 'phosphate' not in product:
+    elif 'phosphate' in substrate_name and 'phosphate' not in product_name:
         transformations.append('dephosphorylation')
 
     # Check for carboxylation/decarboxylation
-    if 'co2' in product and 'co2' not in substrate:
+    if 'co2' in product_name and 'co2' not in substrate_name:
         transformations.append('carboxylation')
-    elif 'co2' in substrate and 'co2' not in product:
+    elif 'co2' in substrate_name and 'co2' not in product_name:
         transformations.append('decarboxylation')
 
     # Check for hydrolysis (simple heuristic)
-    if 'ester' in substrate.lower() and ('carboxylic_acid' in product_info.get('class', '') or 'alcohol' in product_info.get('class', '')):
+    if 'ester' in substrate_name and ('carboxylic_acid' in product_info.get('class', '') or 'alcohol' in product_info.get('class', '')):
         transformations.append('hydrolysis')
 
     # Check for transamination

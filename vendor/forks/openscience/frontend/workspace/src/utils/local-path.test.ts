@@ -1,5 +1,115 @@
 import { describe, expect, test } from "bun:test"
-import { relativeLocalPath } from "./local-path"
+import {
+  basenameLocalPath,
+  displayLocalPath,
+  isLocalPathRoot,
+  isLocalPathWithin,
+  joinLocalPath,
+  localPathBreadcrumbs,
+  localPathPlatform,
+  localPathRoot,
+  normalizeLocalPath,
+  parentLocalPath,
+  relativeLocalPath,
+  resolveTypedLocalPath,
+} from "./local-path"
+
+describe("local path operations", () => {
+  test("normalizes POSIX, drive-letter, UNC, and mixed separators", () => {
+    expect(normalizeLocalPath("/Users/aayam//research/")).toBe("/Users/aayam/research")
+    expect(normalizeLocalPath("C:\\Users/aayam\\\\research\\")).toBe("C:/Users/aayam/research")
+    expect(normalizeLocalPath("\\\\server\\share\\\\folder/")).toBe("//server/share/folder")
+    expect(normalizeLocalPath("///var//tmp")).toBe("/var/tmp")
+  })
+
+  test("joins without replacing or resolving traversal-like input", () => {
+    expect(joinLocalPath("/", "var/log")).toBe("/var/log")
+    expect(joinLocalPath("C:\\Users\\aayam", "research/data")).toBe("C:/Users/aayam/research/data")
+    expect(joinLocalPath("\\\\server\\share", "team\\paper")).toBe("//server/share/team/paper")
+    expect(resolveTypedLocalPath("../outside", "/home/aayam/work", "/home/aayam")).toBe("/home/aayam/work/../outside")
+  })
+
+  test("names the platform a home folder belongs to", () => {
+    expect(localPathPlatform("/Users/aayam")).toBe("macos")
+    expect(localPathPlatform("/Users/aayam/")).toBe("macos")
+    expect(localPathPlatform("C:\\Users\\aayam")).toBe("windows")
+    expect(localPathPlatform("\\\\server\\homes\\aayam")).toBe("windows")
+    expect(localPathPlatform("/home/aayam")).toBeUndefined()
+    expect(localPathPlatform("/root")).toBeUndefined()
+    expect(localPathPlatform("/Users/aayam/research")).toBeUndefined()
+    expect(localPathPlatform("")).toBeUndefined()
+  })
+
+  test("finds roots and never navigates above them", () => {
+    expect(localPathRoot("/var/tmp")).toBe("/")
+    expect(localPathRoot("C:\\Users\\aayam")).toBe("C:/")
+    expect(localPathRoot("\\\\server\\share\\folder")).toBe("//server/share")
+    expect(isLocalPathRoot("/")).toBe(true)
+    expect(isLocalPathRoot("C:\\")).toBe(true)
+    expect(isLocalPathRoot("\\\\server\\share\\")).toBe(true)
+    expect(parentLocalPath("/")).toBe("/")
+    expect(parentLocalPath("C:\\")).toBe("C:/")
+    expect(parentLocalPath("\\\\server\\share\\")).toBe("//server/share")
+    expect(parentLocalPath("\\\\server\\share\\folder")).toBe("//server/share")
+  })
+
+  test("returns cross-platform basenames and file parents", () => {
+    expect(basenameLocalPath("/home/aayam/paper.tex")).toBe("paper.tex")
+    expect(basenameLocalPath("C:\\Research\\paper.tex")).toBe("paper.tex")
+    expect(parentLocalPath("C:\\Research\\paper.tex")).toBe("C:/Research")
+    expect(parentLocalPath("\\\\server\\share\\papers\\paper.tex")).toBe("//server/share/papers")
+  })
+
+  test("compares containment at boundaries with Windows casing rules", () => {
+    expect(isLocalPathWithin("/work/paper", "/work")).toBe(true)
+    expect(isLocalPathWithin("/workspace/paper", "/work")).toBe(false)
+    expect(isLocalPathWithin("c:\\USERS\\Aayam\\paper", "C:\\Users\\aayam")).toBe(true)
+    expect(isLocalPathWithin("\\\\SERVER\\Share\\team", "\\\\server\\share")).toBe(true)
+    expect(isLocalPathWithin("\\\\server\\shared\\team", "\\\\server\\share")).toBe(false)
+  })
+
+  test("a drive root contains the paths on its drive", () => {
+    expect(isLocalPathWithin("C:\\Windows", "C:\\")).toBe(true)
+    expect(isLocalPathWithin("C:\\", "C:\\")).toBe(true)
+    expect(isLocalPathWithin("D:\\Windows", "C:\\")).toBe(false)
+    expect(isLocalPathWithin("\\\\server\\share\\team", "\\\\server\\share\\")).toBe(true)
+  })
+
+  test("breadcrumbs walk a drive root down to the folder", () => {
+    expect(localPathBreadcrumbs("C:\\Research\\paper", "C:\\Users\\aayam")).toEqual([
+      { label: "C:/", path: "C:/" },
+      { label: "Research", path: "C:/Research" },
+      { label: "paper", path: "C:/Research/paper" },
+    ])
+  })
+
+  test("builds drive and UNC breadcrumbs without crossing roots", () => {
+    expect(localPathBreadcrumbs("/home/aayam/research", "/home/aayam")).toEqual([
+      { label: "~", path: "/home/aayam" },
+      { label: "research", path: "/home/aayam/research" },
+    ])
+    expect(localPathBreadcrumbs("C:\\Users\\aayam\\research", "C:\\Users\\aayam")).toEqual([
+      { label: "~", path: "C:/Users/aayam" },
+      { label: "research", path: "C:/Users/aayam/research" },
+    ])
+    expect(localPathBreadcrumbs("\\\\server\\share\\team\\paper", "C:\\Users\\aayam")).toEqual([
+      { label: "//server/share", path: "//server/share" },
+      { label: "team", path: "//server/share/team" },
+      { label: "paper", path: "//server/share/team/paper" },
+    ])
+  })
+
+  test("expands tilde and relative input while leaving validation-relevant segments intact", () => {
+    expect(resolveTypedLocalPath("~/paper", "C:\\Users\\aayam\\work", "C:\\Users\\aayam")).toBe("C:/Users/aayam/paper")
+    expect(resolveTypedLocalPath("notes", "\\\\server\\share\\team", "C:\\Users\\aayam")).toBe(
+      "//server/share/team/notes",
+    )
+    expect(resolveTypedLocalPath("..\\private", "C:\\Users\\aayam\\work", "C:\\Users\\aayam")).toBe(
+      "C:/Users/aayam/work/../private",
+    )
+    expect(displayLocalPath("c:\\users\\AAYAM\\work", "C:\\Users\\aayam")).toBe("~/work")
+  })
+})
 
 describe("relativeLocalPath", () => {
   test("strips only the selected project boundary", () => {
@@ -13,5 +123,10 @@ describe("relativeLocalPath", () => {
     expect(relativeLocalPath("C:\\Research\\CERBench2\\paper.tex", "C:\\Research\\CERBench")).toBe(
       "C:/Research/CERBench2/paper.tex",
     )
+  })
+
+  test("strips a drive or UNC root without eating the first segment", () => {
+    expect(relativeLocalPath("C:\\Research\\paper.tex", "C:\\")).toBe("Research/paper.tex")
+    expect(relativeLocalPath("\\\\server\\share\\team\\paper.tex", "\\\\server\\share\\")).toBe("team/paper.tex")
   })
 })

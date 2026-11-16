@@ -5,7 +5,7 @@ const fs = require("fs")
 const path = require("path")
 const os = require("os")
 
-const MIN_LINUX_KERNEL = { major: 5, minor: 1 }
+const MIN_LINUX_KERNEL = { major: 3, minor: 10 }
 
 function parseKernelVersion(release) {
   const match = /^(\d+)\.(\d+)/.exec(release)
@@ -23,7 +23,7 @@ function linuxKernelProblem(platform = os.platform(), release = os.release()) {
   ) {
     return undefined
   }
-  return `Linux kernel ${release} is unsupported. OpenScience's bundled runtime requires kernel 5.1 or newer.`
+  return `Linux kernel ${release} is unsupported. OpenScience's bundled runtime requires kernel 3.10 or newer.`
 }
 
 function detectMusl(platform = os.platform()) {
@@ -35,7 +35,11 @@ function detectMusl(platform = os.platform()) {
   }
 }
 
-function cpuSupportsAvx2(platform = os.platform(), arch = os.arch(), linuxInfo) {
+function darwinSysctl(name) {
+  return childProcess.spawnSync("sysctl", ["-n", name], { encoding: "utf8" })
+}
+
+function cpuSupportsAvx2(platform = os.platform(), arch = os.arch(), linuxInfo, sysctl = darwinSysctl) {
   if (arch !== "x64") return undefined
   if (platform === "linux") {
     const info = (() => {
@@ -51,10 +55,35 @@ function cpuSupportsAvx2(platform = os.platform(), arch = os.arch(), linuxInfo) 
     if (!flags) return undefined
     return flags.toLowerCase().split(/\s+/).includes("avx2")
   }
+  // Windows exposes no CPU feature flags to Node; the illegal-instruction exit
+  // status is recognised after launch instead (see illegalInstruction).
   if (platform !== "darwin") return undefined
-  const result = childProcess.spawnSync("sysctl", ["-n", "machdep.cpu.leaf7_features"], { encoding: "utf8" })
-  if (result.status !== 0) return undefined
-  return result.stdout.toLowerCase().split(/\s+/).includes("avx2")
+  // hw.optional.avx2_0 answers 0/1 on every Mac, including x64 Node under
+  // Rosetta where machdep.cpu.leaf7_features is an unknown oid.
+  const optional = sysctl("hw.optional.avx2_0")
+  const flag = optional.status === 0 ? String(optional.stdout).trim() : undefined
+  if (flag === "1") return true
+  if (flag === "0") return false
+  const leaf7 = sysctl("machdep.cpu.leaf7_features")
+  if (leaf7.status !== 0) return undefined
+  return String(leaf7.stdout).toLowerCase().split(/\s+/).includes("avx2")
+}
+
+// Windows has no signals: an illegal instruction ends the process with
+// STATUS_ILLEGAL_INSTRUCTION (0xC000001D), which spawnSync reports as an
+// unsigned status (or its signed form from some shells) with signal null.
+const WINDOWS_ILLEGAL_INSTRUCTION = 3221225501
+
+function illegalInstruction(result) {
+  if (result.signal === "SIGILL") return true
+  return result.status === WINDOWS_ILLEGAL_INSTRUCTION || result.status === WINDOWS_ILLEGAL_INSTRUCTION - 2 ** 32
+}
+
+// The `-baseline` build of the same package (openscience-linux-x64-musl ->
+// openscience-linux-x64-baseline-musl) runs on x86-64 CPUs without AVX2.
+function baselineSibling(prefix, entry) {
+  if (!entry.startsWith(prefix) || entry.includes("-baseline")) return undefined
+  return `${prefix}-baseline${entry.slice(prefix.length)}`
 }
 
 function expectedPlatformPackages(platform, arch, musl) {
@@ -97,12 +126,13 @@ function exitCodeForResult(result) {
   return 1
 }
 
-function run(target) {
+function run(target, fallback) {
   const kernelProblem = linuxKernelProblem()
   if (kernelProblem) {
     console.error(kernelProblem)
     console.error(
-      "Upgrade the host kernel or run OpenScience on a newer VM. CentOS 7's stock 3.10 kernel is not supported.",
+      "Upgrade the host kernel or run OpenScience on a newer VM. Kernels from 3.10 to 5.5 run the bundled " +
+        "runtime with graceful degradation of newer syscalls; 5.6 or newer is recommended.",
     )
     process.exit(1)
   }
@@ -114,6 +144,16 @@ function run(target) {
     process.exit(1)
   }
 
+  // Only a read-only startup probe may fall back. A real command can perform
+  // side effects before SIGILL, so never replay it after a crash.
+  if (fallback) {
+    const probe = childProcess.spawnSync(target, ["--version"], { timeout: 10_000, stdio: "ignore" })
+    if (illegalInstruction(probe)) {
+      console.error(`openscience startup probe failed; using the baseline build at ${fallback}.`)
+      target = fallback
+    }
+  }
+
   const result = childProcess.spawnSync(target, process.argv.slice(2), {
     stdio: "inherit",
   })
@@ -122,15 +162,18 @@ function run(target) {
     console.error(`Detected runtime: ${runtimeDescription(os.platform(), os.arch(), detectMusl())}`)
     process.exit(1)
   }
-  if (result.signal) {
+  const crashed = illegalInstruction(result)
+  if (result.signal || crashed) {
     console.error(
-      `openscience was terminated by ${result.signal}. The prebuilt native binary may be ` +
+      `openscience was terminated by ${result.signal || "an illegal instruction (exit status 0xC000001D)"}. ` +
+        `The prebuilt native binary may be ` +
         `incompatible with this host (platform ${os.platform()}, arch ${os.arch()}). ` +
         `Some ARM64 hosts (e.g. 64KB page-size kernels) and x86-64 hosts without AVX2 ` +
         `cannot run the optimized prebuilt binary. ` +
         `Try reinstalling, set OPENSCIENCE_BIN_PATH to a compatible binary, or report at ` +
         `https://github.com/synthetic-sciences/openscience/issues`,
     )
+    console.error(`Detected runtime: ${runtimeDescription(os.platform(), os.arch(), detectMusl())}`)
   }
   process.exit(exitCodeForResult(result))
 }
@@ -167,6 +210,13 @@ function matchingVariants(prefix, entries, preferMusl, preferBaseline = false) {
     )
 }
 
+function baselineFallback(modules, prefix, entry, binary) {
+  const sibling = baselineSibling(prefix, entry)
+  if (!sibling) return undefined
+  const candidate = path.join(modules, sibling, "bin", binary)
+  return isBinary(candidate) ? candidate : undefined
+}
+
 function main() {
   const envPath = process.env.OPENSCIENCE_BIN_PATH
   if (envPath && isBinary(envPath)) {
@@ -197,7 +247,7 @@ function main() {
         const entries = fs.readdirSync(modules)
         for (const entry of matchingVariants(base, entries, musl, baseline)) {
           const candidate = path.join(modules, entry, "bin", binary)
-          if (isBinary(candidate)) run(candidate)
+          if (isBinary(candidate)) run(candidate, baselineFallback(modules, base, entry, binary))
         }
         // Check scoped packages (@synsci/openscience-darwin-arm64)
         const scoped = path.join(modules, "@synsci")
@@ -205,7 +255,7 @@ function main() {
           const scopedEntries = fs.readdirSync(scoped)
           for (const entry of matchingVariants(scopedBase, scopedEntries, musl, baseline)) {
             const candidate = path.join(scoped, entry, "bin", binary)
-            if (isBinary(candidate)) run(candidate)
+            if (isBinary(candidate)) run(candidate, baselineFallback(scoped, scopedBase, entry, binary))
           }
         }
       } catch {}
@@ -219,6 +269,9 @@ function main() {
   console.error(`OpenScience binary not found for ${platform}-${arch}.`)
   console.error(`Detected runtime: ${runtimeDescription(platform, arch, musl)}`)
   console.error(`Expected npm package: ${expectedPackages[0]}`)
+  console.error(
+    "A common cause is installing with `npm install --omit=optional` or `--ignore-scripts`, which skips that package.",
+  )
   console.error("Check npm's platform selection with:")
   console.error("  npm config get cpu")
   console.error(`  npm ls -g @synsci/openscience ${expectedPackages[0]} --depth=0`)
@@ -228,10 +281,12 @@ function main() {
 }
 
 module.exports = {
+  baselineSibling,
   cpuSupportsAvx2,
   detectMusl,
   exitCodeForResult,
   expectedPlatformPackages,
+  illegalInstruction,
   linuxArm64PageSizeProblem,
   linuxKernelProblem,
   matchingVariants,

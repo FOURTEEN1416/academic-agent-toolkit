@@ -15,6 +15,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from figure_reference_check import validate_figure_references
+
 SAFE_ID = re.compile(r"^[A-Za-z0-9._-]+$")
 REQUIRED_STORY_FIELDS = (
     "figure_role",
@@ -71,6 +73,9 @@ def validate_figure_story(output_dir: Path, phase: str = "planning") -> FigureSt
     figures = raw.get("figures") if isinstance(raw, dict) else None
     if not isinstance(figures, list) or not figures:
         return FigureStoryResult(str(path), phase, False, 0, ["figures must be a non-empty list"])
+
+    reference_result = validate_figure_references(output_dir, phase)
+    findings.extend(reference_result.findings)
 
     seen: set[str] = set()
     labels: set[str] = set()

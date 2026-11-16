@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/figure-correction-operation.schema.json",
+  "title": "PaperSpine-authorized FigMirror correction operation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "contract_version", "operation_kind", "operation_id", "operation_sha256", "figure_id", "authority", "executor", "source", "overlay", "allowed_text_changes", "pixel_diff_bounds", "scientific_invariants", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.figure-correction-operation"},
+    "contract_version": {"const": "1.0"},
+    "operation_kind": {"enum": ["svg_text_correction", "pdf_overlay_composition"]},
+    "operation_id": {"type": "string", "minLength": 1},
+    "operation_sha256": {"$ref": "#/$defs/sha256"},
+    "figure_id": {"type": "string", "minLength": 1},
+    "authority": {"const": "paper-spine"},
+    "executor": {"const": "figmirror"},
+    "source": {"$ref": "#/$defs/artifact"},
+    "overlay": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact"}]},
+    "allowed_text_changes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["change_id", "element_id", "from_token", "to_token", "region", "mask"],
+        "properties": {
+          "change_id": {"type": "string", "minLength": 1},
+          "element_id": {"type": "string", "minLength": 1},
+          "from_token": {"type": "string", "minLength": 1},
+          "to_token": {"type": "string", "minLength": 1},
+          "mask_element_id": {"type": "string", "minLength": 1},
+          "overlay_text": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["text", "x", "y", "font_family", "font_size", "rotation_degrees", "fill"],
+            "properties": {
+              "text": {"type": "string", "minLength": 1},
+              "x": {"type": "number"},
+              "y": {"type": "number"},
+              "font_family": {"type": "string", "minLength": 1},
+              "font_size": {"type": "number", "exclusiveMinimum": 0},
+              "rotation_degrees": {"type": "number", "minimum": -360, "maximum": 360},
+              "fill": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"}
+            }
+          },
+          "region": {"$ref": "#/$defs/region"},
+          "mask": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "feather_px"],
+            "properties": {
+              "kind": {"const": "rectangle"},
+              "feather_px": {"const": 0}
+            }
+          }
+        }
+      }
+    },
+    "pixel_diff_bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["render_width_px", "maximum_changed_pixel_fraction", "maximum_outside_mask_changed_pixels"],
+      "properties": {
+        "render_width_px": {"type": "integer", "minimum": 300, "maximum": 10000},
+        "maximum_changed_pixel_fraction": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "maximum_outside_mask_changed_pixels": {"type": "integer", "minimum": 0}
+      }
+    },
+    "scientific_invariants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["panel_ids"],
+      "properties": {
+        "panel_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "data_curve_element_sha256": {"$ref": "#/$defs/hashMap"},
+        "data_value_element_sha256": {"$ref": "#/$defs/hashMap"},
+        "render_invariant_regions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["invariant_id", "kind", "region", "source_pixels_sha256"],
+            "properties": {
+              "invariant_id": {"type": "string", "minLength": 1},
+              "kind": {"enum": ["panel", "data_curve", "data_value"]},
+              "region": {"$ref": "#/$defs/region"},
+              "source_pixels_sha256": {"$ref": "#/$defs/sha256"}
+            }
+          }
+        }
+      }
+    },
+    "external_action_authorized": {"const": false}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "media_type", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "media_type": {"enum": ["image/svg+xml", "application/pdf"]},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": {"type": "number"},
+        "y": {"type": "number"},
+        "width": {"type": "number", "exclusiveMinimum": 0},
+        "height": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "hashMap": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"type": "string", "minLength": 1},
+      "additionalProperties": {"$ref": "#/$defs/sha256"}
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"operation_kind": {"const": "svg_text_correction"}}},
+      "then": {
+        "properties": {
+          "source": {"properties": {"media_type": {"const": "image/svg+xml"}}},
+          "overlay": {"type": "null"},
+          "scientific_invariants": {"required": ["panel_ids", "data_curve_element_sha256", "data_value_element_sha256"]}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"operation_kind": {"const": "pdf_overlay_composition"}}},
+      "then": {
+        "properties": {
+          "source": {"properties": {"media_type": {"const": "application/pdf"}}},
+          "overlay": {"type": "object", "properties": {"media_type": {"enum": ["image/svg+xml", "application/pdf"]}}},
+          "allowed_text_changes": {"items": {"required": ["mask_element_id", "overlay_text"]}},
+          "scientific_invariants": {"required": ["panel_ids", "render_invariant_regions"]}
+        }
+      }
+    }
+  ]
+}

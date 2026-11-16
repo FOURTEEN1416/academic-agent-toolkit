@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/release/plugin-activation-journal.schema.json",
+  "title": "PaperSpine5 transactional Codex plugin activation journal",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "contract",
+    "schema_version",
+    "operation_id",
+    "install_kind",
+    "status",
+    "created_at",
+    "updated_at",
+    "selector",
+    "target_root",
+    "previous_version",
+    "candidate_version",
+    "phases",
+    "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.plugin-activation-journal"},
+    "schema_version": {"const": "1.0"},
+    "operation_id": {"type": "string", "minLength": 1},
+    "install_kind": {"const": "plugin"},
+    "status": {
+      "enum": ["in_progress", "committed", "blocked", "rolled_back", "rollback_failed"]
+    },
+    "created_at": {"type": "string", "minLength": 1},
+    "updated_at": {"type": "string", "minLength": 1},
+    "selector": {"type": "string", "minLength": 1},
+    "target_root": {"type": "string", "minLength": 1},
+    "previous_version": {"type": "string", "minLength": 1},
+    "candidate_version": {"type": "string", "minLength": 1},
+    "candidate_build_id": {"type": ["string", "null"]},
+    "phases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["phase", "kind", "status", "recorded_at"],
+        "properties": {
+          "phase": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["command", "filesystem"]},
+          "status": {"enum": ["passed", "warning", "failed"]},
+          "recorded_at": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "external_action_authorized": {"const": false}
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "paperspine5",
+  "version": "0.4.0-alpha.1-dev",
+  "host": "dsh",
+  "format": "dsh-bundle",
+  "transport": "stdio",
+  "package": "dsh-paperspine5",
+  "bundle_patch": "cordis.patch.yml",
+  "profile": "web",
+  "command": "python",
+  "args": [
+    "-B",
+    "__PAPERSPINE5_PACKAGE_ROOT__/scripts/paperspine5_mcp.py",
+    "mcp"
+  ],
+  "launcher": "scripts/paperspine5_mcp.py",
+  "package_root": "__PAPERSPINE5_PACKAGE_ROOT__",
+  "health_tool": "mcp__paperspine5__paperspine5_health"
+}

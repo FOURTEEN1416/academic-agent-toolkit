@@ -1,5 +1,7 @@
-import { For, Match, Show, Switch, type JSX } from "solid-js"
+import { For, Match, Show, Switch, onCleanup, onMount, type JSX } from "solid-js"
+import { createStore } from "solid-js/store"
 import { DateTime } from "luxon"
+import { AtomLoader } from "@synsci/ui/atom-loader"
 import { AppHeader } from "@/atlas/AppHeader"
 import {
   IconArchive,
@@ -42,6 +44,16 @@ export function ProjectsWorkbench(props: {
   onServer: () => void
 }): JSX.Element {
   const recent = () => props.state === "recent"
+  const [clock, setClock] = createStore({ now: Date.now() })
+  onMount(() => {
+    const refresh = () => setClock("now", Date.now())
+    const interval = setInterval(refresh, 60_000)
+    document.addEventListener("visibilitychange", refresh)
+    onCleanup(() => {
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", refresh)
+    })
+  })
   let input: HTMLInputElement | undefined
 
   const clearSearch = () => {
@@ -56,9 +68,11 @@ export function ProjectsWorkbench(props: {
     return `${total} ${noun}`
   }
 
-  const editedLabel = (project: HomeProject) => {
-    const relative = DateTime.fromMillis(project.updatedAt).toRelative() ?? "recently"
-    return `Edited ${relative}`
+  const activityLabel = (project: HomeProject) => {
+    const relative =
+      DateTime.fromMillis(project.updatedAt).toRelative({ base: DateTime.fromMillis(clock.now) }) ?? "recently"
+    const label = (project.time.activity ?? 0) > project.time.created ? "Active" : "Created"
+    return `${label} ${relative}`
   }
 
   return (
@@ -81,7 +95,7 @@ export function ProjectsWorkbench(props: {
           </button>
           <span class="science-home__bar-divider" aria-hidden="true" />
           <button class="science-home__icon" type="button" aria-label="Settings" onClick={props.onSettings}>
-            <IconSettings size={15} strokeWidth={1.5} />
+            <IconSettings size={16} strokeWidth={1.5} />
           </button>
         </div>
       </AppHeader>
@@ -109,7 +123,7 @@ export function ProjectsWorkbench(props: {
                 aria-label="New project"
                 onClick={props.onCreate}
               >
-                <IconPlus size={15} strokeWidth={1.5} />
+                <IconPlus size={16} strokeWidth={1.5} />
                 New project
               </button>
             </div>
@@ -118,7 +132,7 @@ export function ProjectsWorkbench(props: {
           <Show when={recent()}>
             <div class="science-home__toolbar" aria-label="Project controls">
               <label class="science-home__search" for="science-home-project-search">
-                <IconSearch size={16} strokeWidth={1.45} />
+                <IconSearch size={16} strokeWidth={1.5} />
                 <input
                   ref={input}
                   id="science-home-project-search"
@@ -135,7 +149,7 @@ export function ProjectsWorkbench(props: {
                 />
                 <Show when={props.query}>
                   <button type="button" aria-label="Clear search" onClick={clearSearch}>
-                    <IconX size={13} strokeWidth={1.55} />
+                    <IconX size={12} strokeWidth={1.5} />
                   </button>
                 </Show>
               </label>
@@ -147,12 +161,8 @@ export function ProjectsWorkbench(props: {
 
           <Switch>
             <Match when={props.state === "loading"}>
-              <section class="science-home__state" role="status" aria-live="polite">
-                <span class="science-home__spinner" aria-hidden="true" />
-                <div>
-                  <strong>Loading projects…</strong>
-                  <span>Reading projects from this server.</span>
-                </div>
+              <section class="science-home__state science-home__state--loading" role="status" aria-live="polite">
+                <AtomLoader size={144} caption="Loading projects" />
               </section>
             </Match>
 
@@ -171,9 +181,12 @@ export function ProjectsWorkbench(props: {
             <Match when={props.state === "empty"}>
               <section class="science-home__state science-home__state--empty">
                 <div>
-                  <strong>No projects yet</strong>
-                  <span>Start a new project to bring your research, sources, and compute together.</span>
+                  <strong>Create your first project</strong>
+                  <span>Open a research folder or start blank, then send your first message.</span>
                 </div>
+                <button class="science-home__button" type="button" onClick={props.onCreate}>
+                  New project
+                </button>
               </section>
             </Match>
 
@@ -240,8 +253,11 @@ export function ProjectsWorkbench(props: {
                                   ·
                                 </span>
                               </Show>
-                              <time datetime={DateTime.fromMillis(project.updatedAt).toISO() ?? undefined}>
-                                {editedLabel(project)}
+                              <time
+                                datetime={DateTime.fromMillis(project.updatedAt).toISO() ?? undefined}
+                                title="Last research activity; opening a project does not change this date"
+                              >
+                                {activityLabel(project)}
                               </time>
                             </span>
                           </span>
@@ -255,8 +271,8 @@ export function ProjectsWorkbench(props: {
                             title={project.pinned ? "Unpin project" : "Pin project"}
                             onClick={() => props.onPin(project)}
                           >
-                            <Show when={project.pinned} fallback={<IconPin size={15} strokeWidth={1.4} />}>
-                              <IconPinFilled size={15} strokeWidth={1.4} />
+                            <Show when={project.pinned} fallback={<IconPin size={16} strokeWidth={1.5} />}>
+                              <IconPinFilled size={16} strokeWidth={1.5} />
                             </Show>
                           </button>
                           <button
@@ -266,7 +282,7 @@ export function ProjectsWorkbench(props: {
                             title="Archive project"
                             onClick={() => props.onArchive(project)}
                           >
-                            <IconArchive size={14} strokeWidth={1.4} />
+                            <IconArchive size={14} strokeWidth={1.5} />
                           </button>
                         </div>
                       </li>
@@ -277,10 +293,10 @@ export function ProjectsWorkbench(props: {
               <Show when={props.archivedProjects.length > 0}>
                 <details class="science-home__archived">
                   <summary>
-                    <IconArchive size={14} strokeWidth={1.45} />
+                    <IconArchive size={14} strokeWidth={1.5} />
                     <span>Archived</span>
                     <span class="science-home__archived-count">{props.archivedProjects.length}</span>
-                    <IconChevronRight class="science-home__archived-chevron" size={12} strokeWidth={1.45} />
+                    <IconChevronRight class="science-home__archived-chevron" size={12} strokeWidth={1.5} />
                   </summary>
                   <ul aria-label="Archived projects">
                     <For each={props.archivedProjects}>

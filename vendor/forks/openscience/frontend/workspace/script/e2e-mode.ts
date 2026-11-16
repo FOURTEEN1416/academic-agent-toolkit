@@ -1,6 +1,6 @@
 export const E2E_MODE_ENV = "OPENSCIENCE_E2E_MODE"
 
-export type E2EMode = "isolated" | "external"
+type E2EMode = "isolated" | "external"
 
 type Environment = Record<string, string | undefined>
 

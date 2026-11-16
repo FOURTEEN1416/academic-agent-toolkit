@@ -1,0 +1,1212 @@
+{
+  "schema_version": "1.0",
+  "resources": [
+    {
+      "path": "SKILL.md",
+      "purpose": "唯一当前宿主入口与科研执行、交互和完成边界。",
+      "current_application": "完整读取入口与当前方法路由；以保存任务/授权/实际输出开展工作，其他原方法不被这份摘要替代。",
+      "review_check": "原文件可读取、实际方法应用、论文质量与交付分别核实。"
+    },
+    {
+      "path": "references/paper-spine-production-protocol.md",
+      "purpose": "全文；17步论文生产路线、真实产物检查、下游使用、源级修复与独立审阅边界。",
+      "current_application": "生产或恢复时按已存workflow读取并检查实际输入/产物及下游使用；缺陷定位到文件/位置后做最小源级修复并复查受影响输出，不创建17张表或新增后端状态。",
+      "review_check": "不以完成标签、hash、笔记或工具PASS冒充论文质量；focused review/audit只返回所需发现；独立审阅不可用时如实交付待审草稿。",
+      "stages": [
+        "intake",
+        "research",
+        "contribution",
+        "evidence",
+        "draft",
+        "figure",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "agents/openai.yaml",
+      "purpose": "Skill展示信息和自动调用策略。",
+      "current_application": "保留单一Skill的UI信息；此元数据不是科研执行提示，也不证明方法完整。",
+      "review_check": "名称/默认提示与实际入口一致；不因配置存在声称科研调用完成。",
+      "focuses": [
+        "skill-maintenance"
+      ]
+    },
+    {
+      "path": "agents/research-exemplar.md",
+      "purpose": "全文；两组配置篇数、同领域质量、目标刊PDF实看、参考数、语句与图件学习落点。",
+      "current_application": "读configuration.literature；同任务paper/notes记录来源和具体段/图应用；复用未变有效学习。\n原封装对应范围：flash/pro与固定dossier数量不控制当前篇数。",
+      "review_check": "不重复三篇算六篇；不以摘要替代全文/看图；不搬结果和句子。",
+      "stages": [
+        "research",
+        "evidence"
+      ]
+    },
+    {
+      "path": "agents/research-scene.md",
+      "purpose": "全文；实际场景与文章类型的现行官方规则、期刊PDF布局和转投差异。",
+      "current_application": "用configuration.target/scene/formats和真实资料，官方硬规则与已观察样式分别记于notes。\n原封装对应范围：两次搜索/固定字数预算不作为研究上限。",
+      "review_check": "具体内容与布局建议、来源/日期和未解细节；不编造作者事实或要求。",
+      "stages": [
+        "research",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "agents/research-sota.md",
+      "purpose": "完整读近邻真读比较、实际增量/意义/边界、配置学习集、已有贡献复用与作者报告尊重。",
+      "current_application": "作为host科研方法按current scope读取research/journal-learning；真实来源到当前贡献notes；必要新选择才public decision。\n原封装对应范围：旧tier/六篇帽/固定gap/重新确认均明确排除；Agent文件名不要求新建子Agent。",
+      "review_check": "不可给每个增量贴novel；摘要支持限可见范围，不补未授权实验。",
+      "stages": [
+        "research",
+        "contribution",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "agents/reviewer-evidence.md",
+      "purpose": "全文：证据、引用身份/语境、相关性/覆盖、独立形成意见",
+      "current_application": "读取现有来源/稿件/render；旧同名文件不存在时用实际材料\n独立reviewer提交公开SubmitReview，作者不自评；不能因transport问题阻止已知错误本地修复\n原封装对应范围：L10–11旧notes文件名",
+      "review_check": "逐claim定位证据，区分科学与导航缺陷\n零问题需说明查了哪些内容，不强求造一条",
+      "stages": [
+        "review"
+      ]
+    },
+    {
+      "path": "agents/reviewer-method.md",
+      "purpose": "全文；方法假设、证据映射、控制比较、可复现条件与图像科学关系。",
+      "current_application": "按saved research_mode检查实际Methods/Results/scripts/figures；materials_only不重跑，只对具体矛盾定位。\n原封装对应范围：缺固定矩阵/完整原始数组不判用户研究无效。",
+      "review_check": "区分未独立复现与已证伪；指出科学后果/适度修订，真独立意见。",
+      "stages": [
+        "review"
+      ]
+    },
+    {
+      "path": "agents/reviewer-writing.md",
+      "purpose": "全文；结构、连贯、体裁、贡献表达、引用/图表导航、语气设置和多语言完整性。",
+      "current_application": "用真实当前稿、local target PDFs、已有notes；先独立判断再读其他未提交意见；公开SubmitReview由真实审阅者提交。\n原封装对应范围：历史矩阵/style dossier文件仅可选上下文；audit.md旧门不前置。",
+      "review_check": "反馈定位到段/图；required AI披露和研究审查程序不因reviewer单词删除；各语言实渲染。",
+      "stages": [
+        "review"
+      ]
+    },
+    {
+      "path": "references/adaptive-shadow.md",
+      "purpose": "全文按领域学习、规则来源、遗漏检查、独立当前surface、真实性与质量不可抵消及声明边界",
+      "current_application": "科学方法可在普通notes/review中保留；仅明确实验才用shadow合同\n从最新变为最适合且尊重已选版本，图不必须有竞争增量；当前修复不受一轮上限\n原封装对应范围：opt-in request/IR/coverage receipts/CAS store\n最多一轮/newest候选/competitive_delta",
+      "review_check": "只证明一个surface，不签整篇ready\n不把原legacy FAIL/PASS跨版本自动传播，不增加canonical门",
+      "stages": [
+        "research",
+        "review"
+      ]
+    },
+    {
+      "path": "references/assertive-scientific-writing.md",
+      "purpose": "全文；证据匹配直接表达、必要限定、研究者视角；按保存off/standard/strict保留语气和科学语义。",
+      "current_application": "读configuration.author_voice_restoration及授权原稿；原段→科学功能→最小修改；无作者文本如实说明但继续。\n原封装对应范围：固定作者语气JSON/确切哈希作者确认链不适用。",
+      "review_check": "对照数值/否定/单位/归属/因果/主张强度，独立审原稿和改稿；无探测器优化。",
+      "stages": [
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/asset-selection.md",
+      "purpose": "完整读多版本身份、用户显式选择优先、同身份候选择新/词法tie、路径权限、文件hash和变更复核。",
+      "current_application": "保留真实公共grant路径及当前selected figure；必要时用已有selector对相容根候选做确定性选择；不用改identity、抬权限或复制原数据求PASS。\n原封装对应范围：旧request/receipt必须project-contained根，不直接匹配current外部material grants；全候选mtime变动不必全任务失效。",
+      "review_check": "mtime不能决定科学有效性；新旧身份内容实看；选定输出和源一致，未知身份先解决。",
+      "stages": [
+        "intake",
+        "evidence",
+        "figure",
+        "review"
+      ]
+    },
+    {
+      "path": "references/audit.md",
+      "purpose": "全文阅读作为质量清单；实际完整性、论证/结果/引用/图文一致、逐页/Word/语言、投稿及返修适用项。",
+      "current_application": "逐条映射真实paper文件和public task：无需新写论文的audit/review输出located findings；生产任务用当前独立审阅→publish→prepare，不运行旧全门链。\n原封装对应范围：L59-180旧命令/目录/gates及固定报告名；不搬/删既有final_paper；usage/metadata与本地论文质量分层。",
+      "review_check": "凡真实主张不支持/图文错/不可读仍修；未用旧schema或无旧收据不判失败；下载证据单列。",
+      "stages": [
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/build.md",
+      "purpose": "完整阅读；材料身份、多版本有效性、claim-证据关系、稿件尺度、叙事规划、真实数据/引用/图、真实PDF和Word。",
+      "current_application": "读public配置/materials/choices；科研范围materials_only等沿用；S/C/N/M/O/R语义写入现notes或必要ledger，非新门；共享semantic exporter；保留用户有效结果。\n原封装对应范围：固定output树、confirmed文件gate、strict矩阵和author voice四件receipt、literal cite、全部上游先PASS。",
+      "review_check": "无稿才build；研究关闭不造新实验；蓝图不是完整论文；PDF/Word分别真渲染；方法改动同步数字/图文与受影响审核。",
+      "stages": [
+        "intake",
+        "research",
+        "contribution",
+        "evidence",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/citation-support-bank.md",
+      "purpose": "引用用途与范例学习用途、来源/用法去重、每个采用引用的支撑句、标识和阅读深度\n相关文献类别按实际问题覆盖",
+      "current_application": "改用literature.reference_count_mode/reference_count及已测venue_average；不为配额凑文献\n候选保留未核验标记，只有final adopted需完成；paper现有notes保存source→claim\n原封装对应范围：L10–19固定20/3倍/80%三年规则\nL57–65候选VERIFY与最终核验混用\nL78旧输出路径",
+      "review_check": "核标识不等于核支持；真实摘要支持有限背景\n旧citation_bank_check硬配额不可直接作为当前质量门",
+      "stages": [
+        "research",
+        "evidence",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/citation.md",
+      "purpose": "全文；区分来源/引用用途、候选与最终文献、逐条身份和语境核验、真正封闭语料的去重/范围。",
+      "current_application": "由显式用户范围解析开放/封闭；materials_only允许公开阅读；未核候选隔离，已核证据继续；notes/Bib记录来源和support定位。\n原封装对应范围：旧bank字段/路径/target*3/20配额，L47-49错误auto closed_corpus及local免核误读需纠正。",
+      "review_check": "每个最终引用身份+上下文；本地文献也核；未知通道不能转为可用；不以无MCP阻断。",
+      "stages": [
+        "research",
+        "evidence",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/contracts/adaptive-shadow-request.schema.json",
+      "purpose": "全文schema及消费者；来源权威/覆盖/主张支持/独立审查/保留遗漏/资产身份/单表面边界。",
+      "current_application": "仅显式shadow兼容或合同诊断读；正常科学意义映射当前notes/review，旧调用需补schema条件匹配consumer，不能当全稿READY。\n原封装对应范围：影子max1轮/legacy_receipt与严格字段不是普通论文义务；schema遗漏direction_search条件。",
+      "review_check": "单claim hash/引用ID/真实独立/覆盖需实证；语法通过不代表任何运行。",
+      "stages": [
+        "review"
+      ]
+    },
+    {
+      "path": "references/contracts/adaptive-shadow-result.schema.json",
+      "purpose": "完整single-surface结果、assurance/coverage、下游ready恒false",
+      "current_application": "科研启示在普通review使用，结构仅显式实验消费；核semantic一致性\n原封装对应范围：shadow schema/legacy taint不是主gate",
+      "review_check": "不能从claim_surface_audited推整篇通过\n无实际实验记录就未证实",
+      "stages": [
+        "research",
+        "review"
+      ]
+    },
+    {
+      "path": "references/contracts/asset-selection-request.schema.json",
+      "purpose": "完整读asset selection结构及同identity/kind/explicit path语义，区分结构校验与内容判断。",
+      "current_application": "按现授权目录读取/确认科学身份；需要兼容selector时显式映射有效路径并避免材料复制/不受授权根扩大。\n原封装对应范围：根必须project内是旧helper边界，不能当current合法外部grant无效。",
+      "review_check": "schema合法不证明path真实/授权或identity正确；选择需真正内容核对及用户已选优先。",
+      "stages": [
+        "intake",
+        "evidence",
+        "figure"
+      ]
+    },
+    {
+      "path": "references/contracts/author-voice-profile.schema.json",
+      "purpose": "完整授权语料/保护词/第一人称/不可用理由",
+      "current_application": "author_voice_restoration开启才应用voice变换；全文方法仍可按draft读取\n多语言按各语言输出分别评估，unsupported语言明确能力边界不静默回英语\n原封装对应范围：schema仅en/zh和helper非zh回退en",
+      "review_check": "只学用户有权语料，不模仿未授权学者\n保持数字/claim/引用与各语言对应",
+      "focuses": [
+        "author-voice"
+      ]
+    },
+    {
+      "path": "references/contracts/author-voice-receipt.schema.json",
+      "purpose": "完整读检查结论、原/新版身份、硬/软发现、语义不变量和诊断；接收真实观测，不补造作者同意。",
+      "current_application": "启用voice时用实际前后文件和独审语义比较；如消费旧receipt核producer验证结果/当前hash/全部hard findings，而非单status字符串。\n原封装对应范围：旧receipt允许失败默认空值且schema未限制PASS语义；不作为当前完成门。",
+      "review_check": "PASS必须与真实无漂移及当前文件一致；no-op真同bytes；schema通过不证明审阅发生。",
+      "focuses": [
+        "author-voice"
+      ]
+    },
+    {
+      "path": "references/contracts/author-voice-restoration.schema.json",
+      "purpose": "完整读schema字段语义：前后稿、保护术语、逐条改动、claim/否定/因果/modality/citation意义不变、真实独立核查和no-op。",
+      "current_application": "配置voice启用时用当前assertive writing；原稿和现稿保留、必要改动在notes；仅调用兼容helper时满足它实际输入，不把它的author确认门迁入普通修正。\n原封装对应范围：author_voice_revision与hash作者确认链，en/zh局限、schema shape不等运行语义。",
+      "review_check": "no_op必须真同bytes；rewrite保留所有实质科学不变量；schema通过不是独审，multilingual按当前配置处理。",
+      "focuses": [
+        "author-voice"
+      ]
+    },
+    {
+      "path": "references/contracts/evidence-review.schema.json",
+      "purpose": "全文schema和消费检查；定位引用/图表/方程/缺席扫描、来源/工具记录、独立审阅与综合。",
+      "current_application": "当前公共review用真实reviewer/files/findings，旧结构按需导入不建新身份；允许真实无缺陷结论，保已检范围。需要兼容时统一外部证据字段与引用ID校验。\n原封装对应范围：旧严格persona/envelope与至少一finding consumer约束。",
+      "review_check": "empty findings不强迫造缺陷；provider失败/no-hit不证新颖性不存在；schema通过不能证明人独立看过。",
+      "stages": [
+        "review"
+      ]
+    },
+    {
+      "path": "references/contracts/open-release-agent-ticket.schema.json",
+      "purpose": "全文ticket结构和authorize/record消费行为；确切平台/文件/许可/可见性/幂等/权限边界。",
+      "current_application": "显式发布兼容才适用；复用authorize核manifest+confirmation+文件，执行者再次核授权来源。正常本地delivery不触发ticket。\n原封装对应范围：宽松空object字段不够认证发布授权，布尔字段不作为用户同意。",
+      "review_check": "不接受空scope/空绑定票据；逐平台结果需真实平台证据；未运行发布或安全利用测试。",
+      "focuses": [
+        "publishing"
+      ]
+    },
+    {
+      "path": "references/contracts/open-release-confirmation.schema.json",
+      "purpose": "完整清单范围、真实确认主体/时点、平台子集/partial",
+      "current_application": "只由真实用户决定/合法UI形成记录，host不可自行造确认；计划/文件变化再核范围\n原封装对应范围：JSON confirmed字段与实际用户授权不能等同",
+      "review_check": "确认覆盖准确文件/平台/可见性/许可/动作\nschema-valid与actor字符串不证明人已批准",
+      "focuses": [
+        "publishing"
+      ]
+    },
+    {
+      "path": "references/contracts/open-release-invocation.schema.json",
+      "purpose": "完整五operation及路径/敏感性参数",
+      "current_application": "按具体operation加条件必填，保留consumer root检查；不创建public新阶段\n原封装对应范围：schema缺operation所需inputs/outputs条件",
+      "review_check": "无plan的preflight应在schema层被拒绝\n工具schema检查不构成授权",
+      "focuses": [
+        "publishing"
+      ]
+    },
+    {
+      "path": "references/contracts/open-release-manifest.schema.json",
+      "purpose": "完整读准备清单的源plan、资产、平台就绪/受限、partial范围与确认绑定语义。",
+      "current_application": "明确用户外发请求才使用现有release prepare/authorize；核实际source/asset drift和被确认范围，保留同task公共事实。\n原封装对应范围：READY_FOR_CONFIRMATION仅外部流程准备态，不能作为科学/本地交付状态；schema对象宽泛。",
+      "review_check": "没有实际同意不得发；schema不验证平台真能力或确认事件；完整本地包仍可独立交付。",
+      "focuses": [
+        "publishing"
+      ]
+    },
+    {
+      "path": "references/contracts/open-release-plan.schema.json",
+      "purpose": "完整读外发plan结构：实际资产/敏感性/许可/权限与平台能力证据、范围和partial策略。",
+      "current_application": "只有明确外发请求才绑定实际已批准资产和允许平台；当前task继续是事实源，本地prepare不授权上传；父任务需要时接现有host外部能力。\n原封装对应范围：旧plan/user ticket仅外发兼容工具，绝非普通论文质量/下载门。",
+      "review_check": "实际文件/身份/来源/授权范围/平台资格逐项核；schema与工具存在不表示已授权或已发布。",
+      "focuses": [
+        "publishing"
+      ]
+    },
+    {
+      "path": "references/contracts/open-release-platform-receipts.schema.json",
+      "purpose": "完整平台状态、ticket、外部标识、幂等与时间",
+      "current_application": "按ticket.actions逐项绑定幂等key；成功/审核/草稿状态提供可核外部标识或实测证据\n原封装对应范围：key/外部定位可省而record仍可成功",
+      "review_check": "record不是网络执行证据\n对同一key先核已有结果避免重复创建",
+      "focuses": [
+        "publishing"
+      ]
+    },
+    {
+      "path": "references/contracts/open-release-result.schema.json",
+      "purpose": "完整操作结果和有限信号含义",
+      "current_application": "保留consumer语义与授权校验；UI不把任意true当成功\n若扩schema加相应条件，不改变论文state\n原封装对应范围：结构schema无operation/outcome/signals联动",
+      "review_check": "外部授权仅authorize分支可真\n部分发布与全发布及稿件就绪分开",
+      "focuses": [
+        "publishing"
+      ]
+    },
+    {
+      "path": "references/contracts/publication-cycle-invocation.schema.json",
+      "purpose": "全文五操作分支schema；目标检查/组包/原子回应/转投所需文件及项目根边界。",
+      "current_application": "只有显式兼容调用读取schema与当前工具describe；正常包/回应沿现有public task。保来源/文件边界，旧invoke拒未知字段或明确宽松契约，不能静默all操作。\n原封装对应范围：旧publication_cycle请求非当前公共task envelope；未知字段处理需一致。",
+      "review_check": "五操作必需输入/输出与实际source存在；代码不证明执行；局部helper不认证全产品。",
+      "stages": [
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/contracts/publication-cycle-result.schema.json",
+      "purpose": "完整读schema里本地operation完成/投稿bundle/回应材料/转投待重建/外部授权的区别，以及文件身份。",
+      "current_application": "当前public API与真实文件为状态来源；若读旧result，核operation/outcome/stage/ok/signals一致并结合producer而非仅jsonschema。\n原封装对应范围：旧publication-cycle result/signals不是P2状态，schema没有crossfield语义约束。",
+      "review_check": "READY_TO_REBUILD不等包就绪；BLOCKED不可同时ready；不能凭schema补造实际授权/审核。",
+      "stages": [
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/contracts/publication-target-profile.schema.json",
+      "purpose": "完整schema字段及其科学来源/五槽/覆盖语义",
+      "current_application": "作可选机器输入，必须结合consumer语义；建议补全五槽/source/area唯一性\n不把pending元数据传播成禁止本地论文\n原封装对应范围：宽松JSON外壳比consumer弱",
+      "review_check": "重复覆盖反例需拒绝\nschema-valid不等于official已读或目标已合规",
+      "stages": [
+        "research",
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/contracts/review-calibration.schema.json",
+      "purpose": "完整AI-human对齐与precision/recall/严重性加权及不自动改registry",
+      "current_application": "仅显式校准任务使用，不是论文独立review前置\n指标及匹配来源可复算，人工确认有歧义候选后才解释结论\n原封装对应范围：指标缺type/range与human_confirmation字段可缺",
+      "review_check": "负计数/越界比率拒绝\n合成schema测试不冒真实校准",
+      "stages": [
+        "review"
+      ]
+    },
+    {
+      "path": "references/contracts/skill-discovery-migration-preview.schema.json",
+      "purpose": "全文preview结构；只读库存、来源/目标、hash/bytes/count、mutation=false。",
+      "current_application": "用户明确安装/Skill冲突诊断才调用现有preview；不得顺便migrate/重装，实际副作用另按原授权界定。\n原封装对应范围：仅安装发现迁移维护相关，无论文科学步骤。",
+      "review_check": "字段与producer静态一致；运行未证实；核库存计数/路径范围，不称预览就是迁移。",
+      "focuses": [
+        "skill-maintenance"
+      ]
+    },
+    {
+      "path": "references/contracts/skill-discovery-migration.schema.json",
+      "purpose": "完整迁移对象/树/hash/回滚/唯一Skill边界",
+      "current_application": "只在显式维护动作加载且核精确对象；正常paper不运行\n使用真实consumer摘要/树校验，不凭schema移删个人目录\n原封装对应范围：installation migration专用receipt",
+      "review_check": "原文件/回滚保留可复核\n模拟证据不能冒真实host迁移",
+      "focuses": [
+        "skill-maintenance"
+      ]
+    },
+    {
+      "path": "references/contracts/submission-package-plan.schema.json",
+      "purpose": "完整源/目标/文件/确认结构，真实源与输出同步",
+      "current_application": "真实目标投稿包才构造，可选helper总检查；本地交付用public artifacts/prepare\n明示必须的items行结构，禁止空表冒完整包\n原封装对应范围：空items/confirmations有效的弱schema",
+      "review_check": "每official要求有真实文件或明确不适用\nhash存在非科学/视觉质量证明",
+      "stages": [
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/contracts/supplement-evidence-index.schema.json",
+      "purpose": "完整读main claim↔supp item、科学角色、两侧定位、真实资产与交付文件、语义review与required inventory。",
+      "current_application": "有补充依赖时把映射保存在现notes/包清单；独立reviewer实际打开补充材料并记录对应主张；helper作结构/定位/hash补助。\n原封装对应范围：独立receipt文件只证明存在/哈希，不能代替真看补图；旧package-root/schema不做每论文门。",
+      "review_check": "每依赖claim有补充证据；图像/caption一致；缺作者事实只限对应投稿项目；无supp不造补充。",
+      "stages": [
+        "evidence",
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/contribution.md",
+      "purpose": "完整阅读；贡献/动机区分、可检验中心增量、缺口-挑战-设计-证据-边界、各节论证检查和摘要功能。",
+      "current_application": "对应public现有贡献选择+简洁notes，不新建审批；已有选择复用；audit/review直接查原稿；五摘要功能按目标文章要求组织；materials_only不新增实验补新意。\n原封装对应范围：无confirmed_contribution不得写作、固定四节文件和check脚本gate、固定3–5候选/五句摘要。",
+      "review_check": "标题/摘要/引言/Results/Discussion贡献一致；方法归因和机制推论受证据限制；缺证据不得写成完成。",
+      "stages": [
+        "research",
+        "contribution",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/current-method-routing.md",
+      "purpose": "原方法在当前宿主的适用、读取与旧执行封装等价规则。",
+      "current_application": "完整读取并与每个资源具体current_application共同使用；只读访问不证明已经执行。",
+      "review_check": "每项有效科研要求有执行/检查落点，冲突有明确替代解释，条件外部操作不被默认触发。"
+    },
+    {
+      "path": "references/deep-imitation-protocol.md",
+      "purpose": "完整读六层学习、标杆/原稿move、蓝图、闭卷重建条件、操作选择、Results/Discussion纪律、patch writing诊断。",
+      "current_application": "当前两组learning设置和实际源到稿notes；按诊断大改、有效文段KEEP；section_economy/revision比例只提示；接受用户已报数字并允许常规公开引用核查，研究范围不变。\n原封装对应范围：两个文件才能证明学习、每节三表、KEEP/近似率配额、4–6章节硬预算、缺raw只许定性、只许已有引文。",
+      "review_check": "学结构/claim calibration而不挪事实；每节功能/证据/目标适配改善可定位；对照原稿防丢有效结果；不以换词率或文件数量验收。",
+      "stages": [
+        "research",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/deep-reading.md",
+      "purpose": "全文；骨架/5Cs、A–H术语/修辞/摘要粒度/图文/章节动作，FAT事实-评价-迁移，跨文献主线。",
+      "current_application": "按两组配置全文读实际科学内容；把相关观察落当前notes和段/图计划，按官方规则/当前证据选择动作；不要求新增八表。\n原封装对应范围：固定三篇、5段、15–30术语与Round1是教学/历史载体；样本共同习惯≠规范；信息天花板需纠偏。",
+      "review_check": "原论断归属/事实与评价分开；数字保留与力度按本研究；不抄句；跨稿比较指出可解释偏离。",
+      "stages": [
+        "research",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/editorial-completeness.md",
+      "purpose": "完整读研究必要性→方法→证据→含义→结论；自由架构、完整Results、实质Discussion、渲染页序与编辑整体判断。",
+      "current_application": "作为默认稿件质量方法随draft/review读取；实现于当前语义稿/图和真实审稿意见；保留已有效内容和首审无返修情况。\n原封装对应范围：legacy tier/review status名不决定稿件完整性，先修再PASS仅在有真实问题时要求。",
+      "review_check": "不能以文件数量/字数/section预算计质量；图与Results距离、替代解释/领域含义、完整结尾都实看。",
+      "stages": [
+        "draft",
+        "figure",
+        "review"
+      ]
+    },
+    {
+      "path": "references/evidence-grounded-review.md",
+      "purpose": "完整读发现定位/证据三通道/检索失败与no-hit区分/严重性及处置/重复聚类异议保留/人类权威和条件校准。",
+      "current_application": "真独立reviewer读当前文件并从public SubmitReview报结论；定位引用与来源写当前review notes；实际缺字段说明未知；仅具体风险加专家；按scope区分本地质量和投稿事实。\n原封装对应范围：四类receipt/telemetry成本表、strict三人固定序列、before-LaTeX证据文件gate、自动进入SkillOpt。",
+      "review_check": "每严重发现有准确位置/来源/修法；无全文缺项结论来自采样；未解决重大问题不得质量PASS；no-hit非没有研究，代码/receipt不等于实际独审。",
+      "stages": [
+        "research",
+        "evidence",
+        "review"
+      ]
+    },
+    {
+      "path": "references/execution-efficiency.md",
+      "purpose": "完整方法；复用有效产物、恢复丢失的必要原文、停止无收益重试；不新增团队或质量门。",
+      "current_application": "首次适用方法全读保持。恢复时回读下一动作必要原文，不因已读/hash阻止；未变有效研究不重跑。缓存helper可选，重复改名/改hash不重置同缺陷的换策略规则。当前请求范围内交付可用成果和明确限制，不追求无止境美化。",
+      "review_check": "核对真实修复和下游使用；必要回读不是无效重复。计算一致不证明科学/视觉已审，未知事实不伪造。",
+      "stages": [
+        "intake",
+        "research",
+        "contribution",
+        "evidence",
+        "draft",
+        "figure",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/exemplar-learning-dossier.md",
+      "purpose": "完整读学习目标、corpus质量/六维写作分析、每标杆逐段功能与节首尾、Methods理由、Results推理、Discussion闭合、句式slot和具体迁移计划。",
+      "current_application": "载入当前journal-learning notes与配置3+3/6+6/custom；全文实际读标杆、写短具体来源-段落/图-效果映射；可合并notes，允许领域不同结构和有效稿保留。\n原封装对应范围：dossier与两template文件先于写作、每段模板row强制、引言段数硬答案。",
+      "review_check": "标杆选择有相关/质量依据；每学习结论落到本稿具体位置；模板非证据；不得借标杆数字或强claim，数量不代替内容质量。",
+      "stages": [
+        "research",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/figure-reference-mapping.md",
+      "purpose": "每图/每面板的参考结构、科学证据与当前正文关系。",
+      "current_application": "完整读取科学信息和样例字段；宿主设计笔记/源文件/真实选择承接旧计划与mapping语义，Master凭据/FIGURE_MAPPING_READY不作为新前置。引用支持的领域知识可用于机制；默认白底允许有理由例外，只重查受影响依赖。",
+      "review_check": "先学后画、面板数据单位/转换、不得挪用研究结果、参考与正文采用图一致；无凭据不能替代也不阻止实际检查。",
+      "stages": [
+        "contribution",
+        "evidence",
+        "draft",
+        "figure",
+        "review"
+      ]
+    },
+    {
+      "path": "references/figure-story.md",
+      "purpose": "完整阅读；所有图与面板问题/主张/主面板/单位不确定性/阅读顺序；keep-redesign-create、问题-证据-有界回答；最后像素/正文/页序检查。",
+      "current_application": "先盘点全部结果，按问题决定keep/redesign/create与每个panel的证据任务；当前宿主用普通notes、语义稿和公共选图保存图/图注/claim关联。\n原封装对应范围：历史immutable plan/Master/PaperFigure/body-contract收据已转译，不作为当前执行前置。",
+      "review_check": "不能凭filename判断图意；外部参考/当前图与旧图/新图各自实际比较，不能互相替代；保留科学覆盖、结构、标签、单位与最终尺寸可读性。",
+      "stages": [
+        "evidence",
+        "draft",
+        "figure",
+        "review"
+      ]
+    },
+    {
+      "path": "references/humanize-calibration.md",
+      "purpose": "完整读语义零漂移、no-op、清晰度和作者偏好、Methods合理重复/检测分数非作者标签；测试集/held-out条款只在维护评估时用。",
+      "current_application": "当前voice配置+assertive writing保留最小修改/事实保护；评估数据只在明确研发验证任务构造，不修改真实研究结果或启动新优化轮。\n原封装对应范围：detector阈值退役；固定train/test和stale作者确认用例不要求每稿运行。",
+      "review_check": "检测分数不作gate；有真实授权作者语料才用；无语料不冒仿；记录真实可观测效果/未知usage。",
+      "focuses": [
+        "author-voice"
+      ]
+    },
+    {
+      "path": "references/humanize.md",
+      "purpose": "全文；授权作者语料、clean-text no-op、逐段主张/证据/限制/衔接、分节修改、数值/引用/公式/否定/因果/不确定性保持。",
+      "current_application": "按configuration.author_voice_restoration解释off/standard/strict；只读原稿与授权语料。现有notes记真实变更；差异工具提示语义复核，不把词数差当科学错误。\n原封装对应范围：旧profile/revision/receipt/gate序列、no-op也作者hash确认、Counter差异全硬阻断。",
+      "review_check": "语义与原稿对照、无需新身份/审批；探测器/黑名单不决定作者或修订；缺语料诚实说明。",
+      "focuses": [
+        "author-voice"
+      ]
+    },
+    {
+      "path": "references/intake.md",
+      "purpose": "全文；收集必要配置、workflow/scene/目标/语言/格式/分析/材料与表达偏好；真实Web保存读回。",
+      "current_application": "现行public tools schema为准；桥configuration/grants/decisions替代旧JSON，已有配置直接复用。按6workflow与现有literature篇数/venue_average，权限不由路径默认授权。\n原封装对应范围：旧两workflow/两语言/20引用/flash-pro/humanize字段与旧launch --output-dir命令。",
+      "review_check": "配置确实影响宿主行为，bridge只读，不手填用户JSON；local path不关公文献；新流程标签不重设旧有效选择。",
+      "stages": [
+        "intake"
+      ]
+    },
+    {
+      "path": "references/interaction-policy.md",
+      "purpose": "全文区分用户权力与review rigor，保留贡献/动机/图件决定及本地与外部范围",
+      "current_application": "当前用户消息/真实选择及明确委托决定范围；public工具不能resolve时不得伪装Web确认。普通本地科研沿已确认范围连续完成，不重造grant/J-stage收据。旧typed grants、expiry/hash、Runner receipts集中在历史兼容段，作者事实和外部行为仍按实际授权处理。",
+      "review_check": "不从producer bool推授权\n既有代选范围复用，原图保留",
+      "stages": [
+        "intake",
+        "contribution",
+        "figure",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/interactive-intake.md",
+      "purpose": "完整读必要配置项、同任务Web、真实保存/回读、同profile复用、避免手改DB与原始JSON要求。",
+      "current_application": "读current schema和已有task；paperspine5_web launch默认只启动服务，--no-open兼容；宿主只在选定浏览器打开一次准确任务URL，Codex优先可用内置页面，用户选择其他浏览器时遵从；--open-browser仅显式外部打开；public save在Web；workflow包含六种，stage只八种；只缺实际必要输入才问。\n原封装对应范围：旧workflow/scene/tier/language枚举、隐藏child/J4–J11启动条件、旧wrapper receipt。",
+      "review_check": "保存后读bridge当前值；配置不只是页面；旧材料/任务不丢，隐藏Agent不是启动成功条件。",
+      "stages": [
+        "intake"
+      ]
+    },
+    {
+      "path": "references/intent-configuration.md",
+      "purpose": "首句意图到配置草案：深度研究、目标、语言与文献规模",
+      "current_application": "结合用户请求和材料提出连贯可编辑配置；明确字段优先，普通偏好可合理预填并在宿主说明依据；初始同任务Web保存/材料确认后执行，沿用有效已确认配置。",
+      "review_check": "未指定分析范围默认agent_decide；区分新分析与公开文献学习；不推断作者事实、隐私或外部权限，不把建议当用户确认。",
+      "stages": [
+        "intake"
+      ]
+    },
+    {
+      "path": "references/journal-learning.md",
+      "purpose": "两套高质量文献、目标期刊PDF、参考广度、论证和机制图学习。",
+      "current_application": "完整应用3+3/自定义、真实本地目标PDF及具体文图迁移；收尾对照实际引用与保存目标、计划图件与当前文件，差距要完成或具体说明。materials_only保留文献工作；正文质量与引用数/排版成功分别判断。",
+      "review_check": "两套论文身份/实际阅读、转移位置、当前完整论证/讨论/主图深度和目标版式逐项比较。",
+      "stages": [
+        "research",
+        "contribution",
+        "evidence",
+        "draft",
+        "figure",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/journal-style-analysis.md",
+      "purpose": "全文JS1–7及FAT；章节长度、开闭句、主张力度、引用密度/位置、技术深度、术语、图表惯例。",
+      "current_application": "实测现有目标样本形成有来源的observations；官方规则优先；需要时style_metrics/section_economy仅诊断。\n原封装对应范围：L22-26章节数hard-fail说明与代码不符；样本值只能指导选择。",
+      "review_check": "不同文章类型/页面口径不混算；强度不按比例模仿；视觉用原PDF。",
+      "stages": [
+        "research",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/journal-transfer.md",
+      "purpose": "全文拒稿理由分类、保科学身份、候选适配、三方面差异与新包",
+      "current_application": "读取保存目标与授权，不重复选刊；仅实际科学范围改变需新决定\n对三面评估且复用未变有效内容，从canonical源重导新版本\n原封装对应范围：transfer-request/confirmed固定文件\nL29–32每次重问与L59–61全部重建",
+      "review_check": "不沿用旧封面目标名\n拒稿不是科学反证，格式改编不授权上传/转投",
+      "stages": [
+        "intake",
+        "research",
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/latex-source-control.md",
+      "purpose": "全文基线、结构保护、prose安全编辑、源guard/编译根因/内容核查",
+      "current_application": "已有TeX保持主源，格式迁移允许必要结构修改并重验；Markdown语义源不被强制改权威\nguard只lint，最终实际引擎与全页PDF/DOCX检查独立执行\n原封装对应范围：L25仅修TeX任务才改结构\n旧report/manifest路径",
+      "review_check": "图/label/ref/Bib/公式/补充依赖不丢\n引用随claim走且目标样式正确",
+      "stages": [
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/latex.md",
+      "purpose": "完整阅读；先目标原版PDF、保留稿件语义、真实引用/图表交叉引用、可见Word媒体、全页/公式/字体/标题/中文完整性。",
+      "current_application": "以当前manuscript-format和语义exporter为主；旧命令仅匹配输入合同后作诊断；目标CSL/reference DOCX/TeX模板控制样式；修source再重建受影响格式，保留可解析内链。\n原封装对应范围：Required Outputs旧目录/报告、literal cite、TNR硬规则、PDF别名、legacy manifest和Word repair无条件去内部链接。",
+      "review_check": "源-PDF-DOCX文本数字一致；所有图caption与body target有效；独立真Word渲染；不能以guard PASS或PDF截图代替。",
+      "stages": [
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/local-reference-ingestion.md",
+      "purpose": "完整读优先合法用户本地参考、指定路径/网络种子、真实来源index、文献与本研究证据的区别及稳定source IDs。",
+      "current_application": "从public material grants与已给目录读，现notes记本地来源与用途；正常公开检索补缺不重复审批；必要原版不可得诚实说明。\n原封装对应范围：默认cwd/多个旧目录扫描不自动授权；specified_paths不等禁联网；固定source_index路径可替换。",
+      "review_check": "索引非全文读；本地文献不算本研究数据；不借paywall缺全文否定真实摘要能支持的有界背景。",
+      "stages": [
+        "intake",
+        "research",
+        "evidence",
+        "review"
+      ]
+    },
+    {
+      "path": "references/logic-transfer-audit.md",
+      "purpose": "全文原稿→范例→修订三方论证对照；缺陷分类、七锚点、Results功能检查",
+      "current_application": "现有原稿、学习PDF/notes、大纲和diff承载原方法\n仅修已诊断问题；保留有效原结构，表格/相似度不作自动质量结论\n原封装对应范围：L18–28输入文件链及L34固定输出\nL179功能相同即重写",
+      "review_check": "精确段落展示从学习到变化\n不借动机重构删除负结果/局限/透明度；无变更的有效段落不判fail",
+      "stages": [
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/manuscript-format.md",
+      "purpose": "全文阅读；学习官方与成刊设计；模板/Word样式/字体/计数；单语义源、引用和图表链接；逐页与真实交互；当前版本双包。",
+      "current_application": "实际paper/下source+venue assets→installed manuscript_export.py+manuscript_refs.lua→Word更新域；audit/review只检查现有文件，改稿有授权再重建。\n原封装对应范围：旧Runner行政门已被本文件拒绝；示例命令不是执行证据。",
+      "review_check": "对照官方来源/模板样例/实际使用的导出输入及目标PDF；比较PDF/DOCX/source内容、目的地、图幅/最小字号与真实页面；编译或旧版PASS不代替当前视觉检查。",
+      "stages": [
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/motivation-thread-writing.md",
+      "purpose": "全文问题—贡献—证据—解释主线；段落功能、策略选项、主线在标题/摘要/引言/结果/讨论/图注落地",
+      "current_application": "03_motivation_choice与现有授权取代confirmed文件；对真实未决项RequestDecision\n模型/表格作为paper大纲或notes方法，保留好结构与反证/透明度段\n原封装对应范围：L32–45双confirmed文件、3–5选项和停等\nL108–172旧model/surface固定产物",
+      "review_check": "引言promise被结果回答且讨论闭合\n范例不替用户决定科学贡献；无需每节重复口号",
+      "stages": [
+        "contribution",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/open-release-interface.md",
+      "purpose": "全文产物/平台选择、能力探测、外发权限、幂等和实际结果分层",
+      "current_application": "只在用户另行请求外部release时加载，当前本地paper无此gate\n实际可用工具权限替代笼统computer_control；公开API发布artifact只是本地展示不等于对外发布\n原封装对应范围：旧beta JSON/UI checkbox/confirmation/ticket/receipt",
+      "review_check": "成功须外部实测定位+幂等key，不能producer填写即过\nUI集成未经实测不得宣称one-click",
+      "focuses": [
+        "publishing"
+      ]
+    },
+    {
+      "path": "references/open-release-platforms.json",
+      "purpose": "完整目录逐平台适配、元数据、数据敏感性和机构/审核边界",
+      "current_application": "仅按明确外发请求选相关平台并核最新official；无需全文21平台都探测/登录\n发现注册目录不可作上传目标；不得为临床材料选择普通公开仓库绕授权\n原封装对应范围：dated catalog/旧computer_control capability名称",
+      "review_check": "目录日期不证明现行可用\npublish/submit-review/institutional-prepare严格区分",
+      "focuses": [
+        "publishing"
+      ]
+    },
+    {
+      "path": "references/open-release.md",
+      "purpose": "全文；分产物平台候选、权限/资格/隐私/许可、文件范围绑定、逐平台真实状态、幂等恢复。",
+      "current_application": "仅明确对外发布任务进入；先现行官方要求和真实账号/文件检查，再在授权范围操作；无可用host adapter时交具体可用手工材料，不伪造已发布。\n原封装对应范围：Beta单键承诺/旧catalog/prepare-authorize-ticket不是当前主链自动延伸。平台表为历史候选，不能称现行官方核验。",
+      "review_check": "文件/许可/可见性/平台范围准确，private不能默认上云；record与网络事实分开；新费用/许可/敏感范围需真实授权。",
+      "focuses": [
+        "publishing"
+      ]
+    },
+    {
+      "path": "references/orchestrator-branch-map.md",
+      "purpose": "完整阅读；保留从材料、研究、贡献、证据、写作、图/排版、独审、交付到条件翻译/返修/转投的科学依赖与失败回归位置。",
+      "current_application": "文件内容映射8个现public stage；revise/transfer仅workflow；基于实际受影响输入回到对应工作，不重建状态机；global/file overrides显式标记条件和替代。\n原封装对应范围：13-stage order、全部上游gate先PASS、五readiness、每次final全量重复、严格角色数量与旧receipt。",
+      "review_check": "没有原始gate文件不意味科研未执行；失败回具体source/method；无新证据不重复审核；外部发布仅显式请求。",
+      "stages": [
+        "intake",
+        "research",
+        "contribution",
+        "evidence",
+        "draft",
+        "figure",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/phase-contracts.md",
+      "purpose": "全文研究与审阅各镜头最小材料、证据粒度、独立后汇总",
+      "current_application": "只在实际需要时派角色，其科学输入完整；同一独立reviewer可组合镜头\n真实review文件/public SubmitReview代替旧stage-answer\n原封装对应范围：L3–6 usage ledger及固定output\nL18–22 balanced免独立的歧义\nL26–34 host-to-Runner",
+      "review_check": "作者不能冒独立reviewer\n没有新角色/收据不等于未审，真实源文件必须可查",
+      "stages": [
+        "research",
+        "evidence",
+        "review"
+      ]
+    },
+    {
+      "path": "references/platform-cnki.md",
+      "purpose": "全文；CNKI旧观察标签、授权语料、删空泛而不换词规避、语义核对。",
+      "current_application": "仅实际CNKI报告/平台反馈触发，采用保存表达偏好和原稿对照；真实已有授权延续。\n原封装对应范围：旧冻结/作者确认哈希链不作当前编辑门。",
+      "review_check": "不让平台分数压过科研含义；清楚段落可保留；当前不保证检测器行为。",
+      "focuses": [
+        "platform-review"
+      ]
+    },
+    {
+      "path": "references/platform-general.md",
+      "purpose": "完整读detector兼容不构成质量门，以及数字/引用/否定/因果/modality保护；已有第三方报告只作观测。",
+      "current_application": "现voice设置接assertive writing；只有用户主动给检测结果才记录工具/日期/版本，默认不发私稿。\n原封装对应范围：detection_platform/general旧配置不重启去AI检测流程；humanize旧收据不当host门。",
+      "review_check": "不编造AI百分比或作者身份，不按检测分调稿/宣布通过。",
+      "focuses": [
+        "platform-review"
+      ]
+    },
+    {
+      "path": "references/platform-weipu.md",
+      "purpose": "全文；Weipu旧观察标签、真正作者表达修复和含义保持、clean-text no-op，不推内部检测阈值。",
+      "current_application": "只有用户给Weipu报告或明确此平台语气反馈时读；转当前author_voice方法，平台报告仅外部观察。\n原封装对应范围：hash外部报告/独立veto lane旧包装。",
+      "review_check": "不伪造AI率或承诺检测通过；没报告不造，scientific meaning优先。",
+      "focuses": [
+        "platform-review"
+      ]
+    },
+    {
+      "path": "references/product-runner-host-route.md",
+      "purpose": "完整阅读；保留同任务/真实证据、贡献选项、claim支持与边界、图比较、独审返修、完整包及下载真实性。",
+      "current_application": "默认host tools/snapshot/call + 同profile；task_version替代旧revision；public request_decision/SubmitReview/publish source/prepare_delivery；J4–J11不再是步骤门。仅显式维护legacy时原命令补--legacy-runner。\n原封装对应范围：P005–P076、P078–P083、P087–P090中的Runner工具/阶段token/JSON hash/identity/五维receipt和嵌套Agent。",
+      "review_check": "核真实源内容而非URL哈希；审稿人与作者真实独立；保留逐条意见与原版本；未知作者事实只限投稿；下载需实际保存文件。",
+      "focuses": [
+        "legacy-recovery"
+      ]
+    },
+    {
+      "path": "references/product-v1-workflow.md",
+      "purpose": "同一profile、公共工具、文件桥、选择、审阅与交付的实际宿主操作。",
+      "current_application": "完整读取并使用当前host命令；读取本阶段方法后实际开展科学工作。状态/派生文件不得手工补写，配置和当前工作类型必须保留。",
+      "review_check": "核同一任务/版本、实际配置选择、公开接口错误和原文件；传输成功不等于科研完成。"
+    },
+    {
+      "path": "references/publication-cycle-contracts.md",
+      "purpose": "全文结构资源：目标来源/五部分/九覆盖、包文件与语义源同步、逐条意见及转刊科学身份",
+      "current_application": "先以当前task和notes执行科学语义；仅实际用publication helper时按其schema建立最小输入\n不从示例字段推授权/已实验，不把schema版本当公共任务版本\n原封装对应范围：JSON plan/review/transfer schema及旧路径/confirmation示例",
+      "review_check": "目标规与偏好来源分明\n局部包、回复材料、重建计划分别报告，不冒成对外成功",
+      "stages": [
+        "research",
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/publication-cycle-interface.md",
+      "purpose": "全文五操作范围、局部结果含义、来源/包/意见/转刊完整性和失败定位",
+      "current_application": " helper为可选本地文件工具，科研方法由当前host实际做；CommitMilestone/public artifacts说明结果\n八阶段不扩展，保留新包防覆盖但编辑当前源正常可逆\n原封装对应范围：旧signals推进main-state-machine、JSON authority、Runner gate位置",
+      "review_check": "READY_TO_REBUILD不是BUNDLE_READY\n本地bundle成功不授权提交或支付，未齐作者事实不堵本地稿",
+      "stages": [
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/publication-cycle.md",
+      "purpose": "完整读稳定科学身份、目标官方规则与已发表样本角色、逐条回应、目标转投、包文件身份、作者事实与外发边界。",
+      "current_application": "当前public配置/反馈/SubmitReview/artifact source/prepare_delivery；submission/translation/transfer只按请求；旧helper若用只读明确schema且不增状态门。\n原封装对应范围：旧J10、five readiness、publication-cycle READY/signals、强制旧bundle及ticket。",
+      "review_check": "新目标不是改名；逐条意见有证据/位置；包与当前已审稿一致；本地准备不等于授权提交。",
+      "stages": [
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/publication-surface.md",
+      "purpose": "全文；除内部ID/写作旁白，保自然语言科学边界与必需披露；直接表达受支持结果。",
+      "current_application": "从起草/换版式到审阅检查当前正文、首页、图注和科学补充，工作状态只留任务notes。用publication_surface_check显式source扫描实际TeX及渲染输出并独立看全页；结果只是定位，不能自动删科研限制或必需披露。\n原封装对应范围：publication_surface_check旧root/artifact_portable字段。",
+      "review_check": "required AI披露/方法审阅描述保留；数据限制不能为文风删除；定点修改后重渲染。",
+      "stages": [
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/publication-target-profile.md",
+      "purpose": "全文三证据流、科学身份、五槽叙述、实际包要求、九覆盖/规则验证",
+      "current_application": "目标笔记可承载完整方法；机器检查仅可选结构工具\ntarget-ready限制与本地稿分开，author-only未知不堵安全改进\n原封装对应范围：旧profile强制输出与pending阻止全部写作\nL120来源失败即禁止写作",
+      "review_check": "样本偏好不升级official\n实际文章类型、源/页数、附件与渲染同步",
+      "stages": [
+        "intake",
+        "research",
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/research.md",
+      "purpose": "按saved research_mode实际执行三种分支；保留设计、假设、防泄漏、效应/不确定性、来源→claim→图映射\nmaterials_only保留原结果且允许公开学习，禁止新增/重跑分析",
+      "current_application": "读01_configuration与02_materials，已有结果和笔记作为输入；CommitMilestone记录实际工作\n记录agent_decide理由并沿返修复用；不新增报告/确认门",
+      "review_check": "样本数、单位、分母/缺失处理有实际来源；不虚构独立复现\n新分析与public retrieval分开判断授权",
+      "stages": [
+        "research",
+        "evidence",
+        "draft",
+        "figure",
+        "review"
+      ]
+    },
+    {
+      "path": "references/respond.md",
+      "purpose": "全文；保原意见、逐条原子诉求、作者立场/策略/证据/改动位置/回应、跨轮沿革、实际目标附件。",
+      "current_application": "在同task读取05_review_feedback及附件，notes保issue→change/response；清楚意见直接按已有授权改，歧义才问；新分析须允许。\n原封装对应范围：review_round固定路径/hash链、major即五维全重跑、旧rebuttal checker完成authority。",
+      "review_check": "无意见不造返修；每条回复可定位且不造实验/行号；按实际改变复审，保未变有效质量证据。",
+      "stages": [
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/results-validation.md",
+      "purpose": "逐结果的问题/证据/条件/允许与不允许解释\n负结果、描述、数据完整性与透明度同样保留",
+      "current_application": "在当前稿件/图件笔记中把问题、结果、条件和解释边界连起来；保留负结果、描述和缺失说明，不强行升级成贡献。历史表格、S/C/N/M/O/R和planning gate只为实际旧工具保留；缺文件/单元格不等于缺科学结果。",
+      "review_check": "贡献是否受支持；描述与缺失分母是否被错误删除\n不存在或空表标未证实，不假报未执行",
+      "stages": [
+        "contribution",
+        "evidence",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/resume.md",
+      "purpose": "全读同任务续作、复用有效工作、反馈追踪、失败分类、真实下载与清洁重启边界",
+      "current_application": "按00+所需01–06/public snapshot/events续作；旧文件缺失标未证实且先定位\n不造flat树、不移动删除历史；仅实际路径错误按来源/引用修复\n原封装对应范围：L13–27/44–66 Runner续作\nL31–42缺文件即未做\nL74–176 flat gates/强制搬删路径",
+      "review_check": "中断后配置选择前版保留\n超时先核效果；只重跑受影响结果",
+      "stages": [
+        "intake",
+        "research",
+        "contribution",
+        "evidence",
+        "draft",
+        "figure",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/review-policy.md",
+      "purpose": "全文；过程深度不改变真实性，主张/图文/引用/交付缺陷实质判定，独立定位意见与自由编辑综述。",
+      "current_application": "当前审阅按论文实际风险/用户范围充分覆盖；可用同一独立review包含方法/贡献/表达；不新增intake问项。\n原封装对应范围：旧balanced/strict config、review_plan budget、固定persona/JSON清单和author input一律delivery gate。",
+      "review_check": "major按实际影响，minor不代表不用理用户明确问题；无样式分数门；作者事实分local/submission。",
+      "stages": [
+        "review"
+      ]
+    },
+    {
+      "path": "references/reviewer-audit.md",
+      "purpose": "全文价值图、异议登记、编辑适配三视角；六轴按文章类型解释",
+      "current_application": "独立reviewer以实际稿件/渲染/文献形成位置信息；public SubmitReview记录真实意见\n无异议可为零条，说明检查范围；旧checker需窄修方可复用，不能靠虚构行过门\n原封装对应范围：L10–13旧pre-LaTeX gate\nL35–54强制evidence_review文件/receipt\nL64–67至少一异议",
+      "review_check": "区分学术质量、版式、检索覆盖与投稿事实\n作者修复说明不能冒独立review",
+      "stages": [
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/reviewer-persona-registry.json",
+      "purpose": "完整读十persona工作的具体内容：方法/贡献/清晰/文献/历史/基线/强主张事实/综合/冲突裁决；不自动改registry。",
+      "current_application": "当前真实独立reviewer覆盖基础视角，按实际稿的具体风险调用专家；把job带入任务而不是只发角色名；有效公开文献范围不因local seeds被禁。\n原封装对应范围：固定strict三人和从旧specified_paths推出closed_corpus、只关键词special_requirements触发不足。",
+      "review_check": "角色表不是已审证据；定位发现/来源/异议实际保留；独立身份不是随意改名。",
+      "stages": [
+        "review"
+      ]
+    },
+    {
+      "path": "references/rewrite-matrix.md",
+      "purpose": "完整阅读；诊断每段功能、贡献、证据、结构操作；红线/章节角色/读者问题、数字与命令完整性；整稿主线与实际逻辑迁移。",
+      "current_application": "当前原稿/feedback/选项/学习notes输入；必要时把矩阵合并issue-to-change notes；KEEP合法；相似率仅提示；只有诊断弱节或用户深改要求采用闭卷重建。\n原封装对应范围：多个固定输入矩阵文件；强制闭卷；KEEP/ADD和相似比例直接判浅修。",
+      "review_check": "逐段源事实/数值/引用保留；解释实质逻辑变化或保留理由；论文改好而非改得多；review/audit不自动改写。",
+      "stages": [
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/rewrite.md",
+      "purpose": "全文；原稿逻辑完整读取、证据映射、贡献/动机、完整研究弧线、计划粒度、结果叙事、文献修辞、语言和语气。",
+      "current_application": "actual task configuration与已有选择→原稿/材料→当前notes计划→受影响段修订→真实独立review。audit/review仅逆向检查不造稿。\n原封装对应范围：旧前置文件、strict三审和pre-LaTeX gate；L75矩阵必用与balanced矛盾。",
+      "review_check": "保留有效原研究与可编辑语义；原改定位，不能只追加薄段；材料模式不加新研究。",
+      "stages": [
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/round1-literature-revision.md",
+      "purpose": "全文；从结论回推主线、逐段修辞动作、整体连贯/术语、每数溯源、引言-讨论配对。",
+      "current_application": "按实际修订问题使用方法；来源包括授权用户结果/脚本输出/已核文献；保持已有有效文字；保存简明issue→change图。\n原封装对应范围：Round1不是强制轮次；同密度/同力度、neither即删及三篇共识必需动作需纠偏。",
+      "review_check": "每数有来源，论断按当前证据；未答问题可明确未解；比较主题顺序而非强制同序。",
+      "stages": [
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/round2-journal-revision.md",
+      "purpose": "完整读Three R语料比较方法、真实上下文搭配、词/短语/段落整体学习、目标结构/引用/图表/补充政策检查与逐节修订。",
+      "current_application": "使用当前所配目标论文集合与真实官方要求；Three R记录合并learning notes；按语义/证据校准词，不按计数替换。CASPArS文献归属当前本地未证实，不夸称已核实。\n原封装对应范围：Round2文件不是取消的用户四轮任务；15×词频→改强词、±10%节长/claim比例、禁止样本未用词均需更正。",
+      "review_check": "改前后数字/力度/因果一致，保留新研究必要术语；差异需判断好坏，不能只match平均。",
+      "stages": [
+        "research",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/round3-latex-polish.md",
+      "purpose": "完整读转换及润色方法：模板宏/引文/公式/图路径/章节完整性逐节核对；冠词、介词、搭配、主谓、段落节奏及语义不变。",
+      "current_application": "共享semantic exporter可确定性整稿转换、逐节验证；复用相容模板并允许真实缺陷/转投修模板；介词和从句按原义/目标变体处理，不用直觉或词频自动改。\n原封装对应范围：Round3/revision_3身份、所有源必须TeX、禁止批量、节省70%断言；若干误导语法替换和40%句首阈值。",
+      "review_check": "全部数字/单位/公式/引用/段落对应；没有强度/因果/modality漂移；实际英语清楚自然，不把合法用法判错。",
+      "stages": [
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/round4-template-integration.md",
+      "purpose": "全文模板集成、真实编译、逐页逐节内容/图/数字/引文完整性、可编辑依赖",
+      "current_application": "当前draft/导出按实际XeLaTeX/latexmk/Word等引擎；不是四优化轮重启\n同task paper保存版本，按首错修源重导，无依赖时如实限制\n原封装对应范围：Round3/4旧步骤名和输出树\nL42–56无界编译循环/pdflatex固定示例",
+      "review_check": "编译零exit不是排版通过\n实际全部页面和科学内容一致，格式适配遵守选定目标",
+      "stages": [
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/scenario-competition.md",
+      "purpose": "全文竞赛官方问题/rubric/资格/模板及假设/方法/可视化/敏感性/摘要学习",
+      "current_application": "仅configuration.scene=competition；scene是文内适用条件，不用focus隐藏\n以rubric适配论文，保存分析范围和真实资格，优秀例子不能授权新实验\n原封装对应范围：无必要Runner包装",
+      "review_check": "官方当届规则可追溯\n不套期刊章法，不造获奖/评分保证",
+      "stages": [
+        "intake",
+        "research",
+        "draft",
+        "review"
+      ],
+      "scenes": [
+        "competition"
+      ]
+    },
+    {
+      "path": "references/scenario-conference.md",
+      "purpose": "全文；conference当前CFP/track/deadline/格式/匿名/页限/补充/代码政策/审查标准及已接受范例，贡献/相关工作/结果/限制。",
+      "current_application": "实际scene=conference或明确转会议时适用这些科学内容；通过research-scene读取官方材料/论文，按目标文件重建当前稿。无需focus词才能进入。\n原封装对应范围：会议例不得套给所有期刊，不以Round/阶段名另建流水线。",
+      "review_check": "页限计数范围/匿名真实性、必要科学覆盖、补充权限；现行要求未核即报未证实。",
+      "stages": [
+        "research",
+        "draft",
+        "review",
+        "delivery"
+      ],
+      "scenes": [
+        "conference"
+      ]
+    },
+    {
+      "path": "references/scenario-journal.md",
+      "purpose": "全文官方journal规则与各节学习，篇幅不机械配额",
+      "current_application": "configuration.scene=journal时应用；目标刊范例与同领域跨刊分别学习\n按真实规则/保存篇数，不强加未授权分析\n原封装对应范围：仅旧scene术语，无需新状态",
+      "review_check": "不同范例组不可混作同刊格式证据\n科学论证、图表、讨论和结束完整",
+      "stages": [
+        "research",
+        "draft",
+        "review"
+      ],
+      "scenes": [
+        "journal"
+      ]
+    },
+    {
+      "path": "references/scenario-report-review.md",
+      "purpose": "完整读课程/技术/研究训练/综述场景的官方说明、rubric、scope/depth、读者知识、证据组织和方法综合。",
+      "current_application": "依当前scene/target及用户实际任务适用；独立审稿请求不被当综述写作；报告可按用户目标结构，真官方标准优先。\n原封装对应范围：scene report/review与workflow review须区别，不能套一条期刊默认结构。",
+      "review_check": "没有rubric不编造；文献综合有据；不为了期刊模板改变报告任务。",
+      "stages": [
+        "intake",
+        "research",
+        "draft",
+        "review"
+      ],
+      "scenes": [
+        "report",
+        "review"
+      ]
+    },
+    {
+      "path": "references/scientific-evidence-ledger.md",
+      "purpose": "完整读六类证据关系和状态：来源、claim、numeric、method、outcome、result；planned/observed/user-reported区别及条件/不确定性。",
+      "current_application": "同task当前材料/结果/语义稿和notes承载；复杂有需要可用既有ledger helper；materials_only不新增分析，reported结果不冒充独立复现。\n原封装对应范围：旧JSON字母ID、固定output路径、planning/final PASS文件门。",
+      "review_check": "每最终实质claim与数值有实际源，planned不写observed，hash/parser不能升级科学真实性。",
+      "stages": [
+        "intake",
+        "research",
+        "evidence",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/scientific-figure-workflow.md",
+      "purpose": "整篇图件体系、复杂参考、科学构图、组件路由和可见对照。",
+      "current_application": "完整读取；先将全结果映射为科学问题和图/面板任务，解释遗漏，不先固定简单图种。外部强参考结构进入brief/实际绘图；原型到原生终稿保留有效关系与层次；按图/子图选择并落实意见。",
+      "review_check": "核对互补证据、图源/图注/正文的量与关系；可数示意比例、分母、总量和类别一致，分支端点/回流/时序真实，简化不偷换门。以实际成稿尺寸检查，外部参考与旧新对照分开；不以更多面板或反复像素微调作为质量进步。",
+      "stages": [
+        "contribution",
+        "evidence",
+        "draft",
+        "figure",
+        "review"
+      ]
+    },
+    {
+      "path": "references/semantic-confirmation.md",
+      "purpose": "全文；贡献=建立什么与证据边界；动机=为何重要；选项科学差异、缺证据处理和后续主张对齐。",
+      "current_application": "当前contribution公共decision展示两个概念；一个选择可确认两者，复用已有授权/选择。audit/review只检查已有边界；不要为新workflow造选择。\n原封装对应范围：双artifact/贡献checker/semantic_confirmation stage、固定3–5选项和typed hash grant门。",
+      "review_check": "缺证据缩论断或列实际需补，不能夸大动机；确认需真实读回，超工具权限不可伪写。",
+      "stages": [
+        "contribution",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/style-learning-workflow.md",
+      "purpose": "全文；语料选择、全局/分节风格、修辞骨架/术语/主张、蓝图迁移、反抄袭与风格适配。",
+      "current_application": "按当前两组篇数主动合法学习；notes可承载profile；官方/样本/近例/编辑判断分层，选用指标不强制。\n原封装对应范围：旧profile唯一authority、问用户先给PDF、metrics/模板文件硬门、两篇样本即non-negotiable须纠正。",
+      "review_check": "学习应定位到真实正文改法；无抄句/结果迁移；指标不证明风格或作者身份。",
+      "stages": [
+        "research",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/submission-metadata.md",
+      "purpose": "完整读作者/单位/利益/资金/伦理/数据代码/贡献/AI披露等真实性，provided/N-A/blinded区别。",
+      "current_application": "从用户真实提供信息和目标政策记录已知/未知/匿名；当前稿/notes和准备包检查承载；未知相关面标未完成，不造声明。\n原封装对应范围：旧submission_metadata文件及missing一律失败只限目标投稿准备，不阻断所有本地稿。",
+      "review_check": "匿名policy需证据；N-A需具体理由；稿可本地交付但不能夸称投稿已齐。",
+      "stages": [
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/submission.md",
+      "purpose": "全文；按实际目标构造可编辑稿/匿名题页/cover/highlights/图表/补充/checklist/源包，逐项文件内容与引用依赖核对。",
+      "current_application": "当前同任务paper版本→真实文件+独立review→publish_artifact→prepare_delivery。local_delivery可披露未知投稿事实；真正submission才要求相应完整性，不自动投稿。\n原封装对应范围：ProductRunner/J10/旧targets目录和READY全权威；needs_author阻所有archive。",
+      "review_check": "当前包成员与已审字节/版本/内容一致；干净副本不破坏原件；未知官方要求诚实列出；目标更换只重建受影响部分。",
+      "stages": [
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/suite-map.md",
+      "purpose": "全文作方法索引；将每章科学能力放当前stage与workflow，保全部原始方法章节包括round1–4。",
+      "current_application": "由父级单入口registry承接本文清单，普通质量章节默认按stage可达，focus不作为AND门；suite仅索引而非另一状态机。\n原封装对应范围：旧stage/Runner图、失效round2↔humanize调用；更新/发布/shadow需独立条件，不普遍触发。",
+      "review_check": "确认每个指向存在且实际可读；语义科学方法读全文，标题/索引不证明完成；未知动作不回退all-pass。",
+      "stages": [
+        "intake",
+        "research",
+        "contribution",
+        "evidence",
+        "draft",
+        "figure",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/supplement-evidence-index.md",
+      "purpose": "完整读补充项科学角色、主claim/补充caption定位、publication和upload文件身份、实际语义审阅和投稿库存。",
+      "current_application": "依赖补充证据时现task notes和语义稿链接；真实独立reviewer开附件核图表数据/claim；helper仅查结构、定位及hash。\n原封装对应范围：必备独立receipt替换成现review notes；checker不真的看像素/识别独立审查。",
+      "review_check": "附件存在/PDF合法不足，主张依赖必须有真实支撑；匿名/作者信息按目标范围，不自动上传。",
+      "stages": [
+        "evidence",
+        "draft",
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/target-journal-research.md",
+      "purpose": "全文官方要求/实际范例行为/五部分叙述与适配检查",
+      "current_application": "使用保存literature篇数与目标/场景；实际PDF和现有笔记支持规则与版式，适用性未变时复用。具体观察落实到正文和页面；profile PASS、旧固定输出链和三个命名模板文件不作为新前置。",
+      "review_check": "official与corpus分层\n未取得目标PDF不声称版式学习完成",
+      "stages": [
+        "intake",
+        "research",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/task-genre-research.md",
+      "purpose": "全文；体裁研究、受众/评价/交付/证据链、建模竞赛变量与假设/验证、技术报告决策与不确定性、proposal目标/风险/预期。",
+      "current_application": "根据实际scene/用户体裁解释适用子方法，全文读后在notes标适用；保存research_mode约束实验/新分析；普通期刊无需伪造竞赛指标。\n原封装对应范围：genre_research固定文件/IMRaD惯性，不新建非期刊子Skill。",
+      "review_check": "对准评价任务且有证据；计划不写成结果；缺验证报限制，不能自动分析。",
+      "stages": [
+        "research",
+        "draft",
+        "review"
+      ]
+    },
+    {
+      "path": "references/translate.md",
+      "purpose": "完整读全文/图注/表注/附录翻译、key/label/数值/公式保护、语言专属完整DOCX、覆盖与独立渲染。",
+      "current_application": "按output_language/用户语言范围；完整多语语义源和当前exporter；内部dossier/矩阵仅用户要求全工作阅读包时译，不补不存在文件。\n原封装对应范围：英文到中文的整套Runner文件库存、translation_package旧键、guard before audit、固定path。",
+      "review_check": "逐文本单元语义对应、术语/否定/不确定性一致；正文/图表完整，每语言真实Word/PDF检查。",
+      "focuses": [
+        "translation"
+      ]
+    },
+    {
+      "path": "references/translation-package.md",
+      "purpose": "完整读覆盖到标题/摘要/每段/图表注/局限/附录以及表格逐行说明，保留ID/数值/公式并统一术语。",
+      "current_application": "当前language配置决定主稿/译稿；按用户实际论文或全工作阅读包scope建覆盖映射；translation.md库存差异按实际范围解决。\n原封装对应范围：translation_zh几十个旧内部文件不能成为普通中文/多语稿必需库存；英语唯一权威只适用用户指定英语主稿。",
+      "review_check": "不能摘要代全译；标识和科学意义一致；最终语言稿可编辑且独立渲染，而非仅交中间目录。",
+      "focuses": [
+        "translation"
+      ]
+    },
+    {
+      "path": "references/update.md",
+      "purpose": "全文生命周期与科学工作分离、准确对象、回滚/副作用及真实发布声明边界",
+      "current_application": "仅用户明确update/maintenance时加载；不作普通intake前置\n当前只交诊断/提案，精确安装维护由授权owner执行\n原封装对应范围：旧P4 updater及指定candidate残留机制",
+      "review_check": "不能把套件版本混成P4版本\n模拟测试不证明真实host安装或科研成果",
+      "focuses": [
+        "skill-maintenance"
+      ]
+    },
+    {
+      "path": "references/upstream-review-protocols.md",
+      "purpose": "全文；历史review协议来源、专家/编辑、检索状态/工具定位、persona与校准方法，协议不携带上游命令authority。",
+      "current_application": "正常review可用相应方法；仅协议来源/许可审计时核上游固定提交与license/源码。当前来源未验证如实标未知，不添加运行依赖。\n原封装对应范围：commit/license/clean-room为需独立证据的历史主张，不作科研完成前提。",
+      "review_check": "不得以文档日期/链接证明已经查源；真实人类评审校准才可称对照；不私自改persona。",
+      "stages": [
+        "review"
+      ]
+    },
+    {
+      "path": "references/usage-telemetry.md",
+      "purpose": "全文；有暴露值才记录tokens/缓存/耗时/实际模型来源；未知使用unavailable，不按字节估账。",
+      "current_application": "已有host/provider日志可承载；没有计量就明确说明，不要求生成无价值回证或增加用户预算。\n原封装对应范围：逐call旧usage_ledger/gate/repeated_read_miss作为完成硬门。",
+      "review_check": "真实usage与调用/阶段绑定；只表示资源记录，不是科研完成。",
+      "focuses": [
+        "telemetry"
+      ]
+    },
+    {
+      "path": "references/version-requirements.md",
+      "purpose": "全文；版本有效需求继承、源于真实用户要求/旧证据、显式新增/退役、前稿保留。",
+      "current_application": "当前同任务events/comments/notes保要求来源与变化；恢复时读实际最新，推断标推断；不另建需求authority。\n原封装对应范围：每版special_requirements.md硬文件、稿件可见选择自动升用户约束。",
+      "review_check": "用户明确修改优先；不把风格例强制化，不把未公开资产称公开。",
+      "focuses": [
+        "skill-maintenance"
+      ]
+    },
+    {
+      "path": "references/visual-readiness-gate.md",
+      "purpose": "全文每页边界/裁剪/空页/可读性、顺序、全图面板与正文/参考并排核对",
+      "current_application": "检查当前真实输出和每页/面板，观察进入现有review notes；外部参考、原型和旧图对照各司其职。允许有依据的非白背景；只重查变更和重排依赖。旧alias copy、manifest/receipts和按hash全量重置只在历史兼容段适用。",
+      "review_check": "不把准备图像或status等同看过\n查实际DOCX/忠实Word渲染与交互链接，参考图必须对应当前版本",
+      "stages": [
+        "review",
+        "delivery"
+      ]
+    },
+    {
+      "path": "references/writing-rationale-matrix.md",
+      "purpose": "全文；整体框架、最小决策单元、贡献/动机/范文/体裁/证据/修辞动作和最终落点；图注标题也纳入。",
+      "current_application": "实质改写或用户要理由时在现有notes保留逐段决策，简单修改用简明定位；audit/review用作逆向核对而不补写历史计划。\n原封装对应范围：mandatory matrix/≥8行/固定PASS格式及绝对禁reviewer句需局部纠正。",
+      "review_check": "理由须具体，不事后伪造；保留required披露；每项改动有实际文本/图和证据。",
+      "stages": [
+        "draft",
+        "review"
+      ]
+    }
+  ]
+}

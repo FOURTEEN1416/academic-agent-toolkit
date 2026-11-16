@@ -3,10 +3,18 @@ name: sentence-transformers
 description: Framework for state-of-the-art sentence, text, and image embeddings. Provides 5000+ pre-trained models for semantic similarity, clustering, and retrieval. Supports multilingual, domain-specific, and multimodal models. Use for generating embeddings for RAG, semantic search, or similarity tasks. Best for production embedding generation.
 category: llm-tools
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Sentence Transformers, Embeddings, Semantic Similarity, RAG, Multilingual, Multimodal, Pre-Trained Models, Clustering, Semantic Search, Production]
 dependencies: [sentence-transformers, transformers, torch]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 15-rag/sentence-transformers
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # Sentence Transformers - State-of-the-Art Embeddings
@@ -265,4 +273,4 @@ HuggingFace token is auto-injected by openscience when connected via the dashboa
 [ -n "$HF_TOKEN" ] && echo "HF_TOKEN set" || echo "NOT SET"
 ```
 
-If not set: connect HuggingFace at https://app.syntheticsciences.ai -> Services, then restart openscience.
+If not set: add your Hugging Face token in Customize → Tools or export `HF_TOKEN` locally.

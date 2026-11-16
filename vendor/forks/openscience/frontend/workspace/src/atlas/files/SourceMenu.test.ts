@@ -2,7 +2,7 @@ import { afterAll, afterEach, describe, expect, test } from "bun:test"
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import type { JSX } from "solid-js"
-import { createServer } from "vite"
+import { createTestServer as createServer } from "../../../test/vite"
 import solid from "vite-plugin-solid"
 
 const server = await createServer({
@@ -33,6 +33,57 @@ const mount = (view: () => JSX.Element) => {
   document.body.append(host)
   cleanups.push(web.render(view, host))
   return host
+}
+
+/**
+ * happy-dom lays nothing out, so the geometry the menu measures is supplied
+ * here: a selector per box, and the window width the pane sits in.
+ */
+type Boxes = Array<{ match: string; left: number; right: number }>
+const layout = (boxes: Boxes, viewport: number) => {
+  const current = { boxes }
+  const rect = Object.getOwnPropertyDescriptor(Element.prototype, "getBoundingClientRect")!
+  const width = Object.getOwnPropertyDescriptor(globalThis, "innerWidth")
+  Element.prototype.getBoundingClientRect = function (this: Element) {
+    const box = current.boxes.find((candidate) => this.matches(candidate.match)) ?? { left: 0, right: 0 }
+    const size = { ...box, width: box.right - box.left, height: 0, top: 0, bottom: 0, x: box.left, y: 0 }
+    return { ...size, toJSON: () => size } as DOMRect
+  }
+  Object.defineProperty(globalThis, "innerWidth", { configurable: true, value: viewport })
+  cleanups.push(() => {
+    Object.defineProperty(Element.prototype, "getBoundingClientRect", rect)
+    if (width) Object.defineProperty(globalThis, "innerWidth", width)
+  })
+  /** The same boxes after the pane was dragged to another width. */
+  return (next: Boxes) => (current.boxes = next)
+}
+
+/**
+ * happy-dom has a ResizeObserver, but nothing it could observe: no layout
+ * engine means no box ever changes size. This one records what the menu asked
+ * to watch and hands back the trigger for it.
+ */
+const observeResizes = () => {
+  const watched: Array<{ target: Element; resize: () => void }> = []
+  const original = Object.getOwnPropertyDescriptor(globalThis, "ResizeObserver")
+  class Recorder {
+    constructor(private readonly callback: () => void) {}
+    observe(target: Element) {
+      watched.push({ target, resize: () => this.callback() })
+    }
+    disconnect() {
+      watched.length = 0
+    }
+  }
+  Object.defineProperty(globalThis, "ResizeObserver", {
+    configurable: true,
+    writable: true,
+    value: Recorder as unknown as typeof ResizeObserver,
+  })
+  cleanups.push(() => {
+    if (original) Object.defineProperty(globalThis, "ResizeObserver", original)
+  })
+  return watched
 }
 
 const SOURCES = [
@@ -121,6 +172,31 @@ describe("source menu", () => {
     expect(item?.querySelector(".files-menu__badge")?.getAttribute("title")).toContain("sandboxed runtimes")
   })
 
+  // Beside the path, the badge and Revoke took the width the path needed and a
+  // folder read as its last ten characters. The access sits under the name and
+  // path instead, and the path's line carries nothing but the path.
+  test("states a folder's access under its name and path, not on the path's line", () => {
+    const writable = { ...SOURCES[2]!, id: "rw", name: "analysis-output", readonly: false }
+    const host = mount(() =>
+      subject.SourceMenu({ sources: [...SOURCES, writable], active: writable, onPick: () => {}, onRevoke: () => {} }),
+    )
+    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
+
+    for (const [id, access] of [
+      ["ro", "Read only"],
+      ["rw", "Read & write"],
+    ]) {
+      const item = host.querySelector<HTMLElement>(`[data-source-item="${id}"]`)!
+      const lines = [...(item.querySelector(".files-menu__label")?.parentElement?.children ?? [])]
+      expect(lines.map((line) => line.textContent?.trim())).toEqual([
+        id === "ro" ? "pdebench" : "analysis-output",
+        "/home/keertan/data/pdebench",
+        access,
+      ])
+      expect(item.querySelector(".files-menu__tail")?.textContent).not.toContain(access)
+    }
+  })
+
   test("explains saved artifacts without pretending they are a filesystem path", () => {
     const host = mount(() => subject.SourceMenu({ sources: SOURCES, active: SOURCES[0]!, onPick: () => {} }))
     host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
@@ -181,21 +257,30 @@ describe("source menu", () => {
     expect(revoke.getAttribute("tabindex")).toBe("-1")
   })
 
+  // A delegated conversation works in the folder its lead granted it. The row
+  // is there to browse from; ending that access is the lead's decision.
+  test("offers no revoke on a folder inherited from the session that delegated this one", () => {
+    const lead = { ...SOURCES[2]!, id: "lead", name: "RINR", readonly: false, inherited: true }
+    const host = mount(() =>
+      subject.SourceMenu({
+        sources: [...SOURCES, lead],
+        active: SOURCES[1]!,
+        onPick: () => {},
+        onRevoke: () => {},
+      }),
+    )
+    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
+
+    expect(host.querySelector('[data-source-item="lead"]')).not.toBeNull()
+    expect(host.querySelector('[data-source-revoke="lead"]')).toBeNull()
+    expect(host.querySelector('[data-source-revoke="ro"]')).not.toBeNull()
+  })
+
   test("hides the revoke control when no handler can act on it", () => {
     const host = mount(() => subject.SourceMenu({ sources: SOURCES, active: SOURCES[1]!, onPick: () => {} }))
     host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
 
     expect(host.querySelector('[data-source-revoke="ro"]')).toBeNull()
-  })
-
-  test("constrains the menu and its paths so a long path cannot force a scrollbar", () => {
-    const css = readFileSync(fileURLToPath(new URL("./FilesPane.css", import.meta.url)), "utf8")
-
-    expect(css).toMatch(/\.files-menu\s*\{[^}]*overflow-x: hidden/s)
-    expect(css).toMatch(/\.files-menu\s*\{[^}]*width: min\([^}]*100cqi/s)
-    expect(css).toMatch(/\.files-browser\s*\{[^}]*overflow: visible/s)
-    // A 1fr grid track will not shrink below its content without this.
-    expect(css).toMatch(/\.files-menu__item\s*>\s*span:nth-child\(2\)\s*\{[^}]*min-width: 0/s)
   })
 
   test("moves focus into the menu and Escape returns it to the trigger", async () => {
@@ -265,6 +350,137 @@ describe("source menu", () => {
     await Promise.resolve()
     expect(host.querySelector("[data-source-menu]")).toBeNull()
     expect(document.activeElement).toBe(trigger)
+  })
+
+  test("reaches Revoke from the keyboard, straight after the folder it belongs to", async () => {
+    const revoked: string[] = []
+    const host = mount(() =>
+      subject.SourceMenu({
+        sources: SOURCES,
+        active: SOURCES[1]!,
+        onPick: () => {},
+        onRevoke: (source) => revoked.push(source.id),
+      }),
+    )
+    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
+    await Promise.resolve()
+
+    const folder = host.querySelector<HTMLElement>('[data-source-item="ro"]')!
+    folder.focus()
+    folder.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }))
+
+    const revoke = host.querySelector<HTMLElement>('[data-source-revoke="ro"]')
+    expect(document.activeElement).toBe(revoke)
+    revoke?.click()
+    expect(revoked).toEqual(["ro"])
+  })
+
+  // #646: the trigger sits at the right end of the toolbar, so a menu hung
+  // from its left edge ran 93px past the window at 1440x900 and truncated
+  // every path and badge.
+  test("hangs the menu from the trigger's right edge when the left edge would put it outside the pane", async () => {
+    const host = mount(() => subject.SourceMenu({ sources: SOURCES, active: SOURCES[1]!, onPick: () => {} }))
+    host.className = "files-pane"
+    layout(
+      [
+        { match: ".files-pane", left: 900, right: 1440 },
+        { match: ".files-source__button", left: 1180, right: 1268 },
+        { match: ".files-menu", left: 1180, right: 1480 },
+      ],
+      1440,
+    )
+
+    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
+    await Promise.resolve()
+
+    expect(host.querySelector("[data-source-menu]")?.getAttribute("data-align")).toBe("end")
+  })
+
+  // The pane is a draggable column. The alignment was measured once per open,
+  // so narrowing the pane under an open menu left it hanging outside until the
+  // next time someone opened it.
+  test("re-measures the alignment when the pane is resized under an open menu", async () => {
+    const watched = observeResizes()
+    const host = mount(() => subject.SourceMenu({ sources: SOURCES, active: SOURCES[1]!, onPick: () => {} }))
+    host.className = "files-pane"
+    const resize = layout(
+      [
+        { match: ".files-pane", left: 0, right: 1440 },
+        { match: ".files-source__button", left: 240, right: 328 },
+        { match: ".files-menu", left: 240, right: 540 },
+      ],
+      1440,
+    )
+
+    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
+    await Promise.resolve()
+    expect(host.querySelector("[data-source-menu]")?.getAttribute("data-align")).toBe("start")
+
+    // The divider is dragged left: the pane keeps the menu's trigger near its
+    // right edge, and the menu no longer fits hanging rightwards.
+    resize([
+      { match: ".files-pane", left: 900, right: 1440 },
+      { match: ".files-source__button", left: 1180, right: 1268 },
+      { match: ".files-menu", left: 1180, right: 1480 },
+    ])
+    expect(watched.map((entry) => entry.target)).toEqual([host])
+    watched.forEach((entry) => entry.resize())
+    await Promise.resolve()
+
+    expect(host.querySelector("[data-source-menu]")?.getAttribute("data-align")).toBe("end")
+  })
+
+  test("watches nothing once the menu is closed", async () => {
+    const watched = observeResizes()
+    const host = mount(() => subject.SourceMenu({ sources: SOURCES, active: SOURCES[1]!, onPick: () => {} }))
+    host.className = "files-pane"
+
+    const trigger = host.querySelector<HTMLButtonElement>("[data-source-button]")!
+    trigger.click()
+    await Promise.resolve()
+    expect(watched).toHaveLength(1)
+
+    trigger.click()
+    await Promise.resolve()
+
+    expect(watched).toHaveLength(0)
+  })
+
+  test("keeps the menu on the trigger's left edge when it already fits", async () => {
+    const host = mount(() => subject.SourceMenu({ sources: SOURCES, active: SOURCES[1]!, onPick: () => {} }))
+    host.className = "files-pane"
+    layout(
+      [
+        { match: ".files-pane", left: 0, right: 1440 },
+        { match: ".files-source__button", left: 240, right: 328 },
+        { match: ".files-menu", left: 240, right: 540 },
+      ],
+      1440,
+    )
+
+    host.querySelector<HTMLButtonElement>("[data-source-button]")?.click()
+    await Promise.resolve()
+
+    expect(host.querySelector("[data-source-menu]")?.getAttribute("data-align")).toBe("start")
+  })
+
+  // The pane is a column of a much wider window: fitting inside the viewport
+  // is not the same as fitting inside the pane, and the second is what the
+  // reader sees.
+  test("measures the pane, not the window", () => {
+    const menu = { width: 300, trigger: { left: 1000, right: 1088 } }
+
+    expect(subject.menuAlignment({ ...menu, bounds: { left: 0, right: 1440 } })).toBe("start")
+    expect(subject.menuAlignment({ ...menu, bounds: { left: 760, right: 1100 } })).toBe("end")
+  })
+
+  test("keeps the alignment that leaves less of the menu outside a container narrower than it", () => {
+    expect(
+      subject.menuAlignment({ width: 300, trigger: { left: 20, right: 108 }, bounds: { left: 0, right: 260 } }),
+    ).toBe("start")
+    expect(
+      subject.menuAlignment({ width: 300, trigger: { left: 160, right: 248 }, bounds: { left: 0, right: 260 } }),
+    ).toBe("end")
   })
 
   // The kinds were text glyphs (a square for anything with a root), so a

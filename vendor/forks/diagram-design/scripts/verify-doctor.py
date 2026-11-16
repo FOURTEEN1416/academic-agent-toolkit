@@ -12,8 +12,10 @@ import json
 import os
 import platform
 import shutil
+import signal
 import subprocess
 import sys
+import tempfile
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -30,6 +32,8 @@ MAINTAINER_MARKERS = (
 EXPECTED_SCRIPTS = (
     Path("scripts/verify-drawio-import.py"),
     Path("scripts/verify-mermaid-import.py"),
+    Path("scripts/verify-excalidraw-import.py"),
+    Path("scripts/verify-plantuml-import.py"),
     Path("scripts/verify-motion.py"),
     Path("scripts/lint-skin.py"),
     Path("scripts/verify-docs-sync.py"),
@@ -39,13 +43,19 @@ ROUTING_SURFACES = {
     Path("commands/export-diagram.md"): "references/export.md",
     Path("commands/import-drawio.md"): "references/import-drawio.md",
     Path("commands/import-mermaid.md"): "references/import-mermaid.md",
+    Path("commands/import-excalidraw.md"): "references/import-excalidraw.md",
+    Path("commands/import-plantuml.md"): "references/import-plantuml.md",
     Path("commands/profile.md"): "references/profiles.md",
     Path("commands/doctor.md"): "references/doctor.md",
     Path("prompts/export-diagram.md"): "references/export.md",
     Path("prompts/import-mermaid.md"): "references/import-mermaid.md",
+    Path("prompts/import-excalidraw.md"): "references/import-excalidraw.md",
+    Path("prompts/import-plantuml.md"): "references/import-plantuml.md",
     Path("prompts/profile.md"): "references/profiles.md",
     Path("prompts/doctor.md"): "references/doctor.md",
 }
+
+VERSION_PROBE = "import sys; print('.'.join(str(p) for p in sys.version_info[:3]))"
 
 PASS = "pass"
 WARN = "warn"
@@ -60,28 +70,113 @@ class CheckResult:
     fix: str | None = None
 
 
-def run_command(command: list[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        command,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
+def run_command(
+    command: list[str], *, timeout: float | None = None
+) -> subprocess.CompletedProcess[str]:
+    """Run a command, reporting a failure to launch the way a bad exit is reported.
+
+    A name on PATH is not always a runnable program: an App Execution Alias for
+    an uninstalled app, a dangling symlink, or a file without the exec bit raise
+    instead of exiting. Every caller here only asks whether the command answered,
+    so surface that as a non-zero result carrying the OS error rather than letting
+    it unwind the whole doctor.
+    """
+    try:
+        if timeout is None:
+            return subprocess.run(
+                command, capture_output=True, text=True, encoding="utf-8",
+                errors="replace", check=False,
+            )
+        # Descendants can inherit capture pipes. Temporary files let waiting and
+        # cleanup stay bounded even when a child keeps its output handle open.
+        with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
+            process = subprocess.Popen(
+                command, stdout=stdout, stderr=stderr,
+                start_new_session=(os.name == "posix"),
+            )
+            try:
+                process.wait(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                cleanup_error = ""
+                if os.name == "posix":
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                else:
+                    # /T targets only descendants of this freshly owned probe.
+                    try:
+                        cleanup = subprocess.run(
+                            ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                            timeout=2, check=False,
+                        )
+                        if cleanup.returncode != 0:
+                            cleanup_error = " Process-tree cleanup failed."
+                    except (OSError, subprocess.TimeoutExpired):
+                        cleanup_error = " Process-tree cleanup failed."
+                    process.kill()
+                try:
+                    process.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    cleanup_error += " Probe cleanup did not finish."
+                return subprocess.CompletedProcess(
+                    command, 1, "",
+                    f"Command timed out after {timeout:g} seconds.{cleanup_error}",
+                )
+            stdout.seek(0)
+            stderr.seek(0)
+            return subprocess.CompletedProcess(
+                command, process.returncode,
+                stdout.read().decode("utf-8", errors="replace"),
+                stderr.read().decode("utf-8", errors="replace"),
+            )
+    except OSError as exc:
+        return subprocess.CompletedProcess(command, 1, "", str(exc))
 
 
-def probe_python_command() -> tuple[str | None, str | None]:
-    """Resolve python3 first, then python."""
+@dataclass
+class PythonProbe:
+    """What resolving an interpreter name actually turned up."""
+
+    command: str | None = None
+    executable: str | None = None
+    version: str | None = None
+    error: str | None = None
+
+
+def probe_python_command() -> PythonProbe:
+    """Resolve python3 first, then python, preferring a name that actually runs.
+
+    Presence on PATH is not evidence of an interpreter. On Windows the
+    ``python3`` App Execution Alias ships on PATH by default and exits
+    non-zero with a Microsoft Store prompt, so a machine with a working
+    ``python`` is otherwise reported as having no usable Python at all. Fall
+    through to the next candidate when the preferred name cannot report its
+    own version, and keep the first name found so a total failure still says
+    what was tried.
+    """
+    fallback = PythonProbe()
     for candidate in ("python3", "python"):
         executable = shutil.which(candidate)
-        if executable:
-            return candidate, executable
-    return None, None
+        if executable is None:
+            continue
+        probe = run_command([candidate, "-c", VERSION_PROBE])
+        version = probe.stdout.strip()
+        if probe.returncode == 0 and version:
+            return PythonProbe(command=candidate, executable=executable, version=version)
+        if fallback.command is None:
+            fallback = PythonProbe(
+                command=candidate,
+                executable=executable,
+                error=probe.stderr.strip() or "version probe failed",
+            )
+    return fallback
 
 
 def check_python_runtime() -> tuple[CheckResult, str | None]:
-    command_name, executable = probe_python_command()
+    probe = probe_python_command()
+    command_name, executable = probe.command, probe.executable
     if command_name is None or executable is None:
         return (
             CheckResult(
@@ -93,11 +188,8 @@ def check_python_runtime() -> tuple[CheckResult, str | None]:
             None,
         )
 
-    version_probe = run_command(
-        [command_name, "-c", "import sys; print('.'.join(str(p) for p in sys.version_info[:3]))"]
-    )
-    if version_probe.returncode != 0:
-        detail = version_probe.stderr.strip() or "version probe failed"
+    if probe.version is None:
+        detail = probe.error or "version probe failed"
         return (
             CheckResult(
                 name="Python runtime",
@@ -108,7 +200,7 @@ def check_python_runtime() -> tuple[CheckResult, str | None]:
             command_name,
         )
 
-    version_text = version_probe.stdout.strip()
+    version_text = probe.version
     try:
         major, minor, patch = (int(part) for part in version_text.split(".", 2))
     except ValueError:
@@ -152,16 +244,16 @@ def check_playwright(python_cmd: str | None) -> CheckResult:
             name="Playwright PNG export readiness",
             status=FAIL,
             message="Playwright check skipped because no Python command was available.",
-            fix="Resolve Python first; then install with: pip install playwright && playwright install chromium",
+            fix="Provision an approved Playwright renderer after resolving Python, then re-run this check.",
         )
 
-    import_probe = run_command([python_cmd, "-c", "import playwright; print(playwright.__version__)"])
+    import_probe = run_command([python_cmd, "-c", "import playwright"])
     if import_probe.returncode != 0:
         return CheckResult(
             name="Playwright PNG export readiness",
             status=WARN,
             message="Playwright package is not available in the active Python interpreter.",
-            fix="pip install playwright && playwright install chromium",
+            fix="Provision an approved Playwright renderer in the host environment, then re-run this check.",
         )
 
     chromium_probe = run_command(
@@ -169,28 +261,30 @@ def check_playwright(python_cmd: str | None) -> CheckResult:
             python_cmd,
             "-c",
             (
-                "from pathlib import Path\n"
                 "from playwright.sync_api import sync_playwright\n"
                 "with sync_playwright() as p:\n"
-                "    path = Path(p.chromium.executable_path)\n"
-                "    print(path)\n"
-                "    raise SystemExit(0 if path.is_file() else 3)\n"
+                "    browser = p.chromium.launch(timeout=5000)\n"
+                "    try:\n"
+                "        print(browser.version)\n"
+                "    finally:\n"
+                "        browser.close()\n"
             ),
-        ]
+        ],
+        timeout=10,
     )
     if chromium_probe.returncode == 0:
         return CheckResult(
             name="Playwright PNG export readiness",
             status=PASS,
-            message=f"Playwright is installed and Chromium is present at {chromium_probe.stdout.strip()}.",
+            message=f"Playwright is installed and Chromium {chromium_probe.stdout.strip()} launches for PNG export.",
         )
 
-    detail = chromium_probe.stderr.strip() or "Chromium executable was not detected"
+    detail = chromium_probe.stderr.strip() or "Chromium could not be launched"
     return CheckResult(
         name="Playwright PNG export readiness",
         status=WARN,
         message=f"Playwright is installed but Chromium is not ready: {detail}",
-        fix="pip install playwright && playwright install chromium",
+        fix="Provision an approved browser for the existing Playwright installation, then re-run this check.",
     )
 
 

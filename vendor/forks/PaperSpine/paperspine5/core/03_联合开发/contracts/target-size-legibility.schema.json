@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/target-size-legibility.schema.json",
+  "title": "Target-size legibility receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "contract_version", "figure_id", "figure_sha256", "profile", "all_text_labels", "minimum_font_pt_observed", "all_text_minimum_passed", "critical_labels", "blocking_label_ids", "target_size_legible", "status", "producer_status_accepted", "external_action_authorized", "receipt_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.target-size-legibility-receipt"},
+    "contract_version": {"const": "1.0"},
+    "figure_id": {"type": "string", "minLength": 1},
+    "figure_sha256": {"$ref": "#/$defs/sha256"},
+    "profile": {"$ref": "#/$defs/profile"},
+    "all_text_labels": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["element_id", "effective_font_pt", "threshold_font_pt", "readable"],
+        "properties": {
+          "element_id": {"type": "string", "minLength": 1},
+          "effective_font_pt": {"type": "number", "minimum": 0},
+          "threshold_font_pt": {"type": "number", "exclusiveMinimum": 0},
+          "readable": {"type": "boolean"}
+        }
+      }
+    },
+    "minimum_font_pt_observed": {"type": "number", "minimum": 0},
+    "all_text_minimum_passed": {"type": "boolean"},
+    "critical_labels": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["element_id", "text", "source_font_user_units", "effective_font_pt", "threshold_font_pt", "readable"],
+        "properties": {
+          "element_id": {"type": "string", "minLength": 1},
+          "text": {"type": "string", "minLength": 1},
+          "source_font_user_units": {"type": "number", "exclusiveMinimum": 0},
+          "effective_font_pt": {"type": "number", "minimum": 0},
+          "threshold_font_pt": {"type": "number", "exclusiveMinimum": 0},
+          "readable": {"type": "boolean"}
+        }
+      }
+    },
+    "blocking_label_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "target_size_legible": {"type": "boolean"},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "producer_status_accepted": {"type": "boolean"},
+    "external_action_authorized": {"const": false},
+    "receipt_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "contract_version", "figure_id", "target_class", "physical_width_mm", "physical_height_mm", "minimum_font_pt", "critical_label_minimum_font_pt", "critical_labels", "producer_status", "external_action_authorized"],
+      "properties": {
+        "contract": {"const": "paperspine5.target-size-legibility-profile"},
+        "contract_version": {"const": "1.0"},
+        "figure_id": {"type": "string", "minLength": 1},
+        "target_class": {"enum": ["single_column", "double_column", "full_page"]},
+        "physical_width_mm": {"type": "number", "exclusiveMinimum": 0},
+        "physical_height_mm": {"type": "number", "exclusiveMinimum": 0},
+        "minimum_font_pt": {"type": "number", "exclusiveMinimum": 0},
+        "critical_label_minimum_font_pt": {"type": "number", "exclusiveMinimum": 0},
+        "critical_labels": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["element_id", "expected_text"], "properties": {"element_id": {"type": "string", "minLength": 1}, "expected_text": {"type": "string", "minLength": 1}}}},
+        "producer_status": {"enum": ["PENDING", "PASS", "PASS_WITH_ADVISORY", "FAIL"]},
+        "external_action_authorized": {"const": false}
+      }
+    }
+  }
+}

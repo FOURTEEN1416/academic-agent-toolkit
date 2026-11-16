@@ -1,12 +1,13 @@
 import type { BundledLanguage } from "shiki"
 import { createSimpleContext } from "./helper"
 import type { ThemeRegistrationResolved } from "@pierre/diffs"
+import { backslashMath, guardedDollarMath } from "./marked-math"
+import { localFilePath } from "@synsci/util/path"
 
 // Heavy render deps (katex ~150KB gzip, shiki grammar registry, the marked
 // extensions) are loaded on FIRST USE, not at module load — so first paint (the
 // launchpad renders no markdown/math/code) never pays for them. Each loader is
 // memoized after its first await.
-type Katex = (typeof import("katex"))["default"]
 export function retryable<T>(load: () => Promise<T>) {
   let pending: Promise<T> | undefined
   return () => {
@@ -36,30 +37,6 @@ const OPENSCIENCE_THEME = {
     "editor.foreground": "var(--text-base)",
     "gitDecoration.addedResourceForeground": "var(--syntax-diff-add)",
     "gitDecoration.deletedResourceForeground": "var(--syntax-diff-delete)",
-    // "gitDecoration.conflictingResourceForeground": "#ffca00",
-    // "gitDecoration.modifiedResourceForeground": "#1a76d4",
-    // "gitDecoration.untrackedResourceForeground": "#00cab1",
-    // "gitDecoration.ignoredResourceForeground": "#84848A",
-    // "terminal.titleForeground": "#adadb1",
-    // "terminal.titleInactiveForeground": "#84848A",
-    // "terminal.background": "#141415",
-    // "terminal.foreground": "#adadb1",
-    // "terminal.ansiBlack": "#141415",
-    // "terminal.ansiRed": "#ff2e3f",
-    // "terminal.ansiGreen": "#0dbe4e",
-    // "terminal.ansiYellow": "#ffca00",
-    // "terminal.ansiBlue": "#008cff",
-    // "terminal.ansiMagenta": "#c635e4",
-    // "terminal.ansiCyan": "#08c0ef",
-    // "terminal.ansiWhite": "#c6c6c8",
-    // "terminal.ansiBrightBlack": "#141415",
-    // "terminal.ansiBrightRed": "#ff2e3f",
-    // "terminal.ansiBrightGreen": "#0dbe4e",
-    // "terminal.ansiBrightYellow": "#ffca00",
-    // "terminal.ansiBrightBlue": "#008cff",
-    // "terminal.ansiBrightMagenta": "#c635e4",
-    // "terminal.ansiBrightCyan": "#08c0ef",
-    // "terminal.ansiBrightWhite": "#c6c6c8",
   },
   tokenColors: [
     {
@@ -413,51 +390,96 @@ const loadDiffs = retryable(() =>
   }),
 )
 
-function renderMathInText(text: string, katex: Katex): string {
-  let result = text
+type Highlighter = Awaited<ReturnType<DiffsModule["getSharedHighlighter"]>>
 
-  // Display math: $$...$$
-  const displayMathRegex = /\$\$([\s\S]*?)\$\$/g
-  result = result.replace(displayMathRegex, (_, math) => {
-    try {
-      return katex.renderToString(math, {
-        displayMode: true,
-        throwOnError: false,
-      })
-    } catch {
-      return `$$${math}$$`
-    }
-  })
+/**
+ * A streaming response is reparsed about thirty times a second, and every
+ * parse used to re-highlight every code block. Highlighting is the expensive
+ * step (a 30 KB Python block costs ~25 ms), so finished blocks are served from
+ * this bounded cache and only the block still being written pays each tick.
+ */
+const highlighted = new Map<string, string>()
+// Highlighted HTML runs to roughly ten times its source, so the bound is on
+// characters held, not entries: a few megabytes covers a long session's
+// finished blocks without growing with the transcript.
+const HIGHLIGHT_CACHE_CHARS = 4_000_000
+const cacheSize = { chars: 0 }
 
-  // Inline math: $...$
-  const inlineMathRegex = /(?<!\$)\$(?!\$)((?:[^$\\]|\\.)+?)\$(?!\$)/g
-  result = result.replace(inlineMathRegex, (_, math) => {
-    try {
-      return katex.renderToString(math, {
-        displayMode: false,
-        throwOnError: false,
-      })
-    } catch {
-      return `$${math}$`
-    }
-  })
-
-  return result
+async function highlightBlock(highlighter: Highlighter, code: string, lang: string): Promise<string> {
+  const key = `${lang}\u0000${code}`
+  const hit = highlighted.get(key)
+  if (hit !== undefined) {
+    highlighted.delete(key)
+    highlighted.set(key, hit)
+    return hit
+  }
+  if (!highlighter.getLoadedLanguages().includes(lang)) {
+    await highlighter.loadLanguage(lang as BundledLanguage)
+  }
+  const html = highlighter.codeToHtml(code, { lang, theme: "OpenScience", tabindex: false })
+  highlighted.set(key, html)
+  cacheSize.chars += key.length + html.length
+  for (const [oldest, value] of highlighted) {
+    if (cacheSize.chars <= HIGHLIGHT_CACHE_CHARS || oldest === key) break
+    highlighted.delete(oldest)
+    cacheSize.chars -= oldest.length + value.length
+  }
+  return html
 }
 
-function renderMathExpressions(html: string, katex: Katex): string {
-  // Split on code/pre/kbd tags to avoid processing their contents
-  const codeBlockPattern = /(<(?:pre|code|kbd)[^>]*>[\s\S]*?<\/(?:pre|code|kbd)>)/gi
-  const parts = html.split(codeBlockPattern)
+/**
+ * The unterminated fenced block a streaming response currently ends inside:
+ * where its info string sits and the code written so far. Follows the
+ * CommonMark fence rules (three or more backticks or tildes, up to three
+ * spaces of indent, closed only by the same character at the same or greater
+ * length, and a backtick fence's info string may not contain a backtick).
+ */
+export function openFence(markdown: string): { info: { start: number; end: number }; code: string } | undefined {
+  let open: { char: string; length: number; infoStart: number; infoEnd: number; codeStart: number } | undefined
+  let offset = 0
+  for (const line of markdown.split("\n")) {
+    const match = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line)
+    if (match) {
+      const fence = match[1]
+      const char = fence[0]
+      if (!open) {
+        if (!(char === "`" && match[2].includes("`"))) {
+          const infoStart = offset + line.indexOf(fence) + fence.length
+          open = {
+            char,
+            length: fence.length,
+            infoStart,
+            infoEnd: offset + line.length,
+            codeStart: offset + line.length + 1,
+          }
+        }
+      } else if (char === open.char && fence.length >= open.length && match[2].trim() === "") {
+        open = undefined
+      }
+    }
+    offset += line.length + 1
+  }
+  if (!open) return
+  return {
+    info: { start: open.infoStart, end: open.infoEnd },
+    code: markdown.slice(Math.min(open.codeStart, markdown.length)),
+  }
+}
 
-  return parts
-    .map((part, i) => {
-      // Odd indices are the captured code blocks - leave them alone
-      if (i % 2 === 1) return part
-      // Process math only in non-code parts
-      return renderMathInText(part, katex)
-    })
-    .join("")
+/** Above this size, the block still being streamed is rendered as plain text
+ * until its fence closes; grammar highlighting then lands once. Plain-text
+ * tokenization of a 30 KB block costs ~2 ms against ~25 ms for Python. */
+export const LIVE_HIGHLIGHT_LIMIT = 2_000
+
+/**
+ * Rewrite the info string of a long, still-open fenced block to `text`, so the
+ * thirty-per-second reparse of a streaming response does not re-tokenize a
+ * growing script with a full grammar on every tick.
+ */
+export function plainStreamingFence(markdown: string): string {
+  const fence = openFence(markdown)
+  if (!fence || fence.code.length <= LIVE_HIGHLIGHT_LIMIT) return markdown
+  return `${markdown.slice(0, fence.info.start)}text${markdown.slice(fence.info.end)}`
 }
 
 async function highlightCodeBlocks(html: string): Promise<string> {
@@ -472,21 +494,9 @@ async function highlightCodeBlocks(html: string): Promise<string> {
   for (const match of matches) {
     const [fullMatch, lang, escapedCode] = match
     const code = decodeCodeBlockEntities(escapedCode)
-
-    let language = lang || "text"
-    if (!(language in bundledLanguages)) {
-      language = "text"
-    }
-    if (!highlighter.getLoadedLanguages().includes(language)) {
-      await highlighter.loadLanguage(language as BundledLanguage)
-    }
-
-    const highlighted = highlighter.codeToHtml(code, {
-      lang: language,
-      theme: "OpenScience",
-      tabindex: false,
-    })
-    result = result.replace(fullMatch, () => highlighted)
+    const language = lang && lang in bundledLanguages ? lang : "text"
+    const block = await highlightBlock(highlighter, code, language)
+    result = result.replace(fullMatch, () => block)
   }
 
   return result
@@ -528,61 +538,64 @@ export async function highlightSnippet(code: string, lang: string): Promise<stri
 export type NativeMarkdownParser = (markdown: string) => Promise<string>
 
 // The pure-JS marked pipeline (katex + shiki extensions) — built lazily on first
-// use so its deps stay out of the entry chunk. Only reached when no nativeParser
-// is supplied (the desktop app always supplies one).
-type MarkedParser = ReturnType<(typeof import("marked"))["marked"]["use"]>
-const loadJsParser = retryable<MarkedParser>(async () => {
-  const [{ marked }, { default: markedKatex }, { default: markedShiki }, bundledLanguages] = await Promise.all([
-    import("marked"),
-    import("marked-katex-extension"),
-    import("marked-shiki"),
-    loadLangs(),
-  ])
-  return marked.use(
+// use so its deps stay out of the entry chunk. Electron and web use this path;
+// hosts with an optional native parser also use it for math-bearing Markdown.
+const loadJsParser = retryable(async () => {
+  const [{ Marked }, { default: markedKatex }, { default: markedShiki }, { default: katex }, bundledLanguages] =
+    await Promise.all([
+      import("marked"),
+      import("marked-katex-extension"),
+      import("marked-shiki"),
+      import("katex"),
+      loadLangs(),
+    ])
+  return new Marked(
     {
       renderer: {
-        link({ href, title, text }) {
+        link(token) {
+          const { href, title } = token
+          // Link text is Markdown too: `[**Report (PDF)**](report.pdf)` must
+          // not show its asterisks.
+          const text = token.tokens?.length ? this.parser.parseInline(token.tokens) : token.text
           const titleAttr = title ? ` title="${title}"` : ""
-          return `<a href="${href}"${titleAttr} class="external-link" target="_blank" rel="noopener noreferrer">${text}</a>`
+          // Models link local results as file: or sandbox: URLs. The sanitizer drops that
+          // scheme outright, so hand the plain path on instead; the file-link
+          // resolver decides whether it opens in the Files tab.
+          const local = localFilePath(href)
+          const target =
+            local === undefined
+              ? href
+              : local.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          return `<a href="${target}"${titleAttr} class="external-link" target="_blank" rel="noopener noreferrer">${text}</a>`
         },
       },
     },
-    markedKatex({ throwOnError: false, nonStandard: true }),
+    guardedDollarMath(markedKatex({ throwOnError: false, nonStandard: true, trust: false })),
+    backslashMath(katex),
     markedShiki({
       async highlight(code, lang) {
         const diffs = await loadDiffs()
         const highlighter = await diffs.getSharedHighlighter({ themes: ["OpenScience"], langs: [] })
-        if (!(lang in bundledLanguages)) {
-          lang = "text"
-        }
-        if (!highlighter.getLoadedLanguages().includes(lang)) {
-          await highlighter.loadLanguage(lang as BundledLanguage)
-        }
-        return highlighter.codeToHtml(code, { lang: lang || "text", theme: "OpenScience", tabindex: false })
+        return highlightBlock(highlighter, code, lang && lang in bundledLanguages ? lang : "text")
       },
     }),
   )
 })
 
+export async function parseMarkdown(input: string, nativeParser?: NativeMarkdownParser): Promise<string> {
+  const markdown = plainStreamingFence(input)
+  // Native parsers may consume TeX backslashes as Markdown escapes. Parse math
+  // from the original source; never substitute equations into arbitrary HTML.
+  if (nativeParser && !/\$|\\[([]/.test(markdown)) return highlightCodeBlocks(await nativeParser(markdown))
+  const parser = await loadJsParser()
+  const html = await parser.parse(markdown)
+  if (html.includes('class="katex')) await loadKatex()
+  return html
+}
+
 export const { use: useMarked, provider: MarkedProvider } = createSimpleContext({
   name: "Marked",
-  init: (props: { nativeParser?: NativeMarkdownParser }) => {
-    if (props.nativeParser) {
-      const nativeParser = props.nativeParser
-      return {
-        async parse(markdown: string): Promise<string> {
-          const html = await nativeParser(markdown)
-          const withMath = html.includes("$") ? renderMathExpressions(html, await loadKatex()) : html
-          return highlightCodeBlocks(withMath)
-        },
-      }
-    }
-
-    return {
-      async parse(markdown: string): Promise<string> {
-        const parser = await loadJsParser()
-        return parser.parse(markdown)
-      },
-    }
-  },
+  init: (props: { nativeParser?: NativeMarkdownParser }) => ({
+    parse: (markdown: string) => parseMarkdown(markdown, props.nativeParser),
+  }),
 })

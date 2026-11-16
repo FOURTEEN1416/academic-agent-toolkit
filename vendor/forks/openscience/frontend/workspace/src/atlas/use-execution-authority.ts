@@ -20,6 +20,16 @@ export function useExecutionAuthority(capability: ExecutionCapability | Accessor
     return { projectID, sessionID, capability: current() }
   })
   const [decision, controls] = createResource(input, api.inspect)
+  // Callers render inside the session route's Suspense boundary. The normal
+  // resource accessor joins that boundary on every refetch and can replace the
+  // whole transcript with its fallback. Keep the last decision mounted while
+  // the refreshed decision is pending; loading still denies execution below.
+  const stableDecision = Object.defineProperties(() => decision.latest, {
+    state: { get: () => decision.state },
+    error: { get: () => decision.error },
+    loading: { get: () => decision.loading },
+    latest: { get: () => decision.latest },
+  }) as typeof decision
   const [trusting, setTrusting] = createSignal(false)
   const refresh = () => {
     if (!input()) return
@@ -51,14 +61,14 @@ export function useExecutionAuthority(capability: ExecutionCapability | Accessor
     if (!sdk.projectID) return "Execution access is unavailable until the project is ready."
     if (decision.error) return executionAuthorityError(decision.error)
     if (decision.loading) return "Checking execution access…"
-    const value = decision()
+    const value = decision.latest
     if (!value) return "Checking execution access…"
     return executionAuthorityMessage(value)
   })
   const allowed = createMemo(() => {
     if (decision.error || decision.loading) return false
     const expected = input()
-    const value = decision()
+    const value = decision.latest
     if (!expected || !value) return false
     return (
       value.allowed &&
@@ -68,11 +78,12 @@ export function useExecutionAuthority(capability: ExecutionCapability | Accessor
     )
   })
   const canTrust = createMemo(() => {
-    const value = decision()
-    return !decision.error && !decision.loading && value?.reason === "project_untrusted" && !!value.remediation
+    if (decision.error || decision.loading) return false
+    const value = decision.latest
+    return value?.reason === "project_untrusted" && !!value.remediation
   })
   const trustProject = async () => {
-    const value = decision()
+    const value = decision.latest
     if (!value || !canTrust() || trusting()) throw new Error("Project trust is not currently available.")
     setTrusting(true)
     try {
@@ -84,7 +95,7 @@ export function useExecutionAuthority(capability: ExecutionCapability | Accessor
   }
 
   return {
-    decision,
+    decision: stableDecision,
     allowed,
     loading: () => decision.loading,
     message,

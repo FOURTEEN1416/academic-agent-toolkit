@@ -1,7 +1,7 @@
 # UPSTREAM 溯源台账 — paper-writing-clinical
 
 - Upstream: https://github.com/K-Dense-AI/claude-scientific-writer
-- Pinned commit: 0c7260603be3de4dd5161565ab92e85b31c45eb5（v2.9.1 线 main，2026-09-09 拉取）
+- Pinned commit: 9820740d252800ecf0b8fc066ffb5bf9659f4a51（2026-11-16 实测上游 main HEAD，v2.23.0 线；原 0c726060，v2.9.1 线 2026-09-09 拉取）
 - License: MIT（上游 LICENSE 随附于上游仓库根；fork：https://github.com/FOURTEEN1416/claude-scientific-writer，先 fork 后集成惯例）
 
 ## 拉取内容与目录适配
@@ -18,3 +18,9 @@
 ## 审计记录
 
 - 2026-09-09：全库审计发现本技能自 initial public release（7529779）起仅含 SKILL.md 孤本，内部引用全部断链；定位上游并按上述口径补齐 `modules/` 资产，加 SKILL.md 头部适配说明块与本台账。
+
+## 同步评估（2026-11-16，0c726060→9820740 跨 14 个 minor，UP-3）
+
+- vendor/forks/claude-scientific-writer 已镜像同步至实测 HEAD（1838 文件更新、12 项旧版残留清理）。上游 v2.23.0 结构重组：新增 skill-overrides/、skills.lock.json、commands/ 等机制。
+- ⚠️ 许可口径变化（实测核验）：上游主仓 LICENSE 仍为 MIT（K-Dense Inc.），但 `skills/docx|pdf|pptx|xlsx` 四个 Office 模块自本版起改源自 anthropics/skills（**Apache-2.0**，各模块自带 LICENSE.txt；上游 README.md:193 明示）。后续若吸收 Office 模块必须按 Apache-2.0 单独记账，不适用本技能现行的 MIT 口径。
+- 本仓 15 个收编模块（modules/）的正文合并**待专项逐件 diff 评估**后再定：上游 skills/ 已重组，模块对应关系与内容变化须逐件核对；本单仅完成 vendor 同步、重 pin 与本评估结论，不盲目合并。

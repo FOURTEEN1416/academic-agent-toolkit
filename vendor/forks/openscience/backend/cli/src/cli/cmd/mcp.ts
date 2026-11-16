@@ -1,19 +1,17 @@
 import { cmd } from "./cmd"
-import { Client } from "@modelcontextprotocol/sdk/client/index.js"
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js"
-import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js"
 import * as prompts from "@clack/prompts"
+import { McpUrl } from "@synsci/util/mcp-url"
 import { UI } from "../ui"
 import { MCP } from "../../mcp"
 import { McpAuth } from "../../mcp/auth"
-import { McpOAuthProvider } from "../../mcp/oauth-provider"
 import { Config } from "../../config/config"
 import { Instance } from "../../project/instance"
 import { Installation } from "../../installation"
 import path from "path"
 import { Global } from "../../global"
-import { modify, applyEdits } from "jsonc-parser"
 import { Bus } from "../../bus"
+import { OAUTH_CALLBACK_PORT } from "../../mcp/oauth-provider"
+import { manualOAuthGuidance, needsManualOAuthBrowser } from "../mcp-oauth-guidance"
 
 function getAuthStatusIcon(status: MCP.AuthStatus): string {
   switch (status) {
@@ -65,7 +63,7 @@ export const McpCommand = cmd({
   async handler() {},
 })
 
-export const McpListCommand = cmd({
+const McpListCommand = cmd({
   command: "list",
   aliases: ["ls"],
   describe: "list MCP servers and their status",
@@ -136,7 +134,7 @@ export const McpListCommand = cmd({
   },
 })
 
-export const McpAuthCommand = cmd({
+const McpAuthCommand = cmd({
   command: "auth [name]",
   describe: "authenticate with an OAuth-enabled MCP server",
   builder: (yargs) =>
@@ -229,19 +227,42 @@ export const McpAuthCommand = cmd({
 
         const spinner = prompts.spinner()
         spinner.start("Starting OAuth flow...")
+        const manualBrowser = needsManualOAuthBrowser()
+        let guidanceShown = false
+
+        const showManualGuidance = (authorizationUrl: string) => {
+          if (guidanceShown) return
+          guidanceShown = true
+          spinner.stop(
+            manualBrowser ? "Authorization needs your local browser" : "Could not open browser automatically",
+          )
+          for (const line of manualOAuthGuidance({ authorizationUrl, callbackPort: OAUTH_CALLBACK_PORT })) {
+            prompts.log.info(line)
+          }
+          spinner.start("Waiting for authorization...")
+        }
 
         // Subscribe to browser open failure events to show URL for manual opening
         const unsubscribe = Bus.subscribe(MCP.BrowserOpenFailed, (evt) => {
           if (evt.properties.mcpName === serverName) {
-            spinner.stop("Could not open browser automatically")
-            prompts.log.warn("Please open this URL in your browser to authenticate:")
-            prompts.log.info(evt.properties.url)
-            spinner.start("Waiting for authorization...")
+            showManualGuidance(evt.properties.url)
           }
         })
 
         try {
-          const status = await MCP.authenticate(serverName)
+          let status: MCP.Status
+          if (manualBrowser) {
+            const resumed = await MCP.pendingAuth(serverName)
+            const started: MCP.AuthStart = resumed ? { state: "pending", ...resumed } : await MCP.startAuth(serverName)
+            if (started.state === "settled") {
+              status = started.result
+            } else {
+              showManualGuidance(started.authorizationUrl)
+              status = await MCP.waitForAuth(serverName, started.flowId)
+            }
+          } else {
+            status = await MCP.authenticate(serverName)
+          }
 
           if (status.status === "connected") {
             spinner.stop("Authentication successful!")
@@ -279,7 +300,7 @@ export const McpAuthCommand = cmd({
   },
 })
 
-export const McpAuthListCommand = cmd({
+const McpAuthListCommand = cmd({
   command: "list",
   aliases: ["ls"],
   describe: "list OAuth-capable MCP servers and their auth status",
@@ -319,7 +340,7 @@ export const McpAuthListCommand = cmd({
   },
 })
 
-export const McpLogoutCommand = cmd({
+const McpLogoutCommand = cmd({
   command: "logout [name]",
   describe: "remove OAuth credentials for an MCP server",
   builder: (yargs) =>
@@ -402,25 +423,14 @@ async function resolveConfigPath(baseDir: string, global = false) {
 }
 
 async function addMcpToConfig(name: string, mcpConfig: Config.Mcp, configPath: string) {
-  const file = Bun.file(configPath)
-
-  let text = "{}"
-  if (await file.exists()) {
-    text = await file.text()
-  }
-
-  // Use jsonc-parser to modify while preserving comments
-  const edits = modify(text, ["mcp", name], mcpConfig, {
-    formattingOptions: { tabSize: 2, insertSpaces: true },
-  })
-  const result = applyEdits(text, edits)
-
-  await Bun.write(configPath, result)
-
-  return configPath
+  const relative = path.relative(Global.Path.config, configPath)
+  const scope: Config.Scope =
+    relative && !relative.startsWith("..") && !path.isAbsolute(relative) ? "global" : "project"
+  const result = await Config.setMcp(name, mcpConfig, scope)
+  return result.path
 }
 
-export const McpAddCommand = cmd({
+const McpAddCommand = cmd({
   command: "add",
   describe: "add an MCP server",
   async handler() {
@@ -487,13 +497,13 @@ export const McpAddCommand = cmd({
           const command = await prompts.text({
             message: "Enter command to run",
             placeholder: "e.g., npx -y @modelcontextprotocol/server-filesystem",
-            validate: (x) => (x && x.length > 0 ? undefined : "Required"),
+            validate: (x) => (x?.trim() ? undefined : "Required"),
           })
           if (prompts.isCancel(command)) throw new UI.CancelledError()
 
           const mcpConfig: Config.Mcp = {
             type: "local",
-            command: command.split(" "),
+            command: command.trim().split(/\s+/),
           }
 
           await addMcpToConfig(name, mcpConfig, configPath)
@@ -509,8 +519,7 @@ export const McpAddCommand = cmd({
             validate: (x) => {
               if (!x) return "Required"
               if (x.length === 0) return "Required"
-              const isValid = URL.canParse(x)
-              return isValid ? undefined : "Invalid URL"
+              return McpUrl.endpointProblem(x)
             },
           })
           if (prompts.isCancel(url)) throw new UI.CancelledError()
@@ -584,7 +593,7 @@ export const McpAddCommand = cmd({
   },
 })
 
-export const McpRemoveCommand = cmd({
+const McpRemoveCommand = cmd({
   command: "remove <name>",
   aliases: ["rm"],
   describe: "remove an MCP server from config",
@@ -640,7 +649,7 @@ export const McpRemoveCommand = cmd({
   },
 })
 
-export const McpDebugCommand = cmd({
+const McpDebugCommand = cmd({
   command: "debug <name>",
   describe: "debug OAuth connection for an MCP server",
   builder: (yargs) =>
@@ -739,52 +748,13 @@ export const McpDebugCommand = cmd({
 
           if (response.status === 401) {
             prompts.log.warn("Server returned 401 Unauthorized")
-
-            // Try to discover OAuth metadata
             const oauthConfig = typeof serverConfig.oauth === "object" ? serverConfig.oauth : undefined
-            const authProvider = new McpOAuthProvider(
-              serverName,
-              serverConfig.url,
-              {
-                clientId: oauthConfig?.clientId,
-                clientSecret: oauthConfig?.clientSecret,
-                scope: oauthConfig?.scope,
-              },
-              {
-                onRedirect: async () => {},
-              },
+            prompts.log.info(
+              oauthConfig?.clientId
+                ? `OAuth is required; configured client ID: ${oauthConfig.clientId}`
+                : "OAuth is required; explicit Connect may use dynamic client registration",
             )
-
-            prompts.log.info("Testing OAuth flow (without completing authorization)...")
-
-            // Try creating transport with auth provider to trigger discovery
-            const transport = new StreamableHTTPClientTransport(new URL(serverConfig.url), {
-              authProvider,
-            })
-
-            try {
-              const client = new Client({
-                name: "openscience-debug",
-                version: Installation.VERSION,
-              })
-              await client.connect(transport)
-              prompts.log.success("Connection successful (already authenticated)")
-              await client.close()
-            } catch (error) {
-              if (error instanceof UnauthorizedError) {
-                prompts.log.info(`OAuth flow triggered: ${error.message}`)
-
-                // Check if dynamic registration would be attempted
-                const clientInfo = await authProvider.clientInformation()
-                if (clientInfo) {
-                  prompts.log.info(`Client ID available: ${clientInfo.client_id}`)
-                } else {
-                  prompts.log.info("No client ID - dynamic registration will be attempted")
-                }
-              } else {
-                prompts.log.error(`Connection error: ${error instanceof Error ? error.message : String(error)}`)
-              }
-            }
+            prompts.log.info(`Run: openscience mcp auth ${serverName}`)
           } else if (response.status >= 200 && response.status < 300) {
             prompts.log.success("Server responded successfully (no auth required or already authenticated)")
             const body = await response.text()

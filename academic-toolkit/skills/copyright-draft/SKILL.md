@@ -183,16 +183,16 @@ echo "🎨 UI种子 HUE=$HUE° SCHEME=$SCHEME NAV=$NAV RAD=$RAD DENS=$DENS（本
 
 ⛔⛔ **每个功能模块必须内容不同、一模块一图、禁止复用（用户反馈问题④：不同模块用了同一张图）：** 逐个 `manual_modules` 生成 mock，**每份 HTML 的标题、导航高亮项、主体控件、示例数据都要按该模块的 `purpose`/`visible_elements` 差异化**——工作台≠数据管理页≠设置页，长相必须明显不同。⛔ 绝不允许多个模块指向同一个 HTML/PNG，也不允许换个标题、主体照抄。截图清单里**每个页面对应独立文件名**（`dashboard.png`/`data_manage.png`/`settings.png`…），不得两个模块共用一个文件。生成后自检：任意两张 mock 的主体内容是否雷同？雷同就按模块用途重做。
 
-先探测截图能力：
+先探测截图能力（本机用 `python` 不用 `python3`：`python3` 可能触发 Microsoft Store 存根、exit 49；若 `python` 不可用，按 course-paper 的 fallback 循环依次探测 `$MH_PYTHON`/`python`/`python3`）：
 
 ```bash
-python3 tools/screenshot_capture.py --check
+python tools/screenshot_capture.py --check
 ```
 
 - 探测成功（exit 0）：逐个把 HTML 截成 PNG：
 
   ```bash
-  python3 tools/screenshot_capture.py --file 软件著作权申请资料/截图/mock/dashboard.html --out 软件著作权申请资料/截图/dashboard.png
+  python tools/screenshot_capture.py --file 软件著作权申请资料/截图/mock/dashboard.html --out 软件著作权申请资料/截图/dashboard.png
   ```
 
   全部截完后写 `软件著作权申请资料/截图/截图清单.json`：

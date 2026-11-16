@@ -1,7 +1,7 @@
+import { useLanguage } from "@/context/language"
 import { For, Show, createEffect, createMemo, createResource, createSignal, onCleanup } from "solid-js"
 import { Button } from "@synsci/ui/button"
 import { Icon } from "@synsci/ui/icon"
-import { Select } from "@synsci/ui/select"
 import { Switch } from "@synsci/ui/switch"
 import { useGlobalSDK } from "@/context/global-sdk"
 import { useGlobalSync } from "@/context/global-sync"
@@ -17,16 +17,16 @@ import {
   modelRouteValue,
   modelSummary,
 } from "@/context/model-catalog"
-import { resolveModelAccessRoute, type ModelRouteAccess } from "@/context/model-route-resolution"
+import { type ModelRouteAccess } from "@/context/model-route-resolution"
+import { ModelRateDetails } from "./ModelRateDetails"
 import { CodexConnection } from "./CodexConnection"
-import { ManagedInference } from "./ManagedInference"
+import { SearchConnections } from "./SearchConnections"
 import { ProviderKeys } from "./ProviderKeys"
-import { ProviderLogo } from "./ProviderLogo"
 import { modelGroup, modelGroupLabel, modelGroupRank } from "../model-groups"
-import { FilterMenu, PanelBody, PanelHeader, PanelScroll, RowCopy, SearchInput, Section } from "./_shared"
+import { FilterMenu, PanelBody, PanelHeader, PanelScroll, RowCopy, SearchInput, Section, steady } from "./_shared"
 import { settingsApi } from "./api"
-import { type CapabilityPreferences, type DelegationModel, publishCapabilityPreferences } from "../prompt-capabilities"
 import "./models.css"
+import { ProviderLogo } from "./ProviderLogo"
 
 type AvailableModel = ReturnType<ReturnType<typeof useModels>["list"]>[number]
 
@@ -62,15 +62,7 @@ type Option = {
 type Scope = "all" | "reasoning" | "latest" | "long"
 type BillingPreference = { llm: "managed" | "byok" | null }
 type OptionGroup<T> = { id: string; label: string; models: T[] }
-type WorkerOption = {
-  value: string
-  label: string
-  provider?: string
-  providerLogo?: string
-  model?: DelegationModel
-}
-
-export function takeModelGroups<T>(groups: OptionGroup<T>[], limit: number): OptionGroup<T>[] {
+function takeModelGroups<T>(groups: OptionGroup<T>[], limit: number): OptionGroup<T>[] {
   let remaining = Math.max(0, limit)
   const result: OptionGroup<T>[] = []
   for (const group of groups) {
@@ -82,14 +74,18 @@ export function takeModelGroups<T>(groups: OptionGroup<T>[], limit: number): Opt
   return result
 }
 
-const scopes: Array<{ id: Scope; label: string }> = [
-  { id: "all", label: "All" },
-  { id: "reasoning", label: "Reasoning" },
-  { id: "latest", label: "Latest" },
-  { id: "long", label: "Long context" },
+const scopes: Array<{
+  id: Scope
+  label: "settings.models.all" | "settings.models.reasoning" | "settings.models.latest" | "settings.models.long"
+}> = [
+  { id: "all", label: "settings.models.all" },
+  { id: "reasoning", label: "settings.models.reasoning" },
+  { id: "latest", label: "settings.models.latest" },
+  { id: "long", label: "settings.models.long" },
 ]
 
 export default function Models() {
+  const language = useLanguage()
   const sync = useGlobalSync()
   const sdk = useGlobalSDK()
   const models = useModels()
@@ -99,11 +95,8 @@ export default function Models() {
   const [scope, setScope] = createSignal<Scope>("all")
   const [catalogOpen, setCatalogOpen] = createSignal(false)
   const [error, setError] = createSignal<string>()
-  const [preferences, preferenceActions] = createResource(() =>
-    settingsApi<CapabilityPreferences>(sdk.url, fetchFn, "/settings/preferences"),
-  )
-  const [billing, billingActions] = createResource(() =>
-    settingsApi<BillingPreference>(sdk.url, fetchFn, "/settings/billing"),
+  const [billing, billingActions] = steady(
+    createResource(() => settingsApi<BillingPreference>(sdk.url, fetchFn, "/settings/billing")),
   )
   const unsubscribeBilling = sync.onProvidersRefreshed(() => void billingActions.refetch())
   onCleanup(unsubscribeBilling)
@@ -115,7 +108,7 @@ export default function Models() {
         providerID: item.provider.id,
         credential: item.provider.source,
         billing: sync.data.config.billing?.llm,
-      }) ?? (item.provider.source === "managed" || item.provider.id.startsWith("synsci") ? "managed" : "byok")
+      }) ?? (item.provider.id.startsWith("synsci") ? "managed" : "byok")
     return {
       key,
       source: item,
@@ -191,7 +184,7 @@ export default function Models() {
       .map(([id, items]) => ({ id, label: modelGroupLabel(id), models: items }))
       .sort((a, b) => modelGroupRank(a.id) - modelGroupRank(b.id) || a.label.localeCompare(b.label))
   })
-  const [renderLimit, setRenderLimit] = createSignal(48)
+  const [renderLimit, setRenderLimit] = createSignal(24)
   const visibleGroups = createMemo(() => takeModelGroups(groups(), renderLimit()))
 
   // Keep the catalog intentionally bounded. Search and filters still cover the
@@ -201,95 +194,24 @@ export default function Models() {
     query()
     scope()
     const total = filtered().length
-    setRenderLimit(Math.min(48, total))
+    setRenderLimit(Math.min(24, total))
   })
-  const [notice, setNotice] = createSignal("Pinned models appear first. Hidden models stay out of the picker.")
+  const [notice, setNotice] = createSignal<string>()
   const pinnedCount = createMemo(() => options().filter((model) => model.pinned).length)
   const visibleCount = createMemo(() => options().filter((model) => model.visible).length)
-  const workerOptions = createMemo<WorkerOption[]>(() => {
-    const selected = preferences()?.delegation_worker_model ?? undefined
-    const currentBilling = billing.latest?.llm ?? sync.data.config.billing?.llm
-    const routes = options()
-      .filter(
-        (model) =>
-          model.visible ||
-          model.routes.some(
-            (route) => route.key.providerID === selected?.providerID && route.key.modelID === selected?.modelID,
-          ),
-      )
-      .flatMap((model): WorkerOption[] => {
-        const resolved = resolveModelAccessRoute({
-          routes: model.routes.map((route) => ({ ...route.key, access: route.routeAccess, route })),
-          billing: currentBilling,
-          current: selected,
-        })
-        const route = resolved?.route
-        if (!route) return []
-        return [
-          {
-            value: model.logicalKey,
-            label: model.label,
-            provider: route.access,
-            providerLogo: route.providerLogo,
-            model: route.key,
-          },
-        ]
-      })
-      .toSorted((a, b) => a.label.localeCompare(b.label) || a.value.localeCompare(b.value))
-    const saved =
-      selected &&
-      !routes.some(
-        (option) => option.model?.providerID === selected.providerID && option.model.modelID === selected.modelID,
-      )
-        ? ({
-            value: `saved:${modelRouteValue(selected)}`,
-            label: modelDisplayName(selected.modelID, selected.providerID, selected.modelID),
-            provider: `Saved · ${selected.providerID}`,
-            providerLogo: selected.providerID,
-            model: selected,
-          } satisfies WorkerOption)
-        : undefined
-    return [{ value: "inherit", label: "Same as conversation" }, ...(saved ? [saved] : []), ...routes]
-  })
-  const workerSelection = createMemo(() => {
-    const selected = preferences()?.delegation_worker_model ?? undefined
-    if (!selected) return workerOptions()[0]
-    return workerOptions().find(
-      (option) => option.model?.providerID === selected.providerID && option.model.modelID === selected.modelID,
-    )
-  })
-  const setWorkerModel = async (option: WorkerOption) => {
-    const previous = preferences()
-    if (!previous) return
-    const next = { ...previous, delegation_worker_model: option.model ?? null }
-    preferenceActions.mutate(next)
-    setError(undefined)
-    try {
-      const saved = await settingsApi<CapabilityPreferences>(sdk.url, fetchFn, "/settings/preferences", {
-        method: "PATCH",
-        body: JSON.stringify({ delegation_worker_model: option.model ?? null }),
-      })
-      preferenceActions.mutate(saved)
-      publishCapabilityPreferences(saved)
-    } catch (cause) {
-      preferenceActions.mutate(previous)
-      setError(cause instanceof Error ? cause.message : String(cause))
-    }
-  }
-
   const togglePin = (model: Option) => {
     if (model.pinned) {
       models.pinned.toggle(model.key)
-      setNotice(`${model.label} unpinned.`)
+      setNotice(language.t("settings.models.unpinned", { model: model.label }))
       return
     }
     const result = models.pinned.toggle(model.key)
     if (result.limited) {
-      setNotice("Three models are already pinned. Unpin one before adding another.")
+      setNotice(language.t("settings.models.pinLimit"))
       return
     }
     if (result.pinned) models.setVisibility(model.key, true)
-    setNotice(`${model.label} pinned.`)
+    setNotice(language.t("settings.models.pinned", { model: model.label }))
   }
 
   const setComposerVisibility = (model: Option, checked: boolean) => {
@@ -297,81 +219,53 @@ export default function Models() {
     models.setVisibility(model.key, checked)
     setNotice(
       checked
-        ? `${model.label} shown in the composer.`
-        : `${model.label} hidden${model.pinned ? " and unpinned" : ""}.`,
+        ? language.t("settings.models.shown", { model: model.label })
+        : language.t(model.pinned ? "settings.models.hiddenUnpinned" : "settings.models.hidden", {
+            model: model.label,
+          }),
     )
   }
 
   return (
     <div class="settings-models-panel h-full min-h-0">
       <PanelScroll>
-        <PanelHeader title="Models" description="Connect model access and choose what appears while you work." />
+        <PanelHeader
+          title={language.t("settings.models.heading")}
+          description={language.t("settings.models.description")}
+        />
         <PanelBody>
           <Show when={error()}>
             <div role="alert" class="settings-alert text-12-regular" data-tone="critical">
               {error()}
             </div>
           </Show>
-          <Section id="model-access" title="Model access">
-            <div class="settings-card models-access-card">
-              <ManagedInference onError={setError} />
-            </div>
-          </Section>
-
           <Section
             id="model-connections"
-            title="Connections"
-            description="Subscriptions and provider keys available on this machine."
+            title={language.t("settings.models.connections")}
+            description={language.t("settings.models.connectionsDescription")}
           >
             <div class="settings-card models-connections-card">
               <CodexConnection onError={setError} />
               <ProviderKeys onError={setError} />
+              <SearchConnections />
             </div>
           </Section>
 
-          <Section id="model-preferences" title="Model preferences">
+          <Section id="model-preferences" title={language.t("settings.models.preferences")}>
             <div class="settings-card settings-defaults-card models-preferences-card">
               <div class="settings-row models-preference-row">
-                <RowCopy title="Worker model" description="Used for delegated research." />
-                <div class="models-worker-control">
-                  <Select
-                    aria-label="Worker model"
-                    options={workerOptions()}
-                    current={workerSelection()}
-                    value={(option) => option.value}
-                    label={(option) => option.label}
-                    disabled={!preferences()}
-                    onSelect={(option) => option && void setWorkerModel(option)}
-                    variant="secondary"
-                    size="small"
-                    triggerVariant="settings"
-                  >
-                    {(option) => (
-                      <Show when={option}>
-                        {(entry) => (
-                          <span class="models-default-option">
-                            <Show when={entry().providerLogo}>
-                              {(logo) => (
-                                <ProviderLogo id={logo()} label={entry().provider ?? "Model provider"} size="small" />
-                              )}
-                            </Show>
-                            <span class="min-w-0 truncate">{entry().label}</span>
-                            <Show when={entry().provider}>
-                              {(provider) => (
-                                <span class="shrink-0 text-10-regular text-text-weaker">· {provider()}</span>
-                              )}
-                            </Show>
-                          </span>
-                        )}
-                      </Show>
-                    )}
-                  </Select>
-                </div>
+                <RowCopy
+                  title={language.t("settings.models.worker")}
+                  description="Choose the model in Settings → Subagents. The selection applies to new assignments."
+                />
               </div>
               <div class="settings-row models-preference-row">
                 <RowCopy
-                  title="Composer models"
-                  description={`${visibleCount()} visible · ${pinnedCount()}/3 pinned for quick access`}
+                  title={language.t("settings.models.composer")}
+                  description={language.t("settings.models.composerDescription", {
+                    visible: visibleCount(),
+                    pinned: pinnedCount(),
+                  })}
                 />
                 <Button
                   class="settings-panel-action models-secondary-action"
@@ -381,27 +275,27 @@ export default function Models() {
                   aria-controls="composer-model-catalog"
                   onClick={() => setCatalogOpen((open) => !open)}
                 >
-                  {catalogOpen() ? "Done" : "Edit"}
+                  {language.t(catalogOpen() ? "settings.models.done" : "settings.models.edit")}
                 </Button>
               </div>
             </div>
             <Show when={catalogOpen()}>
               <div id="composer-model-catalog" class="models-catalog-disclosure">
-                <p class="models-catalog-notice text-11-regular text-text-weak" aria-live="polite">
-                  {notice()}
+                <p class="models-catalog-notice text-12-regular text-text-weak" aria-live="polite">
+                  {notice() ?? language.t("settings.models.notice")}
                 </p>
                 <div class="models-catalog-toolbar">
                   <SearchInput
                     value={query()}
                     onInput={setQuery}
-                    placeholder="Search models"
-                    ariaLabel="Filter models"
+                    placeholder={language.t("settings.models.search")}
+                    ariaLabel={language.t("settings.models.filter")}
                   />
                   <FilterMenu
-                    options={scopes}
+                    options={scopes.map((scope) => ({ ...scope, label: language.t(scope.label) }))}
                     value={scope()}
                     onSelect={(value) => setScope(value as Scope)}
-                    ariaLabel="Model filter"
+                    ariaLabel={language.t("settings.models.filterLabel")}
                   />
                 </div>
                 <div class="settings-card settings-model-catalog">
@@ -411,7 +305,7 @@ export default function Models() {
                         <div class="settings-list-header">
                           <h4
                             id={`composer-models-${group.id.replace(/[^a-z0-9-]/gi, "-")}`}
-                            class="text-11-medium text-text-weak"
+                            class="text-12-medium text-text-weak"
                           >
                             {group.label}
                           </h4>
@@ -420,15 +314,19 @@ export default function Models() {
                           {(model) => (
                             <div class="settings-row settings-model-row models-compact-row">
                               <div class="models-model-identity">
-                                <ProviderLogo id={model.providerLogo} label={model.provider} size="small" />
+                                <span class="settings-row-logo" aria-hidden="true">
+                                  <ProviderLogo id={model.providerLogo} label={model.provider} size="small" />
+                                </span>
                                 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
                                   <span class="flex min-w-0 items-center gap-2">
-                                    <strong class="truncate text-13-medium text-text-strong">{model.label}</strong>
+                                    <strong class="truncate text-14-medium text-text-strong">{model.label}</strong>
                                     <Show when={model.latest}>
-                                      <span class="shrink-0 text-10-medium text-text-weaker">Latest</span>
+                                      <span class="shrink-0 text-12-regular text-text-weak">
+                                        {language.t("settings.models.latest")}
+                                      </span>
                                     </Show>
                                   </span>
-                                  <span class="truncate text-11-regular text-text-weak">
+                                  <span class="truncate text-12-regular text-text-weak">
                                     {modelSummary({
                                       reasoning: model.reasoning,
                                       context: model.context,
@@ -438,6 +336,23 @@ export default function Models() {
                                           : `${model.provider} · ${model.routes[0]?.access ?? model.access}`,
                                     })}
                                   </span>
+                                  <details class="models-rate-details text-12-regular text-text-weak">
+                                    <summary>{language.t("settings.models.rates")}</summary>
+                                    <For each={model.routes}>
+                                      {(route) => (
+                                        <ModelRateDetails
+                                          access={route.routeAccess}
+                                          label={route.access}
+                                          provider={route.provider}
+                                          limit={route.source.limit}
+                                          pricing={route.source.pricing}
+                                          cost={route.source.cost}
+                                          fast={route.source.modes?.fast?.cost}
+                                          fastPricing={route.source.modes?.fast?.pricing}
+                                        />
+                                      )}
+                                    </For>
+                                  </details>
                                 </div>
                               </div>
                               <div class="ml-auto flex max-w-full shrink-0 items-center gap-2">
@@ -446,8 +361,13 @@ export default function Models() {
                                   class="settings-icon-action"
                                   data-pinned={model.pinned ? "true" : undefined}
                                   aria-pressed={model.pinned}
-                                  aria-label={`${model.pinned ? "Unpin" : "Pin"} ${model.label}`}
-                                  title={model.pinned ? "Remove from quick models" : "Pin to quick models"}
+                                  aria-label={language.t(
+                                    model.pinned ? "settings.models.unpin" : "settings.models.pin",
+                                    { model: model.label },
+                                  )}
+                                  title={language.t(
+                                    model.pinned ? "settings.models.unpinTitle" : "settings.models.pinTitle",
+                                  )}
                                   onClick={() => togglePin(model)}
                                 >
                                   <Icon name={model.pinned ? "pin-filled" : "pin"} size="small" />
@@ -457,7 +377,7 @@ export default function Models() {
                                   checked={model.visible}
                                   onChange={(checked) => setComposerVisibility(model, checked)}
                                 >
-                                  {`Show ${model.label} in composer`}
+                                  {language.t("settings.models.show", { model: model.label })}
                                 </Switch>
                               </div>
                             </div>
@@ -468,24 +388,26 @@ export default function Models() {
                   </For>
                   <Show when={options().length === 0}>
                     <p class="models-catalog-empty" role="status">
-                      No models are available yet. Connect an access route or refresh your providers.
+                      {language.t("settings.models.empty")}
                     </p>
                   </Show>
                   <Show when={options().length > 0 && filtered().length === 0}>
-                    <p class="px-4 py-6 text-center text-12-regular text-text-weak">No models match this filter.</p>
+                    <p class="px-4 py-6 text-center text-12-regular text-text-weak">
+                      {language.t("settings.models.noMatch")}
+                    </p>
                   </Show>
                   <Show when={renderLimit() < filtered().length}>
                     <div class="models-catalog-progress" role="status">
                       <span>
-                        Showing {renderLimit()} of {filtered().length}
+                        {language.t("settings.models.progress", { count: renderLimit(), total: filtered().length })}
                       </span>
                       <Button
                         class="settings-panel-action models-secondary-action"
                         size="small"
                         variant="secondary"
-                        onClick={() => setRenderLimit((current) => Math.min(filtered().length, current + 48))}
+                        onClick={() => setRenderLimit((current) => Math.min(filtered().length, current + 24))}
                       >
-                        Show more
+                        {language.t("settings.models.more")}
                       </Button>
                     </div>
                   </Show>

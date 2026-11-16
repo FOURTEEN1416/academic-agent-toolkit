@@ -1,9 +1,12 @@
+import { FileIdentity } from "./identity"
 import crypto from "node:crypto"
-import nodefs, { constants as FS, type Stats } from "node:fs"
+import nodefs, { constants as FS } from "node:fs"
 import fs from "node:fs/promises"
 import path from "node:path"
+import util from "node:util"
 import { dlopen, FFIType, toArrayBuffer, type Pointer } from "bun:ffi"
 import { WindowsSafeIO } from "./windows-safe-io"
+import { Log } from "../util/log"
 
 /**
  * Handle-relative writes for paths whose parent directory can be renamed by a
@@ -13,13 +16,13 @@ import { WindowsSafeIO } from "./windows-safe-io"
 export namespace SafeDirectoryIO {
   type Snapshot = {
     bytes: Buffer
-    dev: number
-    ino: number
+    dev: FileIdentity.Value
+    ino: FileIdentity.Value
   }
 
   export type Entry = {
-    dev: number
-    ino: number
+    dev: FileIdentity.Value
+    ino: FileIdentity.Value
     type: "file" | "directory"
   }
 
@@ -27,6 +30,8 @@ export namespace SafeDirectoryIO {
     mode: number
     approved?: Snapshot
     afterVerify?: (target: string) => void | Promise<void>
+    /** After the exchange and before its verification; a test's barrier. */
+    afterReplaceMutation?: (target: string, staged: string) => void | Promise<void>
   }
 
   export type MoveOptions = {
@@ -34,10 +39,16 @@ export namespace SafeDirectoryIO {
     afterMutation?: (source: string, target: string) => void | Promise<void>
   }
 
+  export type SwapOptions = {
+    afterVerify?: (left: string, right: string) => void | Promise<void>
+    afterMutation?: (left: string, right: string) => void | Promise<void>
+    beforeRollback?: (left: string, right: string) => void | Promise<void>
+  }
+
   type Directory = {
     fd: number
     expected: string
-    before: Stats
+    before: FileIdentity.Stat
     close(): Promise<void>
   }
 
@@ -46,8 +57,8 @@ export namespace SafeDirectoryIO {
     openat(dir: number, name: Buffer, flags: number, mode: number): number
     mkdirat(dir: number, name: Buffer, mode: number): number
     linkat(fromDir: number, from: Buffer, toDir: number, to: Buffer, flags: number): number
-    renameat(fromDir: number, from: Buffer, toDir: number, to: Buffer): number
     renameNoReplace(fromDir: number, from: Buffer, toDir: number, to: Buffer): number
+    renameSwap(fromDir: number, from: Buffer, toDir: number, to: Buffer): number
     unlinkat(dir: number, name: Buffer, flags: number): number
     errno(): number
   }
@@ -64,6 +75,7 @@ export namespace SafeDirectoryIO {
   const O_CLOEXEC = process.platform === "darwin" ? 0x01000000 : 0x00080000
   const RENAME_EXCL = 0x4
   const RENAME_NOREPLACE = 0x1
+  const RENAME_SWAP = 0x2
   const natives = { value: undefined as Native | undefined }
 
   function libraries() {
@@ -94,10 +106,6 @@ export namespace SafeDirectoryIO {
           },
           linkat: {
             args: [FFIType.i32, FFIType.ptr, FFIType.i32, FFIType.ptr, FFIType.i32],
-            returns: FFIType.i32,
-          },
-          renameat: {
-            args: [FFIType.i32, FFIType.ptr, FFIType.i32, FFIType.ptr],
             returns: FFIType.i32,
           },
           ...(process.platform === "darwin"
@@ -149,9 +157,9 @@ export namespace SafeDirectoryIO {
       openat: symbols.openat as Native["openat"],
       mkdirat: symbols.mkdirat as Native["mkdirat"],
       linkat: symbols.linkat as Native["linkat"],
-      renameat: symbols.renameat as Native["renameat"],
       renameNoReplace: (fromDir, from, toDir, to) =>
         exclusive(fromDir, from, toDir, to, process.platform === "darwin" ? RENAME_EXCL : RENAME_NOREPLACE),
+      renameSwap: (fromDir, from, toDir, to) => exclusive(fromDir, from, toDir, to, RENAME_SWAP),
       unlinkat: symbols.unlinkat as Native["unlinkat"],
       errno,
     }
@@ -178,10 +186,24 @@ export namespace SafeDirectoryIO {
     return Buffer.from(`${basename(value)}\0`)
   }
 
+  const codes: Record<number, string> = { [EINTR]: "EINTR", [ENOENT]: "ENOENT", [EEXIST]: "EEXIST" }
+
   function error(action: string, target: string, errno: number) {
-    const result = new Error(`${action} failed for ${target} (errno ${errno})`) as NodeJS.ErrnoException
+    // Callers branch on `code` like they do for fs errors; an errno alone made
+    // every ENOENT look like an unexpected failure (and warned on every save).
+    const code = codes[errno] ?? systemErrorName(errno)
+    const result = new Error(`${action} failed for ${target} (${code ?? `errno ${errno}`})`) as NodeJS.ErrnoException
     result.errno = errno
+    if (code) result.code = code
     return result
+  }
+
+  function systemErrorName(errno: number) {
+    try {
+      return util.getSystemErrorName(-errno)
+    } catch {
+      return undefined
+    }
   }
 
   function invoke(action: string, target: string, call: () => number) {
@@ -211,19 +233,17 @@ export namespace SafeDirectoryIO {
   }
 
   function stat(fd: number) {
-    return new Promise<Stats>((resolve, reject) => {
-      nodefs.fstat(fd, (error, value) => (error ? reject(error) : resolve(value)))
-    })
+    return FileIdentity.fstat(fd)
   }
 
-  function identity(info: Stats, target: string): Entry {
+  function identity(info: FileIdentity.Stat, target: string): Entry {
     const type = info.isFile() ? "file" : info.isDirectory() ? "directory" : undefined
     if (!type) throw new Error(`Only regular files and directories can be moved: ${target}`)
     return { dev: info.dev, ino: info.ino, type }
   }
 
   function matches(left: Entry, right: Entry) {
-    return left.dev === right.dev && left.ino === right.ino && left.type === right.type
+    return FileIdentity.same(left, right) && left.type === right.type
   }
 
   function sync(fd: number, directory = false) {
@@ -283,17 +303,15 @@ export namespace SafeDirectoryIO {
   async function verify(directory: Directory) {
     const [after, current, canonical] = await Promise.all([
       stat(directory.fd),
-      fs.lstat(directory.expected),
+      FileIdentity.lstat(directory.expected),
       fs.realpath(directory.expected),
     ]).catch(() => [undefined, undefined, undefined] as const)
     if (
       !after?.isDirectory() ||
       !current?.isDirectory() ||
       current.isSymbolicLink() ||
-      directory.before.dev !== after.dev ||
-      directory.before.ino !== after.ino ||
-      current.dev !== after.dev ||
-      current.ino !== after.ino ||
+      !FileIdentity.same(directory.before, after) ||
+      !FileIdentity.same(current, after) ||
       canonical !== directory.expected
     ) {
       throw new Error(`Write destination directory identity changed during access: ${directory.expected}`)
@@ -304,7 +322,7 @@ export namespace SafeDirectoryIO {
     const expected = path.resolve(directory)
     const canonical = await fs.realpath(expected)
     if (canonical !== expected) throw new Error(`Write destination became ambiguous: ${directory}`)
-    const requested = await fs.lstat(expected)
+    const requested = await FileIdentity.lstat(expected)
     if (!requested.isDirectory() || requested.isSymbolicLink()) {
       throw new Error(`Write destination is not a direct directory: ${directory}`)
     }
@@ -313,7 +331,7 @@ export namespace SafeDirectoryIO {
       const result: Directory = {
         fd: handle.fd,
         expected,
-        before: await handle.stat(),
+        before: await FileIdentity.stat(handle),
         close: () => handle.close(),
       }
       await verify(result)
@@ -369,7 +387,7 @@ export namespace SafeDirectoryIO {
     const missing: string[] = []
     const cursor = { value: expected }
     while (true) {
-      const info = await fs.lstat(cursor.value).catch((error: NodeJS.ErrnoException) => {
+      const info = await FileIdentity.lstat(cursor.value).catch((error: NodeJS.ErrnoException) => {
         if (error.code === "ENOENT") return
         throw error
       })
@@ -406,13 +424,14 @@ export namespace SafeDirectoryIO {
     )
     const state = { closed: false }
     try {
-      const bytes = typeof content === "string" ? Buffer.from(content) : content
+      const bytes = typeof content === "string" ? Buffer.from(content) : Buffer.from(content)
       await writeAll(fd, bytes)
       await chmod(fd, mode)
       await sync(fd)
+      const identity = await stat(fd)
       await close(fd)
       state.closed = true
-      return staged
+      return { file: staged, approved: { bytes, dev: identity.dev, ino: identity.ino } }
     } catch (cause) {
       if (!state.closed) await close(fd).catch(() => undefined)
       const cleanup = attempt(() => native().unlinkat(directory.fd, name(staged), 0))
@@ -423,25 +442,32 @@ export namespace SafeDirectoryIO {
     }
   }
 
-  async function snapshot(directory: Directory, file: string) {
+  async function snapshot(directory: Directory, file: string, approved: Snapshot) {
     const api = native()
     const fd = invoke("openat", file, () =>
-      api.openat(directory.fd, name(file), FS.O_RDONLY | FS.O_NOFOLLOW | O_CLOEXEC, 0),
+      api.openat(directory.fd, name(file), FS.O_RDONLY | FS.O_NOFOLLOW | FS.O_NONBLOCK | O_CLOEXEC, 0),
     )
     try {
       const before = await stat(fd)
       if (!before.isFile()) throw new Error(`Only regular files can be approved for replacement: ${file}`)
+      // Compare before allocating: concurrent sparse-file growth must not turn
+      // a small editor save into an unbounded read under mutation authority.
+      if (!FileIdentity.same(before, approved) || before.size !== approved.bytes.byteLength) {
+        throw new Error(`Refusing to write ${file}: the approved file changed before replacement`)
+      }
       const bytes = await readAll(fd, before.size)
       const after = await stat(fd)
       if (
-        before.dev !== after.dev ||
-        before.ino !== after.ino ||
+        !FileIdentity.same(before, after) ||
         before.size !== after.size ||
         before.mtimeMs !== after.mtimeMs ||
         before.ctimeMs !== after.ctimeMs ||
         bytes.byteLength !== before.size
       ) {
         throw new Error(`Approved file changed during handle-relative validation: ${file}`)
+      }
+      if (!bytes.equals(approved.bytes)) {
+        throw new Error(`Refusing to write ${file}: the approved file changed before replacement`)
       }
       return { bytes, dev: after.dev, ino: after.ino }
     } finally {
@@ -464,15 +490,17 @@ export namespace SafeDirectoryIO {
     throw error("linkat", `${from} -> ${to}`, result.errno)
   }
 
-  function rename(directory: Directory, from: string, to: string) {
-    const api = native()
-    invoke("renameat", `${from} -> ${to}`, () => api.renameat(directory.fd, name(from), directory.fd, name(to)))
-  }
-
   function move(from: Directory, source: string, to: Directory, target: string) {
     const api = native()
     invoke("exclusive rename", `${source} -> ${target}`, () =>
       api.renameNoReplace(from.fd, name(source), to.fd, name(target)),
+    )
+  }
+
+  function swap(directory: Directory, left: string, right: string) {
+    const api = native()
+    invoke("atomic swap", `${left} <-> ${right}`, () =>
+      api.renameSwap(directory.fd, name(left), directory.fd, name(right)),
     )
   }
 
@@ -525,36 +553,82 @@ export namespace SafeDirectoryIO {
     }
   }
 
-  async function replace(directory: Directory, staged: string, target: string, approved: Snapshot) {
-    const backup = basename(`.openscience-approved-${crypto.randomUUID()}.bak`)
-    const state = { moved: false }
+  /** The entry at our staging name after an exchange, proven by its bytes
+   * rather than its identity: an overlay root copies a lower-layer file up
+   * on exchange and renumbers it, so the original we displaced can come back
+   * under a new inode. Bytes equal to the approved snapshot are ours to
+   * remove; anything else stays where a recovery can find it. */
+  async function displaced(directory: Directory, file: string, approved: Snapshot) {
+    const api = native()
+    const fd = invoke("openat", file, () =>
+      api.openat(directory.fd, name(file), FS.O_RDONLY | FS.O_NOFOLLOW | FS.O_NONBLOCK | O_CLOEXEC, 0),
+    )
     try {
-      rename(directory, target, backup)
-      state.moved = true
-      const current = await snapshot(directory, backup)
-      if (current.dev !== approved.dev || current.ino !== approved.ino || !current.bytes.equals(approved.bytes)) {
-        throw new Error(`Refusing to write ${target}: the approved file changed before replacement`)
+      const before = await stat(fd)
+      if (!before.isFile()) throw new Error(`Only regular files can be approved for replacement: ${file}`)
+      if (before.size !== approved.bytes.byteLength) {
+        throw new Error(`Refusing to remove ${file}: the displaced original changed after approval`)
       }
-      await install(directory, staged, target)
-    } catch (cause) {
-      if (state.moved) {
-        const failures: unknown[] = [cause]
-        try {
-          link(directory, backup, target)
-          unlink(directory, backup)
-          await sync(directory.fd, true)
-        } catch (error) {
-          failures.push(error)
-        }
-        if (failures.length > 1) {
-          throw new AggregateError(failures, `Write failed; original retained under ${backup}`)
-        }
-      }
-      throw cause
+      const bytes = await readAll(fd, before.size)
+      if (!bytes.equals(approved.bytes))
+        throw new Error(`Refusing to remove ${file}: the displaced original changed after approval`)
+    } finally {
+      await close(fd)
     }
-    unlink(directory, staged)
-    unlink(directory, backup)
-    await sync(directory.fd, true)
+  }
+
+  async function cleanupStage(directory: Directory, staged: string, approved: Snapshot) {
+    try {
+      await displaced(directory, staged, approved)
+      unlink(directory, staged)
+      await sync(directory.fd, true)
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return
+      // A failed rollback may leave an original or another writer's bytes at
+      // our staging name. Its name alone never authorizes deleting that data.
+      Log.create({ service: "file.write" }).warn("Write staging file retained for recovery", {
+        path: path.join(directory.expected, staged),
+        error,
+      })
+    }
+  }
+
+  async function replace(
+    directory: Directory,
+    staged: Awaited<ReturnType<typeof stage>>,
+    target: string,
+    approved: Snapshot,
+    options?: Options,
+  ) {
+    const before = { dev: approved.dev, ino: approved.ino, type: "file" as const }
+    const after = { dev: staged.approved.dev, ino: staged.approved.ino, type: "file" as const }
+    await verify(directory)
+    // Keep the public name present for readers throughout an approved save.
+    // The same guarded exchange used by patches verifies both file identities
+    // and rolls back without replacing an unexpected directory entry.
+    await swapEntries(
+      path.join(directory.expected, target),
+      path.join(directory.expected, staged.file),
+      before,
+      after,
+      {
+        afterVerify: async () => {
+          await snapshot(directory, target, approved)
+          await snapshot(directory, staged.file, staged.approved)
+        },
+        afterMutation: async (left, right) => {
+          await options?.afterReplaceMutation?.(left, right)
+          await snapshot(directory, target, staged.approved)
+          await displaced(directory, staged.file, approved)
+        },
+        beforeRollback: async () => {
+          // A writer may have changed the installed inode without replacing it.
+          // Preserve those public bytes and retain the original for recovery.
+          await snapshot(directory, target, staged.approved)
+        },
+      },
+    )
+    await cleanupStage(directory, staged.file, approved)
   }
 
   export async function write(target: string, content: string | Uint8Array, options: Options) {
@@ -566,17 +640,27 @@ export namespace SafeDirectoryIO {
       await options.afterVerify?.(resolved.path)
       const staged = await stage(parent, content, options.mode)
       try {
-        if (options.approved) await replace(parent, staged, resolved.file, options.approved)
+        if (options.approved) await replace(parent, staged, resolved.file, options.approved, options)
         else {
-          await install(parent, staged, resolved.file)
-          unlink(parent, staged)
+          await install(parent, staged.file, resolved.file)
+          unlink(parent, staged.file)
           await sync(parent.fd, true)
         }
       } finally {
-        unlink(parent, staged)
+        await cleanupStage(parent, staged.file, staged.approved)
       }
     } finally {
       await parent.close()
+    }
+  }
+
+  export async function ensureDirectory(target: string): Promise<void> {
+    if (process.platform === "win32") return WindowsSafeIO.ensureDirectory(target)
+    const opened = await directory(path.join(path.resolve(target), ".openscience-directory"))
+    try {
+      await verify(opened)
+    } finally {
+      await opened.close()
     }
   }
 
@@ -656,6 +740,99 @@ export namespace SafeDirectoryIO {
       throw cause
     } finally {
       await Promise.all([current.close(), from.close(), ...(!same ? [to.close()] : [])])
+    }
+  }
+
+  export async function swapEntries(
+    left: string,
+    right: string,
+    leftExpected: Entry,
+    rightExpected: Entry,
+    options?: SwapOptions,
+  ) {
+    if (process.platform !== "darwin" && process.platform !== "linux") {
+      throw new Error("Atomic entry exchange requires macOS or Linux")
+    }
+    const leftPath = direct(left)
+    const rightPath = direct(right)
+    if (leftPath.parent !== rightPath.parent) throw new Error("Atomic exchange entries must be siblings")
+    const parent = await openExisting(leftPath.parent)
+    const state = { swapped: false }
+    try {
+      await verify(parent)
+      const [leftEntry, rightEntry] = await Promise.all([
+        openEntry(parent, leftPath.file, leftPath.path),
+        openEntry(parent, rightPath.file, rightPath.path),
+      ])
+      try {
+        if (!matches(leftEntry.entry, leftExpected) || !matches(rightEntry.entry, rightExpected)) {
+          throw new Error("Atomic exchange entries changed after approval")
+        }
+      } finally {
+        await Promise.all([leftEntry.close(), rightEntry.close()])
+      }
+      await options?.afterVerify?.(leftPath.path, rightPath.path)
+      await verify(parent)
+      const [finalLeft, finalRight] = await Promise.all([
+        openEntry(parent, leftPath.file, leftPath.path),
+        openEntry(parent, rightPath.file, rightPath.path),
+      ])
+      try {
+        if (!matches(finalLeft.entry, leftExpected) || !matches(finalRight.entry, rightExpected)) {
+          throw new Error("Atomic exchange entries changed before mutation")
+        }
+      } finally {
+        await Promise.all([finalLeft.close(), finalRight.close()])
+      }
+      swap(parent, leftPath.file, rightPath.file)
+      state.swapped = true
+      await options?.afterMutation?.(leftPath.path, rightPath.path)
+      await sync(parent.fd, true)
+      const [receivedLeft, receivedRight] = await Promise.all([
+        openEntry(parent, leftPath.file, leftPath.path),
+        openEntry(parent, rightPath.file, rightPath.path),
+      ])
+      try {
+        // The public name must now hold exactly the approved replacement. The
+        // displaced entry may carry a new identity: an overlay root copies a
+        // lower-layer file up on exchange and renumbers it (Modal's gVisor
+        // root does this the first time a file shipped in the image is
+        // edited), so its identity proves nothing either way; the caller's
+        // afterMutation reads its bytes, which do.
+        if (!matches(receivedLeft.entry, rightExpected) || receivedRight.entry.type !== leftExpected.type) {
+          throw new Error("Atomic exchange produced unexpected directory entries")
+        }
+      } finally {
+        await Promise.all([receivedLeft.close(), receivedRight.close()])
+      }
+      await verify(parent)
+    } catch (cause) {
+      if (!state.swapped) throw cause
+      try {
+        await options?.beforeRollback?.(leftPath.path, rightPath.path)
+        const [rollbackLeft, rollbackRight] = await Promise.all([
+          openEntry(parent, leftPath.file, leftPath.path),
+          openEntry(parent, rightPath.file, rightPath.path),
+        ])
+        try {
+          if (!matches(rollbackLeft.entry, rightExpected) || !matches(rollbackRight.entry, leftExpected)) {
+            throw new Error("Atomic exchange entries changed before rollback")
+          }
+        } finally {
+          await Promise.all([rollbackLeft.close(), rollbackRight.close()])
+        }
+        swap(parent, leftPath.file, rightPath.file)
+        await sync(parent.fd, true)
+      } catch (error) {
+        const reason = cause instanceof Error ? cause.message : String(cause)
+        throw new AggregateError(
+          [cause, error],
+          `Atomic exchange failed and could not be rolled back without replacing an unapproved entry: ${reason}`,
+        )
+      }
+      throw cause
+    } finally {
+      await parent.close()
     }
   }
 }

@@ -63,10 +63,12 @@ Choose a concrete topic query. Examples:
 
 ### Step 2: Search arXiv and/or bioRxiv
 
-Use helper script:
+<!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用；脚本在盘时按下方命令使用，缺失时走 fallback。-->
+
+Preferred (helper script, when present):
 
 ```bash
-python skills/daily-paper-generator/scripts/arxiv_search.py <!--ACAT-GOVERNANCE: 上游脚本未随本仓库集成，不可直接调用--> \
+python scripts/arxiv_search.py \
   --query "test-time adaptation for medical imaging" \
   --source both \
   --months 1 \
@@ -78,6 +80,17 @@ Notes:
 - `--source arxiv`: arXiv only
 - `--source biorxiv`: bioRxiv only
 - `--source both`: merge both sources and sort by date
+
+Fallback (helper script missing — it is not bundled in this repo): search by yourself with the arXiv API or WebSearch using the same query + months window:
+
+```bash
+# arXiv API (Atom), no key required; equivalent of --query + --months + --max-results 80
+curl -s "http://export.arxiv.org/api/query?search_query=all:%22test-time%20adaptation%20for%20medical%20imaging%22&sortBy=submittedDate&sortOrder=descending&max_results=80" -o /tmp/arxiv_atom.xml
+```
+
+- Parse the returned Atom XML (title/abstract/date) as the equivalent of `papers.json`; an Atom parser is available at `academic-toolkit/skills/lit-multi-db-search/scripts/arxiv_atom.py`.
+- For bioRxiv, use WebSearch restricted to `site:biorxiv.org` with the same query and recency window.
+- Then continue with the same funnel discipline (Top 10 -> Top 3 -> Top 1).
 
 ### Step 3: Top 10 candidate selection (per field)
 

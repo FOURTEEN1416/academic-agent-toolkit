@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/stage-service-result.schema.json",
+  "title": "Pure J4-J6 service result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "stage", "status", "task_id", "revision_id", "subject", "blockers", "warnings", "artifacts", "next_stage", "invalidated_artifacts", "frozen_authority", "external_action_authorized", "result_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.stage-service-result"},
+    "schema_version": {"const": "1.0"},
+    "stage": {"enum": ["J4", "J5", "J6"]},
+    "status": {"enum": ["true", "false", "unknown", "stale"]},
+    "task_id": {"type": "string", "minLength": 1},
+    "revision_id": {"type": "string", "minLength": 1},
+    "subject": {"$ref": "quality-subject.schema.json"},
+    "blockers": {"type": "array", "items": {"$ref": "https://paperspine.local/contracts/stage-service-result.schema.json#/$defs/finding"}},
+    "warnings": {"type": "array", "items": {"$ref": "https://paperspine.local/contracts/stage-service-result.schema.json#/$defs/finding"}},
+    "artifacts": {"type": "array", "items": {"$ref": "stage-artifact-descriptor.schema.json"}},
+    "next_stage": {"enum": ["J4", "J5", "J6", "J7"]},
+    "invalidated_artifacts": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "frozen_authority": {"oneOf": [{"type": "null"}, {"$ref": "frozen-authority-projection.schema.json"}]},
+    "external_action_authorized": {"const": false},
+    "result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+        "message": {"type": "string", "minLength": 1},
+        "path": {"type": "string"}
+      }
+    }
+  }
+}

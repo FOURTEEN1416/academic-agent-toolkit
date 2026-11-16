@@ -4,9 +4,15 @@ description: Machine learning in Python with scikit-learn. Use when working with
 category: coding
 license: BSD-3-Clause license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/scikit-learn
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Machine Learning, Classification, Regression, Clustering]
 dependencies: ["scikit-learn>=1.5.0"]
 ---

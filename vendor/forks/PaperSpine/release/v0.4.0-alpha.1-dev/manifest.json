@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.2",
+  "product": "PaperSpine5",
+  "version": "0.4.0-alpha.1-dev",
+  "channel": "prerelease",
+  "build_id": "w7a-16e6c32f1eb32a463e7f",
+  "release_state": "published",
+  "published": true,
+  "repository": "https://github.com/WUBING2023/PaperSpine",
+  "tag": "v0.4.0-alpha.1-dev",
+  "release_url": "https://github.com/WUBING2023/PaperSpine/releases/tag/v0.4.0-alpha.1-dev",
+  "license": "MIT",
+  "artifacts": [
+    {
+      "kind": "suite",
+      "file": "paperspine5-suite-0.4.0-alpha.1-dev.zip",
+      "bytes": 26413122,
+      "sha256": "5fd48b5baba22483bcffdc6078e6ab9aac2ab0d03a0a9214dc17df801ad544d5",
+      "download_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.1-dev/paperspine5-suite-0.4.0-alpha.1-dev.zip",
+      "description": "完整 V5 工作区：内置 Windows x64 runtime、Web 工作区、profile 生命周期、更新与回滚。",
+      "install_command": "powershell -ExecutionPolicy Bypass -File .\\install.ps1 -Target codex -CleanLegacy",
+      "platform": "windows-amd64",
+      "build_id": "w7a-16e6c32f1eb32a463e7f"
+    },
+    {
+      "kind": "suite-linux-x86_64",
+      "platform": "linux-x86_64",
+      "build_id": "w7p-linux-x86_64-b3bcb4dcf094",
+      "file": "paperspine5-suite-0.4.0-alpha.1-dev-linux-x86_64.zip",
+      "bytes": 56169896,
+      "sha256": "d348bc8fe541edcfc95e105519770ba3e56e7243bc3f705771462bc11a23fb95",
+      "description": "完整 V5 工作区：内置 Linux x86_64 glibc runtime、Web 工作区、profile 生命周期、更新与回滚。",
+      "download_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.1-dev/paperspine5-suite-0.4.0-alpha.1-dev-linux-x86_64.zip",
+      "install_command": "sh ./install.sh --target codex --clean-legacy"
+    },
+    {
+      "kind": "suite-macos-arm64",
+      "platform": "macos-arm64",
+      "build_id": "w7p-macos-arm64-5512484f90b8",
+      "file": "paperspine5-suite-0.4.0-alpha.1-dev-macos-arm64.zip",
+      "bytes": 40524093,
+      "sha256": "9aedfd5d95b7210e4cb174f69773a5e9d3c3d55528189c6b67cbdece064c660c",
+      "description": "完整 V5 工作区：内置 Apple Silicon runtime、Web 工作区、profile 生命周期、更新与回滚。",
+      "download_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.1-dev/paperspine5-suite-0.4.0-alpha.1-dev-macos-arm64.zip",
+      "install_command": "sh ./install.sh --target codex --clean-legacy"
+    },
+    {
+      "kind": "suite-macos-x86_64",
+      "platform": "macos-x86_64",
+      "build_id": "w7p-macos-x86_64-e6712a779f9c",
+      "file": "paperspine5-suite-0.4.0-alpha.1-dev-macos-x86_64.zip",
+      "bytes": 40498601,
+      "sha256": "a03fdd843aa7761728c6aa525e61a0379644d5335add5261723ee1f0f9c6dff7",
+      "description": "完整 V5 工作区：内置 Intel Mac runtime、Web 工作区、profile 生命周期、更新与回滚。",
+      "download_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.1-dev/paperspine5-suite-0.4.0-alpha.1-dev-macos-x86_64.zip",
+      "install_command": "sh ./install.sh --target codex --clean-legacy"
+    },
+    {
+      "kind": "standalone-skill",
+      "file": "paperspine5-skill-0.4.0-alpha.1-dev.zip",
+      "bytes": 715991,
+      "sha256": "3fe8f600919714c817d2c2becf096fa9b9a5e43640fa59f505b3055a8e1956f9",
+      "download_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.1-dev/paperspine5-skill-0.4.0-alpha.1-dev.zip",
+      "description": "轻量 paper-spine Skill：适用于已有宿主和本地运行环境。",
+      "install_command": "powershell -ExecutionPolicy Bypass -File .\\install.ps1 -Target codex -CleanLegacy",
+      "platform": "host-managed"
+    }
+  ],
+  "release_assets": {
+    "manifest_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.1-dev/manifest.json",
+    "checksums_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.1-dev/checksums.sha256",
+    "installer_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.1-dev/install.ps1",
+    "installer_bytes": 5890,
+    "installer_sha256": "50082ae8d86f88109aa1fa308cb5cab591d53c46aaa92b3938fd3e7abc30c110",
+    "posix_installer_url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.1-dev/install.sh",
+    "posix_installer_bytes": 5536,
+    "posix_installer_sha256": "8de3366eafdb51e5eab0808db97ee840e2a5f24dd97b8a4b69bd91c74b5b59e0"
+  },
+  "installation": {
+    "canonical_skill": "paper-spine",
+    "known_legacy_names": [
+      "PaperSpine",
+      "PaperSpineV2",
+      "paperFig",
+      "paperspine5-workspace",
+      "paper-spine-research",
+      "paper-spine-citation",
+      "paper-spine-rewrite",
+      "paper-spine-build",
+      "paper-spine-latex",
+      "paper-spine-audit",
+      "paper-spine-translate",
+      "paper-spine-humanize",
+      "paper-spine-update"
+    ],
+    "legacy_action": "archive_to_user_paperspine5_backups",
+    "task_data_preserved": true,
+    "unknown_paths": "never_guess_or_delete"
+  },
+  "validation": {
+    "suite_build": "PASS",
+    "suite_verify": "PASS",
+    "standalone_archive": "PASS",
+    "public_release_status": "published",
+    "external_submission_authorized": false,
+    "linux_x86_64_suite": "PASS: native GitHub ubuntu-24.04 install/REST/MCP/update/rollback",
+    "macos_arm64_suite": "PASS: native GitHub macos-15 install/REST/MCP/update/rollback",
+    "macos_x86_64_suite": "PASS: native GitHub macos-15-intel install/REST/MCP/update/rollback",
+    "portable_workflow_run": "34962411845"
+  },
+  "limitations": [
+    "macOS packages are unsigned and not notarized; Gatekeeper may require an explicit local approval.",
+    "Linux support is glibc x86_64 only; musl/Alpine and Linux arm64 are not claimed.",
+    "Apple Silicon and Intel Mac use separate packages; do not interchange them.",
+    "No independent cryptographic signature.",
+    "Known legacy Skill folders are archived only when cleanup is explicitly requested.",
+    "Public release does not authorize external manuscript submission."
+  ],
+  "update": {
+    "check_command": "Windows: install.ps1 -CheckOnly; macOS/Linux: sh ./install.sh --check-only",
+    "apply_command": "Windows: install.ps1 -Target codex; macOS/Linux: sh ./install.sh --target codex",
+    "policy": "manual-explicit; existing profile uses transactional update; task data retained"
+  }
+}

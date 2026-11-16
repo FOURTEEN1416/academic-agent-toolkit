@@ -444,11 +444,15 @@ def test_explore_workflow_accepts_delivery_scope2_operation_contract(tmp_path):
     set_workflow_metadata(store, workflow_id,
                           execution_contract={"tier": "explore", "version": 1},
                           delivery_candidate={"candidate_id": "cand-1", "source_workflow_id": "src"})
-    collected = collect_execution_evidence(store, store.get_workflow(workflow_id), session.action)
+    # ENG-2 后 StepAction 显式携带 contract_tier：metadata 已改为 explore，按真实
+    # 时序（先定档再取证）用同一 step/attempt 重建 action，再收集与校验证据。
+    action = _runner._action_for_step(store.get_workflow(workflow_id),
+                                      store.get_step(session.action.step_id))
+    collected = collect_execution_evidence(store, store.get_workflow(workflow_id), action)
     assert collected["contract_tier"] == "explore"
     assert collected["delivery_candidate_id"] == "cand-1"
     validated = validate_execution_evidence(
-        session.workspace, session.action,
+        session.workspace, action,
         StepResult(ok=True, artifacts=["result.txt"], metadata={"execution_evidence": collected}),
         store=store)
     assert validated["contract_tier"] == "explore"
@@ -460,10 +464,10 @@ def test_explore_workflow_accepts_delivery_scope2_operation_contract(tmp_path):
     store._connection.execute(
         "UPDATE execution_operations SET payload=? WHERE id=?", (json.dumps(payload), command_row["id"]))
     store._connection.commit()
-    tampered = collect_execution_evidence(store, store.get_workflow(workflow_id), session.action)
+    tampered = collect_execution_evidence(store, store.get_workflow(workflow_id), action)
     with pytest.raises(ValueError, match="contract changed"):
         validate_execution_evidence(
-            session.workspace, session.action,
+            session.workspace, action,
             StepResult(ok=True, artifacts=["result.txt"], metadata={"execution_evidence": tampered}),
             store=store)
     store.close()

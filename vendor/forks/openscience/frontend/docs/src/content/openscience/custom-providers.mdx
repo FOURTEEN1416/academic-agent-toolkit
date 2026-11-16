@@ -1,0 +1,140 @@
+---
+title: "Custom providers"
+description: "Connect a compatible model service that is not in the provider picker."
+---
+
+Use a custom provider when your service exposes a compatible chat API and supplies its base URL, model IDs, authentication method, and capabilities. For common local runtimes, start with [Local models](/openscience/local-models).
+
+Removing a key in Settings disconnects that API-key connection. Its saved Base URL and protocol remain available when you add a key again. A separate credential in your environment or configuration can keep the provider connected.
+
+## Configure the endpoint
+
+Add a provider block to `openscience.json`:
+
+```json
+{
+  "provider": {
+    "my-provider": {
+      "name": "My provider",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://models.example.org/v1",
+        "apiKey": "{env:MY_PROVIDER_API_KEY}"
+      },
+      "models": {
+        "my-model": {
+          "name": "My model",
+          "tool_call": false,
+          "reasoning": false,
+          "limit": {
+            "context": 32768,
+            "output": 4096
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+The URL and model name are placeholders. Replace them with values from your service's documentation. Set the environment variable before starting OpenScience, and replace the limits with those of the actual model.
+
+The adapter package identifies the API format. It does not determine who hosts the model or pays for the request; those depend on your endpoint and account.
+
+## Check a text-only request
+
+```bash
+openscience models my-provider
+openscience run --model my-provider/my-model --bare "Reply with one sentence confirming the connection"
+```
+
+The example starts with tool calling and reasoning disabled. A successful text response does not verify tool calling, file inputs, images, or reasoning controls.
+
+If a service requires a different API format, use the supported provider integration for that format instead of assuming compatibility.
+
+## Enable only supported capabilities
+
+Set `tool_call: true` only when the selected model and endpoint support tool use. Then test a small read-only task, such as listing the files in a sample project.
+
+Set reasoning options only when the service documents them. Do not infer capability from the model's name.
+
+Prefer an exact model ID for reproducible work. A provider's moving alias can change the model without changing your configuration.
+
+## Keep custom entries current
+
+A custom model entry does not automatically import an arbitrary provider's full catalog. Review its identifiers, limits, capabilities, and prices when that service changes.
+
+A context limit in configuration describes what OpenScience should expect. For self-hosted models, configure the actual server limit separately.
+
+## Example: Mammouth
+
+Mammouth documents an [OpenAI-compatible chat endpoint](https://info.mammouth.ai/docs/api-quick-start/) at `https://api.mammouth.ai/v1`. Configure it as a custom provider, and keep the key in the `MAMMOUTH_API_KEY` environment variable rather than in the project file:
+
+```json
+{
+  "provider": {
+    "mammouth": {
+      "name": "Mammouth",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.mammouth.ai/v1",
+        "apiKey": "{env:MAMMOUTH_API_KEY}"
+      },
+      "models": {
+        "mammouth-recommended": {
+          "name": "Mammouth Recommended",
+          "tool_call": false,
+          "reasoning": false
+        }
+      }
+    }
+  }
+}
+```
+
+`mammouth-recommended` is Mammouth's moving alias, so the underlying model can change without editing this entry. For reproducible runs, choose an exact model ID from Mammouth's [Model Explorer](https://model-explorer.mammouth.ai/); its [public catalog](https://api.mammouth.ai/public/models) lists current IDs, limits, and rates. OpenScience does not import or refresh that catalog. The example leaves tool calling and reasoning disabled: the catalog does not declare those capabilities, and this is a chat configuration, not a verified agent-tool integration. Requests use your Mammouth account, not your Ace Wallet.
+
+## Request deadlines
+
+Provider options support request deadlines in milliseconds:
+
+| Option | Default |
+| --- | --- |
+| `connectTimeout` | 300000 (5 minutes) waiting for response headers; 600000 (10 minutes) for the managed Ace gateway, which sends headers only once the upstream body begins; disabled by default for local endpoints. |
+| `idleTimeout` | 600000 (10 minutes) for remote endpoints, including the managed Ace gateway; reset by every response-body chunk and disabled by default for local endpoints. Other remote endpoints allow longer at higher reasoning effort (1.5× at `high`, 2.5× at `xhigh`, 4.5× at `max`); the managed gateway ends a silent stream itself, so its deadline does not grow. |
+| `outputIdleTimeout` | Disabled; optionally bound the wait for readable output or tool-call activity. |
+| `timeout` | No total-duration limit by default. |
+
+Active remote responses keep running because keepalives and streamed private reasoning reset the body-activity deadline. Set `idleTimeout` to `false` if a remote provider legitimately stays byte-silent for longer than ten minutes. Use **Stop** to cancel your wait. To opt into a twenty-minute readable-output deadline, merge an override into that provider's options:
+
+```json
+{
+  "provider": {
+    "my-provider": {
+      "options": {
+        "outputIdleTimeout": 1200000
+      }
+    }
+  }
+}
+```
+
+This allows twenty minutes without new readable output. Set an individual option to `false` to disable that deadline. Disabling `timeout` does not disable the other deadlines. These settings cannot extend limits imposed by the service itself.
+
+Review partial results before retrying a timed-out request. Your service may already have processed part of it. A request that timed out before any model output arrived is sent once more automatically as a new request; the service may bill both.
+
+## Set a Base URL in Models
+
+In **Customize → Models → Connections → Add key**, select the provider, enter its key, and set **Base URL**. This overrides that provider's endpoint globally; it does not create a separate model catalog. Custom model IDs still belong in a provider block as shown above.
+
+For **OpenAI**, choose **Responses** or **Chat Completions** to match the service. The SDK appends `/responses` or `/chat/completions`; an ordinary base is `https://models.example.org/v1`. For **Anthropic**, the SDK uses Messages and appends `/messages`, so include `/v1` in the base. Azure's OpenAI v1 endpoint can be used with OpenAI Responses and the full `https://RESOURCE.services.ai.azure.com/openai/v1` base. Use the deployment name as the model ID. Saving the form does not verify that a deployment exists or that the service supports a model's tools and reasoning controls.
+
+Leave Base URL blank to remove the saved override and use the provider default or its environment setting. HTTPS is required except for loopback HTTP during local development. Credentials belong in the key field, never in the URL.
+
+## Search is a separate connection
+
+The **Research and web search** section reports whether `research_search` has Firecrawl or Ace configured. Add a Firecrawl key in **Customize → Credentials**, or connect Ace in **Wallet**. Configured credentials do not prove remaining quota or successful access.
+
+`literature`, `webfetch`, and scientific database tools work independently of model-provider search features, subject to their own source credentials and network permissions. Reuse an existing search MCP in **Customize → Connectors** and inspect its actual Tools list. See [search MCP setup](/openscience/connectors#search-mcp-examples).
+
+Selecting a Responses-compatible endpoint does not enable provider-hosted web search. OpenScience does not automatically inject a provider's `web_search` tool into custom Responses requests. Use the built-in research tools or an explicit MCP search connection instead.

@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import collections
-import concurrent.futures
 import datetime as dt
 import html
 import json
@@ -21,10 +20,64 @@ import urllib.request
 
 
 GITHUB_API = "https://api.github.com"
+GITHUB_GRAPHQL_API = f"{GITHUB_API}/graphql"
+
+STARGAZERS_QUERY = """
+query StarHistory($owner: String!, $name: String!, $cursor: String, $first: Int!, $direction: OrderDirection!) {
+  repository(owner: $owner, name: $name) {
+    stargazerCount
+    stargazers(
+      first: $first
+      after: $cursor
+      orderBy: {field: STARRED_AT, direction: $direction}
+    ) {
+      edges {
+        starredAt
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+  rateLimit {
+    cost
+    remaining
+    resetAt
+  }
+}
+"""
+
+
+PAGE_SIZE = 100
+MIN_PAGE_SIZE = 25
+
+
+class TransientGraphQLError(RuntimeError):
+    """GitHub reported a retryable server-side GraphQL failure."""
+
+
+def is_transient_graphql_error(errors: object) -> bool:
+    """Deep stargazer pages on large repos often fail with a generic server error."""
+    if not isinstance(errors, list):
+        return False
+    for error in errors:
+        message = str(error.get("message", "") if isinstance(error, dict) else error).lower()
+        kind = str(error.get("type", "") if isinstance(error, dict) else "").upper()
+        if kind in {"RATE_LIMITED", "TIMEOUT"} or any(
+            marker in message
+            for marker in ("something went wrong", "timeout", "timed out", "try again")
+        ):
+            return True
+    return False
 
 
 class StarHistoryUnavailable(RuntimeError):
     """Raised when the API response cannot support a trustworthy chart."""
+
+
+class StarHistoryAuthRequired(StarHistoryUnavailable):
+    """Raised when no GitHub token is available; a configuration error, not a data problem."""
 
 
 def parse_args() -> argparse.Namespace:
@@ -38,6 +91,14 @@ def parse_args() -> argparse.Namespace:
         "--output",
         default="assets/star-history.svg",
         help="Output SVG path.",
+    )
+    parser.add_argument(
+        "--cache",
+        default="assets/star-history-data.json",
+        help=(
+            "JSON file holding per-day new-star counts so later runs only fetch "
+            "new stars. Pass an empty string to always do a full fetch."
+        ),
     )
     parser.add_argument(
         "--cache-bust-readme",
@@ -57,8 +118,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--workers",
         type=int,
-        default=4,
-        help="Concurrent page fetches. Keep modest to avoid TLS/rate-limit errors.",
+        default=1,
+        help=(
+            "Deprecated compatibility option. GraphQL cursor pagination is "
+            "sequential, so this value is ignored."
+        ),
     )
     parser.add_argument(
         "--retries",
@@ -83,21 +147,39 @@ def local_gh_token() -> str | None:
     return token or None
 
 
-def github_json(url: str, token: str | None, retries: int) -> object:
+def github_graphql(
+    query: str,
+    variables: dict[str, object],
+    token: str | None,
+    retries: int,
+) -> dict:
+    """Execute an authenticated GitHub GraphQL query with bounded retries."""
+    if not token:
+        raise StarHistoryAuthRequired(
+            "GitHub GraphQL stargazer pagination requires GITHUB_TOKEN, GH_TOKEN, "
+            "or an authenticated gh CLI."
+        )
+
     headers = {
-        "Accept": "application/vnd.github.star+json",
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
         "User-Agent": "nature-skills-static-star-history",
         "X-GitHub-Api-Version": "2022-11-28",
     }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-
+    body = json.dumps({"query": query, "variables": variables}).encode("utf-8")
     last_error: Exception | None = None
+
     for attempt in range(retries + 1):
-        request = urllib.request.Request(url, headers=headers)
+        request = urllib.request.Request(
+            GITHUB_GRAPHQL_API,
+            data=body,
+            headers=headers,
+            method="POST",
+        )
         try:
             with urllib.request.urlopen(request, timeout=45) as response:
-                return json.loads(response.read().decode("utf-8"))
+                payload = json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             last_error = exc
             if exc.code in {403, 429, 500, 502, 503, 504} and attempt < retries:
@@ -106,7 +188,10 @@ def github_json(url: str, token: str | None, retries: int) -> object:
                     delay = max(5, int(reset) - int(time.time()) + 2)
                 else:
                     delay = min(60, 2 ** attempt)
-                print(f"request failed with HTTP {exc.code}; retrying in {delay}s", file=sys.stderr)
+                print(
+                    f"GraphQL request failed with HTTP {exc.code}; retrying in {delay}s",
+                    file=sys.stderr,
+                )
                 time.sleep(delay)
                 continue
             raise
@@ -114,54 +199,286 @@ def github_json(url: str, token: str | None, retries: int) -> object:
             last_error = exc
             if attempt < retries:
                 delay = min(60, 2 ** attempt)
-                print(f"request failed: {exc}; retrying in {delay}s", file=sys.stderr)
+                print(
+                    f"GraphQL request failed: {exc}; retrying in {delay}s",
+                    file=sys.stderr,
+                )
                 time.sleep(delay)
                 continue
             raise
-    raise RuntimeError(f"GitHub request failed after retries: {last_error}")
+
+        if not isinstance(payload, dict):
+            raise RuntimeError("GitHub GraphQL returned a non-object response")
+        errors = payload.get("errors")
+        if errors:
+            if is_transient_graphql_error(errors):
+                last_error = TransientGraphQLError(
+                    f"GitHub GraphQL returned errors: {errors}"
+                )
+                if attempt < retries:
+                    delay = min(60, 2 ** attempt)
+                    print(
+                        f"GraphQL returned a transient error; retrying in {delay}s",
+                        file=sys.stderr,
+                    )
+                    time.sleep(delay)
+                    continue
+                raise last_error
+            raise RuntimeError(f"GitHub GraphQL returned errors: {errors}")
+        return payload
+
+    raise RuntimeError(f"GitHub GraphQL request failed after retries: {last_error}")
 
 
-def fetch_stargazers(repo: str, token: str | None, workers: int, retries: int) -> tuple[int, list[dict]]:
-    repo_url = f"{GITHUB_API}/repos/{repo}"
-    repo_info = github_json(repo_url, token, retries)
-    if not isinstance(repo_info, dict) or "stargazers_count" not in repo_info:
-        raise RuntimeError(f"Could not read repository metadata for {repo}")
+def fetch_stargazers(
+    repo: str,
+    token: str | None,
+    workers: int,
+    retries: int,
+) -> tuple[int, list[dict]]:
+    """Fetch every active stargazer timestamp using cursor pagination.
 
-    total_stars = int(repo_info["stargazers_count"])
-    if total_stars == 0:
-        print(f"No stars found for {repo}; writing an empty history.")
-        return total_stars, []
+    GitHub's REST stargazers endpoint rejects numeric pages above 400. The
+    GraphQL connection uses opaque cursors and continues beyond 40,000 stars.
+    ``workers`` remains in the signature for CLI compatibility but is ignored
+    because each cursor depends on the preceding page.
+    """
+    del workers
+    try:
+        owner, name = repo.split("/", 1)
+    except ValueError as exc:
+        raise ValueError("repo must be in owner/name form") from exc
+    if not owner or not name:
+        raise ValueError("repo must be in owner/name form")
 
-    pages = max(1, math.ceil(total_stars / 100))
-    print(f"Fetching {total_stars:,} stars from {repo} across {pages} pages")
-
-    def fetch_page(page: int) -> tuple[int, list[dict]]:
-        url = f"{GITHUB_API}/repos/{repo}/stargazers?per_page=100&page={page}"
-        data = github_json(url, token, retries)
-        if not isinstance(data, list):
-            raise RuntimeError(f"Unexpected stargazers response for page {page}")
-        return page, data
-
+    cursor: str | None = None
     items: list[dict] = []
     completed = 0
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=max(1, workers))
-    futures = [executor.submit(fetch_page, page) for page in range(1, pages + 1)]
-    try:
-        for future in concurrent.futures.as_completed(futures):
-            page, page_items = future.result()
-            items.extend(page_items)
-            completed += 1
-            if completed == 1 or completed % 25 == 0 or completed == pages:
-                print(f"Fetched {completed}/{pages} pages (latest completed page {page})")
-    except Exception:
-        for future in futures:
-            future.cancel()
-        executor.shutdown(wait=False, cancel_futures=True)
-        raise
-    else:
-        executor.shutdown(wait=True)
+    expected_pages: int | None = None
+    total_stars = 0
 
-    return total_stars, items
+    page_size = PAGE_SIZE
+
+    while True:
+        try:
+            payload = github_graphql(
+                STARGAZERS_QUERY,
+                {
+                    "owner": owner,
+                    "name": name,
+                    "cursor": cursor,
+                    "first": page_size,
+                    "direction": "ASC",
+                },
+                token,
+                retries,
+            )
+        except TransientGraphQLError:
+            # A persistently failing page is usually too expensive for GitHub;
+            # the cursor stays valid, so retry the same position with fewer rows.
+            if page_size <= MIN_PAGE_SIZE:
+                raise
+            page_size = max(MIN_PAGE_SIZE, page_size // 2)
+            print(f"Reducing GraphQL page size to {page_size}", file=sys.stderr)
+            continue
+        data = payload.get("data")
+        if not isinstance(data, dict):
+            raise RuntimeError("GitHub GraphQL response is missing data")
+        repo_info = data.get("repository")
+        if not isinstance(repo_info, dict):
+            raise RuntimeError(f"Could not read repository metadata for {repo}")
+
+        try:
+            total_stars = int(repo_info["stargazerCount"])
+            connection = repo_info["stargazers"]
+            edges = connection["edges"]
+            page_info = connection["pageInfo"]
+        except (KeyError, TypeError, ValueError) as exc:
+            raise RuntimeError("Malformed GitHub GraphQL stargazer response") from exc
+        if (
+            not isinstance(connection, dict)
+            or not isinstance(edges, list)
+            or not isinstance(page_info, dict)
+        ):
+            raise RuntimeError("Malformed GitHub GraphQL stargazer connection")
+
+        if expected_pages is None:
+            if total_stars == 0:
+                print(f"No stars found for {repo}; writing an empty history.")
+            expected_pages = max(1, math.ceil(total_stars / PAGE_SIZE))
+            print(
+                f"Fetching {total_stars:,} stars from {repo} via GraphQL "
+                f"cursor pagination ({expected_pages} pages expected)"
+            )
+
+        for edge in edges:
+            if not isinstance(edge, dict):
+                items.append({})
+            else:
+                items.append({"starred_at": edge.get("starredAt")})
+
+        completed += 1
+        has_next_page = page_info.get("hasNextPage")
+        if not isinstance(has_next_page, bool):
+            raise RuntimeError("GitHub GraphQL pageInfo is missing hasNextPage")
+        if completed == 1 or completed % 25 == 0 or not has_next_page:
+            print(
+                f"Fetched {completed} GraphQL page(s); "
+                f"collected {len(items):,}/{total_stars:,} stargazers"
+            )
+        if not has_next_page:
+            break
+
+        next_cursor = page_info.get("endCursor")
+        if not isinstance(next_cursor, str) or not next_cursor or next_cursor == cursor:
+            raise RuntimeError("GitHub GraphQL pagination did not advance its cursor")
+        cursor = next_cursor
+
+    if abs(len(items) - total_stars) > 100:
+        raise StarHistoryUnavailable(
+            f"GitHub reported {total_stars:,} stars but returned {len(items):,} "
+            "stargazer timestamps; leaving the existing chart unchanged."
+        )
+    if len(items) != total_stars:
+        print(
+            f"Repository changed during pagination: metadata reported {total_stars:,} "
+            f"stars and {len(items):,} timestamp records were fetched. "
+            "Using the fetched records for this snapshot.",
+            file=sys.stderr,
+        )
+    return len(items), items
+
+
+CACHE_VERSION = 1
+MAX_INCREMENTAL_PAGES = 50
+# Allowed drift between cached counts and GitHub's total (un-starred repos).
+CACHE_DRIFT_TOLERANCE = 100
+
+
+def load_daily_cache(path: pathlib.Path, repo: str) -> dict[dt.date, int] | None:
+    """Load per-day new-star counts, or None when absent/unusable."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if data["version"] != CACHE_VERSION or data["repo"] != repo:
+            return None
+        daily = {
+            dt.date.fromisoformat(day): int(count)
+            for day, count in data["daily"].items()
+        }
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return None
+    if not daily or any(count < 0 for count in daily.values()):
+        return None
+    return daily
+
+
+def save_daily_cache(path: pathlib.Path, repo: str, daily: dict[dt.date, int]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "version": CACHE_VERSION,
+        "repo": repo,
+        "daily": {day.isoformat(): daily[day] for day in sorted(daily)},
+    }
+    path.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8")
+
+
+def fetch_recent_star_dates(
+    repo: str,
+    token: str | None,
+    retries: int,
+    since: dt.date,
+) -> tuple[int, list[dt.date]]:
+    """Fetch newest-first stargazer dates until reaching a day before ``since``.
+
+    Returns GitHub's current total and every star date >= ``since``. Only the
+    newest few pages are read, so this avoids expensive deep pagination.
+    """
+    owner, name = repo.split("/", 1)
+    cursor: str | None = None
+    recent: list[dt.date] = []
+    total_stars = 0
+
+    for _ in range(MAX_INCREMENTAL_PAGES):
+        payload = github_graphql(
+            STARGAZERS_QUERY,
+            {
+                "owner": owner,
+                "name": name,
+                "cursor": cursor,
+                "first": PAGE_SIZE,
+                "direction": "DESC",
+            },
+            token,
+            retries,
+        )
+        try:
+            repo_info = payload["data"]["repository"]
+            total_stars = int(repo_info["stargazerCount"])
+            connection = repo_info["stargazers"]
+            edges = connection["edges"]
+            page_info = connection["pageInfo"]
+            dates = [
+                dt.datetime.fromisoformat(edge["starredAt"].replace("Z", "+00:00")).date()
+                for edge in edges
+            ]
+        except (KeyError, TypeError, ValueError, AttributeError) as exc:
+            raise StarHistoryUnavailable(
+                "Malformed GitHub GraphQL response during incremental fetch"
+            ) from exc
+
+        recent.extend(day for day in dates if day >= since)
+        reached_cached_range = any(day < since for day in dates)
+        if reached_cached_range or not page_info.get("hasNextPage"):
+            return total_stars, recent
+
+        next_cursor = page_info.get("endCursor")
+        if not isinstance(next_cursor, str) or not next_cursor or next_cursor == cursor:
+            raise StarHistoryUnavailable("Incremental pagination did not advance its cursor")
+        cursor = next_cursor
+
+    raise StarHistoryUnavailable(
+        f"Incremental fetch exceeded {MAX_INCREMENTAL_PAGES} pages without reaching the cache"
+    )
+
+
+def merge_recent_into_daily(
+    daily: dict[dt.date, int],
+    recent: list[dt.date],
+    since: dt.date,
+) -> dict[dt.date, int]:
+    """Replace every day >= ``since`` with freshly counted values."""
+    merged = {day: count for day, count in daily.items() if day < since}
+    merged.update(collections.Counter(recent))
+    return merged
+
+
+def update_daily_incrementally(
+    repo: str,
+    token: str | None,
+    retries: int,
+    daily: dict[dt.date, int],
+) -> dict[dt.date, int] | None:
+    """Return refreshed counts, or None when a full refresh is needed."""
+    since = max(daily)
+    try:
+        total_stars, recent = fetch_recent_star_dates(repo, token, retries, since)
+    except StarHistoryUnavailable as exc:
+        print(f"Incremental update unavailable ({exc}); falling back to full fetch.", file=sys.stderr)
+        return None
+    merged = merge_recent_into_daily(daily, recent, since)
+    drift = sum(merged.values()) - total_stars
+    if abs(drift) > CACHE_DRIFT_TOLERANCE:
+        print(
+            f"Cached history differs from GitHub's total by {drift:+,}; "
+            "falling back to full fetch.",
+            file=sys.stderr,
+        )
+        return None
+    print(
+        f"Incremental update: {len(recent):,} star(s) since {since}; "
+        f"history now {sum(merged.values()):,} (GitHub reports {total_stars:,})"
+    )
+    return merged
 
 
 def build_daily_points(items: list[dict], expected_total: int) -> list[tuple[dt.date, int]]:
@@ -192,10 +509,15 @@ def build_daily_points(items: list[dict], expected_total: int) -> list[tuple[dt.
             "Check the API Accept header and token permissions."
         )
 
-    dates.sort()
-    start = dates[0]
-    end = dates[-1]
-    by_day = collections.Counter(dates)
+    return points_from_daily(collections.Counter(dates))
+
+
+def points_from_daily(by_day: collections.Counter | dict[dt.date, int]) -> list[tuple[dt.date, int]]:
+    """Turn per-day new-star counts into a cumulative, gap-free series."""
+    if not by_day:
+        return []
+    start = min(by_day)
+    end = max(by_day)
     points = []
     running = 0
     day = start
@@ -405,8 +727,11 @@ def update_readme_cache_buster(
     with path.open("r", encoding="utf-8", newline="") as handle:
         original = handle.read()
     output_path = pathlib.PurePosixPath(output_ref)
+    # PurePosixPath("star-history.svg").parent is ".", which must not become a literal "./" prefix.
+    directory = "" if output_path.parent.as_posix() == "." else f"{output_path.parent.as_posix()}/"
+    boundary = "" if directory else r"(?<![\w./-])"  # do not match inside other-star-history.svg
     versioned_pattern = (
-        rf"{re.escape(output_path.parent.as_posix())}/"
+        rf"{boundary}{re.escape(directory)}"
         rf"{re.escape(output_path.stem)}(?:-\d{{8}}T\d{{6}}Z)?"
         rf"{re.escape(output_path.suffix)}(?:\?v=[A-Za-z0-9._-]+)?"
     )
@@ -424,12 +749,29 @@ def main() -> int:
     if "/" not in args.repo:
         raise SystemExit("--repo must be in owner/name form")
 
-    total_stars, items = fetch_stargazers(args.repo, args.token, args.workers, args.retries)
-    try:
-        points = build_daily_points(items, total_stars)
-    except StarHistoryUnavailable as exc:
-        print(f"Warning: {exc}", file=sys.stderr)
-        return 0
+    cache_path = pathlib.Path(args.cache) if args.cache else None
+    daily = load_daily_cache(cache_path, args.repo) if cache_path else None
+    if daily is not None:
+        daily = update_daily_incrementally(args.repo, args.token, args.retries, daily)
+
+    if daily is None:
+        try:
+            total_stars, items = fetch_stargazers(args.repo, args.token, args.workers, args.retries)
+            points = build_daily_points(items, total_stars)
+        except StarHistoryAuthRequired:
+            raise  # a missing token is a configuration error and must fail the job
+        except StarHistoryUnavailable as exc:
+            print(f"Warning: {exc}", file=sys.stderr)
+            return 0
+        daily = {}
+        previous = 0
+        for day, cumulative in points:
+            daily[day] = cumulative - previous
+            previous = cumulative
+    else:
+        points = points_from_daily(daily)
+    if cache_path and daily:
+        save_daily_cache(cache_path, args.repo, daily)
     output = pathlib.Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     generated_at = dt.datetime.now(dt.timezone.utc)

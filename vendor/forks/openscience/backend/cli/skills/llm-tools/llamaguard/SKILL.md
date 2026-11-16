@@ -3,10 +3,18 @@ name: llamaguard
 description: Meta's 7-8B specialized moderation model for LLM input/output filtering. 6 safety categories - violence/hate, sexual content, weapons, substances, self-harm, criminal planning. 94-95% accuracy. Deploy with vLLM, HuggingFace, Sagemaker. Integrates with NeMo Guardrails.
 category: llm-tools
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Safety Alignment, LlamaGuard, Content Moderation, Meta, Guardrails, Safety Classification, Input Filtering, Output Filtering, AI Safety]
 dependencies: [transformers, torch, vllm]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 07-safety-alignment/llamaguard
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # LlamaGuard - AI Content Moderation
@@ -303,12 +311,6 @@ model = AutoModelForCausalLM.from_pretrained(
 
 ## Advanced topics
 
-**Custom categories**: See [references/custom-categories.md](references/custom-categories.md) for fine-tuning LlamaGuard with domain-specific safety categories.
-
-**Performance benchmarks**: See [references/benchmarks.md](references/benchmarks.md) for accuracy comparison with other moderation APIs and latency optimization.
-
-**Deployment guide**: See [references/deployment.md](references/deployment.md) for Sagemaker, Kubernetes, and scaling strategies.
-
 ## Hardware requirements
 
 - **GPU**: NVIDIA T4/A10/A100
@@ -333,6 +335,4 @@ model = AutoModelForCausalLM.from_pretrained(
 - Paper: https://ai.meta.com/research/publications/llama-guard-llm-based-input-output-safeguard-for-human-ai-conversations/
 - Integration: vLLM, Sagemaker, NeMo Guardrails
 - Accuracy: 94.5% (prompts), 95.3% (responses)
-
-
 

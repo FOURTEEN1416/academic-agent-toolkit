@@ -1,5 +1,17 @@
 import { describe, expect, test } from "bun:test"
-import { blankConnectorForm, buildConnectorConfig, connectorFormFromConfig, connectorIdentity } from "./connector-form"
+import { ConnectorFormError } from "./form-error"
+import { dict as zh } from "@/i18n/zh"
+import { resolveTemplate } from "@solid-primitives/i18n"
+import {
+  blankConnectorForm,
+  buildConnectorConfig,
+  catalogPresetConfig,
+  connectorFormFromCatalog,
+  connectorFormFromConfig,
+  connectorConflictsWithCatalogPreset,
+  connectorIdentity,
+  connectorMatchesCatalogSetup,
+} from "./connector-form"
 
 describe("Connector Settings form behavior", () => {
   test("turns a quoted local command and environment fields into the persisted MCP payload", () => {
@@ -45,13 +57,147 @@ describe("Connector Settings form behavior", () => {
     ).toThrow("Timeout must be a positive whole number")
   })
 
+  test("keeps a tool-selection query and refuses a credential query the way the server does", () => {
+    const url = "https://mcp.exa.ai/mcp?tools=web_search_exa,web_fetch_exa"
+    expect(buildConnectorConfig({ ...blankConnectorForm("remote"), url })).toMatchObject({ type: "remote", url })
+    expect(() =>
+      buildConnectorConfig({ ...blankConnectorForm("remote"), url: "https://mcp.exa.ai/mcp?exaApiKey=abc123" }),
+    ).toThrow('query parameter "exaApiKey" looks like a credential; send it as a request header instead')
+    expect(() =>
+      buildConnectorConfig({ ...blankConnectorForm("remote"), url: "https://mcp.example.org/mcp#token" }),
+    ).toThrow("fragment")
+  })
+
+  test("prefills reviewed catalog setup without saving or enabling it", () => {
+    const form = connectorFormFromCatalog({
+      type: "remote",
+      name: "box",
+      url: "https://mcp.box.com",
+      oauth: "client",
+      scope: "item_readwrite",
+    })
+
+    expect(form).toMatchObject({
+      type: "remote",
+      name: "box",
+      url: "https://mcp.box.com",
+      oauth: "client",
+      scope: "item_readwrite",
+      initiallyDisabled: true,
+      requireClientSecret: false,
+    })
+    expect(form.previous).toBeUndefined()
+    expect(buildConnectorConfig({ ...form, clientId: "box-client" })).toMatchObject({ enabled: false })
+    expect(
+      connectorMatchesCatalogSetup(buildConnectorConfig({ ...form, clientId: "box-client" }), {
+        type: "remote",
+        url: form.url,
+        oauth: "client",
+        scope: form.scope,
+      }),
+    ).toBe(true)
+    expect(
+      connectorMatchesCatalogSetup(
+        { type: "remote", url: "https://attacker.example/mcp" },
+        { type: "remote", url: "https://mcp.box.com", oauth: "client" },
+      ),
+    ).toBe(false)
+    expect(
+      connectorMatchesCatalogSetup(
+        { type: "remote", url: "https://mcp.box.com", oauth: false },
+        { type: "remote", url: "https://mcp.box.com", oauth: "client" },
+      ),
+    ).toBe(false)
+    expect(() =>
+      buildConnectorConfig({
+        ...form,
+        clientId: "box-client",
+        clientSecret: "",
+        requireClientSecret: true,
+      }),
+    ).toThrow("OAuth client secret is required")
+  })
+
+  test("keeps the recommended preset disabled without starting OAuth", () => {
+    const setup = {
+      type: "remote",
+      name: "givemeanode",
+      url: "https://mcp.givemeanode.com",
+      oauth: "auto",
+      one_click_connect: true,
+    } as const
+    const config = catalogPresetConfig(setup)
+
+    expect(config).toEqual({
+      type: "remote",
+      url: "https://mcp.givemeanode.com",
+      oauth: {},
+      enabled: false,
+    })
+    expect(JSON.stringify(config)).not.toMatch(/api[_-]?key|authorization|clientSecret/i)
+    expect(connectorConflictsWithCatalogPreset(undefined, setup)).toBe(false)
+    expect(connectorConflictsWithCatalogPreset(config, setup)).toBe(false)
+    expect(connectorConflictsWithCatalogPreset({ ...config, headers: { Authorization: "Bearer custom" } }, setup)).toBe(
+      true,
+    )
+    expect(connectorConflictsWithCatalogPreset({ ...config, timeout: 60_000 }, setup)).toBe(true)
+    expect(
+      connectorConflictsWithCatalogPreset({ type: "remote", url: "https://different.example", oauth: {} }, setup),
+    ).toBe(true)
+    expect(() =>
+      catalogPresetConfig({
+        type: "remote",
+        name: "manual",
+        url: "https://mcp.example.com",
+        oauth: "auto",
+      }),
+    ).toThrow("requires setup review")
+  })
+
+  test("saves anonymous Parallel off and preserves existing custom connections", () => {
+    const setup = {
+      type: "remote",
+      name: "parallel-search",
+      url: "https://search.parallel.ai/mcp",
+      oauth: "off",
+      one_click_disabled: true,
+    } as const
+    const config = catalogPresetConfig(setup)
+    expect(config).toEqual({ type: "remote", url: setup.url, oauth: false, enabled: false })
+    expect(connectorConflictsWithCatalogPreset(config, setup)).toBe(false)
+    expect(connectorConflictsWithCatalogPreset({ ...config, oauth: {} }, setup)).toBe(true)
+    expect(connectorConflictsWithCatalogPreset({ ...config, headers: { Authorization: "Bearer custom" } }, setup)).toBe(
+      true,
+    )
+    expect(connectorConflictsWithCatalogPreset({ ...config, url: "https://other.example/mcp" }, setup)).toBe(true)
+    expect(() => catalogPresetConfig({ ...setup, one_click_connect: true })).toThrow("requires setup review")
+  })
+
   test("uses recognizable connector identities and transport-specific fallbacks", () => {
     expect(
       connectorIdentity("code", {
         type: "remote",
         url: "https://api.github.com/mcp",
       }),
-    ).toEqual({ icon: "github", label: "GitHub" })
+    ).toEqual({ icon: "github", label: "GitHub", providerLogo: "github" })
+    expect(
+      connectorIdentity("givemeanode", {
+        type: "remote",
+        url: "https://mcp.givemeanode.com",
+      }),
+    ).toEqual({ icon: "cloud", label: "GiveMeANode", providerLogo: "givemeanode" })
+    expect(
+      connectorIdentity("box", {
+        type: "remote",
+        url: "https://mcp.box.com",
+      }),
+    ).toEqual({ icon: "cloud", label: "Box", providerLogo: "box" })
+    expect(
+      connectorIdentity("lab records", {
+        type: "remote",
+        url: "https://tenant.mcp.benchling.com/mcp",
+      }),
+    ).toEqual({ icon: "cloud", label: "Benchling", providerLogo: "benchling" })
     expect(
       connectorIdentity("research files", {
         type: "local",
@@ -63,7 +209,7 @@ describe("Connector Settings form behavior", () => {
         type: "remote",
         url: "https://mcp.example.org/mcp",
       }),
-    ).toEqual({ icon: "cloud", label: "Hosted server" })
+    ).toEqual({ icon: "cloud", label: "Remote server" })
     expect(
       connectorIdentity("analysis", {
         type: "local",
@@ -71,4 +217,17 @@ describe("Connector Settings form behavior", () => {
       }),
     ).toEqual({ icon: "console", label: "Local process" })
   })
+})
+
+test("connector validation can be presented in Chinese with localized field names", () => {
+  try {
+    buildConnectorConfig({ ...blankConnectorForm("remote"), url: "https://mcp.example.org", headers: "[]" })
+    throw new Error("invalid headers accepted")
+  } catch (error) {
+    expect(error).toBeInstanceOf(ConnectorFormError)
+    if (!(error instanceof ConnectorFormError)) throw error
+    expect(resolveTemplate(zh[error.key], { ...error.values, label: zh["settings.validation.headers"] })).toBe(
+      "请求头必须是 JSON 对象",
+    )
+  }
 })

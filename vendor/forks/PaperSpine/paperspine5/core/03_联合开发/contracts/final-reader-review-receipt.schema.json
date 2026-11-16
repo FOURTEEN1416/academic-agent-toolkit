@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/final-reader-review-receipt.schema.json",
+  "title": "Independent final-reader reverse extraction receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "contract_version", "reviewer_id", "producer_ids", "self_signed_final", "final_decision", "reviewed_artifact_hashes", "reviewed_binding_ids", "reader_claims"],
+  "properties": {
+    "contract": {"const": "paperspine5.final-reader-review-receipt"},
+    "contract_version": {"const": "1.0"},
+    "reviewer_id": {"type": "string", "minLength": 1},
+    "producer_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "self_signed_final": {"const": false},
+    "final_decision": {"enum": ["pass", "blocked"]},
+    "reviewed_artifact_hashes": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+    "reviewed_binding_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "reader_claims": {"type": "array", "items": {"type": "object"}}
+  }
+}

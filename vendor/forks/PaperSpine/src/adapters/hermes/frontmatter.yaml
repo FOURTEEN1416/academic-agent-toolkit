@@ -2,12 +2,12 @@
 # sync injects these fields ahead of the shared SKILL.md body; body is identical to other hosts.
 name: paper-spine
 title: PaperSpine — Academic Paper & Report Writing
-description: Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end, then output LaTeX/PDF/Word. Contribution-first, reviewer-aware.
+description: Orchestrate evidence-bound paper work from intake through drafting, audit, and local package preparation without asserting unsupported readiness.
 category: academic-writing
 domain: academic-writing, scientific-manuscripts, latex, peer-review
 triggers:
-  - Write or rewrite a journal/conference paper end to end
+  - Orchestrate a journal/conference paper workflow from supplied evidence
   - Build a paper or report from materials and results
   - Produce LaTeX/PDF/Word manuscript with citations
   - Generate highlights, cover letter, or reviewer response
-  - Reduce AI-detection rate / humanize an academic draft
+  - Restore an author's scholarly voice without changing claims or evidence

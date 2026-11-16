@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/frozen-authority-projection.schema.json",
+  "title": "Exact W5/W6 authority projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "status", "frozen", "subject", "authorities", "external_action_authorized", "projection_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.frozen-authority-projection"},
+    "schema_version": {"const": "1.0"},
+    "status": {"const": "PASS"},
+    "frozen": {"const": true},
+    "subject": {"$ref": "quality-subject.schema.json"},
+    "authorities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["direction_authority", "target_authority", "claim_evidence"],
+      "properties": {
+        "direction_authority": {"$ref": "https://paperspine.local/contracts/frozen-authority-projection.schema.json#/$defs/binding"},
+        "target_authority": {"$ref": "https://paperspine.local/contracts/frozen-authority-projection.schema.json#/$defs/binding"},
+        "claim_evidence": {"$ref": "https://paperspine.local/contracts/frozen-authority-projection.schema.json#/$defs/binding"}
+      }
+    },
+    "external_action_authorized": {"const": false},
+    "projection_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "sha256"],
+      "properties": {
+        "artifact_id": {"enum": ["direction_authority", "target_authority", "claim_evidence"]},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

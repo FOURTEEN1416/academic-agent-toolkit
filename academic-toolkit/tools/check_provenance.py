@@ -77,8 +77,6 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "skills" / "spine-rewrite" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "spine-translate-zh" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "spine-config-ui" / "references" / "UPSTREAM.md",
-    # 专项治理批次 2：latex-document 资产补齐（2026-09-09）
-    ROOT / "skills" / "latex-document" / "references" / "UPSTREAM.md",
     # 专项治理批次 1c：ars-* 资产补齐（2026-09-09）
     ROOT / "skills" / "paper-writing-pipeline" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "paper-peer-review-simulation" / "references" / "UPSTREAM.md",
@@ -127,6 +125,15 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "skills" / "paper-peer-review-simulation" / "references" / "nature-statistics" / "UPSTREAM.md",
     ROOT / "skills" / "monitor-experiment" / "references" / "nature-experiment-log" / "UPSTREAM.md",
     ROOT / "skills" / "comp-contest-research" / "references" / "competition-profiles" / "UPSTREAM.md",
+    # 2026-11-16 上游核查批（UP-9/UP-13）：在盘未注册 6 件补注册（V1 盘点反向缺口结清；
+    # experimental-design/pymc/pymoo/simpy/stable-baselines3 为 K-Dense pin 36d8f13a 代，
+    # fig-plot-edit 为 editaplot 收编件——此前属门禁盲区）
+    ROOT / "skills" / "experimental-design" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "fig-plot-edit" / "UPSTREAM.md",
+    ROOT / "skills" / "pymc" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "pymoo" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "simpy" / "references" / "UPSTREAM.md",
+    ROOT / "skills" / "stable-baselines3" / "references" / "UPSTREAM.md",
 ]
 
 # 【全部吸收】批 F4：ARS#2（Auto-claude-code-research-in-sleep）V1.1 同名整采 34 件

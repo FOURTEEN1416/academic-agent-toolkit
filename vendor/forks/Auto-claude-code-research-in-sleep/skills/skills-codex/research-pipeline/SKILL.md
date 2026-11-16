@@ -5,6 +5,17 @@ description: "Full end-to-end research pipeline: from a broad research direction
 
 # Full Research Pipeline: Idea → Experiments → Submission
 
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
+
 > **External cadence is fire-control only.** An overnight scheduler may check
 > process/file progress, update a heartbeat, and nudge a stalled phase. It must
 > never rerun or replace a reviewer verdict. Register the state file with
@@ -14,13 +25,25 @@ description: "Full end-to-end research pipeline: from a broad research direction
 
 End-to-end autonomous research workflow for: **$ARGUMENTS**
 
+## Optional formal proof route
+
+Before creating an experimental run, route theorem-centered requests for Lean
+to [`/lean-formalize`](../lean-formalize/SKILL.md) and report its actual proof
+result. Run the experimental stages below when the task includes empirical
+research. In a mixed project, use Lean for a user-requested formal proof or a
+specific mathematical obligation whose formal verification would materially
+help; return its checked scope and remaining obligations to the research summary
+and applicable proof audit. Ordinary mathematics stays in the existing theory
+skills. Difficulty alone does not make Lean mandatory, and a formal sublemma
+does not establish an empirical claim.
+
 ## Constants
 
 - **AUTO_PROCEED = true** — When `true`, every selection checkpoint is informational: report the choice and continue in the same turn. When `false`, ask for explicit user confirmation and end the turn at the checkpoint.
 - **ARXIV_DOWNLOAD = false** — When `true`, `/research-lit` downloads the top relevant arXiv PDFs during literature survey. When `false` (default), only fetches metadata via arXiv API. Passed through to `/idea-discovery` → `/research-lit`.
 - **HUMAN_CHECKPOINT = false** — When `true`, the auto-review loops (Stage 3) pause after each round's review to let you see the score and provide custom modification instructions before fixes are implemented. When `false` (default), loops run fully autonomously. Passed through to `/auto-review-loop`.
 - **REVIEWER_DIFFICULTY = medium** — How adversarial the reviewer is. `medium` (default): standard MCP review. `hard`: adds **Reviewer Memory** + **Debate Protocol**. `nightmare`: GPT reads repo directly via `codex exec` + memory + debate. Passed through to `/auto-review-loop`.
-- **CODE_REVIEW = true** — GPT-5.6-Sol xhigh reviews experiment code before deployment. Catches logic bugs before wasting GPU hours. Set `false` to skip. Passed through to `/experiment-bridge`.
+- **CODE_REVIEW = true** — GPT-6-Astra xhigh reviews experiment code before deployment. Catches logic bugs before wasting GPU hours. Set `false` to skip. Passed through to `/experiment-bridge`.
 - **BASE_REPO = false** — GitHub repo URL to use as base codebase. When set, `/experiment-bridge` clones the repo first and implements experiments on top of it. When `false` (default), writes code from scratch or reuses existing project files. Passed through to `/experiment-bridge`.
 - **COMPACT = false** — When `true`, generates compact summary files for short-context models and session recovery. Passed through to `/idea-discovery` and `/experiment-bridge`.
 - **AUTO_WRITE = false** — When `true`, automatically invoke Workflow 3 (`/paper-writing`) after Stage 4. `VENUE` is needed only when Stage 5 begins — a missing venue defers paper writing; it never blocks Stages 1-4. When `false` (default), Stage 4 generates `NARRATIVE_REPORT.md` and stops — user invokes `/paper-writing` manually.
@@ -28,7 +51,7 @@ End-to-end autonomous research workflow for: **$ARGUMENTS**
 - **RENDER_HTML = true** — When `true` (default), auto-render `NARRATIVE_REPORT.md` to HTML at Stage 4 completion via `/render-html`. Uses `--no-review` because Stage 3 already produced a traced same-family provisional review. Set `false` to skip. Rendering failure is non-blocking.
 - **RESUMABLE = true** — Record per-stage state under `.aris/runs/` and resume
   from the first non-terminal phase. Same-family Codex review produces
-  `provisional`; deterministic or overlay gates produce `accepted`.
+  `provisional`; deterministic or completed positive known-cross-family review gates produce `accepted`.
 
 > 💡 Override via argument, e.g., `/research-pipeline "topic" — AUTO_PROCEED: false, human checkpoint: true, difficulty: nightmare, code review: false, base repo: https://github.com/org/project, auto_write: true, venue: NeurIPS`.
 
@@ -87,19 +110,20 @@ WATCHDOG=""
 Warn-and-skip state tracking if `RUN_STATE` cannot be resolved; never pretend it
 was persisted. Phases are `idea-discovery,experiment-bridge,auto-review-loop,summary,paper-writing`.
 
-- New run: `python3 "$RUN_STATE" start . "$RUN_ID" --executor codex-gpt-5.6-sol --provisional-advances --phases "idea-discovery,experiment-bridge,auto-review-loop,summary,paper-writing"` (the `--provisional-advances` policy is what lets a same-family provisional verdict close a phase for resume — without it, mainline semantics apply and provisional phases stay open).
+- New run: `python3 "$RUN_STATE" start . "$RUN_ID" --executor "<actual-executor-model>" --provisional-advances --phases "idea-discovery,experiment-bridge,auto-review-loop,summary,paper-writing"` (the `--provisional-advances` policy is what lets a same-family provisional verdict close a phase for resume — without it, mainline semantics apply and provisional phases stay open).
 - Resume: `python3 "$RUN_STATE" resume . "$RUN_ID"`; restart the returned phase.
 - Each phase: mark `running`, then `done --artifact <path>`.
-- A fresh Codex reviewer PASS uses `mark-provisional --reviewer gpt-5.6-sol
-  --verdict-id <trace-or-agent-id>`. This is terminal for resume but not accepted.
-- A cross-family overlay or deterministic verifier uses `accept`.
+- A completed positive same-family review uses `mark-provisional --reviewer
+  <actual-reviewer-model> --verdict-id <trace-or-session-id>`. This is terminal
+  for resume but not accepted; use the actual executor identity from this run.
+- A completed positive known-cross-family review or deterministic verifier uses `accept`.
 - If `AUTO_WRITE=false`, mark `paper-writing` as `skipped` after summary.
 
 | Phase | Terminal record |
 |---|---|
-| idea-discovery | base Codex → provisional; overlay jury → accepted |
+| idea-discovery | base Codex → provisional; completed positive known-cross-family jury → accepted |
 | experiment-bridge | deterministic job/result completion → accepted |
-| auto-review-loop | base Codex positive STOP → provisional; overlay → accepted |
+| auto-review-loop | base Codex positive STOP → provisional; completed positive known-cross-family review → accepted |
 | summary | deterministic file/render result → accepted |
 | paper-writing | verifier report; `overall_assurance=provisional` stays provisional |
 
@@ -168,7 +192,7 @@ Once the idea is selected (automatically or by the user), delegate implementatio
 **What this does (fully autonomous):**
 1. Parses `refine-logs/EXPERIMENT_PLAN.md` — extracts milestones, run order, compute budget
 2. Implements experiment code — extends pilot to full scale, follows existing codebase conventions
-3. **Fresh-agent code review** — GPT-5.6-Sol xhigh reviews the implementation in a new context; base result is same-family provisional
+3. **Fresh-agent code review** — GPT-6-Astra xhigh reviews the implementation in a new context; base result is same-family provisional
 4. **Sanity check** — runs the smallest experiment first to verify the environment; auto-debugs failures (up to 3 attempts, with `/codex:rescue` fallback)
 5. Deploys full experiments — auto-routes by job count (≤5 → `/run-experiment`, ≥10 → `/experiment-queue` with OOM retry, wave gating, crash-safe state)
 6. Collects initial results — parses outputs, updates `refine-logs/EXPERIMENT_TRACKER.md`, runs `/training-check` if W&B is configured
@@ -196,7 +220,7 @@ Once initial results are in, start the autonomous improvement loop:
 ```
 
 **What this does (up to 4 rounds):**
-1. GPT-5.6-Sol xhigh reviews the work (score, weaknesses, minimum fixes)
+1. GPT-6-Astra xhigh reviews the work (score, weaknesses, minimum fixes)
 2. Claude Code implements fixes (code changes, new experiments, reframing)
 3. Deploy fixes, collect new results
 4. Re-review → repeat until score ≥ 6/10 or 4 rounds reached

@@ -105,17 +105,33 @@ After fixing, verify:
 ## Python Common Error Patterns
 
 ### 1. Indentation Errors
+Python 用缩进界定代码块；混用 tab/空格或复制粘贴错位会引发 `IndentationError` 或逻辑错位。统一用 4 空格，报错时先检查上一行是否有未闭合的括号/冒号。
+
 ### 2. Mutable Default Arguments
+`def f(x, acc=[])` 的默认列表在多次调用间共享，上次调用的残留会带进下次。改为默认 `None` 并在函数体内 `acc = [] if acc is None else acc`。
+
 ### 3. Closure Issues in Loops
+`funcs.append(lambda: i)` 捕获的是变量 `i` 本身而非当时的值，循环结束后所有 lambda 都拿到最后的 `i`。用默认参数固化：`lambda i=i: i`。
+
 ### 4. Modifying a List While Iterating
+遍历中 `remove`/`append` 会跳元素甚至死循环。改为遍历副本 `for x in list(items)`，或用列表推导重建集合。
+
 ### 5. Using `is` for String Comparison
+`is` 比较对象身份，值比较用 `==`。小整数/驻留字符串的 `is` 返回 True 只是 CPython 实现细节，不可依赖。
+
 ### 6. Forgetting to Call `super().__init__()`
+子类 `__init__` 覆盖父类且未调 `super().__init__(...)` 时，父类属性未初始化，后续访问报 `AttributeError`。多继承按 MRO 逐层传递参数。
 
 ## JavaScript/TypeScript Common Error Patterns
 
 ### 1. `this` Binding Issues
+回调与普通函数里的 `this` 不再指向实例。用箭头函数、`.bind(this)` 或类字段写法 `handleClick = () => {}` 固定 `this`。
+
 ### 2. Async Error Handling
+`async` 函数内抛错会变成 rejected promise；漏 `await` 会丢失异常。`try/catch` 包住每个 `await`，并行场景用 `Promise.all`（fail-fast）或 `allSettled`（收集全部结果）。
+
 ### 3. Object Reference Comparison
+`{} === {}` 为 `false`——比较的是引用。比较内容用深比较（如 `JSON.stringify` 简单场景或 lodash `isEqual`）；另注意 `NaN !== NaN`。
 
 ## Bash/Zsh Common Error Patterns
 
@@ -264,9 +280,16 @@ set -o pipefail  # Fail if any command in pipe fails
 ## Preventive Debugging
 
 ### 1. Use Type Checking
+用 mypy/pyright（Python）或 TypeScript strict 模式在运行前拦截类型错误，把一整类运行时异常提前到静态检查阶段。
+
 ### 2. Input Validation
+在边界处（入口函数、公共 API、外部输入）校验参数类型与取值范围，fail fast 并给出明确报错，别让坏数据流入深层逻辑。
+
 ### 3. Defensive Programming
+对可能失败的外部调用（文件、网络、数据库）做显式错误处理与兜底；避免裸 `except:` 吞掉异常掩盖真实问题。
+
 ### 4. Logging
+结构化日志带上关键上下文（请求 ID、关键变量、耗时），级别分明（debug/info/warning/error）；关键路径预留 debug 钩子，问题复现时能直接回放现场。
 
 ## Debugging Checklist
 
@@ -290,18 +313,20 @@ set -o pipefail  # Fail if any command in pipe fails
 
 ## Additional Resources
 
+> ⚠️ 以下参考文件与示例**未随仓集成**（缺口已登记于本技能 `ASSET-GAP.md`）。当前以正文的错误模式表、调试命令与检查清单为准执行；下列文件仅供追踪补齐进度，勿直接按路径读取。
+
 ### Reference Files
 
 For detailed debugging techniques and patterns:
-- **`references/python-errors.md`** - Python error details
-- **`references/javascript-errors.md`** - JavaScript/TypeScript error details
-- **`references/shell-errors.md`** - Bash/Zsh script error details
-- **`references/debugging-tools.md`** - Debugging tools usage guide
-- **`references/common-patterns.md`** - Common error patterns
+- **`references/python-errors.md`** - Python error details *(未随仓)*
+- **`references/javascript-errors.md`** - JavaScript/TypeScript error details *(未随仓)*
+- **`references/shell-errors.md`** - Bash/Zsh script error details *(未随仓)*
+- **`references/debugging-tools.md`** - Debugging tools usage guide *(未随仓)*
+- **`references/common-patterns.md`** - Common error patterns *(未随仓)*
 
 ### Example Files
 
 Working debugging examples:
-- **`examples/debugging-workflow.py`** - Complete debugging workflow example
-- **`examples/error-handling-patterns.py`** - Error handling patterns
-- **`examples/debugging-workflow.sh`** - Shell script debugging example
+- **`examples/debugging-workflow.py`** - Complete debugging workflow example *(未随仓)*
+- **`examples/error-handling-patterns.py`** - Error handling patterns *(未随仓)*
+- **`examples/debugging-workflow.sh`** - Shell script debugging example *(未随仓)*

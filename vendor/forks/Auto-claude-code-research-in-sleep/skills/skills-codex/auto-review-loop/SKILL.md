@@ -1,14 +1,16 @@
 ---
 name: "auto-review-loop"
-description: "Autonomous multi-round research review loop. Repeatedly reviews using a secondary Codex agent, implements fixes, and re-reviews until positive assessment or max rounds reached. Use when user says \"auto review loop\", \"review until it passes\", or wants autonomous iterative improvement."
+description: "Autonomous multi-round research review loop. Uses a fresh Codex agent or selected Gemini, Grok, or Claude Code reviewer, implements fixes, and re-reviews until positive assessment or max rounds reached. Use when user says \"auto review loop\", \"review until it passes\", or wants autonomous iterative improvement."
 ---
 
 # Auto Review Loop: Autonomous Research Improvement
 
-> **Codex assurance:** every base reviewer result records
+> **Codex assurance:** the default same-family reviewer result records
 > `review_independence: same-family` and `acceptance_status: provisional` in its
 > trace/state artifact. A positive provisional verdict may drive fixes and stop
-> the loop, but is never cross-family accepted. Reviewer failure emits BLOCKED.
+> the loop, but is never cross-family accepted. A selected reviewer earns
+> cross-family acceptance only from its actual models and completed in-scope
+> positive review. Reviewer failure emits BLOCKED.
 
 Autonomously iterate: review → implement fixes → re-review, until the external reviewer gives a positive assessment or MAX_ROUNDS is reached.
 
@@ -20,16 +22,23 @@ Autonomously iterate: review → implement fixes → re-review, until the extern
 - POSITIVE_THRESHOLD: score >= 6/10 AND verdict ∈ {"ready", "almost"} — both must hold, matching the operative STOP CONDITION below. Verdict vocabulary is {"ready", "almost", "not ready"}. (Earlier wording used "or" + a stale verdict set; the AND form is authoritative.)
 - REVIEW_DOC: `review-stage/AUTO_REVIEW.md` (cumulative log) *(fall back to `./AUTO_REVIEW.md` for legacy projects)*
 - **OUTPUT_DIR = `review-stage/`** — All review-stage outputs go here. Create the directory if it doesn't exist.
-- REVIEWER_MODEL = `gpt-5.6-sol` — Model used via a secondary Codex agent. Must be an OpenAI model (e.g., `gpt-5.6-sol`, `o3`, `gpt-4o`)
-- **REVIEWER_BACKEND = `codex`** — Default: Codex reviewer agent at xhigh reasoning. Override with `--reviewer: oracle-pro` only when the user explicitly requests Oracle; if Oracle is unavailable, warn and fall back to Codex xhigh. **Same-family note:** this default reviewer is a second Codex/GPT agent — valid for Type-A completeness/drive review, but not a cross-family Type-B verdict; install a `skills-codex-claude-review` / `skills-codex-gemini-review` overlay for a cross-family acquittal (see `shared-references/reviewer-routing.md`).
+- REVIEWER_MODEL = `gpt-6-astra` — Model used via a secondary Codex agent. Must be an OpenAI model (e.g., `gpt-6-astra`, `gpt-6.1-sol`)
+- **REVIEWER_BACKEND = `codex`** — Default: a fresh Codex reviewer at xhigh. Resolve `— reviewer:`, project `.aris/reviewer.json`, then this default using `reviewer_route.py` (`--host codex --tier regular`), per [reviewer-backends.md](../shared-references/reviewer-backends.md). Gemini/Antigravity, Grok, and Claude Code use that contract at every review slot below. Legacy `oracle-pro` rules remain in `reviewer-routing.md`.
 - **HUMAN_CHECKPOINT = false** — When `true`, pause after each round's review (Phase B) and present the score + weaknesses to the user. Wait for user input before proceeding to Phase C. The user can: approve the suggested fixes, provide custom modification instructions, skip specific fixes, or stop the loop early. When `false` (default), the loop runs fully autonomously.
 - **COMPACT = false** — When `true`, (1) read `EXPERIMENT_LOG.md` and `findings.md` instead of parsing full logs on session recovery, (2) append key findings to `findings.md` after each round.
 - **REVIEWER_DIFFICULTY = medium** — Controls adversarial depth: `medium` uses normal Codex xhigh review through `spawn_agent` / `send_input`; `hard` adds Reviewer Memory and Debate Protocol; `nightmare` adds direct repository-reading adversarial verification by an independent reviewer.
-- **RENDER_HTML = true** — When `true` (default), auto-render `review-stage/AUTO_REVIEW.md` to HTML on loop termination via `/render-html`. Uses `--no-review` because the loop already performed a traced same-family provisional review. Set `false` to skip.
+- **RENDER_HTML = true** — When `true` (default), auto-render `review-stage/AUTO_REVIEW.md` to HTML on loop termination via `/render-html`. Uses `--no-review` because this converts the existing traced review without adding another verdict. Set `false` to skip.
 
 > 💡 Override: `/auto-review-loop "topic" — compact: true, human checkpoint: true, difficulty: hard`
 
 ## Claude-Aligned Reviewer Memory and Debate
+
+Use the resolved reviewer for the initial review, continuation, rebuttal, and
+fresh nightmare review. Existing `spawn_agent` / `send_input` blocks below are
+the default Codex examples; keep their substantive prompts for other routes.
+Check completion and primary-file coverage on every call. Missing tools or
+unreadable required evidence gives `REVIEW_UNAVAILABLE`, never self-review.
+Forward invocation reviewer/model/effort directives to child review skills.
 
 Maintain `review-stage/REVIEWER_MEMORY.md` in all difficulty modes. Phase B.5 appends the reviewer's raw response and memory update regardless of `REVIEWER_DIFFICULTY`.
 
@@ -47,7 +56,7 @@ In hard and nightmare modes, the reviewer must actively look for omissions, unsu
 For `difficulty: hard` and `nightmare`, use the **Debate Protocol** after a critical review:
 
 1. Codex writes a concise rebuttal with evidence, not spin.
-2. Send the rebuttal to the same reviewer via `send_input`.
+2. Send the rebuttal to the same reviewer via its saved continuation tool (`send_input` for native Codex).
 3. The reviewer rules which objections are resolved, unresolved, or newly discovered.
 4. Only mark a concern resolved when the reviewer accepts the rebuttal.
 
@@ -60,6 +69,11 @@ Long-running loops may hit the context window limit, triggering automatic compac
   "run_id": "run_20260713_a1b2c3d4",
   "round": 2,
   "agent_id": "019cd392-...",
+  "reviewer_route": {"backend": "codex", "host": "codex", "model": "gpt-6-astra", "effort": "xhigh", "transport": "native"},
+  "reviewer_session_id": "019cd392-...",
+  "reviewer_cwd": "/absolute/project/path",
+  "review_independence": "same-family",
+  "acceptance_status": "provisional",
   "status": "in_progress",
   "last_score": 5.0,
   "last_verdict": "not ready",
@@ -69,6 +83,7 @@ Long-running loops may hit the context window limit, triggering automatic compac
 ```
 
 - **`run_id`** — Globally unique per invocation. Generated on fresh start as `run_<YYYYMMDD>_<8-char-hex>` (e.g., `run_20260713_a1b2c3d4`). Preserved across round writes. On resume, read from state file unchanged. This binds all round state and acquittal receipts to one run.
+- **Reviewer state** — Save the resolved route, cwd and session id, requested/reported model and actual effort, completion/scope, independence and acceptance for each round. On resume, use this saved route instead of re-reading a changed project default. Legacy `agent_id` means native Codex. Switching provider/model/fixed options requires a new session; record that transition.
 
 **Write this file at the end of every Phase E** (after documenting the round). Overwrite each time — only the latest round's state matters. The `run_id` field MUST persist unchanged across overwrites within the same run.
 
@@ -115,12 +130,19 @@ In addition to the overwritable state file, maintain an **append-only** acquitta
 4. Identify current weaknesses and open TODOs from prior reviews
 5. Initialize round counter = 1 (unless recovered from state file)
 6. Create/update `review-stage/AUTO_REVIEW.md` with header and timestamp
+7. On a fresh run resolve and save the reviewer route. On resume restore it.
+   Before each call reset completion/scope flags and reported identity; set them
+   only from that call's successful response and inspected review coverage.
 
 ### Loop (repeat up to MAX_ROUNDS)
 
 #### Phase A: Review
 
-**Route by REVIEWER_DIFFICULTY:**
+**Route by the saved reviewer and REVIEWER_DIFFICULTY:**
+Use its first-call tool for round 1 and continuation thereafter, with explicit
+workspace/artifact paths. Nightmare adds a separate fresh reviewer session
+on the same selected route; it must read and verify the primary repository
+artifacts. Keep that session id distinct from the ordinary reviewer.
 
 ##### Medium (default) — Codex Review
 
@@ -128,7 +150,7 @@ Send comprehensive context to the external reviewer:
 
 ```
 spawn_agent:
-  model: gpt-5.6-sol
+  model: gpt-6-astra
   reasoning_effort: xhigh
   message: |
     [Round N/MAX_ROUNDS of autonomous review loop]
@@ -178,11 +200,11 @@ spawn_agent:
     Say plainly when something is correct. Do not manufacture findings.
 ```
 
-If this is round 2+, use `send_input` with the saved agent id to maintain continuity.
+If this is round 2+, use the saved route's continuation tool (`send_input` for native Codex) to maintain continuity.
 
 ##### Hard — Codex Review + Reviewer Memory
 
-Use the same `spawn_agent` / `send_input` route as medium, but prepend the full `review-stage/REVIEWER_MEMORY.md` contents under `## Your Reviewer Memory (persistent across rounds)` and require a `Memory update` section in the reviewer response.
+Use the same selected reviewer route as medium, but prepend the full `review-stage/REVIEWER_MEMORY.md` contents under `## Your Reviewer Memory (persistent across rounds)` and require a `Memory update` section in the reviewer response.
 
 ##### Nightmare — Independent Repository Review
 
@@ -230,7 +252,30 @@ Rules:
 
 #### Phase B.5.1: Stop-Evaluation Gate
 
-**STOP CONDITION**: If score >= 6 AND verdict ∈ {"ready", "almost"} (exact match — "not ready" does NOT qualify), decide to stop and continue through Phase E. **Do not write a receipt here**; Phase E is the single append site.
+This computes a candidate transition, not an immediate exit. If a hard/nightmare
+rebuttal is made in Phase B.6, complete it and recompute the gate from the final
+ruling before Phase E. Only Phase E may persist a successful stop/receipt; an
+earlier positive cannot skip a pending rebuttal or nightmare verification.
+
+**STOP CONDITION**: score >= 6 AND verdict ∈ {"ready", "almost"} (exact match — "not ready" does NOT qualify), from a completed in-scope review. Native Codex can stop provisionally; it is still same-family. **Do not write a receipt here**; Phase E is the single append site.
+
+For `antigravity`, `grok`, and `claude-code`, resolve `review_gate.py` using
+`integration-contract.md` §2 and run:
+
+```bash
+python3 "$REVIEW_GATE" --round-backend "$REVIEWER_BACKEND" \
+  --score "$SCORE" --verdict "$VERDICT" \
+  --executor-model "$EXECUTOR_MODEL" --reviewer-model "$REPORTED_REVIEWER_MODEL" \
+  --review-status ok --review-completed --review-scope-complete
+```
+
+Pass those last flags only after checking transport success and required scope;
+otherwise omit them and record the actual error status. Never substitute a
+requested model for the reported one. Consume the JSON `decision`,
+`review_independence` and `acceptance_status`: `stop` proposes ending the drive loop after Phase B.6,
+`continue` proceeds, `review_unavailable` stops as BLOCKED. A known same-family
+positive stops provisionally; a known cross-family positive can be accepted.
+This does not replace downstream proof, experiment or submission gates.
 
 This evaluation runs AFTER Phase B.5 so the terminal-round memory is always appended to REVIEWER_MEMORY.md before exit.
 
@@ -247,7 +292,8 @@ After parsing the review, Codex writes a structured rebuttal for up to three hig
 - **Evidence**: [specific code, result file, log, prior-round fix, or paper section]
 ```
 
-Send the rebuttal to the same reviewer via `send_input`:
+Send the rebuttal to the same reviewer via its continuation protocol. The
+native Codex example is:
 
 ```text
 send_input:
@@ -261,6 +307,8 @@ send_input:
 ```
 
 Record a `### Debate Transcript (hard + nightmare only)` section in `review-stage/AUTO_REVIEW.md`. Only mark a weakness resolved if the reviewer accepts the rebuttal.
+If the ruling changes Score/Verdict, rerun the stop gate on that completed
+ruling and its trace before writing state or a receipt.
 
 ### Debate Transcript (hard + nightmare only)
 
@@ -360,11 +408,11 @@ This is the authoritative record. Do NOT truncate or paraphrase.]
 - [continuing to round N+1 / stopping]
 ```
 
-**Write `review-stage/REVIEW_STATE.json`** with current `run_id`, round, agent id, score, verdict, and any pending experiments. The `run_id` field MUST persist unchanged from initialization; do NOT regenerate it per round.
+**Write `review-stage/REVIEW_STATE.json`** with current `run_id`, round, resolved route/session/cwd, requested and reported identity, completion/scope, independence/acceptance, score, verdict, and pending experiments. The `run_id` field MUST persist unchanged from initialization; do NOT regenerate it per round.
 
-**If score >= 6 AND verdict ∈ {"ready", "almost"}:** append an acquittal line to `review-stage/ACQUITTAL_LOG.jsonl`:
+**If the stop gate returns a qualifying positive:** append a receipt to `review-stage/ACQUITTAL_LOG.jsonl`. Use the actual backend/effort and assurance from this round; a native Codex example is:
 ```
-{"run_id":"<current-run_id>","round":<N>,"backend":"codex","effort":"xhigh","verdict":"<ready|almost>","score":<score>,"trace_id":"<skill>/<YYYY-MM-DD>_run<NN>","timestamp":"<ISO8601>"}
+{"run_id":"<current-run_id>","round":<N>,"backend":"codex","effort":"xhigh","verdict":"<ready|almost>","score":<score>,"review_independence":"same-family","acceptance_status":"provisional","trace_id":"<skill>/<YYYY-MM-DD>_run<NN>","timestamp":"<ISO8601>"}
 ```
 Use `>>` (append), never `>`. The `trace_id` must be the actual trace directory relative to `.aris/traces/` (for example `auto-review-loop/2026-07-13_run01`), not a fabricated `trace_...` identifier.
 
@@ -380,7 +428,7 @@ Increment round counter → back to Phase A.
 
 ## Review Tracing
 
-After every `spawn_agent`, `send_input`, `oracle-pro`, or nightmare adversarial verification call, save a trace following `../shared-references/review-tracing.md`. Include prompt summary, reviewer route, saved agent id, raw response path, score/verdict, accepted fixes, rejected rebuttals, and the `Reviewer Memory` update if present.
+After every reviewer call, including nightmare verification, save a trace following `../shared-references/review-tracing.md`. Include resolved route/session/cwd, requested and reported identities, actual effort, completion/scope, independence/acceptance, prompt and raw response, score/verdict, accepted fixes, rejected rebuttals, and the memory update. Failures remain failed calls, never verdicts.
 
 ### Termination
 
@@ -413,8 +461,8 @@ When loop ends (positive assessment or max rounds):
 
 - **Large file handling**: If the Write tool fails due to file size, immediately retry using Bash (`cat << 'EOF' > file`) to write in chunks. Do NOT ask the user for permission — just do it silently.
 
-- ALWAYS use `reasoning_effort: xhigh` for maximum reasoning depth
-- Save agent id from first call, use `send_input` for subsequent rounds
+- For the default Codex route, pin `model: gpt-6-astra` + `reasoning_effort: xhigh` on the first spawn. `xhigh` is this loop's **regular tier** per [`reviewer-routing.md`](../shared-references/reviewer-routing.md); follow-ups inherit the pair. Other selected routes use their resolved pair and continuation contract. Follow the Codex capability-fallback chain only for explicit capability errors on that route.
+- Save route and session id from the first call; use that route for subsequent rounds.
 - Be honest — include negative results and failed experiments
 - Do NOT hide weaknesses to game a positive score
 - Implement fixes BEFORE re-reviewing (don't just promise to fix)

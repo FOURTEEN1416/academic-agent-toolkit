@@ -13,6 +13,7 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 from figmirror import (  # noqa: E402
+    apply_svg_text_correction,
     apply_vector_feedback,
     assemble_img2ppt_candidate,
     assemble_raster_schematic,
@@ -26,14 +27,17 @@ from figmirror import (  # noqa: E402
     build_review,
     export_panels,
     finalize_agent_candidate,
+    discover_source_versions,
     load_config,
     plan_agent_generation,
     prepare_img2ppt_candidate,
+    prepare_redesign_comparisons,
     prepare_raster_schematic,
     rank_job,
     render_data_study,
     render_figure_spec,
     render_scene,
+    record_redesign_comparison,
     serve_review,
 )
 
@@ -186,6 +190,39 @@ def parse_args() -> argparse.Namespace:
     bind_evidence.add_argument("candidate_dir")
     bind_evidence.add_argument("bundle")
     bind_evidence.add_argument("mapping")
+
+    discover = subparsers.add_parser(
+        "discover-sources",
+        help="Discover semantically matching figure/code/data versions and select the newest with a receipt",
+    )
+    discover.add_argument("root")
+    discover.add_argument("asset_kind", choices=("figure", "data", "code"))
+    discover.add_argument("semantic_query")
+    discover.add_argument("--current-figure")
+    discover.add_argument("--user-selected")
+    discover.add_argument("--output")
+
+    prepare_comparison = subparsers.add_parser(
+        "prepare-redesign-review",
+        help="Build blinded current-vs-candidate packages for an independent reviewer Agent",
+    )
+    prepare_comparison.add_argument("job_dir")
+    prepare_comparison.add_argument("--figure-id", action="append", dest="figure_ids")
+
+    record_comparison = subparsers.add_parser(
+        "record-redesign-review",
+        help="Validate an independent comparison and freeze an immutable fail-safe receipt",
+    )
+    record_comparison.add_argument("job_dir")
+    record_comparison.add_argument("figure_id")
+    record_comparison.add_argument("submission")
+
+    correction = subparsers.add_parser(
+        "apply-text-correction",
+        help="Execute an exact PaperSpine-authorized SVG text correction",
+    )
+    correction.add_argument("operation")
+    correction.add_argument("output")
     return parser.parse_args()
 
 
@@ -211,6 +248,9 @@ def main() -> int:
             )
         elif args.command == "audit-svg":
             result = audit_svg(args.svg, allow_raster=args.allow_raster, require_text=args.require_text).to_dict()
+        elif args.command == "apply-text-correction":
+            operation = json.loads(Path(args.operation).read_text(encoding="utf-8-sig"))
+            result = apply_svg_text_correction(operation, args.output)
         elif args.command == "rank":
             result = rank_job(args.job_dir)
         elif args.command == "build-review":
@@ -285,6 +325,19 @@ def main() -> int:
             result = build_data_evidence_bundle(args.data_profile, args.output)
         elif args.command == "bind-schematic-evidence":
             result = bind_schematic_evidence(args.candidate_dir, args.bundle, args.mapping)
+        elif args.command == "discover-sources":
+            result = discover_source_versions(
+                args.root,
+                asset_kind=args.asset_kind,
+                semantic_query=args.semantic_query,
+                current_figure=args.current_figure,
+                user_selected=args.user_selected,
+                output=args.output,
+            )
+        elif args.command == "prepare-redesign-review":
+            result = prepare_redesign_comparisons(args.job_dir, figure_ids=args.figure_ids)
+        elif args.command == "record-redesign-review":
+            result = record_redesign_comparison(args.job_dir, args.figure_id, args.submission)
         elif args.command == "serve-review":
             serve_review(args.root, index=args.index, port=args.port, open_browser=args.open)
             return 0

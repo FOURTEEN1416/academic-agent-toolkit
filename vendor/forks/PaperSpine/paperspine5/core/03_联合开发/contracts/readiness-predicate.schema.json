@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/readiness-predicate.schema.json",
+  "title": "Non-compensatory readiness predicate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "contract_version", "predicate_id", "tier", "subject", "status", "hard_blocker", "artifact_inputs", "reason"],
+  "properties": {
+    "contract": {"const": "paperspine5.readiness-predicate"},
+    "contract_version": {"const": "1.0"},
+    "predicate_id": {"type": "string", "minLength": 1},
+    "tier": {"enum": ["canonical", "independent_quality", "final_render", "target_package", "author_close"]},
+    "subject": {"type": "object"},
+    "status": {"enum": ["true", "false", "unknown", "stale"]},
+    "hard_blocker": {"const": true},
+    "artifact_inputs": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+    "reason": {"type": "string"}
+  }
+}

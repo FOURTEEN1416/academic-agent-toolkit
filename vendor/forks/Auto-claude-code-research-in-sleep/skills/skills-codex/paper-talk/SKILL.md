@@ -7,6 +7,17 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Skill, spawn_agent
 
 # Paper Talk: End-to-End Conference Talk Pipeline
 
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
+
 Workflow: from a completed paper to a conference-ready talk artifact —
 slide outline, Beamer source, editable PPTX, speaker notes, full talk
 script, polished visuals, and assurance checks.
@@ -36,7 +47,7 @@ These are non-negotiable across all phases:
 3. **Speaker notes are byte-stable.** Polish must not change `slide.notes_slide` content. Phase 4 verifies this.
 4. **No new content anywhere in the pipeline.** All slide text, speaker notes, talk script, Q&A answers, claims, numbers, citations, URLs, author names, affiliations, anonymity placeholders, and experiment results must be either paper-grounded (extracted from `PAPER_DIR/` artefacts) or explicitly user-provided. The pipeline never invents content during outline, build, polish, audit, or export. Phase-4 anonymity scan + claim audit verify this end-to-end.
 5. **No slide reordering.** Add / drop / reorder requires explicit user flags.
-6. **Fresh-context independence.** Per-page Codex calls in `/slides-polish` use fresh `spawn_agent` calls (no `send_input`) and are same-family provisional in the base mirror.
+6. **Fresh-context independence.** Per-page reviews in `/slides-polish` use independent fresh sessions on the selected route. The default native Codex route uses `spawn_agent` (no `send_input`) and stays same-family provisional.
 7. **Anonymity fail-closed.** If any audit (or any Codex fix proposal) would replace a placeholder with a real title / count / URL, the workflow halts and surfaces the proposal for human review. See `../shared-references/experiment-integrity.md`.
 8. **Style references are guidance, not text source.** A `— reference:` PDF or `— style:` preset informs visual weight and structural rhythm; never copy prose, examples, slide titles, or speaker-note text from the reference.
 9. **Final report cannot be `conference-ready` unless required audits pass.** Phase 6 verifies and downgrades verdict if audits fail.

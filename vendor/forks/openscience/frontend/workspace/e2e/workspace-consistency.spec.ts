@@ -16,11 +16,13 @@ test("keeps Files and Customize labels visually consistent", async ({ page, goto
 
   const panels = [
     ["Models"],
+    ["Local models"],
     ["Skills", "Add skill"],
+    ["Tools"],
     ["Connectors", "Add connector"],
     ["Compute", "Add host"],
-    ["Network", "Add domain"],
     ["Permissions"],
+    ["Network", "Add"],
     ["Sandbox"],
     ["Credentials"],
     ["Storage"],

@@ -15,6 +15,7 @@ on:
       # reads docs/**, README*, AGENT_GUIDE.md — so changes there must retrigger.
       - 'tools/**'
       - 'tests/**'
+      - 'agents/**'
       - 'mcp-servers/**'
       - 'skills/**'
       - 'templates/**'
@@ -28,6 +29,7 @@ on:
     paths:
       - 'tools/**'
       - 'tests/**'
+      - 'agents/**'
       - 'mcp-servers/**'
       - 'skills/**'
       - 'templates/**'
@@ -52,7 +54,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install test dependencies
-        run: python -m pip install pytest httpx
+        run: python -m pip install pytest httpx -r tools/requirements-codex-policy-audit.txt
       - name: Show bash version (the macOS leg must be 3.2.x)
         run: bash --version | head -1
       - name: Run full test suite

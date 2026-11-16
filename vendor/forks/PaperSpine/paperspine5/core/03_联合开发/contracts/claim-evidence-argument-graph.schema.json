@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/claim-evidence-argument-graph.schema.json",
+  "title": "Bidirectional Claim-Evidence argument graph",
+  "description": "Executable J6 graph contract. Edge objects use exactly from/relation/to and the licensed typed directions; aliases are invalid.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "subject", "contribution_decision", "nodes", "edges", "producer", "challenger", "graph_snapshot_sha256", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.claim-evidence-argument-graph"},
+    "schema_version": {"const": "1.0"},
+    "subject": {"$ref": "quality-subject.schema.json"},
+    "contribution_decision": {
+      "type": "object", "additionalProperties": false, "required": ["artifact_id", "sha256"],
+      "properties": {"artifact_id": {"const": "contribution_boundary_decision"}, "sha256": {"$ref": "https://paperspine.local/contracts/claim-evidence-argument-graph.schema.json#/$defs/sha256"}}
+    },
+    "nodes": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["node_id", "node_type", "statement_sha256", "source_artifact_id", "source_sha256", "locator", "status", "core"],
+        "properties": {
+          "node_id": {"type": "string", "minLength": 1},
+          "node_type": {"enum": ["claim", "evidence", "result", "citation", "limitation", "warrant", "boundary", "counterevidence"]},
+          "statement_sha256": {"$ref": "https://paperspine.local/contracts/claim-evidence-argument-graph.schema.json#/$defs/sha256"},
+          "source_artifact_id": {"type": "string", "minLength": 1},
+          "source_sha256": {"$ref": "https://paperspine.local/contracts/claim-evidence-argument-graph.schema.json#/$defs/sha256"},
+          "locator": {"type": "string", "minLength": 1},
+          "status": {"enum": ["verified", "unsupported", "unknown", "none_found"]},
+          "core": {"type": "boolean"},
+          "contribution_candidate_id": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "edges": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["from", "relation", "to"],
+        "description": "Exact wire object. from_node_id/edge_type/to_node_id are not aliases. Forward relations start at claim nodes; inverse relations start at the typed support node.",
+        "properties": {
+          "from": {"type": "string", "minLength": 1},
+          "relation": {
+            "enum": ["supported_by", "supports", "grounded_in", "grounds", "cited_context", "cited_support", "supports_context", "limited_by", "limits", "warranted_by", "warrants", "bounded_by", "bounds", "challenged_by", "challenges"],
+            "description": "Exact pairs: claim supported_by evidence / evidence supports claim; claim grounded_in result / result grounds claim; claim cited_context|cited_support citation / citation supports_context claim; claim limited_by limitation / limitation limits claim; claim warranted_by warrant / warrant warrants claim; claim bounded_by boundary / boundary bounds claim; claim challenged_by counterevidence / counterevidence challenges claim."
+          },
+          "to": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "producer": {"$ref": "https://paperspine.local/contracts/claim-evidence-argument-graph.schema.json#/$defs/identity"},
+    "challenger": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reviewer", "graph_snapshot_sha256", "status", "objections"],
+      "properties": {
+        "reviewer": {"$ref": "https://paperspine.local/contracts/claim-evidence-argument-graph.schema.json#/$defs/identity"},
+        "graph_snapshot_sha256": {"$ref": "https://paperspine.local/contracts/claim-evidence-argument-graph.schema.json#/$defs/sha256"},
+        "status": {"enum": ["pass", "blocked"]},
+        "objections": {"type": "array", "items": {"type": "object"}}
+      }
+    },
+    "graph_snapshot_sha256": {"$ref": "https://paperspine.local/contracts/claim-evidence-argument-graph.schema.json#/$defs/sha256"},
+    "external_action_authorized": {"const": false}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["principal_id", "session_id", "run_id", "independence_group", "provenance_sha256", "attestation_input_id"],
+      "properties": {
+        "principal_id": {"type": "string", "minLength": 1},
+        "session_id": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1},
+        "independence_group": {"type": "string", "minLength": 1},
+        "provenance_sha256": {"$ref": "https://paperspine.local/contracts/claim-evidence-argument-graph.schema.json#/$defs/sha256"},
+        "attestation_input_id": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

@@ -11,6 +11,20 @@ A reference guide for citation verification in academic paper writing, providing
 
 **Core Principle**: Proactively verify every citation during the writing process using programmatic or canonical scholarly sources first: arXiv, DOI/CrossRef, Semantic Scholar, publisher landing pages, and Zotero metadata. Google Scholar is useful for manual discovery, but it is not the canonical verification authority.
 
+## Citation-Verification Family Guide (this repository)
+
+Five citation-verification skills coexist in this repo. Use this guide to pick the right one:
+
+| Skill | Use it for |
+|---|---|
+| `lit-citation-verify` (this skill) | Verification **principles** and canonical-source order; guidance, not batch checking |
+| `lit-citation-verify-latex` | **Batch existence checking** of LaTeX `.tex` + `.bib` references (bibsleuth) |
+| `check-citations` | `.bib` **multi-source verification** (CrossRef / Semantic Scholar / OpenAlex) for AI-hallucinated citations |
+| `citation-check` | CUMCM（国赛）**GB/T 7714 格式与完整性**检查，面向中文竞赛论文 |
+| `paper-citation-verify` | **Pre-submission citation completeness** checklist before journal/conference submission |
+
+Routing hint: 原则/口径 → 本技能；LaTeX 批量核验 → `lit-citation-verify-latex`；`.bib` 三源分诊 → `check-citations`；国赛 GB/T 终检 → `citation-check`；投稿前清单 → `paper-citation-verify`。
+
 ## Core Problems
 
 Citation issues in academic papers seriously impact research integrity:
@@ -25,7 +39,7 @@ These issues can lead to:
 - Damage to academic reputation
 - Reviewers questioning research rigor
 
-**Special risk with AI-assisted writing**: AI-generated citations have approximately 40% error rate; every citation must be verified via WebSearch.
+**Special risk with AI-assisted writing**: AI-generated citations have a high error rate (a ~40% figure is often quoted without a verifiable source — treat it as a caution, not a measured statistic); every citation must be verified against canonical scholarly sources (DOI / arXiv / CrossRef / Semantic Scholar / publisher / Zotero).
 
 ## Verification Principles
 
@@ -35,8 +49,9 @@ This skill provides verification principles based on canonical scholarly metadat
 
 **Core idea**: Verify immediately when adding a citation, rather than checking after writing is complete.
 
-- Search for the paper via WebSearch each time a citation is needed
-- Confirm the paper exists on Google Scholar
+- Resolve a canonical identifier first each time a citation is needed: DOI, arXiv ID, publisher page, or a verified Zotero item
+- Confirm the paper's metadata against CrossRef / arXiv / Semantic Scholar / publisher metadata
+- Use WebSearch or Google Scholar only as a fallback for manual discovery when canonical lookup fails
 - Add to bibliography only after verification passes
 
 ### 2. Canonical Metadata Verification
@@ -96,41 +111,38 @@ Add to bibliography
 
 ## Usage Guide
 
-### Using with ml-paper-writing
+### How to use this skill
 
-The verification principles of this skill are integrated into the Citation Workflow of the `ml-paper-writing` skill.
+This is a principles reference, not an automated pipeline: there is **no auto-trigger** in this repository. Apply these principles manually inside this repository's paper-writing and citation-management workflows.
 
-**Auto-trigger**: Citation verification is automatically executed when writing papers with the ml-paper-writing skill.
-
-**Manual reference**: Refer to this skill when you need detailed verification principles.
+**Manual reference**: Refer to this skill when you need detailed verification principles; for batch checking, route to the sibling skills listed in the family guide below.
 
 ### Verification Step Example
 
 **Scenario**: Need to cite the Transformer paper
 
 ```
-Step 1: WebSearch lookup
-Query: "Attention is All You Need Vaswani 2017"
-Result: Found multiple sources for the paper
+Step 1: Canonical lookup
+Query: arXiv ID 1706.03762 (or DOI 10.48550/arXiv.1706.03762)
+Result: ✅ "Attention is All You Need", arXiv preprint 2017, published at NeurIPS 2017
 
-Step 2: Google Scholar verification
-Query: "site:scholar.google.com Attention is All You Need Vaswani"
-Result: ✅ Paper exists, 50,000+ citations, NeurIPS 2017
-
-Step 3: Confirm details
+Step 2: Metadata confirmation (CrossRef / arXiv / Semantic Scholar / publisher)
 - Title: "Attention is All You Need"
 - Authors: Vaswani, Ashish; Shazeer, Noam; Parmar, Niki; ...
 - Year: 2017
 - Venue: NeurIPS (NIPS)
 
-Step 4: Get BibTeX
-- Click "Cite" on Google Scholar
-- Select BibTeX format
-- Copy BibTeX entry
+Step 3: Get BibTeX programmatically
+- Fetch from arXiv / CrossRef / publisher metadata / verified Zotero item
 
-Step 5: Add to bibliography
+Step 4: Add to bibliography
 - Paste into .bib file
 - Use \cite{vaswani2017attention} in the paper
+
+Fallback (only if no canonical source resolves the item):
+- Use WebSearch / Google Scholar for manual discovery
+- Mark the entry as manually verified; do NOT treat its BibTeX as final
+  until the metadata is checked against a canonical source
 ```
 
 ### Handling Verification Failures
@@ -154,9 +166,9 @@ Step 5: Add to bibliography
 
 ### Preventing Fake Citations
 
-1. **Never generate citations from memory** - AI-generated citations have 40% error rate
-2. **Use WebSearch to find** - Verify every citation through WebSearch
-3. **Confirm on Google Scholar** - Verify paper existence on Google Scholar
+1. **Never generate citations from memory** - AI-generated citations have a high error rate
+2. **Resolve canonical identifiers first** - DOI / arXiv / CrossRef / Semantic Scholar / publisher / Zotero
+3. **Use WebSearch / Google Scholar only as fallback** - for manual discovery when canonical lookup fails
 4. **Verify promptly** - Verify when adding citations, don't wait until finished
 
 ### Handling Verification Failures
@@ -169,7 +181,7 @@ Step 5: Add to bibliography
 ### Improving Verification Accuracy
 
 1. **Complete queries** - Include title, author, year
-2. **Check citation count** - Citation count on Google Scholar is a credibility indicator
+2. **Check citation count** - Citation count is a weak auxiliary credibility signal (e.g., from Google Scholar); never treat it as verification itself
 3. **Confirm venue** - Verify conference/journal name is correct
 4. **Verify claims** - When citing specific claims, confirm they exist in the paper
 
@@ -177,28 +189,78 @@ Step 5: Add to bibliography
 
 ❌ **Wrong approach**:
 - Generating BibTeX from memory
-- Skipping Google Scholar verification
+- Skipping canonical-source verification
 - Assuming a paper exists
 - Not marking unverifiable citations
 
 ✅ **Correct approach**:
-- Search every citation with WebSearch
-- Confirm on Google Scholar
-- Copy BibTeX from Google Scholar
+- Resolve a canonical identifier (DOI / arXiv / CrossRef / Semantic Scholar / publisher / Zotero) for every citation
+- Confirm metadata matches before adding
+- Fetch BibTeX from programmatic sources; treat Google Scholar BibTeX as unverified until checked elsewhere
 - Clearly mark unverifiable citations
+
+## Claim-Stance Verification (supported / mentioned / contrasted)
+
+Existence + metadata checks are necessary but not sufficient for load-bearing citations. For every key citation (one that supports a core claim of your paper), additionally ask: **do later studies support, merely mention, or contradict it?**
+
+- **supported** — later work reproduces or explicitly backs the cited conclusion
+- **mentioned** — cited as background only; no supporting or contradicting evidence in the citing context
+- **contrasted** — later work reports opposite results or documents a limitation of the cited claim
+
+### Without Scite credentials (default in this repo — manual verification guide)
+
+1. For each key citation, find citing papers via WebSearch / Google Scholar / OpenAlex (`cited_by` / citing-works lookup).
+2. Read the **citing sentence**, not the abstract: look for "consistent with", "we confirm", "however, X found the opposite", "fails to replicate".
+3. Record a `stance` column (supported/mentioned/contrasted) plus the evidence (citing sentence + its DOI) in your literature table.
+
+Worked examples (manual judgements on real papers — verify the citing context yourself before reusing):
+
+| Key citation | Citing work | Stance | Evidence (citing context) |
+|---|---|---|---|
+| Vaswani et al., 2017, *Attention Is All You Need* (arXiv:1706.03762) | Devlin et al., 2019, *BERT* (arXiv:1810.04805) | **supported** | BERT builds on the Transformer encoder and reports SOTA results, backing the original architecture's effectiveness |
+| Vaswani et al., 2017 | Beltagy et al., 2020, *Longformer* (arXiv:2004.05150) | **contrasted** | Documents that vanilla self-attention does not scale to long sequences — a limitation challenge to the original design's applicability |
+| Devlin et al., 2019, *BERT* | Liu et al., 2019, *RoBERTa* (arXiv:1907.11692) | **mentioned → supported** | Reuses the BERT architecture unchanged, varies only training recipe, and reports better results — supports the architecture while surpassing the original training setup |
+
+> The table above is a worked example of manual stance verification, not API output. Never fill stance columns from memory; cite the actual sentence you read.
+
+### With a Scite key / MCP (optional enhancement — never a hard dependency)
+
+Scite Citation Statement API (follow Scite's current official docs for the exact contract):
+
+- Tally: `GET https://api.scite.ai/tally/{doi}` → counts of `{supporting, contradicting, mentioning, unclassified}`
+- Statements: `GET https://api.scite.ai/statements?doi={doi}` → per-citing-statement records incl. predicate
+- Auth: header `Authorization: Bearer <SCITE_API_KEY>` (or inject via your MCP tool config)
+
+```python
+# Optional enhancement when a Scite key is configured
+import requests
+
+def scite_tally(doi: str, api_key: str | None = None) -> dict:
+    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+    resp = requests.get(f"https://api.scite.ai/tally/{doi}", headers=headers, timeout=30)
+    resp.raise_for_status()
+    return resp.json()
+
+# Reading the result:
+#   contradicting > 0  -> read the contradicting statements before citing as settled
+#   supporting high    -> may phrase as "supported by later work"
+#   mostly mentioning  -> do NOT phrase as "extensively validated"
+```
+
+- No key / API unreachable → fall back to the manual guide above; **do not fabricate stance data**.
 
 ## Summary
 
-**Core Principle**: Proactively verify every citation during the writing process using WebSearch and Google Scholar.
+**Core Principle**: Proactively verify every citation during the writing process against canonical scholarly sources (DOI / arXiv / CrossRef / Semantic Scholar / publisher / Zotero). WebSearch and Google Scholar are fallbacks for manual discovery only, never the primary verification authority.
 
 **Key Steps**:
-1. WebSearch to find the paper
-2. Google Scholar to verify existence
+1. Resolve a canonical identifier (DOI / arXiv ID / publisher page / verified Zotero item)
+2. Confirm metadata against CrossRef / arXiv / Semantic Scholar / publisher
 3. Confirm details
-4. Get BibTeX
+4. Get BibTeX from a programmatic source
 5. Verify claims (if needed)
 6. Add to bibliography
 
 **Failure handling**: When verification fails, mark as `[CITATION NEEDED]` and clearly notify the user.
 
-**Integration**: The principles of this skill are integrated into the ml-paper-writing skill for automatic verification.
+**Integration**: Apply these principles manually within this repository's paper-writing and citation workflows; see the Citation-Verification Family Guide above for which sibling skill performs batch checking.

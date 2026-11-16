@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/readiness-view.schema.json",
+  "title": "PaperSpine5 fail-closed readiness read projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "task_id", "revision", "status", "ready", "requested_scope", "manuscript_ready", "delivery_ready", "submission_ready", "is_complete_for_requested_scope", "receipt", "payload", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.readiness-view"},
+    "schema_version": {"const": "1.0"},
+    "task_id": {"type": "string", "minLength": 1},
+    "revision": {"type": "integer", "minimum": 0},
+    "status": {"enum": ["fresh", "stale", "missing", "unknown"]},
+    "ready": {"type": "boolean"},
+    "requested_scope": {"type": ["string", "null"], "enum": ["manuscript", "local_delivery", "submission_package", null]},
+    "manuscript_ready": {"type": "boolean"},
+    "delivery_ready": {"type": "boolean"},
+    "submission_ready": {"type": "boolean"},
+    "is_complete_for_requested_scope": {"type": "boolean"},
+    "receipt": {"type": ["object", "null"]},
+    "payload": {"type": ["object", "null"]},
+    "external_action_authorized": {"const": false}
+  }
+}

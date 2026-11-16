@@ -11,6 +11,20 @@ description: "Select superior mathematical modeling contest problems and modelin
 - **references 加载**：本目录 references/ 10 文件按 SKILL.md Resource Routing 段的触发条件按需加载，路径改为本目录相对路径。
 - **触发条件（本仓场景）**：CUMCM/MCM 选题会、AI 选题结果审计、建模路线比较、获奖论文逐问建模蒸馏。
 
+### 选题三技能串联（本仓）
+
+```
+comp-contest-research（调研，6h 深度吃透题目/数据/方法）
+        ↓ 选题调研报告
+problem-selection（30 分钟快筛，5 维打分出 TOP3）
+        ↓ TOP3 排序与利弊清单
+math-modeling-contest-route-selection（本技能，深度路线：problem card / route card / 反同质化 / score_topics.py）
+```
+
+### 资产双重身份说明
+
+本技能的 `references/paper-scoring-framework.md` 是**九维评分唯一真源**，被 comp-editor、comp-final-review、comp-paper-zh 等技能以路径引用消费。引擎 `templates.json` 中 26 处命中本技能名的条目，实为对该 references 资产的路径引用，并非把本技能作为工作流步骤技能路由——即本技能同时是「可选执行技能」与「被高频引用的评分资产库」。
+
 ## 输入/输出契约（上游已有，此处摘要）
 
 - 输入：选题评分 JSON（topic/route 级 evidence + flip_condition 按准则分键；fallback 必须含 trigger/action/deadline 三元结构；热门题强制 crowd_escape_mechanism）

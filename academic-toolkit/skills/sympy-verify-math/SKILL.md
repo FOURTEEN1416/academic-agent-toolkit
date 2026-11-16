@@ -19,25 +19,25 @@ Verify mathematical derivations step-by-step using SymPy.
 For each derivation step:
 1. State the transformation being applied
 2. Write the result
-3. Verify with `./verify.py` before proceeding
+3. Verify with `./scripts/verify.py` before proceeding
 
 ## Verification Commands
 
 ```bash
 # Check two expressions are equal
-./verify.py eq "EXPR1" "EXPR2"
+./scripts/verify.py eq "EXPR1" "EXPR2"
 
 # Compute derivative
-./verify.py diff "EXPR" [VAR]
+./scripts/verify.py diff "EXPR" [VAR]
 
 # Compute integral
-./verify.py int "EXPR" [VAR]
+./scripts/verify.py int "EXPR" [VAR]
 
 # Simplify/expand expression
-./verify.py simp "EXPR"
+./scripts/verify.py simp "EXPR"
 
 # Solve equation (EXPR = 0)
-./verify.py solve "EXPR" [VAR]
+./scripts/verify.py solve "EXPR" [VAR]
 ```
 
 > Paths are relative to this skill's directory.
@@ -60,7 +60,7 @@ dF/ds = 1 - d/ds[log(e^s + C)]
 ```
 
 ```bash
-./verify.py diff "s - log(exp(s) + C)" s
+./scripts/verify.py diff "s - log(exp(s) + C)" s
 ```
 
 **Step 2**: Simplify to single fraction
@@ -70,5 +70,5 @@ dF/ds = 1 - d/ds[log(e^s + C)]
 ```
 
 ```bash
-./verify.py eq "1 - exp(s)/(exp(s) + C)" "C/(exp(s) + C)"
+./scripts/verify.py eq "1 - exp(s)/(exp(s) + C)" "C/(exp(s) + C)"
 ```

@@ -4,9 +4,15 @@ description: Low-level plotting library for full customization. Use when you nee
 category: visualization
 license: https://github.com/matplotlib/matplotlib/tree/main/LICENSE
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/matplotlib
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Visualization, Plotting, Charts, Figures]
 dependencies: ["matplotlib>=3.9.0"]
 ---

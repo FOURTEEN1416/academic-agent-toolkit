@@ -3,10 +3,18 @@ name: skypilot-multi-cloud-orchestration
 description: Multi-cloud orchestration for ML workloads with automatic cost optimization. Use when you need to run training or batch jobs across multiple clouds, leverage spot instances with auto-recovery, or optimize GPU costs across providers.
 category: cloud-compute
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Infrastructure, Multi-Cloud, Synthetic Sciencestion, GPU, Cost Optimization, SkyPilot]
 dependencies: [skypilot>=0.7.0]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 09-infrastructure/skypilot
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # SkyPilot Multi-Cloud Synthetic Sciencestion

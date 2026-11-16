@@ -1,12 +1,12 @@
 {
   "name": "diagram-design",
-  "description": "Create branded architecture, IT current-state, flowchart, sequence, state machine, ER/data model, timeline, swimlane, quadrant, radar/spider, polar chart (polar/radial lollipop), loop/flywheel, nested, tree, org chart, layer stack, Venn, pyramid/funnel, treemap, bar, line, Gantt and scatter charts, high-level, process, medallion, data flow, DP integration, DP security matrix, sankey, fishbone, Wardley map, kanban, user journey, deployment, dependency graph, UML class, story map, or database schema diagrams as standalone HTML/SVG/PNG. Redraw .drawio/.drawio.png/.drawio.svg or Mermaid .mmd sources at a chosen size/detail; onboard brand tokens from a website; add semantic patterns, callouts, accessible motion, or sketchy/hand-drawn styling.",
-  "version": "2.6.7",
+  "description": "Editorial diagrams in your brand, as self-contained HTML and SVG. Architecture, flowcharts, sequence, state machines, ER and database schemas, timelines, swimlanes, org charts, Gantt, Wardley maps, user journeys, service blueprints, UML class, lifecycle phase maps, and charts from bar, line and scatter to Sankey, treemap and heatmap, plus many more. Redraws draw.io, Mermaid, Excalidraw and PlantUML files. Exports SVG and PNG.",
+  "version": "2.6.164",
   "author": {
     "name": "Cathryn Lavery",
     "url": "https://github.com/cathrynlavery"
   },
-  "homepage": "https://github.com/cathrynlavery/diagram-design",
+  "homepage": "https://diagramdesign.dev",
   "repository": "https://github.com/cathrynlavery/diagram-design",
   "license": "MIT",
   "keywords": [
@@ -18,6 +18,7 @@
     "editorial",
     "drawio",
     "mermaid",
+    "plantuml",
     "import",
     "animation",
     "semantic-patterns"

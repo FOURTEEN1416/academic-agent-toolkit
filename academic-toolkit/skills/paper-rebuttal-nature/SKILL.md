@@ -9,7 +9,9 @@ description: "Use when responding to reviewer comments: structured author respon
 
 Use this skill when reviewer comments already exist and the task is no longer generic manuscript revision. The goal is to produce a response package that is credible, efficient, and easy for editors or reviewers to verify.
 
-This skill is not for redesigning the whole paper. Use `manuscript-optimizer` first if the manuscript itself is structurally unstable. Use this skill when the paper is in revision mode and each comment must be turned into an explicit response and, where needed, a concrete manuscript change.
+This skill is not for redesigning the whole paper. Use `paper-manuscript-optimize` first if the manuscript itself is structurally unstable. Use this skill when the paper is in revision mode and each comment must be turned into an explicit response and, where needed, a concrete manuscript change.
+
+> **与 `rebuttal` 的分工**：本技能面向期刊逐点回复（point-by-point response letter，随修改稿提交）；会议限量 rebuttal（字符受限、多评审人跟帖）用 `rebuttal`。
 
 ## When To Use
 

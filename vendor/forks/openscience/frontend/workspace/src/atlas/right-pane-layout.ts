@@ -1,8 +1,7 @@
 export const MIN_PANE_WIDTH = 320
-export const MAX_PANE_WIDTH = 720
 export const DEFAULT_PANE_WIDTH = 400
 export const INLINE_PANE_BREAKPOINT = 1100
-export const INLINE_PANE_CHROME = 568
+const INLINE_PANE_CHROME = 568
 export const MIN_CONVERSATION_WIDTH = 420
 
 export function paneWidthKey(project: string) {
@@ -14,13 +13,16 @@ export function legacyPaneWidthKey(project: string, session = "new") {
 }
 
 export function maxPaneWidthForWorkspace(workspace: number, persistentSidebar = 0) {
-  if (!Number.isFinite(workspace)) return MAX_PANE_WIDTH
+  if (!Number.isFinite(workspace)) return DEFAULT_PANE_WIDTH
   const sidebar = Number.isFinite(persistentSidebar) ? Math.max(0, persistentSidebar) : 0
-  return Math.max(MIN_PANE_WIDTH, Math.min(MAX_PANE_WIDTH, workspace - sidebar - MIN_CONVERSATION_WIDTH))
+  return Math.max(MIN_PANE_WIDTH, workspace - sidebar - MIN_CONVERSATION_WIDTH)
 }
 
-export function clampPaneWidth(width: number, max = MAX_PANE_WIDTH) {
-  return Math.max(MIN_PANE_WIDTH, Math.min(max, width))
+export function clampPaneWidth(width: number, max = Number.POSITIVE_INFINITY, min = MIN_PANE_WIDTH) {
+  const value = Number.isFinite(width) ? width : DEFAULT_PANE_WIDTH
+  const floor = Number.isFinite(min) ? Math.max(0, min) : MIN_PANE_WIDTH
+  const ceiling = Number.isFinite(max) ? Math.max(floor, max) : Number.POSITIVE_INFINITY
+  return Math.max(floor, Math.min(ceiling, value))
 }
 
 export function paneWidthForViewport(width: number, viewport: number) {
@@ -35,19 +37,29 @@ export function equalPaneWidth(workspace: number, persistentSidebar = 0) {
   return paneWidthForWorkspace((workspace - persistentSidebar) / 2, workspace, persistentSidebar)
 }
 
-export function readPaneWidth(
-  key: string,
-  storage: Pick<Storage, "getItem" | "setItem"> = localStorage,
-  legacy: string[] = [],
+export function presetPaneWidth(
+  preset: "conversation" | "inspector" | "equal" | "default",
+  workspace: number,
+  sidebar = 0,
 ) {
+  if (preset === "default") return paneWidthForWorkspace(DEFAULT_PANE_WIDTH, workspace, sidebar)
+  if (preset === "equal") return equalPaneWidth(workspace, sidebar)
+  return paneWidthForWorkspace((workspace - sidebar) * (preset === "inspector" ? 0.7 : 0.3), workspace, sidebar)
+}
+
+export function readPaneWidth(key: string, storage?: Pick<Storage, "getItem" | "setItem">, legacy: string[] = []) {
   const value = (() => {
     try {
-      const current = storage.getItem(key)
+      // Resolved here rather than as a default argument: a default parameter is
+      // evaluated at the call site, before this try can catch a throwing read.
+      const store = storage ?? (globalThis as { localStorage?: Storage }).localStorage
+      if (!store) return
+      const current = store.getItem(key)
       if (current !== null) return current
       for (const old of legacy) {
-        const saved = storage.getItem(old)
+        const saved = store.getItem(old)
         if (saved === null) continue
-        storage.setItem(key, saved)
+        store.setItem(key, saved)
         return saved
       }
     } catch {
@@ -60,8 +72,11 @@ export function readPaneWidth(
   return clampPaneWidth(width)
 }
 
-export function savePaneWidth(key: string, width: number, storage: Pick<Storage, "setItem"> = localStorage) {
+export function savePaneWidth(key: string, width: number, storage?: Pick<Storage, "setItem">) {
   try {
-    storage.setItem(key, String(clampPaneWidth(width)))
+    // Same reason as readPaneWidth: a default argument runs before the try.
+    const store = storage ?? (globalThis as { localStorage?: Storage }).localStorage
+    if (!store) return
+    store.setItem(key, String(clampPaneWidth(width)))
   } catch {}
 }

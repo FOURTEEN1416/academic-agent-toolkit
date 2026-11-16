@@ -1,47 +1,11 @@
-import type { Hooks, PluginInput } from "@synsci/plugin"
+import type { Hooks } from "@synsci/plugin"
 import { Log } from "../util/log"
 import { escapeHtml, htmlResponse } from "../util/html"
 import { Installation } from "../installation"
-import { OAUTH_DUMMY_KEY } from "../auth"
-import { OpenScience } from "../openscience"
-import { managedApiBase } from "../endpoints"
+import { Auth, OAUTH_DUMMY_KEY } from "../auth"
 import os from "os"
 
 const log = Log.create({ service: "plugin.codex" })
-
-export async function pushTokensToBackend(
-  atlasBaseUrl: string,
-  thkToken: string,
-  payload: {
-    access_token: string
-    refresh_token: string
-    expires_in: number
-    account_id?: string
-    id_token_claims?: Record<string, unknown>
-  },
-): Promise<void> {
-  try {
-    const res = await fetch(`${atlasBaseUrl}/api/keys/openai-codex`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${thkToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-      // Bound the push: the browser OAuth has already succeeded and the login
-      // callback awaits this, so a hung atlas backend would otherwise leave
-      // `keys signin` spinning on "Waiting for authorization…" indefinitely.
-      signal: AbortSignal.timeout(OAUTH_HTTP_TIMEOUT_MS),
-    })
-    if (!res.ok) {
-      log.warn("codex backend push failed", { status: res.status })
-      return
-    }
-    log.info("codex tokens pushed to atlas backend")
-  } catch (e) {
-    log.warn("codex backend push errored", { error: String(e) })
-  }
-}
 
 const CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann"
 const ISSUER = "https://auth.openai.com"
@@ -355,18 +319,54 @@ interface PendingOAuth {
 let oauthServer: ReturnType<typeof Bun.serve> | undefined
 let pendingOAuth: PendingOAuth | undefined
 
-// Single-flight refresh: two concurrent AI-SDK calls arriving after
-// access-token expiry must share one /oauth/token round-trip. OpenAI
-// rotates refresh_token on every refresh, so racing requests would
-// otherwise persist a stale refresh value.
-let refreshInflight: Promise<TokenResponse> | undefined
+// Include persistence in the shared flight, and key it by the refresh token:
+// a newly connected account must never join the previous account's request.
+const refreshInflight = new Map<string, Promise<Auth.Oauth>>()
 
-async function refreshAccessTokenSingleFlight(refreshToken: string): Promise<TokenResponse> {
-  if (refreshInflight) return refreshInflight
-  refreshInflight = refreshAccessToken(refreshToken).finally(() => {
-    refreshInflight = undefined
-  })
-  return refreshInflight
+export class CodexCredentialsChangedError extends Error {
+  constructor() {
+    super("Codex connection changed while refreshing. Retry with the current connection.")
+  }
+}
+
+export async function refreshCodexAuth(previous: Auth.Oauth): Promise<Auth.Oauth> {
+  const pending = refreshInflight.get(previous.refresh)
+  if (pending) return pending
+  const read = async () => {
+    const current = await Auth.get("openai-codex")
+    if (
+      current?.type !== "oauth" ||
+      (previous.accountId !== undefined && current.accountId !== previous.accountId) ||
+      current.enterpriseUrl !== previous.enterpriseUrl
+    )
+      throw new CodexCredentialsChangedError()
+    return current
+  }
+  const task = (async () => {
+    const current = await read()
+    if (current.access && current.access !== previous.access && current.expires > Date.now()) return current
+    const tokens = await refreshAccessToken(current.refresh).catch(async (error: unknown) => {
+      // Another process may have spent the rotating token and saved its pair.
+      const latest = await read()
+      if (latest.refresh !== current.refresh && latest.access && latest.expires > Date.now()) return latest
+      throw error
+    })
+    if ("type" in tokens) return tokens
+    const next: Auth.Oauth = {
+      ...current,
+      refresh: tokens.refresh_token,
+      access: tokens.access_token,
+      expires: Date.now() + (tokens.expires_in ?? 3600) * 1000,
+      accountId: extractAccountId(tokens) || current.accountId,
+    }
+    if (await Auth.renew("openai-codex", current, next)) return next
+    // A late response cannot undo logout, account replacement, or a newer pair.
+    const latest = await read()
+    if (latest.access && latest.expires > Date.now()) return latest
+    throw new CodexCredentialsChangedError()
+  })().finally(() => refreshInflight.delete(previous.refresh))
+  refreshInflight.set(previous.refresh, task)
+  return task
 }
 
 async function startOAuthServer(): Promise<{ port: number; redirectUri: string }> {
@@ -443,19 +443,19 @@ function stopOAuthServer() {
   }
 }
 
-function waitForOAuthCallback(pkce: PkceCodes, state: string): Promise<TokenResponse> {
+export function waitForOAuthCallback(
+  pkce: PkceCodes,
+  state: string,
+  timeoutMs = 5 * 60 * 1000,
+): Promise<TokenResponse> {
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(
-      () => {
-        if (pendingOAuth) {
-          pendingOAuth = undefined
-          reject(new Error("OAuth callback timeout - authorization took too long"))
-        }
-      },
-      5 * 60 * 1000,
-    ) // 5 minute timeout
+    const timeout = setTimeout(() => {
+      // An abandoned attempt must not clear the callback slot owned by a retry.
+      if (pendingOAuth === attempt) pendingOAuth = undefined
+      reject(new Error("OAuth callback timeout - authorization took too long"))
+    }, timeoutMs) // 5 minutes by default
 
-    pendingOAuth = {
+    const attempt: NonNullable<typeof pendingOAuth> = {
       pkce,
       state,
       resolve: (tokens) => {
@@ -467,16 +467,17 @@ function waitForOAuthCallback(pkce: PkceCodes, state: string): Promise<TokenResp
         reject(error)
       },
     }
+    pendingOAuth = attempt
   })
 }
 
-export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
+export async function CodexAuthPlugin(): Promise<Hooks> {
   return {
     auth: {
       provider: "openai-codex",
       async loader(getAuth, _provider) {
         const auth = await getAuth()
-        if (auth.type !== "oauth") return {}
+        if (auth?.type !== "oauth") return {}
 
         // Provider models + cost-zeroing are handled at database
         // synthesis time in provider/provider.ts. By the time the
@@ -499,60 +500,22 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
               }
             }
 
-            const currentAuth = await getAuth()
-            if (currentAuth.type !== "oauth") return fetch(requestInput, init)
+            let currentAuth: Auth.Info = await getAuth()
+            if (currentAuth?.type !== "oauth") throw new CodexCredentialsChangedError()
 
-            // Cast to include accountId field
-            const authWithAccount = currentAuth as typeof currentAuth & { accountId?: string }
-
-            // Check if token needs refresh (proactively, before it actually
-            // expires, so an in-flight request never races the token going stale).
+            // Refresh before expiry without revoking the turn doing the refresh.
             if (!currentAuth.access || currentAuth.expires < Date.now() + REFRESH_MARGIN_MS) {
               log.info("refreshing codex access token")
-              let tokens: TokenResponse | undefined
               try {
-                tokens = await refreshAccessTokenSingleFlight(currentAuth.refresh)
-              } catch (e) {
-                // ChatGPT rotates the refresh token on every refresh, and the
-                // single-flight guard only covers this process. When two
-                // openscience processes (CLI + workspace server) race a
-                // refresh — common while requests are being retried against an
-                // exhausted usage limit — the loser is left holding a revoked
-                // token and every later refresh fails, even after the limit
-                // resets. The winner has already persisted the rotated pair,
-                // so re-read auth before giving up.
-                const latest = (await getAuth()) as typeof currentAuth & { accountId?: string }
-                if (latest.type === "oauth" && latest.access && latest.expires > Date.now()) {
-                  currentAuth.access = latest.access
-                  authWithAccount.accountId = latest.accountId ?? authWithAccount.accountId
-                } else {
-                  if (latest.type === "oauth" && latest.refresh && latest.refresh !== currentAuth.refresh) {
-                    tokens = await refreshAccessTokenSingleFlight(latest.refresh).catch(() => undefined)
-                  }
-                  if (!tokens) {
-                    log.warn("codex token refresh failed", { error: String(e) })
-                    if (e instanceof CodexRefreshInvalidError)
-                      throw new Error("Codex sign-in expired. Reconnect it with `openscience keys signin`.")
-                    throw new Error(
-                      "Codex is temporarily unavailable (couldn't refresh the access token). Please retry in a moment.",
-                    )
-                  }
-                }
-              }
-              if (tokens) {
-                const newAccountId = extractAccountId(tokens) || authWithAccount.accountId
-                await input.client.auth.set({
-                  path: { id: "openai-codex" },
-                  body: {
-                    type: "oauth",
-                    refresh: tokens.refresh_token,
-                    access: tokens.access_token,
-                    expires: Date.now() + (tokens.expires_in ?? 3600) * 1000,
-                    ...(newAccountId && { accountId: newAccountId }),
-                  },
-                })
-                currentAuth.access = tokens.access_token
-                authWithAccount.accountId = newAccountId
+                currentAuth = await refreshCodexAuth(currentAuth)
+              } catch (error) {
+                if (error instanceof CodexCredentialsChangedError) throw error
+                log.warn("codex token refresh failed", { error: String(error) })
+                if (error instanceof CodexRefreshInvalidError)
+                  throw new Error("Codex sign-in expired. Reconnect it with `openscience keys signin`.")
+                throw new Error(
+                  "Codex is temporarily unavailable (couldn't refresh the access token). Please retry in a moment.",
+                )
               }
             }
 
@@ -575,8 +538,8 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
             // Set ChatGPT-Account-Id header for organization subscriptions.
             // (The authorization header is set per-attempt inside `send` below,
             // so the 401-retry path can swap in a freshly-refreshed token.)
-            if (authWithAccount.accountId) {
-              headers.set("ChatGPT-Account-Id", authWithAccount.accountId)
+            if (currentAuth.accountId) {
+              headers.set("ChatGPT-Account-Id", currentAuth.accountId)
             }
 
             // Rewrite URL to Codex endpoint
@@ -634,29 +597,12 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
             // refresh token itself is dead.
             const forceRefreshOn401 = async (): Promise<string | undefined> => {
               try {
-                const latest = (await getAuth()) as typeof currentAuth & { accountId?: string }
-                if (latest.type !== "oauth") return undefined
-                if (latest.access && latest.access !== currentAuth.access && latest.expires > Date.now()) {
-                  currentAuth.access = latest.access
-                  authWithAccount.accountId = latest.accountId ?? authWithAccount.accountId
-                  return latest.access
-                }
-                const tokens = await refreshAccessTokenSingleFlight(latest.refresh)
-                const newAccountId = extractAccountId(tokens) || authWithAccount.accountId
-                await input.client.auth.set({
-                  path: { id: "openai-codex" },
-                  body: {
-                    type: "oauth",
-                    refresh: tokens.refresh_token,
-                    access: tokens.access_token,
-                    expires: Date.now() + (tokens.expires_in ?? 3600) * 1000,
-                    ...(newAccountId && { accountId: newAccountId }),
-                  },
-                })
-                currentAuth.access = tokens.access_token
-                authWithAccount.accountId = newAccountId
-                return tokens.access_token
+                if (currentAuth.type !== "oauth") throw new CodexCredentialsChangedError()
+                currentAuth = await refreshCodexAuth(currentAuth)
+                if (currentAuth.accountId) headers.set("ChatGPT-Account-Id", currentAuth.accountId)
+                return currentAuth.access
               } catch (e) {
+                if (e instanceof CodexCredentialsChangedError) throw e
                 if (e instanceof CodexRefreshInvalidError)
                   throw new Error("Codex sign-in expired. Reconnect it with `openscience keys signin`.")
                 log.warn("codex 401-triggered refresh failed", { error: String(e) })
@@ -701,11 +647,6 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
 
             const callbackPromise = waitForOAuthCallback(pkce, state)
 
-            // Fetch the Atlas session once at authorize time so the callback
-            // closure can reuse it without a second async call.
-            const session = await OpenScience.getSession?.()
-            const thkToken = session?.api_key
-
             return {
               url: authUrl,
               instructions: "Complete authorization in your browser. This window will close automatically.",
@@ -718,28 +659,6 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
                 try {
                   const tokens = await callbackPromise
                   const accountId = extractAccountId(tokens)
-
-                  // Fire-and-forget: push tokens to atlas backend so the
-                  // dashboard + managed-mode proxy can use them. Local login
-                  // succeeds regardless of whether this call succeeds.
-                  const atlasBase = managedApiBase()
-                  if (thkToken) {
-                    await pushTokensToBackend(atlasBase, thkToken, {
-                      access_token: tokens.access_token,
-                      refresh_token: tokens.refresh_token,
-                      expires_in: tokens.expires_in ?? 3600,
-                      account_id: accountId,
-                      id_token_claims: tokens.id_token
-                        ? (parseJwtClaims(tokens.id_token) as Record<string, unknown> | undefined)
-                        : undefined,
-                    })
-                    // Re-sync after backend now knows about the new codex
-                    // credential, so `openai-codex` shows up in the local
-                    // provider list without a separate `openscience sync`.
-                    await OpenScience.syncServices?.().catch((e: unknown) => {
-                      log.warn("post-codex-login sync failed", { error: String(e) })
-                    })
-                  }
 
                   return {
                     type: "success" as const,
@@ -777,11 +696,6 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
               interval: string
             }
             const interval = Math.max(parseInt(deviceData.interval) || 5, 1) * 1000
-
-            // Fetch the Atlas session once at authorize time so the polling
-            // callback closure can reuse it without a repeated async call.
-            const session = await OpenScience.getSession?.()
-            const thkToken = session?.api_key
 
             return {
               url: `${ISSUER}/codex/device`,
@@ -839,23 +753,6 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
 
                     const tokens: TokenResponse = await tokenResponse.json()
                     const accountId = extractAccountId(tokens)
-
-                    // Fire-and-forget: push tokens to atlas backend.
-                    const atlasBase = managedApiBase()
-                    if (thkToken) {
-                      await pushTokensToBackend(atlasBase, thkToken, {
-                        access_token: tokens.access_token,
-                        refresh_token: tokens.refresh_token,
-                        expires_in: tokens.expires_in ?? 3600,
-                        account_id: accountId,
-                        id_token_claims: tokens.id_token
-                          ? (parseJwtClaims(tokens.id_token) as Record<string, unknown> | undefined)
-                          : undefined,
-                      })
-                      await OpenScience.syncServices?.().catch((e: unknown) => {
-                        log.warn("post-codex-login sync failed", { error: String(e) })
-                      })
-                    }
 
                     return {
                       type: "success" as const,

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/maturity-official-run-index-v2.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["contract", "contract_version", "execution_class", "operation_id", "plan_file_sha256", "protocol_file_sha256", "protocol_sha256", "fixture_index_file_sha256", "fixture_index_sha256", "candidate_lock_file_sha256", "candidate_lock_sha256", "controller_sha256", "profile_adapter_sha256", "host_adapter_sha256", "evaluator_adapter_sha256", "profile_schema_sha256", "recovery_install_schema_sha256", "result_schema_sha256", "index_schema_sha256", "aggregate_schema_sha256", "run_count", "runs", "created_at", "product_runs_executed", "evaluator_results_created", "external_action_authorized", "index_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.maturity-official-run-index-v2"}, "contract_version": {"const": "2.0"},
+    "execution_class": {"enum": ["official", "test_only"]}, "operation_id": {"type": "string", "minLength": 1},
+    "plan_file_sha256": {"$ref": "#/$defs/sha"}, "protocol_file_sha256": {"$ref": "#/$defs/sha"}, "protocol_sha256": {"$ref": "#/$defs/sha"},
+    "fixture_index_file_sha256": {"$ref": "#/$defs/sha"}, "fixture_index_sha256": {"$ref": "#/$defs/sha"},
+    "candidate_lock_file_sha256": {"$ref": "#/$defs/sha"}, "candidate_lock_sha256": {"$ref": "#/$defs/sha"},
+    "controller_sha256": {"$ref": "#/$defs/sha"}, "profile_adapter_sha256": {"$ref": "#/$defs/sha"}, "host_adapter_sha256": {"$ref": "#/$defs/sha"}, "evaluator_adapter_sha256": {"$ref": "#/$defs/sha"},
+    "profile_schema_sha256": {"$ref": "#/$defs/sha"}, "recovery_install_schema_sha256": {"$ref": "#/$defs/sha"},
+    "result_schema_sha256": {"$ref": "#/$defs/sha"}, "index_schema_sha256": {"$ref": "#/$defs/sha"}, "aggregate_schema_sha256": {"$ref": "#/$defs/sha"},
+    "run_count": {"const": 42},
+    "runs": {"type": "array", "minItems": 42, "maxItems": 42, "items": {"type": "object", "additionalProperties": false, "required": ["run_id", "sample_id", "entry_mode", "attempt", "relative_path", "file_sha256", "receipt_sha256", "status"], "properties": {"run_id": {"type": "string", "minLength": 1}, "sample_id": {"type": "string", "minLength": 1}, "entry_mode": {"enum": ["natural_language", "explicit_paper_spine"]}, "attempt": {"enum": [1, 2]}, "relative_path": {"type": "string", "minLength": 1}, "file_sha256": {"$ref": "#/$defs/sha"}, "receipt_sha256": {"$ref": "#/$defs/sha"}, "status": {"enum": ["PASS", "FAIL"]}}}},
+    "created_at": {"type": "string", "format": "date-time"}, "product_runs_executed": {"const": 42}, "evaluator_results_created": {"const": 42}, "external_action_authorized": {"const": false}, "index_sha256": {"$ref": "#/$defs/sha"}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

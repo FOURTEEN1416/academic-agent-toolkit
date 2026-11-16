@@ -1,68 +1,31 @@
 ---
 allowed-tools: Bash(powershell:*), Bash(powershell.exe:*), Bash(pwsh:*), Bash(cmd:*), Bash(bash:*), Bash(sh:*), Bash(chmod:*)
-description: Start PaperSpine with automatic intake UI when configuration is missing
+description: Open or resume the current PaperSpine Skill workflow, or handle an explicit update request
+argument-hint: "[update check | optional paper target]"
 ---
 
-Start the PaperSpine workflow for the current project.
+Invocation arguments: `$ARGUMENTS`
 
-If `paper_rewriting_output/paper_spine_config.json` is missing or incomplete,
-route through the `paper-spine` skill and launch the PaperSpine intake UI
-automatically.
-Do not hand-write the configuration.
+Read the installed `paper-spine` Skill and follow its current host workflow.
+The host Agent performs research, writing, figures and revision; Web stores the
+same task's configuration, choices and feedback and presents actual files.
 
-## Platform-specific launcher
+For an explicit update or update-check request, read `references/update.md` and
+handle that request without starting paper work. On a normal paper invocation,
+follow the installed Skill's `scripts/paperspine_update.py --preflight --yes`
+once, then continue the same task. This original wrapper now selects the full
+suite channel for the actual operating system; explicit opt-out is respected.
+After upgrading, reread the installed Skill and current public tool schemas.
 
-### Windows
+For writing, formatting, review or revision, open or resume the user's existing
+public task as directed by `SKILL.md` and `references/product-v1-workflow.md`.
+Use the installed `scripts/paperspine5_web.py launch` and its `host`
+commands when public MCP tools are not exposed. Reuse the remembered or explicitly
+supplied profile; read the actual saved configuration before continuing.
 
-```powershell
-$config = Join-Path (Get-Location) "paper_rewriting_output\paper_spine_config.json"
-$launcher = Join-Path $env:USERPROFILE ".claude\skills\paper-spine\scripts\launch_paperspine_ui.ps1"
-if (-not (Test-Path -LiteralPath $launcher)) {
-  throw "PaperSpine UI launcher not found at $launcher. Reinstall or resync PaperSpine."
-}
-if (-not (Test-Path -LiteralPath $config)) {
-  powershell.exe -NoProfile -ExecutionPolicy Bypass -File $launcher -OutputDir "paper_rewriting_output"
-}
-for ($i = 0; $i -lt 120 -and -not (Test-Path -LiteralPath $config); $i++) {
-  Start-Sleep -Seconds 5
-}
-if (-not (Test-Path -LiteralPath $config)) {
-  throw "PaperSpine intake config was not created yet. Finish the opened PowerShell UI window, then rerun /paperspine."
-}
-Get-Content -LiteralPath $config -Raw
-```
-
-### macOS / Linux
-
-```bash
-CONFIG="paper_rewriting_output/paper_spine_config.json"
-LAUNCHER="$HOME/.claude/skills/paper-spine/scripts/launch_paperspine_ui.sh"
-
-if [ ! -f "$LAUNCHER" ]; then
-  echo "PaperSpine UI launcher not found at $LAUNCHER. Reinstall or resync PaperSpine." >&2
-  exit 1
-fi
-
-if [ ! -f "$CONFIG" ]; then
-  chmod +x "$LAUNCHER"
-  bash "$LAUNCHER" "paper_rewriting_output"
-fi
-
-for i in $(seq 1 120); do
-  if [ -f "$CONFIG" ]; then break; fi
-  sleep 5
-done
-
-if [ ! -f "$CONFIG" ]; then
-  echo "PaperSpine intake config was not created yet. Finish the opened terminal window, then rerun /paperspine." >&2
-  exit 1
-fi
-
-cat "$CONFIG"
-```
-
-## After config is ready
-
-When the config already exists, read it directly and continue through the
-`paper-spine` orchestrator workflow without relaunching intake unless required
-fields are missing.
+A missing historical `paper_rewriting_output/paper_spine_config.json` is not a
+reason to create another task, restart intake or use a legacy Runner flow.
+Treat invocation arguments as the user's instructions or target hint, preserving
+valid existing materials, configuration, selections and versions. Continue the
+same task through actual writing, target-venue formatting, independent review,
+preview/download and requested revision.

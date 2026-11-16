@@ -46,7 +46,7 @@ uv pip install "pymc>=5.0" "arviz>=0.17"
 - **statsmodels + SciPy**: use `statsmodels>=0.14.6` with `scipy>=1.11` to avoid `_lazywhere` import errors on SciPy 1.16+.
 - **Pingouin Bayes Factors**: one-sided BF for t-tests was removed in 0.5+; use dedicated packages (e.g. JASP, BayesFactor via R) or PyMC for hypothesis testing.
 
-For model-specific APIs (OLS, GLM, ARIMA), see the **statsmodels** skill. For PyMC workflows, see the **pymc** skill.
+For model-specific APIs (OLS, GLM, ARIMA), use the **statsmodels library** and refer to its official documentation (本仓未集成 statsmodels 技能). For PyMC workflows, see the **pymc** skill.
 
 ---
 
@@ -144,7 +144,7 @@ All tests have Bayesian versions that provide:
 
 **ALWAYS check assumptions before interpreting test results.**
 
-Use the bundled `scripts/assumption_checks.py` module for automated checking. Run Python from the skill directory (`skills/statistical-analysis/`) or add `scripts/` to `sys.path`:
+Use the bundled `scripts/assumption_checks.py` module for automated checking. Run Python from this skill's directory (`skills/data-statistics-report/`) or add `scripts/` to `sys.path`:
 
 ```python
 from assumption_checks import comprehensive_assumption_check

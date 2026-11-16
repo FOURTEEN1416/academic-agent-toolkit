@@ -5,7 +5,7 @@
 
 ## 缺失资产清单（6 项，2026-09-28 审计）
 
-- `shared/sprint_contract.schema.json`（scripts/check_sprint_contract.py:21 硬编码依赖，缺它该脚本 load_schema() 必抛 FileNotFoundError）
+- ~~`shared/sprint_contract.schema.json`~~ **已恢复（2026-11-16）**：自 vendor/forks/academic-research-skills@pin 原样回填至本技能 `shared/sprint_contract.schema.json`，check_sprint_contract.py 对 vendor 样例合同实测 exit 0（仅非阻断 SC 警告）。
 - `scripts/check_phase_conformance.py`
 - `scripts/check_panel_synthesis.py`
 - `scripts/check_re_review_synthesis.py`

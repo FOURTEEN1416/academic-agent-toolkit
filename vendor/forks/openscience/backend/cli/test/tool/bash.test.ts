@@ -1,14 +1,17 @@
 import { describe, expect, test } from "bun:test"
 import fs from "fs/promises"
 import path from "path"
-import { BashTool, normalizeBashInput } from "../../src/tool/bash"
+import { BashTool, normalizeBashInput, DEFAULT_BASH_TIMEOUT_MS } from "../../src/tool/bash"
 import { Instance } from "../../src/project/instance"
 import { executionSession, tmpdir } from "../fixture/fixture"
-import type { PermissionNext } from "../../src/permission/next"
+import { PermissionNext } from "../../src/permission/next"
 import { Truncate } from "../../src/tool/truncation"
+import { BashOutput } from "../../src/tool/bash-output"
 import { SessionFilesystem } from "../../src/session/filesystem"
 import { Shell } from "../../src/shell/shell"
 import { Config } from "../../src/config/config"
+import { Filesystem } from "../../src/util/filesystem"
+import { Tool } from "../../src/tool/tool"
 
 async function context() {
   const session = await executionSession()
@@ -53,6 +56,19 @@ describe("tool.bash", () => {
     expect(normalizeBashInput({})).toEqual({})
   })
 
+  test("documents process containment and the durable local job path", async () => {
+    const bash = await BashTool.init()
+    expect(bash.description).toContain("All Bash children stop when the call ends")
+    for (const escape of ["`&`", "`nohup`", "`disown`", "`setsid`"]) {
+      expect(bash.description).toContain(escape)
+    }
+    // The description names no other tool by id: every sentence must be
+    // followable whatever set the session was offered.
+    expect(bash.description).toContain("durable job tool when it is offered")
+    expect(bash.description).not.toContain("compute_job")
+    expect(bash.description).not.toContain("research_search")
+  })
+
   test("basic", async () => {
     await Instance.provide({
       directory: projectRoot,
@@ -71,8 +87,87 @@ describe("tool.bash", () => {
     })
   })
 
+  test("runs in bash rather than the login shell, so bash-isms like `status=$?` work", async () => {
+    if (process.platform === "win32") return
+    await Instance.provide({
+      directory: projectRoot,
+      fn: async () => {
+        const bash = await BashTool.init()
+        // `status` is read-only in zsh; a script that sets it dies there.
+        const result = await bash.execute(
+          {
+            command: 'true; status=$?; echo "exit=$status shell=$0"',
+            description: "Sets a variable zsh forbids",
+          },
+          await context(),
+        )
+        expect(result.metadata.exit).toBe(0)
+        expect(result.metadata.output).toContain("exit=0")
+        expect(path.basename(Shell.forTool())).toMatch(/^bash/)
+      },
+    })
+  })
+
+  test("a running command survives a grant added beside it", async () => {
+    if (process.platform === "win32") return
+    await using folder = await tmpdir()
+    await Instance.provide({
+      directory: projectRoot,
+      fn: async () => {
+        const bash = await BashTool.init()
+        const ctx = await context()
+        // Widening: a skill load or a newly connected folder adds a grant
+        // while the command runs. The command is still within bounds.
+        const surviving = bash.execute(
+          { command: "sleep 1.5; echo survived", description: "Runs while a grant arrives" },
+          ctx,
+        )
+        await Bun.sleep(300)
+        const grant = await SessionFilesystem.grant({
+          sessionID: ctx.sessionID,
+          path: folder.path,
+          access: "read",
+          scope: "session",
+        })
+        const result = await surviving
+        expect(result.metadata.exit).toBe(0)
+        expect(result.metadata.output).toContain("survived")
+        await SessionFilesystem.revoke(ctx.sessionID, grant.id)
+      },
+    })
+  })
+
+  test("a non-zero exit is stated in the text the model reads; a truncated output keeps its end", async () => {
+    if (process.platform === "win32") return
+    await Instance.provide({
+      directory: projectRoot,
+      fn: async () => {
+        const bash = await BashTool.init()
+        // Quiet failure: no stderr, so only the code says it failed.
+        const failed = await bash.execute({ command: "exit 3", description: "Fails quietly" }, await context())
+        expect(failed.metadata.exit).toBe(3)
+        expect(failed.output).toContain("Command exited with code 3")
+        const fine = await bash.execute({ command: "echo ok", description: "Succeeds" }, await context())
+        expect(fine.output).not.toContain("exited with code")
+        // A traceback at the end of a long output is shown without a second step.
+        const noisy = await bash.execute(
+          {
+            command: "for i in $(seq 1 4000); do echo \"progress $i\"; done; echo 'ValueError: bad shape' >&2; exit 1",
+            description: "Prints a lot, then fails",
+          },
+          await context(),
+        )
+        expect(noisy.metadata.truncated).toBe(true)
+        expect(noisy.output).toContain("truncated...")
+        expect(noisy.output).toContain("The output ends with:")
+        expect(noisy.output).toContain("ValueError: bad shape")
+        expect(noisy.output).toContain("Command exited with code 1")
+      },
+    })
+  })
+
   test("reports an upstream pipeline failure", async () => {
-    if (!/^(bash|zsh)(\.exe)?$/i.test(path.basename(Shell.acceptable()))) return
+    if (!/^(bash|zsh)(\.exe)?$/i.test(path.basename(Shell.forTool()))) return
     await Instance.provide({
       directory: projectRoot,
       fn: async () => {
@@ -114,6 +209,7 @@ describe("tool.bash permissions", () => {
         expect(requests.length).toBe(1)
         expect(requests[0].permission).toBe("bash")
         expect(requests[0].patterns).toContain("echo hello")
+        expect(requests[0].metadata).toEqual({ shell: { command: "echo hello" } })
       },
     })
   })
@@ -142,6 +238,7 @@ describe("tool.bash permissions", () => {
         expect(requests[0].permission).toBe("bash")
         expect(requests[0].patterns).toContain("echo foo")
         expect(requests[0].patterns).toContain("echo bar")
+        expect(requests[0].metadata).toEqual({ shell: { command: "echo foo && echo bar" } })
       },
     })
   })
@@ -181,6 +278,11 @@ describe("tool.bash permissions", () => {
         )
         const extDirReq = requests.find((r) => r.permission === "external_directory")
         expect(extDirReq).toBeDefined()
+        // The folder itself is the grant. Its parent would hand the session
+        // every sibling, and `cd /tmp` would become access to /private on macOS.
+        const canonical = (await Filesystem.canonical(target)) ?? target
+        expect(extDirReq?.metadata.filesystem).toEqual({ path: canonical, access: "read" })
+        expect(extDirReq?.patterns).toEqual([path.join(canonical, "*")])
       },
     })
   })
@@ -278,7 +380,7 @@ describe("tool.bash permissions", () => {
     })
   })
 
-  test("does not ask for bash permission when command is cd only", async () => {
+  test("preserves exact source at the authorization boundary for cd-only commands", async () => {
     await using tmp = await tmpdir({ git: true })
     await Instance.provide({
       directory: tmp.path,
@@ -299,7 +401,88 @@ describe("tool.bash permissions", () => {
           testCtx,
         )
         const bashReq = requests.find((r) => r.permission === "bash")
-        expect(bashReq).toBeUndefined()
+        expect(bashReq).toMatchObject({
+          patterns: ["cd ."],
+          metadata: { shell: { command: "cd ." } },
+        })
+      },
+    })
+  })
+
+  test("Ask risky allows an audited read through the real Bash permission boundary", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const bash = await BashTool.init()
+        const base = await context()
+        const command = process.platform === "win32" ? "cd" : "pwd"
+        const result = await bash.execute(
+          {
+            command,
+            description: "Read the current working directory",
+          },
+          {
+            ...base,
+            ask: async (request: Omit<PermissionNext.Request, "id" | "sessionID" | "tool">) =>
+              PermissionNext.ask({
+                ...request,
+                sessionID: base.sessionID,
+                ruleset: [{ permission: "bash", pattern: "*", action: "allow" }],
+                mode: "approve",
+              }),
+          },
+        )
+        expect(result.metadata.exit).toBe(0)
+        expect(path.isAbsolute(result.output.trim())).toBe(true)
+        expect((await PermissionNext.list()).some((item) => item.sessionID === base.sessionID)).toBe(false)
+      },
+    })
+  })
+
+  test("Ask risky blocks a destructive command before Bash changes the workspace", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const victim = path.join(tmp.path, "victim")
+        await Bun.write(victim, "keep")
+        const bash = await BashTool.init()
+        const base = await context()
+        const execution = bash
+          .execute(
+            {
+              command: "rm -rf victim",
+              description: "Remove test victim",
+            },
+            {
+              ...base,
+              ask: async (request: Omit<PermissionNext.Request, "id" | "sessionID" | "tool">) =>
+                PermissionNext.ask({
+                  ...request,
+                  id: "permission_bash_risky_boundary",
+                  sessionID: base.sessionID,
+                  ruleset: [{ permission: "bash", pattern: "*", action: "allow" }],
+                  mode: "approve",
+                }),
+            },
+          )
+          .catch((error) => error)
+
+        let pending: PermissionNext.Request | undefined
+        for (let attempt = 0; attempt < 100 && !pending; attempt++) {
+          pending = (await PermissionNext.list()).find((item) => item.id === "permission_bash_risky_boundary")
+          if (!pending) await Bun.sleep(5)
+        }
+        expect(pending).toMatchObject({
+          permission: "bash",
+          metadata: { shell: { command: "rm -rf victim" } },
+        })
+        expect(await Bun.file(victim).exists()).toBe(true)
+
+        await PermissionNext.reply({ requestID: "permission_bash_risky_boundary", reply: "reject" })
+        expect(await execution).toBeInstanceOf(PermissionNext.RejectedError)
+        expect(await Bun.file(victim).exists()).toBe(true)
       },
     })
   })
@@ -364,6 +547,52 @@ describe("tool.bash truncation", () => {
     })
   })
 
+  test("streams a large noisy output in linear time with a throttled live preview", async () => {
+    await Instance.provide({
+      directory: projectRoot,
+      fn: async () => {
+        const bash = await BashTool.init()
+        const base = await context()
+        let updates = 0
+        const testCtx = {
+          ...base,
+          metadata() {
+            updates++
+          },
+        }
+        const bytes = 20_000_000
+        const started = Date.now()
+        // The previous capture re-ran redaction over the whole accumulated
+        // output on every chunk; 20 MB in pipe-sized chunks took minutes.
+        const result = await bash.execute(
+          {
+            command: `yes 'token=sk-largeoutput0123456789 filler text for the stream' | head -c ${bytes}`,
+            description: "Generate a large noisy stream",
+          },
+          testCtx,
+        )
+        expect(Date.now() - started).toBeLessThan(20_000)
+        expect((result.metadata as any).truncated).toBe(true)
+        expect(result.output).not.toContain("sk-largeoutput0123456789")
+        // The head preview, the tail kept for the model, and the notice.
+        expect(result.output.length).toBeLessThan(Truncate.MAX_BYTES + BashOutput.TAIL_BYTES + 2_000)
+        // One live update per interval, not one per chunk.
+        expect(updates).toBeLessThan(200)
+        const saved = await Bun.file((result.metadata as any).outputPath).text()
+        expect(saved).not.toContain("sk-largeoutput0123456789")
+        expect(
+          saved.split("\n").length,
+          JSON.stringify({
+            exit: result.metadata.exit,
+            output: result.output.slice(-1200),
+            savedTail: saved.slice(-600),
+            size: saved.length,
+          }),
+        ).toBeGreaterThan(300_000)
+      },
+    })
+  }, 60_000)
+
   test("full output is saved to file when truncated", async () => {
     await Instance.provide({
       directory: projectRoot,
@@ -389,5 +618,34 @@ describe("tool.bash truncation", () => {
         expect(lines[lineCount - 1]).toBe(String(lineCount))
       },
     })
+  })
+})
+
+test("a command with no timeout given runs for at most twenty minutes by default", () => {
+  expect(DEFAULT_BASH_TIMEOUT_MS).toBe(20 * 60_000)
+})
+
+test("a timeout of zero is refused instead of removing the only bound", async () => {
+  // `timeout > 0` is what arms the timer, so a zero used to pass validation and
+  // then run the command with no timer at all — and because `0 ?? default` is 0,
+  // the twenty-minute default did not cover for it either.
+  const bash = await BashTool.init()
+  const call = (timeout: unknown) => Tool.validate("bash", bash, { command: "sleep 1", description: "Wait", timeout })
+  expect(call(0).success).toBe(false)
+  expect(call(-1).success).toBe(false)
+  expect(call(Number.NaN).success).toBe(false)
+  expect(call(1200).success).toBe(true)
+  expect(call(undefined).success).toBe(true)
+})
+
+test("direct execution refuses zero before running the command", async () => {
+  await Instance.provide({
+    directory: projectRoot,
+    fn: async () => {
+      const bash = await BashTool.init()
+      await expect(
+        bash.execute({ command: "echo should-not-run", description: "Timeout check", timeout: 0 }, await context()),
+      ).rejects.toThrow("No command was run.")
+    },
   })
 })

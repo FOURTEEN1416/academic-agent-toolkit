@@ -1,7 +1,14 @@
 import { Config } from "../config/config"
 import z from "zod"
 import { Provider } from "../provider/provider"
-import { generateObject, streamObject, type ModelMessage } from "ai"
+import {
+  generateObject,
+  streamObject,
+  NoObjectGeneratedError,
+  type ModelMessage,
+  type LanguageModelUsage,
+  type ProviderMetadata,
+} from "ai"
 import { SystemPrompt } from "../session/system"
 import { Instance } from "../project/instance"
 import { Auth } from "../auth"
@@ -10,23 +17,26 @@ import { ProviderTransform } from "../provider/transform"
 import PROMPT_GENERATE from "./generate.txt"
 import PROMPT_COMPACTION from "./prompt/compaction.txt"
 import PROMPT_EXPLORE from "./prompt/explore.txt"
-import PROMPT_CRITIQUE from "./prompt/critique.txt"
-import PROMPT_LITERATURE_REVIEW from "./prompt/literature-review.txt"
+import PROMPT_SPECIALIST from "./prompt/specialist.txt"
+import PROMPT_SUMMARY from "./prompt/summary.txt"
+import PROMPT_READER from "./prompt/reader.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
-import PROMPT_PHYSICS_CRITIQUE from "./prompt/physics-critique.txt"
-import PROMPT_RESEARCH_AGENT_TEST from "./prompt/researchagent-test.txt"
 import { PermissionNext } from "@/permission/next"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@/global"
 import path from "path"
 import { Plugin } from "@/plugin"
 import { State } from "@/project/state"
-import { OutboundTelemetry } from "@/telemetry/outbound"
 import { ProjectTrust } from "@/project/trust"
 import { ProjectAccess } from "@/project/access"
-import { resolveCredentialSource, telemetryRoute } from "@/session/billing-gate"
 import { randomUUID } from "node:crypto"
-import { Flag } from "@/flag/flag"
+import { OpenScience } from "@/openscience"
+import { accessRoute, requiresWalletBalance, resolveCredentialSource } from "@/session/access-route"
+import { ToolVisibility } from "@/tool/visibility"
+import { BIOLOGY_TOOL_IDS } from "@/tool/biology/ids"
+import { ModelCallTrace } from "@/session/model-call-trace"
+import { UsageLogging } from "@/session/usage-logging"
+import { CallLink } from "@/provider/call-link"
 
 export namespace Agent {
   export const Info = z
@@ -46,9 +56,14 @@ export namespace Agent {
           providerID: z.string(),
         })
         .optional(),
+      variant: z.string().optional(),
       prompt: z.string().optional(),
       options: z.record(z.string(), z.any()),
       steps: z.number().int().positive().optional(),
+      /** Skill categories rendered into the agent's <domain-skills> index. */
+      skills: z.array(z.string()).optional(),
+      /** Tools offered without a skill unlock, beyond the shared default set. */
+      unlocks: z.array(z.string()).optional(),
     })
     .meta({
       ref: "Agent",
@@ -105,6 +120,7 @@ export namespace Agent {
             mcp: "ask",
             modal: "ask",
             network: "ask",
+            provider_compute: "ask",
             remote_compute: "ask",
             webfetch: "ask",
             websearch: "ask",
@@ -123,9 +139,10 @@ export namespace Agent {
               mcp: "ask",
               modal: "ask",
               network: "ask",
+              provider_compute: "ask",
               remote_compute: "ask",
-              webfetch: "ask",
-              websearch: "ask",
+              webfetch: "allow",
+              websearch: "allow",
             }
           : {
               atlas: "allow",
@@ -140,6 +157,7 @@ export namespace Agent {
               mcp: "allow",
               modal: "allow",
               network: "allow",
+              provider_compute: "allow",
               remote_compute: "allow",
               webfetch: "allow",
               websearch: "allow",
@@ -150,117 +168,52 @@ export namespace Agent {
     const safeAction = accessMode === "ask" ? "ask" : "allow"
     const externalAction = accessMode === "full" ? "allow" : "ask"
 
+    const specialist = (input: {
+      name: string
+      label: string
+      focus: string
+      description: string
+      color: string
+      skills: string[]
+      tools?: readonly string[]
+    }): Info => {
+      const own = PermissionNext.fromConfig({
+        question: "deny",
+        todowrite: "deny",
+        task: "deny",
+        ...Object.fromEntries((input.tools ?? []).map((tool) => [tool, "allow" as const])),
+      })
+      return {
+        name: input.name,
+        description: input.description,
+        options: {},
+        color: input.color,
+        prompt: PROMPT_SPECIALIST.replaceAll("{label}", input.label).replaceAll("{focus}", input.focus),
+        permission: PermissionNext.merge(defaults, own, user),
+        mode: "subagent",
+        native: true,
+        hidden: false,
+        skills: input.skills,
+        unlocks: ToolVisibility.unlocks(own),
+      }
+    }
+
     const result: Record<string, Info> = {
-      // --- Research modes (top) ---
       research: {
         name: "research",
         description: "Primary research agent for focused questions, analysis, synthesis, and durable outputs.",
         options: {},
         color: "#d48765",
-        prompt: PROMPT_RESEARCH_AGENT_TEST,
         permission: PermissionNext.merge(
           defaults,
           PermissionNext.fromConfig({
             question: "allow",
             plan_enter: "allow",
-            research_contract: "deny",
           }),
           user,
         ),
         mode: "primary",
         native: true,
-      },
-      ...(Flag.OPENSCIENCE_ENABLE_RESEARCH_AGENT_TEST
-        ? {
-            "researchagent-test": {
-              name: "researchagent-test",
-              description: "Feature-gated thin Research profile for source-level trajectory evaluation.",
-              options: {},
-              color: "#7c8cff",
-              permission: PermissionNext.merge(
-                defaults,
-                PermissionNext.fromConfig({
-                  question: "allow",
-                  research_contract: "deny",
-                }),
-                user,
-              ),
-              mode: "primary" as const,
-              native: true,
-              prompt: PROMPT_RESEARCH_AGENT_TEST,
-            },
-          }
-        : {}),
-      // --- Domain agents ---
-      biology: {
-        name: "biology",
-        description: "Biology specialist for bioinformatics, biological databases, and evidence-backed data analysis.",
-        options: {},
-        color: "#10b981",
-        permission: PermissionNext.merge(
-          defaults,
-          PermissionNext.fromConfig({
-            question: "allow",
-          }),
-          user,
-        ),
-        mode: "subagent",
-        native: true,
-        hidden: true,
-      },
-      // --- Physics ---
-      physics: {
-        name: "physics",
-        description:
-          "Physics specialist for simulation, numerical methods, dimensional analysis, and validated scientific computing.",
-        options: {},
-        color: "#8b5cf6",
-        permission: PermissionNext.merge(
-          defaults,
-          PermissionNext.fromConfig({
-            question: "allow",
-          }),
-          user,
-        ),
-        mode: "subagent",
-        native: true,
-        hidden: true,
-      },
-      // --- Machine learning ---
-      ml: {
-        name: "ml",
-        description:
-          "Machine-learning specialist for data, training, evaluation, inference, and reproducible experiments.",
-        options: {},
-        color: "#6366f1",
-        permission: PermissionNext.merge(
-          defaults,
-          PermissionNext.fromConfig({
-            question: "allow",
-          }),
-          user,
-        ),
-        mode: "subagent",
-        native: true,
-        hidden: true,
-      },
-      // --- Utilities ---
-      write: {
-        name: "write",
-        description:
-          "Scientific & technical writing. Produces LaTeX papers, grants, literature reviews with verified citations and figures.",
-        options: {},
-        color: "#a78bfa",
-        permission: PermissionNext.merge(
-          defaults,
-          PermissionNext.fromConfig({
-            question: "allow",
-          }),
-          user,
-        ),
-        mode: "subagent",
-        native: true,
-        hidden: true,
       },
       plan: {
         name: "plan",
@@ -286,45 +239,6 @@ export namespace Agent {
         native: true,
         hidden: true,
       },
-      // --- Internal delegation profiles ---
-      // The product exposes capabilities and effort, not a catalog of domain
-      // personas. Research loads domain knowledge lazily through skills and
-      // delegates only by the kind of work that needs doing.
-      execute: {
-        name: "execute",
-        description:
-          "Implementation or computational work with the active project permissions. Returns concrete results to Research.",
-        permission: PermissionNext.merge(
-          defaults,
-          PermissionNext.fromConfig({
-            todoread: "deny",
-            todowrite: "deny",
-          }),
-          user,
-        ),
-        options: {},
-        mode: "subagent",
-        native: true,
-        hidden: true,
-      },
-      // --- Compatibility aliases (retrievable, never advertised) ---
-      task: {
-        name: "task",
-        description:
-          "General-purpose child agent for one independent unit of work that can merge cleanly into the primary result.",
-        permission: PermissionNext.merge(
-          defaults,
-          PermissionNext.fromConfig({
-            todoread: "deny",
-            todowrite: "deny",
-          }),
-          user,
-        ),
-        options: {},
-        mode: "subagent",
-        native: true,
-        hidden: true,
-      },
       explore: {
         name: "explore",
         permission: PermissionNext.merge(
@@ -334,97 +248,89 @@ export namespace Agent {
             grep: "allow",
             glob: "allow",
             list: "allow",
+            read: "allow",
+            // A read-only scout may still need a file outside the project (a
+            // dataset in ~/data, a paper in Downloads): the wildcard deny
+            // above would refuse it outright, so external paths ask instead.
+            external_directory: externalAction,
             bash: safeAction,
             // WebFetch owns a narrowly scoped brokered transfer. Without this
             // explicit rule the profile's wildcard deny blocks the broker's
             // per-host authorization before the webfetch allow can apply.
             network: externalAction,
-            webfetch: externalAction,
-            websearch: externalAction,
+            webfetch: safeAction,
+            websearch: safeAction,
+            literature: safeAction,
             codesearch: externalAction,
-            read: "allow",
           }),
           user,
         ),
-        description: `Fast agent specialized for exploring codebases. Use this when you need to quickly find files by patterns (eg. "src/components/**/*.tsx"), search code for keywords (eg. "API endpoints"), or answer questions about the codebase (eg. "how do API endpoints work?"). When calling this agent, specify the desired thoroughness level: "quick" for basic searches, "medium" for moderate exploration, or "very thorough" for comprehensive analysis across multiple locations and naming conventions.`,
+        description:
+          'Fast scout for literature, data and code. Use it to find files by pattern, search file contents, locate a paper, definition or number, or answer a bounded question about the project without changing anything. Specify the thoroughness: "quick", "medium", or "very thorough".',
         prompt: PROMPT_EXPLORE,
         options: {},
         mode: "subagent",
         native: true,
-        hidden: true,
+        // Listed in the composer's @ menu: `@explore find …` hands the
+        // message to the scout directly.
+        hidden: false,
       },
-      "literature-review": {
-        name: "literature-review",
+      ml: specialist({
+        name: "ml",
+        label: "machine-learning specialist",
+        focus: "training, fine-tuning, evaluation, inference, interpretability, and GPU compute setup",
         description:
-          "Full PRISMA literature review — systematic search, screening, eligibility, synthesis, verification.",
-        permission: PermissionNext.merge(
-          defaults,
-          PermissionNext.fromConfig({
-            "*": "deny",
-            bash: safeAction,
-            network: externalAction,
-            read: "allow",
-            glob: "allow",
-            grep: "allow",
-            webfetch: externalAction,
-            websearch: externalAction,
-            codesearch: externalAction,
-            skill: "allow",
-          }),
-          user,
-        ),
-        prompt: PROMPT_LITERATURE_REVIEW,
-        options: {},
-        color: "#818cf8",
-        mode: "subagent",
-        native: true,
-        hidden: true,
-      },
-      critique: {
-        name: "critique",
+          "Machine-learning specialist for data, training, evaluation, inference, and reproducible experiments.",
+        color: "#6366f1",
+        skills: ["ml-training", "llm-tools", "ml-inference", "cloud-compute"],
+      }),
+      biology: specialist({
+        name: "biology",
+        label: "biology specialist",
+        focus: "sequences, omics, structures, pathways, and biological databases",
+        description: "Biology specialist for bioinformatics, biological databases, and evidence-backed data analysis.",
+        color: "#10b981",
+        skills: ["biology", "databases"],
+        tools: [...BIOLOGY_TOOL_IDS, "science_list_dbs", "science_search", "science_fetch", "scientific_capability"],
+      }),
+      physics: specialist({
+        name: "physics",
+        label: "physics specialist",
+        focus: "simulation, numerical methods, dynamical systems, and physical data analysis",
         description:
-          "Scientific critique specialist. Finds blocking errors — data leakage, wrong statistics, unsupported claims — in research artifacts before expensive or irreversible actions. Read-only.",
-        permission: PermissionNext.merge(
-          defaults,
-          PermissionNext.fromConfig({
-            "*": "deny",
-            read: "allow",
-            glob: "allow",
-            grep: "allow",
-            skill: "allow",
-          }),
-          user,
-        ),
-        prompt: PROMPT_CRITIQUE,
-        options: {},
-        color: "#ef4444",
-        mode: "subagent",
-        native: true,
-        hidden: true,
-      },
-      "physics-critique": {
-        name: "physics-critique",
+          "Physics specialist for simulation, numerical methods, dimensional analysis, and validated scientific computing.",
+        color: "#8b5cf6",
+        skills: ["physics", "quantum"],
+      }),
+      chemistry: specialist({
+        name: "chemistry",
+        label: "chemistry specialist",
+        focus: "molecules, cheminformatics, docking, property prediction, and chemical databases",
         description:
-          "Physics critique specialist — validates computational physics results (PDE solutions, PINN outputs, fitted parameters) against rigorous physical and numerical criteria. Blind to generator reasoning (Aletheia pattern). Read-only.",
-        permission: PermissionNext.merge(
-          defaults,
-          PermissionNext.fromConfig({
-            "*": "deny",
-            read: "allow",
-            glob: "allow",
-            grep: "allow",
-            bash: safeAction,
-          }),
-          user,
-        ),
-        prompt: PROMPT_PHYSICS_CRITIQUE,
-        options: {},
-        color: "#c084fc",
-        mode: "subagent",
-        native: true,
-        hidden: true,
-      },
-      // --- Hidden system agents ---
+          "Chemistry specialist for cheminformatics, molecular modeling, property prediction, and chemical databases.",
+        color: "#f59e0b",
+        skills: ["chemistry", "databases"],
+        tools: ["science_list_dbs", "science_search", "science_fetch", "scientific_capability"],
+      }),
+      data: specialist({
+        name: "data",
+        label: "data specialist",
+        focus: "computational workflows: pipelines, data processing, coding, visualization, and cloud compute",
+        description: "Data specialist for pipelines, data processing, coding, visualization, and cloud compute.",
+        color: "#0ea5e9",
+        skills: ["data-engineering", "coding", "visualization", "cloud-compute"],
+        tools: ["r"],
+      }),
+      // The plain worker OpenCode calls `general`: a multi-step brief that
+      // fits no specialty, run with the full toolset and the core skills only.
+      general: specialist({
+        name: "general",
+        label: "general worker",
+        focus: "a bounded multi-step brief that needs reading, running and writing but fits no specialist domain",
+        description: "General worker for a multi-step brief that fits no specialist; runs independent units of work.",
+        color: "#6b7280",
+        skills: [],
+      }),
       compaction: {
         name: "compaction",
         mode: "primary",
@@ -456,12 +362,54 @@ export namespace Agent {
         ),
         prompt: PROMPT_TITLE,
       },
+      summary: {
+        name: "summary",
+        mode: "primary",
+        options: {},
+        native: true,
+        hidden: true,
+        permission: PermissionNext.merge(
+          defaults,
+          PermissionNext.fromConfig({
+            "*": "deny",
+          }),
+          user,
+        ),
+        prompt: PROMPT_SUMMARY,
+      },
+      reader: {
+        name: "reader",
+        mode: "primary",
+        options: {},
+        native: true,
+        hidden: true,
+        permission: PermissionNext.merge(
+          defaults,
+          PermissionNext.fromConfig({
+            "*": "deny",
+          }),
+          user,
+        ),
+        prompt: PROMPT_READER,
+      },
     }
 
-    const removed = new Set(["review", "reviewer", "artifact-reviewer"])
+    // Retired built-ins. A config that still tunes one must not resurrect it
+    // as an anonymous custom agent with the default ruleset.
+    const removed = new Set([
+      "review",
+      "reviewer",
+      "artifact-reviewer",
+      "researchagent-test",
+      "write",
+      "execute",
+      "task",
+      "literature-review",
+      "critique",
+      "physics-critique",
+    ])
     for (const [key, value] of Object.entries(cfg.agent ?? {})) {
       if (removed.has(key)) continue
-      if (key === "researchagent-test" && !Flag.OPENSCIENCE_ENABLE_RESEARCH_AGENT_TEST) continue
       if (value.disable) {
         delete result[key]
         continue
@@ -476,6 +424,8 @@ export namespace Agent {
           native: false,
         }
       if (value.model) item.model = Provider.parseModel(value.model)
+      item.variant = value.variant ?? item.variant
+      item.skills = value.skills ?? item.skills
       item.prompt = value.prompt ?? item.prompt
       item.description = value.description ?? item.description
       item.temperature = value.temperature ?? item.temperature
@@ -486,7 +436,10 @@ export namespace Agent {
       item.name = value.name ?? item.name
       item.steps = value.steps ?? item.steps
       item.options = mergeDeep(item.options, value.options ?? {})
-      item.permission = PermissionNext.merge(item.permission, PermissionNext.fromConfig(value.permission ?? {}))
+      const own = PermissionNext.fromConfig(value.permission ?? {})
+      item.permission = PermissionNext.merge(item.permission, own)
+      // A rule that names a tool opts it in for this agent without a skill.
+      item.unlocks = [...new Set([...(item.unlocks ?? []), ...ToolVisibility.unlocks(own)])]
       // `docs` is reserved for delegated documentation work. Older synced
       // configs created it with mode `all`, which incorrectly exposed it as a
       // primary session mode. Preserve the custom prompt/model while restoring
@@ -547,99 +500,123 @@ export namespace Agent {
     // short-lived lineage instead of attaching it to an unrelated session.
     const sessionID = `agent-config:${randomUUID()}`
     const messageID = `agent-config-request:${randomUUID()}`
-    const purpose = "agent_config_generation"
-    let model: Provider.Model | undefined
-    let route = "custom"
-    let requestStarted = false
-    let outcome = "error"
 
     const selected = input.model ?? (await Provider.defaultModel())
-    model = await Provider.getModel(selected.providerID, selected.modelID)
-    route = telemetryRoute(await resolveCredentialSource(model.providerID, model.id), model)
+    const model = await Provider.getModel(selected.providerID, selected.modelID)
+    const credentialSource = await resolveCredentialSource(model.providerID, model.id)
+    const funding = credentialSource === "managed" ? ((await OpenScience.getRequestSnapshot()) ?? undefined) : undefined
+    // Funds are Ace's decision on the call itself (see SessionProcessor.managedPreflight).
+    if (requiresWalletBalance(credentialSource) && !funding)
+      throw new Error("Ace could not snapshot the connected funding account. Sign in again.")
 
-    await OutboundTelemetry.sessionStarted({
-      sessionID,
-      session: { purpose, source: "cli", ephemeral: true },
-    }).catch(() => false)
-    await OutboundTelemetry.userMessage({
-      sessionID,
-      messageID,
+    const defaultModel = selected
+    const language = await Provider.getLanguage(model)
+
+    const system = [PROMPT_GENERATE]
+    await Plugin.trigger("experimental.chat.system.transform", { model }, { system })
+    const existing = await list()
+    const schema = z.object({
+      identifier: z.string(),
+      whenToUse: z.string(),
+      systemPrompt: z.string(),
+    })
+    const messages: ModelMessage[] = [
+      ...system.map((item): ModelMessage => ({
+        role: "system",
+        content: item,
+      })),
+      {
+        role: "user",
+        content: `Create an agent configuration based on this request: \"${input.description}\".\n\nIMPORTANT: The following identifiers already exist and must NOT be used: ${existing.map((i) => i.name).join(", ")}\n  Return ONLY the JSON object, no other text, do not wrap in backticks`,
+      },
+    ]
+    const params = {
+      // Provider-dependent SDK telemetry is disabled. Prompts and responses
+      // stay between this device and the provider selected by the user.
+      experimental_telemetry: {
+        isEnabled: false,
+        recordInputs: false,
+        recordOutputs: false,
+      },
+      temperature: 0.3,
+      messages,
+      model: language,
+      schema,
+    } satisfies Parameters<typeof generateObject>[0]
+    const oauthStream =
+      defaultModel.providerID === "openai" && (await Auth.get(defaultModel.providerID))?.type === "oauth"
+    const providerOptions = oauthStream
+      ? ProviderTransform.providerOptions(model, {
+          instructions: SystemPrompt.header(model),
+          store: false,
+        })
+      : undefined
+
+    const logging = await UsageLogging.context()
+    const route = accessRoute(credentialSource, model)
+    const started = Date.now()
+    const binding = logging
+      ? {
+          context: logging,
+          sessionID,
+          messageID,
+          route,
+          provider: model.providerID,
+          model: model.api.id,
+          operationID: crypto.randomUUID(),
+        }
+      : undefined
+    const calls = ModelCallTrace.create({
+      context: { sessionID, messageID, attempt: 1, ...(funding ? { funding } : {}) },
       route,
       provider: model.providerID,
-      model: model.id,
-      message: { role: "user", purpose },
-      parts: [{ type: "text", text: input.description }],
-    }).catch(() => false)
-
-    try {
-      const defaultModel = selected
-      const language = await Provider.getLanguage(model)
-
-      const system = [PROMPT_GENERATE]
-      await Plugin.trigger("experimental.chat.system.transform", { model }, { system })
-      const existing = await list()
-      const schema = z.object({
-        identifier: z.string(),
-        whenToUse: z.string(),
-        systemPrompt: z.string(),
-      })
-      const messages: ModelMessage[] = [
-        ...system.map(
-          (item): ModelMessage => ({
-            role: "system",
-            content: item,
-          }),
-        ),
-        {
-          role: "user",
-          content: `Create an agent configuration based on this request: \"${input.description}\".\n\nIMPORTANT: The following identifiers already exist and must NOT be used: ${existing.map((i) => i.name).join(", ")}\n  Return ONLY the JSON object, no other text, do not wrap in backticks`,
-        },
-      ]
-      const params = {
-        // OpenScience owns content tracing, redaction, consent, and deletion.
-        // Never let provider-dependent AI SDK telemetry become a second path.
-        experimental_telemetry: {
-          isEnabled: false,
-          recordInputs: false,
-          recordOutputs: false,
-        },
-        temperature: 0.3,
-        messages,
-        model: language,
-        schema,
-      } satisfies Parameters<typeof generateObject>[0]
-      const oauthStream =
-        defaultModel.providerID === "openai" && (await Auth.get(defaultModel.providerID))?.type === "oauth"
-      const providerOptions = oauthStream
-        ? ProviderTransform.providerOptions(model, {
-            instructions: SystemPrompt.instructions(),
-            store: false,
+      model: model.api.id,
+      pricingModel: model,
+      binding,
+    })
+    const requestContext = calls.context
+    const complete = async (
+      object: z.infer<typeof schema>,
+      usage: LanguageModelUsage,
+      metadata: ProviderMetadata | undefined,
+      response: { headers?: Record<string, string>; id?: string },
+    ) => {
+      const call = await calls.complete(CallLink.fromResponse(response.headers, response.id), usage, metadata)
+      if (binding)
+        await UsageLogging.record({
+          ...binding,
+          usage,
+          metadata,
+          duration: Date.now() - started,
+          content: object,
+          call,
+        })
+      return object
+    }
+    const failed = async (error: unknown): Promise<never> => {
+      if (NoObjectGeneratedError.isInstance(error) && error.usage) {
+        const call = await calls.complete(
+          CallLink.fromResponse(error.response?.headers, error.response?.id),
+          error.usage,
+          undefined,
+          "failed",
+        )
+        if (binding)
+          await UsageLogging.record({
+            ...binding,
+            usage: error.usage,
+            duration: Date.now() - started,
+            content: { text: error.text, invalid_output: true },
+            finish: error.finishReason,
+            call,
           })
-        : undefined
+      }
+      await calls.fail("failed")
+      throw error
+    }
 
-      await OutboundTelemetry.modelRequest({
-        sessionID,
-        messageID,
-        attempt: 1,
-        route,
-        provider: model.providerID,
-        model: model.id,
-        system,
-        messages,
-        tools: {},
-        parameters: {
-          purpose,
-          temperature: params.temperature,
-          schema: ["identifier", "whenToUse", "systemPrompt"],
-          structuredOutput: true,
-          streaming: oauthStream,
-          providerOptions,
-        },
-      }).catch(() => false)
-      requestStarted = true
-      const requestContext = { sessionID, messageID, attempt: 1 }
-
-      if (oauthStream) {
+    if (oauthStream)
+      return (async () => {
         const result = Provider.withRequestContext(requestContext, () =>
           streamObject({
             ...params,
@@ -651,87 +628,10 @@ export namespace Agent {
           if (part.type === "error") throw part.error
         }
         const object = await result.object
-        const [tokens, finish] = await Promise.all([
-          result.usage.catch(() => undefined),
-          result.finishReason.catch(() => undefined),
-        ])
-        await OutboundTelemetry.modelResponse({
-          sessionID,
-          messageID,
-          attempt: 1,
-          route,
-          provider: model.providerID,
-          model: model.id,
-          message: { role: "assistant", purpose },
-          parts: [{ type: "json", value: object }],
-          tokens,
-          finish,
-        }).catch(() => false)
-        if (tokens) {
-          const usage = await import("@/session").then((module) => module.Session.getUsage({ model, usage: tokens }))
-          await OutboundTelemetry.modelUsage({
-            sessionID,
-            messageID,
-            operationID: "agent-config-generation",
-            attempt: 1,
-            route,
-            provider: model.providerID,
-            model: model.id,
-            tokens: usage.tokens,
-            cost: usage.cost,
-          }).catch(() => false)
-        }
-        outcome = "completed"
-        return object
-      }
+        return complete(object, await result.usage, await result.providerMetadata, await result.response)
+      })().catch(failed)
 
-      const result = await Provider.withRequestContext(requestContext, () => generateObject(params))
-      await OutboundTelemetry.modelResponse({
-        sessionID,
-        messageID,
-        attempt: 1,
-        route,
-        provider: model.providerID,
-        model: model.id,
-        message: { role: "assistant", purpose },
-        parts: [{ type: "json", value: result.object }],
-        tokens: result.usage,
-        finish: result.finishReason,
-      }).catch(() => false)
-      const usage = await import("@/session").then((module) => module.Session.getUsage({ model, usage: result.usage }))
-      await OutboundTelemetry.modelUsage({
-        sessionID,
-        messageID,
-        operationID: "agent-config-generation",
-        attempt: 1,
-        route,
-        provider: model.providerID,
-        model: model.id,
-        tokens: usage.tokens,
-        cost: usage.cost,
-      }).catch(() => false)
-      outcome = "completed"
-      return result.object
-    } catch (error) {
-      await OutboundTelemetry.error({
-        sessionID,
-        messageID,
-        attempt: 1,
-        parentSpanID: requestStarted ? `${messageID}:model:1:request` : messageID,
-        route,
-        provider: model?.providerID ?? input.model?.providerID,
-        model: model?.id ?? input.model?.modelID,
-        error,
-        context: { purpose, phase: requestStarted ? "model_generation" : "setup" },
-      }).catch(() => false)
-      throw error
-    } finally {
-      await OutboundTelemetry.sessionCompleted({
-        sessionID,
-        messageID,
-        reason: outcome,
-        session: { purpose, source: "cli", ephemeral: true },
-      }).catch(() => false)
-    }
+    const result = await Provider.withRequestContext(requestContext, () => generateObject(params)).catch(failed)
+    return complete(result.object, result.usage, result.providerMetadata, result.response).catch(failed)
   }
 }

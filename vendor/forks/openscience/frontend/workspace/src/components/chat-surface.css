@@ -15,20 +15,38 @@
   container-type: inline-size;
 }
 
-/* Chat typography has three jobs, and therefore three stable levels:
-   - 14/21 for model-authored prose
-   - 13/20 for operational labels (tools, todos, errors)
-   - 12/18 for supporting metadata (paths, arguments, counts, status)
+/* One body size across the conversation. The answer, the reasoning, the
+   user's message, the composer and every trace row share 14/21; hierarchy
+   comes from colour and weight, not size. 12/18 is reserved for metadata:
+   durations, counts, paths, arguments and state marks.
 
    Keep these local to the transcript. Shared UI components intentionally use
    their own compact defaults in settings, menus, and other dense surfaces. */
 .session-scroller {
   --chat-prose-font-size: var(--font-size-base);
   --chat-prose-line-height: var(--line-height-large);
-  --chat-operation-font-size: 13px;
-  --chat-operation-line-height: 20px;
+  --chat-operation-font-size: var(--font-size-base);
+  --chat-operation-line-height: 21px;
   --chat-meta-font-size: var(--font-size-small);
   --chat-meta-line-height: var(--line-height-large);
+}
+
+/* Rows and labels the shared components size at 13/20 on their own; in the
+   transcript they sit at the body size with everything else. */
+.session-scroller [data-component="trace-row"],
+.session-scroller [data-slot="session-turn-stop"] [data-slot="session-turn-stop-note"],
+.session-scroller [data-slot="session-turn-summary-title"],
+.session-scroller [data-slot="session-turn-details-text"],
+.session-scroller [data-slot="message-part-title"],
+.session-scroller [data-slot="task-tool-subtitle"],
+.session-scroller [data-slot="delegation-title"],
+.session-scroller [data-slot="delegation-current"],
+.session-scroller [data-component="question-prompt"] [data-slot="option-label"],
+.session-scroller [data-component="question-prompt"] [data-slot="custom-input"],
+.session-scroller [data-component="question-prompt"] [data-slot="review-item"],
+.session-scroller [data-component="question-answers"] [data-slot="question-answer-item"] {
+  font-size: var(--chat-operation-font-size);
+  line-height: var(--chat-operation-line-height);
 }
 
 .session-prompt-dock {
@@ -69,6 +87,12 @@
   padding-top: 18px;
 }
 
+/* A delegated session pins its header above the transcript; each turn's
+   trace control pins below it instead of underneath it. */
+.session-scroller:has(> .session-delegated-bar) {
+  --session-title-height: 3rem;
+}
+
 .session-scroller [data-slot="session-turn-sticky"] {
   position: static;
   width: 100%;
@@ -98,7 +122,7 @@
 }
 
 .session-scroller [data-component="user-message"] {
-  --user-message-surface: var(--surface-weak);
+  --user-message-surface: var(--color-surface-weak);
   --user-message-radius: var(--radius-sm);
 }
 
@@ -142,7 +166,7 @@
   border-radius: var(--radius-xs);
 }
 
-.session-scroller [data-slot="session-turn-response-copy-wrapper"] [data-component="icon-button"] {
+.session-scroller [data-slot="session-turn-response-copy-wrapper"] [data-component="button"] {
   border-radius: var(--radius-xs);
 }
 
@@ -155,138 +179,206 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.session-scroller [data-slot="session-turn-markdown"],
-.session-scroller [data-slot="session-turn-markdown"] [data-component="markdown"] {
+.session-scroller [data-component="markdown"][data-slot="assistant-prose"] {
+  min-width: 0;
+  max-width: 100%;
   font-family: var(--font-family-sans);
-  font-size: var(--font-size-base);
+  font-size: var(--chat-prose-font-size);
   font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-large);
+  line-height: var(--chat-prose-line-height);
   font-optical-sizing: auto;
   font-synthesis: none;
   text-wrap: pretty;
+  overflow-wrap: anywhere;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
-.session-scroller [data-slot="session-turn-markdown"] :is(p, li, blockquote) {
+.session-scroller [data-slot="assistant-prose"] :is(p, li, blockquote) {
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
 }
 
-/* A completed turn with file diffs used to jump to the shared 15px treatment,
-   making otherwise identical assistant replies look larger. Keep one stable
-   reading size regardless of whether a turn happened to edit files. */
-.session-scroller [data-component="session-turn"] [data-slot="session-turn-markdown"][data-diffs="true"] {
-  font-size: var(--font-size-base);
-}
-
-/* Compact document rhythm for long research answers. Hierarchy comes from
-   weight, color, and proximity instead of oversized type or large dead zones. */
-.session-scroller [data-slot="session-turn-markdown"] :is(h1, h2, h3, h4, h5, h6) {
-  margin-block: 18px 7px;
-  color: var(--text-strong);
-  font-size: 14px;
-  font-weight: var(--font-weight-medium);
-  line-height: 1.35;
+/* Match the live TextPart Markdown, not the retired session-turn-markdown slot.
+   Keep a modest title/section/subsection hierarchy for long research answers. */
+.session-scroller [data-slot="assistant-prose"] :is(h1, h2, h3, h4, h5, h6) {
+  margin-block: 24px 8px;
+  color: var(--color-text);
+  font-size: 1em;
+  font-weight: var(--font-weight-emphasis);
+  line-height: 1.4;
   text-wrap: balance;
 }
 
-.session-scroller [data-slot="session-turn-markdown"] :is(h1, h2) {
-  font-size: 15px;
+.session-scroller [data-slot="assistant-prose"] h1 {
+  font-size: 1.286em;
 }
 
-.session-scroller [data-slot="session-turn-markdown"] p {
-  margin-bottom: 10px;
+.session-scroller [data-slot="assistant-prose"] h2 {
+  font-size: 1.143em;
 }
 
-.session-scroller [data-slot="session-turn-markdown"] :is(ul, ol) {
-  margin-block: 6px 10px;
+.session-scroller [data-slot="assistant-prose"] p {
+  margin-block: 0 12px;
+}
+
+.session-scroller [data-slot="assistant-prose"] :is(ul, ol) {
+  margin-block: 8px 12px;
   padding-left: 20px;
 }
 
-.session-scroller [data-slot="session-turn-markdown"] li {
+.session-scroller [data-slot="assistant-prose"] li {
   margin-bottom: 4px;
 }
 
-.session-scroller [data-slot="session-turn-markdown"] blockquote {
-  margin-block: 12px;
-  padding-left: 10px;
+.session-scroller [data-slot="assistant-prose"] li > :is(ul, ol) {
+  margin-block: 4px 0;
 }
 
-.session-scroller [data-slot="session-turn-markdown"] :is(pre, img) {
+.session-scroller [data-slot="assistant-prose"] li > p:first-child {
+  margin: 0;
+}
+
+.session-scroller [data-slot="assistant-prose"] blockquote {
+  margin-block: 12px;
+  padding-left: 12px;
+}
+
+.session-scroller [data-slot="assistant-prose"] :is(pre, img) {
+  max-width: 100%;
   margin-block: 16px;
 }
 
-/* Model-authored result summaries can be much wider than a resized chat pane.
-   The table itself owns horizontal scrolling, keeping the full transcript
-   readable and preventing a single artifact column from widening the shell. */
-.session-scroller [data-slot="session-turn-markdown"] table {
-  display: block;
-  width: max-content;
-  min-width: 100%;
+.session-scroller [data-slot="assistant-prose"] :is(pre, .katex-display) {
+  min-width: 0;
   max-width: 100%;
-  margin-block: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.session-scroller [data-slot="assistant-prose"] :is(pre, .katex-display)::-webkit-scrollbar {
+  display: block;
+  height: 6px;
+}
+
+.session-scroller [data-slot="assistant-prose"] :is(pre, .katex-display)::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-xs);
+}
+
+.session-scroller [data-slot="assistant-prose"] [data-component="markdown-code"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: start;
+  gap: 8px;
+  margin-block: 16px;
+}
+
+.session-scroller [data-slot="assistant-prose"] [data-component="markdown-code"] pre {
+  min-width: 0;
+  margin: 0;
+}
+
+.session-scroller [data-slot="assistant-prose"] [data-slot="markdown-copy-button"] {
+  position: static;
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.session-scroller
+  [data-slot="assistant-prose"]
+  [data-component="markdown-code"]:focus-within
+  [data-slot="markdown-copy-button"] {
+  opacity: 1;
+}
+
+.session-scroller [data-slot="assistant-prose"] hr {
+  height: 0;
+  margin-block: 24px;
+  border: 0;
+  border-top: 1px solid var(--color-border-weak);
+}
+
+.session-scroller [data-slot="assistant-prose"] > :first-child {
+  margin-top: 0;
+}
+
+.session-scroller [data-slot="assistant-prose"] > :last-child {
+  margin-bottom: 0;
+}
+
+/* Preserve the native table and give its labelled, focusable frame ownership
+   of horizontal scrolling instead of widening or clipping the transcript. */
+.session-scroller [data-slot="assistant-prose"] [data-component="markdown-table"] {
+  width: 100%;
+  max-width: 100%;
+  margin-block: 16px;
   overflow-x: auto;
   border: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
   border-radius: var(--radius-sm);
   border-spacing: 0;
   border-collapse: separate;
   background: color-mix(in srgb, var(--color-surface-solid) 70%, transparent);
-  font-size: 12.5px;
-  line-height: 18px;
+  font-size: var(--font-size-medium);
+  line-height: 20px;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
   scrollbar-width: thin;
-  scrollbar-color: var(--border-base) transparent;
+  scrollbar-color: var(--color-border) transparent;
 }
 
-.session-scroller [data-slot="session-turn-markdown"] :is(th, td) {
-  min-width: max-content;
+.session-scroller [data-slot="assistant-prose"] [data-component="markdown-table"]:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.session-scroller [data-slot="assistant-prose"] table {
+  display: table;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  border-spacing: 0;
+  border-collapse: separate;
+  font: inherit;
+}
+
+.session-scroller [data-slot="assistant-prose"] :is(th, td) {
+  min-width: 6ch;
   max-width: 32ch;
-  padding: 7px 10px;
+  padding: 8px 12px;
   border: 0;
   border-bottom: 1px solid color-mix(in srgb, var(--color-border) 52%, transparent);
   text-align: left;
   vertical-align: top;
-}
-
-.session-scroller [data-slot="session-turn-markdown"] td:not(:last-child) {
-  white-space: nowrap;
-}
-
-.session-scroller [data-slot="session-turn-markdown"] :is(th, td):last-child {
-  min-width: min(240px, 58cqi);
   overflow-wrap: anywhere;
   white-space: normal;
 }
 
-.session-scroller [data-slot="session-turn-markdown"] th {
+.session-scroller [data-slot="assistant-prose"] th {
   background: color-mix(in srgb, var(--color-bg-subtle) 76%, transparent);
-  color: var(--color-text-muted, var(--text-weak));
-  font-size: 11.5px;
-  font-weight: var(--font-weight-medium);
-  line-height: 16px;
-  white-space: nowrap;
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-emphasis);
 }
 
-.session-scroller [data-slot="session-turn-markdown"] tr:last-child td {
+.session-scroller [data-slot="assistant-prose"] tr:last-child td {
   border-bottom: 0;
 }
 
 .session-scroller [data-slot="session-turn-collapsible-trigger-content"] {
-  margin: -3px -7px;
-  padding: 3px 7px;
-  border: 0;
-  border-radius: var(--radius-xs);
-  color: var(--color-text-muted, var(--text-weak));
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--chat-operation-font-size);
   font-weight: var(--font-weight-regular);
+  line-height: var(--chat-operation-line-height);
 }
 
 .session-scroller [data-slot="session-turn-collapsible-content-inner"] {
   gap: 5px;
   margin-left: 4px;
   padding: 0 0 0 10px;
-  border-left-color: var(--border-weak-base);
+  border-left-color: var(--color-border-weak);
 }
 
 .session-scroller [data-slot="session-turn-status-text"] {
@@ -300,17 +392,14 @@
 }
 
 /* The shared turn header gives every descendant paragraph an extra-loose
-   180% leading. Reasoning/text parts live inside that header, so explicitly
-   restore the same 14/21 reading rhythm as the final assistant response. */
-.session-scroller :is([data-component="text-part"], [data-component="reasoning-part"]) [data-component="markdown"],
-.session-scroller
-  :is([data-component="text-part"], [data-component="reasoning-part"])
-  [data-component="markdown"]
-  :is(p, li, blockquote) {
+   180% leading. A thought is part of the trace, so its text sits at the
+   operation level with the rows around it, not at answer size. */
+.session-scroller [data-component="reasoning-part"] [data-component="markdown"],
+.session-scroller [data-component="reasoning-part"] [data-component="markdown"] :is(p, li, blockquote) {
   font-family: var(--font-family-sans);
-  font-size: var(--chat-prose-font-size);
+  font-size: var(--chat-operation-font-size);
   font-weight: var(--font-weight-regular);
-  line-height: var(--chat-prose-line-height);
+  line-height: var(--chat-operation-line-height);
 }
 
 .session-scroller [data-component="collapsible"] {
@@ -319,8 +408,49 @@
 }
 
 .session-scroller [data-component="collapsible"] > [data-slot="collapsible-trigger"] {
-  height: 32px;
-  padding: 4px 6px;
+  height: 28px;
+  padding: 4px 8px 4px 0;
+}
+
+/* Disclosure chevrons on tool rows appear on hover, like every other row. */
+.session-scroller [data-component="tool-trigger"] > [data-slot="collapsible-arrow"] {
+  opacity: 0;
+  transition: opacity 150ms var(--ease-standard);
+}
+
+.session-scroller
+  [data-slot="collapsible-trigger"]:hover
+  [data-component="tool-trigger"]
+  > [data-slot="collapsible-arrow"],
+.session-scroller
+  [data-slot="collapsible-trigger"]:focus-visible
+  [data-component="tool-trigger"]
+  > [data-slot="collapsible-arrow"],
+.session-scroller
+  [data-slot="collapsible-trigger"][aria-expanded="true"]
+  [data-component="tool-trigger"]
+  > [data-slot="collapsible-arrow"] {
+  opacity: 1;
+}
+
+@media (pointer: coarse) {
+  .session-scroller [data-component="tool-trigger"] > [data-slot="collapsible-arrow"] {
+    opacity: 1;
+  }
+}
+
+/* A finished call reads text-first like the thought and burst rows around it;
+   the glyph returns only while it runs, waits, fails, or is cancelled. */
+.session-scroller
+  [data-component="tool-trigger"]:not(
+    [data-outcome="running"],
+    [data-outcome="pending"],
+    [data-outcome="error"],
+    [data-outcome="cancelled"]
+  )
+  > [data-slot="basic-tool-tool-trigger-content"]
+  > [data-slot="basic-tool-tool-status"] {
+  display: none;
 }
 
 .session-scroller [data-component="tool-trigger"],
@@ -328,12 +458,15 @@
   gap: 7px;
 }
 
-.session-scroller [data-slot="basic-tool-tool-title"] {
+/* A tool row reads like every other trace row: the verb and its object at
+   the operation level in regular weight, with only arguments as metadata. */
+.session-scroller [data-slot="basic-tool-tool-title"],
+.session-scroller [data-slot="basic-tool-tool-subtitle"] {
   font-size: var(--chat-operation-font-size);
+  font-weight: var(--font-weight-regular);
   line-height: var(--chat-operation-line-height);
 }
 
-.session-scroller [data-slot="basic-tool-tool-subtitle"],
 .session-scroller [data-slot="basic-tool-tool-arg"] {
   font-size: var(--chat-meta-font-size);
   line-height: var(--chat-meta-line-height);
@@ -343,6 +476,56 @@
   padding: 2px 8px 7px;
   font-size: var(--chat-meta-font-size);
   line-height: var(--chat-meta-line-height);
+}
+
+/* A tool's body is a receipt, not a document: a loaded skill's SKILL.md or a
+   command's notes render at the meta level with their headings brought down
+   to it, so nothing inside a folded row ever outweighs the answer. */
+.session-scroller [data-component="tool-output"] [data-component="markdown"] {
+  font-size: var(--chat-meta-font-size);
+  line-height: var(--chat-meta-line-height);
+}
+
+.session-scroller [data-component="tool-output"] [data-component="markdown"] :is(h1, h2, h3, h4, h5, h6) {
+  margin: 8px 0 2px;
+  font-size: var(--chat-meta-font-size);
+  line-height: var(--chat-meta-line-height);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.session-scroller [data-component="tool-output"] [data-component="markdown"] :is(p, ul, ol, pre) {
+  margin: 2px 0;
+}
+
+/* Every trajectory row is one 32px line: a live call, the placeholder a
+   write shows before its diff exists, a folded reasoning clock. Rows then
+   swap state without moving anything below them. */
+.session-scroller [data-component="tool-progress"] {
+  min-height: 32px;
+  padding: 0 6px;
+}
+
+.session-scroller [data-slot="basic-tool-tool-status"] {
+  font-size: var(--chat-meta-font-size);
+  line-height: var(--chat-meta-line-height);
+}
+
+.session-scroller [data-component="reasoning-part"] [data-slot="reasoning-part-toggle"] {
+  min-height: 32px;
+  padding: 4px 6px;
+  font-size: var(--chat-meta-font-size);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--chat-meta-line-height);
+}
+
+.session-scroller [data-component="reasoning-part"] [data-slot="reasoning-part-body"] {
+  margin-left: 13px;
+  padding: 0 0 0 10px;
+}
+
+.session-scroller [data-component="collapsible"] [data-slot="basic-tool-failure"] {
+  margin: 2px 6px 8px;
 }
 
 .session-scroller [data-component="todos"] [data-slot="checkbox-checkbox-label"],
@@ -381,8 +564,8 @@
 }
 
 .session-scroller [data-slot="session-turn-generated"] > header {
-  color: var(--color-text-muted, var(--text-weak));
-  font-size: 11.5px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-regular);
   letter-spacing: normal;
   text-transform: none;
@@ -419,7 +602,7 @@
   box-shadow: var(--atlas-shadow-sm);
   color: var(--color-text);
   font-family: var(--font-family-sans);
-  font-size: 12px;
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   pointer-events: auto;
@@ -432,14 +615,6 @@
 .session-jump-latest:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
-}
-
-/* Streaming text may opt into a shared stagger animation. Within chat, keep
-   that state change fast and simultaneous so a long answer never animates for
-   multiple seconds. */
-.session-scroller [data-slot="session-turn-markdown"][data-fade="true"] > * {
-  animation-duration: 180ms;
-  animation-delay: 0ms !important;
 }
 
 @container conversation (max-width: 640px) {
@@ -501,6 +676,14 @@
 }
 
 @media (pointer: coarse) {
+  .session-scroller [data-slot="assistant-prose"] [data-slot="markdown-copy-button"] {
+    opacity: 1;
+  }
+
+  .session-scroller [data-slot="assistant-prose"] [data-component="markdown-code"] {
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+
   .session-jump-latest-rail {
     min-height: 44px;
   }
@@ -516,10 +699,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .session-scroller [data-slot="session-turn-markdown"][data-fade="true"] > * {
-    animation: none;
-  }
-
   .session-scroller [data-slot="session-turn-generated-artifact"],
   .session-jump-latest {
     transition: none;

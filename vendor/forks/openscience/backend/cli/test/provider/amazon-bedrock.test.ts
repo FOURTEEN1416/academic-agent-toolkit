@@ -1,4 +1,4 @@
-import { test, expect, mock } from "bun:test"
+import { afterEach, beforeEach, test, expect, mock } from "bun:test"
 import path from "path"
 import { unlink } from "fs/promises"
 
@@ -41,6 +41,24 @@ const { Instance } = await import("../../src/project/instance")
 const { Provider } = await import("../../src/provider/provider")
 const { Env } = await import("../../src/env")
 const { Global } = await import("../../src/global")
+
+const keys = [
+  "AWS_REGION",
+  "AWS_PROFILE",
+  "AWS_ACCESS_KEY_ID",
+  "AWS_BEARER_TOKEN_BEDROCK",
+  "AWS_WEB_IDENTITY_TOKEN_FILE",
+  "AWS_ROLE_ARN",
+] as const
+const env = new Map(keys.map((key) => [key, process.env[key]]))
+function restore() {
+  for (const [key, value] of env) {
+    if (value === undefined) delete process.env[key]
+    else process.env[key] = value
+  }
+}
+beforeEach(restore)
+afterEach(restore)
 
 test("Bedrock: config region takes precedence over AWS_REGION env var", async () => {
   await using tmp = await tmpdir({
@@ -263,6 +281,48 @@ test("Bedrock: autoloads when AWS_WEB_IDENTITY_TOKEN_FILE is present", async () 
       const providers = await Provider.list()
       expect(providers["amazon-bedrock"]).toBeDefined()
       expect(providers["amazon-bedrock"].options?.region).toBe("us-east-1")
+    },
+  })
+})
+
+test("Bedrock: an id that already names an inference profile is sent as is; a bare Claude id gets the region's", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await Bun.write(
+        path.join(dir, "openscience.json"),
+        JSON.stringify({
+          $schema: "https://syntheticsciences.ai/config.json",
+          provider: {
+            "amazon-bedrock": {
+              options: { region: "us-east-1" },
+              models: {
+                "us.anthropic.claude-opus-5": {},
+                "global.anthropic.claude-fable-5-1": {},
+                "anthropic.claude-opus-5": {},
+                "us.openai.gpt-5.6-sol": {},
+              },
+            },
+          },
+        }),
+      )
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    init: async () => {
+      Env.set("AWS_BEARER_TOKEN_BEDROCK", "test-bearer-token")
+      Env.set("AWS_PROFILE", "")
+      Env.set("AWS_ACCESS_KEY_ID", "")
+    },
+    fn: async () => {
+      const sent = async (id: string) => {
+        const language = await Provider.getLanguage(await Provider.getModel("amazon-bedrock", id))
+        return (language as { modelId: string }).modelId
+      }
+      expect(await sent("us.anthropic.claude-opus-5")).toBe("us.anthropic.claude-opus-5")
+      expect(await sent("global.anthropic.claude-fable-5-1")).toBe("global.anthropic.claude-fable-5-1")
+      expect(await sent("anthropic.claude-opus-5")).toBe("us.anthropic.claude-opus-5")
+      expect(await sent("us.openai.gpt-5.6-sol")).toBe("us.openai.gpt-5.6-sol")
     },
   })
 })

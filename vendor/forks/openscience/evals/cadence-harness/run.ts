@@ -2,7 +2,7 @@ import path from "node:path"
 import os from "node:os"
 import { appendFile, chmod, copyFile, lstat, mkdir, readFile, readdir, rename } from "node:fs/promises"
 import { createOpenScienceClient, createOpenScienceRuntime } from "@synsci/sdk/v2"
-import { aggregateCapturedSessionTree, type CapturedSessionSource } from "./tree-metrics"
+import { aggregateCapturedSessionTree, capturedChildren, type CapturedSessionSource } from "./tree-metrics"
 import { devPrompt } from "./dev-prompts"
 
 type Json = Record<string, any>
@@ -275,6 +275,12 @@ async function unwrap<T>(value: Promise<{ data?: T; error?: unknown }> | { data?
   return result.data
 }
 
+/** Evaluation evidence stays recoverable in Archived, not mixed into the user's active projects. */
+export async function createCampaignProject(client: ReturnType<typeof createOpenScienceClient>, name: string) {
+  const project = await unwrap(client.global.project.create({ name, sources: [] }))
+  return unwrap(client.project.update({ projectID: project.id, archived: true }))
+}
+
 async function cleanupCampaignProject(input: {
   client: ReturnType<typeof createOpenScienceClient>
   project: Json
@@ -337,13 +343,11 @@ async function preflight(
   expected?: { sourceSha: string; sourceWorktreeHash: string; runId?: string },
 ) {
   const root = createOpenScienceClient({ baseUrl })
-  const [healthResponse, accountResponse, providers] = await Promise.all([
+  const [healthResponse, providers] = await Promise.all([
     fetch(new URL("/global/health", baseUrl)),
-    fetch(new URL("/account/session", baseUrl)),
     unwrap<any>(root.provider.list()),
   ])
   if (!healthResponse.ok) throw new Error(`Backend health failed: ${healthResponse.status}`)
-  if (!accountResponse.ok) throw new Error(`Account preflight failed: ${accountResponse.status}`)
   const { providerID, modelID } = parseModelKey(model)
   if (!providers.connected?.includes(providerID)) throw new Error(`Provider ${providerID} is not connected`)
   const provider = providers.all?.find((item: Json) => item.id === providerID)
@@ -352,7 +356,6 @@ async function preflight(
   if (expected) assertServerIdentity(health, expected)
   return {
     health,
-    account: await accountResponse.json(),
     providerID,
     modelID,
     model: safeValue(provider.models[modelID]),
@@ -539,7 +542,7 @@ export async function captureSessions(
     unwrap<any>(client.session.get({ sessionID })).catch((error) => ({ error: String(error) })),
     unwrap<any[]>(client.session.messages({ sessionID, limit: 10_000 })).catch((error) => [{ error: String(error) }]),
     unwrap<any>(client.session.trace({ sessionID })).catch((error) => ({ error: String(error) })),
-    unwrap<any[]>(client.session.children({ sessionID })).catch(() => []),
+    unwrap<unknown>(client.session.children({ sessionID })).catch((error) => ({ error: String(error) })),
     unwrap<any>(client.session.filesystem.list({ sessionID })).catch((error) => ({ error: String(error) })),
     unwrap<any>(client.file.artifacts({ sessionID })).catch((error) => ({ error: String(error) })),
     unwrap<any>(client.provenance.executions({ sessionID })).catch((error) => ({ error: String(error) })),
@@ -554,10 +557,14 @@ export async function captureSessions(
     writeAtomic(path.join(directory, "executions.json"), safeValue(executions)),
   ])
   const descendants: CapturedSessionSource[] = []
-  for (const child of children) {
-    if (child?.id) descendants.push(...(await captureSessions(client, child.id, rawRoot, visited)))
+  const childIDs = new Set([
+    ...capturedChildren(children).ids,
+    ...capturedChildren(trace && !Object.hasOwn(trace, "error") ? trace.children : undefined).ids,
+  ])
+  for (const childID of childIDs) {
+    descendants.push(...(await captureSessions(client, childID, rawRoot, visited)))
   }
-  return [{ sessionID, session, trace, executions, messages, filesystem }, ...descendants]
+  return [{ sessionID, session, trace, children, executions, messages, filesystem }, ...descendants]
 }
 
 function finalText(message: Json | undefined) {
@@ -1009,11 +1016,9 @@ async function runOne(input: {
         client.project.trust.update({ projectID: resume.projectId, body: { trusted: true, root: trust.root } }),
       )
     } else {
-      const createdProject = await unwrap<any>(
-        root.global.project.create({
-          name: `Cadence harness · ${input.prompt.id} · ${input.prompt.title}`,
-          sources: [],
-        }),
+      const createdProject = await createCampaignProject(
+        root,
+        `Cadence harness · ${input.prompt.id} · ${input.prompt.title}`,
       )
       project = createdProject
       client = createOpenScienceClient({ baseUrl: input.baseUrl, projectID: createdProject.id })
@@ -1219,7 +1224,6 @@ async function runOne(input: {
             error: "Root session workspace was unavailable",
           }
     const treeMetrics = aggregateCapturedSessionTree(capturedSessions, sessionID)
-    const usage = await unwrap<any>(client.settings.usage.get()).catch((error) => ({ error: String(error) }))
     const [artifacts, discovered, trustAfter] = await Promise.all([
       copyArtifacts(client, runRoot, input.baseUrl, project.id),
       unwrap<any>(client.file.artifacts({ sessionID: session.id })).catch(() => []),
@@ -1229,7 +1233,6 @@ async function runOne(input: {
       writeAtomic(path.join(runRoot, "trace.json"), safeValue(rootTrace)),
       writeAtomic(path.join(runRoot, "trajectory.json"), trajectory(rootTrace, events)),
       writeAtomic(path.join(runRoot, "executions.json"), safeValue(executions)),
-      writeAtomic(path.join(runRoot, "usage.json"), safeValue(usage)),
       writeAtomic(path.join(runRoot, "artifacts.json"), { store: artifacts, discovered: safeValue(discovered) }),
       writeAtomic(path.join(runRoot, "workspace-snapshot.json"), safeValue(workspaceSnapshot)),
     ])
@@ -1312,11 +1315,11 @@ async function runOne(input: {
         childAgents: rootTrace.summary?.childCount,
         retries: rootTrace.summary?.retryCount,
         failures: Math.max(mergedFailures.length, Number(rootTrace.summary?.failureCount ?? 0)),
-        cost: usage.total?.cost ?? rootTrace.summary?.cost,
+        cost: treeMetrics?.cost ?? rootTrace.summary?.cost,
       },
       usage: {
-        cost: usage.total?.cost ?? rootTrace.summary?.cost,
-        tokens: usage.total?.tokens ?? rootTrace.summary?.tokens,
+        cost: treeMetrics?.cost ?? rootTrace.summary?.cost,
+        tokens: treeMetrics?.tokens ?? rootTrace.summary?.tokens,
       },
       treeMetrics,
       artifacts: [

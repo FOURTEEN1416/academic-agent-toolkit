@@ -1,28 +1,28 @@
 .settings-models-panel {
-  --models-control-height: 32px;
+  --models-control-height: 28px;
   --models-gap-1: 4px;
   --models-gap-2: 8px;
   --models-gap-3: 12px;
   --models-gap-4: 16px;
 }
 
-/* Models follows Compute's flat hierarchy: one quiet surface per semantic
-   group, compact rows inside it, and no nested borders or raised islands. */
+/* Models uses the one settings card and the one row: a bordered card,
+   48px rows separated by hairlines, no raised islands. */
 .settings-dialog .settings-models-panel .settings-card {
   gap: 0;
-  padding: var(--models-gap-1);
-  border: 0;
+  padding: 0;
+  border: 1px solid var(--settings-border);
   border-radius: var(--settings-radius-card);
   background: var(--settings-surface);
   box-shadow: none;
 }
 
 .settings-dialog .settings-models-panel .models-compact-row {
-  min-height: 56px;
+  min-height: 48px;
   gap: var(--models-gap-3);
-  padding: 10px var(--models-gap-3);
+  padding: 8px var(--models-gap-3);
   border: 0;
-  border-radius: var(--settings-radius-control);
+  border-radius: 0;
 }
 
 .models-access-card,
@@ -59,10 +59,9 @@
 
 .models-connections-card > * + *,
 .models-preferences-card > * + * {
-  border-top: 1px solid var(--border-weak-base);
+  border-top: 1px solid var(--settings-border);
 }
 
-.models-account-summary__identity,
 .models-connection-identity,
 .models-provider-identity,
 .models-model-identity {
@@ -82,7 +81,42 @@
 }
 
 .models-account-summary__balance {
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--settings-leading-helper);
   font-variant-numeric: tabular-nums;
+}
+
+.models-rate-details summary {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.models-rate-details summary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.models-rate-route {
+  max-width: 380px;
+  margin-top: 8px;
+}
+
+.models-rate-route dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.models-rate-route dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.models-rate-route p {
+  margin-top: 4px;
 }
 
 .settings-dialog .settings-models-panel [data-component="button"] {
@@ -91,7 +125,7 @@
   padding: 0 var(--models-gap-2);
   border: 0;
   border-radius: var(--settings-radius-control);
-  font-size: 12px;
+  font-size: var(--font-size-small);
   box-shadow: none;
   text-shadow: none;
 }
@@ -112,7 +146,7 @@
 
 .settings-dialog .settings-models-panel [data-component="button"].models-secondary-action[data-variant="secondary"] {
   background: transparent;
-  color: var(--text-base);
+  color: var(--color-text-secondary);
 }
 
 .settings-dialog
@@ -124,125 +158,8 @@
   background: var(--settings-surface-hover);
 }
 
-.settings-dialog .settings-models-panel :where(button, input):focus-visible,
-.settings-dialog .settings-models-panel [data-slot="select-select-trigger"]:focus-visible {
-  outline-color: var(--border-focus);
-}
-
-/* One compact access card: identity and decision first, explanation and
-   account truth second. This keeps billing status attached to the control
-   instead of scattering it across unrelated rows. */
-.models-routing {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--models-gap-3);
-  padding: var(--models-gap-3);
-  border: 0;
-  border-radius: var(--settings-radius-control);
-  background: transparent;
-  box-shadow: none;
-}
-
-.models-routing__details,
-.models-routing__account {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-}
-
-.models-routing__options {
-  width: min(100%, 320px);
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2px;
-  padding: 2px;
-  border-radius: var(--settings-radius-control);
-  background: var(--settings-surface-muted);
-}
-
-.settings-dialog .settings-models-panel .models-routing__option {
-  min-width: 0;
-  min-height: var(--models-control-height);
-  height: var(--models-control-height);
-  padding: 0 var(--models-gap-2);
-  border: 0;
-  border-radius: calc(var(--settings-radius-control) - 2px);
-  background: transparent;
-  color: var(--text-weak);
-  font-size: 12px;
-  font-weight: var(--font-weight-medium);
-  transition:
-    background-color 140ms ease,
-    color 140ms ease,
-    transform 140ms ease;
-}
-
-.settings-dialog .settings-models-panel .models-routing__option:hover:not(:disabled) {
-  background: var(--settings-surface-hover);
-  color: var(--text-strong);
-}
-
-.settings-dialog .settings-models-panel .models-routing__option:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.settings-dialog .settings-models-panel .models-routing__option[aria-pressed="true"] {
-  background: var(--settings-surface-hover);
-  color: var(--text-strong);
-  box-shadow: none;
-}
-
-.models-routing__option-label {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: center;
-}
-
-.models-routing__option-label > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.models-routing__description {
-  min-width: 0;
-  margin: 0;
-  color: var(--text-weak);
-  font-size: 11px;
-  line-height: 16px;
-  text-wrap: pretty;
-}
-
-.models-routing__details {
-  justify-content: space-between;
-  gap: var(--models-gap-3);
-  padding: 0 2px;
-}
-
-.models-routing__description {
-  flex: 1 1 auto;
-}
-
-.models-routing__account {
-  flex: 0 1 auto;
-  justify-content: flex-end;
-  gap: var(--models-gap-2);
-  color: var(--text-weak);
-  font-size: 11px;
-  white-space: nowrap;
-}
-
-.models-routing__account-state {
-  color: var(--text-strong);
-  font-weight: var(--font-weight-medium);
-}
-
-.models-routing__sync {
-  color: var(--text-weaker);
-}
-
+/* Account truth, routing preference, and payment terms have separate jobs.
+   Keep them in compact rows on one surface, with terms expanded on demand. */
 .models-inference > .settings-inline-note {
   margin: 0;
   padding: 0 var(--models-gap-3) 8px;
@@ -253,18 +170,6 @@
 .models-preference-row,
 .models-provider-row {
   justify-content: space-between;
-}
-
-.models-provider-key-heading__icon {
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--settings-radius-control);
-  background: var(--settings-surface-muted);
-  color: var(--text-weak);
 }
 
 .models-provider-keys > .models-provider-empty {
@@ -285,7 +190,7 @@
   min-height: 20px;
   padding: 1px 6px;
   background: transparent;
-  font-size: 11px;
+  font-size: var(--font-size-x-small);
   font-weight: var(--font-weight-regular);
 }
 
@@ -293,12 +198,12 @@
    an outer surface, while the controls retain their own quiet input fill. */
 .models-provider-key-form {
   display: grid;
-  grid-template-columns: minmax(170px, 0.65fr) minmax(220px, 1fr) auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: end;
   gap: var(--models-gap-2);
   padding: 10px var(--models-gap-3);
   border: 0;
-  border-top: 1px solid var(--border-weak-base);
+  border-top: 1px solid var(--color-border-weak);
   background: color-mix(in srgb, var(--settings-surface-muted) 55%, transparent);
 }
 
@@ -309,19 +214,14 @@
   gap: var(--models-gap-1);
 }
 
+.models-provider-key-form .models-save-key {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+
 .models-provider-select {
   position: relative;
   min-width: 0;
-}
-
-.models-provider-select__mark {
-  position: absolute;
-  top: 50%;
-  left: 4px;
-  z-index: 1;
-  display: inline-flex;
-  pointer-events: none;
-  transform: translateY(-50%);
 }
 
 .settings-dialog .settings-models-panel .models-provider-select [data-slot="select-select-trigger"],
@@ -353,7 +253,7 @@
 }
 
 .settings-dialog .settings-models-panel .models-key-input:focus-visible {
-  border-color: var(--border-focus);
+  border-color: var(--color-border-focus);
 }
 
 .settings-dialog .settings-models-panel .models-save-key {
@@ -377,14 +277,14 @@
 }
 
 .models-provider-source {
-  color: var(--text-weak);
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
 }
 
 .models-provider-source::before {
   content: "·";
   margin-right: var(--models-gap-1);
-  color: var(--text-weaker);
+  color: var(--color-text-faint);
 }
 
 .models-provider-note {
@@ -398,8 +298,8 @@
 .models-catalog-empty {
   margin: 0;
   padding: 14px var(--models-gap-3);
-  color: var(--text-weak);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
   line-height: 18px;
   text-align: center;
   text-wrap: pretty;
@@ -409,7 +309,7 @@
   border: 0;
   border-radius: var(--settings-radius-control);
   background: var(--settings-surface-muted);
-  color: var(--text-strong);
+  color: var(--color-text);
   box-shadow: none;
 }
 
@@ -501,14 +401,6 @@
   flex: 0 0 auto;
 }
 
-.settings-dialog .settings-models-panel .settings-list-header {
-  min-height: 30px;
-  padding: 0 var(--models-gap-3);
-  border: 0;
-  border-radius: var(--settings-radius-control);
-  background: transparent;
-}
-
 .settings-dialog .settings-models-panel .settings-model-row {
   min-height: 50px;
   padding-block: 6px;
@@ -527,9 +419,9 @@
 
 .models-provider-options[data-component="select-content"] {
   min-width: 240px;
-  border: 1px solid var(--border-weak-base);
+  border: 1px solid var(--color-border-weak);
   border-radius: var(--radius-md);
-  background: var(--surface-raised-stronger-non-alpha);
+  background: var(--color-surface-solid);
   background-clip: padding-box;
   box-shadow: var(--shadow-md);
 }
@@ -545,7 +437,7 @@
 
 .models-provider-options[data-slot="select-select-item"]:hover,
 .models-provider-options[data-slot="select-select-item"][data-highlighted] {
-  background: var(--surface-raised-base-hover);
+  background: var(--color-surface-raised-hover);
 }
 
 .models-provider-options .settings-provider-logo,
@@ -558,7 +450,7 @@
   justify-content: center;
   border-radius: calc(var(--settings-radius-control) - 2px);
   background: var(--settings-surface-muted);
-  color: var(--text-strong);
+  color: var(--color-text);
   box-shadow: none;
 }
 
@@ -566,8 +458,8 @@
   min-height: 44px;
   margin: 0;
   padding: 6px var(--models-gap-3);
-  color: var(--text-weaker);
-  font-size: 11px;
+  color: var(--color-text-faint);
+  font-size: var(--font-size-x-small);
   line-height: 18px;
   display: flex;
   align-items: center;
@@ -577,18 +469,8 @@
 }
 
 @container settings-main (max-width: 700px) {
-  .models-routing__details {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .models-routing__options {
-    width: 100%;
-    flex-basis: auto;
-  }
-
-  .models-routing__account {
-    justify-content: flex-start;
+  .models-routing__overview,
+  .models-routing__preference {
     flex-wrap: wrap;
   }
 
@@ -603,6 +485,29 @@
 }
 
 @container settings-main (max-width: 520px) {
+  .models-routing__overview {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .models-routing__account {
+    width: 100%;
+    justify-content: space-between;
+    white-space: normal;
+  }
+
+  .models-routing__wallet {
+    text-align: left;
+  }
+
+  .models-routing__options {
+    width: 100%;
+  }
+
+  .models-routing__option {
+    flex: 1 1 auto;
+  }
+
   .models-provider-key-form {
     grid-template-columns: 1fr;
   }
@@ -671,4 +576,111 @@
   .settings-dialog .settings-models-panel .models-routing__option {
     transition: none;
   }
+}
+
+/* ── Model access rows (Ace page) ─────────────────────────────────────────
+   Every block is a settings row: copy on the left, one control on the right,
+   hairlines between rows from the card. */
+.models-inference > * + * {
+  border-top: 1px solid var(--settings-border);
+}
+.models-routing__status {
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
+}
+/* A state reads as the same muted text everywhere; the control shows it. */
+.models-routing__status[data-active="true"] {
+  color: var(--color-text-muted);
+}
+.models-access-actions {
+  align-items: center;
+  gap: var(--settings-space-3);
+}
+.models-access-actions .models-routing__status {
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
+}
+.settings-dialog .models-routing__link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition:
+    color 140ms ease,
+    text-decoration-color 140ms ease;
+}
+.settings-dialog .models-routing__link:hover {
+  color: var(--color-text);
+  text-decoration-color: currentColor;
+}
+.models-routing__wallet {
+  margin: 0;
+}
+.models-routing__wallet dt {
+  color: var(--color-text);
+  font-size: var(--settings-type-body);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--settings-leading-body);
+}
+.models-routing__wallet dd {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--settings-type-body);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+.models-routing__wallet-unit,
+.models-routing__sync {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
+  font-size: var(--settings-type-helper);
+}
+.models-routing__held {
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
+}
+.models-routing__consequence {
+  color: var(--color-text-faint, var(--color-text-muted));
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
+  text-wrap: pretty;
+}
+/* The shared segmented-control recipe does the styling; only the flex role
+   of the actions slot is neutralised so the track keeps its own gap. */
+.models-routing__modes {
+  flex: 0 0 auto;
+}
+.settings-dialog .models-routing__option:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+/* Pasting an Ace API key: a row of its own under Ace. */
+.models-routing__key-input {
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  padding: 0 var(--settings-space-2);
+  border: 1px solid var(--settings-border);
+  border-radius: var(--settings-radius-control);
+  background: var(--settings-surface-muted);
+  color: var(--color-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--settings-type-helper);
+}
+.models-routing__key-input:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+.models-routing__key-note {
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
+  text-wrap: pretty;
 }

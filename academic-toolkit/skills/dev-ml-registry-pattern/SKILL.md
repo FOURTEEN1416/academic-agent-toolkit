@@ -52,7 +52,7 @@ def DatasetFactory(data_name: str):
     return dataset
 ```
 
-For detailed guidance, refer to `references/factory_pattern.md`.
+For detailed guidance, refer to `references/factory_pattern.md` *(未随仓，见 ASSET-GAP.md)*.
 
 ### Registry Pattern
 
@@ -66,7 +66,7 @@ class SimpleDataset(Dataset):
         self.data = data
 ```
 
-For detailed guidance, refer to `references/registry_pattern.md`.
+For detailed guidance, refer to `references/registry_pattern.md` *(未随仓，见 ASSET-GAP.md)*.
 
 ### Auto-Import Pattern
 
@@ -78,7 +78,7 @@ models_dir = os.path.dirname(__file__)
 import_modules(models_dir, "src.data_module.dataset")
 ```
 
-For detailed guidance, refer to `references/auto_import.md`.
+For detailed guidance, refer to `references/auto_import.md` *(未随仓，见 ASSET-GAP.md)*.
 
 ## Directory Structure
 
@@ -133,7 +133,7 @@ project/
 └── .gitignore               # Git ignore rules
 ```
 
-For detailed directory structure with file descriptions, refer to `references/structure.md`.
+For detailed directory structure with file descriptions, refer to `references/structure.md` *(未随仓，见 ASSET-GAP.md)*.
 
 ## Module Organization
 
@@ -211,7 +211,7 @@ When adding augmentation:
 
 ## Code Style Guidelines
 
-For comprehensive style guidelines, refer to `references/code_style.md`.
+For comprehensive style guidelines, refer to `references/code_style.md` *(未随仓，见 ASSET-GAP.md)*.
 
 **Key principles:**
 - Always use type hints for function signatures
@@ -255,20 +255,22 @@ The project uses Hydra for configuration management:
 
 ## Additional Resources
 
+> ⚠️ 以下参考文件与示例**未随仓集成**（缺口已登记于本技能 `ASSET-GAP.md` 与 `tools/asset_gap_register.json`）。当前以正文各节的模式说明为准执行；下列条目仅供追踪补齐进度，勿直接按路径读取。
+
 ### Reference Files
 
 For detailed information, consult:
-- **`references/structure.md`** - Detailed directory structure with file descriptions
-- **`references/factory_pattern.md`** - Factory pattern in-depth explanation
-- **`references/registry_pattern.md`** - Registry pattern in-depth explanation
-- **`references/auto_import.md`** - Auto-import pattern in-depth explanation
-- **`references/code_style.md`** - Comprehensive code style guidelines
+- **`references/structure.md`** - Detailed directory structure with file descriptions *(未随仓)*
+- **`references/factory_pattern.md`** - Factory pattern in-depth explanation *(未随仓)*
+- **`references/registry_pattern.md`** - Registry pattern in-depth explanation *(未随仓)*
+- **`references/auto_import.md`** - Auto-import pattern in-depth explanation *(未随仓)*
+- **`references/code_style.md`** - Comprehensive code style guidelines *(未随仓)*
 
 ### Example Files
 
 Working examples in `examples/`:
-- **`examples/custom_dataset.py`** - Custom dataset implementation
-- **`examples/custom_model.py`** - Custom model implementation
-- **`examples/augmentation_example.py`** - Data augmentation example
-- **`examples/config_example.yaml`** - Configuration file example
-- **`examples/pipeline_example.sh`** - Pipeline script example
+- **`examples/custom_dataset.py`** - Custom dataset implementation *(未随仓)*
+- **`examples/custom_model.py`** - Custom model implementation *(未随仓)*
+- **`examples/augmentation_example.py`** - Data augmentation example *(未随仓)*
+- **`examples/config_example.yaml`** - Configuration file example *(未随仓)*
+- **`examples/pipeline_example.sh`** - Pipeline script example *(未随仓)*

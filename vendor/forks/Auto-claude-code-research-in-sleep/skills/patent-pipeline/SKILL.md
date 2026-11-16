@@ -7,6 +7,17 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Skil
 
 # Patent Pipeline: From Invention to Filing
 
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Claude Code default (Codex MCP)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
+
 Draft a complete patent application based on: **$ARGUMENTS**
 
 ## Overview
@@ -38,7 +49,7 @@ Patents are about **protecting inventions** (legal scope), not publishing result
 
 - **JURISDICTION = `CN`** — Target patent jurisdiction. Options: `CN` (CNIPA), `US` (USPTO), `EP` (EPO), `ALL` (generate all three). Override via argument (e.g., `/patent-pipeline "invention — US"`).
 - **PATENT_TYPE = `invention`** — `invention` (发明专利, 20 year protection) or `utility_model` (实用新型, CN only, 10 year protection, apparatus claims only). Override via argument.
-- **REVIEWER_MODEL = `gpt-5.6-sol`** — Model used via Codex MCP for examiner-style review.
+- **REVIEWER_MODEL = `gpt-6-astra`** — Model used via Codex MCP for examiner-style review.
 - **MAX_REVIEW_ROUNDS = 2** — Maximum review-revision cycles.
 - **AUTO_PROCEED = false** — At each checkpoint, **always wait for explicit user confirmation**. Patent applications require inventor judgment at every stage. Set `true` only if user explicitly requests autonomous mode.
 - **LANGUAGE = `auto`** — Output language. Auto-detected from jurisdiction: CN->Chinese, US->English, EP->English. Override explicitly if needed.
@@ -249,7 +260,7 @@ Invoke `/patent-review`:
 /patent-review "patent/"
 ```
 
-This runs 2 rounds of examiner-style review via GPT-5.6-Sol xhigh. The examiner evaluates clarity, written description, enablement, novelty, non-obviousness, and claim scope.
+This runs 2 rounds of examiner-style review via GPT-6-Astra xhigh. The examiner evaluates clarity, written description, enablement, novelty, non-obviousness, and claim scope.
 
 **State**: Write `PATENT_STATE.json` with `phase: 4` and review score.
 
@@ -323,7 +334,7 @@ This compiles the application into the target jurisdiction format(s).
 - Large file handling: if a Write operation fails, retry with Bash `cat <<'EOF'` heredoc.
 - Never include experimental results or empirical evaluations in the specification.
 - Consistent terminology is mandatory -- same word for the same concept throughout.
-- If `mcp__codex__codex` is not available (no OpenAI API key), skip external cross-model review and note it in the output. The pipeline must not fail due to missing reviewer access.
+- If the selected reviewer is unavailable, record `REVIEW_UNAVAILABLE`; the draft pipeline may continue explicitly unreviewed, without switching providers.
 
 ## Composing with Other Workflows
 

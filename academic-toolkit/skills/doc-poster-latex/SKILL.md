@@ -12,31 +12,15 @@ metadata:
 
 ## Overview
 
-Research posters are a critical medium for scientific communication at conferences, symposia, and academic events. This skill provides comprehensive guidance for creating professional, visually appealing research posters using LaTeX packages. Generate publication-quality posters with proper layout, typography, color schemes, and visual hierarchy.
+Research posters are a critical medium for scientific communication at conferences and academic events. This skill provides end-to-end guidance for professional LaTeX posters—layout, typography, color schemes, and visual hierarchy.
 
 ## When to Use This Skill
 
-This skill should be used when:
-- Creating research posters for conferences, symposia, or poster sessions
-- Designing academic posters for university events or thesis defenses
-- Preparing visual summaries of research for public engagement
-- Converting scientific papers into poster format
-- Creating template posters for research groups or departments
-- Designing posters that comply with specific conference size requirements (A0, A1, 36×48", etc.)
-- Building posters with complex multi-column layouts
-- Integrating figures, tables, equations, and citations in poster format
+适用于：会议/研讨会/开放日的学术海报制作；论文转海报；课题组/院系模板海报；需要满足特定会议尺寸（A0、A1、36×48" 等）与多栏排版、集成图表公式引用的海报任务。（从已成稿论文走流水线生成海报的场景改用 paper-poster，见 frontmatter 分流说明。）
 
 ## AI-Powered Visual Element Generation
 
-**STANDARD WORKFLOW: Generate ALL major visual elements using AI before creating the LaTeX poster.**
-
-This is the recommended approach for creating visually compelling posters:
-1. Plan all visual elements needed (title, intro, methods, results, conclusions)
-2. Generate each element using scientific-schematics or Nano Banana Pro
-3. Assemble generated images in the LaTeX template
-4. Add text content around the visuals
-
-**Target: 60-70% of poster area should be AI-generated visuals, 30-40% text.**
+**STANDARD WORKFLOW: Generate ALL major visual elements using AI before creating the LaTeX poster.** 推荐流程：① 规划全部视觉元素（title/intro/methods/results/conclusions）→ ② 用 scientific-schematics 或 Nano Banana Pro 逐一生成 → ③ 在 LaTeX 模板中组装图片 → ④ 在视觉周围补文字。**Target: 60-70% poster area 为 AI 生成视觉、30-40% 文字。**
 
 ---
 
@@ -44,59 +28,17 @@ This is the recommended approach for creating visually compelling posters:
 
 **⚠️ POSTERS MUST NOT HAVE TEXT OR CONTENT CUT OFF AT EDGES.**
 
-**Common Overflow Problems:**
-1. **Title/footer text extending beyond page boundaries**
-2. **Too many sections crammed into available space**
-3. **Figures placed too close to edges**
-4. **Text blocks exceeding column widths**
+**Common Overflow Problems:** 标题/页脚越出页界、section 塞太多、图贴边、文本块超栏宽——四类都属「内容超出可用空间」，按下述 Prevention Rules 逐条防。
 
 **Prevention Rules:**
 
-**1. Limit Content Sections (MAXIMUM 5-6 sections for A0):**
-```
-✅ GOOD - 5 sections with room to breathe:
-   - Title/Header
-   - Introduction/Problem
-   - Methods
-   - Results (1-2 key findings)
-   - Conclusions
+**1. Limit Content Sections (MAXIMUM 5-6 sections for A0):** ✅ 5 sections（Title / Introduction / Methods / Results 1-2 key findings / Conclusions）留白充足；❌ 8+ sections（Overview+Introduction+Background+Methods+Results 1+Results 2+Discussion+Conclusions+Future Work）必然拥挤。
 
-❌ BAD - 8+ sections crammed together:
-   - Overview, Introduction, Background, Methods, 
-   - Results 1, Results 2, Discussion, Conclusions, Future Work
-```
+**2. Set Safe Margins in LaTeX:** tikzposter 用 `margin=25mm`（`\documentclass[25pt, a0paper, portrait, margin=25mm]{tikzposter}`）；baposter 在 `\begin{poster}{...}` 里给足 `colspacing`（如 2em）、压低 `headerheight`（如 0.1\textheight），底部留空。
 
-**2. Set Safe Margins in LaTeX:**
-```latex
-% tikzposter - add generous margins
-\documentclass[25pt, a0paper, portrait, margin=25mm]{tikzposter}
+**3. Figure Sizing - Never 100% Width:** `\includegraphics[width=0.85\linewidth]{figure.png}`（NOT 1.0\linewidth），给图四周留边。
 
-% baposter - ensure content doesn't touch edges
-\begin{poster}{
-  columns=3,
-  colspacing=2em,           % Space between columns
-  headerheight=0.1\textheight,  % Smaller header
-  % Leave space at bottom
-}
-```
-
-**3. Figure Sizing - Never 100% Width:**
-```latex
-% Leave margins around figures
-\includegraphics[width=0.85\linewidth]{figure.png}  % NOT 1.0\linewidth
-```
-
-**4. Check for Overflow Before Printing:**
-```bash
-# Compile and check PDF at 100% zoom
-pdflatex poster.tex
-
-# Look for:
-# - Text cut off at any edge
-# - Content touching page boundaries  
-# - Overfull hbox warnings in .log file
-grep -i "overfull" poster.log
-```
+**4. Check for Overflow Before Printing:** 编译后按 Section 11 Step 2 执行（`grep -i "overfull" poster.log` + 100% zoom 查四边），存在任何溢出先修再继续。
 
 **5. Word Count Limits:**
 - **A0 poster**: 300-800 words MAXIMUM
@@ -107,19 +49,9 @@ grep -i "overfull" poster.log
 
 ### CRITICAL: Poster-Size Font Requirements
 
-**⚠️ ALL text within AI-generated visualizations MUST be poster-readable.**
+**⚠️ ALL text within AI-generated visualizations MUST be poster-readable.** 每条生成 prompt 都必须带字号规格——海报图在 4-6 英尺外观看，文字必须 LARGE。
 
-When generating graphics for posters, you MUST include font size specifications in EVERY prompt. Poster graphics are viewed from 4-6 feet away, so text must be LARGE.
-
-**⚠️ COMMON PROBLEM: Content Overflow and Density**
-
-The #1 issue with AI-generated poster graphics is **TOO MUCH CONTENT**. This causes:
-- Text overflow beyond boundaries
-- Unreadable small fonts
-- Cluttered, overwhelming visuals
-- Poor white space usage
-
-**SOLUTION: Generate SIMPLE graphics with MINIMAL content.**
+**⚠️ COMMON PROBLEM: Content Overflow and Density**——AI 海报图形的头号问题是**内容过多**（后果：文字溢出边界、字号小到不可读、视觉拥挤、留白不足）。**SOLUTION: Generate SIMPLE graphics with MINIMAL content.**
 
 **MANDATORY prompt requirements for EVERY poster graphic:**
 
@@ -137,10 +69,7 @@ POSTER FORMAT REQUIREMENTS (STRICTLY ENFORCE):
 - ONE SINGLE MESSAGE per graphic (not 3 related messages)
 ```
 
-**⚠️ BEFORE GENERATING: Review your prompt and count elements**
-- If your description has 5+ items → STOP. Split into multiple graphics
-- If your workflow has 5+ stages → STOP. Show only 3-4 high-level steps
-- If your comparison has 4+ methods → STOP. Show only top 3 or Our vs Best Baseline
+**⚠️ BEFORE GENERATING: Review your prompt and count elements**——按 Step 0 的四问审查执行（元素数 / 复杂度 / 词数 / 单消息），任一不过先简化或拆分再生成。
 
 **Content limits per graphic type (STRICT):**
 | Graphic Type | Max Elements | Max Words | Reject If | Good Example |
@@ -151,47 +80,16 @@ POSTER FORMAT REQUIREMENTS (STRICTLY ENFORCE):
 | Case study | **1 case, 3 elements** | **6 words** | Multiple cases, substories | Logo + "18 MONTHS" + "to discovery" (2 words) |
 | Timeline | **3-4 points MAX** | **8 words** | Year-by-year detail | "2020 START" "2022 TRIAL" "2024 APPROVED" (6 words) |
 
-**Example - WRONG (7-stage workflow - TOO COMPLEX):**
+**Example - WRONG vs CORRECT (workflow):**
 ```bash
-# ❌ BAD - This creates tiny unreadable text like the drug discovery poster
+# ❌ BAD - 7-stage 逐段展开：7+ stages with tiny text, unreadable from 6 feet - POSTER FAILURE
 python scripts/generate_schematic.py "Drug discovery workflow showing: Stage 1 Target Identification, Stage 2 Molecular Synthesis, Stage 3 Virtual Screening, Stage 4 AI Lead Optimization, Stage 5 Clinical Trial Design, Stage 6 FDA Approval. Include success metrics, timelines, and validation steps for each stage." -o figures/workflow.png
-# Result: 7+ stages with tiny text, unreadable from 6 feet - POSTER FAILURE
-```
 
-**Example - CORRECT (simplified to 3 key stages):**
-```bash
-# ✅ GOOD - Same content, split into ONE simple high-level graphic
+# ✅ GOOD - 同一内容收敛为一张 3-box 高层图；细节图按需另出（clean, impactful, readable）
 python scripts/generate_schematic.py "POSTER FORMAT for A0. ULTRA-SIMPLE 3-box workflow: 'DISCOVER' → 'VALIDATE' → 'APPROVE'. Each word in GIANT bold (120pt+). Thick arrows (10px). 60% white space. NO substeps, NO details. 3 words total. Readable from 10 feet." -o figures/workflow_overview.png
-# Result: Clean, impactful, readable - can add detail graphics separately if needed
 ```
 
-**Example - WRONG (complex case studies with multiple sections):**
-```bash
-# ❌ BAD - Creates cramped unreadable sections
-python scripts/generate_schematic.py "Case studies: Insilico Medicine (drug candidate, discovery time, clinical trials), Recursion Pharma (platform, methodology, results), Exscientia (drug candidates, FDA status, timeline). Include company logos, metrics, and outcomes." -o figures/cases.png
-# Result: 3 case studies with 4+ elements each = 12+ total elements, tiny text
-```
-
-**Example - CORRECT (one case study, one key metric):**
-```bash
-# ✅ GOOD - Show ONE case with ONE key number
-python scripts/generate_schematic.py "POSTER FORMAT for A0. ONE case study card: Company logo (large), '18 MONTHS' in GIANT text (150pt), 'to discovery' below (60pt). 3 elements total: logo + number + caption. 50% white space. Readable from 10 feet." -o figures/case_single.png
-# Result: Clear, readable, impactful. Make 3 separate graphics if you need 3 cases.
-```
-
-**Example - WRONG (key findings too complex):**
-```bash
-# BAD - too many items, too much detail
-python scripts/generate_schematic.py "Key findings showing 8 metrics: accuracy 95%, precision 92%, recall 94%, F1 0.93, AUC 0.97, training time 2.3 hours, inference 50ms, model size 145MB with comparison to 5 baseline methods" -o figures/findings.png
-# Result: Cramped graphic with tiny numbers
-```
-
-**Example - CORRECT (key findings simple):**
-```bash
-# GOOD - only 3 key items, giant numbers
-python scripts/generate_schematic.py "POSTER FORMAT for A0. KEY FINDINGS with ONLY 3 large cards. Card 1: '95%' in GIANT text (120pt) with 'ACCURACY' below (48pt). Card 2: '2X' in GIANT text with 'FASTER' below. Card 3: checkmark icon with 'VALIDATED' in large text. 50% white space. High contrast colors. NO other text or details." -o figures/findings.png
-# Result: Bold, readable impact statement
-```
+**Case study 同理**：多案例塞一张图 = 12+ 元素的小字灾难（❌）；✅ 正确做法是一图一案一指标（logo + '18 MONTHS' + 'to discovery'），需要 3 个案例就生成 3 张简单图。**Key findings 同理**：8 项指标全上（❌）；✅ 只留 top 3 做大字卡片（'95% ACCURACY' / '2X FASTER' / 'VALIDATED'）。
 
 **Font size reference for poster prompts:**
 | Element | Minimum Size | Prompt Keywords |
@@ -201,58 +99,13 @@ python scripts/generate_schematic.py "POSTER FORMAT for A0. KEY FINDINGS with ON
 | Labels/captions | 36pt+ | "readable from 6 feet", "clear labels" |
 | Body text | 24pt+ | "poster-readable", "large text" |
 
-**Always include in prompts:**
-- "POSTER FORMAT" or "for A0 poster" or "readable from 6 feet"
-- "VERY LARGE TEXT" or "huge bold fonts"
-- Specific text that should appear (so it's baked into the image)
-- "minimal text, maximum impact"
-- "high contrast" for readability
-- "generous margins" and "no text near edges"
+**Always include in prompts:** "POSTER FORMAT / for A0 poster / readable from 6 feet" + "VERY LARGE TEXT / huge bold fonts" + 应出现的具体文字（烤进图里）+ "minimal text, maximum impact" + "high contrast" + "generous margins, no text near edges"。
 
 ---
 
 ### CRITICAL: AI-Generated Graphic Sizing
 
-**⚠️ Each AI-generated graphic should focus on ONE concept with MINIMAL content.**
-
-**Problem**: Generating complex diagrams with many elements leads to small text.
-
-**Solution**: Generate SIMPLE graphics with FEW elements and LARGE text.
-
-**Example - WRONG (too complex, text will be small):**
-```bash
-# BAD - too many elements in one graphic
-python scripts/generate_schematic.py "Complete ML pipeline showing data collection, 
-preprocessing with 5 steps, feature engineering with 8 techniques, model training 
-with hyperparameter tuning, validation with cross-validation, and deployment with 
-monitoring. Include all labels and descriptions." -o figures/pipeline.png
-```
-
-**Example - CORRECT (simple, focused, large text):**
-```bash
-# GOOD - split into multiple simple graphics with large text
-
-# Graphic 1: High-level overview (3-4 elements max)
-python scripts/generate_schematic.py "POSTER FORMAT for A0: Simple 4-step pipeline. 
-Four large boxes: DATA → PROCESS → MODEL → RESULTS. 
-GIANT labels (80pt+), thick arrows, lots of white space. 
-Only 4 words total. Readable from 8 feet." -o figures/overview.png
-
-# Graphic 2: Key result (1 metric highlighted)
-python scripts/generate_schematic.py "POSTER FORMAT for A0: Single key metric display.
-Giant '95%' text (150pt+) with 'ACCURACY' below (60pt+).
-Checkmark icon. Minimal design, high contrast.
-Readable from 10 feet." -o figures/accuracy.png
-```
-
-**Rules for AI-generated poster graphics:**
-| Rule | Limit | Reason |
-|------|-------|--------|
-| **Elements per graphic** | 3-5 maximum | More elements = smaller text |
-| **Words per graphic** | 10-15 maximum | Minimal text = larger fonts |
-| **Flowchart steps** | 4-5 maximum | Keeps labels readable |
-| **Chart categories** | 3-4 maximum | Prevents crowding |
-| **Nested levels** | 1-2 maximum | Avoids complexity |
+**⚠️ Each AI-generated graphic should focus on ONE concept with MINIMAL content.** 复杂图必然导致小字：元素越多、字号越小。上限一律按上方 MANDATORY requirements 与 Content limits 表执行（3-4 elements / ≤10 words / 流程 ≤4 步 / 对比 ≤3 项 / 不嵌套），不要按本文件早期流传的「3-5 elements / 10-15 words」宽松口径。
 
 **Split complex content into multiple simple graphics:**
 ```
@@ -269,21 +122,10 @@ Instead of 1 complex diagram with 12 elements:
 **⚠️ BEFORE generating ANY graphics, review your content plan:**
 
 **For EACH planned graphic, ask these questions:**
-1. **Element count**: Can I describe this in 3-4 items or less?
-   - ❌ NO → Simplify or split into multiple graphics
-   - ✅ YES → Continue
-
-2. **Complexity check**: Is this a multi-stage workflow (5+ steps) or nested diagram?
-   - ❌ YES → Flatten to 3-4 high-level steps only
-   - ✅ NO → Continue
-
-3. **Word count**: Can I describe all text in 10 words or less?
-   - ❌ NO → Cut text, use single-word labels
-   - ✅ YES → Continue
-
-4. **Message clarity**: Does this graphic convey ONE clear message?
-   - ❌ NO → Split into multiple focused graphics
-   - ✅ YES → Continue to generation
+1. **Element count**: 3-4 items or less? ❌ NO → Simplify or split into multiple graphics
+2. **Complexity check**: multi-stage workflow (5+ steps) or nested diagram? ❌ YES → Flatten to 3-4 high-level steps only
+3. **Word count**: all text in 10 words or less? ❌ NO → Cut text, use single-word labels
+4. **Message clarity**: ONE clear message? ❌ NO → Split into multiple focused graphics
 
 **Common patterns that ALWAYS fail (reject these):**
 - "Show stages 1 through 7..." → Split into high-level overview (3 stages) + detail graphics
@@ -305,50 +147,28 @@ After passing the pre-generation review, identify visual elements needed:
 
 ### Step 2: Generate Each Element (After Pre-Generation Review)
 
-**⚠️ CRITICAL: Review Step 0 checklist before proceeding.**
-
-Use the appropriate tool for each element type:
+**⚠️ CRITICAL: Review Step 0 checklist before proceeding.** 按元素类型选工具与 prompt 模式：
 
 **For Schematics and Diagrams (scientific-schematics):**
 ```bash
 # Create figures directory
 mkdir -p figures
 
-# Drug discovery workflow - HIGH-LEVEL ONLY, 3 stages
+# Workflow - HIGH-LEVEL ONLY, 3 stages（7-stage 原始计划按 Step 0 拆掉）
 # BAD: "Stage 1: Target ID, Stage 2: Molecular Synthesis, Stage 3: Virtual Screening, Stage 4: AI Lead Opt..."
 # GOOD: Collapse to 3 mega-stages
 python scripts/generate_schematic.py "POSTER FORMAT for A0. ULTRA-SIMPLE 3-box workflow: 'DISCOVER' (120pt bold) → 'VALIDATE' (120pt bold) → 'APPROVE' (120pt bold). Thick arrows (10px). 60% white space. ONLY these 3 words. NO substeps. Readable from 12 feet." -o figures/workflow_simple.png
 
-# System architecture - MAXIMUM 3 components
-python scripts/generate_schematic.py "POSTER FORMAT for A0. ULTRA-SIMPLE 3-component stack: 'DATA' box (120pt) → 'AI MODEL' box (120pt) → 'PREDICTION' box (120pt). Thick vertical arrows. 60% white space. 3 words only. Readable from 12 feet." -o figures/architecture.png
-
-# Timeline - ONLY 3 key milestones (not year-by-year)
-# BAD: "2018, 2019, 2020, 2021, 2022, 2023, 2024 with events"
-# GOOD: Only 3 breakthrough moments
-python scripts/generate_schematic.py "POSTER FORMAT for A0. Timeline with ONLY 3 points: '2018' + icon, '2021' + icon, '2024' + icon. GIANT years (120pt). Large icons. 60% white space. NO connecting lines or details. Readable from 12 feet." -o figures/timeline.png
-
-# Case study - ONE case, ONE key metric
-# BAD: "3 case studies: Insilico (details), Recursion (details), Exscientia (details)"
-# GOOD: ONE case with ONE number
-python scripts/generate_schematic.py "POSTER FORMAT for A0. ONE case study: Large logo + '18 MONTHS' (150pt bold) + 'to discovery' (60pt). 3 elements total. 60% white space. Readable from 12 feet." -o figures/case1.png
-
-# If you need 3 cases → make 3 separate simple graphics (not one complex graphic)
+# Case study 按「一图一案一指标」口径生成（见上方 Case study 同理段）；3 个案例 = 3 张简单图
 ```
 
 **For Stylized Blocks and Graphics (Nano Banana Pro):**
 ```bash
-# Title block - SIMPLE
-python scripts/generate_schematic.py "POSTER FORMAT for A0. Title block: 'ML FOR DRUG DISCOVERY' in HUGE bold text (120pt+). Dark blue background. ONE subtle icon. NO other text. 40% white space. Readable from 15 feet." -o figures/title_block.png
-
-# Introduction visual - SIMPLE, 3 elements only
-python scripts/generate_schematic.py "POSTER FORMAT for A0. SIMPLE problem visual with ONLY 3 icons: drug icon, arrow, target icon. ONE label per icon (80pt+). 50% white space. NO detailed text. Readable from 8 feet." -o figures/intro_visual.png
-
 # Conclusion/summary - ONLY 3 items, GIANT numbers
 python scripts/generate_schematic.py "POSTER FORMAT for A0. KEY FINDINGS with EXACTLY 3 cards only. Card 1: '95%' (150pt font) with 'ACCURACY' (60pt). Card 2: '2X' (150pt) with 'FASTER' (60pt). Card 3: checkmark icon with 'READY' (60pt). 50% white space. NO other text. Readable from 10 feet." -o figures/conclusions_graphic.png
-
-# Background visual - SIMPLE, 3 icons only
-python scripts/generate_schematic.py "POSTER FORMAT for A0. SIMPLE visual with ONLY 3 large icons in a row: problem icon → challenge icon → impact icon. ONE word label each (80pt+). 50% white space. NO detailed text. Readable from 8 feet." -o figures/background_visual.png
 ```
+
+其余类型（architecture/timeline/title block/intro/background）按同一 prompt 模式与 Content limits 表生成（POSTER FORMAT for A0 + 元素上限 + GIANT 字号 + 留白 + 观看距离 + 精确词数）。
 
 **For Data Visualizations - SIMPLE, 3 bars max:**
 ```bash
@@ -358,31 +178,13 @@ python scripts/generate_schematic.py "POSTER FORMAT for A0. SIMPLE bar chart wit
 
 ### Step 2b: MANDATORY Post-Generation Review (Before Assembly)
 
-**⚠️ CRITICAL: Review EVERY generated graphic before adding to poster.**
+**⚠️ CRITICAL: Review EVERY generated graphic before adding to poster.** 每图在 25% zoom 下逐项检查：
 
-**For each generated figure, open at 25% zoom and check:**
+1. **✅ PASS criteria (all must be true):** 25% zoom 下全部文字清晰可读；元素 ≤3-4；留白 ≥50%；2 秒内能看懂；无 5+ 步复杂流程、无多层嵌套。
 
-1. **✅ PASS criteria (all must be true):**
-   - Can read ALL text clearly at 25% zoom
-   - Count elements: 3-4 or fewer
-   - White space: 50%+ of image is empty
-   - Simple enough to understand in 2 seconds
-   - NOT a complex workflow with 5+ stages
-   - NOT multiple nested sections
+2. **❌ FAIL criteria (regenerate if ANY are true):** 文字小/难读 → REGENERATE with "150pt+" fonts；元素 >4 → REGENERATE with "ONLY 3 elements"；留白 <50% → REGENERATE with "60% white space"；复杂多阶段流程或多案例挤一图 → SPLIT into 2-3 simple graphics；3 秒看不懂 → SIMPLIFY and regenerate。
 
-2. **❌ FAIL criteria (regenerate if ANY are true):**
-   - Text is small or hard to read at 25% zoom → REGENERATE with "150pt+" fonts
-   - More than 4 elements → REGENERATE with "ONLY 3 elements"
-   - Less than 50% white space → REGENERATE with "60% white space"
-   - Complex multi-stage workflow → SPLIT into 2-3 simple graphics
-   - Multiple case studies cramped together → SPLIT into separate graphics
-   - Takes more than 3 seconds to understand → SIMPLIFY and regenerate
-
-**Common failures and fixes:**
-- "7-stage workflow with tiny text" → Regenerate as "3 high-level stages only"
-- "3 case studies in one graphic" → Generate 3 separate simple graphics
-- "Timeline with 8 years" → Regenerate with "ONLY 3 key milestones"
-- "Comparison of 5 methods" → Regenerate with "ONLY Our method vs Best baseline (2 bars)"
+**Common failures and fixes**: 见 Step 0 的「Common patterns that ALWAYS FAIL」（拆分/简化口径一致），FAIL 项按修复口径重新生成后再复查。
 
 **DO NOT PROCEED to assembly if ANY graphic fails the checks above.**
 
@@ -390,138 +192,54 @@ python scripts/generate_schematic.py "POSTER FORMAT for A0. SIMPLE bar chart wit
 
 After all figures pass the post-generation review, include them in your poster template:
 
-**tikzposter example:**
+**tikzposter example**（完整可编译模板见 `assets/tikzposter_template.tex`；图宽一律 <1.0\linewidth 留边）:
 ```latex
 \documentclass[25pt, a0paper, portrait]{tikzposter}
-
 \begin{document}
-
 \maketitle
-
 \begin{columns}
 \column{0.5}
-
-\block{Introduction}{
-  \centering
-  \includegraphics[width=0.85\linewidth]{figures/intro_visual.png}
-  
-  \vspace{0.5em}
-  Brief context text here (2-3 sentences max).
-}
-
-\block{Methods}{
-  \centering
-  \includegraphics[width=0.9\linewidth]{figures/methods_flowchart.png}
-}
-
+\block{Introduction}{%
+  \centering\includegraphics[width=0.85\linewidth]{figures/intro_visual.png}}
+\block{Methods}{%
+  \centering\includegraphics[width=0.9\linewidth]{figures/methods_flowchart.png}}
 \column{0.5}
-
-\block{Results}{
-  \begin{minipage}{0.48\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{figures/result_1.png}
-  \end{minipage}
-  \hfill
-  \begin{minipage}{0.48\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{figures/result_2.png}
-  \end{minipage}
-  
-  \vspace{0.5em}
-  Key findings in 3-4 bullet points.
-}
-
-\block{Conclusions}{
-  \centering
-  \includegraphics[width=0.8\linewidth]{figures/conclusions_graphic.png}
-}
-
+\block{Results}{%
+  \centering\includegraphics[width=0.9\linewidth]{figures/comparison_chart.png}}
+\block{Conclusions}{%
+  \centering\includegraphics[width=0.8\linewidth]{figures/conclusions_graphic.png}}
 \end{columns}
-
 \end{document}
 ```
 
-**baposter example:**
-```latex
-\headerbox{Methods}{name=methods,column=0,row=0}{
-  \centering
-  \includegraphics[width=0.95\linewidth]{figures/methods_flowchart.png}
-}
-
-\headerbox{Results}{name=results,column=1,row=0}{
-  \includegraphics[width=\linewidth]{figures/comparison_chart.png}
-  \vspace{0.3em}
-  
-  Key finding: Our method achieves 92% accuracy.
-}
-```
+**baposter example**: 见 `assets/baposter_template.tex`——结构同类，每栏用 `\headerbox{Title}{name=...,column=...,row=...}` 包裹 `\includegraphics`（宽度建议 0.95\linewidth 以下，留出边距）。
 
 ### Example: Complete Poster Generation Workflow
 
-**Full workflow with ALL quality checks:**
+端到端串联（各步骤细节一律引用上文对应小节，不重复 prompts）：
 
 ```bash
-# STEP 0: Pre-Generation Review (MANDATORY)
-# Content plan: Drug discovery poster
-# - Workflow: 7 stages → ❌ TOO MANY → Reduce to 3 mega-stages ✅
-# - 3 case studies → ❌ TOO MANY → One case per graphic (make 3 graphics) ✅
-# - Timeline 2018-2024 → ❌ TOO DETAILED → Only 3 key years ✅
+# STEP 0: Pre-Generation Review (MANDATORY，见 Step 0)：7 stages → 3 mega-stages ✅；3 case studies → 一图一案 ✅；timeline 2018-2024 → 只留 3 个关键年 ✅
 
-# STEP 1: Create figures directory
 mkdir -p figures
 
-# STEP 2: Generate ULTRA-SIMPLE graphics with strict limits
+# STEP 2: 按上方 Step 2 prompt 模式生成 workflow/case1-3/timeline/results（ULTRA-SIMPLE：3-4 elements、GIANT fonts、60% white space）
 
-# Workflow - HIGH-LEVEL ONLY (collapsed from 7 stages to 3)
-python scripts/generate_schematic.py "POSTER FORMAT for A0. ULTRA-SIMPLE 3-box workflow: 'DISCOVER' → 'VALIDATE' → 'APPROVE'. Each word 120pt+ bold. Thick arrows (10px). 60% white space. ONLY 3 words total. Readable from 12 feet." -o figures/workflow.png
+# STEP 2b: Post-Generation Review (MANDATORY，见 Step 2b)
+# 每图 25% zoom 检查：元素数、可读性、留白——ALL PASS 才继续
 
-# Case study 1 - ONE case, ONE metric (will make 3 separate graphics)
-python scripts/generate_schematic.py "POSTER FORMAT for A0. ONE case: Company logo + '18 MONTHS' (150pt bold) + 'to drug discovery' (60pt). 3 elements only. 60% white space. Readable from 12 feet." -o figures/case1.png
-
-python scripts/generate_schematic.py "POSTER FORMAT for A0. ONE case: Company logo + '95% SUCCESS' (150pt bold) + 'in trials' (60pt). 3 elements only. 60% white space." -o figures/case2.png
-
-python scripts/generate_schematic.py "POSTER FORMAT for A0. ONE case: Company logo + 'FDA APPROVED' (150pt bold) + '2024' (60pt). 3 elements only. 60% white space." -o figures/case3.png
-
-# Timeline - ONLY 3 key years (not 7 years)
-python scripts/generate_schematic.py "POSTER FORMAT for A0. ONLY 3 years: '2018' (150pt) + icon, '2021' (150pt) + icon, '2024' (150pt) + icon. Large icons. 60% white space. NO lines or details. Readable from 12 feet." -o figures/timeline.png
-
-# Results - ONLY 2 bars (our method vs best baseline, not 5 methods)
-python scripts/generate_schematic.py "POSTER FORMAT for A0. TWO bars only: 'BASELINE 70%' and 'OURS 95%' (highlighted). GIANT percentages (150pt) ON bars. NO axis, NO legend. 60% white space. Readable from 12 feet." -o figures/results.png
-
-# STEP 2b: Post-Generation Review (MANDATORY)
-# Open each figure at 25% zoom:
-# ✅ workflow.png: 3 elements, text readable, 60% white - PASS
-# ✅ case1.png: 3 elements, giant numbers, clean - PASS
-# ✅ case2.png: 3 elements, giant numbers, clean - PASS  
-# ✅ case3.png: 3 elements, giant numbers, clean - PASS
-# ✅ timeline.png: 3 elements, readable, simple - PASS
-# ✅ results.png: 2 bars, giant percentages, clear - PASS
-# ALL PASS → Proceed to assembly
-
-# STEP 3: Compile LaTeX poster
 pdflatex poster.tex
 
-# STEP 4: PDF Overflow Check (see Section 11)
+# STEP 4: PDF Overflow Check (见 Section 11)
 grep "Overfull" poster.log
 # Open at 100% and check all 4 edges
 ```
 
-**If ANY graphic fails Step 2b review:**
-- Too many elements → Regenerate with "ONLY 3 elements"
-- Small text → Regenerate with "150pt+" or "GIANT BOLD (150pt+)"
-- Cluttered → Regenerate with "60% white space" and "ULTRA-SIMPLE"
-- Complex workflow → SPLIT into multiple simple 3-element graphics
+任一图未过 Step 2b：按 Step 2b 的 FAIL→fix 口径重新生成后再组装。
 
 ### Visual Element Guidelines
 
-**⚠️ CRITICAL: Each graphic must have ONE message and MAXIMUM 3-4 elements.**
-
-**ABSOLUTE LIMITS - These are NOT guidelines, these are HARD LIMITS:**
-- **MAXIMUM 3-4 elements** per graphic (3 is ideal)
-- **MAXIMUM 10 words** total per graphic
-- **MINIMUM 50% white space** (60% is better)
-- **MINIMUM 120pt** for key numbers/metrics
-- **MINIMUM 80pt** for labels
+**⚠️ CRITICAL: Each graphic must have ONE message and MAXIMUM 3-4 elements.** 硬限制（元素/词数/留白/字号）、MANDATORY prompt 要素与失败模式一律按「AI-Powered Visual Element Generation」权威口径与 Step 0 执行，此处不重复。
 
 **For each poster section - STRICT requirements:**
 
@@ -533,29 +251,6 @@ grep "Overfull" poster.log
 | **Conclusions** | 3 cards | 9 words | "POSTER FORMAT for A0: THREE cards: '95%' (150pt) 'ACCURATE', '2X' (150pt) 'FASTER', checkmark 'READY'. 60% white space." |
 | **Case Study** | 3 elements | 5 words | "POSTER FORMAT for A0: ONE case: logo + '18 MONTHS' (150pt) + 'to discovery' (60pt). 60% white space." |
 | **Timeline** | 3 points | 3 words | "POSTER FORMAT for A0: THREE years only: '2018' '2021' '2024' (150pt each). Large icons. 60% white space. NO details." |
-
-**MANDATORY prompt elements (ALL required, NO exceptions):**
-1. **"POSTER FORMAT for A0"** - MUST be first
-2. **"ULTRA-SIMPLE"** or **"ONLY X elements"** - content limit
-3. **"GIANT (120pt+)"** or specific font sizes - readability
-4. **"60% white space"** - mandatory breathing room
-5. **"readable from 10-12 feet"** - viewing distance
-6. **Exact count** of words/elements - "3 words total" or "ONLY 3 icons"
-
-**PATTERNS THAT ALWAYS FAIL (REJECT IMMEDIATELY):**
-- ❌ "7-stage drug discovery workflow" → Split to "3 mega-stages"
-- ❌ "Timeline from 2015-2024 with annual updates" → "ONLY 3 key years"
-- ❌ "3 case studies with details" → Make 3 separate simple graphics
-- ❌ "Comparison of 5 methods with metrics" → "ONLY 2: ours vs best"
-- ❌ "Complete architecture showing all layers" → "3 components only"
-- ❌ "Show stages 1,2,3,4,5,6" → "3 high-level stages"
-
-**PATTERNS THAT WORK:**
-- ✅ "3 mega-stages collapsed from 7" → Proper simplification
-- ✅ "ONE case with ONE metric" → Will make multiple if needed
-- ✅ "ONLY 3 milestones" → Selective, focused
-- ✅ "2 bars: ours vs baseline" → Direct comparison
-- ✅ "3-component high-level view" → Appropriately simplified
 
 ---
 
@@ -575,75 +270,30 @@ For detailed guidance on creating schematics, refer to the **scientific-schemati
 
 ### 1. LaTeX Poster Packages
 
-Support for three major LaTeX poster packages, each with distinct advantages. For detailed comparison and package-specific guidance, refer to `references/latex_poster_packages.md`.
-
-**beamerposter**:
-- Extension of the Beamer presentation class
-- Familiar syntax for Beamer users
-- Excellent theme support and customization
-- Best for: Traditional academic posters, institutional branding
-
-**tikzposter**:
-- Modern, flexible design with TikZ integration
-- Built-in color themes and layout templates
-- Extensive customization through TikZ commands
-- Best for: Colorful, modern designs, custom graphics
-
-**baposter**:
-- Box-based layout system
-- Automatic spacing and positioning
-- Professional-looking default styles
-- Best for: Multi-column layouts, consistent spacing
+三选一（详细对比与各包专属指引见 `references/latex_poster_packages.md`）：
+- **beamerposter**: Beamer 扩展，语法对 Beamer 熟手友好、主题与机构品牌支持强——适合传统学术海报。
+- **tikzposter**: TikZ 集成、现代灵活、内置配色主题与版式模板——适合彩色现代设计与自定义图形。
+- **baposter**: 盒式布局系统、自动间距定位、默认样式专业——适合多栏一致排版。
 
 ### 2. Poster Layout and Structure
 
 Create effective poster layouts following visual communication principles. For comprehensive layout guidance, refer to `references/poster_layout_design.md`.
 
-**Common Poster Sections**:
-- **Header/Title**: Title, authors, affiliations, logos
-- **Introduction/Background**: Research context and motivation
-- **Methods/Approach**: Methodology and experimental design
-- **Results**: Key findings with figures and data visualizations
-- **Conclusions**: Main takeaways and implications
-- **References**: Key citations (typically abbreviated)
-- **Acknowledgments**: Funding, collaborators, institutions
+**Common Poster Sections**: Header/Title（标题、作者、机构、logo）→ Introduction/Background（研究语境与动机）→ Methods/Approach（方法与实验设计）→ Results（关键发现 + 图表）→ Conclusions（要点与结论）→ References（精选文献）→ Acknowledgments（资助/合作者/机构）。
 
-**Layout Strategies**:
-- **Column-based layouts**: 2-column, 3-column, or 4-column grids
-- **Block-based layouts**: Flexible arrangement of content blocks
-- **Z-pattern flow**: Guide readers through content logically
-- **Visual hierarchy**: Use size, color, and spacing to emphasize key points
+**Layout Strategies**: 栏式布局（2/3/4 栏网格）、块式布局（内容块灵活排布）、Z 型阅读动线、视觉层级（用字号/颜色/间距突出重点）。
 
 ### 3. Design Principles for Research Posters
 
 Apply evidence-based design principles for maximum impact. For detailed design guidance, refer to `references/poster_design_principles.md`.
 
-**Typography**:
-- Title: 72-120pt for visibility from distance
-- Section headers: 48-72pt
-- Body text: 24-36pt minimum for readability from 4-6 feet
-- Use sans-serif fonts (Arial, Helvetica, Calibri) for clarity
-- Limit to 2-3 font families maximum
+**Typography**: Title 72-120pt / section headers 48-72pt / body 24-36pt minimum（与 Section 11 Step 3 质检口径一致）；无衬线字体（Arial/Helvetica/Calibri），全篇 ≤2-3 个字体族。
 
-**Color and Contrast**:
-- Use high-contrast color schemes for readability
-- Institutional color palettes for branding
-- Color-blind friendly palettes (avoid red-green combinations)
-- White space is active space—don't overcrowd
+**Color and Contrast**: 高对比配色保证可读；机构色板做品牌；色盲友好（避红绿组合）；留白是主动设计空间，别塞满。
 
-**Visual Elements**:
-- High-resolution figures (300 DPI minimum for print)
-- Large, clear labels on all figures
-- Consistent figure styling throughout
-- Strategic use of icons and graphics
-- Balance text with visual content (40-50% visual recommended)
+**Visual Elements**: 印刷图 ≥300 DPI；图上标签大而清晰；全篇图风格一致；善用图标与图形；图文比约 40-50% 视觉。
 
-**Content Guidelines**:
-- **Less is more**: 300-800 words total recommended
-- Bullet points over paragraphs for scannability
-- Clear, concise messaging
-- Self-explanatory figures with minimal text explanation
-- QR codes for supplementary materials or online resources
+**Content Guidelines**: 全文 300-800 words（与溢出 Prevention 的 Word Count Limits 一致）；bullet 优先于段落、图自解释、少即是多；QR 码挂补充材料或在线资源。
 
 ### 4. Standard Poster Sizes
 
@@ -665,16 +315,7 @@ Support for international and conference-specific poster dimensions:
 
 ### 5. Package-Specific Templates
 
-Provide ready-to-use templates for each major package. Templates available in `assets/` directory.
-
-**beamerposter Templates**:
-- `beamerposter_template.tex` - Customizable beamerposter template
-
-**tikzposter Templates**:
-- `tikzposter_template.tex` - Customizable tikzposter template
-
-**baposter Templates**:
-- `baposter_template.tex` - Customizable baposter template
+三套开箱即用模板在 `assets/`：`beamerposter_template.tex`、`tikzposter_template.tex`、`baposter_template.tex`（完整清单与说明见文末 Templates 节）。
 
 ### 6. Figure and Image Integration
 
@@ -689,31 +330,16 @@ Optimize visual content for poster presentations:
 
 **LaTeX Figure Commands**:
 ```latex
-% Include graphics package
-\usepackage{graphicx}
+\usepackage{graphicx}   % 必备
+\includegraphics[width=0.8\linewidth]{figure.pdf}   % 简单图（宽 <1.0 留边）
 
-% Simple figure
-\includegraphics[width=0.8\linewidth]{figure.pdf}
-
-% Figure with caption in tikzposter
-\block{Results}{
+% tikzposter 中带 caption 的图
+\block{Results}{%
   \begin{tikzfigure}
     \includegraphics[width=0.9\linewidth]{results.png}
-  \end{tikzfigure}
-}
+  \end{tikzfigure}}
 
-% Multiple subfigures
-\usepackage{subcaption}
-\begin{figure}
-  \begin{subfigure}{0.48\linewidth}
-    \includegraphics[width=\linewidth]{fig1.pdf}
-    \caption{Condition A}
-  \end{subfigure}
-  \begin{subfigure}{0.48\linewidth}
-    \includegraphics[width=\linewidth]{fig2.pdf}
-    \caption{Condition B}
-  \end{subfigure}
-\end{figure}
+% 多子图用 subcaption 包：\begin{subfigure}{0.48\linewidth}...\end{subfigure} 两个并排
 ```
 
 ### 7. Color Schemes and Themes
@@ -729,224 +355,65 @@ Provide professional color palettes for various contexts:
 - ColorBrewer: Research-tested palettes for data visualization
 - IBM Color Blind Safe: Accessible corporate palette
 
-**Package-Specific Theme Selection**:
-
-**beamerposter**:
-```latex
-\usetheme{Berlin}
-\usecolortheme{beaver}
-```
-
-**tikzposter**:
-```latex
-\usetheme{Rays}
-\usecolorstyle{Denmark}
-```
-
-**baposter**:
-```latex
-\begin{poster}{
-  background=plain,
-  bgColorOne=white,
-  headerColorOne=blue!70,
-  textborder=rounded
-}
-```
+**Package-Specific Theme Selection**: beamerposter 用 `\usetheme{...}` + `\usecolortheme{...}`（如 Berlin / beaver）；tikzposter 用 `\usetheme{...}` + `\usecolorstyle{...}`（如 Rays / Denmark）；baposter 在 `\begin{poster}{...}` 里设 `background=plain, bgColorOne=white, headerColorOne=blue!70, textborder=rounded`。完整主题与配色对比见 `references/latex_poster_packages.md`。
 
 ### 8. Typography and Text Formatting
 
-Ensure readability and visual appeal:
+**Font Selection**: 海报推荐无衬线——`\usepackage{helvet}`（Helvetica）或 `avant`（Avant Garde），数学用 `sfmath`；`\renewcommand{\familydefault}{\sfdefault}` 设默认无衬线。
 
-**Font Selection**:
-```latex
-% Sans-serif fonts recommended for posters
-\usepackage{helvet}      % Helvetica
-\usepackage{avant}       % Avant Garde
-\usepackage{sfmath}      % Sans-serif math fonts
+**Text Sizing**（beamerposter）: `\setbeamerfont{title}{size=\VeryHuge}`、`\setbeamerfont{author}{size=\Large}`、`\setbeamerfont{institute}{size=\normalsize}`。
 
-% Set default to sans-serif
-\renewcommand{\familydefault}{\sfdefault}
-```
-
-**Text Sizing**:
-```latex
-% Adjust text sizes for visibility
-\setbeamerfont{title}{size=\VeryHuge}
-\setbeamerfont{author}{size=\Large}
-\setbeamerfont{institute}{size=\normalsize}
-```
-
-**Emphasis and Highlighting**:
-- Use bold for key terms: `\textbf{important}`
-- Color highlights sparingly: `\textcolor{blue}{highlight}`
-- Boxes for critical information
-- Avoid italics (harder to read from distance)
+**Emphasis and Highlighting**: 关键词 `\textbf{important}`、少量 `\textcolor{blue}{highlight}` 高亮、关键信息加框；避免斜体（远距离难读）。
 
 ### 9. QR Codes and Interactive Elements
 
-Enhance poster interactivity for modern conferences:
+**QR Code Integration**: `\usepackage{qrcode}` + `\qrcode[height=2cm]{https://github.com/username/project}`；带说明的样式用 `\begin{center}\qrcode[height=3cm]{https://doi.org/...}\\ \small Scan for full paper\end{center}`。
 
-**QR Code Integration**:
-```latex
-\usepackage{qrcode}
-
-% Link to paper, code repository, or supplementary materials
-\qrcode[height=2cm]{https://github.com/username/project}
-
-% QR code with caption
-\begin{center}
-  \qrcode[height=3cm]{https://doi.org/10.1234/paper}\\
-  \small Scan for full paper
-\end{center}
-```
-
-**Digital Enhancements**:
-- Link to GitHub repositories for code
-- Link to video presentations or demos
-- Link to interactive web visualizations
-- Link to supplementary data or appendices
+**Digital Enhancements**: 二维码/链接指向 GitHub 代码仓、视频演示、交互式可视化、补充数据或附录。
 
 ### 10. Compilation and Output
 
 Generate high-quality PDF output for printing or digital display:
 
-**Compilation Commands**:
-```bash
-# Basic compilation
-pdflatex poster.tex
-
-# With bibliography
-pdflatex poster.tex
-bibtex poster
-pdflatex poster.tex
-pdflatex poster.tex
-
-# For beamer-based posters
-lualatex poster.tex  # Better font support
-xelatex poster.tex   # Unicode and modern fonts
-```
+**Compilation Commands**: 基本编译 `pdflatex poster.tex`；带参考文献按 `pdflatex → bibtex poster → pdflatex → pdflatex` 四连跑；beamer 系海报可用 `lualatex poster.tex`（更好字体支持）或 `xelatex poster.tex`（Unicode 与现代字体）。
 
 **Ensuring Full Page Coverage**:
 
 Posters should use the entire page without excessive margins. Configure packages correctly:
 
-**beamerposter - Full Page Setup**:
-```latex
-\documentclass[final,t]{beamer}
-\usepackage[size=a0,scale=1.4,orientation=portrait]{beamerposter}
-
-% Remove default beamer margins
-\setbeamersize{text margin left=0mm, text margin right=0mm}
-
-% Use geometry for precise control
-\usepackage[margin=10mm]{geometry}  % 10mm margins all around
-
-% Remove navigation symbols
-\setbeamertemplate{navigation symbols}{}
-
-% Remove footline and headline if not needed
-\setbeamertemplate{footline}{}
-\setbeamertemplate{headline}{}
-```
-
-**tikzposter - Full Page Setup**:
-```latex
-\documentclass[
-  25pt,                      % Font scaling
-  a0paper,                   % Paper size
-  portrait,                  % Orientation
-  margin=10mm,               % Outer margins (minimal)
-  innermargin=15mm,          % Space inside blocks
-  blockverticalspace=15mm,   % Space between blocks
-  colspace=15mm,             % Space between columns
-  subcolspace=8mm            % Space between subcolumns
-]{tikzposter}
-
-% This ensures content fills the page
-```
-
-**baposter - Full Page Setup**:
-```latex
-\documentclass[a0paper,portrait,fontscale=0.285]{baposter}
-
-\begin{poster}{
-  grid=false,
-  columns=3,
-  colspacing=1.5em,          % Space between columns
-  eyecatcher=true,
-  background=plain,
-  bgColorOne=white,
-  borderColor=blue!50,
-  headerheight=0.12\textheight,  % 12% for header
-  textborder=roundedleft,
-  headerborder=closed,
-  boxheaderheight=2em        % Consistent box header heights
-}
-% Content here
-\end{poster}
-```
+**Full Page Setup（关键参数速查，完整可编译模板见 `assets/`）**:
+- **beamerposter**: `\documentclass[final,t]{beamer}` + `\usepackage[size=a0,scale=1.4,orientation=portrait]{beamerposter}`；`\setbeamersize{text margin left=0mm, text margin right=0mm}` 去默认边距，再用 `\usepackage[margin=10mm]{geometry}` 精确控边；清掉 navigation symbols / footline / headline。
+- **tikzposter**: `\documentclass[25pt,a0paper,portrait,margin=10mm,innermargin=15mm,blockverticalspace=15mm,colspace=15mm,subcolspace=8mm]{tikzposter}`。
+- **baposter**: `\documentclass[a0paper,portrait,fontscale=0.285]{baposter}` + `\begin{poster}{grid=false, columns=3, colspacing=1.5em, headerheight=0.12\textheight, boxheaderheight=2em, ...}`。
 
 **Common Issues and Fixes**:
+- **Large white margins**: 调小 margin——beamerposter `\setbeamersize{text margin left=5mm, text margin right=5mm}`；tikzposter `margin=5mm, innermargin=10mm`；baposter `\documentclass[a0paper, margin=5mm]{baposter}`。
+- **Content doesn't fill vertical space**: 段落间插 `\vfill`（`\block{Introduction}{...}` `\vfill` `\block{Methods}{...}`） distributing space；或对特定块手动 `\vspace{1cm}`。
+- **Poster extends beyond page boundaries**: 核对总宽（3 栏时 = 3×columnwidth + 2×colspace + 2×margins，应等于 \paperwidth）；调试可加可见页界：`\usepackage{eso-pic}` + `\AddToShipoutPictureBG{\AtPageLowerLeft{\put(0,0){\framebox(\LenToUnit{\paperwidth},\LenToUnit{\paperheight}){}}}}`。
 
-**Problem**: Large white margins around poster
-```latex
-% Fix for beamerposter
-\setbeamersize{text margin left=5mm, text margin right=5mm}
-
-% Fix for tikzposter
-\documentclass[..., margin=5mm, innermargin=10mm]{tikzposter}
-
-% Fix for baposter - adjust in document class
-\documentclass[a0paper, margin=5mm]{baposter}
-```
-
-**Problem**: Content doesn't fill vertical space
-```latex
-% Use \vfill between sections to distribute space
-\block{Introduction}{...}
-\vfill
-\block{Methods}{...}
-\vfill
-\block{Results}{...}
-
-% Or manually adjust block spacing
-\vspace{1cm}  % Add space between specific blocks
-```
-
-**Problem**: Poster extends beyond page boundaries
-```latex
-% Check total width calculation
-% For 3 columns with spacing:
-% Total = 3×columnwidth + 2×colspace + 2×margins
-% Ensure this equals \paperwidth
-
-% Debug by adding visible page boundary
-\usepackage{eso-pic}
-\AddToShipoutPictureBG{
-  \AtPageLowerLeft{
-    \put(0,0){\framebox(\LenToUnit{\paperwidth},\LenToUnit{\paperheight}){}}
-  }
-}
-```
-
-**Print Preparation**:
-- Generate PDF/X-1a for professional printing
-- Embed all fonts
-- Convert colors to CMYK if required
-- Check resolution of all images (minimum 300 DPI)
-- Add bleed area if required by printer (usually 3-5mm)
-- Verify page size matches requirements exactly
-
-**Digital Display**:
-- RGB color space for screen display
-- Optimize file size for email/web
-- Test readability on different screens
+**Print Preparation / Digital Display**: 按 Section 11 Step 9 的打印前清单执行（PDF/X-1a、字体全嵌入、CMYK/RGB 色彩空间、图片 ≥300 DPI、bleed 3-5mm、页面尺寸精确核对）；数字显示侧用 RGB、压缩文件体积并在多屏测试可读性。
 
 ### 11. PDF Review and Quality Control
 
 **CRITICAL**: Always review the generated PDF before printing or presenting. Use this systematic checklist:
 
-**Step 1: Page Size Verification**
+**质检分栏总览（先分清哪些能自动跑、哪些必须人看——不要把不可执行项伪装成已检查）：**
+
+| 类别 | 步骤 | 工具 / 方法 |
+|------|------|-------------|
+| ✅ 可自动化 | Step 1 页面尺寸 | `pdfinfo poster.pdf` |
+| ✅ 可自动化 | Step 2a 溢出警告 | `grep -i "overfull\|underfull\|badbox" poster.log` |
+| ✅ 可自动化 | Step 5 字体嵌入 / 图片分辨率 | `pdffonts poster.pdf` / `pdfimages -list poster.pdf` |
+| ✅ 可自动化 | Step 8 编译日志复查 | `grep -i "warning\|error" poster.log` |
+| ✅ 可自动化 | 一键汇总 | `bash scripts/review_poster.sh poster.pdf` |
+| 👤 须人工 | Step 2b 四边视觉检查 | PDF 100% zoom 逐边核对 |
+| 👤 须人工 | Step 3 视觉检查清单 | 逐项打勾（排版/字号/图质量/内容完整） |
+| 👤 须人工 | Step 4 缩尺打印测试 | A4 试印（≈25%），距 2-3 英尺读 |
+| 👤 须人工 | Step 6 可访问性 | 对比度/色盲模拟工具 + 人眼复核 |
+| 👤 须人工 | Step 7 校对与同事评审 | 拼写/数字核对、30 秒测试、5 分钟评审 |
+| 👤 须人工 | Step 9 打印前确认 | 与印刷厂核对规格、试印签样 |
+
+**Step 1: Page Size Verification（✅ 可自动化）**
 ```bash
 # Check PDF dimensions (should match poster size exactly)
 pdfinfo poster.pdf | grep "Page size"
@@ -957,7 +424,7 @@ pdfinfo poster.pdf | grep "Page size"
 # A1: 1684 x 2384 points (594 x 841 mm)
 ```
 
-**Step 2: OVERFLOW CHECK (CRITICAL) - DO THIS IMMEDIATELY AFTER COMPILATION**
+**Step 2: OVERFLOW CHECK (CRITICAL) - DO THIS IMMEDIATELY AFTER COMPILATION（2a 可自动化 / 2b 须人工）**
 
 **⚠️ THIS IS THE #1 CAUSE OF POSTER FAILURES. Check BEFORE proceeding.**
 
@@ -1011,31 +478,15 @@ grep -i "overfull\|underfull\|badbox" poster.log
 **If ANY check fails, you have overflow. FIX IMMEDIATELY before continuing:**
 
 **Fix hierarchy (try in order):**
-1. **Check AI-generated graphics first:**
-   - Are they too complex (5+ elements)? → Regenerate simpler
-   - Do they have tiny text? → Regenerate with "150pt+" fonts
-   - Are there too many? → Reduce number of figures
-
-2. **Reduce sections:**
-   - More than 5-6 sections? → Combine or remove
-   - Example: Merge "Discussion" into "Conclusions"
-
-3. **Cut text content:**
-   - More than 800 words total? → Cut to 300-500
-   - More than 100 words per section? → Cut to 50-80
-
-4. **Adjust figure sizing:**
-   - Using `width=\linewidth`? → Change to `width=0.85\linewidth`
-   - Using `width=1.0\columnwidth`? → Change to `width=0.9\columnwidth`
-
-5. **Increase margins (last resort):**
-   ```latex
-   \documentclass[25pt, a0paper, portrait, margin=25mm]{tikzposter}
-   ```
+1. **Check AI-generated graphics first**: 太复杂（5+ 元素）→ Regenerate simpler；字太小 → Regenerate with "150pt+" fonts；图太多 → Reduce number of figures。
+2. **Reduce sections**: 超过 5-6 个 → Combine or remove（如把 Discussion 并入 Conclusions）。
+3. **Cut text content**: 全文超 800 words → 砍到 300-500；单节超 100 words → 砍到 50-80。
+4. **Adjust figure sizing**: `width=\linewidth` → `0.85\linewidth`；`width=1.0\columnwidth` → `0.9\columnwidth`。
+5. **Increase margins (last resort)**: `\documentclass[25pt, a0paper, portrait, margin=25mm]{tikzposter}`。
 
 **DO NOT proceed to Step 3 if ANY overflow exists.**
 
-**Step 3: Visual Inspection Checklist**
+**Step 3: Visual Inspection Checklist（👤 须人工）**
 
 Open PDF at 100% zoom and check:
 
@@ -1047,10 +498,8 @@ Open PDF at 100% zoom and check:
 - [ ] No overlapping text or figures
 - [ ] White space evenly distributed
 
-**Typography**:
-- [ ] Title clearly visible and large (72pt+)
-- [ ] Section headers readable (48-72pt)
-- [ ] Body text readable at 100% zoom (24-36pt minimum)
+**Typography**（口径同 Core Capabilities §8）:
+- [ ] Title clearly visible and large (72pt+)；headers 48-72pt；body 24-36pt minimum
 - [ ] No text cutoff or running off edges
 - [ ] Consistent font usage throughout
 - [ ] All special characters render correctly (symbols, Greek letters)
@@ -1063,21 +512,9 @@ Open PDF at 100% zoom and check:
 - [ ] Logos display clearly
 - [ ] QR codes visible and scannable
 
-**Content Completeness**:
-- [ ] Title and authors complete
-- [ ] All sections present (Intro, Methods, Results, Conclusions)
-- [ ] References included
-- [ ] Contact information visible
-- [ ] Acknowledgments (if applicable)
-- [ ] No placeholder text remaining (Lorem ipsum, TODO, etc.)
+**Content Completeness / Technical Quality**: 并入下两步执行，不重复设清单——内容完整性（标题作者齐全、Intro/Methods/Results/Conclusions 章节俱在、参考文献、联系方式、致谢、无 Lorem ipsum/TODO 占位残留）随 Step 7 校对核对；技术质量（无关键区编译警告、引用无 [?]、交叉引用可用、页界无裁切）随 Step 8 日志复查核对。
 
-**Technical Quality**:
-- [ ] No LaTeX compilation warnings in important areas
-- [ ] All citations resolved (no [?] marks)
-- [ ] All cross-references working
-- [ ] Page boundaries correct (no content cut off)
-
-**Step 4: Reduced-Scale Print Test**
+**Step 4: Reduced-Scale Print Test（👤 须人工）**
 
 **Essential Pre-Printing Test**:
 ```bash
@@ -1096,7 +533,7 @@ Open PDF at 100% zoom and check:
 - [ ] Colors printed accurately
 - [ ] No obvious design flaws
 
-**Step 5: Digital Quality Checks**
+**Step 5: Digital Quality Checks（✅ 可自动化）**
 
 **Font Embedding Verification**:
 ```bash
@@ -1128,7 +565,7 @@ gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 \
 # For printing, keep original (no compression)
 ```
 
-**Step 6: Accessibility Check**
+**Step 6: Accessibility Check（👤 须人工，工具辅助）**
 
 **Color Contrast Verification**:
 - [ ] Text-background contrast ratio ≥ 4.5:1 (WCAG AA)
@@ -1140,7 +577,7 @@ gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 \
 - [ ] Information not lost with red-green simulation
 - [ ] Use Coblis (color-blindness.com) or similar tool
 
-**Step 7: Content Proofreading**
+**Step 7: Content Proofreading（👤 须人工）**
 
 **Systematic Review**:
 - [ ] Spell-check all text
@@ -1156,7 +593,7 @@ gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 \
 - [ ] 5-minute review: Do they understand conclusions?
 - [ ] Note any confusing elements
 
-**Step 8: Technical Validation**
+**Step 8: Technical Validation（✅ 可自动化）**
 
 **LaTeX Compilation Log Review**:
 ```bash
@@ -1185,7 +622,7 @@ grep -i "warning\|error\|overfull\|underfull" poster.log
 \graphicspath{{./figures/}{./images/}}
 ```
 
-**Step 9: Final Pre-Print Checklist**
+**Step 9: Final Pre-Print Checklist（👤 须人工为主）**
 
 **Before Sending to Printer**:
 - [ ] PDF size exactly matches requirements (check with pdfinfo)
@@ -1211,49 +648,7 @@ grep -i "warning\|error\|overfull\|underfull" poster.log
 - [ ] QR codes tested and functional
 - [ ] Alternative formats prepared (PNG for social media)
 
-**Review Script** (Available in `scripts/review_poster.sh`):
-```bash
-#!/bin/bash
-# Automated poster PDF review script
-
-echo "Poster PDF Quality Check"
-echo "======================="
-
-# Check file exists
-if [ ! -f "$1" ]; then
-    echo "Error: File not found"
-    exit 1
-fi
-
-echo "File: $1"
-echo ""
-
-# Check page size
-echo "1. Page Dimensions:"
-pdfinfo "$1" | grep "Page size"
-echo ""
-
-# Check fonts
-echo "2. Font Embedding:"
-pdffonts "$1" | head -20
-echo ""
-
-# Check file size
-echo "3. File Size:"
-ls -lh "$1" | awk '{print $5}'
-echo ""
-
-# Count pages (should be 1 for poster)
-echo "4. Page Count:"
-pdfinfo "$1" | grep "Pages"
-echo ""
-
-echo "Manual checks required:"
-echo "- Visual inspection at 100% zoom"
-echo "- Reduced-scale print test (25%)"
-echo "- Color contrast verification"
-echo "- Proofreading for typos"
-```
+**Review Script**: 自动化项直接跑 `bash scripts/review_poster.sh poster.pdf`（脚本检查页面尺寸、字体嵌入、文件大小、页数，并提示须人工的视觉检查/缩尺试印/对比度/校对项）；脚本缺失时按上方分栏表逐项手动执行。
 
 **Common PDF Issues and Solutions**:
 
@@ -1303,25 +698,11 @@ Effective content organization for different research types:
 
 ### 12. Accessibility and Inclusive Design
 
-Design posters that are accessible to diverse audiences:
+**Color Blindness Considerations**: 避开红绿组合（最常见色盲类型）、在颜色外加形状/纹理区分、用色盲模拟器复核（工具与流程见 Section 11 Step 6）；对比度按 WCAG AA ≥4.5:1。
 
-**Color Blindness Considerations**:
-- Avoid red-green combinations (most common color blindness)
-- Use patterns or shapes in addition to color
-- Test with color-blindness simulators
-- Provide high contrast (WCAG AA standard: 4.5:1 minimum)
+**Visual Impairment Accommodations**: 大字号（正文 ≥24pt）、高对比文字/背景、清晰视觉层级、背景避免复杂纹理图案。
 
-**Visual Impairment Accommodations**:
-- Large, clear fonts (minimum 24pt body text)
-- High contrast text and background
-- Clear visual hierarchy
-- Avoid complex textures or patterns in backgrounds
-
-**Language and Content**:
-- Clear, concise language
-- Define acronyms and jargon
-- International audience considerations
-- Consider multilingual QR code options for global conferences
+**Language and Content**: 语言简明、缩写与术语先定义、考虑国际听众、全球会议可提供多语言 QR 码选项。
 
 ### 13. Poster Presentation Best Practices
 
@@ -1349,168 +730,66 @@ Guidance beyond LaTeX for effective poster sessions:
 
 ### Stage 1: Planning and Content Development
 
-1. **Determine poster requirements**:
-   - Conference size specifications (A0, 36×48", etc.)
-   - Orientation (portrait vs. landscape)
-   - Submission deadlines and format requirements
+1. **Determine poster requirements**: 会议尺寸规格（A0、36×48" 等）、横竖方向、投稿截止与格式要求。
+2. **Develop content outline**: 提炼 1-3 个核心信息；选 3-6 张主视觉；逐节拟 bullet 短文；全文 300-800 words。
 
-2. **Develop content outline**:
-   - Identify 1-3 core messages
-   - Select key figures (typically 3-6 main visuals)
-   - Draft concise text for each section (bullet points preferred)
-   - Aim for 300-800 words total
-
-3. **Choose LaTeX package**:
-   - beamerposter: If familiar with Beamer, need institutional themes
-   - tikzposter: For modern, colorful designs with flexibility
-   - baposter: For structured, professional multi-column layouts
+3. **Choose LaTeX package**: 按「Core Capabilities §1 LaTeX Poster Packages」的对比选型——beamerposter（Beamer 熟手/机构主题）、tikzposter（现代灵活/自定义图形）、baposter（结构化多栏）；详见 `references/latex_poster_packages.md`。
 
 ### Stage 2: Generate Visual Elements (AI-Powered)
 
-**CRITICAL: Generate SIMPLE figures with MINIMAL content. Each graphic = ONE message.**
-
-**Content limits:**
-- Maximum 4-5 elements per graphic
-- Maximum 15 words total per graphic
-- 50% white space minimum
-- GIANT fonts (80pt+ for labels, 120pt+ for key numbers)
+**CRITICAL: Generate SIMPLE figures with MINIMAL content. Each graphic = ONE message.** 上限/字号/留白/prompt 模板一律按「AI-Powered Visual Element Generation」的 MANDATORY requirements 与 Content limits 表执行（3-4 elements / ≤10 words / ≥50% white space / GIANT fonts），不另立口径。
 
 1. **Create figures directory**:
    ```bash
    mkdir -p figures
    ```
 
-2. **Generate SIMPLE visual elements**:
-   ```bash
-   # Introduction - ONLY 3 icons/elements
-   python scripts/generate_schematic.py "POSTER FORMAT for A0. SIMPLE visual with ONLY 3 elements: [icon1] [icon2] [icon3]. ONE word labels (80pt+). 50% white space. Readable from 8 feet." -o figures/intro.png
-   
-   # Methods - ONLY 4 steps maximum
-   python scripts/generate_schematic.py "POSTER FORMAT for A0. SIMPLE flowchart with ONLY 4 boxes: STEP1 → STEP2 → STEP3 → STEP4. GIANT labels (100pt+). 50% white space. NO sub-steps." -o figures/methods.png
-   
-   # Results - ONLY 3 bars/comparisons
-   python scripts/generate_schematic.py "POSTER FORMAT for A0. SIMPLE chart with ONLY 3 bars. GIANT percentages ON bars (120pt+). NO axis, NO legend. 50% white space." -o figures/results.png
-   
-   # Conclusions - EXACTLY 3 items with GIANT numbers
-   python scripts/generate_schematic.py "POSTER FORMAT for A0. EXACTLY 3 key findings: '[NUMBER]' (150pt) '[LABEL]' (60pt) for each. 50% white space. NO other text." -o figures/conclusions.png
-   ```
+2. **Generate SIMPLE visual elements**: 按上方 Step 2 的工具分类与 prompt 模式逐元素生成——Introduction 3 icons、Methods ≤4 boxes、Results ≤3 bars、Conclusions 3 cards（prompt 必含 "POSTER FORMAT for A0"、元素数、GIANT 字号、留白比例、观看距离）。
 
-3. **Review generated figures - check for overflow:**
-   - **View at 25% zoom**: All text still readable?
-   - **Count elements**: More than 5? → Regenerate simpler
-   - **Check white space**: Less than 40%? → Add "60% white space" to prompt
-   - **Font too small?**: Add "EVEN LARGER" or increase pt sizes
-   - **Still overflowing?**: Reduce to 3 elements instead of 4-5
+3. **Review generated figures**: 按上方 Step 2b 逐图审查（25% zoom 可读、元素数、留白、字号）。任一图不过 → 按修复口径重新生成后再进入 Stage 3，不要带病组装。
 
 ### Stage 3: Design and Layout
 
-1. **Select or create template**:
-   - Start with provided templates in `assets/`
-   - Customize color scheme to match branding
-   - Configure page size and orientation
-
-2. **Design layout structure**:
-   - Plan column structure (2, 3, or 4 columns)
-   - Map content flow (typically left-to-right, top-to-bottom)
-   - Allocate space for title (10-15%), content (70-80%), footer (5-10%)
-
-3. **Set typography**:
-   - Configure font sizes for different hierarchy levels
-   - Ensure minimum 24pt body text
-   - Test readability from 4-6 feet distance
+1. **Select or create template**: 从 `assets/` 模板起步，按机构品牌调色，配置页面尺寸与方向。
+2. **Design layout structure**: 规划 2-4 栏、内容流向（一般左→右、上→下）；空间配比 title 10-15% / content 70-80% / footer 5-10%。
+3. **Set typography**: 按字号层级配置（Title 72pt+ / headers 48-72pt / body ≥24pt，口径同 Core Capabilities §3 与 Section 11 Step 3），保证 4-6 英尺距离可读。
 
 ### Stage 4: Content Integration
 
-1. **Create poster header**:
-   - Title (concise, descriptive, 10-15 words)
-   - Authors and affiliations
-   - Institution logos (high-resolution)
-   - Conference logo if required
-
-2. **Integrate AI-generated figures**:
-   - Add all figures from Stage 2 to appropriate sections
-   - Use `\includegraphics` with proper sizing
-   - Ensure figures dominate each section (visuals first, text second)
-   - Center figures within blocks for visual impact
-
-3. **Add minimal supporting text**:
-   - Keep text minimal and scannable (300-800 words total)
-   - Use bullet points, not paragraphs
-   - Write in active voice
-   - Text should complement figures, not duplicate them
-
-4. **Add supplementary elements**:
-   - QR codes for supplementary materials
-   - References (cite key papers only, 5-10 typical)
-   - Contact information and acknowledgments
+1. **Create poster header**: 标题（10-15 词）、作者与机构、高清机构 logo、会议 logo（如需）。
+2. **Integrate AI-generated figures**: Stage 2 产出逐一对位入栏；`\includegraphics` 控宽（<1.0\linewidth）；图主导版面（先图后文）、栏内居中。
+3. **Add minimal supporting text**: 全文 300-800 words、bullet 优先、主动语态；文字补充图，不重复图。
+4. **Add supplementary elements**: QR 码（补充材料）、精选参考文献（5-10 条）、联系方式与致谢。
 
 ### Stage 5: Refinement and Testing
 
-1. **Review and iterate**:
-   - Check for typos and errors
-   - Verify all figures are high resolution
-   - Ensure consistent formatting
-   - Confirm color scheme works well together
-
-2. **Test readability**:
-   - Print at 25% scale and read from 2-3 feet (simulates poster from 8-12 feet)
-   - Check color on different monitors
-   - Verify QR codes function correctly
-   - Ask colleague to review
-
-3. **Optimize for printing**:
-   - Embed all fonts in PDF
-   - Verify image resolution
-   - Check PDF size requirements
-   - Include bleed area if required
+1. **Review and iterate**: 查错别字与错误、确认图片分辨率、格式与配色一致。
+2. **Test readability**: 按 Section 11 Step 4 做缩尺试印（25%），按 Step 7 做同事评审与 30 秒测试；不同显示器核对颜色，验证二维码可用。
+3. **Optimize for printing**: 按 Section 11 Step 9 打印前清单执行（字体嵌入、图片分辨率、PDF 尺寸、bleed）。
 
 ### Stage 6: Compilation and Delivery
 
-1. **Compile final PDF**:
-   ```bash
-   pdflatex poster.tex
-   # Or for better font support:
-   lualatex poster.tex
-   ```
+1. **Compile final PDF**: `pdflatex poster.tex`（编译命令与参考文献连跑口径见 Core Capabilities §10 Compilation Commands）。
 
-2. **Verify output quality**:
-   - Check all elements are visible and correctly positioned
-   - Zoom to 100% and inspect figure quality
-   - Verify colors match expectations
-   - Confirm PDF opens correctly on different viewers
+2. **Verify output quality**: 按 Section 11 执行——100% zoom 查四边溢出、检查元素位置与 figure 质量、核对颜色、多查看器打开确认。
 
-3. **Prepare for printing**:
-   - Export as PDF/X-1a if required
-   - Save backup copies
-   - Get test print on regular paper first
-   - Order professional printing 2-3 days before deadline
-
-4. **Create supplementary materials**:
-   - Save PNG/JPG version for social media
-   - Create handout version (8.5×11" summary)
-   - Prepare digital version for email sharing
+3. **Prepare for printing**: 按 Section 11 Step 9 打印前清单执行（PDF/X-1a、备份）；普通纸试印先行，提前 2-3 天下单专业打印。
+4. **Create supplementary materials**: PNG/JPG 社媒版、8.5×11" 讲义版、邮件分享数字版（对应 Step 9 Digital Presentation Checklist）。
 
 ## Integration with Other Skills
 
 This skill works effectively with:
 - **Scientific Schematics**: CRITICAL - Use for generating all poster diagrams and flowcharts
 - **Generate Image / Nano Banana Pro**: For stylized graphics, conceptual illustrations, and summary visuals
-- **Scientific Writing**: For developing poster content from papers
-- **Literature Review**: For contextualizing research
-- **Data Analysis**: For creating result figures and charts
+- **Scientific Writing / Literature Review / Data Analysis**: 分别用于从论文发展海报内容、研究语境梳理、结果图表制作
 
 **Recommended workflow**: Always use scientific-schematics and generate-image skills BEFORE creating the LaTeX poster to generate all visual elements.
 
+**上游 API 依赖替代（本仓环境）**：scientific-schematics / Generate Image / Nano Banana Pro 是上游宿主的技能与工具名；在本仓运行时没有这些现成入口，以当前 Agent 的联网检索 / 网页抓取 / 图像生成能力替代，或直接用本技能自带的 `scripts/generate_schematic.py` 本地生成示意图（适配说明见 `references/UPSTREAM.md`）。不要因为找不到名为 "Nano Banana Pro" 的工具而中断流程。
+
 ## Common Pitfalls to Avoid
 
-**AI-Generated Graphics Mistakes (MOST COMMON):**
-- ❌ Too many elements in one graphic (10+ items) → Keep to 3-5 max
-- ❌ Text too small in AI graphics → Specify "GIANT (100pt+)" or "HUGE (150pt+)"
-- ❌ Too much detail in prompts → Use "SIMPLE" and "ONLY X elements"
-- ❌ No white space specification → Add "50% white space" to every prompt
-- ❌ Complex flowcharts with 8+ steps → Limit to 4-5 steps maximum
-- ❌ Comparison charts with 6+ items → Limit to 3 items maximum
-- ❌ Key findings with 5+ metrics → Show only top 3
+**AI-Generated Graphics Mistakes (MOST COMMON):** 元素超限 / 字太小 / 留白不足 / 复杂流程不拆分——一律按「AI-Powered Visual Element Generation」的 MANDATORY requirements、Step 0 失败模式与 Step 2b FAIL 口径拦截修复，此处不重复。
 
 **Fixing Overflow in AI Graphics:**
 If your AI-generated graphics are overflowing or have small text:
@@ -1542,57 +821,24 @@ If your AI-generated graphics are overflowing or have small text:
 - ❌ File size too large for submission portal
 - ❌ QR codes too small or not tested
 
-**Best Practices**:
-- ✅ Generate SIMPLE AI graphics with 3-5 elements max
-- ✅ Use GIANT fonts (100pt+) for key numbers in graphics
-- ✅ Specify "50% white space" in every AI prompt
-- ✅ Follow conference size specifications exactly
-- ✅ Test print at reduced scale before final printing
-- ✅ Use high-contrast, accessible color schemes
-- ✅ Keep text minimal and highly scannable
-- ✅ Include clear contact information and QR codes
-- ✅ Proofread carefully (errors are magnified on posters!)
+**Best Practices**: AI 图形按权威规范生成（3-4 elements / ≤10 words / GIANT fonts / ≥50% white space）；尺寸严格对齐会议要求、缩尺试印、高对比配色、正文极简可扫读、联系信息与二维码齐备、付印前逐字校对（错误在海报上会被放大）。
 
 ## Package Installation
 
-Ensure required LaTeX packages are installed:
-
-```bash
-# For TeX Live (Linux/Mac)
-tlmgr install beamerposter tikzposter baposter
-
-# For MiKTeX (Windows)
-# Packages typically auto-install on first use
-
-# Additional recommended packages
-tlmgr install qrcode graphics xcolor tcolorbox subcaption
-```
+TeX Live（Linux/Mac）：`tlmgr install beamerposter tikzposter baposter`，推荐附加包 `tlmgr install qrcode graphics xcolor tcolorbox subcaption`；MiKTeX（Windows）通常首次使用自动安装。
 
 ## Scripts and Automation
 
-Helper scripts available in `scripts/` directory:
-
-- `review_poster.sh`: Poster review and validation
-- `generate_schematic.py`: Generate scientific diagrams and schematics
+`scripts/` 下：`review_poster.sh`（海报 PDF 质检）、`generate_schematic.py`（科研示意图生成）、`generate_schematic_ai.py`（AI 生图入口）。
 
 ## References
 
-Comprehensive reference files for detailed guidance:
-
-- `references/latex_poster_packages.md`: Detailed comparison of beamerposter, tikzposter, and baposter with examples
-- `references/poster_layout_design.md`: Layout principles, grid systems, and visual flow
-- `references/poster_design_principles.md`: Typography, color theory, visual hierarchy, and accessibility
-- `references/poster_content_guide.md`: Content organization, writing style, and section-specific guidance
+- `references/latex_poster_packages.md`：beamerposter / tikzposter / baposter 详细对比与示例
+- `references/poster_layout_design.md`：布局原则、网格系统、视觉流
+- `references/poster_design_principles.md`：排版、色彩理论、视觉层级与无障碍
+- `references/poster_content_guide.md`：内容组织、写作风格、分节指引
 
 ## Templates
 
-Ready-to-use poster templates in `assets/` directory:
-
-- beamerposter templates (classic, modern, colorful)
-- tikzposter templates (default, rays, wave, envelope)
-- baposter templates (portrait, landscape, minimal)
-- Example posters from various scientific disciplines
-- Color scheme definitions and institutional templates
-
-Load these templates and customize for your specific research and conference requirements.
+`assets/` 下备有各包模板（beamerposter classic/modern/colorful、tikzposter default/rays/wave/envelope、baposter portrait/landscape/minimal）、多学科示例海报与机构配色定义；载入后按具体研究与会议要求定制。
 

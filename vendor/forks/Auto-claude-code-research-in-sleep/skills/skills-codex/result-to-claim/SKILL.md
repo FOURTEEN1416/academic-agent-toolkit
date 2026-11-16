@@ -2,14 +2,25 @@
 name: result-to-claim
 description: Use when experiments complete to judge what claims the results support, what they don't, and what evidence is still missing. A secondary Codex agent evaluates results against intended claims and routes to next action (pivot, supplement, or confirm). Use after experiments finish — before writing the paper or running ablations.
 argument-hint: "[experiment-description-or-wandb-run]"
-allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit
+allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, mcp__antigravity__antigravity, mcp__antigravity__antigravity-reply, mcp__grok__grok, mcp__grok__grok-reply, mcp__claude-review__review, mcp__claude-review__review_reply, mcp__claude-review__review_start, mcp__claude-review__review_reply_start, mcp__claude-review__review_status
 ---
 
 # Result-to-Claim Gate
 
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
+
 > **Codex assurance:** deterministic evidence existence can be accepted, while
 > the base semantic claim judgment records `review_independence: same-family`
-> and `acceptance_status: provisional`. Cross-family overlays may record
+> and `acceptance_status: provisional`. Completed positive reviews with known different model families may record
 > accepted; reviewer failure emits BLOCKED.
 
 Experiments produce numbers; this gate decides what those numbers *mean*. Collect results from available sources, get a secondary Codex judgment, then auto-route based on the verdict.
@@ -64,17 +75,20 @@ fi
 Treat `path_missing` and `value_not_found` as unsupported evidence before the
 semantic review. `verified` means only that the cited value exists; it does not
 prove the claim. Pass the pre-check JSON path to the fresh reviewer. The Codex
-reviewer's positive result remains `review_independence: same-family` and
-`acceptance_status: provisional`; a deterministic evidence check never upgrades
+reviewer's positive result is classified from actual identities; a same-family
+result remains `review_independence: same-family` and
+`acceptance_status: provisional`. A deterministic evidence check never upgrades
 a semantic claim to accepted by itself.
 
 ### Step 2: Codex Judgment
 
 Send the collected results to a secondary Codex agent for objective evaluation:
 
+> Resolve this reviewer slot first; the following is the `backend=codex` example.
+
 ```text
 spawn_agent:
-  model: gpt-5.6-sol
+  model: gpt-6-astra
   reasoning_effort: ultra
   message: |
     RESULT-TO-CLAIM EVALUATION
@@ -231,8 +245,9 @@ if research-wiki/ exists:
 - A single positive result on one dataset does not support a general claim. Be honest about scope.
 - If `confidence` is low, treat the judgment as inconclusive and add experiments rather than committing to a claim.
 - **Fail closed if the reviewer is unavailable.** Follow the capability fallback
-  in `reviewer-routing.md` (`gpt-5.6-sol` + `ultra` → `gpt-5.6-sol` + `xhigh`
-  → `gpt-5.5` + `xhigh`), and never downgrade on timeout, rate-limit, auth,
+  in `reviewer-routing.md` (`gpt-6-astra` + `ultra` → `gpt-6-astra` + `xhigh`,
+  then the model capability fallbacks with `gpt-6.1-sol` + `xhigh` first), and
+  never downgrade on timeout, rate-limit, auth,
   transport, server, or context errors. If no allowed pair succeeds, write a
   traced `BLOCKED` review record with the unavailable route and evidence paths, write
   `CLAIMS_FROM_RESULTS.md` containing only `verdict: REVIEW_UNAVAILABLE`, record

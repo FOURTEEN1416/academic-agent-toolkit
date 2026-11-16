@@ -1,3 +1,4 @@
+import { sessionReceipts } from "./session-receipts"
 import {
   batch,
   createComputed,
@@ -19,10 +20,14 @@ import { FileProvider } from "@/context/file"
 import { PromptProvider } from "@/context/prompt"
 
 import { DataProvider } from "@synsci/ui/context"
+import { SubagentAllowance } from "@/components/session/subagent-allowance"
+import { useDialog } from "@synsci/ui/context/dialog"
+import { DialogSettings } from "@/components/dialog-settings"
 import { MarkdownImages } from "@synsci/ui/markdown"
 import { iife } from "@synsci/util/iife"
 import type { QuestionAnswer } from "@synsci/sdk/v2"
 import { showToast } from "@synsci/ui/toast"
+import { LoadingScreen } from "@synsci/ui/atom-loader"
 import { useLanguage } from "@/context/language"
 import { uiStore } from "@/atlas/store/ui"
 import { artifactContext } from "@/artifacts/context"
@@ -31,10 +36,9 @@ import { ProjectWorkspaceFrame } from "@/atlas/ProjectWorkspaceFrame"
 import { useGlobalSync } from "@/context/global-sync"
 import { useLayout } from "@/context/layout"
 import { decode64, setCurrentDirectory } from "@/utils/base64"
-import { assetUrl, workspaceAssetPath } from "@/utils/markdown-assets"
+import { assetUrl, chatFilePath, workspaceReceiptPath } from "@/utils/markdown-assets"
 import { rawFileQuery } from "@/utils/project-file"
 import { projectPrefs } from "@/atlas/store/projectPrefs"
-import { AsciiSpinner } from "@/atlas/shared/AsciiSpinner"
 import { missingProject, ProjectUnavailable } from "./project-availability"
 import {
   looksLikeProjectSegment,
@@ -85,6 +89,9 @@ export default function Layout(props: ParentProps) {
     return resolveProjectRoute(params.dir, [current.project])
   })
   const active = createMemo(() => route() ?? recovered() ?? recoveredLegacy())
+  // A route that resolves against the catalog (seeded from the persisted
+  // cache) renders straight away; this round trip only demotes it to the
+  // recovery surface once the server confirms the folder is gone.
   const availabilityID = createMemo(() => route()?.projectID)
   const [availability] = createResource(availabilityID, async (projectID) => ({
     projectID,
@@ -98,11 +105,6 @@ export default function Layout(props: ParentProps) {
     const result = availability.latest
     if (!current || result?.projectID !== current.projectID || !result.missing) return
     return { directory: result.missing.directory ?? current.directory }
-  })
-  const available = createMemo(() => {
-    const current = route()
-    if (!current) return true
-    return availability.latest?.projectID === current.projectID
   })
   // A legacy base64 route carries only a directory. Resolve its opaque project
   // capability before mounting project-scoped providers; otherwise children
@@ -123,7 +125,7 @@ export default function Layout(props: ParentProps) {
 
   createEffect(() => {
     const value = directory()
-    if (!value || !available() || unavailable()) return
+    if (!value || unavailable()) return
     const clear = setCurrentDirectory(value, projectID())
     onCleanup(clear)
   })
@@ -134,12 +136,31 @@ export default function Layout(props: ParentProps) {
     navigate(`${projectPathname(current.segment, params.id)}${location.search}${location.hash}`, { replace: true })
   })
 
+  // A cold load names a project the catalog has not delivered yet. The wait is
+  // held on the lookups that can still name it (the bootstrap, then the alias
+  // or legacy-directory round trip), never on their result: each one settles
+  // when it fails too, so a foreign or deleted project falls through to the
+  // redirect below instead of leaving the loader up.
+  const resolving = createMemo(() => {
+    if (!params.dir || directory()) return false
+    if (!global.ready) return true
+    if (aliasID() && (alias.loading || alias.state === "unresolved")) return true
+    return Boolean(legacy()) && (legacyProject.loading || legacyProject.state === "unresolved")
+  })
+  // SyncProvider mounts nothing until the project's store leaves "loading",
+  // which a failed bootstrap does as well ("partial"). Read without starting
+  // that bootstrap: opening the project stays SyncProvider's call.
+  const loading = createMemo(() => {
+    const value = directory()
+    if (!value) return false
+    return global.child(value, { bootstrap: false, projectID: projectID() })[0].status === "loading"
+  })
+  // The recovery surface never mounts SyncProvider, so its store never loads.
+  const opening = createMemo(() => !unavailable() && (resolving() || loading()))
+
   createEffect(() => {
     if (!params.dir) return
-    if (directory()) return
-    if (!global.ready) return
-    if (aliasID() && (alias.loading || alias.state === "unresolved")) return
-    if (legacy() && (legacyProject.loading || legacyProject.state === "unresolved")) return
+    if (directory() || resolving()) return
     showToast({
       variant: "error",
       title: language.t("common.requestFailed"),
@@ -159,29 +180,18 @@ export default function Layout(props: ParentProps) {
     home()
   }
 
-  return (
+  const project = (
     <Show
       when={unavailable()}
       fallback={
-        <Show
-          when={available() && directory()}
-          fallback={
-            <Show when={directory()}>
-              <div
-                class="project-availability__loading"
-                role="status"
-                aria-label="Checking project folder availability"
-              >
-                <AsciiSpinner label="checking folder…" color="var(--color-text-faint)" />
-              </div>
-            </Show>
-          }
-        >
+        <Show when={directory()}>
           <SDKProvider directory={directory()} projectID={projectID()} scope={scope()}>
             <SyncProvider>
               {iife(() => {
                 const sync = useSync()
                 const sdk = useSDK()
+                const dialog = useDialog()
+                const receipts = sessionReceipts(sdk.request)
 
                 const respond = (input: {
                   sessionID: string
@@ -287,7 +297,31 @@ export default function Layout(props: ParentProps) {
                         }),
                       ),
                   })
-                const file = (href: string) => workspaceAssetPath(href, directory())
+                const file = (href: string) => chatFilePath(href, directory(), globalThis.location?.origin)
+                // The turn's own words go back through the composer, which owns
+                // model, effort and delegation choices, so the resend is an
+                // ordinary new request. Attachments do not travel: those turns
+                // are put back for the user to re-attach and send.
+                const resendTurn = (input: { sessionID: string; messageID: string }) => {
+                  const parts = sync.data.part[input.messageID] ?? []
+                  const text = parts
+                    .filter((part) => part.type === "text" && !part.synthetic)
+                    .map((part) => (part.type === "text" ? part.text : ""))
+                    .join("\n")
+                    .trim()
+                  if (!text) {
+                    showToast({
+                      title: "Nothing to send again",
+                      description: "This turn has no message text to resend.",
+                    })
+                    return
+                  }
+                  const attachments = parts.some((part) => part.type === "file")
+                  uiStore.setPrefill(text, !attachments)
+                  if (attachments) {
+                    showToast({ title: "Message restored", description: "Re-attach the files, then send." })
+                  }
+                }
 
                 return (
                   <DataProvider
@@ -299,9 +333,21 @@ export default function Layout(props: ParentProps) {
                     onNavigateToSession={navigateToSession}
                     onOpenFile={openFile}
                     onOpenArtifact={openArtifact}
+                    onLoadComputeJob={receipts.job}
+                    onResolveFileReceipts={receipts.files}
                     onSaveArtifact={saveArtifact}
+                    onOpenCredentials={() => dialog.show(() => <DialogSettings initial="credentials" />)}
+                    onResendTurn={resendTurn}
+                    renderTaskActions={(input) => (
+                      <SubagentAllowance sessionID={input.sessionID} only={input.taskSessionID} />
+                    )}
                   >
-                    <MarkdownImages resolve={image} resolveFile={file} openFile={openFile}>
+                    <MarkdownImages
+                      resolve={image}
+                      resolveFile={file}
+                      resolveFileReceipt={workspaceReceiptPath}
+                      openFile={openFile}
+                    >
                       <LocalProvider>
                         <TerminalProvider>
                           <FileProvider>
@@ -330,5 +376,16 @@ export default function Layout(props: ParentProps) {
     >
       {(missing) => <ProjectUnavailable directory={missing().directory} onBack={home} onRemove={remove} />}
     </Show>
+  )
+
+  // One loader beside both waits rather than a fallback inside each, so the
+  // mark does not restart when the catalog hands over to the project store.
+  return (
+    <>
+      <Show when={opening()}>
+        <LoadingScreen caption={params.id ? "Opening session" : "Opening project"} />
+      </Show>
+      {project}
+    </>
   )
 }

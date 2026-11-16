@@ -7,17 +7,21 @@ import argparse
 import json
 import re
 import sys
+from collections import Counter
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _paper_spine_utils import markdown_tables, year_from_row
 
-CURRENT_YEAR = 2026
-DEFAULT_TARGET_COUNT = 20
-DEFAULT_MULTIPLIER = 3
-DEFAULT_RECENT_RATIO = 0.80
+CURRENT_YEAR = date.today().year
+# No venue-independent bibliography target, discovery multiplier or age quota.
+# Explicit legacy caller arguments still select their requested structural check.
+DEFAULT_TARGET_COUNT = 0
+DEFAULT_MULTIPLIER = 1
+DEFAULT_RECENT_RATIO = 0.0
 
 
 @dataclass
@@ -27,18 +31,30 @@ class CitationBankResult:
     target_count: int
     required_candidates: int
     row_count: int
+    unique_source_count: int
     recent_count: int
+    unique_recent_source_count: int
     required_recent_count: int
+    duplicated_source_uses: int
     findings: list[str]
+    scope: str = "open_literature"
+    warnings: list[str] | None = None
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate PaperSpine citation support bank.")
     parser.add_argument("path", nargs="?", default="paper_rewriting_output/citation_support_bank.md")
-    parser.add_argument("--target-count", type=int, default=DEFAULT_TARGET_COUNT)
+    parser.add_argument("--target-count", type=int, default=DEFAULT_TARGET_COUNT,
+                        help="Resolved task bibliography target; omitted means coverage not assessed. This checks the candidate bank, not the final manuscript.")
     parser.add_argument("--multiplier", type=int, default=DEFAULT_MULTIPLIER)
     parser.add_argument("--recent-years", type=int, default=3)
     parser.add_argument("--recent-ratio", type=float, default=DEFAULT_RECENT_RATIO)
+    parser.add_argument(
+        "--scope",
+        choices=("open_literature", "closed_corpus"),
+        default="open_literature",
+        help="Use closed_corpus for evidence-bounded rewrites that may not add literature.",
+    )
     parser.add_argument("--markdown", action="store_true")
     parser.add_argument("--json", action="store_true")
     parser.add_argument(
@@ -75,12 +91,73 @@ def find_citation_table(text: str) -> tuple[list[str], list[list[str]]]:
     return [], []
 
 
-def validate(path: Path, target_count: int, multiplier: int, recent_years: int, recent_ratio: float) -> CitationBankResult:
-    required_candidates = target_count * multiplier
+def _column_index(header: list[str], *needles: str) -> int | None:
+    for index, cell in enumerate(header):
+        normalized = " ".join(cell.lower().split())
+        if any(needle in normalized for needle in needles):
+            return index
+    return None
+
+
+def source_identity(header: list[str], row: list[str]) -> str:
+    """Return a stable, quota-safe identity for one bibliographic source.
+
+    Claim-use rows may legitimately repeat a paper, but repeated uses must never
+    inflate source coverage or recency quotas. Prefer a bibliographic identifier
+    over the agent's local Source ID so relabeling one paper cannot inflate coverage.
+    """
+    reference_index = _column_index(header, "reference", "bibtex", "citation")
+    reference = row[reference_index] if reference_index is not None and reference_index < len(row) else " ".join(row)
+    lowered = reference.lower()
+
+    doi = re.search(r"\b10\.\d{4,9}/[-._;()/:a-z0-9]+", lowered)
+    if doi:
+        return f"doi:{doi.group(0).rstrip('.,;)}]')}"
+    arxiv = re.search(r"(?:arxiv\s*:\s*|arxiv\.org/(?:abs|pdf)/)([a-z-]+/\d{7}|\d{4}\.\d{4,5})(?:v\d+)?", lowered)
+    if arxiv:
+        return f"arxiv:{arxiv.group(1)}"
+    pmid = re.search(r"(?:pmid\s*:?\s*|pubmed\.ncbi\.nlm\.nih\.gov/)(\d+)", lowered)
+    if pmid:
+        return f"pmid:{pmid.group(1)}"
+    bibtex = re.search(r"@\w+\s*\{\s*([^,\s]+)", reference)
+    if bibtex:
+        return f"bib:{bibtex.group(1).strip().lower()}"
+    url = re.search(r"https?://[^\s|}]+", lowered)
+    if url:
+        return f"url:{url.group(0).rstrip('.,;)}]')}"
+
+    source_id_index = _column_index(header, "source id")
+    if source_id_index is not None and source_id_index < len(row):
+        value = row[source_id_index].strip().lower()
+        if value and value not in {"-", "n/a", "na", "unknown"}:
+            return f"source:{value}"
+
+    normalized = re.sub(r"\s+", " ", re.sub(r"[^a-z0-9\u4e00-\u9fff]+", " ", lowered)).strip()
+    return f"text:{normalized}"
+
+
+def validate(
+    path: Path,
+    target_count: int,
+    multiplier: int,
+    recent_years: int,
+    recent_ratio: float,
+    scope: str = "open_literature",
+) -> CitationBankResult:
+    closed_corpus = scope == "closed_corpus"
+    required_candidates = target_count if closed_corpus else target_count * multiplier
     required_recent_count = int(required_candidates * recent_ratio + 0.999)
     findings: list[str] = []
+    warnings: list[str] = []
+    if target_count < 0 or multiplier < 1 or recent_years < 0 or not 0 <= recent_ratio <= 1:
+        raise ValueError("target-count and recent-years must be nonnegative, multiplier >= 1, and recent-ratio between 0 and 1")
+    if target_count == 0:
+        warnings.append("Bibliography target not supplied: coverage is not assessed. Use the saved custom target or the observed venue-sample mean; bank PASS does not prove final cited-reference coverage.")
     if not path.exists():
-        return CitationBankResult(str(path), False, target_count, required_candidates, 0, 0, required_recent_count, ["file does not exist"])
+        return CitationBankResult(
+            str(path), False, target_count, required_candidates, 0, 0, 0, 0,
+            required_recent_count, 0, ["file does not exist"], scope, warnings,
+        )
 
     text = path.read_text(encoding="utf-8", errors="ignore")
     header, rows = find_citation_table(text)
@@ -94,20 +171,46 @@ def validate(path: Path, target_count: int, multiplier: int, recent_years: int, 
             findings.append(f"citation_support_bank.md table should include a `{required}` column.")
 
     nonempty_rows = [row for row in rows if any(cell.strip() for cell in row)]
-    if len(nonempty_rows) < required_candidates:
+    if not nonempty_rows:
+        findings.append("citation support bank has no source rows")
+    identities = [source_identity(header, row) for row in nonempty_rows]
+    source_counts = Counter(identities)
+    unique_source_count = len(source_counts)
+    duplicated_source_uses = sum(count - 1 for count in source_counts.values())
+
+    exhaustive_marker = "CLOSED_CORPUS_EXHAUSTIVE" in text
+    if len(nonempty_rows) < required_candidates and not (closed_corpus and exhaustive_marker):
         findings.append(
-            f"citation_support_bank.md has {len(nonempty_rows)} candidates; expected at least {required_candidates} for target_count={target_count} and multiplier={multiplier}."
+            f"citation_support_bank.md has {len(nonempty_rows)} claim-use rows; expected at least {required_candidates} for target_count={target_count} and multiplier={multiplier}."
+        )
+    if unique_source_count < required_candidates and not (closed_corpus and exhaustive_marker):
+        findings.append(
+            f"citation_support_bank.md has only {unique_source_count} unique sources across {len(nonempty_rows)} claim-use rows; expected at least {required_candidates} unique sources. Repeated uses of one paper do not satisfy source coverage."
         )
 
     threshold = CURRENT_YEAR - recent_years
     recent_rows = [row for row in nonempty_rows if (year_from_row(row) or 0) >= threshold]
-    if len(recent_rows) < required_recent_count:
-        findings.append(
-            f"citation_support_bank.md has {len(recent_rows)} recent candidates since {threshold}; expected at least {required_recent_count}."
+    unique_recent_sources = {
+        source_identity(header, row)
+        for row in recent_rows
+    }
+    if len(unique_recent_sources) < required_recent_count:
+        message = (
+            f"citation_support_bank.md has {len(unique_recent_sources)} unique recent sources since {threshold}; expected at least {required_recent_count}. Repeated claim uses count once for recency."
         )
+        (warnings if closed_corpus else findings).append(message)
+
+    if closed_corpus:
+        warnings.append(
+            "Closed-corpus mode: recency and 3x discovery breadth are advisory; source truth, deduplication, and claim support remain blocking."
+        )
+        if exhaustive_marker and unique_source_count < target_count:
+            warnings.append(
+                f"Closed corpus declares exhaustive coverage with {unique_source_count} unique sources below the final target of {target_count}."
+            )
 
     weak_rows = []
-    for index, row in enumerate(nonempty_rows[:required_candidates], start=1):
+    for index, row in enumerate(nonempty_rows, start=1):
         if not has_claim_sentence(row) or not has_reference_format(row):
             weak_rows.append(index)
     if weak_rows:
@@ -122,9 +225,14 @@ def validate(path: Path, target_count: int, multiplier: int, recent_years: int, 
         target_count,
         required_candidates,
         len(nonempty_rows),
+        unique_source_count,
         len(recent_rows),
+        len(unique_recent_sources),
         required_recent_count,
+        duplicated_source_uses,
         findings,
+        scope,
+        warnings,
     )
 
 
@@ -133,17 +241,25 @@ def to_markdown(result: CitationBankResult) -> str:
         "# Citation Bank Check",
         "",
         f"- Path: `{result.path}`",
+        "- Scope: candidate-bank structure and source identities; not citation truth, final cited-reference coverage or manuscript readiness.",
         f"- Status: {'PASS' if result.ok else 'FAIL'}",
+        f"- Literature scope: {result.scope}",
         f"- Target citation count: {result.target_count}",
-        f"- Required candidate rows: {result.required_candidates}",
-        f"- Candidate rows: {result.row_count}",
-        f"- Required recent rows: {result.required_recent_count}",
-        f"- Recent rows: {result.recent_count}",
+        f"- Required unique sources: {result.required_candidates}",
+        f"- Claim-use rows: {result.row_count}",
+        f"- Unique sources: {result.unique_source_count}",
+        f"- Repeated source uses: {result.duplicated_source_uses}",
+        f"- Required unique recent sources: {result.required_recent_count}",
+        f"- Recent claim-use rows: {result.recent_count}",
+        f"- Unique recent sources: {result.unique_recent_source_count}",
         "",
         "## Findings",
         "",
     ]
     lines.extend(f"- {finding}" for finding in result.findings) if result.findings else lines.append("- None")
+    if result.warnings:
+        lines.extend(["", "## Warnings", ""])
+        lines.extend(f"- {warning}" for warning in result.warnings)
     lines.append("")
     return "\n".join(lines)
 
@@ -151,7 +267,10 @@ def to_markdown(result: CitationBankResult) -> str:
 def main() -> int:
     args = parse_args()
     path = Path(args.path)
-    result = validate(path, args.target_count, args.multiplier, args.recent_years, args.recent_ratio)
+    result = validate(
+        path, args.target_count, args.multiplier, args.recent_years,
+        args.recent_ratio, args.scope,
+    )
     markdown = to_markdown(result)
     if args.write:
         report_path = path.parent / "citation_bank_check.md"

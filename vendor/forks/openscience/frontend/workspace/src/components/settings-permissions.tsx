@@ -5,7 +5,7 @@ import { Component, For, createMemo, createSignal, type JSX } from "solid-js"
 import { useGlobalSync } from "@/context/global-sync"
 import { useLanguage } from "@/context/language"
 import type { Config } from "@synsci/sdk/v2/client"
-import { PanelBody, PanelHeader, PanelScroll, Section } from "./settings/_shared"
+import { Section } from "./settings/_shared"
 import { commitPermissionDefault, permissionActionFor, type PermissionAction } from "./settings/permission-defaults"
 
 const ACTIONS = [
@@ -119,22 +119,6 @@ const ITEMS = [
   },
 ] as const
 
-export const SettingsPermissions: Component = () => {
-  const language = useLanguage()
-
-  return (
-    <PanelScroll>
-      <PanelHeader
-        title={language.t("settings.permissions.title")}
-        description={language.t("settings.permissions.description")}
-      />
-      <PanelBody>
-        <PermissionToolDefaults />
-      </PanelBody>
-    </PanelScroll>
-  )
-}
-
 // Tool allow/ask/deny defaults, rendered without page chrome so it can be
 // composed as a section inside the unified Permissions panel.
 export const PermissionToolDefaults: Component = () => {
@@ -142,12 +126,11 @@ export const PermissionToolDefaults: Component = () => {
   const language = useLanguage()
   const [busy, setBusy] = createSignal(false)
 
-  const actions = createMemo(
-    (): Array<{ value: PermissionAction; label: string }> =>
-      ACTIONS.map((action) => ({
-        value: action.value,
-        label: language.t(action.label),
-      })),
+  const actions = createMemo((): Array<{ value: PermissionAction; label: string }> =>
+    ACTIONS.map((action) => ({
+      value: action.value,
+      label: language.t(action.label),
+    })),
   )
 
   const setPermission = async (id: string, action: PermissionAction) => {
@@ -204,7 +187,9 @@ interface SettingsRowProps {
 const SettingsRow: Component<SettingsRowProps> = (props) => {
   return (
     <div class="settings-row justify-between">
-      <Icon name={props.icon} size="small" class="shrink-0 text-icon-weak-base" />
+      <span class="settings-row-logo" aria-hidden="true">
+        <Icon name={props.icon} size="small" />
+      </span>
       <div class="flex min-w-0 flex-1 basis-[220px] flex-col gap-0.5">
         <span class="text-14-medium text-text-strong">{props.title}</span>
         <span class="text-12-regular text-text-weak">{props.description}</span>

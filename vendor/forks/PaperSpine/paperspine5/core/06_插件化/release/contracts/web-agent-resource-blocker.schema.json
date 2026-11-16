@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "paperspine5.web-agent-resource-blocker.schema.json",
+  "title": "PaperSpine5 Web Agent resource blocker receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "code",
+    "task_id",
+    "revision",
+    "issue_id",
+    "stage",
+    "limit_bytes",
+    "observed_bytes_at_least",
+    "detail",
+    "retry_performed",
+    "runner_revision_unchanged",
+    "runner_submission_performed",
+    "evidence",
+    "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {
+      "const": "paperspine5.web-agent-resource-blocker"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "code": {
+      "enum": ["AGENT_OUTPUT_LIMIT", "AGENT_RESULT_LIMIT"]
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "issue_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stage": {
+      "type": "string",
+      "minLength": 1
+    },
+    "limit_bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "observed_bytes_at_least": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "detail": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retry_performed": {
+      "const": false
+    },
+    "runner_revision_unchanged": {
+      "const": true
+    },
+    "runner_submission_performed": {
+      "const": false
+    },
+    "evidence": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["path", "sha256", "size_bytes"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "external_action_authorized": {
+      "const": false
+    }
+  }
+}

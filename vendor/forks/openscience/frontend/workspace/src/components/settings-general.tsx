@@ -1,16 +1,21 @@
-import { Component, For, Show, createMemo, onCleanup, onMount, type JSX } from "solid-js"
+import { Component, For, Show, createMemo, onCleanup, onMount } from "solid-js"
 import { createStore } from "solid-js/store"
 import { Button } from "@synsci/ui/button"
 import { Select } from "@synsci/ui/select"
 import { Switch } from "@synsci/ui/switch"
 import { useTheme, type ColorScheme } from "@synsci/ui/theme"
 import { showToast } from "@synsci/ui/toast"
+import { useGlobalSDK } from "@/context/global-sdk"
 import { useLanguage } from "@/context/language"
 import { usePlatform } from "@/context/platform"
 import { useSettings } from "@/context/settings"
 import { playSound, SOUND_OPTIONS } from "@/utils/sound"
 import { URLS } from "@/config/urls"
+import { updateController } from "./settings/update-controller"
+import { updateNotice, updateNoticeLine } from "./settings/startup-update"
 import { PanelBody, PanelHeader, PanelScroll, Section as SettingsSection } from "./settings/_shared"
+import { SettingsRow } from "./settings/general-row"
+import { CommandLineToolRow, createCommandLineClient } from "./settings/command-line-tool"
 import "./settings-general.css"
 
 let demoSoundState = {
@@ -32,11 +37,16 @@ const playDemoSound = (src: string, volume: number) => {
   }, 100)
 }
 
+/** Lets a test mount `AppearanceSections` on a desktop platform without the
+ * app's full GlobalSDK/event-stream context — the command-line row needs
+ * only the base URL, the same seam `UsageLogging` and `ManagedInference` use. */
+export type CommandLineServices = { sdk: Pick<ReturnType<typeof useGlobalSDK>, "url"> }
+
 // The appearance / notification / sound / update controls, without any
 // outer scroll wrapper or header — so the new General settings panel can compose
 // them below its Account / Model / Licensing sections. `SettingsGeneral` below
 // keeps the standalone panel (scroll + header) for any legacy mount.
-export const AppearanceSections: Component = () => {
+export const AppearanceSections: Component<{ services?: CommandLineServices }> = (props) => {
   const theme = useTheme()
   const language = useLanguage()
   const platform = usePlatform()
@@ -48,59 +58,25 @@ export const AppearanceSections: Component = () => {
     demoSoundState = { cleanup: undefined, timeout: undefined }
   })
 
+  const updates = updateController(platform)
   const [store, setStore] = createStore<{
-    checking: boolean
-    installing: boolean
-    available?: string
     releases: Array<{ version: string; name: string; notes: string; publishedAt?: string; url: string }>
-  }>({
-    checking: false,
-    installing: false,
-    releases: [],
-  })
+  }>({ releases: [] })
 
   onMount(() => {
+    updates.start()
     void platform
       .listUpdates?.()
       .then((releases) => setStore("releases", releases))
       .catch(() => undefined)
   })
 
-  const install = () => {
-    if (!platform.update || store.installing) return
-    setStore("installing", true)
-    void platform
-      .update()
-      .then((result) => {
-        setStore("installing", false)
-        setStore("available", undefined)
-        showToast({
-          variant: "success",
-          icon: "circle-check",
-          title: result.installed ? `OpenScience ${result.version ?? ""} installed` : "OpenScience is up to date",
-          description: result.restartScheduled
-            ? "Restarting OpenScience now."
-            : result.restartRequired
-              ? "Restart OpenScience once to finish the update."
-              : "You're running the latest version of OpenScience.",
-        })
-      })
-      .catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : String(error)
-        showToast({ title: language.t("common.requestFailed"), description: message })
-        setStore("installing", false)
-      })
-  }
-
   const check = () => {
     if (!platform.checkUpdate) return
-    setStore("checking", true)
-
-    void platform
-      .checkUpdate({ refresh: true })
+    void updates
+      .check()
       .then((result) => {
-        if (!result.updateAvailable) {
-          setStore("available", undefined)
+        if (!result?.updateAvailable) {
           showToast({
             variant: "success",
             icon: "circle-check",
@@ -109,40 +85,47 @@ export const AppearanceSections: Component = () => {
           })
           return
         }
-
-        setStore("available", result.version ?? "Update available")
-
-        const actions = platform.update
-          ? [
-              {
-                label: "Install update",
-                onClick: install,
-              },
-              {
-                label: language.t("toast.update.action.notYet"),
-                onClick: "dismiss" as const,
-              },
-            ]
-          : [
-              {
-                label: language.t("toast.update.action.notYet"),
-                onClick: "dismiss" as const,
-              },
-            ]
-
         showToast({
-          persistent: true,
           icon: "download",
           title: language.t("toast.update.title"),
           description: language.t("toast.update.description", { version: result.version ?? "" }),
-          actions,
         })
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : String(err)
         showToast({ title: language.t("common.requestFailed"), description: message })
       })
-      .finally(() => setStore("checking", false))
+  }
+
+  // The row says what this surface's press does: it downloads, and the restart
+  // is a second press. An installation without in-app staging has neither, so
+  // the copy and the button both point at the release page. The banner reads
+  // the same notice, so the two surfaces cannot describe one update differently.
+  const notice = createMemo(() => updateNotice(updates.state, platform.stageUpdate ? "download" : "installer"))
+  const updateDescription = createMemo(() => {
+    const current = notice()
+    return current ? updateNoticeLine(current) : language.t("settings.updates.row.check.description")
+  })
+
+  const updateAction = () => {
+    if (!platform.stageUpdate) return platform.openLink(URLS.releases)
+    const run =
+      updates.state.phase === "ready" || updates.state.phase === "restart_blocked" ? updates.apply : updates.stage
+    void run().catch((error: unknown) => {
+      showToast({
+        title: language.t("common.requestFailed"),
+        description: error instanceof Error ? error.message : String(error),
+      })
+    })
+  }
+
+  const cancelUpdate = () => {
+    void updates.cancel().catch((error: unknown) => {
+      showToast({
+        title: "OpenScience kept the update",
+        description: error instanceof Error ? error.message : String(error),
+      })
+    })
   }
 
   const languageOptions = createMemo(() =>
@@ -193,17 +176,15 @@ export const AppearanceSections: Component = () => {
             <div
               role="group"
               aria-label={language.t("settings.general.row.appearance.title")}
-              class="inline-flex max-w-full items-center rounded-md border border-border-weak-base bg-surface-base p-0.5"
+              class="settings-segmented-control"
             >
               <For each={colorSchemeOptions()}>
                 {(option) => (
                   <button
                     type="button"
                     aria-pressed={theme.colorScheme() === option.value}
-                    class="h-8 min-w-[56px] rounded-sm px-2.5 text-12-medium text-text-weak transition-colors duration-150 hover:text-text-strong focus-visible:z-10"
-                    classList={{
-                      "bg-surface-raised-strong text-text-strong shadow-xs": theme.colorScheme() === option.value,
-                    }}
+                    class="settings-segmented-control__option"
+                    data-selected={theme.colorScheme() === option.value ? "true" : undefined}
                     onClick={() => theme.setColorScheme(option.value)}
                   >
                     {option.label}
@@ -412,23 +393,34 @@ export const AppearanceSections: Component = () => {
             </div>
           </SettingsRow>
 
-          <SettingsRow
-            title={language.t("settings.updates.row.check.title")}
-            description={language.t("settings.updates.row.check.description")}
-          >
+          <SettingsRow title={language.t("settings.updates.row.check.title")} description={updateDescription()}>
             <div class="flex max-w-full flex-wrap items-center justify-end gap-2">
-              <Show when={store.available && platform.update}>
-                <Button size="small" variant="primary" disabled={store.installing} onClick={install}>
-                  {store.installing ? "Updating & restarting…" : `Update to ${store.available}`}
+              <Show when={updates.state.available && notice()?.primary}>
+                <Button size="small" variant="primary" disabled={notice()?.primary?.busy} onClick={updateAction}>
+                  {notice()?.primary?.label}
+                </Button>
+              </Show>
+              <Show
+                when={
+                  platform.cancelUpdate &&
+                  ["downloading", "extracting", "verifying", "ready"].includes(updates.state.phase)
+                }
+              >
+                <Button size="small" variant="secondary" disabled={updates.state.cancelling} onClick={cancelUpdate}>
+                  {updates.state.cancelling
+                    ? "Discarding…"
+                    : updates.state.phase === "ready"
+                      ? "Discard"
+                      : "Cancel download"}
                 </Button>
               </Show>
               <Button
                 size="small"
                 variant="secondary"
-                disabled={store.checking || !platform.checkUpdate}
+                disabled={updates.state.checking || !platform.checkUpdate}
                 onClick={check}
               >
-                {store.checking
+                {updates.state.checking
                   ? language.t("settings.updates.action.checking")
                   : language.t("settings.updates.action.checkNow")}
               </Button>
@@ -436,10 +428,15 @@ export const AppearanceSections: Component = () => {
           </SettingsRow>
         </div>
         <Show when={store.releases.length > 0}>
-          <div class="settings-update-history" aria-label="Recent OpenScience releases">
+          <div class="settings-card settings-update-history" aria-label="Recent OpenScience releases">
             <For each={store.releases.slice(0, 3)}>
               {(release) => (
-                <button type="button" onClick={() => platform.openLink(release.url)}>
+                <button
+                  type="button"
+                  class="settings-row"
+                  data-interactive="true"
+                  onClick={() => platform.openLink(release.url)}
+                >
                   <span>
                     <strong>{release.name}</strong>
                     <small>
@@ -462,7 +459,26 @@ export const AppearanceSections: Component = () => {
           </div>
         </Show>
       </SettingsSection>
+
+      <Show when={platform.platform === "desktop"}>
+        <CommandLineSection services={props.services} />
+      </Show>
     </>
+  )
+}
+
+// Only the desktop app can own the link in ~/.openscience/bin, so the web
+// build neither shows the row nor asks the server about it.
+const CommandLineSection: Component<{ services?: CommandLineServices }> = (props) => {
+  const sdk = props.services?.sdk ?? useGlobalSDK()
+  const platform = usePlatform()
+  const client = createCommandLineClient(sdk.url, platform.fetch ?? fetch)
+  return (
+    <SettingsSection title="Command line">
+      <div class="settings-card">
+        <CommandLineToolRow client={client} />
+      </div>
+    </SettingsSection>
   )
 }
 
@@ -477,23 +493,5 @@ export const SettingsGeneral: Component = () => {
         <AppearanceSections />
       </PanelBody>
     </PanelScroll>
-  )
-}
-
-interface SettingsRowProps {
-  title: string
-  description: string | JSX.Element
-  children: JSX.Element
-}
-
-const SettingsRow: Component<SettingsRowProps> = (props) => {
-  return (
-    <div class="settings-row justify-between">
-      <div class="flex min-w-0 flex-1 basis-[220px] flex-col gap-0.5">
-        <span class="text-14-medium text-text-strong">{props.title}</span>
-        <span class="text-12-regular text-text-weak">{props.description}</span>
-      </div>
-      <div class="ml-auto max-w-full flex-shrink-0">{props.children}</div>
-    </div>
   )
 }

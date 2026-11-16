@@ -7,6 +7,14 @@ author: Synthetic Sciences
 license: MIT
 tags: [Hugging Face, Cloud Compute, Training Jobs, GPU]
 dependencies: [huggingface-hub, datasets, vllm, torch]
+metadata:
+  upstream: huggingface/skills
+  upstream-url: https://github.com/huggingface/skills
+  upstream-path: skills/hugging-face-jobs
+  upstream-license: Apache-2.0
+  upstream-relationship: adapted and rewritten
+  skill-author: Synthetic Sciences
+  adapted-by: Synthetic Sciences
 ---
 
 # Running Workloads on Hugging Face Jobs
@@ -278,7 +286,7 @@ HuggingFace token is auto-injected by openscience when connected via the dashboa
 [ -n "$HF_TOKEN" ] && echo "HF_TOKEN set" || echo "NOT SET"
 ```
 
-If not set: connect HuggingFace at https://app.syntheticsciences.ai -> Services, then restart openscience.
+If not set: add your Hugging Face token in Customize → Tools or export `HF_TOKEN` locally.
 
 ## Quick Start: Two Approaches
 
@@ -378,7 +386,7 @@ hf_jobs("uv", {"script": "./scripts/foo.py"})
 ```python
 # ✅ Inline: read the local script file and pass its *contents*
 from pathlib import Path
-script = Path("hf-jobs/scripts/foo.py").read_text()
+script = Path("skills/other/hugging-face-jobs/scripts/foo.py").read_text()
 hf_jobs("uv", {"script": script})
 
 # ✅ URL: host the script somewhere reachable
@@ -867,7 +875,7 @@ See [Webhooks Documentation](https://huggingface.co/docs/huggingface_hub/guides/
 
 ## Common Workload Patterns
 
-This repository ships ready-to-run UV scripts in `hf-jobs/scripts/`. Prefer using them instead of inventing new templates.
+This repository ships ready-to-run UV scripts in `skills/other/hugging-face-jobs/scripts/`. Prefer using them instead of inventing new templates.
 
 ### Pattern 1: Dataset → Model Responses (vLLM) — `scripts/generate-responses.py`
 
@@ -878,7 +886,7 @@ This repository ships ready-to-run UV scripts in `hf-jobs/scripts/`. Prefer usin
 ```python
 from pathlib import Path
 
-script = Path("hf-jobs/scripts/generate-responses.py").read_text()
+script = Path("skills/other/hugging-face-jobs/scripts/generate-responses.py").read_text()
 hf_jobs("uv", {
     "script": script,
     "script_args": [
@@ -898,14 +906,16 @@ hf_jobs("uv", {
 
 ### Pattern 2: CoT Self-Instruct Synthetic Data — `scripts/cot-self-instruct.py`
 
-**What it does:** generates synthetic prompts/answers via CoT Self-Instruct, optionally filters outputs (answer-consistency / RIP), then **pushes** the generated dataset + dataset card to the Hub.
+**What it does:** generates synthetic prompts/answers via CoT Self-Instruct, optionally filters reasoning outputs using answer-consistency (RIP and `both` are unavailable and fail before execution), then **pushes** the generated dataset + dataset card to the Hub.
 
 **Requires:** GPU + **write** token (it pushes a dataset).
+
+Use `--filter-method none` for instruction tasks. RIP is not implemented: the script rejects it before loading models, generating data, or publishing a misleading dataset card. Answer-consistency is supported only for reasoning tasks.
 
 ```python
 from pathlib import Path
 
-script = Path("hf-jobs/scripts/cot-self-instruct.py").read_text()
+script = Path("skills/other/hugging-face-jobs/scripts/cot-self-instruct.py").read_text()
 hf_jobs("uv", {
     "script": script,
     "script_args": [
@@ -930,7 +940,7 @@ hf_jobs("uv", {
 ```python
 from pathlib import Path
 
-script = Path("hf-jobs/scripts/finepdfs-stats.py").read_text()
+script = Path("skills/other/hugging-face-jobs/scripts/finepdfs-stats.py").read_text()
 hf_jobs("uv", {
     "script": script,
     "script_args": [
@@ -1050,4 +1060,3 @@ Add to PEP 723 header:
 | Cancel job | `hf_jobs("cancel", {...})` | `hf jobs cancel <id>` | `cancel_job(job_id)` |
 | Schedule UV | `hf_jobs("scheduled uv", {...})` | - | `create_scheduled_uv_job()` |
 | Schedule Docker | `hf_jobs("scheduled run", {...})` | - | `create_scheduled_job()` |
-

@@ -26,7 +26,7 @@ This skill is for the stage **after** `results-analysis`.
 - limitations, failure cases, and next actions,
 - Obsidian write-back into `Results/Reports/`.
 
-When the task is to create or redesign paper-ready figures/tables themselves, rely on `publication-chart-skill` instead of expanding `results-report` into figure/table production.
+When the task is to create or redesign paper-ready figures/tables themselves, rely on `fig-publication-chart` instead of expanding `results-report` into figure/table production.
 
 Do not replace strict analysis with confident prose. If the analysis bundle is missing, first identify the blocker and request or produce the missing bundle.
 
@@ -52,7 +52,7 @@ The note title should be:
 {Experiment Line} / Round {N} / {Purpose} / {YYYY-MM-DD}
 ```
 
-Read `references/report-naming.md` before finalizing the filename or note title.
+Naming rules are inlined in 「必读件要点（内联）」 below — apply them before finalizing the filename or note title（原 `references/report-naming.md` 未随仓，见 ASSET-GAP）.
 
 ## Required frontmatter
 
@@ -89,7 +89,7 @@ The report must include all sections below.
 9. **Next Actions**
 10. **Artifact and Reproducibility Index**
 
-Read `references/report-structure.md` before writing.
+Section-by-section guidance is inlined in 「必读件要点（内联）」 below — apply it before writing（原 `references/report-structure.md` 未随仓，见 ASSET-GAP）.
 
 ## Workflow
 
@@ -127,7 +127,7 @@ Each section must answer a real question:
 - What failed or remains uncertain?
 - What should we do next?
 
-Read `references/decision-oriented-analysis.md` for the expected reasoning depth.
+Reasoning-depth guidance is inlined in 「必读件要点（内联）」 below（原 `references/decision-oriented-analysis.md` 未随仓，见 ASSET-GAP）.
 
 ### 4. Interpret figures inside the report
 
@@ -139,7 +139,7 @@ For each main figure:
 - explain the supported interpretation,
 - explain the decision implication.
 
-Read `references/figure-interpretation.md` and `references/statistical-completeness.md` as needed.
+Figure-interpretation and statistical-completeness guidance is inlined in 「必读件要点（内联）」 below（原两份 references 未随仓，见 ASSET-GAP）.
 
 ### 5. Choose the write target explicitly
 
@@ -155,7 +155,7 @@ If the repo is **not** bound:
 - keep the same filename contract,
 - explicitly say that no Obsidian write-back was attempted.
 
-Use `obsidian-project-kb-core` conventions only for bound repos. Internal experiment reports belong in `Results/Reports/`, not `Writing/`.
+Use `lit-obsidian-kb-core` conventions only for bound repos. Internal experiment reports belong in `Results/Reports/`, not `Writing/`.
 
 ### 6. End with explicit next actions
 
@@ -174,13 +174,25 @@ The report must end with operational decisions, for example:
 - The report must say what changed in project belief and what should happen next.
 - The report must preserve Claim Candidate wording and must not promote `speculative` or `observed` claims into decisive conclusions.
 
+## 必读件要点（内联，原上游 7 份必读件未随仓——见 ASSET-GAP.md）
+
+本节把上游 7 份必读件的可执行要点内联，正文不依赖缺失文件即可执行：
+
+1. **report-naming**：文件名 `YYYY-MM-DD--{experiment-line}--r{round}--{purpose}.md`（round 两位零填充；purpose 用小写连字符受控词，如 transfer-summary / ablation-report / error-analysis / scale-report / replication-check）；笔记标题 `{Experiment Line} / Round {N} / {Purpose} / {YYYY-MM-DD}`；同一实验线同轮次不得重名。
+2. **report-structure**：按上文 10 节顺序成文，不得删节 Executive Summary / Statistical Validation / Next Actions 三节；每节至少一段实质内容，确无内容写「无——原因」。
+3. **decision-oriented-analysis**：全文面向决策——每个结论回答「改变了哪个判断、下一步做什么」；区分 观察（数字）→ 解释（含义）→ 行动（建议）三层，不写过程性流水账。
+4. **figure-interpretation**：每张主图四要素——为何入选、关键观察、支持的解释、决策含义；禁止只贴图不解读。
+5. **statistical-completeness**：每个统计主张须含 n、效应量、置信区间、精确 p 值、检验名与前提核查、多重比较处置；禁止只写「显著/不显著」。
+6. **EVIDENCE-PROPAGATION**：引用 Claim Candidate 时保留其强度标签（speculative/observed/confirmed），报告不得把 speculative/observed 提升为决定性结论；证据指针（文件+位置）随结论传播。
+7. **example-results-report**：产出前对照最小样例自查——frontmatter 齐全、10 节齐备、每图有四要素解读、结尾有可执行 Next Actions。
+
 ## Reference files
 
-Load only what is needed:
-- `references/report-structure.md`
-- `references/report-naming.md`
-- `references/figure-interpretation.md`
-- `references/statistical-completeness.md`
-- `references/decision-oriented-analysis.md`
-- `references/EVIDENCE-PROPAGATION.md`
-- `examples/example-results-report.md`
+原上游必读件均未随仓（要点已内联于上节；登记见 ASSET-GAP.md），获得上游来源后按原路径回填：
+- `references/report-structure.md`（缺失——要点已内联）
+- `references/report-naming.md`（缺失——要点已内联）
+- `references/figure-interpretation.md`（缺失——要点已内联）
+- `references/statistical-completeness.md`（缺失——要点已内联）
+- `references/decision-oriented-analysis.md`（缺失——要点已内联）
+- `references/EVIDENCE-PROPAGATION.md`（缺失——要点已内联）
+- `examples/example-results-report.md`（缺失——要点已内联）

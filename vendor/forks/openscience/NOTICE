@@ -7,6 +7,93 @@ Licensed under the Apache License, Version 2.0.
 It bundles or accesses the following third-party software and services.
 
 --------------------------------------------------------------------------------
+OpenCode
+https://github.com/anomalyco/opencode · https://opencode.ai
+
+OpenScience is inspired by OpenCode and its work toward excellent open-source
+agents. OpenScience applies that inspiration to making strong, open-source
+scientific agents available to everyone.
+
+MIT License
+
+Copyright (c) 2025 opencode
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+--------------------------------------------------------------------------------
+Scientific Agent Skills (bundled scientific skills under backend/cli/skills/)
+https://github.com/K-Dense-AI/scientific-agent-skills
+Copyright (c) 2025 K-Dense Inc.
+Licensed under the MIT License. See https://github.com/K-Dense-AI/scientific-agent-skills/blob/main/LICENSE.md.
+
+166 of the bundled skills (biology, chemistry, databases, coding, data
+engineering, physics, quantum, research, visualization and writing) are
+derived from this collection, including skills taken from its earlier
+scientific-skills/, scientific-databases/ and scientific-packages/ layout.
+backend/cli/skills/ATTRIBUTION.md lists every one with its upstream path, and
+each skill's frontmatter records the same under metadata.upstream. The
+collection is described in Kassis, Agarwal, He, Patel and Brueckner,
+"Scientific Agent Skills: A Library of Procedural Knowledge for Research
+Agents", arXiv:2609.00065 (2026); cite it when these skills contribute to
+published work.
+--------------------------------------------------------------------------------
+Claude Scientific Writer (bundled skills under backend/cli/skills/)
+https://github.com/K-Dense-AI/claude-scientific-writer
+Copyright (c) 2025-2026 K-Dense Inc.
+Licensed under the MIT License.
+
+The posters, slides, infographics and research-grants skills, and the style
+references, review checklists and schematic scripts inside the core
+paper-writing, ml-paper-writing, peer-review, hypotheses, literature-review,
+schematics, citations, sources and brainstorming skills are derived from this
+collection. See backend/cli/skills/ATTRIBUTION.md.
+--------------------------------------------------------------------------------
+AI Research Skills (bundled ML skills under backend/cli/skills/)
+https://github.com/Orchestra-Research/AI-Research-SKILLs
+Copyright (c) 2025 Claude AI Research Skills Contributors (Orchestra Research)
+Licensed under the MIT License.
+
+79 of the bundled skills (ml-training, ml-inference, llm-tools, cloud-compute
+and related coding skills) are derived from this collection. See
+backend/cli/skills/ATTRIBUTION.md.
+--------------------------------------------------------------------------------
+Hugging Face skills (bundled hugging-face-* skills under backend/cli/skills/)
+https://github.com/huggingface/skills
+Copyright Hugging Face.
+Licensed under the Apache License, Version 2.0.
+--------------------------------------------------------------------------------
+Anthropic document skills (backend/cli/skills/document-parsing/{docx,pdf,pptx,xlsx})
+https://github.com/anthropics/skills
+© 2025 Anthropic, PBC. All rights reserved.
+Used under Anthropic's terms; each skill directory keeps Anthropic's LICENSE.txt.
+Vendored through the K-Dense collections, which track the Anthropic originals.
+--------------------------------------------------------------------------------
+NVIDIA BioNeMo Agent Toolkit (backend/cli/skills/biology/protein-binder-design)
+https://github.com/NVIDIA-BioNeMo/bionemo-agent-toolkit
+Copyright NVIDIA Corporation.
+Skills and documentation licensed under CC-BY-4.0; code under the Apache
+License, Version 2.0; the models the workflow calls carry their own terms.
+Pinned source revision: 0e67a612e4045f007e38fa77adc8f3ebfc5616b6.
+--------------------------------------------------------------------------------
+pacsomatic (backend/cli/skills/biology/pacsomatic)
+Copyright (c) 2026 Beifang Niu
+Licensed under the MIT License. See the skill's LICENSE.
+--------------------------------------------------------------------------------
 markitdown (bundled skill: backend/cli/skills/data-engineering/markitdown)
 https://github.com/microsoft/markitdown
 Copyright (c) Microsoft Corporation.
@@ -57,4 +144,18 @@ terms of use and licensing; users are responsible for complying with the terms
 of any data source they query.
 
 Client-side rendering libraries (Mol*, igv.js, RDKit.js, KaTeX, pdf.js, 3Dmol.js)
-are dependencies declared in package.json and retain their own licenses.
+are dependencies declared in package.json and retain their own licenses. The CLI
+binary bundles unpdf (MIT) and the build of pdf.js (Apache-2.0) it ships, for PDF
+text extraction; both retain their own licenses.
+
+Fonts
+-----
+Computer Modern Unicode (CMU Concrete; frontend/landing/public/fonts,
+frontend/workspace/public/fonts/cmc, frontend/docs/public/fonts/cmc) and Inter
+(frontend/landing/public/fonts) are bundled under the SIL Open Font License 1.1;
+the OFL text sits next to each font.
+
+--------------------------------------------------------------------------------
+CookieConsent 3.3.0 by Orest Bida (website only)
+https://github.com/orestbida/cookieconsent
+MIT License. The full license is in frontend/landing/public/growth/vendor/LICENSE-cookieconsent.

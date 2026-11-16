@@ -1,12 +1,67 @@
 import { expect, test } from "bun:test"
 import { Instance } from "../../../src/project/instance"
-import { KernelEnvironmentMutation, rankPython } from "../../../src/science/kernel/environment-mutation"
+import { KernelEnvironmentMutation, rankPython, selectPython } from "../../../src/science/kernel/environment-mutation"
 import { KernelRuntime, type KernelIdentity } from "../../../src/science/kernel/registry"
 import { PythonTool } from "../../../src/tool/notebook"
 import { RTool } from "../../../src/tool/rkernel"
-import type { PermissionNext } from "../../../src/permission/next"
+import { PermissionNext } from "../../../src/permission/next"
 import { executionSession, tmpdir } from "../../fixture/fixture"
 import fs from "node:fs/promises"
+import path from "node:path"
+
+test("host Python selection skips candidates that the OS cannot start", async () => {
+  await using tmp = await tmpdir()
+  const binary = Bun.which("python3") ?? Bun.which("python")
+  if (!binary) throw new Error("The host runtime fixture needs Python")
+  const broken = path.join(tmp.path, process.platform === "win32" ? "broken-python.exe" : "broken-python")
+  await Bun.write(broken, "#!/missing-openscience-test-interpreter\n")
+  await fs.chmod(broken, 0o755)
+
+  expect(await selectPython([broken, binary])).toBe(binary)
+  expect(await selectPython([broken])).toBeUndefined()
+})
+
+test("subprocess identity preserves the configured executable on every platform and leaves unmeasured values absent", () => {
+  for (const binary of ["/project/.venv/bin/python", "C:\\project\\.venv\\Scripts\\python.exe"]) {
+    expect(KernelEnvironmentMutation.subprocessIdentity({ binary, environmentName: "python" }, "workspace")).toEqual({
+      target: "local",
+      cwd: "workspace",
+      profile: "python",
+      python: { role: "selected_default", executable: binary },
+    })
+  }
+  expect(KernelEnvironmentMutation.subprocessIdentity({}, "workspace").python).toEqual({ role: "selected_default" })
+})
+
+test("subprocess overlay retains only the resolver-owned import path and sanitized Git policy", () => {
+  const env = KernelEnvironmentMutation.subprocessEnv(
+    {
+      binary: "/project/.venv/bin/python",
+      env: {
+        PYTHONPATH: "/derived/site-packages",
+        MODAL_TOKEN_ID: "ak-denied-runtime-overlay",
+        NODE_OPTIONS: "--require injected",
+      },
+    },
+    {
+      PYTHONPATH: "/unapproved",
+      PYTHONHOME: "/unapproved",
+      MODAL_TOKEN_SECRET: "as-denied-ambient",
+      GIT_CONFIG_NOSYSTEM: "1",
+      GIT_CONFIG_GLOBAL: "/dev/null",
+      GIT_TERMINAL_PROMPT: "0",
+    },
+  )
+  expect(env).toEqual({
+    PYTHONPATH: "/derived/site-packages",
+    GIT_CONFIG_NOSYSTEM: "1",
+    GIT_CONFIG_GLOBAL: "/dev/null",
+    GIT_TERMINAL_PROMPT: "0",
+    // Headless, trace-free Python: bytecode in OpenScience's cache, plots off-screen.
+    PYTHONPYCACHEPREFIX: expect.stringContaining("pycache"),
+    MPLBACKEND: "Agg",
+  })
+})
 
 test("recognizes Python and R package/environment mutations as exact immutable plans", () => {
   const python = KernelEnvironmentMutation.detect({
@@ -40,6 +95,47 @@ test("recognizes Python and R package/environment mutations as exact immutable p
     KernelEnvironmentMutation.detect({ language: "python", environment: "python", code: "import numpy as np" }),
   ).toBeUndefined()
   expect(python?.digest).not.toBe(r?.digest)
+  // The card names what is being installed, not just the language.
+  expect(python?.packages).toEqual(["numpy==2.3.2"])
+  expect(r?.packages).toEqual(["survival"])
+  expect(
+    KernelEnvironmentMutation.detect({
+      language: "python",
+      environment: "python",
+      code: "!pip install --quiet --no-cache-dir pymupdf pdfplumber 'tectonic>=0.15'",
+    })?.packages,
+  ).toEqual(["pymupdf", "pdfplumber", "tectonic"])
+  expect(KernelEnvironmentMutation.permission(python!).metadata.environment_mutation.packages).toEqual(["numpy==2.3.2"])
+})
+
+test("Full access allows a kernel environment change without a card, as it already does through the shell", () => {
+  expect(
+    PermissionNext.modeAction({ mode: "full", permission: "environment_mutation", configured: "ask", granted: "ask" }),
+  ).toBe("allow")
+  expect(
+    PermissionNext.modeAction({
+      mode: "full",
+      permission: "environment_mutation",
+      configured: "deny",
+      granted: "allow",
+    }),
+  ).toBe("deny")
+  // Ask risky keeps asking on the exact plan.
+  expect(
+    PermissionNext.modeAction({
+      mode: "approve",
+      permission: "environment_mutation",
+      configured: "ask",
+      granted: "ask",
+    }),
+  ).toBe("ask")
+  // Paid compute still asks in Full access unless an allowance covers it.
+  expect(PermissionNext.modeAction({ mode: "full", permission: "modal", configured: "ask", granted: "ask" })).toBe(
+    "ask",
+  )
+  expect(PermissionNext.modeAction({ mode: "full", permission: "modal", configured: "ask", granted: "allow" })).toBe(
+    "allow",
+  )
 })
 
 test("recognizes pip flags without backtracking on adversarial separators", () => {

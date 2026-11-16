@@ -3,7 +3,16 @@ import fs, { type FileHandle } from "node:fs/promises"
 import path from "node:path"
 
 export namespace ModalUpload {
+  /** What a job may send without naming it: everything a glob or a staged
+   * folder sweeps up, in total. Past this a person is approving bytes they
+   * never saw listed. */
   export const LIMIT = 100 * 1024 * 1024
+  /** One file the request names literally (a checkpoint, a dataset) may be
+   * this large: the plan lists it with its size and hash, so the approval is
+   * of that file. */
+  export const NAMED_LIMIT = 2 * 1024 * 1024 * 1024
+  /** Everything together, named or not. */
+  export const TOTAL_LIMIT = 4 * 1024 * 1024 * 1024
   export const COUNT_LIMIT = 10_000
 
   export type Entry = {
@@ -11,6 +20,7 @@ export namespace ModalUpload {
     canonical: string
     size: number
     sha256?: string
+    named?: boolean
   }
 
   export type Snapshot = {
@@ -104,7 +114,7 @@ export namespace ModalUpload {
           ctimeMs: info.ctimeMs,
         }
         if (!valid(snapshot)) throw new Error(`${label} input has an invalid size: ${file}`)
-        if (snapshot.size > LIMIT) throw new Error(`${label} input exceeds the 100 MiB approval limit: ${file}`)
+        if (snapshot.size > NAMED_LIMIT) throw new Error(`${label} input exceeds the 2 GiB limit for one file: ${file}`)
         return { handle, snapshot }
       })
       .catch(async (error) => {
@@ -127,11 +137,16 @@ export namespace ModalUpload {
     }
   }
 
-  export function validate(files: Entry[], label = "Modal") {
+  /** Check a manifest. A file the request named literally (`named`, given
+   * at plan time or carried on the approved entries) may reach NAMED_LIMIT;
+   * everything else must fit LIMIT together; the whole must fit TOTAL_LIMIT. */
+  export function validate(files: Entry[], label = "Modal", options: { named?: ReadonlySet<string> } = {}) {
     if (files.length > COUNT_LIMIT) throw new Error(`${label} uploads exceed the ${COUNT_LIMIT}-file approval limit`)
     const paths = new Set<string>()
     const sources = new Set<string>()
     const total = { value: 0 }
+    const swept = { value: 0 }
+    const named = options.named ?? new Set(files.filter((file) => file.named).map((file) => file.path))
     for (const file of files) {
       const normalized = file.path.split(path.sep).join("/")
       if (
@@ -155,8 +170,17 @@ export namespace ModalUpload {
       if (file.sha256 !== undefined && !/^[a-f0-9]{64}$/.test(file.sha256)) {
         throw new Error(`${label} input has an invalid checksum: ${file.path}`)
       }
-      if (file.size > LIMIT) throw new Error(`${label} input exceeds the 100 MiB approval limit: ${file.path}`)
-      if (file.size > LIMIT - total.value) throw new Error(`${label} uploads exceed the 100 MiB approval limit`)
+      if (file.size > NAMED_LIMIT) throw new Error(`${label} input exceeds the 2 GiB limit for one file: ${file.path}`)
+      if (!named.has(file.path)) {
+        if (file.size > LIMIT) {
+          throw new Error(
+            `${label} input exceeds the 100 MiB approval limit: ${file.path}. Name it in uploads explicitly (no glob) to send a file up to 2 GiB.`,
+          )
+        }
+        if (file.size > LIMIT - swept.value) throw new Error(`${label} uploads exceed the 100 MiB approval limit`)
+        swept.value += file.size
+      }
+      if (file.size > TOTAL_LIMIT - total.value) throw new Error(`${label} uploads exceed the 4 GiB limit in total`)
       total.value += file.size
     }
     return total.value

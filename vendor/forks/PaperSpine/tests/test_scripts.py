@@ -33,9 +33,24 @@ class ScriptSmokeTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
         self.assertIn("Errors: 0", result.stdout)
 
-    def test_latex_guard_flags_author_year_citation(self) -> None:
-        # Regression: SKILL.md and references/latex.md say latex_guard rejects
-        # author-year citations; it must actually fire on (Name, Year) in the body.
+    def test_latex_guard_rejects_serialized_double_backslashes(self) -> None:
+        # A JSON/Python-escaped source can render as a PDF of visible TeX text;
+        # reject it before any renderer or package receipt can accept it.
+        with tempfile.TemporaryDirectory() as tmp:
+            tex = Path(tmp) / "serialized.tex"
+            tex.write_text(
+                "\\\\documentclass{article}\n"
+                "\\\\begin{document}\n"
+                "\\\\end{document}\n",
+                encoding="utf-8",
+            )
+            result = run_script("src/scripts/latex_guard.py", str(tex), "--markdown")
+            self.assertEqual(result.returncode, 1, result.stderr + result.stdout)
+            self.assertIn("serialized-command", result.stdout)
+
+    def test_latex_guard_respects_venue_and_explicit_numeric_citation_style(self) -> None:
+        # Venue style may use author-year; explicit numeric-brackets must still
+        # reject those same markers instead of silently accepting mixed styles.
         with tempfile.TemporaryDirectory() as tmp:
             tex = Path(tmp) / "ay.tex"
             tex.write_text(
@@ -50,8 +65,14 @@ Prior work (Smith et al., 2019) and (Jones and Lee, 2021) studied this problem.
                 encoding="utf-8",
             )
             result = run_script("src/scripts/latex_guard.py", str(tex), "--markdown")
-            self.assertEqual(result.returncode, 1, result.stderr + result.stdout)
-            self.assertIn("Author-year citation", result.stdout)
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            self.assertNotIn("Author-year citation", result.stdout)
+            numeric = run_script(
+                "src/scripts/latex_guard.py", str(tex),
+                "--citation-style", "numeric-brackets", "--markdown",
+            )
+            self.assertEqual(numeric.returncode, 1, numeric.stderr + numeric.stdout)
+            self.assertIn("Author-year citation", numeric.stdout)
 
     def test_latex_guard_flags_literal_bracket_citations_without_cite(self) -> None:
         # Regression: in-text [n] typed as literal text with an uncited
@@ -136,8 +157,8 @@ This cites work [9] beyond the list.
         self.assertTrue(has_reference_format(["C3", "Journal of ML"]))
         self.assertFalse(has_reference_format(["C4", "just a claim sentence."]))
 
-    def test_section_economy_fails_over_budget(self) -> None:
-        # 8 top-level sections must hard-fail the applied-paper budget.
+    def test_section_economy_is_advisory_by_default(self) -> None:
+        # Section count guides balanced editorial judgment but does not hard-fail it.
         with tempfile.TemporaryDirectory() as tmp:
             body = "\n".join(
                 f"\\section{{S{i}}}\nParagraph one of section {i}. " + ("content " * 40)
@@ -151,8 +172,28 @@ This cites work [9] beyond the list.
                 encoding="utf-8",
             )
             result = run_script("src/scripts/section_economy_check.py", str(tex), "--markdown")
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            self.assertIn("PASS_WITH_ADVISORIES", result.stdout)
+            self.assertIn("orientation value", result.stdout)
+
+    def test_section_economy_can_be_enforced_in_strict_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            body = "\n".join(
+                f"\\section{{S{i}}}\nParagraph one of section {i}. " + ("content " * 40)
+                for i in range(1, 9)
+            )
+            tex = Path(tmp) / "main.tex"
+            tex.write_text(
+                "\\documentclass{article}\n\\title{Bloat}\n\\begin{document}\n\\maketitle\n"
+                + body
+                + "\n\\end{document}\n",
+                encoding="utf-8",
+            )
+            result = run_script(
+                "src/scripts/section_economy_check.py", str(tex), "--markdown", "--enforce"
+            )
             self.assertEqual(result.returncode, 1, result.stderr + result.stdout)
-            self.assertIn("exceeds the applied-paper budget", result.stdout)
+            self.assertIn("Status: FAIL", result.stdout)
 
     def test_section_economy_passes_within_budget(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

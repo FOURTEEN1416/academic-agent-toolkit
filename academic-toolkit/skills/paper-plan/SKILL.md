@@ -163,7 +163,7 @@ Before planning figures, **read the figure exemplars file** to calibrate expecta
 
 cat _utils/figure_exemplars.md 2>/dev/null || cat skills/shared-scripts/figure_exemplars.md
 
-# Also browse recipe libraries (60+ SCI-grade chart code templates, for reference)
+# Also browse recipe libraries (110 SCI-grade chart code templates, for reference; counts follow the actual H2 numbers in _utils/figure_recipes_*.md)
 
 ls _utils/figure_recipes_*.md 2>/dev/null || ls skills/shared-scripts/figure_recipes_*.md
 
@@ -171,17 +171,17 @@ ls _utils/figure_recipes_*.md 2>/dev/null || ls skills/shared-scripts/figure_rec
 
 
 
-**5 recipe libraries available** (browse to inspire your figure plan, not mandatory):
+**5 recipe libraries available** (browse to inspire your figure plan, not mandatory; counts follow the actual H2 numbers in `_utils/figure_recipes_*.md`, rechecked 2026-11-16):
 
 - `basic` (12): standard plots with gradient fills / KDE backgrounds / Rain Cloud / Lollipop
 
-- `advanced` (17): high-impact SCI charts (SHAP / Kaplan-Meier / Forest plot / Sankey)
+- `advanced` (35): high-impact SCI charts (SHAP / Kaplan-Meier / Forest plot / Sankey)
 
-- `empirical` (16): econometrics/stats (DID / IV / quantile regression)
+- `empirical` (21): econometrics/stats (DID / IV / quantile regression)
 
 - `academic` (12): AI/CS charts (ablation / t-SNE / training curves)
 
-- `competition` (23): contest-style (convergence / Pareto / bubble+KDE)
+- `competition` (30): contest-style (convergence / Pareto / bubble+KDE)
 
 
 

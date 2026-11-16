@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:paperspine:publication-cycle:result:1.0",
+  "title": "PaperSpine Publication Cycle Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "interface_version",
+    "request_sha256",
+    "operation",
+    "mode",
+    "ok",
+    "outcome",
+    "stage",
+    "blocking_findings",
+    "warnings",
+    "input_receipts",
+    "artifacts",
+    "signals",
+    "next_action",
+    "authority_boundary",
+    "audit"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine.publication-cycle.result"},
+    "interface_version": {"const": "1.0"},
+    "request_sha256": {
+      "anyOf": [
+        {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        {"type": "null"}
+      ]
+    },
+    "operation": {
+      "enum": ["profile_check", "assemble", "rebuttal_check", "rebuttal_render", "transfer_plan", "unknown"]
+    },
+    "mode": {"enum": ["submission", "revision", "transfer", "unknown"]},
+    "ok": {"type": "boolean"},
+    "outcome": {
+      "enum": ["PROFILE_VALID", "BUNDLE_READY", "REBUTTAL_VALID", "REBUTTAL_READY", "READY_TO_REBUILD", "BLOCKED"]
+    },
+    "stage": {
+      "enum": [
+        "target_profile_ready",
+        "target_bundle_ready",
+        "rebuttal_validated",
+        "rebuttal_materials_ready",
+        "destination_rebuild_ready",
+        "blocked"
+      ]
+    },
+    "blocking_findings": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "warnings": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "input_receipts": {"$ref": "#/$defs/fileRecords"},
+    "artifacts": {"$ref": "#/$defs/fileRecords"},
+    "signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_complete",
+        "submission_bundle_ready",
+        "rebuttal_materials_ready",
+        "destination_rebuild_ready",
+        "external_action_authorized"
+      ],
+      "properties": {
+        "operation_complete": {"type": "boolean"},
+        "submission_bundle_ready": {"type": "boolean"},
+        "rebuttal_materials_ready": {"type": "boolean"},
+        "destination_rebuild_ready": {"type": "boolean"},
+        "external_action_authorized": {"const": false}
+      }
+    },
+    "next_action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "action"],
+      "properties": {
+        "owner": {"type": "string", "minLength": 1},
+        "action": {"type": "string", "minLength": 1}
+      }
+    },
+    "authority_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "external_action_authorized",
+        "may_infer_author_only_facts",
+        "may_change_confirmed_scientific_identity",
+        "may_accept_fees_or_licenses"
+      ],
+      "properties": {
+        "external_action_authorized": {"const": false},
+        "may_infer_author_only_facts": {"const": false},
+        "may_change_confirmed_scientific_identity": {"const": false},
+        "may_accept_fees_or_licenses": {"const": false}
+      }
+    },
+    "audit": {"type": "object"}
+  },
+  "$defs": {
+    "fileRecords": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "path", "sha256", "size_bytes"],
+        "properties": {
+          "role": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "size_bytes": {"type": "integer", "minimum": 0}
+        }
+      }
+    }
+  }
+}

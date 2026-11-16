@@ -6,6 +6,7 @@ import { ExecutionAuthority } from "../../src/project/execution"
 import { Project } from "../../src/project/project"
 import { ProjectTrust } from "../../src/project/trust"
 import { Pty } from "../../src/pty"
+import { Shell } from "../../src/shell/shell"
 import { Sandbox } from "../../src/sandbox/sandbox"
 import { KernelRuntime } from "../../src/science/kernel/registry"
 import { Server } from "../../src/server/server"
@@ -50,15 +51,15 @@ test("session execution authority is inspectable through the project route", asy
   expect(response.status).toBe(200)
   const decision = ExecutionAuthority.Decision.parse(await response.json())
   expect(decision).toMatchObject({
-    allowed: Sandbox.available(),
-    reason: Sandbox.available() ? "allowed" : "sandbox_unavailable",
+    allowed: true,
+    reason: "allowed",
     capability: "terminal",
-    mode: Sandbox.available() ? "sandboxed" : "read_only",
+    mode: "host",
     projectID: project.project.id,
     sessionID,
     sandbox: {
-      enabled: true,
-      enforced: Sandbox.available(),
+      enabled: false,
+      enforced: false,
       requireProjectTrust: false,
     },
   })
@@ -67,11 +68,20 @@ test("session execution authority is inspectable through the project route", asy
   expect(ExecutionAuthority.Decision.parse({ ...decision, sandbox: legacySandbox }).sandbox.requireProjectTrust).toBe(
     false,
   )
+  // A fresh decision names the owned scratch directory beside the working
+  // directory. Decisions persisted in compute job histories by earlier builds
+  // have no such field and must keep parsing: one old record must never make a
+  // project's history "corrupt" and take the credential barrier down with it.
+  expect(decision.scratch).toBeDefined()
+  const { scratch, ...persisted } = decision
+  expect(scratch).toBe(decision.workspace)
+  expect(ExecutionAuthority.Decision.parse(persisted).scratch).toBeUndefined()
 })
 
-test("untrusted projects run routine terminals, shells, and kernels only in an enforced sandbox", async () => {
+test("user terminals are independent of the enforced agent shell and kernel sandbox", async () => {
   await using _sandbox = await sandboxedExecution()
   await using tmp = await tmpdir({ git: true })
+  await using outside = await tmpdir()
   await Instance.provide({
     directory: tmp.path,
     fn: async () => {
@@ -82,7 +92,7 @@ test("untrusted projects run routine terminals, shells, and kernels only in an e
       const decision = await ExecutionAuthority.decide({
         projectID: Instance.project.id,
         sessionID: session.id,
-        capability: "terminal",
+        capability: "shell",
       })
 
       expect(decision).toMatchObject({
@@ -113,7 +123,9 @@ test("untrusted projects run routine terminals, shells, and kernels only in an e
         language: "python" as const,
       }
       if (!Sandbox.available()) {
-        await expect(Pty.create({ sessionID: session.id })).rejects.toBeInstanceOf(ExecutionAuthority.DeniedError)
+        const terminal = await Pty.create({ sessionID: session.id })
+        expect(terminal.authority.mode).toBe("host")
+        await Pty.remove(terminal.id)
         await expect(
           bash.execute(
             {
@@ -133,7 +145,24 @@ test("untrusted projects run routine terminals, shells, and kernels only in an e
 
       const terminal = await Pty.create({ sessionID: session.id })
       try {
-        expect(terminal.authority).toMatchObject({ allowed: true, mode: "sandboxed", sandbox: { enforced: true } })
+        expect(terminal.authority).toMatchObject({
+          allowed: true,
+          mode: "host",
+          sandbox: { enabled: false, enforced: false, network: "allow" },
+        })
+        const marker = path.join(outside.path, "user-terminal-config")
+        Pty.write(terminal.id, `printf user-terminal > '${marker}'\r`)
+        for (let attempt = 0; attempt < 500 && !(await Bun.file(marker).exists()); attempt++) await Bun.sleep(20)
+        expect(await Bun.file(marker).text()).toBe("user-terminal")
+        const denied = await bash.execute(
+          {
+            command: `printf agent-shell > '${marker}'`,
+            description: "Check agent sandbox outside the project",
+          },
+          context(session.id),
+        )
+        expect(denied.metadata.exit).not.toBe(0)
+        expect(await Bun.file(marker).text()).toBe("user-terminal")
         const result = await bash.execute(
           {
             command: `printf spawned > ${JSON.stringify(shellMarker)}`,
@@ -278,12 +307,20 @@ test("authority generations change with trust and filesystem revisions", async (
       })
       expect(granted.grantRevision).toBeGreaterThan(trusted.grantRevision)
       expect(granted.generation).not.toBe(trusted.generation)
+
+      // A launch prepared before the grant still holds: the grant widened
+      // authority. A trust change or a root that disappeared narrows it.
+      expect(ExecutionAuthority.narrowed(trusted, granted)).toBe(false)
+      expect(ExecutionAuthority.narrowed(initial, trusted)).toBe(true)
+      expect(ExecutionAuthority.narrowed(granted, trusted)).toBe(granted.readable.length > trusted.readable.length)
+      expect(ExecutionAuthority.narrowed(granted, { ...granted, accessMode: "full" })).toBe(
+        granted.accessMode !== "full",
+      )
     },
   })
 })
 
-test("trusted terminal derives its process contract from the owning session", async () => {
-  if (!Sandbox.available()) return
+test("user terminal derives its ownership and teardown from the owning session", async () => {
   await using _sandbox = await sandboxedExecution()
   await using tmp = await tmpdir({ git: true })
   await Instance.provide({
@@ -309,11 +346,11 @@ test("trusted terminal derives its process contract from the owning session", as
           authority: {
             allowed: true,
             capability: "terminal",
-            mode: "sandboxed",
+            mode: "host",
             sandbox: {
-              enabled: true,
-              enforced: true,
-              network: "deny",
+              enabled: false,
+              enforced: false,
+              network: "allow",
             },
           },
           status: "running",
@@ -328,3 +365,97 @@ test("trusted terminal derives its process contract from the owning session", as
     },
   })
 })
+
+test("terminals follow the selected connected working folder and explicit scratch choice", async () => {
+  await using _sandbox = await sandboxedExecution()
+  await using project = await tmpdir({ git: true })
+  await using folder = await tmpdir()
+  await Instance.provide({
+    directory: project.path,
+    fn: async () => {
+      const session = await Session.create({})
+      await SessionFilesystem.grant({
+        sessionID: session.id,
+        path: folder.path,
+        access: "write",
+        scope: "session",
+        source: "api",
+      })
+      const connected = await Pty.create({ sessionID: session.id })
+      try {
+        expect(connected.cwd).toBe(folder.path)
+        expect(connected.authority.workspace).toBe(folder.path)
+      } finally {
+        await Pty.remove(connected.id)
+      }
+      await SessionFilesystem.setWorkingRoot(session.id, "scratch")
+      const scratch = await Pty.create({ sessionID: session.id })
+      try {
+        expect(scratch.cwd).toBe(await SessionFilesystem.workspace(session.id))
+        expect(scratch.cwd).not.toBe(folder.path)
+      } finally {
+        await Pty.remove(scratch.id)
+      }
+      await Session.remove(session.id)
+    },
+  })
+})
+
+test.skipIf(process.platform === "win32")(
+  "Claude launcher runs the installed command once in the selected folder",
+  async () => {
+    await using project = await tmpdir({ git: true })
+    await using folder = await tmpdir()
+    await using profile = await tmpdir()
+    const shell = Shell.preferred()
+    if (!/\/(zsh|bash)$/.test(shell)) return
+    const script = `${profile.path}/bin/claude`
+    await Bun.write(
+      script,
+      "#!/bin/sh\npwd > .claude-launch-test.tmp\nmv .claude-launch-test.tmp .claude-launch-test\nprintf 'CLI_LAUNCHED\\n'\n",
+    )
+    await Bun.$`chmod +x ${script}`.quiet()
+    const config = `export PATH='${profile.path}/bin':$PATH\n`
+    await Bun.write(`${profile.path}/.zprofile`, config)
+    await Bun.write(`${profile.path}/.bash_profile`, config)
+    const previous = { HOME: process.env.HOME, ZDOTDIR: process.env.ZDOTDIR }
+    process.env.HOME = profile.path
+    process.env.ZDOTDIR = profile.path
+    try {
+      await Instance.provide({
+        directory: project.path,
+        fn: async () => {
+          const session = await Session.create({})
+          await SessionFilesystem.grant({
+            sessionID: session.id,
+            path: folder.path,
+            access: "write",
+            scope: "session",
+            source: "api",
+          })
+          const terminal = await Pty.create({ sessionID: session.id, program: "claude" })
+          try {
+            expect(terminal.title).toBe("Claude Code")
+            expect(terminal.program).toBe("claude")
+            expect(terminal.cwd).toBe(folder.path)
+            const marker = `${folder.path}/.claude-launch-test`
+            for (let attempt = 0; attempt < 100 && !(await Bun.file(marker).exists()); attempt++) await Bun.sleep(50)
+            expect((await Bun.file(marker).text()).trim().split("\n")).toEqual([folder.path])
+            expect(Pty.get(terminal.id)?.status).toBe("running")
+            expect(Pty.CreateInput.safeParse({ sessionID: session.id, program: "claude; injected" }).success).toBe(
+              false,
+            )
+          } finally {
+            await Pty.remove(terminal.id)
+            await Session.remove(session.id)
+          }
+        },
+      })
+    } finally {
+      for (const key of ["HOME", "ZDOTDIR"] as const) {
+        if (previous[key] === undefined) delete process.env[key]
+        else process.env[key] = previous[key]
+      }
+    }
+  },
+)

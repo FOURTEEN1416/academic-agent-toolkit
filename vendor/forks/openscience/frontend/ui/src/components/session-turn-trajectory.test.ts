@@ -1,0 +1,3019 @@
+import { afterAll, afterEach, describe, expect, test } from "bun:test"
+import { fileURLToPath } from "node:url"
+import type { AssistantMessage, Part, ReasoningPart, TextPart, ToolPart, UserMessage } from "@synsci/sdk/v2"
+import type { JSX } from "solid-js"
+import { createTestServer as createServer } from "../../../workspace/test/vite"
+import solid from "vite-plugin-solid"
+
+// jsdom has no ResizeObserver; the turn only measures with it, never depends on a callback here.
+class Observer {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+const originalCustomEvent = globalThis.CustomEvent
+Object.assign(globalThis, { ResizeObserver: globalThis.ResizeObserver ?? Observer, CustomEvent: window.CustomEvent })
+
+// Render the real transcript in jsdom: all provider-readable reasoning,
+// streaming prose, and chronological tool rows with expandable output.
+const vite = await createServer({
+  root: fileURLToPath(new URL("../../../workspace", import.meta.url)),
+  mode: "production",
+  logLevel: "silent",
+  plugins: [solid({ ssr: false, dev: false })],
+  server: { middlewareMode: true, watch: null },
+  appType: "custom",
+  resolve: { conditions: ["browser", "production"], dedupe: ["solid-js", "solid-js/web"] },
+  // fuzzysort ships a UMD wrapper that reads `this`; leave it to the runtime.
+  ssr: { noExternal: true, external: ["fuzzysort"], resolve: { conditions: ["browser", "production"] } },
+})
+const web = (await vite.ssrLoadModule("solid-js/web")) as typeof import("solid-js/web")
+const solidRuntime = (await vite.ssrLoadModule("solid-js")) as typeof import("solid-js")
+const reactive = (await vite.ssrLoadModule("solid-js/store")) as typeof import("solid-js/store")
+const data = (await vite.ssrLoadModule("@synsci/ui/context/data")) as typeof import("../context/data")
+const dialog = (await vite.ssrLoadModule("@synsci/ui/context/dialog")) as typeof import("../context/dialog")
+const diff = (await vite.ssrLoadModule("@synsci/ui/context/diff")) as typeof import("../context/diff")
+const codeContext = (await vite.ssrLoadModule("@synsci/ui/context/code")) as typeof import("../context/code")
+const marked = (await vite.ssrLoadModule("@synsci/ui/context/marked")) as typeof import("../context/marked")
+const parts = (await vite.ssrLoadModule("@synsci/ui/message-part")) as typeof import("./message-part")
+const turn = (await vite.ssrLoadModule("@synsci/ui/session-turn")) as typeof import("./session-turn")
+const compute = (await vite.ssrLoadModule("@synsci/ui/compute-job-details")) as typeof import("./compute-job-details")
+const markdown = (await vite.ssrLoadModule("@synsci/ui/markdown")) as typeof import("./markdown")
+const assets = (await vite.ssrLoadModule(
+  "/src/utils/markdown-assets.ts",
+)) as typeof import("../../../workspace/src/utils/markdown-assets")
+const cleanups: Array<() => void> = []
+const settle = () => new Promise((resolve) => setTimeout(resolve, 0))
+const ready = async (check: () => boolean) => {
+  for (let i = 0; i < 200 && !check(); i++) await new Promise((resolve) => setTimeout(resolve, 20))
+  expect(check()).toBe(true)
+}
+
+const sessionID = "ses_trajectory"
+const user: UserMessage = {
+  id: "msg_0001",
+  sessionID,
+  role: "user",
+  time: { created: 1 },
+  agent: "research",
+  model: { providerID: "test", modelID: "test" },
+}
+const assistant = (completed?: number): AssistantMessage => ({
+  id: "msg_0002",
+  sessionID,
+  parentID: user.id,
+  role: "assistant",
+  time: { created: 2, completed },
+  modelID: "test",
+  providerID: "test",
+  agent: "research",
+  mode: "research",
+  path: { cwd: "/research", root: "/research" },
+  cost: 0,
+  tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+})
+const read = (id: string, file: string, start: number): ToolPart => ({
+  id,
+  sessionID,
+  messageID: "msg_0002",
+  type: "tool",
+  callID: `call_${id}`,
+  tool: "read",
+  state: {
+    status: "completed",
+    input: { filePath: file },
+    output: `<file>\n00001| line\n00002| line\n</file>`,
+    title: file,
+    metadata: {},
+    time: { start, end: start + 400 },
+  },
+})
+
+type Store = Parameters<typeof data.DataProvider>[0]["data"]
+type Callbacks = {
+  saveArtifact?: (path: string) => Promise<void>
+  openFile?: (path: string) => void
+  loadComputeJob?: Parameters<typeof data.DataProvider>[0]["onLoadComputeJob"]
+  resolveFileReceipts?: Parameters<typeof data.DataProvider>[0]["onResolveFileReceipts"]
+  resendTurn?: Parameters<typeof data.DataProvider>[0]["onResendTurn"]
+  navigateToSession?: Parameters<typeof data.DataProvider>[0]["onNavigateToSession"]
+}
+const mount = (view: () => JSX.Element, store: Store, callbacks: Callbacks = {}) => {
+  const host = document.createElement("div")
+  host.className = "session-scroller"
+  document.body.append(host)
+  cleanups.push(
+    web.render(
+      () =>
+        data.DataProvider({
+          data: store,
+          directory: "/research",
+          onSaveArtifact: callbacks.saveArtifact,
+          onOpenFile: callbacks.openFile,
+          onLoadComputeJob: callbacks.loadComputeJob,
+          onResolveFileReceipts: callbacks.resolveFileReceipts,
+          onResendTurn: callbacks.resendTurn,
+          onNavigateToSession: callbacks.navigateToSession,
+          get children() {
+            return dialog.DialogProvider({
+              get children() {
+                return diff.DiffComponentProvider({
+                  component: () => null,
+                  get children() {
+                    return marked.MarkedProvider({
+                      get children() {
+                        // JSX initializes components untracked. Calling the
+                        // view directly makes constructor reads (such as the
+                        // initial duration) remount the whole test subtree.
+                        return web.createComponent(view, {})
+                      },
+                    })
+                  },
+                })
+              },
+            })
+          },
+        }),
+      host,
+    ),
+  )
+  return host
+}
+const empty = (): Store => ({ session: [], session_status: {}, session_diff: {}, message: {}, part: {} })
+
+afterEach(() => {
+  cleanups.splice(0).forEach((cleanup) => cleanup())
+  document.body.replaceChildren()
+})
+afterAll(async () => {
+  await vite.close()
+  globalThis.CustomEvent = originalCustomEvent
+})
+
+describe("image generation receipts", () => {
+  test.each(["thumbnail", "Open image"])(
+    "%s opens the saved attachment without reading its old path",
+    async (action) => {
+      const url =
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
+      const part: ToolPart = {
+        ...read("prt_image_completed", "figure.png", 1000),
+        tool: "generate_image",
+        state: {
+          status: "completed",
+          input: { prompt: "Scientific diagram", output_path: "figure.png" },
+          output: "Generated figure.png.",
+          title: "figure.png",
+          metadata: { filepath: "/old-location/figure.png", mime: "image/png" },
+          time: { start: 1000, end: 1100 },
+          attachments: [
+            {
+              id: "prt_image_attachment",
+              sessionID,
+              messageID: "msg_0002",
+              type: "file",
+              mime: "image/png",
+              filename: "figure.png",
+              url,
+            },
+          ],
+        },
+      }
+      const opened: string[] = []
+      const host = mount(() => parts.Part({ part, message: assistant(1200) }), empty(), {
+        openFile: (path) => opened.push(path),
+      })
+      const button =
+        action === "thumbnail"
+          ? host.querySelector<HTMLButtonElement>('[aria-label="Preview figure.png"]')
+          : [...host.querySelectorAll<HTMLButtonElement>("button")].find(
+              (item) => item.textContent?.trim() === "Open image",
+            )
+      expect(button).toBeTruthy()
+      button!.click()
+      await ready(() => document.querySelector('[data-slot="image-preview-image"]') !== null)
+      const image = document.querySelector<HTMLImageElement>('[data-slot="image-preview-image"]')!
+      expect(image.getAttribute("src")).toBe(url)
+      expect(image.alt).toBe("figure.png")
+      expect(opened).toEqual([])
+    },
+  )
+
+  test("an image without an inline attachment opens its workspace file", () => {
+    const part: ToolPart = {
+      ...read("prt_image_file", "figure.png", 1000),
+      tool: "generate_image",
+      state: {
+        status: "completed",
+        input: { prompt: "Scientific diagram", output_path: "figure.png" },
+        output: "Generated figure.png.",
+        title: "figure.png",
+        metadata: { filepath: "/research/figure.png" },
+        time: { start: 1000, end: 1100 },
+      },
+    }
+    const opened: string[] = []
+    const host = mount(() => parts.Part({ part, message: assistant(1200) }), empty(), {
+      openFile: (path) => opened.push(path),
+    })
+    const button = [...host.querySelectorAll<HTMLButtonElement>("button")].find(
+      (item) => item.textContent?.trim() === "Open image",
+    )!
+    button.click()
+    expect(opened).toEqual(["/research/figure.png"])
+    expect(document.querySelector('[data-slot="image-preview-image"]')).toBeNull()
+  })
+
+  test("an unavailable image provider never claims a connected OpenRouter account", () => {
+    const part: ToolPart = {
+      ...read("prt_image_unavailable", "figure.png", 1000),
+      tool: "generate_image",
+      state: {
+        status: "error",
+        input: { prompt: "Scientific diagram", output_path: "figure.png" },
+        error: "Connect a Gemini or OpenRouter account to generate images.",
+        time: { start: 1000, end: 1100 },
+      },
+    }
+    const host = mount(() => parts.Part({ part, message: assistant(1200) }), empty())
+    expect(host.textContent).toContain("Image generation failed")
+    expect(host.textContent).not.toContain("Connected OpenRouter account")
+    expect(host.textContent).not.toContain("Generated image")
+  })
+
+  test("an image in progress does not claim to have generated a file", () => {
+    const part: ToolPart = {
+      ...read("prt_image_running", "figure.png", 1000),
+      tool: "generate_image",
+      state: {
+        status: "running",
+        input: { prompt: "Scientific diagram", output_path: "figure.png" },
+        title: "Scientific diagram",
+        metadata: { route: "gemini" },
+        time: { start: 1000 },
+      },
+    }
+    const host = mount(() => parts.Part({ part, message: assistant() }), empty())
+    expect(host.textContent).toContain("Generating image")
+    expect(host.textContent).toContain("Connected Gemini account")
+    expect(host.textContent).not.toContain("Generated image")
+    expect(host.querySelector('[data-component="generated-image-preview"]')).toBeNull()
+  })
+})
+
+describe("file change counters", () => {
+  test("completed edit groups show totals before expansion and preserve them as new calls arrive", async () => {
+    const message = assistant()
+    const edit = (id: string, additions: number, deletions: number): ToolPart => ({
+      ...read(id, "/research/paper.tex", 1000),
+      tool: "edit",
+      state: {
+        status: "completed",
+        input: { filePath: "/research/paper.tex" },
+        output: "Edited successfully.",
+        title: "paper.tex",
+        metadata: { filediff: { file: "/research/paper.tex", additions, deletions } },
+        time: { start: 1000, end: 1200 },
+      },
+    })
+    const [store, setStore] = reactive.createStore<Store>({
+      ...empty(),
+      session_status: { [sessionID]: { type: "busy" } },
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [edit("edit1", 5, 2), edit("edit2", 3, 1)] },
+    })
+    const host = mount(
+      () => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id, stepsExpanded: true }),
+      store,
+    )
+    const group = host.querySelector('[data-component="trace-group"][data-kind="edited"]')!
+    const trigger = group.querySelector<HTMLButtonElement>('[data-slot="collapsible-trigger"]')!
+    expect(trigger.getAttribute("aria-expanded")).toBe("false")
+    expect(trigger.querySelector('[data-component="diff-changes"]')?.getAttribute("aria-label")).toBe(
+      "8 lines added, 3 lines removed",
+    )
+    trigger.click()
+    await settle()
+    expect(trigger.getAttribute("aria-expanded")).toBe("true")
+    setStore("part", message.id, (previous) => [...previous, edit("edit3", 2, 4)])
+    await settle()
+    expect(host.querySelector('[data-component="trace-group"][data-kind="edited"]')).toBe(group)
+    expect(trigger.getAttribute("aria-expanded")).toBe("true")
+    expect(trigger.querySelector('[data-component="diff-changes"]')?.getAttribute("aria-label")).toBe(
+      "10 lines added, 7 lines removed",
+    )
+  })
+
+  test("file writes and atomic patches expose their completed line counts in the collapsed tool header", () => {
+    for (const tool of ["write", "apply_patch"]) {
+      const part: ToolPart = {
+        ...read(`prt_${tool}`, "/research/paper.tex", 1000),
+        tool,
+        state: {
+          status: "completed",
+          input: { filePath: "/research/paper.tex" },
+          title: "paper.tex",
+          output: "Saved.",
+          metadata:
+            tool === "write"
+              ? { filediff: { additions: 8, deletions: 2 } }
+              : {
+                  files: [
+                    {
+                      filePath: "/research/old.tex",
+                      relativePath: "old.tex",
+                      type: "delete",
+                      additions: 0,
+                      deletions: 2,
+                    },
+                    { filePath: "/research/new.tex", relativePath: "new.tex", type: "add", additions: 8, deletions: 0 },
+                  ],
+                },
+          time: { start: 1000, end: 1200 },
+        },
+      }
+      const host = mount(
+        () =>
+          codeContext.CodeComponentProvider({
+            component: () => null,
+            get children() {
+              return parts.Part({ part, message: assistant(1200) })
+            },
+          }),
+        empty(),
+      )
+      const trigger = host.querySelector('[data-component="tool-trigger"]')!
+      expect(trigger.querySelector('[data-component="diff-changes"]')?.getAttribute("aria-label")).toBe(
+        "8 lines added, 2 lines removed",
+      )
+    }
+  })
+
+  test("the file summary shows net turn changes even when activity is collapsed", () => {
+    const message = assistant(2000)
+    const store: Store = {
+      ...empty(),
+      message: {
+        [sessionID]: [
+          {
+            ...user,
+            summary: {
+              diffs: [
+                { file: "paper.tex", before: "old\n", after: "new\n", additions: 1, deletions: 1 },
+                { file: "figure.py", before: "", after: "plot()\n", additions: 1, deletions: 0 },
+              ],
+            },
+          },
+          message,
+        ],
+      },
+      part: { [user.id]: [], [message.id]: [] },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id, stepsExpanded: false }), store)
+    const summary = host.querySelector('[data-slot="session-turn-changes-summary"]')!
+    expect(summary.textContent).toContain("2 files changed")
+    expect(summary.querySelector('[data-component="diff-changes"]')?.getAttribute("aria-label")).toBe(
+      "2 lines added, 1 line removed",
+    )
+  })
+})
+
+describe("reasoning rows", () => {
+  const reasoning = (id: string, time: ReasoningPart["time"]): ReasoningPart => ({
+    id,
+    sessionID,
+    messageID: "msg_0002",
+    type: "reasoning",
+    text: "Comparing the two assay formats before choosing one.",
+    time,
+  })
+
+  test("keeps full reasoning prose inline through streaming and remounts without per-part clocks or phase headings", async () => {
+    const [message, setMessage] = reactive.createStore<AssistantMessage>(assistant())
+    const [part, setPart] = reactive.createStore<ReasoningPart>(reasoning("prt_reason", { start: Date.now() - 12_300 }))
+    const host = mount(() => parts.Part({ part, message, hideCopy: true }), empty())
+    await settle()
+    const row = host.querySelector('[data-component="reasoning-part"]')!
+    expect(row.getAttribute("data-live")).toBe("true")
+    expect(row.querySelector("button")).toBeNull()
+    expect(row.querySelector('[data-slot="reasoning-part-header"]')).toBeNull()
+    await ready(() => row.querySelector('[data-slot="reasoning-part-body"] p') !== null)
+    const body = row.querySelector('[data-slot="reasoning-part-body"]')!
+    setPart(
+      "text",
+      part.text +
+        "\n\n**Locating datasets**\n\nThe entire next passage stays visible.\n\n**Gathering dataset for analysis**\n\nThe source is available.\n\n**Clarifying project path**\n\nThe outputs stay in this project.",
+    )
+    await ready(() => body.textContent?.includes("The entire next passage stays visible.") === true)
+    expect(row.querySelector('[data-slot="reasoning-part-body"]')).toBe(body)
+    expect(body.textContent).not.toContain("Locating datasets")
+    expect(body.textContent).not.toContain("Gathering dataset for analysis")
+    expect(body.textContent).not.toContain("Clarifying project path")
+    expect(body.textContent).toContain("The source is available.")
+    expect(body.textContent).toContain("The outputs stay in this project.")
+    expect(row.querySelector('[data-slot="reasoning-part-body"]')?.textContent).toContain("Comparing the two assay")
+
+    // Completion does not replace or summarize the streamed prose.
+    setPart("time", { start: part.time.start, end: part.time.start + 15_000 })
+    setMessage("time", "completed", Date.now())
+    await settle()
+    expect(row.getAttribute("data-live")).toBeNull()
+    expect(row.querySelector('[data-component="spinner"]')).toBeNull()
+    expect(body.textContent).toContain("The entire next passage stays visible.")
+
+    // Hydrating a completed turn keeps the full provider text visible too.
+    cleanups.splice(0).forEach((cleanup) => cleanup())
+    document.body.replaceChildren()
+    const again = mount(() => parts.Part({ part, message, hideCopy: true }), empty())
+    await settle()
+    await ready(() => again.querySelector('[data-slot="reasoning-part-body"] p') !== null)
+    expect(again.querySelector('[data-slot="reasoning-part-body"]')?.textContent).toContain(
+      "The entire next passage stays visible.",
+    )
+    expect(again.querySelector('[data-slot="reasoning-part-toggle"]')).toBeNull()
+    expect(again.querySelector('[data-slot="reasoning-part-body"]')?.textContent).not.toContain("Locating datasets")
+    expect(again.querySelector('[data-slot="reasoning-part-body"]')?.textContent).not.toContain("Gathering dataset")
+    expect(again.querySelector('[data-slot="reasoning-part-body"]')?.textContent).not.toContain("Clarifying project")
+  })
+
+  test("an aborted turn preserves reasoning without a misleading thinking clock", async () => {
+    const message = assistant(Date.now())
+    const part = reasoning("prt_aborted", { start: Date.now() - 40_000 })
+    const host = mount(() => parts.Part({ part, message, hideCopy: true }), empty())
+    await settle()
+    const row = host.querySelector('[data-component="reasoning-part"]')!
+    expect(row.getAttribute("data-live")).toBeNull()
+    expect(row.querySelector('[data-component="spinner"]')).toBeNull()
+    await ready(() => row.querySelector('[data-slot="reasoning-part-body"] p') !== null)
+    expect(row.textContent).toContain(part.text)
+  })
+
+  test("completed reasoning is visible without a stored presentation preference", async () => {
+    const message = assistant(Date.now())
+    const part = reasoning("prt_folded", { start: 1_000, end: 1_800 })
+    const host = mount(() => parts.Part({ part, message, hideCopy: true }), empty())
+    await settle()
+    expect(host.querySelector('[data-slot="reasoning-part-header"]')).toBeNull()
+    await ready(() => host.querySelector('[data-slot="reasoning-part-body"] p') !== null)
+    expect(host.querySelector('[data-slot="reasoning-part-body"]')?.textContent).toContain(part.text)
+  })
+
+  test.each(["", " \n "])("omits non-readable reasoning %j", async (text) => {
+    const part = { ...reasoning("prt_redacted", { start: 1_000, end: 2_000 }), text }
+    const host = mount(() => parts.Part({ part, message: assistant(2_000), hideCopy: true }), empty())
+    await settle()
+    expect(host.textContent).toBe("")
+    expect(host.querySelector('[data-component="reasoning-part"]')).toBeNull()
+  })
+
+  test("one turn's classic disclosure preserves streamed prose and its saved expansion choice", async () => {
+    const message = assistant()
+    const reason = reasoning("prt_reason", { start: Date.now() })
+    const command = read("prt_read", "/research/protocol.md", 1_000)
+    const answer: TextPart = {
+      id: "prt_answer",
+      sessionID,
+      messageID: message.id,
+      type: "text",
+      text: "Checking the result.",
+    }
+    const [store, setStore] = reactive.createStore<Store>({
+      ...empty(),
+      session_status: { [sessionID]: { type: "busy" } },
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [reason, command, answer] },
+    })
+    const [preference, setPreference] = reactive.createStore({ expanded: true })
+    const view = () =>
+      turn.SessionTurn({
+        sessionID,
+        messageID: user.id,
+        lastUserMessageID: user.id,
+        get stepsExpanded() {
+          return preference.expanded
+        },
+        onStepsExpandedToggle: () => setPreference("expanded", !preference.expanded),
+      })
+    const host = mount(view, store)
+    await ready(() => host.querySelector('[data-slot="reasoning-part-body"] p') !== null)
+    const toggle = host.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!
+    expect(toggle.getAttribute("aria-expanded")).toBe("true")
+
+    toggle.click()
+    await ready(() => host.querySelector('[data-component="reasoning-part"]') === null)
+    expect(preference.expanded).toBe(false)
+    expect(toggle.getAttribute("aria-expanded")).toBe("false")
+    expect(host.textContent).toContain(answer.text)
+    expect(host.querySelector('[data-component="tool-part-wrapper"]')).toBeNull()
+    const prose = host.querySelector('[data-component="text-part"]')
+    const continued = reason.text + "\n\nNew streamed evidence."
+    setStore("part", message.id, 0, { ...reason, text: continued })
+    await settle()
+    expect(host.textContent).not.toContain("New streamed evidence.")
+    toggle.click()
+    await ready(
+      () =>
+        host.querySelector('[data-slot="reasoning-part-body"]')?.textContent?.includes("New streamed evidence.") ===
+        true,
+    )
+    expect(host.querySelector('[data-component="tool-part-wrapper"]')).not.toBeNull()
+    expect(host.querySelector('[data-component="text-part"]')).toBe(prose)
+
+    toggle.click()
+    setStore("message", sessionID, 1, { ...message, time: { ...message.time, completed: Date.now() } })
+    setStore("session_status", sessionID, { type: "idle" })
+    cleanups.splice(0).forEach((cleanup) => cleanup())
+    document.body.replaceChildren()
+    const again = mount(view, store)
+    await ready(() => again.querySelector('[data-slot="session-turn-collapsible-trigger-content"]') !== null)
+    expect(again.querySelector('[data-component="reasoning-part"]')).toBeNull()
+    const restored = again.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!
+    expect(restored.getAttribute("aria-label")).toBe("Show reasoning and activity")
+    expect(restored.textContent).toContain("Worked for")
+    restored.click()
+    await ready(() => again.textContent?.includes("New streamed evidence.") === true)
+    expect(restored.getAttribute("aria-label")).toBe("Hide reasoning and activity")
+    expect(store.part[message.id][0]).toMatchObject({ text: continued })
+    expect(again.textContent).not.toContain("Detailed")
+    expect(again.textContent).not.toContain("Compact")
+  })
+
+  test("reasoning that streamed while the reader watched stays readable once it ends", async () => {
+    const [store, setStore] = reactive.createStore<Store>({
+      ...empty(),
+      session_status: { [sessionID]: { type: "busy" } },
+      message: { [sessionID]: [user, assistant()] },
+      part: { [user.id]: [], msg_0002: [reasoning("prt_stay", { start: Date.now() - 2_000 })] },
+    })
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }), store)
+    await ready(() => host.querySelector('[data-slot="reasoning-part-body"] p') !== null)
+    expect(host.querySelector('[data-component="trace-group"][data-kind="thought"]')?.getAttribute("data-live")).toBe(
+      "true",
+    )
+    // The thought ends and the turn finishes: the text the reader was following
+    // does not fold away under them. A thought loaded later opens on request.
+    setStore("part", "msg_0002", 0, { ...reasoning("prt_stay", { start: Date.now() - 2_000, end: Date.now() }) })
+    setStore("message", sessionID, 1, { ...assistant(Date.now()) })
+    setStore("session_status", sessionID, { type: "idle" })
+    await settle()
+    expect(host.querySelector('[data-component="trace-group"][data-kind="thought"]')?.getAttribute("data-live")).toBe(
+      null,
+    )
+    expect(host.querySelector('[data-slot="reasoning-part-body"]')?.textContent).toContain(
+      "Comparing the two assay formats",
+    )
+    expect(host.querySelector('[data-component="trace-row"]')?.textContent).toMatch(/^Thought \d+s$/)
+  })
+
+  test("completed turns start quietly collapsed and can open without a settings callback", async () => {
+    const message = assistant(2_000)
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [reasoning("prt_reason", { start: 1_000, end: 2_000 })] },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store)
+    expect(host.querySelector('[data-component="reasoning-part"]')).toBeNull()
+    const toggle = host.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!
+    expect(toggle.getAttribute("aria-label")).toBe("Show reasoning and activity")
+    expect(toggle.textContent).toContain("Worked for")
+    toggle.click()
+    // A finished thought is one folded "Thought" row; its text opens on demand.
+    await ready(() => host.querySelector('[data-component="trace-group"][data-kind="thought"]') !== null)
+    expect(host.querySelector('[data-component="trace-row"]')?.textContent).toContain("Thought 1s")
+    expect(host.querySelector('[data-component="reasoning-part"]')).not.toBeNull()
+    expect(
+      host
+        .querySelector('[data-component="trace-group"] [data-slot="collapsible-content"]')
+        ?.hasAttribute("data-closed"),
+    ).toBe(true)
+    host.querySelector<HTMLButtonElement>('[data-component="trace-group"] [data-slot="collapsible-trigger"]')!.click()
+    await ready(
+      () =>
+        host
+          .querySelector('[data-component="trace-group"] [data-slot="collapsible-content"]')
+          ?.hasAttribute("data-closed") === false,
+    )
+    toggle.click()
+    await ready(() => host.querySelector('[data-component="reasoning-part"]') === null)
+  })
+
+  test("a failure the turn recovered from stays inside the collapsed trace once the answer is in", async () => {
+    const message = assistant(2_000)
+    const failed: ToolPart = {
+      ...read("prt_failed_run", "", 1_000),
+      tool: "bash",
+      state: {
+        status: "completed",
+        input: { command: "python3 analysis.py", description: "Run reproducible churn EDA" },
+        title: "Run reproducible churn EDA",
+        output: "ValueError: RGBA sequence should have length 3 or 4",
+        metadata: { exit: 1, output: "ValueError: RGBA sequence should have length 3 or 4" },
+        time: { start: 1_000, end: 1_001 },
+      },
+    }
+    const refused: ToolPart = {
+      ...read("prt_refused_fetch", "", 1_002),
+      tool: "webfetch",
+      state: {
+        status: "error",
+        input: { url: "https://www.ibm.com/docs/telco", format: "markdown" },
+        error: "Request failed with status code: 403",
+        time: { start: 1_002, end: 1_003 },
+      },
+    }
+    const rerun: ToolPart = {
+      ...read("prt_rerun", "", 1_004),
+      tool: "bash",
+      state: {
+        status: "completed",
+        input: { command: "python3 analysis.py", description: "Rerun churn EDA" },
+        title: "Rerun churn EDA",
+        output: "ok",
+        metadata: { exit: 0, output: "ok" },
+        time: { start: 1_004, end: 1_005 },
+      },
+    }
+    const answer: TextPart = {
+      id: "prt_answer",
+      sessionID,
+      messageID: message.id,
+      type: "text",
+      text: "The report is compiled and every figure audited.",
+    }
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [failed, refused, rerun, answer] },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }), store)
+    await ready(() => host.textContent?.includes(answer.text) === true)
+    // Collapsed: the answer, and none of the red rows the agent already dealt with.
+    expect(host.querySelectorAll('[data-component="tool-part-wrapper"]')).toHaveLength(0)
+    expect(host.textContent).not.toContain("Failed")
+    host.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!.click()
+    await ready(() => host.textContent?.includes("Run reproducible churn EDA") === true)
+    expect(host.textContent).toContain("Failed")
+    expect(host.textContent).toContain("ibm.com")
+  })
+
+  test("a turn that is still working keeps its failures in view", async () => {
+    const message = { ...assistant(2_000), time: { created: 2_000 } } as AssistantMessage
+    const refused: ToolPart = {
+      ...read("prt_refused_fetch", "", 1_002),
+      tool: "webfetch",
+      state: {
+        status: "error",
+        input: { url: "https://www.ibm.com/docs/telco", format: "markdown" },
+        error: "Request failed with status code: 403",
+        time: { start: 1_002, end: 1_003 },
+      },
+    }
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [refused] },
+      session_status: { [sessionID]: { type: "busy" } },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }), store)
+    await ready(() => host.textContent?.includes("Failed") === true)
+    expect(host.querySelectorAll('[data-component="tool-part-wrapper"]')).toHaveLength(1)
+  })
+
+  test("private-only steps render nothing and never expose continuation or replace readable text", async () => {
+    const message = assistant(2_000)
+    const visible = reasoning("prt_visible", { start: 1_000, end: 2_000 })
+    const answer: TextPart = { id: "prt_answer", sessionID, messageID: message.id, type: "text", text: "Final answer." }
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: {
+        [user.id]: [],
+        [message.id]: [
+          { ...visible, id: "prt_empty", text: "" },
+          { ...visible, id: "prt_redacted1", text: "[REDACTED]" },
+          visible,
+          { ...visible, id: "prt_redacted2", text: "[REDACTED]" },
+          answer,
+        ],
+      },
+    }
+    const host = mount(
+      () => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id, stepsExpanded: true }),
+      store,
+    )
+    await ready(() => host.textContent?.includes(answer.text) === true)
+    expect(host.querySelector('[data-slot="session-turn-collapsible-trigger-content"]')).not.toBeNull()
+    expect(host.querySelectorAll('[data-component="reasoning-part"]')).toHaveLength(1)
+    expect(host.querySelectorAll('[data-slot="reasoning-unavailable"]')).toHaveLength(0)
+    expect(host.textContent).not.toContain("isn’t available")
+    expect(host.textContent).toContain(visible.text)
+    expect(host.querySelector('[data-origin="provider-reasoning-unavailable"]')).toBeNull()
+    expect(host.textContent).not.toContain("did not provide readable reasoning")
+    expect(host.textContent).not.toContain("[REDACTED]")
+  })
+})
+
+describe("skill load receipts", () => {
+  const loaded = (): ToolPart => ({
+    ...read("prt_skill", "", 1_000),
+    tool: "skill",
+    state: {
+      status: "completed",
+      input: { name: "matplotlib", query: "scientific figures" },
+      title: "Loaded skill: matplotlib",
+      output: "## Skill: matplotlib\n\nUse labelled axes and retain the figure source.",
+      metadata: {
+        name: "matplotlib",
+        dir: "/skills/matplotlib",
+        origin: "bundled",
+        contentHash: "a".repeat(64),
+        matches: [],
+        truncated: false,
+      },
+      time: { start: 1_000, end: 1_001 },
+    },
+  })
+
+  test("keeps an inspectable load in its completed turn, folded with the rest of the activity, without claiming another load on the next turn", async () => {
+    const first = assistant(2_000)
+    const next: UserMessage = { ...user, id: "msg_0003" }
+    const second: AssistantMessage = { ...assistant(4_000), id: "msg_0004", parentID: next.id }
+    const skill = loaded()
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, first, next, second] },
+      part: {
+        [user.id]: [],
+        [first.id]: [skill, read("prt_read", "/research/data.csv", 1_100)],
+        [next.id]: [],
+        [second.id]: [
+          { id: "prt_second", sessionID, messageID: second.id, type: "text", text: "Here is the next figure." },
+        ],
+      },
+    }
+    const view = () => [
+      turn.SessionTurn({ sessionID, messageID: user.id }),
+      turn.SessionTurn({ sessionID, messageID: next.id }),
+    ]
+    const host = mount(view, store)
+    const earlier = host.querySelector(`[data-message="${user.id}"]`)!
+    const later = host.querySelector(`[data-message="${next.id}"]`)!
+    // A load is activity like any other: folded with the turn, not an exception
+    // that stays out when everything else folds.
+    expect(earlier.querySelectorAll('[data-component="tool-part-wrapper"]')).toHaveLength(0)
+    expect(later.querySelector('[data-tool-family="skills"]')).toBeNull()
+    const activity = earlier.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!
+    activity.click()
+    await ready(() => earlier.querySelectorAll('[data-component="tool-part-wrapper"]').length === 2)
+    expect(earlier.textContent).toContain("Loaded skill: matplotlib")
+    const receipt = earlier.querySelector('[data-tool-family="skills"]')!
+    expect(receipt.querySelector('[data-component="tool-output"]')).toBeNull()
+    const button = receipt.querySelector<HTMLButtonElement>("button")!
+    expect(button.getAttribute("aria-expanded")).toBe("false")
+    button.click()
+    await ready(() => receipt.textContent?.includes("Use labelled axes and retain the figure source.") === true)
+    expect(receipt.querySelector('[data-slot="skill-load-receipt"] pre')?.textContent).toContain("a".repeat(64))
+    expect(receipt.querySelector('[data-slot="skill-load-receipt"] pre')?.textContent).toContain("/skills/matplotlib")
+    expect(receipt.querySelector('[data-slot="skill-load-receipt"] pre')?.textContent).toContain('"truncated": false')
+    activity.click()
+    await ready(() => earlier.querySelectorAll('[data-component="tool-part-wrapper"]').length === 0)
+    activity.click()
+    await ready(() => earlier.querySelectorAll('[data-component="tool-part-wrapper"]').length === 2)
+    expect(earlier.textContent).toContain("Loaded skill: matplotlib")
+    expect(store.part[first.id][0]).toEqual(skill)
+
+    cleanups.splice(0).forEach((cleanup) => cleanup())
+    document.body.replaceChildren()
+    const reopened = mount(view, store)
+    expect(reopened.querySelector(`[data-message="${next.id}"] [data-tool-family="skills"]`)).toBeNull()
+  })
+
+  test("does not turn discovery or a failed load into a loaded receipt", async () => {
+    const message = assistant(2_000)
+    const discovery: ToolPart = {
+      ...loaded(),
+      id: "prt_search",
+      state: {
+        status: "completed",
+        input: { query: "matplotlib" },
+        title: "Skill matches: matplotlib",
+        output: "No skill instructions have been loaded.",
+        metadata: { name: "matplotlib", dir: "", matches: ["matplotlib"] },
+        time: { start: 1_000, end: 1_001 },
+      },
+    }
+    const failed: ToolPart = {
+      ...loaded(),
+      id: "prt_failed",
+      state: {
+        status: "error",
+        input: { name: "matplotlib" },
+        error: "Permission denied for matplotlib.",
+        time: { start: 1_002, end: 1_003 },
+      },
+    }
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [discovery, failed] },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store)
+    expect(host.querySelectorAll('[data-tool-family="skills"]')).toHaveLength(1)
+    expect(host.textContent).toContain("Skill load failed")
+    expect(host.textContent).not.toContain("Loaded skill:")
+    expect(host.textContent).not.toContain("Using matplotlib")
+    host.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!.click()
+    await ready(() => host.textContent?.includes("Found 1 relevant skill") === true)
+    expect(host.querySelectorAll('[data-slot="skill-load-receipt"]')).toHaveLength(0)
+  })
+})
+
+describe("research search receipts", () => {
+  const search = (id: string, output: unknown, metadata: Record<string, unknown> = {}): ToolPart => ({
+    ...read(id, "", 1_000),
+    tool: "research_search",
+    state: {
+      status: "completed",
+      title: "Research search",
+      input: { query: "pass@k policy optimization" },
+      output: JSON.stringify(output),
+      metadata,
+      time: { start: 1_000, end: 1_001 },
+    },
+  })
+
+  test("shows source links, snippets and filter warnings without presenting a raw JSON wall", async () => {
+    const part = search("prt_search", {
+      status: "completed",
+      operation_id: "recorded-operation-id",
+      results: [
+        {
+          title: "Policy optimization paper",
+          url: "https://arxiv.org/abs/2505.15201",
+          snippet: "A verifiable source summary.",
+        },
+        { title: "Unsafe link remains text", url: "javascript:alert(1)" },
+        { url: "ftp://example.org/paper.txt", snippet: "Long captured excerpt. ".repeat(50) },
+      ],
+      warnings: ["search_publication_date_unknown_excluded"],
+    })
+    const host = mount(() => parts.Part({ part, message: assistant(2_000) }), empty())
+    expect(host.textContent).toContain("Found 3 sources")
+    host.querySelector<HTMLButtonElement>("button")!.click()
+    await ready(() => host.querySelector('[data-slot="search-result"] a') !== null)
+    expect(host.querySelector('[data-slot="search-result"] a')?.getAttribute("href")).toBe(
+      "https://arxiv.org/abs/2505.15201",
+    )
+    expect(host.querySelectorAll('[data-slot="search-result"] a')).toHaveLength(1)
+    await ready(() => host.textContent?.includes("A verifiable source summary.") === true)
+    expect(host.textContent).toContain("ftp://example.org/paper.txt")
+    expect(host.querySelector<HTMLDetailsElement>('[data-slot="search-excerpt"]')?.open).toBe(false)
+    expect(host.textContent).toContain("Results without a known publication date were excluded")
+    const details = host.querySelector<HTMLDetailsElement>('[data-slot="search-response-details"]')!
+    expect(details.open).toBe(false)
+    expect(details.textContent).toContain("recorded-operation-id")
+  })
+
+  test("keeps a closed unavailable search visible as a failure, distinct from an empty successful search", async () => {
+    const message = assistant(2_000)
+    const failed = search(
+      "prt_failed_search",
+      {
+        status: "partial",
+        type: "search_unavailable",
+        message: "Ace search failed with HTTP 500.",
+      },
+      { outcome: "partial", stopReason: "search_unavailable" },
+    )
+    const none = search("prt_empty_search", { status: "completed", results: [] })
+    const original = JSON.stringify(failed)
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [failed, none] },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store)
+    expect(host.querySelectorAll('[data-component="tool-part-wrapper"]')).toHaveLength(1)
+    expect(host.textContent).toContain("Research search unavailable")
+    expect(host.querySelector('[data-component="tool-trigger"]')?.getAttribute("data-outcome")).toBe("error")
+    const row = host.querySelector('[data-component="tool-part-wrapper"]')!
+    row.querySelector<HTMLButtonElement>("button")!.click()
+    await ready(() => row.textContent?.includes("Ace search failed with HTTP 500.") === true)
+    host.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!.click()
+    await ready(() => host.textContent?.includes("No results returned") === true)
+    expect(JSON.stringify(failed)).toBe(original)
+  })
+
+  test("a skill call the model has not finished writing reads as preparing, and one that never started as cancelled", () => {
+    const pending: ToolPart = {
+      ...read("prt_pending_skill", "", 1_000),
+      tool: "skill",
+      state: { status: "pending", input: {}, raw: "" },
+    }
+    const host = mount(() => parts.Part({ part: pending, message: assistant(2_000) }), empty())
+    expect(host.querySelector('[data-slot="basic-tool-tool-title"]')?.textContent).toBe("Skill")
+    expect(host.querySelector('[data-slot="basic-tool-tool-failure-label"]')?.textContent).toBe("Preparing")
+    expect(host.textContent).not.toContain("Finding relevant skills")
+    expect(host.querySelector('[data-component="tool-trigger"]')?.getAttribute("data-outcome")).toBe("pending")
+
+    const aborted: ToolPart = {
+      ...pending,
+      id: "prt_aborted_skill",
+      state: {
+        status: "error",
+        input: {},
+        raw: "",
+        metadata: { cancelled: true, started: false },
+        error: "Tool execution aborted. The skill call had not started; no action was taken.",
+        time: { start: 1_000, end: 1_001 },
+      },
+    }
+    const stopped = mount(() => parts.Part({ part: aborted, message: assistant(2_000) }), empty())
+    expect(stopped.querySelector('[data-slot="basic-tool-tool-title"]')?.textContent).toBe("Skill")
+    expect(stopped.querySelector('[data-slot="basic-tool-tool-failure-label"]')?.textContent).toBe("Cancelled")
+    expect(stopped.textContent).not.toContain("Skill lookup failed")
+    expect(stopped.querySelector('[data-component="tool-trigger"]')?.getAttribute("data-outcome")).toBe("cancelled")
+  })
+
+  test("labels cancellation without implying a search-provider outage", () => {
+    const part: ToolPart = {
+      ...read("prt_cancelled_search", "", 1_000),
+      tool: "research_search",
+      state: {
+        status: "error",
+        input: { query: "pass@k" },
+        error: "The operation was aborted",
+        time: { start: 1_000, end: 1_001 },
+      },
+    }
+    const host = mount(() => parts.Part({ part, message: assistant(2_000) }), empty())
+    expect(host.textContent).toContain("Research search cancelled")
+    expect(host.textContent).not.toContain("Research search unavailable")
+    expect(host.querySelector('[data-component="tool-trigger"]')?.getAttribute("data-outcome")).toBe("cancelled")
+  })
+})
+
+describe("streaming prose", () => {
+  test("marks a growing text part until its end arrives", async () => {
+    const [message, setMessage] = reactive.createStore<AssistantMessage>(assistant())
+    const [part, setPart] = reactive.createStore<TextPart>({
+      id: "prt_text",
+      sessionID,
+      messageID: "msg_0002",
+      type: "text",
+      text: "First paragraph of the answer.",
+      time: { start: 1_000 },
+    })
+    const host = mount(() => parts.Part({ part, message, hideCopy: true }), empty())
+    await ready(() => host.querySelector('[data-component="text-part"] p') !== null)
+    expect(host.querySelector('[data-component="text-part"]')?.getAttribute("data-streaming")).toBe("true")
+
+    setPart("time", { start: 1_000, end: 2_000 })
+    setMessage("time", "completed", 2_000)
+    await settle()
+    expect(host.querySelector('[data-component="text-part"]')?.getAttribute("data-streaming")).toBeNull()
+  })
+})
+
+describe("chronological activity in a turn", () => {
+  test("completed operations expand into individual chronological rows without a mode selector", async () => {
+    const message = assistant(5_000)
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: {
+        [user.id]: [],
+        [message.id]: [read("prt_detail1", "paper.tex", 1_000), read("prt_detail2", "analysis.py", 2_000)],
+      },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store)
+    const status = host.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!
+    expect(status.getAttribute("aria-expanded")).toBe("false")
+    status.click()
+    await ready(() => host.querySelectorAll('[data-component="tool-part-wrapper"]').length === 2)
+    expect(host.querySelector('[data-component="trace-run-group"]')).toBeNull()
+    expect(host.textContent).toContain("paper.tex")
+    expect(host.textContent).toContain("analysis.py")
+    expect(status.tagName).toBe("BUTTON")
+    expect(status.getAttribute("aria-expanded")).toBe("true")
+    expect(host.querySelector('[data-slot="session-turn-activity-mode"]')).toBeNull()
+  })
+
+  test("a finished turn keeps a burst of one call visible as that call's own row", async () => {
+    // A single write between two thoughts is a burst of one entry: it has no
+    // header to fold, so a closed collapsible must never hide the call itself.
+    const message = assistant(5_000)
+    const write: ToolPart = {
+      id: "prt_single_write",
+      sessionID,
+      messageID: message.id,
+      type: "tool",
+      callID: "call_single_write",
+      tool: "write",
+      state: {
+        status: "completed",
+        input: { filePath: "/project/results/raw_activities.csv", content: "…" },
+        output: "",
+        title: "raw_activities.csv",
+        metadata: { filepath: "/project/results/raw_activities.csv" },
+        time: { start: 1_000, end: 1_500 },
+      },
+    }
+    const thoughts: Part[] = [
+      {
+        id: "prt_single_thought_a",
+        sessionID,
+        messageID: message.id,
+        type: "reasoning",
+        text: "Pull the raw activities first.",
+        time: { start: 100, end: 900 },
+      },
+      write,
+      {
+        id: "prt_single_thought_b",
+        sessionID,
+        messageID: message.id,
+        type: "reasoning",
+        text: "Now fit the curves.",
+        time: { start: 2_000, end: 2_900 },
+      },
+      {
+        id: "prt_single_answer",
+        sessionID,
+        messageID: message.id,
+        type: "text",
+        text: "Done.",
+        time: { start: 3_000, end: 3_100 },
+      },
+    ]
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: thoughts },
+    }
+    const host = mount(
+      () =>
+        web.createComponent(codeContext.CodeComponentProvider, {
+          component: () => null,
+          get children() {
+            return web.createComponent(turn.SessionTurn, { sessionID, messageID: user.id })
+          },
+        }),
+      store,
+    )
+    host.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!.click()
+    await ready(() => host.querySelector('[data-component="tool-part-wrapper"]') !== null)
+    const row = host.querySelector('[data-component="tool-part-wrapper"]')!
+    const group = row.closest('[data-component="trace-group"]')!
+    expect(group.getAttribute("data-header")).toBe("false")
+    expect(row.closest('[data-slot="collapsible-content"]')).toBeNull()
+    expect(row.textContent).toContain("raw_activities.csv")
+  })
+
+  test("repeated reads and the live call retain their individual chronological rows", async () => {
+    const message = assistant()
+    const grep: ToolPart = {
+      id: "prt_grep",
+      sessionID,
+      messageID: message.id,
+      type: "tool",
+      callID: "call_grep",
+      tool: "grep",
+      state: { status: "running", input: { pattern: "cite" }, title: "cite", time: { start: Date.now() - 2_000 } },
+    }
+    const prompt: TextPart = { id: "prt_prompt", sessionID, messageID: user.id, type: "text", text: "Review the paper" }
+    const store: Store = {
+      ...empty(),
+      session_status: { [sessionID]: { type: "busy" } },
+      message: { [sessionID]: [user, message] },
+      part: {
+        [user.id]: [prompt],
+        [message.id]: [
+          read("prt_read1", "paper.tex", 1_000),
+          read("prt_read2", "analysis.py", 2_000),
+          read("prt_read3", "results.csv", 3_000),
+          grep,
+        ] satisfies Part[],
+      },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }), store)
+    await ready(() => host.querySelectorAll('[data-component="tool-part-wrapper"]').length === 4)
+    expect(host.querySelector('[data-component="trace-run-group"]')).toBeNull()
+    const rows = host.querySelectorAll('[data-component="tool-part-wrapper"]')
+    expect(
+      [...rows].slice(0, 3).map((row) => row.querySelector('[data-slot="basic-tool-tool-subtitle"]')?.textContent),
+    ).toEqual(["paper.tex", "analysis.py", "results.csv"])
+    expect(rows[1]?.querySelector('[data-slot="basic-tool-tool-detail"]')).toBeNull()
+
+    const live = host.querySelector('[data-component="tool-part-wrapper"][data-tool-status="running"]')!
+    expect(live.closest('[data-component="trace-run-group"]')).toBeNull()
+    // A live call reads as what is happening; it becomes "Searched" once done.
+    expect(live.querySelector('[data-slot="basic-tool-tool-title"]')?.textContent).toBe("Searching")
+    expect(live.querySelector('[data-slot="basic-tool-tool-status"]')?.getAttribute("data-outcome")).toBe("running")
+    expect(live.querySelector('[data-slot="basic-tool-tool-time"]')).toBeNull()
+  })
+
+  test("a search row names the folder it searched, relative to the project", async () => {
+    const message = assistant()
+    const glob = (id: string, path: string): ToolPart => ({
+      id,
+      sessionID,
+      messageID: message.id,
+      type: "tool",
+      callID: `call_${id}`,
+      tool: "glob",
+      state: {
+        status: "running",
+        input: { pattern: "**/*.csv", path },
+        title: "csv",
+        time: { start: Date.now() - 1_000 },
+      },
+    })
+    const prompt: TextPart = { id: "prt_prompt", sessionID, messageID: user.id, type: "text", text: "Find the data" }
+    const store: Store = {
+      ...empty(),
+      session_status: { [sessionID]: { type: "busy" } },
+      message: { [sessionID]: [user, message] },
+      part: {
+        [user.id]: [prompt],
+        [message.id]: [glob("prt_g1", "/research"), glob("prt_g2", "/research/data"), glob("prt_g3", "/tmp/other")],
+      },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }), store)
+    await ready(() => host.querySelectorAll('[data-component="tool-part-wrapper"]').length === 3)
+    const rows = host.querySelectorAll('[data-component="tool-part-wrapper"]')
+    // The searched folder itself, never its parent: the project reads as "./".
+    expect([...rows].map((row) => row.querySelector('[data-slot="basic-tool-tool-subtitle"]')?.textContent)).toEqual([
+      "./",
+      "data/",
+      "/tmp/other/",
+    ])
+  })
+
+  test("a call that just finished keeps its own row and receipt while the turn works", async () => {
+    const message = assistant()
+    const running: ToolPart = {
+      id: "prt_read2",
+      sessionID,
+      messageID: message.id,
+      type: "tool",
+      callID: "call_prt_read2",
+      tool: "read",
+      state: { status: "running", input: { filePath: "analysis.py" }, title: "analysis.py", time: { start: 2_000 } },
+    }
+    const prompt: TextPart = { id: "prt_prompt", sessionID, messageID: user.id, type: "text", text: "Review the paper" }
+    const [store, setStore] = reactive.createStore<Store>({
+      ...empty(),
+      session_status: { [sessionID]: { type: "busy" } },
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [prompt], [message.id]: [read("prt_read1", "paper.tex", 1_000), running] },
+    })
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }), store)
+    const rows = () => host.querySelectorAll('[data-component="tool-part-wrapper"]')
+    const row = (id: string) =>
+      [...rows()].find((item) => item.querySelector('[data-slot="basic-tool-tool-subtitle"]')?.textContent === id)!
+    await ready(() => rows().length === 2)
+    expect(host.querySelector('[data-component="trace-run-group"]')).toBeNull()
+
+    // The reader opens the first read while the second is still running.
+    const first = row("paper.tex").querySelector<HTMLButtonElement>('[data-slot="collapsible-trigger"]')!
+    first.click()
+    await settle()
+    expect(first.getAttribute("aria-expanded")).toBe("true")
+
+    // The second read completes: its own row shows the receipt, and the first stays open and literal.
+    setStore("part", message.id, 1, read("prt_read2", "analysis.py", 2_000))
+    await settle()
+    expect(host.querySelector('[data-component="trace-run-group"]')).toBeNull()
+    expect(rows()).toHaveLength(2)
+    const second = row("analysis.py")
+    expect(second.getAttribute("data-tool-status")).toBe("completed")
+    expect(second.querySelector('[data-slot="basic-tool-tool-status"]')?.getAttribute("data-outcome")).toBe("done")
+    expect(second.querySelector('[data-slot="basic-tool-tool-detail"]')).toBeNull()
+    expect(row("paper.tex").querySelector('[data-slot="collapsible-trigger"]')?.getAttribute("aria-expanded")).toBe(
+      "true",
+    )
+
+    // Completion does not replace the rows or reset an opened tool receipt.
+    setStore("message", sessionID, 1, "time", { created: 2, completed: Date.now() })
+    await settle()
+    expect(host.querySelector('[data-component="trace-run-group"]')).toBeNull()
+    expect(rows()).toHaveLength(2)
+    expect(row("paper.tex").querySelector('[data-slot="collapsible-trigger"]')).toBe(first)
+    expect(first.getAttribute("aria-expanded")).toBe("true")
+  })
+})
+
+describe("execution inspection", () => {
+  test("assistant file links preserve Markdown targets and prose without weakening workspace boundaries", async () => {
+    const opened: string[] = []
+    const copied: string[] = []
+    const original = Object.getOwnPropertyDescriptor(navigator, "clipboard")
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (text: string) => {
+          copied.push(text)
+        },
+      },
+    })
+    const text = [
+      "The project is /research. Read the evidence without changing its path.",
+      "[Report](/research/COST_MODEL.md)",
+      "[Relative](COST_MODEL.md)",
+      "[Outside](/research-archive/COST_MODEL.md)",
+      "[Web](https://example.com/research/COST_MODEL.md)",
+      "`cat /research/COST_MODEL.md`",
+    ].join("\n\n")
+    const part: TextPart = { id: "prt_absolute_link", sessionID, messageID: "msg_0002", type: "text", text }
+    try {
+      const host = mount(
+        () =>
+          web.createComponent(markdown.MarkdownImages, {
+            resolve: (src) => src,
+            resolveFile: (path) => assets.workspaceAssetPath(path, "/research"),
+            openFile: (path) => opened.push(path),
+            get children() {
+              return parts.Part({ part, message: assistant(3_000) })
+            },
+          }),
+        empty(),
+      )
+      await ready(() => host.querySelectorAll('[data-slot="assistant-prose"] a').length === 4)
+      const anchors = [...host.querySelectorAll<HTMLAnchorElement>('[data-slot="assistant-prose"] a')]
+      expect(anchors.map((anchor) => anchor.getAttribute("href"))).toEqual([
+        "/research/COST_MODEL.md",
+        "COST_MODEL.md",
+        "/research-archive/COST_MODEL.md",
+        "https://example.com/research/COST_MODEL.md",
+      ])
+      expect(anchors[0].getAttribute("data-file-path")).toBe("/research/COST_MODEL.md")
+      expect(anchors[1].getAttribute("data-file-path")).toBe("COST_MODEL.md")
+      expect(anchors[2].hasAttribute("data-file-path")).toBe(false)
+      expect(anchors[3].hasAttribute("data-file-path")).toBe(false)
+      anchors[0].click()
+      anchors[1].click()
+      expect(opened).toEqual(["/research/COST_MODEL.md", "COST_MODEL.md"])
+      expect(host.textContent).toContain("The project is /research.")
+      expect(host.querySelector("code")?.textContent).toBe("cat /research/COST_MODEL.md")
+      host.querySelector<HTMLButtonElement>('[data-slot="text-part-copy-wrapper"] button')!.click()
+      await ready(() => copied.length === 1)
+      expect(copied).toEqual([text])
+    } finally {
+      if (original) Object.defineProperty(navigator, "clipboard", original)
+      else Reflect.deleteProperty(navigator, "clipboard")
+    }
+  })
+
+  test("a preview's explicit file resolver is not replaced by surrounding turn provenance", async () => {
+    const opened: string[] = []
+    const host = mount(
+      () =>
+        web.createComponent(markdown.MarkdownFileScope, {
+          paths: ["/research/TWITTER_THREAD.md"],
+          get children() {
+            return web.createComponent(markdown.Markdown, {
+              text: "`TWITTER_THREAD.md`",
+              resolveFile: (path) => `/document/${path}`,
+              onOpenFile: (path) => opened.push(path),
+            })
+          },
+        }),
+      empty(),
+    )
+    await ready(() => host.querySelector("code[data-file-path]") !== null)
+    host.querySelector<HTMLElement>("code")!.click()
+    expect(opened).toEqual(["/document/TWITTER_THREAD.md"])
+  })
+
+  test.each(["/research/TWITTER_THREAD.md", "/session-scratch/TWITTER_THREAD.md", "/connected/TWITTER_THREAD.md"])(
+    "bare filename opens exact receipt %s without overriding explicit links",
+    async (target) => {
+      const message = assistant(3_000)
+      const write: ToolPart = {
+        id: "prt_write",
+        sessionID,
+        messageID: message.id,
+        type: "tool",
+        callID: "call_write",
+        tool: "write",
+        state: {
+          status: "completed",
+          input: { filePath: "TWITTER_THREAD.md" },
+          metadata: { filepath: target },
+          output: "Written",
+          title: "TWITTER_THREAD.md",
+          time: { start: 1_000, end: 2_000 },
+        },
+      }
+      const response: TextPart = {
+        id: "prt_response",
+        sessionID,
+        messageID: message.id,
+        type: "text",
+        text: "Updated `TWITTER_THREAD.md`. [Explicit scratch link](TWITTER_THREAD.md).",
+      }
+      const [store, setStore] = reactive.createStore<Store>({
+        ...empty(),
+        message: { [sessionID]: [user, message] },
+        part: { [user.id]: [], [message.id]: [write, response] },
+      })
+      const opened: string[] = []
+      const host = mount(
+        () =>
+          web.createComponent(markdown.MarkdownImages, {
+            resolve: (src) => src,
+            resolveFile: (path) => assets.workspaceAssetPath(path, "/research"),
+            resolveFileReceipt: assets.workspaceReceiptPath,
+            openFile: (path) => opened.push(path),
+            get children() {
+              return web.createComponent(codeContext.CodeComponentProvider, {
+                component: () => null,
+                get children() {
+                  return web.createComponent(turn.SessionTurn, { sessionID, messageID: user.id })
+                },
+              })
+            },
+          }),
+        store,
+      )
+      await ready(() => host.querySelector('[data-slot="assistant-prose"] code[data-file-path]') !== null)
+      const code = host.querySelector<HTMLElement>('[data-slot="assistant-prose"] code')!
+      const anchor = host.querySelector<HTMLAnchorElement>('[data-slot="assistant-prose"] a')!
+      expect(code.getAttribute("data-file-path")).toBe(target)
+      expect(anchor.getAttribute("data-file-path")).toBe("TWITTER_THREAD.md")
+      code.click()
+      expect(opened).toEqual([target])
+
+      // A later receipt with the same basename is genuinely ambiguous. It
+      // removes the shortcut instead of falling back to the old scratch copy.
+      setStore("part", message.id, (parts) => [
+        ...parts,
+        {
+          ...write,
+          id: "prt_other_write",
+          callID: "call_other_write",
+          state: { ...write.state, metadata: { filepath: "/research/drafts/TWITTER_THREAD.md" } },
+        },
+      ])
+      await ready(() => !code.hasAttribute("data-file-path"))
+      expect(host.querySelector('[data-slot="assistant-prose"] code')).toBe(code)
+      code.click()
+      expect(opened).toEqual([target])
+      anchor.click()
+      expect(opened).toEqual([target, "TWITTER_THREAD.md"])
+    },
+  )
+
+  test.each(["missing", "denied"] as const)(
+    "shell copy handles a %s clipboard and recovers on retry",
+    async (failure) => {
+      const original = Object.getOwnPropertyDescriptor(navigator, "clipboard")
+      const writes: string[] = []
+      const clipboard = (value: unknown) => Object.defineProperty(navigator, "clipboard", { configurable: true, value })
+      clipboard(failure === "missing" ? undefined : { writeText: () => Promise.reject(new Error("Permission denied")) })
+      try {
+        const part: ToolPart = {
+          id: `prt_copy_${failure}`,
+          sessionID,
+          messageID: "msg_0002",
+          type: "tool",
+          callID: `call_copy_${failure}`,
+          tool: "bash",
+          state: {
+            status: "completed",
+            input: { command: "inspect results" },
+            title: "Inspect results",
+            output: "done",
+            metadata: { exit: 0 },
+            time: { start: 1_000, end: 2_000 },
+          },
+        }
+        const host = mount(() => parts.Part({ part, message: assistant(2_000) }), empty())
+        host.querySelector<HTMLButtonElement>('[data-slot="collapsible-trigger"]')!.click()
+        await settle()
+        const copy = () => host.querySelector<HTMLButtonElement>('[data-slot="shell-output-actions"] button')!
+        copy().click()
+        await ready(() => host.querySelector('[data-slot="shell-output-copy-error"]') !== null)
+        expect(copy().getAttribute("aria-label")).toBe("Copy")
+        expect(host.querySelector('[data-slot="shell-output-copy-error"]')?.textContent).toContain("copy it manually")
+        clipboard({
+          writeText: async (text: string) => {
+            writes.push(text)
+          },
+        })
+        copy().click()
+        await ready(() => copy().getAttribute("aria-label") === "Copied!")
+        expect(writes).toEqual(["$ inspect results\n\ndone"])
+        expect(host.querySelector('[data-slot="shell-output-copy-error"]')).toBeNull()
+      } finally {
+        if (original) Object.defineProperty(navigator, "clipboard", original)
+        else Reflect.deleteProperty(navigator, "clipboard")
+      }
+    },
+  )
+
+  test("shell output stays literal, bounded and collapsed until opened", async () => {
+    const output = "```\n<script>not executable</script>\n**literal output**\n"
+    const part: ToolPart = {
+      id: "prt_shell",
+      sessionID,
+      messageID: "msg_0002",
+      type: "tool",
+      callID: "call_shell",
+      tool: "bash",
+      state: {
+        status: "completed",
+        input: { command: "inspect results", description: "Inspect output" },
+        title: "Inspect output",
+        output,
+        metadata: { exit: 0 },
+        time: { start: 1_000, end: 2_000 },
+      },
+    }
+    const host = mount(() => parts.Part({ part, message: assistant(2_000) }), empty())
+    await settle()
+    expect(host.querySelector('[data-component="shell-output"]')).toBeNull()
+    host.querySelector<HTMLButtonElement>('[data-slot="collapsible-trigger"]')!.click()
+    await settle()
+    expect(host.querySelector('[data-component="tool-output"][data-scrollable] pre code')?.textContent).toBe(
+      `$ inspect results\n\n${output}`,
+    )
+    expect(host.querySelector("script")).toBeNull()
+    expect(host.querySelector('[data-slot="shell-output-actions"] button')?.getAttribute("aria-label")).toBe("Copy")
+  })
+
+  test("an agent card is one row that opens the worker: it streams nothing, folds nothing, and keeps the handoff in the child", async () => {
+    const [part, setPart] = reactive.createStore<ToolPart>({
+      id: "prt_agent",
+      sessionID,
+      messageID: "msg_0002",
+      type: "tool",
+      callID: "call_agent",
+      tool: "task",
+      state: {
+        status: "running",
+        input: { subagent_type: "research", description: "Compare assays" },
+        title: "Compare assays",
+        metadata: {
+          sessionId: "ses_delegated",
+          activeMs: 1_500,
+          summary: [{ id: "read_done", tool: "read", state: { status: "completed", title: "Read old paper" } }],
+        },
+        time: { start: Date.now() - 8_000 },
+      },
+    })
+    const opened: string[] = []
+    const host = mount(() => parts.Part({ part, message: assistant() }), empty(), {
+      navigateToSession: (id) => opened.push(id),
+    })
+    await settle()
+    const card = host.querySelector<HTMLElement>('[data-component="delegation-card"]')!
+    expect(card.querySelector("details")).toBeNull()
+    const row = card.querySelector<HTMLButtonElement>('button[data-slot="delegation-summary"]')!
+    expect(row.disabled).toBe(false)
+    expect(card.querySelector('[data-slot="delegation-title"]')?.textContent).toBe("Compare assays")
+    expect(card.querySelector('[data-slot="delegation-agent"]')?.textContent).toContain("Research")
+    expect(card.querySelector('[data-slot="delegation-subline"]')?.textContent).toContain("8s")
+    // Finished child calls are not replayed here; only the one in flight is named.
+    expect(card.textContent).not.toContain("Read old paper")
+    expect(card.querySelector('[data-slot="delegation-activity"]')).toBeNull()
+    row.click()
+    expect(opened).toEqual(["ses_delegated"])
+    setPart("state", {
+      ...part.state,
+      status: "running",
+      title: "Compare assays",
+      time: { start: Date.now() - 9_000 },
+      metadata: {
+        sessionId: "ses_delegated",
+        activeMs: 2_500,
+        summary: [{ id: "read_live", tool: "read", state: { status: "running", title: "Read new paper" } }],
+      },
+    })
+    await settle()
+    expect(card.querySelector('[data-slot="delegation-activity"]')?.textContent).toBe("Read new paper")
+    setPart("state", {
+      status: "completed",
+      input: part.state.input,
+      title: "Compare assays",
+      output: "The comparison is ready; one source could not be retrieved.",
+      metadata: { sessionId: "ses_delegated", outcome: "completed", failedToolCalls: 1 },
+      time: { start: 1_000, end: 2_000 },
+    })
+    await settle()
+    expect(card.getAttribute("data-outcome")).toBe("completed")
+    expect(card.querySelector('[data-slot="delegation-status"]')?.textContent).toBe("Completed with tool errors")
+    // The handoff lives in the worker's session; the row does not repeat it.
+    expect(card.textContent).not.toContain("The comparison is ready")
+    expect(card.querySelector('[data-slot="delegation-quiet"]')).toBeNull()
+  })
+
+  test("a new model request replaces the preceding command status with its own wait", async () => {
+    const first = assistant()
+    const next = { ...assistant(), id: "msg_0003" }
+    const command: ToolPart = {
+      id: "prt_prior_command",
+      sessionID,
+      messageID: first.id,
+      type: "tool",
+      callID: "call_prior",
+      tool: "bash",
+      state: {
+        status: "running",
+        input: { command: "inspect results" },
+        title: "Inspect results",
+        metadata: {},
+        time: { start: Date.now() - 1_000 },
+      },
+    }
+    const [store, setStore] = reactive.createStore<Store>({
+      ...empty(),
+      session_status: { [sessionID]: { type: "busy" } },
+      message: { [sessionID]: [user, first] },
+      part: { [user.id]: [], [first.id]: [command] },
+    })
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }), store)
+    const status = () => host.querySelector('[data-slot="session-turn-status-text"]')?.textContent ?? ""
+    const detail = () =>
+      host.querySelector('[data-slot="session-turn-collapsible-trigger-content"]')?.getAttribute("title") ?? ""
+    await ready(() => status().includes("Running Inspect results"))
+    setStore("session_progress", {
+      [sessionID]: {
+        sessionID,
+        messageID: first.id,
+        attempt: 1,
+        agent: "research",
+        providerID: "openrouter",
+        modelID: "openai/gpt-5.6-sol",
+        phase: "streaming",
+        since: Date.now() - 60_000,
+        elapsedMs: 0,
+        stalls: 0,
+        lastOutputAt: Date.now() - 60_000,
+      },
+    })
+    await settle()
+    // A model waiting for an actively running tool is not a stalled provider.
+    expect(status()).toContain("Running Inspect results")
+    setStore("part", first.id, 0, {
+      ...command,
+      state: { status: "pending", input: {}, raw: "" },
+    })
+    await settle()
+    // The model is still generating arguments; no command is executing yet.
+    // The header reads as thinking; the quiet stream is a hover away.
+    expect(status()).toBe("Thinking")
+    expect(status()).not.toContain("Running Inspect")
+    expect(detail()).toMatch(/No new output from openai\/gpt-5\.6-sol for (59|60)s/)
+    expect(detail()).toContain("The response is still open.")
+    setStore("part", first.id, 0, {
+      ...command,
+      state: {
+        ...command.state,
+        status: "completed",
+        title: "Inspect results",
+        metadata: {},
+        output: "done",
+        time: { start: 1_000, end: 2_000 },
+      },
+    })
+    setStore("message", sessionID, [user, { ...first, time: { created: 2, completed: 2_000 } }, next])
+    setStore("part", next.id, [])
+    setStore("session_progress", {
+      [sessionID]: {
+        sessionID,
+        messageID: next.id,
+        attempt: 2,
+        agent: "research",
+        providerID: "openrouter",
+        modelID: "openai/gpt-5.6-sol",
+        phase: "waiting_first_token",
+        since: Date.now(),
+        elapsedMs: 7_000,
+        stalls: 0,
+      },
+    })
+    await ready(() => detail().includes("Waiting for output from openai/gpt-5.6-sol (7s)"))
+    expect(status()).toBe("Thinking")
+    expect(status()).not.toContain("Running Inspect")
+    // A retry countdown is the one request phase worth its own words.
+    setStore("session_progress", sessionID, {
+      ...store.session_progress![sessionID],
+      phase: "retry_wait",
+      since: Date.now(),
+      retryAfterMs: 8_000,
+    })
+    await ready(() => status().includes("Retrying in"))
+    expect(status()).toMatch(/Retrying in [78]s/)
+  })
+})
+
+describe("timeout recovery", () => {
+  const timeout: NonNullable<AssistantMessage["error"]> = {
+    name: "APIError",
+    data: {
+      message:
+        "The model request timed out waiting for new output. Received output was preserved. The provider may have processed the request; it was not automatically sent again.",
+      isRetryable: false,
+      metadata: {
+        code: "provider_request_timeout",
+        openscience_state: "stopped",
+        action: "resubmit",
+        dispatch_state: "outcome_unknown",
+        phase: "output",
+      },
+    },
+  }
+
+  test("offers to send the message again after a terminal timeout, through the host", async () => {
+    const message = assistant()
+    const sent: Array<{ sessionID: string; messageID: string }> = []
+    const [store] = reactive.createStore<Store>({
+      ...empty(),
+      message: { [sessionID]: [user, { ...message, error: timeout, time: { created: 2, completed: 3 } }] },
+      part: { [user.id]: [], [message.id]: [] },
+    })
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store, {
+      resendTurn: (input) => sent.push(input),
+    })
+    await ready(() => host.querySelector('[data-slot="session-turn-stop"] button') !== null)
+    const button = host.querySelector<HTMLButtonElement>('[data-slot="session-turn-stop"] button')!
+    expect(button.textContent).toBe("Send again")
+    button.click()
+    expect(sent).toEqual([{ sessionID, messageID: user.id }])
+  })
+
+  test("a stop the user asked for offers no resend", async () => {
+    const message = assistant()
+    const [store] = reactive.createStore<Store>({
+      ...empty(),
+      message: {
+        [sessionID]: [
+          user,
+          {
+            ...message,
+            error: { name: "MessageAbortedError", data: { message: "The operation was aborted." } },
+            time: { created: 2, completed: 3 },
+          },
+        ],
+      },
+      part: { [user.id]: [], [message.id]: [] },
+    })
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store, {
+      resendTurn: () => undefined,
+    })
+    await ready(() => host.querySelector('[data-component="session-turn"]') !== null)
+    await settle()
+    expect(host.querySelector('[data-slot="session-turn-stop"]')).toBeNull()
+    expect(host.querySelector('[data-slot="session-turn-stop-note"]')).toBeNull()
+  })
+
+  test.each(["busy", "retry"] as const)(
+    "keeps partial output and stops live indicators after a terminal timeout despite stale %s state",
+    async (status) => {
+      const message = assistant()
+      const reason: ReasoningPart = {
+        id: `prt_timeout_reason_${status}`,
+        sessionID,
+        messageID: message.id,
+        type: "reasoning",
+        text: "The measurement is incomplete, so the result cannot be confirmed yet.",
+        time: { start: Date.now() - 8_000 },
+      }
+      const partial: TextPart = {
+        id: `prt_timeout_text_${status}`,
+        sessionID,
+        messageID: message.id,
+        type: "text",
+        text: "The preliminary measurement was 17 units.",
+      }
+      const command: ToolPart = {
+        id: `prt_timeout_tool_${status}`,
+        sessionID,
+        messageID: message.id,
+        type: "tool",
+        tool: "bash",
+        callID: `call_timeout_${status}`,
+        state: {
+          status: "completed",
+          input: { command: "inspect measurements" },
+          title: "Inspect measurements",
+          output: "measurement=17",
+          metadata: { exit: 0 },
+          time: { start: 1_000, end: 2_000 },
+        },
+      }
+      const [store, setStore] = reactive.createStore<Store>({
+        ...empty(),
+        session_status: { [sessionID]: { type: "busy" } },
+        session_progress: {
+          [sessionID]: {
+            sessionID,
+            messageID: message.id,
+            attempt: 1,
+            agent: "research",
+            providerID: "openrouter",
+            modelID: "openai/gpt-5.6-sol",
+            phase: "streaming",
+            since: Date.now(),
+            elapsedMs: 0,
+            stalls: 0,
+            lastOutputAt: Date.now(),
+          },
+        },
+        message: { [sessionID]: [user, message] },
+        part: { [user.id]: [], [message.id]: [command, reason, partial] },
+      })
+      const host = mount(
+        () =>
+          turn.SessionTurn({
+            sessionID,
+            messageID: user.id,
+            lastUserMessageID: user.id,
+          }),
+        store,
+      )
+      await ready(() => host.querySelector('[data-slot="reasoning-part-body"] p') !== null)
+      expect(host.querySelector('[data-component="reasoning-part"]')?.getAttribute("data-live")).toBe("true")
+
+      // Completion and status are independent events. A lost/late idle event
+      // must not keep the completed request looking like an automatic retry.
+      setStore("message", sessionID, 1, { ...message, error: timeout, time: { created: 2, completed: Date.now() } })
+      setStore(
+        "session_status",
+        sessionID,
+        status === "busy"
+          ? { type: "busy" }
+          : { type: "retry", attempt: 2, next: Date.now() + 10_000, message: "Reconnecting to the provider" },
+      )
+      await ready(() => host.querySelector('[data-slot="session-turn-stop-note"]') !== null)
+      // A wait the runtime gave up on is a stop with a recorded reason: one
+      // quiet line, not a failure card and not a receipt.
+      expect(host.querySelectorAll('[data-slot="session-turn-stop-note"]')).toHaveLength(1)
+      expect(host.querySelector('[data-slot="session-turn-stop-note"]')?.textContent).toBe(timeout.data.message)
+      expect(host.querySelector('[data-component="card"][data-state]')).toBeNull()
+      expect(host.querySelector('[data-slot="session-turn-trigger-label"]')?.textContent).toContain("Stopped after")
+      expect(host.querySelector('[data-slot="reasoning-part-body"]')?.textContent).toContain(reason.text)
+      expect(host.textContent).toContain(partial.text)
+      expect(host.querySelector('[data-component="reasoning-part"]')?.getAttribute("data-live")).toBeNull()
+      expect(host.querySelector('[data-slot="session-turn-trace-control"] [data-component="spinner"]')).toBeNull()
+      expect(host.querySelector('[data-slot="session-turn-retry-message"]')).toBeNull()
+      expect(host.querySelector('[data-slot="session-turn-progress-hint"]')).toBeNull()
+
+      const tool = host.querySelector('[data-component="tool-part-wrapper"]')!
+      tool.querySelector<HTMLButtonElement>('[data-slot="collapsible-trigger"]')!.click()
+      await ready(() => tool.querySelector('[data-component="shell-output"] pre') !== null)
+      expect(tool.querySelector('[data-component="shell-output"] pre')?.textContent).toContain("measurement=17")
+      expect(tool.getAttribute("data-tool-status")).toBe("completed")
+
+      // An older failed attempt must not mask a new, genuinely active request.
+      const next = { ...assistant(), id: "msg_0003" }
+      setStore("message", sessionID, [user, store.message[sessionID][1], next])
+      setStore("part", next.id, [])
+      setStore("session_status", sessionID, { type: "busy" })
+      setStore("session_progress", sessionID, {
+        ...store.session_progress![sessionID],
+        messageID: next.id,
+        phase: "waiting_first_token",
+        since: Date.now(),
+      })
+      await ready(() =>
+        (
+          host.querySelector('[data-slot="session-turn-collapsible-trigger-content"]')?.getAttribute("title") ?? ""
+        ).includes("Waiting for output from openai/gpt-5.6-sol"),
+      )
+      expect(host.querySelector('[data-slot="session-turn-status-text"]')?.textContent).toBe("Thinking")
+      expect(host.querySelector('[data-slot="session-turn-trace-control"] [data-component="spinner"]')).not.toBeNull()
+    },
+  )
+})
+
+describe("collapsed activity safeguards", () => {
+  test("keeps a pending question and its unsent selections and custom draft mounted across activity toggles", async () => {
+    const message = assistant()
+    const question: ToolPart = {
+      id: "prt_pending_question",
+      sessionID,
+      messageID: message.id,
+      type: "tool",
+      tool: "question",
+      callID: "call_pending_question",
+      state: {
+        status: "running",
+        input: {},
+        title: "Choose evaluation conditions",
+        metadata: {},
+        time: { start: Date.now() },
+      },
+    }
+    const store: Store = {
+      ...empty(),
+      session_status: { [sessionID]: { type: "busy" } },
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [read("prt_before_question", "/research/protocol.md", 1_000), question] },
+      question: {
+        [sessionID]: [
+          {
+            id: "que_pending_draft",
+            sessionID,
+            tool: { messageID: message.id, callID: question.callID },
+            questions: [
+              {
+                header: "Conditions",
+                question: "Which evaluation conditions should be included?",
+                multiple: true,
+                options: [
+                  { label: "Stock", description: "Include the unchanged baseline." },
+                  { label: "Sham", description: "Include the procedural control." },
+                ],
+              },
+              {
+                header: "Confirmation",
+                question: "When should confirmation run?",
+                options: [{ label: "After review", description: "Wait for protocol review." }],
+              },
+            ],
+          },
+        ],
+      },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store)
+    await ready(() => host.querySelector('[data-component="request-card"][data-kind="question"]') !== null)
+    const prompt = host.querySelector('[data-component="request-card"][data-kind="question"]')!
+    const options = prompt.querySelectorAll<HTMLButtonElement>('[data-slot="question-option"]')
+    options[0].click()
+    options[options.length - 1].click()
+    await ready(() => prompt.querySelector('[data-slot="custom-input"]') !== null)
+    const input = prompt.querySelector<HTMLInputElement>('[data-slot="custom-input"]')!
+    input.value = "A matched held-out control"
+    input.dispatchEvent(new window.Event("input", { bubbles: true }))
+    const toggle = host.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!
+    expect(toggle.getAttribute("aria-expanded")).toBe("true")
+    const tool = prompt.closest('[data-component="tool-part-wrapper"]')!
+
+    for (const expanded of [false, true, false]) {
+      toggle.click()
+      await ready(() => toggle.getAttribute("aria-expanded") === String(expanded))
+      expect(host.querySelectorAll('[data-component="request-card"][data-kind="question"]')).toHaveLength(1)
+      expect(host.querySelector('[data-component="request-card"][data-kind="question"]')).toBe(prompt)
+      expect(prompt.closest('[data-component="tool-part-wrapper"]')).toBe(tool)
+      expect(input.isConnected).toBe(true)
+      expect(prompt.querySelector('[data-slot="custom-input"]')).toBe(input)
+      expect(input.value).toBe("A matched held-out control")
+      expect(options[0].getAttribute("data-picked")).toBe("true")
+      expect(prompt.querySelector('[data-slot="question-tab"][data-active="true"]')?.textContent).toBe("Conditions")
+      expect(host.querySelectorAll('[data-component="tool-part-wrapper"]')).toHaveLength(expanded ? 2 : 1)
+    }
+    expect(store.part[message.id][1]).toBe(question)
+    expect(store.question?.[sessionID]).toHaveLength(1)
+  })
+
+  test("keeps a completed turn's tool error visible while ordinary activity is collapsed", async () => {
+    const message = assistant(3_000)
+    const error = "Measurement file was not found. No result was produced."
+    const failed: ToolPart = {
+      id: "prt_failed_command",
+      sessionID,
+      messageID: message.id,
+      type: "tool",
+      tool: "bash",
+      callID: "call_failed_command",
+      state: {
+        status: "error",
+        input: { command: "inspect measurements" },
+        error,
+        time: { start: 2_000, end: 3_000 },
+      },
+    }
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [read("prt_successful_read", "/research/protocol.md", 1_000), failed] },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store)
+    await ready(() => host.querySelector('[data-slot="basic-tool-tool-failure-label"]') !== null)
+    const toggle = host.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!
+    const failure = host.querySelector('[data-component="tool-part-wrapper"][data-tool-status="error"]')!
+    expect(toggle.getAttribute("aria-expanded")).toBe("false")
+    expect(host.querySelectorAll('[data-component="tool-part-wrapper"]')).toHaveLength(1)
+    expect(failure.querySelector('[data-slot="basic-tool-tool-failure-label"]')?.textContent).toBe("Failed")
+    expect(failure.querySelector('[data-slot="basic-tool-tool-failure-label"]')?.getAttribute("title")).toBe(error)
+    expect(message.error).toBeUndefined()
+    failure.querySelector<HTMLButtonElement>('[data-slot="collapsible-trigger"]')!.click()
+    await ready(() => failure.querySelector('[data-component="tool-error"]') !== null)
+    expect(failure.textContent).toContain(error)
+
+    for (const expanded of [true, false]) {
+      toggle.click()
+      await ready(() => toggle.getAttribute("aria-expanded") === String(expanded))
+      expect(host.querySelector('[data-component="tool-part-wrapper"][data-tool-status="error"]')).toBe(failure)
+      expect(failure.querySelector('[data-component="tool-error"]')).not.toBeNull()
+      expect(failure.textContent).toContain(error)
+      expect(host.querySelectorAll('[data-component="tool-part-wrapper"]')).toHaveLength(expanded ? 2 : 1)
+    }
+    expect(store.part[message.id][1]).toBe(failed)
+  })
+})
+
+describe("delegated request visibility", () => {
+  const childID = "ses_child_request"
+  const task = (messageID: string): ToolPart => ({
+    id: "prt_child_task",
+    sessionID,
+    messageID,
+    type: "tool",
+    tool: "task",
+    callID: "call_child_task",
+    state: {
+      status: "running",
+      input: { description: "Review the evaluation protocol", subagent_type: "research" },
+      title: "Review the evaluation protocol",
+      metadata: { sessionId: childID },
+      time: { start: Date.now() },
+    },
+  })
+
+  test("preserves a child question draft when its parent's activity is collapsed", async () => {
+    const message = assistant()
+    const store: Store = {
+      ...empty(),
+      session_status: { [sessionID]: { type: "busy" } },
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [task(message.id)] },
+      question: {
+        [childID]: [
+          {
+            id: "que_child_draft",
+            sessionID: childID,
+            tool: { messageID: "msg_child_question", callID: "call_child_question" },
+            questions: [
+              {
+                header: "Controls",
+                question: "Which controls should the delegated review include?",
+                multiple: true,
+                options: [{ label: "Sham", description: "Include a procedural control." }],
+              },
+            ],
+          },
+        ],
+      },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store)
+    await ready(() => host.querySelector('[data-component="request-card"][data-kind="question"]') !== null)
+    const prompt = host.querySelector('[data-component="request-card"][data-kind="question"]')!
+    const options = prompt.querySelectorAll<HTMLButtonElement>('[data-slot="question-option"]')
+    options[0].click()
+    options[options.length - 1].click()
+    await ready(() => prompt.querySelector('[data-slot="custom-input"]') !== null)
+    const input = prompt.querySelector<HTMLInputElement>('[data-slot="custom-input"]')!
+    input.value = "Match the instrument calibration"
+    input.dispatchEvent(new window.Event("input", { bubbles: true }))
+    const toggle = host.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!
+
+    for (const expanded of [false, true, false]) {
+      toggle.click()
+      await ready(() => toggle.getAttribute("aria-expanded") === String(expanded))
+      expect(host.querySelectorAll('[data-component="request-card"][data-kind="question"]')).toHaveLength(1)
+      expect(host.querySelector('[data-component="request-card"][data-kind="question"]')).toBe(prompt)
+      expect(prompt.querySelector('[data-slot="custom-input"]')).toBe(input)
+      expect(input.isConnected).toBe(true)
+      expect(input.value).toBe("Match the instrument calibration")
+      expect(options[0].getAttribute("data-picked")).toBe("true")
+    }
+    expect(store.question?.[sessionID]).toBeUndefined()
+    expect(store.question?.[childID]).toHaveLength(1)
+  })
+
+  test("reveals a new child permission in collapsed activity and restores ordinary task collapse after resolution", async () => {
+    const message = assistant()
+    const [store, setStore] = reactive.createStore<Store>({
+      ...empty(),
+      session_status: { [sessionID]: { type: "busy" } },
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [task(message.id)] },
+      permission: { [childID]: [] },
+    })
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id, stepsExpanded: false }), store)
+    await settle()
+    expect(host.querySelector('[data-component="tool-part-wrapper"]')).toBeNull()
+    setStore("permission", childID, [
+      {
+        id: "per_child_read",
+        sessionID: childID,
+        permission: "read",
+        patterns: ["/research/control.csv"],
+        always: [],
+        metadata: { query: "Read /research/control.csv" },
+        tool: { messageID: "msg_child_read", callID: "call_child_read" },
+      },
+    ])
+    await ready(() => host.querySelector('[data-component="request-card"]:not([data-kind="question"])') !== null)
+    const permission = host.querySelector('[data-component="request-card"]:not([data-kind="question"])')!
+    expect(host.querySelectorAll('[data-component="request-card"]:not([data-kind="question"])')).toHaveLength(1)
+    expect(permission.textContent).toContain("/research/control.csv")
+    expect(permission.querySelectorAll("button").length).toBeGreaterThan(0)
+    expect(
+      host.querySelector('[data-slot="session-turn-collapsible-trigger-content"]')?.getAttribute("aria-expanded"),
+    ).toBe("false")
+    expect(store.permission?.[sessionID]).toBeUndefined()
+
+    setStore("permission", childID, [])
+    await ready(() => host.querySelector('[data-component="request-card"]:not([data-kind="question"])') === null)
+    expect(host.querySelector('[data-component="tool-part-wrapper"]')).toBeNull()
+    expect(store.part[message.id][0].type).toBe("tool")
+  })
+})
+
+describe("trace control", () => {
+  const control = (host: HTMLElement) => host.querySelector('[data-slot="session-turn-trace-control"]')
+  const toggle = (host: HTMLElement) =>
+    host.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!
+  const status = (host: HTMLElement) => host.querySelector('[data-slot="session-turn-live-status"]')
+  const live = (message: AssistantMessage, items: Part[], state: Store["session_status"][string]): Store => ({
+    ...empty(),
+    session_status: { [sessionID]: state },
+    message: { [sessionID]: [user, message] },
+    part: { [user.id]: [], [message.id]: items },
+  })
+
+  test("a tool without a dedicated row shows the receipt it wrote for itself", async () => {
+    const message = assistant()
+    const study: ToolPart = {
+      id: "prt_study",
+      sessionID,
+      messageID: message.id,
+      type: "tool",
+      callID: "call_study",
+      tool: "study",
+      state: {
+        status: "completed",
+        input: { action: "drop", idea_id: "idea_1", reason: "expensive" },
+        output: "Dropped idea_1.",
+        title: "Dropped: Logistic-heavy blend",
+        metadata: {},
+        time: { start: Date.now() - 2_000, end: Date.now() - 1_000 },
+      },
+    }
+    const prompt: TextPart = { id: "prt_prompt", sessionID, messageID: user.id, type: "text", text: "Prune the queue" }
+    const store: Store = {
+      ...empty(),
+      session_status: { [sessionID]: { type: "busy" } },
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [prompt], [message.id]: [study] },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }), store)
+    await ready(() => host.querySelector('[data-component="tool-part-wrapper"]') !== null)
+    const row = host.querySelector('[data-component="tool-part-wrapper"]')!
+    expect(row.querySelector('[data-slot="basic-tool-tool-title"]')?.textContent).toBe("Study")
+    expect(row.querySelector('[data-slot="basic-tool-tool-subtitle"]')?.textContent).toBe(
+      "Dropped: Logistic-heavy blend",
+    )
+  })
+
+  test("a pending approval reads as a wait on the reader, not as a call still running", async () => {
+    const message = assistant()
+    const python: ToolPart = {
+      id: "prt_install",
+      sessionID,
+      messageID: message.id,
+      type: "tool",
+      callID: "call_install",
+      tool: "python",
+      state: {
+        status: "running",
+        input: { code: "pip install scikit-learn", title: "Install scikit-learn" },
+        title: "Install scikit-learn",
+        time: { start: Date.now() - 400_000 },
+      },
+    }
+    const store = live(message, [python], { type: "busy" })
+    store.permission = {
+      [sessionID]: [
+        {
+          id: "per_1",
+          sessionID,
+          permission: "environment_mutation",
+          patterns: ["digest"],
+          metadata: {},
+          always: [],
+          tool: { messageID: message.id, callID: "call_install" },
+        },
+      ],
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }), store)
+    await ready(() => host.querySelector('[data-slot="session-turn-status-text"]') !== null)
+    expect(host.querySelector('[data-slot="session-turn-status-text"]')?.textContent).toBe("Waiting for your approval")
+  })
+
+  test("a working turn keeps an explicit, keyboard-operable Show/Hide disclosure beside its live status", async () => {
+    const message = assistant()
+    const reason: ReasoningPart = {
+      id: "prt_control_reason",
+      sessionID,
+      messageID: message.id,
+      type: "reasoning",
+      text: "Comparing the candidate datasets before choosing one.",
+      time: { start: Date.now() - 3_000 },
+    }
+    const grep: ToolPart = {
+      id: "prt_control_grep",
+      sessionID,
+      messageID: message.id,
+      type: "tool",
+      callID: "call_control_grep",
+      tool: "grep",
+      state: { status: "running", input: { pattern: "cite" }, title: "cite", time: { start: Date.now() - 1_000 } },
+    }
+    const host = mount(
+      () => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }),
+      live(message, [reason, grep], { type: "busy" }),
+    )
+    await ready(() => host.querySelector('[data-slot="reasoning-part-body"] p') !== null)
+    const button = toggle(host)
+    expect(button.tagName).toBe("BUTTON")
+    expect(button.getAttribute("aria-expanded")).toBe("true")
+    expect(button.getAttribute("aria-controls")).toBe(
+      host.querySelector('[data-slot="session-turn-response-section"]')?.id ?? null,
+    )
+    // While working, the one header line carries the live request and stays
+    // the keyboard-operable disclosure.
+    expect(button.getAttribute("aria-label")).toBe("Hide reasoning and activity")
+    expect(button.querySelector('[data-slot="session-turn-trigger-icon"]')).not.toBeNull()
+    expect(button.querySelector('[data-component="spinner"]')).not.toBeNull()
+    expect(control(host)?.getAttribute("data-working")).toBe("true")
+    expect(status(host)).toBeNull()
+    expect(button.querySelector('[data-slot="session-turn-status-text"]')?.textContent).toBe("Searching cite")
+
+    button.click()
+    await ready(() => host.querySelector('[data-component="reasoning-part"]') === null)
+    expect(button.getAttribute("aria-expanded")).toBe("false")
+    expect(button.getAttribute("aria-label")).toBe("Show reasoning and activity")
+    expect(host.querySelector('[data-component="tool-part-wrapper"]')).toBeNull()
+    // Collapsing the trace never hides the live request.
+    expect(button.querySelector('[data-slot="session-turn-status-text"]')?.textContent).toBe("Searching cite")
+    button.click()
+    await ready(() => host.querySelector('[data-component="reasoning-part"]') !== null)
+    expect(button.getAttribute("aria-expanded")).toBe("true")
+    expect(button.getAttribute("aria-label")).toBe("Hide reasoning and activity")
+  })
+
+  test("a retry wait is reported beside the disclosure, never in place of its label", async () => {
+    const message = assistant()
+    const host = mount(
+      () => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }),
+      live(message, [read("prt_retry_read", "/research/protocol.md", 1_000)], {
+        type: "retry",
+        attempt: 2,
+        next: Date.now() + 10_000,
+        message:
+          "Ace's gateway could not deliver this request to the model service (ROUTER_EXTERNAL_TARGET_ERROR). This happens when the request is too large. Retry; if it fails again, downscale images first.",
+      }),
+    )
+    await ready(() => host.querySelector('[data-slot="session-turn-retry-message"]') !== null)
+    // The state leads and the reason is one short sentence without its code;
+    // the whole message waits in the tooltip.
+    expect(host.querySelector('[data-slot="session-turn-retry-seconds"]')?.textContent).toMatch(/^retrying \(2\)/)
+    expect(host.querySelector('[data-slot="session-turn-retry-message"]')?.textContent).toBe(
+      "· Ace's gateway could not deliver this request to the model service",
+    )
+    expect(host.querySelector('[data-slot="session-turn-retry-message"]')?.getAttribute("title")).toContain(
+      "ROUTER_EXTERNAL_TARGET_ERROR",
+    )
+    const button = toggle(host)
+    expect(button.querySelector('[data-component="spinner"]')).not.toBeNull()
+    expect(button.getAttribute("aria-expanded")).toBe("true")
+    expect(button.getAttribute("aria-label")).toBe("Hide reasoning and activity")
+    button.click()
+    await ready(() => button.getAttribute("aria-expanded") === "false")
+    expect(button.getAttribute("aria-label")).toBe("Show reasoning and activity")
+    expect(host.querySelector('[data-slot="session-turn-retry-message"]')).not.toBeNull()
+  })
+
+  test("a finished turn shows only the disclosure and its total time", async () => {
+    const message = assistant(5_000)
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [read("prt_idle_read", "paper.tex", 1_000)] },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store)
+    expect(status(host)).toBeNull()
+    expect(control(host)?.querySelector('[data-component="spinner"]')).toBeNull()
+    expect(control(host)?.getAttribute("data-working")).toBeNull()
+    const button = toggle(host)
+    expect(button.getAttribute("aria-expanded")).toBe("false")
+    expect(button.getAttribute("aria-label")).toBe("Show reasoning and activity")
+    expect(button.textContent).toMatch(/^Worked for \d/)
+    button.click()
+    await ready(() => host.querySelectorAll('[data-component="tool-part-wrapper"]').length === 1)
+    expect(button.getAttribute("aria-label")).toBe("Hide reasoning and activity")
+    expect(button.textContent).toMatch(/^Worked for \d/)
+  })
+
+  test.each(["busy", "idle"])("tool availability stays behind activity disclosures while %s", async (status) => {
+    const notice = "Tools added: edit, write."
+    const carrier: UserMessage = {
+      ...user,
+      id: "msg_0003",
+      internal: { type: "continuation", kind: "harness", epoch: user.id, transaction: "msg_0003", text: notice },
+    }
+    const message: AssistantMessage = {
+      ...assistant(status === "busy" ? undefined : 9_000),
+      id: "msg_0004",
+      parentID: carrier.id,
+    }
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, carrier, message] },
+      part: {
+        [user.id]: [],
+        [carrier.id]: [
+          { id: "prt_notice", sessionID, messageID: carrier.id, type: "text", text: notice, synthetic: true },
+        ],
+        [message.id]: [
+          { id: "prt_answer", sessionID, messageID: message.id, type: "text", text: "Preparing the paper." },
+        ],
+      },
+      session_status: { [sessionID]: status === "busy" ? { type: "busy" } : { type: "idle" } },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }), store)
+    const button = toggle(host)
+    if (button.getAttribute("aria-expanded") === "true") button.click()
+    await ready(() => button.getAttribute("aria-expanded") === "false")
+    expect(host.textContent).not.toContain(notice)
+    button.click()
+    await ready(() => host.querySelector('[data-kind="notice"] button') !== null)
+    const detail = host.querySelector<HTMLButtonElement>('[data-kind="notice"] button')!
+    expect(detail.textContent).toContain("Tool availability")
+    expect(detail.getAttribute("aria-expanded")).toBe("false")
+    expect(host.querySelector('[data-slot="trace-note"]')).toBeNull()
+    detail.click()
+    await ready(() => detail.getAttribute("aria-expanded") === "true")
+    expect(host.querySelector('[data-kind="notice"] [data-slot="trace-note-text"]')?.textContent).toBe(notice)
+  })
+
+  test("a background worker's completion keeps the turn open: its replies join the same trace and total time", async () => {
+    // The turn dispatched a worker, said something, then the worker's result
+    // arrived as a runtime-written user message and drew two more steps.
+    const first: AssistantMessage = { ...assistant(4_000), id: "msg_0002" }
+    const wake: UserMessage = {
+      id: "msg_0003",
+      sessionID,
+      role: "user",
+      time: { created: 5_000 },
+      agent: "research",
+      model: { providerID: "test", modelID: "test" },
+      internal: { type: "prompt", epoch: "msg_0001" },
+    }
+    const second: AssistantMessage = {
+      ...assistant(9_000),
+      id: "msg_0004",
+      parentID: wake.id,
+      time: { created: 5_100, completed: 9_000 },
+    }
+    const envelope: TextPart = {
+      id: "prt_wake",
+      sessionID,
+      messageID: wake.id,
+      type: "text",
+      synthetic: true,
+      text: '<task id="ses_child" state="completed">\n<task_result>\nDone: 31 tests pass.\n</task_result>\n</task>',
+    }
+    const interim: TextPart = {
+      id: "prt_interim",
+      sessionID,
+      messageID: first.id,
+      type: "text",
+      text: "Dispatched the control-ledger worker; the stack is verified.",
+      time: { start: 3_000, end: 3_500 },
+    }
+    const final: TextPart = {
+      id: "prt_final",
+      sessionID,
+      messageID: second.id,
+      type: "text",
+      text: "The worker's ledger is in; one methodological issue surfaced.",
+      time: { start: 8_000, end: 8_900 },
+    }
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, first, wake, second] },
+      part: {
+        [user.id]: [],
+        [first.id]: [read("prt_merge_read_a", "study.json", 2_000), interim],
+        [wake.id]: [envelope],
+        [second.id]: [{ ...read("prt_merge_read_b", "control.py", 6_000), messageID: second.id }, final],
+      },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store)
+    // One turn, one clock: it spans the worker's wake-up and the steps after it.
+    const button = toggle(host)
+    expect(button.textContent).toBe("Worked for 8s")
+    await ready(() => host.textContent!.includes("The worker's ledger is in"))
+    // Collapsed, the earlier prose is narration; the newest text is the answer.
+    expect(host.textContent).not.toContain("Dispatched the control-ledger worker")
+    // The envelope the runtime wrote is never shown as if the user had typed it.
+    expect(host.textContent).not.toContain("<task id=")
+    button.click()
+    await ready(() => host.querySelectorAll('[data-component="tool-part-wrapper"]').length === 2)
+    await ready(() => host.textContent!.includes("Dispatched the control-ledger worker"))
+  })
+
+  test("before any step exists the same header line already carries the request status", async () => {
+    const message = assistant()
+    const host = mount(
+      () => turn.SessionTurn({ sessionID, messageID: user.id, lastUserMessageID: user.id }),
+      live(message, [], { type: "busy" }),
+    )
+    // One element from the first second to the last: nothing swaps in when
+    // the first step lands.
+    await ready(() => toggle(host) !== null)
+    expect(status(host)).toBeNull()
+    expect(toggle(host).querySelector('[data-slot="session-turn-status-text"]')?.textContent).toBe("Thinking")
+    expect(toggle(host).querySelector('[data-component="spinner"]')).not.toBeNull()
+  })
+})
+
+describe("delegation phases", () => {
+  const input = { subagent_type: "research", description: "Compare assays" }
+  const render = (state: ToolPart["state"]) => {
+    const part: ToolPart = {
+      id: "prt_phase_task",
+      sessionID,
+      messageID: "msg_0002",
+      type: "tool",
+      callID: "call_phase_task",
+      tool: "task",
+      state,
+    }
+    const host = mount(() => parts.Part({ part, message: assistant() }), empty())
+    const card = host.querySelector('[data-component="delegation-card"]')
+    return {
+      label: card?.querySelector('[data-slot="delegation-status"]')?.textContent,
+      phase: card?.getAttribute("data-phase"),
+      outcome: card?.getAttribute("data-outcome"),
+    }
+  }
+
+  test("labels a delegation by the recorded child binding, never by the pending placeholder alone", () => {
+    expect(render({ status: "pending", input: {}, raw: "" })).toEqual({
+      label: "Preparing delegation",
+      phase: "preparing",
+      outcome: "pending",
+    })
+    expect(
+      render({ status: "running", input, title: "Compare assays", metadata: {}, time: { start: Date.now() } }),
+    ).toEqual({ label: "Preparing delegation", phase: "preparing", outcome: "pending" })
+    expect(
+      render({
+        status: "running",
+        input,
+        title: "Compare assays",
+        metadata: { sessionId: "ses_child", queuedMs: 0 },
+        time: { start: Date.now() },
+      }),
+    ).toEqual({ label: "Queued", phase: "queued", outcome: "pending" })
+    expect(
+      render({
+        status: "running",
+        input,
+        title: "Compare assays",
+        metadata: { sessionId: "ses_child", queuedMs: 40, activeMs: 0 },
+        time: { start: Date.now() },
+      }),
+    ).toEqual({ label: "Running", phase: "running", outcome: "running" })
+  })
+
+  test("separates a delegation that never started from a worker that failed, stopped early or was cancelled", () => {
+    expect(
+      render({
+        status: "error",
+        input,
+        error: "Task continuation session ses_x is not a direct child of the calling session",
+        time: { start: 1_000, end: 1_001 },
+      }),
+    ).toEqual({ label: "Delegation failed to start", phase: "failed_to_start", outcome: "error" })
+    expect(
+      render({
+        status: "error",
+        input,
+        error: "Worker crashed",
+        metadata: { sessionId: "ses_child" },
+        time: { start: 1_000, end: 1_001 },
+      }),
+    ).toEqual({ label: "Worker failed", phase: "failed", outcome: "error" })
+    expect(
+      render({
+        status: "error",
+        input,
+        error: "Tool execution aborted",
+        metadata: { sessionId: "ses_child", cancelled: true, started: true },
+        time: { start: 1_000, end: 1_001 },
+      }),
+    ).toEqual({ label: "Cancelled", phase: "cancelled", outcome: "cancelled" })
+    const completed = (metadata: Record<string, unknown>): ToolPart["state"] => ({
+      status: "completed",
+      input,
+      title: "Compare assays",
+      output: "Findings.",
+      metadata: { sessionId: "ses_child", ...metadata },
+      time: { start: 1_000, end: 2_000 },
+    })
+    expect(render(completed({ outcome: "partial" }))).toEqual({
+      label: "Partial result",
+      phase: "partial",
+      outcome: "partial",
+    })
+    expect(render(completed({ outcome: "timed_out" }))).toEqual({
+      label: "Time limit reached",
+      phase: "timed_out",
+      outcome: "timed_out",
+    })
+    expect(render(completed({ outcome: "error" }))).toEqual({
+      label: "Worker failed",
+      phase: "failed",
+      outcome: "error",
+    })
+    expect(render(completed({ outcome: "completed" }))).toEqual({
+      label: "Completed",
+      phase: "completed",
+      outcome: "completed",
+    })
+  })
+})
+
+describe("turns that ended early", () => {
+  const write: ToolPart = {
+    id: "prt_stop_write",
+    sessionID,
+    messageID: "msg_0002",
+    type: "tool",
+    callID: "call_stop_write",
+    tool: "write",
+    state: {
+      status: "completed",
+      input: { filePath: "notes.md" },
+      metadata: { filepath: "/research/notes.md" },
+      output: "Written",
+      title: "notes.md",
+      time: { start: 1_000, end: 1_100 },
+    },
+  }
+  const interrupted: ToolPart = {
+    id: "prt_stop_bash",
+    sessionID,
+    messageID: "msg_0002",
+    type: "tool",
+    callID: "call_stop_bash",
+    tool: "bash",
+    state: {
+      status: "error",
+      input: { command: "python make_report.py", description: "Build the report" },
+      error: "Tool execution aborted",
+      metadata: { cancelled: true, started: true },
+      time: { start: 1_200, end: 1_300 },
+    },
+  }
+  const unstarted: ToolPart = {
+    id: "prt_stop_read",
+    sessionID,
+    messageID: "msg_0002",
+    type: "tool",
+    callID: "call_stop_read",
+    tool: "read",
+    state: {
+      status: "error",
+      input: { filePath: "/research/data.csv" },
+      error: "Tool execution aborted. The read call had not started; no action was taken.",
+      metadata: { cancelled: true, started: false },
+      time: { start: 1_300, end: 1_300 },
+    },
+  }
+  const patch: Part = {
+    id: "prt_stop_patch",
+    sessionID,
+    messageID: "msg_0002",
+    type: "patch",
+    hash: "abc123",
+    files: ["/research/results.csv", "/research/notes.md"],
+  }
+
+  test("a Stop press ends the turn on the header line, with no card or receipt", async () => {
+    const message: AssistantMessage = {
+      ...assistant(Date.now()),
+      error: { name: "MessageAbortedError", data: { message: "The operation was aborted." } },
+    }
+    const opened: string[] = []
+    const store: Store = {
+      ...empty(),
+      // A stale busy status cannot restart the turn or spin anything.
+      session_status: { [sessionID]: { type: "busy" } },
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [write, interrupted, unstarted, patch] },
+    }
+    const host = mount(
+      () =>
+        web.createComponent(markdown.MarkdownImages, {
+          resolve: (src) => src,
+          resolveFile: (path) => assets.workspaceAssetPath(path, "/research"),
+          resolveFileReceipt: assets.workspaceReceiptPath,
+          openFile: (path) => opened.push(path),
+          get children() {
+            return web.createComponent(turn.SessionTurn, { sessionID, messageID: user.id, lastUserMessageID: user.id })
+          },
+        }),
+      store,
+      { openFile: (path) => opened.push(path) },
+    )
+    // A stop the user asked for needs no card, no receipt, no explanation:
+    // the header line says it, and the transcript stays exactly as it was.
+    await ready(
+      () =>
+        host.querySelector('[data-slot="session-turn-trigger-label"]')?.textContent?.includes("Stopped after") === true,
+    )
+    expect(host.querySelector('[data-component="card"][data-state]')).toBeNull()
+    expect(host.querySelector('[data-slot="session-turn-stop-note"]')).toBeNull()
+    expect(host.textContent).not.toContain("Stopped at your request")
+    expect(host.textContent).not.toContain("Outputs kept")
+    expect(host.textContent).not.toContain("The operation was aborted")
+    expect(host.querySelector('[data-component="spinner"]')).toBeNull()
+    expect(host.querySelector('[data-slot="session-turn-live-status"]')).toBeNull()
+    expect(host.querySelector('[data-slot="session-turn-retry-message"]')).toBeNull()
+    expect(opened).toEqual([])
+
+    // The recorded activity stays disclosable and untouched.
+    const toggle = host.querySelector<HTMLButtonElement>('[data-slot="session-turn-collapsible-trigger-content"]')!
+    expect(toggle.getAttribute("aria-expanded")).toBe("false")
+    expect(toggle.getAttribute("aria-label")).toBe("Show reasoning and activity")
+    expect(toggle.textContent).toMatch(/^Stopped after \d/)
+    expect(store.part[message.id][1]).toBe(interrupted)
+  })
+
+  test("a named interruption keeps its recorded cause", async () => {
+    const cause =
+      "Interrupted: credentials changed (workspace-sync.expired) and every runtime that inherited the previous snapshot was stopped"
+    const message: AssistantMessage = {
+      ...assistant(Date.now()),
+      error: { name: "MessageAbortedError", data: { message: cause } },
+    }
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [write] },
+    }
+    const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store)
+    // A stop with a cause the user did not choose keeps that cause: one line.
+    await ready(() => host.querySelector('[data-slot="session-turn-stop-note"]') !== null)
+    expect(host.querySelector('[data-slot="session-turn-stop-note"]')?.textContent).toBe(cause)
+    expect(host.querySelector('[data-component="card"][data-state]')).toBeNull()
+    expect(host.querySelector('[data-slot="session-turn-trigger-label"]')?.textContent).toContain("Stopped after")
+  })
+
+  test("a stopped parent lists files confirmed by a delegated child's mutation evidence", async () => {
+    const message: AssistantMessage = {
+      ...assistant(Date.now()),
+      error: { name: "MessageAbortedError", data: { message: "The operation was aborted." } },
+    }
+    const task: ToolPart = {
+      id: "prt_stopped_task",
+      sessionID,
+      messageID: message.id,
+      type: "tool",
+      callID: "call_stopped_task",
+      tool: "task",
+      state: {
+        status: "completed",
+        input: { description: "Add comparison arm" },
+        title: "Add comparison arm",
+        output: "The worker was cancelled after completing four edits.",
+        metadata: {
+          sessionId: "ses_child",
+          outcome: "partial",
+          evidence: {
+            mutations: [
+              { files: ["/research/application.py", "/research/backend.py"] },
+              { files: ["/research/campaign.py", "/research/matrix.py"] },
+            ],
+          },
+        },
+        time: { start: 1_000, end: 2_000 },
+      },
+    }
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [task] },
+    }
+    const host = mount(
+      () =>
+        web.createComponent(markdown.MarkdownImages, {
+          resolve: (src) => src,
+          resolveFile: (path) => assets.workspaceAssetPath(path, "/research"),
+          resolveFileReceipt: assets.workspaceReceiptPath,
+          get children() {
+            return web.createComponent(turn.SessionTurn, { sessionID, messageID: user.id, lastUserMessageID: user.id })
+          },
+        }),
+      store,
+      { saveArtifact: async () => {} },
+    )
+    await ready(() => host.querySelector('[data-slot="session-turn-session-outputs"]') !== null)
+
+    // What the worker wrote survives the stop and is offered as this turn's outputs.
+    const outputs = [...host.querySelectorAll('[data-slot="session-turn-output-file"]')].map((item) =>
+      item.getAttribute("title"),
+    )
+    expect(outputs).toEqual([
+      "/research/application.py",
+      "/research/backend.py",
+      "/research/campaign.py",
+      "/research/matrix.py",
+    ])
+    expect(host.querySelector('[data-component="card"][data-state]')).toBeNull()
+  })
+})
+
+describe("shell-written outputs", () => {
+  test("files a command changed are offered as session outputs from the recorded diff, resolved like file links", async () => {
+    const message = assistant(3_000)
+    const command: ToolPart = {
+      id: "prt_make",
+      sessionID,
+      messageID: message.id,
+      type: "tool",
+      callID: "call_make",
+      tool: "bash",
+      state: {
+        status: "completed",
+        input: { command: "python make_report.py > results.csv" },
+        title: "Build results",
+        output: "",
+        metadata: { exit: 0 },
+        time: { start: 1_000, end: 2_000 },
+      },
+    }
+    const patch: Part = {
+      id: "prt_make_patch",
+      sessionID,
+      messageID: message.id,
+      type: "patch",
+      hash: "def456",
+      files: ["/research/results.csv", "/session-scratch/figure.png", "/research/results.csv", "/outside/secret.txt"],
+    }
+    const saved: string[] = []
+    const store: Store = {
+      ...empty(),
+      message: { [sessionID]: [user, message] },
+      part: { [user.id]: [], [message.id]: [command, patch] },
+    }
+    const host = mount(
+      () =>
+        web.createComponent(markdown.MarkdownImages, {
+          resolve: (src) => src,
+          resolveFile: (path) => assets.workspaceAssetPath(path, "/research"),
+          resolveFileReceipt: (path) => (path.startsWith("/outside/") ? undefined : assets.workspaceReceiptPath(path)),
+          openFile: () => {},
+          get children() {
+            return web.createComponent(turn.SessionTurn, { sessionID, messageID: user.id })
+          },
+        }),
+      store,
+      {
+        saveArtifact: async (path) => {
+          saved.push(path)
+        },
+      },
+    )
+    await ready(() => host.querySelector('[data-slot="session-turn-session-outputs"]') !== null)
+    // One folded line by default; the files are there to open on demand.
+    const outputs = host.querySelector<HTMLDetailsElement>('details[data-slot="session-turn-session-outputs"]')!
+    expect(outputs.open).toBe(false)
+    expect(outputs.querySelector("summary")?.textContent).toContain("2 files written this turn")
+    const rows = [...host.querySelectorAll('[data-slot="session-turn-output-file"]')]
+    expect(rows.map((row) => row.getAttribute("title"))).toEqual([
+      "/research/results.csv",
+      "/session-scratch/figure.png",
+    ])
+    host.querySelectorAll<HTMLButtonElement>('[data-slot="session-turn-artifact-action"]')[1].click()
+    await ready(() => saved.length === 1)
+    expect(saved).toEqual(["/session-scratch/figure.png"])
+  })
+})
+
+describe("current compute details", () => {
+  test("terminal job details can be read and refreshed while the original receipt remains unchanged", async () => {
+    let available = true
+    const host = mount(() => compute.ComputeJobDetails({ id: "job_setup" }), empty(), {
+      loadComputeJob: async () =>
+        available
+          ? {
+              id: "job_setup",
+              name: "Setup",
+              status: "succeeded",
+              command: "offline",
+              exit_code: 0,
+              lifecycle: { delivery: "none", resource: "closed", recoverable: false },
+            }
+          : undefined,
+    })
+    const button = [...host.querySelectorAll("button")].find((value) =>
+      value.textContent?.includes("View current job"),
+    )!
+    button.click()
+    await ready(() => host.textContent?.includes("Current status: succeeded") === true)
+    expect(host.textContent).toContain("Exit code: 0")
+    expect(host.textContent).toContain("Resource: closed")
+    available = false
+    ;[...host.querySelectorAll("button")]
+      .find((value) => value.textContent?.includes("Refresh current status"))!
+      .click()
+    await ready(() => host.textContent?.includes("no longer available") === true)
+    expect(host.textContent).not.toContain("Current status: succeeded")
+  })
+})
+
+test("current existence checks omit deleted Git paths and retain canonical Bash evidence", async () => {
+  const message = assistant(3_000)
+  const command: ToolPart = {
+    id: "prt_bash_receipt",
+    sessionID,
+    messageID: message.id,
+    type: "tool",
+    tool: "bash",
+    callID: "call_outputs",
+    state: {
+      status: "completed",
+      input: { command: "offline" },
+      title: "Create evidence",
+      output: "",
+      metadata: {
+        exit: 0,
+        outputFiles: [
+          {
+            path: "/research/AUDIT_EVIDENCE.json",
+            name: "AUDIT_EVIDENCE.json",
+            size: 10,
+            modified: 1,
+            change: "created",
+          },
+        ],
+      },
+      time: { start: 1000, end: 2000 },
+    },
+  }
+  const patch: Part = {
+    id: "prt_git",
+    sessionID,
+    messageID: message.id,
+    type: "patch",
+    hash: "hash",
+    files: ["/research/deleted.py"],
+  }
+  const store: Store = {
+    ...empty(),
+    message: { [sessionID]: [user, message] },
+    part: { [user.id]: [], [message.id]: [command, patch] },
+  }
+  const opened: string[] = []
+  const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store, {
+    saveArtifact: async () => {},
+    openFile: (path) => opened.push(path),
+    resolveFileReceipts: async (id, paths) => {
+      expect(id).toBe(sessionID)
+      expect(paths).toEqual(["/research/AUDIT_EVIDENCE.json", "/research/deleted.py"])
+      return ["/research/AUDIT_EVIDENCE.json"]
+    },
+  })
+  await ready(() => host.querySelector('[data-slot="session-turn-output-file"]') !== null)
+  const files = [...host.querySelectorAll<HTMLButtonElement>('[data-slot="session-turn-output-file"]')]
+  expect(files.map((file) => file.title)).toEqual(["/research/AUDIT_EVIDENCE.json"])
+  files[0].click()
+  expect(opened).toEqual(["/research/AUDIT_EVIDENCE.json"])
+})
+
+test("compute dispatch stays labeled as a historical snapshot and suppresses GPU none", async () => {
+  const receipt: ToolPart = {
+    id: "prt_compute_snapshot",
+    sessionID,
+    messageID: "msg_0002",
+    type: "tool",
+    tool: "compute_job",
+    callID: "call_compute",
+    state: {
+      status: "completed",
+      input: { action: "start", gpu: "none" },
+      title: "Set up tests",
+      output: "Dispatched local job. Status queued.",
+      metadata: { job: { id: "job", status: "queued" } },
+      time: { start: 1, end: 2 },
+    },
+  }
+  const host = mount(() => parts.Part({ part: receipt, message: assistant(2) }), empty())
+  await ready(() => host.textContent?.includes("queued at dispatch") === true)
+  expect(host.textContent).not.toContain("none ·")
+  expect(receipt.state.status).toBe("completed")
+  expect("metadata" in receipt.state && receipt.state.metadata).toMatchObject({ job: { status: "queued" } })
+})
+
+test("a Modal call reaches the same live job panel as compute_job instead of a bare plan dump", async () => {
+  const receipt: ToolPart = {
+    id: "prt_modal_snapshot",
+    sessionID,
+    messageID: "msg_0002",
+    type: "tool",
+    tool: "modal",
+    callID: "call_modal",
+    state: {
+      status: "completed",
+      input: { name: "Final churn ensemble", gpu: "T4", action: "start" },
+      title: "Modal job: Final churn ensemble",
+      output: "Dispatched Modal job job_1. Status queued.",
+      // What ModalTool emits: the plan under `compute`, the job under `job`.
+      metadata: {
+        compute: { provider: "modal", name: "Final churn ensemble", gpu: "T4", timeout_minutes: 25 },
+        job: { id: "job_1", status: "running" },
+      },
+      time: { start: 1, end: 2 },
+    },
+  }
+  const host = mount(() => parts.Part({ part: receipt, message: assistant(2) }), empty(), {
+    loadComputeJob: (id) =>
+      Promise.resolve({ id, name: "Final churn ensemble", command: "python final.py", status: "completed" }),
+  })
+  // The dispatched job is summarized on the row, exactly as compute_job does it.
+  await settle()
+  expect(host.querySelector('[data-slot="basic-tool-tool-subtitle"]')?.textContent).toBe("T4 · running at dispatch")
+  // And the live panel behind "View current job" is reachable, not only for compute_job.
+  host.querySelector<HTMLElement>('[data-component="tool-trigger"]')!.click()
+  await settle()
+  const toggle = [...host.querySelectorAll("button")].find((button) => button.textContent?.includes("View current job"))
+  expect(toggle).toBeTruthy()
+  toggle!.click()
+  await ready(() => host.textContent?.includes("Current status: completed") === true)
+  expect(host.textContent).toContain("Final churn ensemble")
+})
+
+test("unavailable file checks stay explicit and can recover without offering unverified output", async () => {
+  const message = assistant(3000)
+  const patch: Part = {
+    id: "prt_receipt_retry",
+    sessionID,
+    messageID: message.id,
+    type: "patch",
+    hash: "hash",
+    files: ["/research/result.json"],
+  }
+  const store: Store = {
+    ...empty(),
+    message: { [sessionID]: [user, message] },
+    part: { [user.id]: [], [message.id]: [patch] },
+  }
+  let unavailable = true
+  const host = mount(() => turn.SessionTurn({ sessionID, messageID: user.id }), store, {
+    saveArtifact: async () => {},
+    resolveFileReceipts: async () => {
+      if (unavailable) throw new Error("offline")
+      return ["/research/result.json"]
+    },
+  })
+  await ready(() => host.textContent?.includes("outputs could not be checked") === true)
+  expect(host.querySelector('[data-slot="session-turn-output-file"]')).toBeNull()
+  unavailable = false
+  ;[...host.querySelectorAll("button")].find((button) => button.textContent?.includes("Retry file check"))!.click()
+  await ready(() => host.querySelector('[data-slot="session-turn-output-file"]') !== null)
+  expect(host.textContent).not.toContain("outputs could not be checked")
+})
+
+test("file receipt checks never suspend the conversation during initial load, submit, or retry", async () => {
+  const message = assistant(3000)
+  const file = "/research/result.json"
+  const patch: Part = {
+    id: "prt_nonblocking_receipt",
+    sessionID,
+    messageID: message.id,
+    type: "patch",
+    hash: "hash",
+    files: [file],
+  }
+  const [store, setStore] = reactive.createStore<Store>({
+    ...empty(),
+    session_status: { [sessionID]: { type: "idle" } },
+    message: { [sessionID]: [user, message] },
+    part: { [user.id]: [], [message.id]: [patch] },
+  })
+  const checks: Array<{ resolve: (paths: string[]) => void; reject: (error: Error) => void }> = []
+  const host = mount(
+    () =>
+      solidRuntime.Suspense({
+        fallback: "RECEIPT_SUSPENSE_FALLBACK",
+        get children() {
+          return web.createComponent(turn.SessionTurn, { sessionID, messageID: user.id })
+        },
+      }),
+    store,
+    {
+      saveArtifact: async () => {},
+      resolveFileReceipts: (id, paths) => {
+        expect(id).toBe(sessionID)
+        expect(paths).toEqual([file])
+        return new Promise<string[]>((resolve, reject) => checks.push({ resolve, reject }))
+      },
+    },
+  )
+  await ready(() => checks.length === 1)
+  const transcript = host.querySelector('[data-component="session-turn"]')
+  expect(transcript).not.toBeNull()
+  const stillMounted = () => {
+    expect(transcript!.isConnected).toBe(true)
+    expect(host.querySelector('[data-component="session-turn"]')).toBe(transcript)
+    expect(host.textContent).not.toContain("RECEIPT_SUSPENSE_FALLBACK")
+  }
+  const output = () => host.querySelector<HTMLButtonElement>('[data-slot="session-turn-output-file"]')
+  stillMounted()
+  expect(output()).toBeNull()
+
+  checks[0].resolve([file])
+  await ready(() => output()?.title === file)
+  setStore("session_status", sessionID, { type: "busy" })
+  await ready(() => checks.length === 2)
+  stillMounted()
+  checks[1].resolve([])
+  await settle()
+  setStore("session_status", sessionID, { type: "idle" })
+  await ready(() => checks.length === 3)
+  stillMounted()
+  expect(output()).toBeNull()
+
+  checks[2].reject(new Error("offline"))
+  await ready(() => host.textContent?.includes("outputs could not be checked") === true)
+  stillMounted()
+  expect(output()).toBeNull()
+  ;[...host.querySelectorAll("button")].find((button) => button.textContent?.includes("Retry file check"))!.click()
+  await ready(() => checks.length === 4)
+  stillMounted()
+  expect(output()).toBeNull()
+  checks[3].resolve([file])
+  await ready(() => output()?.title === file)
+  stillMounted()
+  expect(host.textContent).not.toContain("outputs could not be checked")
+})
+
+test("current job lookups and refreshes keep the transcript mounted under Suspense", async () => {
+  type Job = Awaited<ReturnType<NonNullable<Callbacks["loadComputeJob"]>>>
+  const checks: Array<{ resolve: (job: Job) => void; reject: (error: Error) => void }> = []
+  const host = mount(
+    () =>
+      solidRuntime.Suspense({
+        fallback: "JOB_SUSPENSE_FALLBACK",
+        get children() {
+          return web.createComponent(compute.ComputeJobDetails, { id: "job_live" })
+        },
+      }),
+    empty(),
+    {
+      loadComputeJob: (id) => {
+        expect(id).toBe("job_live")
+        return new Promise<Job>((resolve, reject) => checks.push({ resolve, reject }))
+      },
+    },
+  )
+  const toggle = [...host.querySelectorAll("button")].find((button) =>
+    button.textContent?.includes("View current job"),
+  )!
+  toggle.click()
+  await ready(() => checks.length === 1)
+  const stillMounted = () => {
+    expect(toggle.isConnected).toBe(true)
+    expect(host.contains(toggle)).toBe(true)
+    expect(host.textContent).not.toContain("JOB_SUSPENSE_FALLBACK")
+  }
+  stillMounted()
+  expect(host.textContent).toContain("Reading current job")
+  expect(host.textContent).not.toContain("Current status:")
+
+  const job = { id: "job_live", name: "Fixture job", command: "offline" }
+  checks[0].resolve({ ...job, status: "running" })
+  await ready(() => host.textContent?.includes("Current status: running") === true)
+  const refresh = () =>
+    [...host.querySelectorAll("button")].find((button) => button.textContent?.includes("Refresh current status"))!
+  refresh().click()
+  await ready(() => checks.length === 2)
+  stillMounted()
+  expect(host.querySelector('[data-component="compute-job-details"]')?.getAttribute("aria-busy")).toBe("true")
+  expect(host.textContent).toContain("Current status: running")
+
+  checks[1].reject(new Error("offline"))
+  await ready(() => host.textContent?.includes("Current job status could not be read") === true)
+  stillMounted()
+  expect(host.textContent).not.toContain("Current status: running")
+  refresh().click()
+  await ready(() => checks.length === 3)
+  stillMounted()
+  checks[2].resolve({ ...job, status: "succeeded", exit_code: 0 })
+  await ready(() => host.textContent?.includes("Current status: succeeded") === true)
+  stillMounted()
+  expect(host.textContent).toContain("Exit code: 0")
+  expect(host.textContent).not.toContain("Current job status could not be read")
+})

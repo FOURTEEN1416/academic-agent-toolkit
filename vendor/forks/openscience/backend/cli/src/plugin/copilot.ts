@@ -1,6 +1,6 @@
 import type { Hooks, PluginInput } from "@synsci/plugin"
 import { Installation } from "@/installation"
-import { iife } from "@/util/iife"
+import { iife } from "@synsci/util/iife"
 
 const CLIENT_ID = "Ov23li8tweQw6odWQebz"
 // Add a small safety buffer when polling to avoid hitting the server
@@ -40,19 +40,8 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
               },
             }
 
-            // TODO: re-enable once messages api has higher rate limits
-            // TODO: move some of this hacky-ness to models.dev presets once we have better grasp of things here...
-            // const base = baseURL ?? model.api.url
-            // const claude = model.id.includes("claude")
-            // const url = iife(() => {
-            //   if (!claude) return base
-            //   if (base.endsWith("/v1")) return base
-            //   if (base.endsWith("/")) return `${base}v1`
-            //   return `${base}/v1`
-            // })
-
-            // model.api.url = url
-            // model.api.npm = claude ? "@ai-sdk/anthropic" : "@ai-sdk/github-copilot"
+            // Claude models stay on the Copilot chat route: the Anthropic
+            // messages API behind Copilot is rate-limited too tightly for it.
             model.api.npm = "@ai-sdk/github-copilot"
           }
         }

@@ -1,7 +1,9 @@
-import { test, expect } from "bun:test"
+import { test, expect, afterEach } from "bun:test"
 import { Question } from "../../src/question"
 import { Instance } from "../../src/project/instance"
 import { tmpdir } from "../fixture/fixture"
+
+afterEach(() => Instance.disposeAll())
 
 test("ask - returns pending promise", async () => {
   await using tmp = await tmpdir({ git: true })
@@ -22,6 +24,10 @@ test("ask - returns pending promise", async () => {
         ],
       })
       expect(promise).toBeInstanceOf(Promise)
+      const settled = promise.catch((error) => error)
+      expect(await Question.list()).toHaveLength(1)
+      await Instance.dispose()
+      expect(await settled).toBeInstanceOf(Question.InstanceDisposedError)
     },
   })
 })
@@ -42,7 +48,7 @@ test("ask - adds to pending list", async () => {
         },
       ]
 
-      Question.ask({
+      const promise = Question.ask({
         sessionID: "ses_test",
         questions,
       })
@@ -50,6 +56,8 @@ test("ask - adds to pending list", async () => {
       const pending = await Question.list()
       expect(pending.length).toBe(1)
       expect(pending[0].questions).toEqual(questions)
+      await Question.reply({ requestID: pending[0].id, answers: [] })
+      await promise
     },
   })
 })
@@ -260,7 +268,7 @@ test("list - returns all pending requests", async () => {
   await Instance.provide({
     directory: tmp.path,
     fn: async () => {
-      Question.ask({
+      const first = Question.ask({
         sessionID: "ses_test1",
         questions: [
           {
@@ -271,7 +279,7 @@ test("list - returns all pending requests", async () => {
         ],
       })
 
-      Question.ask({
+      const second = Question.ask({
         sessionID: "ses_test2",
         questions: [
           {
@@ -284,6 +292,8 @@ test("list - returns all pending requests", async () => {
 
       const pending = await Question.list()
       expect(pending.length).toBe(2)
+      for (const request of pending) await Question.reply({ requestID: request.id, answers: [] })
+      await Promise.all([first, second])
     },
   })
 })
@@ -295,6 +305,32 @@ test("list - returns empty when no pending", async () => {
     fn: async () => {
       const pending = await Question.list()
       expect(pending.length).toBe(0)
+    },
+  })
+})
+
+test("ask - withdraws the question when no one answers in time", async () => {
+  await using tmp = await tmpdir({ git: true })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const promise = Question.ask({
+        sessionID: "ses_test",
+        questions: [
+          {
+            question: "Continue?",
+            header: "Action",
+            options: [
+              { label: "Yes", description: "Continue" },
+              { label: "No", description: "Stop" },
+            ],
+          },
+        ],
+        timeoutMs: 20,
+      })
+      expect(await Question.list()).toHaveLength(1)
+      await expect(promise).rejects.toBeInstanceOf(Question.TimeoutError)
+      expect(await Question.list()).toHaveLength(0)
     },
   })
 })

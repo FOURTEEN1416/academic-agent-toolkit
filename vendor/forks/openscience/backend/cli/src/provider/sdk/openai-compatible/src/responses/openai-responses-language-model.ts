@@ -742,6 +742,9 @@ export class OpenAIResponsesLanguageModel implements LanguageModelV2 {
     if (typeof response.service_tier === "string") {
       providerMetadata.openai.serviceTier = response.service_tier
     }
+    if (typeof response.usage.input_tokens_details?.cache_write_tokens === "number") {
+      providerMetadata.openai.cacheCreationInputTokens = response.usage.input_tokens_details.cache_write_tokens
+    }
 
     return {
       content,
@@ -834,6 +837,7 @@ export class OpenAIResponsesLanguageModel implements LanguageModelV2 {
     let currentTextId: string | null = null
 
     let serviceTier: string | undefined
+    let cacheCreationInputTokens: number | undefined
 
     return {
       stream: response.pipeThrough(
@@ -989,7 +993,7 @@ export class OpenAIResponsesLanguageModel implements LanguageModelV2 {
                 controller.enqueue({
                   type: "tool-call",
                   toolCallId: value.item.id,
-                  toolName: "web_search",
+                  toolName: webSearchToolName ?? "web_search",
                   input: JSON.stringify({ action: value.item.action }),
                   providerExecuted: true,
                 })
@@ -997,7 +1001,7 @@ export class OpenAIResponsesLanguageModel implements LanguageModelV2 {
                 controller.enqueue({
                   type: "tool-result",
                   toolCallId: value.item.id,
-                  toolName: "web_search",
+                  toolName: webSearchToolName ?? "web_search",
                   result: { status: value.item.status },
                   providerExecuted: true,
                 })
@@ -1253,6 +1257,7 @@ export class OpenAIResponsesLanguageModel implements LanguageModelV2 {
               usage.totalTokens = value.response.usage.input_tokens + value.response.usage.output_tokens
               usage.reasoningTokens = value.response.usage.output_tokens_details?.reasoning_tokens ?? undefined
               usage.cachedInputTokens = value.response.usage.input_tokens_details?.cached_tokens ?? undefined
+              cacheCreationInputTokens = value.response.usage.input_tokens_details?.cache_write_tokens ?? undefined
               if (typeof value.response.service_tier === "string") {
                 serviceTier = value.response.service_tier
               }
@@ -1300,6 +1305,9 @@ export class OpenAIResponsesLanguageModel implements LanguageModelV2 {
             if (serviceTier !== undefined) {
               providerMetadata.openai.serviceTier = serviceTier
             }
+            if (cacheCreationInputTokens !== undefined) {
+              providerMetadata.openai.cacheCreationInputTokens = cacheCreationInputTokens
+            }
 
             controller.enqueue({
               type: "finish",
@@ -1318,7 +1326,9 @@ export class OpenAIResponsesLanguageModel implements LanguageModelV2 {
 
 const usageSchema = z.object({
   input_tokens: z.number(),
-  input_tokens_details: z.object({ cached_tokens: z.number().nullish() }).nullish(),
+  input_tokens_details: z
+    .object({ cached_tokens: z.number().nullish(), cache_write_tokens: z.number().nullish() })
+    .nullish(),
   output_tokens: z.number(),
   output_tokens_details: z.object({ reasoning_tokens: z.number().nullish() }).nullish(),
 })
@@ -1531,7 +1541,7 @@ const openaiResponsesChunkSchema = z.union([
   z.object({ type: z.string() }).loose(), // fallback for unknown chunks
 ])
 
-type ExtractByType<T, K extends T extends { type: infer U } ? U : never> = T extends { type: K } ? T : never
+type ExtractByType<T, K extends (T extends { type: infer U } ? U : never)> = T extends { type: K } ? T : never
 
 function isTextDeltaChunk(
   chunk: z.infer<typeof openaiResponsesChunkSchema>,

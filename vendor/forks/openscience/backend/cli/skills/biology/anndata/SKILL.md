@@ -4,9 +4,15 @@ description: Data structure for annotated matrices in single-cell analysis. Use 
 category: biology
 license: BSD-3-Clause license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/anndata
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Single-Cell, Data Format, h5ad, Bioinformatics]
 dependencies: ["anndata>=0.10.0", "numpy>=1.25.0"]
 ---
@@ -160,7 +166,7 @@ Common commands:
 adata = ad.concat(
     [adata1, adata2, adata3],
     axis=0,
-    join='inner',
+    join='inner',  # Keep the genes measured in every sample
     label='batch',
     keys=['batch1', 'batch2', 'batch3']
 )
@@ -176,6 +182,8 @@ collection = AnnCollection(
     label='dataset'
 )
 ```
+
+Use `join='inner'` to keep only the variables every object shares; it is the right choice before integration or batch correction. Use `join='outer'` to keep the union when you need every gene or feature, but note that a feature absent from one object is filled with `0` in sparse matrices (or `NaN` in dense ones), which reads as "not expressed" rather than "not measured". Record which object measured which features before relying on those zeros.
 
 ### 4. Data Manipulation
 
@@ -217,7 +225,6 @@ Follow recommended patterns for memory efficiency, performance, and reproducibil
 - Views vs copies
 - Data storage optimization
 - Performance optimization
-- Working with raw data
 - Metadata management
 - Reproducibility
 - Error handling
@@ -236,8 +243,11 @@ adata.strings_to_categoricals()
 # Use backed mode for large files
 adata = ad.read_h5ad('large.h5ad', backed='r')
 
-# Store raw before filtering
-adata.raw = adata.copy()
+# Preserve counts before normalization
+adata.layers['counts'] = adata.X.copy()
+sc.pp.normalize_total(adata, target_sum=1e4)
+sc.pp.log1p(adata)
+adata.layers['log1p'] = adata.X.copy()
 adata = adata[:, adata.var['highly_variable']]
 ```
 
@@ -301,8 +311,8 @@ adata.obs['n_counts'] = adata.X.sum(axis=1)
 adata = adata[adata.obs['n_genes'] > 200]
 adata = adata[adata.obs['n_counts'] < 50000]
 
-# 3. Store raw
-adata.raw = adata.copy()
+# 3. Preserve raw counts in a layer before normalization
+adata.layers['counts'] = adata.X.copy()
 
 # 4. Normalize and filter
 sc.pp.normalize_total(adata, target_sum=1e4)
@@ -326,7 +336,7 @@ adata = ad.concat(
     [adata1, adata2, adata3],
     label='batch',
     keys=['batch1', 'batch2', 'batch3'],
-    join='inner'
+    join='inner'  # Integration and batch correction need the shared genes
 )
 
 # Apply batch correction

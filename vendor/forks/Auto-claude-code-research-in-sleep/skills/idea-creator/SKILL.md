@@ -2,10 +2,21 @@
 name: idea-creator
 description: Generate and rank research ideas given a broad direction. Use when user says "找idea", "brainstorm ideas", "generate research ideas", "what can we work on", or wants to explore a research area for publishable directions.
 argument-hint: "[research-direction]"
-allowed-tools: Bash(*), Read, Write, Grep, Glob, WebSearch, WebFetch, Agent, Skill, mcp__codex__codex, mcp__codex__codex-reply, mcp__manual_review__review, mcp__manual_review__review_reply
+allowed-tools: Bash(*), Read, Write, Grep, Glob, WebSearch, WebFetch, Agent(aris-fanout-leaf), Skill, mcp__codex__codex, mcp__codex__codex-reply, mcp__manual_review__review, mcp__manual_review__review_reply, mcp__antigravity__antigravity, mcp__antigravity__antigravity-reply, mcp__grok__grok, mcp__grok__grok-reply, mcp__claude-review__review, mcp__claude-review__review_reply, mcp__claude-review__review_start, mcp__claude-review__review_reply_start, mcp__claude-review__review_status
 ---
 
 # Research Idea Creator
+
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Claude Code default (Codex MCP)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
 
 Generate publishable research ideas for: $ARGUMENTS
 
@@ -15,11 +26,15 @@ Given a broad research direction from the user, systematically generate, validat
 
 ## Constants
 
+Reviewer overrides apply to Phase 4 and reviewer-bearing children. Phase 2
+brainstorming and native lens workers keep their existing generation model; do
+not pass a selected MCP reviewer model into a native generation call.
+
 - **PILOT_MAX_HOURS = 2** — Skip any pilot estimated to take > 2 hours per GPU. Flag as "needs manual pilot".
 - **PILOT_TIMEOUT_HOURS = 3** — Hard timeout: kill pilots exceeding 3 hours. Collect partial results if available.
 - **MAX_PILOT_IDEAS = 3** — Pilot at most 3 ideas in parallel. Additional ideas are validated on paper only.
 - **MAX_TOTAL_GPU_HOURS = 8** — Total GPU budget for all pilots combined.
-- **REVIEWER_MODEL = `gpt-5.6-sol`** — Default model for the Codex backend. Must be an OpenAI model (e.g., `gpt-5.6-sol`, `o3`, `gpt-4o`). Manual backend uses a model the user chooses, **but it must be a non-Claude model ARIS can classify** (OpenAI, Google, DeepSeek, Moonshot/Kimi, Qwen) — the executor is Claude, so pasting into any Claude product makes Claude judge Claude and voids the cross-model invariant (see `shared-references/reviewer-routing.md`).
+- **REVIEWER_MODEL = `gpt-6-astra`** — Default for `backend=codex`; generation keeps its existing model. Review models come from the selected route. For manual review, require a recognized actual reviewer model different from the actual executor family; never infer the executor family from the Claude Code host.
 - **REVIEWER_BACKEND = `codex`** — Default: Codex MCP (xhigh). Override with `— reviewer: oracle-pro` for Oracle MCP, or `— reviewer: manual` for Manual Review MCP. If manual-review MCP is unavailable, stop and print the install command; do not fall back to Codex. See `shared-references/reviewer-routing.md`.
 - **OUTPUT_DIR = `idea-stage/`** — All idea-stage outputs go here. Create the directory if it doesn't exist.
 
@@ -200,40 +215,51 @@ same-family *acquittal* is not).
 `method-transfer` (works in domain A, untried in B) · `contradiction`
 (conflicting findings to resolve) · `untested-assumption` (everyone assumes,
 nobody tested) · `scaling-regime` (unexplored regime) · `diagnostic`
-(question nobody asked). This set is a floor, not a ceiling — add a
-domain-specific lens when the direction warrants.
+(question nobody asked). Freeze the full lens list before dispatch. A
+well-justified domain-specific lens may replace, combine, or extend the defaults,
+but the final list must fit `max_shards: 8`.
 
-**Tier-portable dispatch** (the Phase-4 jury downstream is identical on every tier):
-- **Tier 1** (Workflow available): spawn one **Claude subagent per lens**;
-  each runs the Phase-1 survey *through its lens* and the Phase-2 generation
-  prompt *restricted to that lens*, returning candidates as structured output.
-- **Tier 2** (Agent tool, no Workflow): spawn the same per-lens subagents via
-  the Agent tool.
-- **Tier 3** (no spawning): enumerate the lenses sequentially in one pass —
-  the original single-thread behavior, made explicit. No capability assumed.
+**Bounded tier-portable dispatch** (the Phase-4 jury is identical on every tier):
+- `max_shards: 8`, `max_concurrency: 4`, `max_turns: 8`.
+- **Tier 1** (Workflow available): dispatch frozen lens shards in waves of at
+  most four, explicitly selecting the read-only `aris-fanout-leaf` worker.
+- **Tier 2** (Agent tool, no Workflow): call only
+  `Agent(aris-fanout-leaf)`, again in waves of at most four. Never substitute
+  `general-purpose`, `Explore`, `Plan`, or another worker when the leaf is
+  unavailable.
+- **Tier 3** (no safe leaf): run the same frozen lens list sequentially in the
+  executor. This is the required **sequential fallback**.
+- A failed, malformed, or timed-out leaf gets at most one executor-side
+  sequential fallback. It never gets a replacement Agent, so recursion remains
+  `false` and the total launch count cannot grow dynamically.
 
 > **Why the lens shards are Claude, not Codex.** Generation is candidate
 > production, not a verdict, so same-family is safe — and Codex MCP is
-> **serial** (concurrent codex calls hang), so spending its scarce capacity
-> on parallel generation is both unsafe-to-parallelize and wasteful. Reserve
-> Codex for the one Phase-4 jury call. On Tier 1/2 the lens subagents are the
-> generators; the single Phase-2 codex brainstorm below still runs once as an
-> optional cross-model *seed* (a generator, not a judge), and its ideas join
-> the merged pool.
+> **serial** (concurrent codex calls hang). Reserve Codex for the one Phase-4
+> jury call. The leaf prompt must repeat the assigned `shard_id`, unit IDs,
+> output schema, no-delegation rule, read-only rule, and no-verdict rule because
+> subagents do not inherit this skill body.
 
 **Per-shard output** (the generation-fan-out schema from
-[`fan-out-pattern.md`](../shared-references/fan-out-pattern.md) — `shard_id` +
-`candidates[]` + per-item `dedup_key`):
+[`fan-out-pattern.md`](../shared-references/fan-out-pattern.md)):
 ```json
-{"shard_id": "<lens id>", "candidates": [{"summary": "...", "hypothesis": "...",
-  "mve": "...", "contribution_type": "...", "risk": "...", "effort": "...",
-  "dedup_key": "<hypothesis slug — the mechanical-dedup identity>"}]}
+{"shard_id": "<lens id>", "assigned_unit_ids": ["<lens id>"],
+ "covered_unit_ids": ["<lens id>"], "status": "completed",
+ "candidates": [{"summary": "...", "hypothesis": "...", "mve": "...",
+   "contribution_type": "...", "risk": "...", "effort": "...",
+   "dedup_key": "<hypothesis slug — the mechanical-dedup identity>"}],
+ "errors": []}
 ```
 
-**Merge + mechanical dedup**: union all lenses' ideas; cluster near-identical
-ideas by hypothesis (mechanical similarity only — **never** drop one for being
-"weak"; weakness is a Phase-4 verdict, not a merge step). The deduped union is
-the candidate set that enters Phase 3.
+**Coverage receipt before merge:** mechanically record planned/completed/failed
+shard IDs, planned/covered/uncovered lens IDs, fallback attempts, and
+`coverage_complete`. Missing lenses remain explicit and are handed to the jury;
+they are never silently omitted.
+
+**Merge + mechanical dedup**: union all covered lenses' ideas; cluster
+near-identical ideas by hypothesis (mechanical similarity only — **never** drop
+one for being "weak"; weakness is a Phase-4 verdict, not a merge step). The
+coverage receipt and deduped union enter Phase 3 together.
 
 ### Phase 2: Idea Generation (brainstorm with external LLM)
 
@@ -256,9 +282,11 @@ Run the bundle through **two reviewer models** and take the union — the two
 fail differently as generators, and the union keeps either model's taste from
 capping the pool:
 
-1. Once with the default reviewer model (`gpt-5.6-sol` today), as above.
-2. Once more with `model: "gpt-5.5"` — same `xhigh` effort, same bundle, a
-   fresh thread. Save both threadIds; Phase 4's triage follow-up goes to the
+1. Once with the default reviewer model (`gpt-6-astra` today), as above.
+2. Once more with `model: "gpt-6.1-sol"` — same `xhigh` effort, same bundle, a
+   fresh thread. This is another GPT model, not cross-family acceptance; if it
+   equals the chosen primary model, skip the duplicate second generation. Save
+   the IDs of sessions actually created; Phase 4's triage follow-up goes to the
    default-model thread.
 
 Tag each candidate with the model that produced it, then merge both sets the

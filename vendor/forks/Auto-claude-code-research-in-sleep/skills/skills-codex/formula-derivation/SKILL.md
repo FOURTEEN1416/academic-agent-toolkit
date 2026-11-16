@@ -262,6 +262,11 @@ Use `proof-writer` only after:
 - the notation is settled
 - and the task is now to prove or refute that claim rigorously
 
+Once a precise claim and its hypotheses are available, use
+[`/lean-formalize`](../lean-formalize/SKILL.md) when the user requests Lean or a
+specific proof obligation benefits from formal implementation and checking;
+routine algebraic derivations do not require it.
+
 ## Chat Response
 
 After writing the target derivation file, respond briefly with:

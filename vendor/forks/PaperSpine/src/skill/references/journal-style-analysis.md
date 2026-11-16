@@ -19,11 +19,7 @@
 | Conclusion | | | | |
 | **Total** | | 100% | | |
 
-Record the exemplars' **consensus top-level section count** here as an explicit
-number (applied journal/conference papers are typically 4-6 sections). This is a
-budget the blueprint must obey, not just an observation: `section_economy_check.py`
-hard-fails a manuscript whose top-level section count exceeds it. If the table
-shows a 2-paragraph section, mark it as a merge candidate, not a model to copy.
+Record the exemplars' observed top-level section counts and explain what each section contributes. Use them to diagnose fragmentation, not as an automatic budget for this manuscript. `section_economy_check.py` is advisory by default and fails only with explicit `--enforce`; a short section is a merge candidate only when its separate function is not justified.
 
 ---
 

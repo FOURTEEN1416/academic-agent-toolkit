@@ -1,8 +1,7 @@
 import { afterAll, afterEach, describe, expect, test } from "bun:test"
-import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import type { JSX } from "solid-js"
-import { createServer } from "vite"
+import { createTestServer as createServer } from "../../test/vite"
 import solid from "vite-plugin-solid"
 
 const vite = await createServer({
@@ -100,6 +99,21 @@ const values = (host: HTMLElement) =>
   )
 
 describe("host strip", () => {
+  test("shows unknown CPU while an active kernel awaits a measurable interval", async () => {
+    const calls: Array<Promise<Response>> = []
+    const response = async () =>
+      new Response(JSON.stringify({ ...capacity, cpu: { cores: 8 } }), {
+        headers: { "content-type": "application/json" },
+      })
+    const host = guard(() => subject.HostStrip({ request: track(response, calls) }))
+    await settle(calls)
+
+    expect(values(host)).toEqual(["412.0 MB", "— of 8"])
+    expect(host.textContent).toContain("2 active · 1 running")
+    expect(host.textContent).not.toContain("~0 of 8")
+    expect(host.querySelector("[data-health]")?.getAttribute("data-health")).toBe("available")
+  })
+
   test("reads unavailable on every instrument when the server cannot be reached", async () => {
     const calls: Array<Promise<Response>> = []
     const host = guard(() => subject.HostStrip({ request: track(offline, calls) }))
@@ -125,16 +139,6 @@ describe("host strip", () => {
     expect(values(host)).toEqual(["—", "—"])
     expect(host.textContent).not.toContain("0 B")
     expect(host.textContent).not.toContain("0 / 0")
-  })
-
-  test("names the block as machine resources", () => {
-    const source = readFileSync(fileURLToPath(new URL("./HostStrip.tsx", import.meta.url)), "utf8")
-
-    expect(source).toContain('<span class="host-strip__label">Memory</span>')
-    expect(source).toContain("<strong>This computer</strong>")
-    expect(source).toContain('aria-label="Current local compute"')
-    expect(source).not.toContain("<details")
-    expect(source).not.toContain("<summary")
   })
 
   test("states the machine's capacity once a poll succeeds", async () => {

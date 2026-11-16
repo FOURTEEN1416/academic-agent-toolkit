@@ -89,7 +89,11 @@ def test_missing_assets_declaration_rejected(tmp_path):
     result = _complete(runner, wf, commands=[{"command": "python code/build.py", "returncode": 0, "cwd": "."}])
     assert result.status == "failed"
     assert "缺少 assets 申报" in result.message
-    assert '"assets": {"used"' in result.message
+    # ENG-3 消息码化：用户视图为「错误码 + 一行原因 + 修复示例」；
+    # 申报格式教学完整保留在 diagnostics，不得丢失。
+    assert "EVIDENCE_ASSETS" in result.message
+    full_reason = result.diagnostics["checks"]["assets_usage"]["reason"]
+    assert '"assets": {"used"' in full_reason
     row = store._connection.execute(
         "SELECT status FROM workflow_steps WHERE workflow_id = ?", (wf,)).fetchone()
     assert row[0] == "failed"
@@ -133,7 +137,9 @@ def test_used_without_trace_rejected_with_teaching(tmp_path):
             {"name": "获奖论文配色分析", "reason": "本步不产图"}]})
     assert result.status == "failed"
     assert "零使用痕迹" in result.message
-    assert "evidence.commands" in result.message
+    # ENG-3 消息码化：两条出路教学移至 diagnostics 完整文案（不丢失）
+    assert "EVIDENCE_ASSETS" in result.message
+    assert "evidence.commands" in result.diagnostics["checks"]["assets_usage"]["reason"]
 
 
 def test_used_trace_absent_in_outputs_rejected(tmp_path):

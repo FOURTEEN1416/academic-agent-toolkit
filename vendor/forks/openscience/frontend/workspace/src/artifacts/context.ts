@@ -219,8 +219,13 @@ function restore(storage: ArtifactStorage | undefined) {
 }
 
 function browserStorage(): ArtifactStorage | undefined {
-  if (typeof localStorage === "undefined") return
-  return localStorage
+  // Reading the `localStorage` global is itself what throws when storage is
+  // blocked, and `typeof` invokes the same getter, so it cannot guard the read.
+  try {
+    return globalThis.localStorage
+  } catch {
+    return undefined
+  }
 }
 
 export function createArtifactState(options: { storage?: ArtifactStorage } = {}) {

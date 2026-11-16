@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/maturity-evaluator-receipt.schema.json",
+  "title": "Independent maturity evaluator receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract", "contract_version", "run_id", "sample_id", "entry_mode", "attempt",
+    "protocol_sha256", "fixture_receipt_sha256", "producer_identity", "evaluator_identity",
+    "evaluator_code_sha256", "evaluator_schema_sha256", "evaluated_at", "subject",
+    "evidence", "hard_checks", "status", "external_action_authorized", "receipt_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.maturity-independent-evaluation"},
+    "contract_version": {"const": "1.0"},
+    "run_id": {"type": "string", "minLength": 1},
+    "sample_id": {"type": "string", "minLength": 1},
+    "entry_mode": {"enum": ["natural_language", "explicit_paper_spine"]},
+    "attempt": {"type": "integer", "minimum": 1},
+    "protocol_sha256": {"$ref": "#/$defs/sha256"},
+    "fixture_receipt_sha256": {"$ref": "#/$defs/sha256"},
+    "producer_identity": {"type": "string", "minLength": 1},
+    "evaluator_identity": {"const": "paperspine5-independent-maturity-evaluator"},
+    "evaluator_code_sha256": {"$ref": "#/$defs/sha256"},
+    "evaluator_schema_sha256": {"$ref": "#/$defs/sha256"},
+    "evaluated_at": {"type": "string", "format": "date-time"},
+    "subject": {
+      "type": "object", "additionalProperties": false,
+      "required": ["task_id", "revision_id", "build_id", "material_snapshot_sha256"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "revision_id": {"type": "string", "pattern": "^[0-9]+$"},
+        "build_id": {"type": "string", "minLength": 1},
+        "material_snapshot_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["task_snapshot", "artifact_ledger", "package_manifest", "pdf", "docx", "render_receipt", "citation_receipt", "target_review_receipt", "readiness_receipt", "recovery_or_install_receipt"],
+      "properties": {
+        "task_snapshot": {"$ref": "#/$defs/evidenceRef"},
+        "artifact_ledger": {"$ref": "#/$defs/evidenceRef"},
+        "package_manifest": {"$ref": "#/$defs/evidenceRef"},
+        "pdf": {"$ref": "#/$defs/evidenceRef"},
+        "docx": {"$ref": "#/$defs/evidenceRef"},
+        "render_receipt": {"$ref": "#/$defs/evidenceRef"},
+        "citation_receipt": {"$ref": "#/$defs/evidenceRef"},
+        "target_review_receipt": {"$ref": "#/$defs/evidenceRef"},
+        "readiness_receipt": {"$ref": "#/$defs/evidenceRef"},
+        "figure_identity_receipt": {"$ref": "#/$defs/evidenceRef"},
+        "recovery_or_install_receipt": {"$ref": "#/$defs/evidenceRef"}
+      }
+    },
+    "hard_checks": {
+      "type": "object", "minProperties": 1, "additionalProperties": {"enum": ["PASS", "FAIL"]}
+    },
+    "status": {"enum": ["PASS", "FAIL"]},
+    "external_action_authorized": {"const": false},
+    "receipt_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "evidenceRef": {
+      "type": "object", "additionalProperties": false,
+      "required": ["artifact_id", "artifact_type", "path", "sha256", "subject"],
+      "properties": {
+        "artifact_id": {"type": "string", "minLength": 1},
+        "artifact_type": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "subject": {"$ref": "#/$defs/subject"}
+      }
+    },
+    "subject": {
+      "type": "object", "additionalProperties": false,
+      "required": ["task_id", "revision_id", "build_id", "material_snapshot_sha256"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "revision_id": {"type": "string", "pattern": "^[0-9]+$"},
+        "build_id": {"type": "string", "minLength": 1},
+        "material_snapshot_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

@@ -4,9 +4,15 @@ description: Diffusion-based molecular docking. Predict protein-ligand binding p
 category: chemistry
 license: MIT license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/diffdock
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Molecular Docking, Drug Discovery, Deep Learning, Protein-Ligand]
 dependencies: ["torch>=1.12.0", "fair-esm", "torch-geometric", "rdkit-pypi", "biopython"]
 ---
@@ -55,7 +61,7 @@ Use Modal for on-demand GPU access without local GPU setup.
 [ -n "$MODAL_TOKEN_SECRET" ] && echo "MODAL_TOKEN_SECRET set" || echo "NOT SET"
 ```
 
-If not set: connect Modal at https://app.syntheticsciences.ai -> Services, then restart openscience.
+If not set: authenticate the user-owned Modal CLI locally with `modal token set`.
 
 ### Modal DiffDock Wrapper
 
@@ -582,4 +588,3 @@ ICLR 2023, arXiv:2210.01776
 - **Online Demo**: https://huggingface.co/spaces/reginabarzilaygroup/DiffDock-Web
 - **DiffDock-L Paper**: https://arxiv.org/abs/2402.18396
 - **Original Paper**: https://arxiv.org/abs/2210.01776
-

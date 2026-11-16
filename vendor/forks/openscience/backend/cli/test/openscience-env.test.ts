@@ -1,7 +1,20 @@
 import { expect, test } from "bun:test"
+import { createHash } from "node:crypto"
+import os from "node:os"
 import path from "node:path"
 import { OpenScience } from "../src/openscience"
 import { ToolOutputPath } from "../src/tool/tool-output-path"
+
+test("structured credentials are redacted before registered secret substrings", () => {
+  const suffix = createHash("sha256").update("openscience-redaction-suffix").digest("hex")
+  const prefix = createHash("sha256").update("openscience-redaction-prefix").digest("hex").slice(0, 10)
+  const epoch = createHash("sha256").update("openscience-redaction-epoch").digest("hex").slice(0, 32)
+  const nonce = createHash("sha256").update("openscience-redaction-nonce").digest("hex").slice(0, 32)
+  const proof = `odp_v2.${prefix}.${epoch}.${nonce}.${suffix}`
+  OpenScience.registerSecretValues([suffix])
+
+  expect(OpenScience.redactSecrets(`before x${proof}x after`)).toBe("before x[REDACTED]x after")
+})
 
 test("subprocess env filtering never passes managed Atlas provider keys", () => {
   const filtered = OpenScience.filterEnvForSubprocess({
@@ -19,8 +32,28 @@ test("subprocess env filtering never passes managed Atlas provider keys", () => 
   expect(filtered.OPENAI_API_KEY).toBeUndefined()
   expect(filtered.META_MODEL_API_KEY).toBeUndefined()
   expect(filtered.XAI_API_KEY).toBe("xai-user-owned")
-  expect(filtered.OPENROUTER_BASE_URL).toBe("https://atlas.test/api/llm/proxy/openrouter/v1")
-  expect(filtered.META_MODEL_BASE_URL).toBe("https://atlas.test/api/llm/proxy/meta/v1")
+  expect(filtered.OPENROUTER_BASE_URL).toBeUndefined()
+  expect(filtered.META_MODEL_BASE_URL).toBeUndefined()
+})
+
+test("subprocess and kernel env filtering pass the TLS trust bundle variables", () => {
+  const env = {
+    PATH: "/usr/bin",
+    SSL_CERT_FILE: "/envs/python/ssl/cacert.pem",
+    SSL_CERT_DIR: "/envs/python/ssl/certs",
+    REQUESTS_CA_BUNDLE: "/envs/python/ssl/cacert.pem",
+    CURL_CA_BUNDLE: "/envs/python/ssl/cacert.pem",
+    RANDOM_SECRET: "nope",
+  }
+  const subprocess = OpenScience.filterEnvForSubprocess(env)
+  expect(subprocess.SSL_CERT_FILE).toBe("/envs/python/ssl/cacert.pem")
+  expect(subprocess.SSL_CERT_DIR).toBe("/envs/python/ssl/certs")
+  expect(subprocess.REQUESTS_CA_BUNDLE).toBe("/envs/python/ssl/cacert.pem")
+  expect(subprocess.CURL_CA_BUNDLE).toBe("/envs/python/ssl/cacert.pem")
+  expect(subprocess.RANDOM_SECRET).toBeUndefined()
+  const kernel = OpenScience.kernelEnv(env)
+  expect(kernel.SSL_CERT_FILE).toBe("/envs/python/ssl/cacert.pem")
+  expect(kernel.RANDOM_SECRET).toBeUndefined()
 })
 
 test("subprocess env filtering still passes BYOK OpenRouter keys", () => {
@@ -50,20 +83,70 @@ test("subprocess env filtering preserves a BYOK custom gateway", () => {
   expect(filtered.OPENROUTER_BASE_URL).toBe("https://my-gateway.example/api/v1")
 })
 
-test("subprocess env filtering preserves direct shell credentials but never exposes Modal tokens", () => {
+test("subprocess env filtering never exposes compute or desktop control-plane capabilities", () => {
   const filtered = OpenScience.filterEnvForSubprocess({
     PATH: "/usr/bin",
     MODAL_TOKEN_ID: "ak-user-owned",
     MODAL_TOKEN_SECRET: "as-user-owned",
+    OPENSCIENCE_DESKTOP_UPDATE_URL: "http://127.0.0.1:4096/settings/updates/apply",
+    OPENSCIENCE_DESKTOP_UPDATE_TOKEN: "desktop-update-capability",
     LAMBDA_API_KEY: "lambda-user-owned",
     RUNPOD_API_KEY: "runpod-user-owned",
   })
 
+  expect(filtered).toEqual({ PATH: "/usr/bin" })
+})
+
+test("control-plane filtering denies the complete desktop update namespace after environment overlays", () => {
+  const filtered = OpenScience.filterControlPlaneEnv({
+    PATH: "/usr/bin",
+    OPENSCIENCE_DESKTOP_UPDATE_URL: "http://127.0.0.1:4096/settings/updates/apply",
+    OPENSCIENCE_DESKTOP_UPDATE_TOKEN: "desktop-update-capability",
+    OPENSCIENCE_DESKTOP_UPDATE_FUTURE_CAPABILITY: "must-default-deny",
+    PROJECT_AUTHORED_VALUE: "preserved",
+  })
+
   expect(filtered).toEqual({
     PATH: "/usr/bin",
-    LAMBDA_API_KEY: "lambda-user-owned",
-    RUNPOD_API_KEY: "runpod-user-owned",
+    PROJECT_AUTHORED_VALUE: "preserved",
   })
+})
+
+test("representative agent subprocess environments cannot inherit host control-plane capabilities", () => {
+  const ambient = {
+    PATH: "/usr/bin",
+    HOME: "/home/researcher",
+    TENSORPOOL_KEY: "tensorpool-host-capability",
+    LAMBDA_API_KEY: "lambda-host-capability",
+    PRIME_API_KEY: "prime-host-capability",
+    VAST_API_KEY: "vast-host-capability",
+    RUNPOD_API_KEY: "runpod-host-capability",
+    OPENSCIENCE_DESKTOP_UPDATE_URL: "http://127.0.0.1:4096/settings/updates/apply",
+    OPENSCIENCE_DESKTOP_UPDATE_TOKEN: "desktop-update-capability",
+  }
+  const sanitized = OpenScience.filterEnvForSubprocess(ambient)
+  const environments: Record<string, Record<string, string>> = {
+    bashAfterRuntimeOverlay: OpenScience.filterEnvForSubprocess({
+      ...sanitized,
+      OPENSCIENCE_DESKTOP_UPDATE_TOKEN: "restored-by-runtime-overlay",
+    }),
+    taskShell: { ...sanitized, TERM: "dumb" },
+    localCompute: sanitized,
+    kernel: OpenScience.kernelEnv(ambient, {
+      OPENSCIENCE_DESKTOP_UPDATE_URL: "restored-by-kernel-overlay",
+      OPENSCIENCE_DESKTOP_UPDATE_TOKEN: "restored-by-kernel-overlay",
+    }),
+  }
+
+  for (const environment of Object.values(environments)) {
+    expect(environment.TENSORPOOL_KEY).toBeUndefined()
+    expect(environment.LAMBDA_API_KEY).toBeUndefined()
+    expect(environment.PRIME_API_KEY).toBeUndefined()
+    expect(environment.VAST_API_KEY).toBeUndefined()
+    expect(environment.RUNPOD_API_KEY).toBeUndefined()
+    expect(environment.OPENSCIENCE_DESKTOP_UPDATE_URL).toBeUndefined()
+    expect(environment.OPENSCIENCE_DESKTOP_UPDATE_TOKEN).toBeUndefined()
+  }
 })
 
 test("kernel env filtering keeps runtime configuration but drops credentials", () => {
@@ -90,17 +173,99 @@ test("kernel env filtering keeps runtime configuration but drops credentials", (
   })
 })
 
+test("Windows runtime environment filtering preserves mixed-case system keys and rejects ambient injection", () => {
+  const input = {
+    Path: "C:\\fixture\\bin",
+    SystemRoot: "C:\\Windows",
+    ComSpec: "C:\\Windows\\System32\\cmd.exe",
+    Temp: "C:\\fixture\\temp",
+    Pathext: ".COM;.EXE;.BAT;.CMD",
+    Node_Options: "--require C:\\private\\inject.cjs",
+    Node_Path: "C:\\private\\node",
+    PythonStartup: "C:\\private\\inject.py",
+    PythonInspect: "1",
+    PythonUserBase: "C:\\private\\python",
+    OpenAi_Api_Key: "provider-secret",
+    Aws_Secret_Access_Key: "aws-secret",
+    Modal_Token_Id: "ak-host",
+    Openscience_Desktop_Update_Token: "host-capability",
+    Private_Research_Token: "private-secret",
+  }
+  expect(OpenScience.filterEnvForKernel(input, "win32")).toEqual({
+    PATH: input.Path,
+    SYSTEMROOT: input.SystemRoot,
+    COMSPEC: input.ComSpec,
+    TEMP: input.Temp,
+    PATHEXT: input.Pathext,
+  })
+})
+
+test("Windows kernel overlays collapse key aliases and cannot restore mixed-case host capabilities", () => {
+  const result = OpenScience.kernelEnv(
+    { Path: "C:\\host\\bin", SystemRoot: "C:\\Windows" },
+    {
+      pAtH: "C:\\selected\\bin",
+      Modal_Token_Secret: "as-host",
+      Openscience_Desktop_Parent_Token: "parent-control",
+      RunPod_Api_Key: "compute-control",
+    },
+    "win32",
+  )
+  expect(result.PATH).toBe("C:\\selected\\bin")
+  expect(result.SYSTEMROOT).toBe("C:\\Windows")
+  expect(Object.keys(result).filter((key) => key.toUpperCase() === "PATH")).toEqual(["PATH"])
+  expect(Object.keys(result).some((key) => /modal|parent|runpod/i.test(key))).toBe(false)
+  expect(OpenScience.kernelEnv({ PATH: "C:\\old\\bin" }, { Path: undefined }, "win32").PATH).toBeUndefined()
+})
+
+test("POSIX runtime key matching stays case-sensitive", () => {
+  for (const platform of ["linux", "darwin"] as const) {
+    expect(
+      OpenScience.filterEnvForKernel(
+        {
+          PATH: "/usr/bin",
+          Path: "/unapproved",
+          SystemRoot: "/unapproved",
+          NODE_OPTIONS: "--require /private.js",
+          PYTHONSTARTUP: "/private.py",
+        },
+        platform,
+      ),
+    ).toEqual({ PATH: "/usr/bin" })
+  }
+})
+
+test("Windows subprocess filtering preserves BYOK routing policy under case variants", () => {
+  const result = OpenScience.filterEnvForSubprocess(
+    {
+      Path: "C:\\bin",
+      OpenRouter_Api_Key: "sk-or-user-owned",
+      OpenRouter_Base_Url: "https://atlas.test/api/llm/proxy/openrouter/v1",
+      OpenAi_Api_Key: "thk_managed_openai",
+      Modal_Token_Id: "ak-host",
+      Node_Options: "--require C:\\private.cjs",
+    },
+    "win32",
+  )
+  expect(result).toEqual({
+    PATH: "C:\\bin",
+    OPENROUTER_API_KEY: "sk-or-user-owned",
+    OPENROUTER_BASE_URL: "https://openrouter.ai/api/v1",
+  })
+})
+
 test("kernel subprocesses cannot fall back to host Git config or credential prompts", () => {
   const env = OpenScience.kernelEnv({ PATH: "/usr/bin", HOME: "/home/researcher" })
   expect(env.GIT_CONFIG_NOSYSTEM).toBe("1")
-  expect(env.GIT_CONFIG_GLOBAL).toBe("/dev/null")
+  expect(env.GIT_CONFIG_GLOBAL).toBe(os.devNull)
   expect(env.GIT_TERMINAL_PROMPT).toBe("0")
 })
 
-test("kernel credential mask covers Atlas and OpenScience credential stores", () => {
+test("kernel credential mask covers current OpenScience credential stores", () => {
   const paths = OpenScience.kernelSensitivePaths()
   const names = paths.map((value) => path.basename(value))
   expect(names).toContain("openscience-session.json")
+  expect(names).toContain("openscience-workspace-scope.json")
   expect(names).toContain("auth.json")
   expect(names).toContain("credentials.json")
   expect(names).toContain("mcp-auth.json")
@@ -110,7 +275,7 @@ test("kernel credential mask covers Atlas and OpenScience credential stores", ()
   expect(names).toContain(".netrc")
   expect(names).toContain(".git-credentials")
   expect(paths).toContain(
-    process.env.ATLAS_CLI_CONFIG_PATH || path.join(process.env.HOME!, ".config", "atlas-cli", "config.json"),
+    process.env.ATLAS_CLI_CONFIG_PATH || path.join(os.homedir(), ".config", "atlas-cli", "config.json"),
   )
 })
 

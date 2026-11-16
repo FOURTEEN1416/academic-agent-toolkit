@@ -18,7 +18,18 @@ Invoke this skill:
 
 ## Verification Phases
 
-Choose the commands adaptively for the current project instead of running every example blindly. Use the stack-appropriate command from `references/STACK-DETECTION.md` when the repo does not match the default examples below.
+Choose the commands adaptively for the current project instead of running every example blindly. Use the stack-appropriate command from the minimal table below when the repo does not match the default examples.
+
+### Minimal Stack Detection (inline)
+
+| Repo marker | Build | Types / Lint | Tests |
+|---|---|---|---|
+| `pyproject.toml` / `uv.lock`（Python） | `uv build`（兜底 `python -m build`） | `pyright .` / `ruff check .` | `pytest` |
+| `package.json`（Node/TS） | `npm run build` | `npx tsc --noEmit` / `npm run lint` | `npm run test` |
+| 两者皆有（monorepo） | 两套都跑 | 两套都跑 | 两套都跑 |
+| 皆无 | 跳过 build，按项目入口做脚本冒烟 | 跳过 | 按现有入口冒烟 |
+
+`references/STACK-DETECTION.md` 为可选深读材料（当前未随仓，见 ASSET-GAP.md）；栈判断以上表为准。
 
 
 ### Phase 1: Build Verification
@@ -142,7 +153,9 @@ Hooks catch issues immediately; this skill provides comprehensive review.
 
 ## Reference Files
 
+> ⚠️ 以下参考文件**未随仓集成**（缺口见 [ASSET-GAP.md](ASSET-GAP.md)）。栈判断用上方内联最小栈判断表，报告结构用正文 Output Format 节；下列条目仅供追踪补齐进度。
+
 Load only what is needed:
-- `references/STACK-DETECTION.md` - how to choose the right verification command set for the current repo
-- `references/REPORT-TEMPLATE.md` - report structure for final verification output
-- `examples/example-verification-report.md` - example final report
+- `references/STACK-DETECTION.md` - how to choose the right verification command set for the current repo *(未随仓，可选深读)*
+- `references/REPORT-TEMPLATE.md` - report structure for final verification output *(未随仓)*
+- `examples/example-verification-report.md` - example final report *(未随仓)*

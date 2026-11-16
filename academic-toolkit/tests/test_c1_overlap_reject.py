@@ -69,7 +69,9 @@ def test_exact_overlap_used_and_skipped_rejected(tmp_path):
     assert result.status == "failed", result.message
     assert "同时申报了 used 与 skipped" in result.message
     assert "problem-analysis" in result.message
-    assert "二选一" in result.message
+    # ENG-3 消息码化：错误码进用户视图；「二选一」教学完整保留在 diagnostics
+    assert "EVIDENCE_COMPANION" in result.message
+    assert "二选一" in result.diagnostics["checks"]["companion"]["reason"]
     # 拒绝必须真实落 FAILED（可带内恢复），不是仅返回错误文案
     row = runner.store._connection.execute(
         "SELECT status FROM workflow_steps WHERE workflow_id = ?", (wf,)).fetchone()

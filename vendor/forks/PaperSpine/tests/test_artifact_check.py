@@ -18,12 +18,15 @@ COMMON_ARTIFACTS = [
     "exemplar_learning_dossier.md",
     "style_profile.md",
     "sota_gap_map.md",
+    "contribution_options_after_research.md",
     "motivation_options_after_research.md",
     "citation_support_bank.md",
     "confirmed_contribution.md",
     "confirmed_motivation.md",
     "section_blueprints.md",
     "writing_rationale_matrix.md",
+    "structured_review.md",
+    "reviewer_audit.md",
     "latex_report.md",
     "final_artifact_manifest.md",
 ]
@@ -49,11 +52,15 @@ TRANSLATION_COMMON = [
     "translation_zh/exemplar_learning_dossier.zh.md",
     "translation_zh/style_profile.zh.md",
     "translation_zh/sota_gap_map.zh.md",
+    "translation_zh/contribution_options_after_research.zh.md",
     "translation_zh/motivation_options_after_research.zh.md",
     "translation_zh/citation_support_bank.zh.md",
+    "translation_zh/confirmed_contribution.zh.md",
     "translation_zh/confirmed_motivation.zh.md",
     "translation_zh/section_blueprints.zh.md",
     "translation_zh/writing_rationale_matrix.zh.md",
+    "translation_zh/structured_review.zh.md",
+    "translation_zh/reviewer_audit.zh.md",
     "translation_zh/final_structure.zh.md",
     "translation_zh/final_paper.zh.md",
     "translation_zh/full_paper_translation.zh.md",
@@ -75,23 +82,23 @@ TRANSLATION_REWRITE = [
 
 VALID_RATIONALE_MATRIX = """# Writing Rationale Matrix
 
-| Row ID | Manuscript Unit | Current Problem or Planned Function | Motivation Link | Reference/SOTA Pattern Learned | Target Scene or Venue Norm | User Evidence or Citation Anchor | Planned Change/Text Move | Final Text Check |
-|---|---|---|---|---|---|---|---|---|
-| R0 | Whole-work framework and throughline | Establish the whole-work structure before drafting any section, so the document is not an append-only polish pass. | The confirmed motivation becomes the spine: every later unit must narrow, operationalize, test, or bound the same contribution rather than introduce parallel claims. | The reference/SOTA pattern learned is a problem-gap-design-evidence-limitation arc: strong examples first define what existing work cannot explain, then make the method choices look necessary, then let results answer the opening gap. | The target scene expects a visible architecture of claims, not isolated section summaries; journal, report, and competition norms all reward a line of reasoning that can be traced from opening problem to final implication. | Evidence anchors are source_map.md, evidence_bank.md, confirmed_motivation.md, and the available figures/tables/citations; no external reference contributes new user results. | Reframe the whole paper around motivation, method choice, evidence sequence, and bounded implication; sequence sections so each planned text move prepares the next one and creates front/back echo. | PASS: framework row controls all later rows, each section can point back to this throughline, and no final claim lacks an evidence anchor. |
-| R1 | Executive summary or abstract opening move | State the problem and why the task matters before naming the method, because tool-first openings make the motivation look incidental. | The motivation is narrowed into a reader-facing problem statement that explains why the contribution is needed. | Reference examples use an unresolved task difficulty before method naming, so the abstract reads as an argument rather than an advertisement. | The target venue expects a concise contribution summary with problem, gap, method, evidence, and implication in a small space. | Anchors are confirmed_motivation.md, research_dossier.md, and headline user result claims. | Rewrite the opening as problem-gap-method-evidence, then place numbers only after the reader knows what question they answer. | PASS: final abstract opens with the problem, names evidence, and does not introduce unsupported claims. |
-| R2 | Background or problem-restatement unit | Convert broad context into the specific gap the work addresses, instead of accumulating general background. | The motivation controls which background facts remain: only facts that make the central gap visible should stay. | SOTA gap mapping teaches the move of comparing prior limitations before presenting the new angle, avoiding empty novelty language. | The target scene expects the gap before design details, especially for journal and competition readers who need to see why the method exists. | Anchors are sota_gap_map.md, exemplar_learning_dossier.md, and citation keys already available to the manuscript. | Replace generic background with a staged setup: domain importance, unresolved limitation, consequence, and transition to the proposed contribution. | PASS: the gap appears before solution details and cites evidence or references. |
-| R3 | Motivation-confirmation paragraph or problem thesis | Make the controlling motivation explicit after the gap, so the paper has one primary contribution rather than several equal slogans. | This row preserves the confirmed motivation as the central spine and prevents secondary method details from competing with it. | Strong reference papers often use a thesis paragraph that turns the literature gap into a testable writing contract for the rest of the paper. | The target scene norm is that readers should know what evidence the paper owes them before entering methods or models. | Anchors are confirmed_motivation.md, motivation_options_after_research.md, and the claim register or original logic map. | Add or rewrite a thesis paragraph that states the primary contribution, subordinates enabling design choices, and previews the evidence sequence. | PASS: later Results and Discussion can be checked against this thesis paragraph. |
-| R4 | Method, model, or solution-design unit | Explain why this design is needed, not only what it does, because recipe-style methods do not prove relevance to the motivation. | The method operationalizes the motivation by turning the gap into concrete design choices. | Reference/SOTA examples justify design choices against alternatives and separate necessary mechanisms from implementation detail. | The target scene expects reproducible logic plus rationale, not only architecture labels. | Anchors are claim_register.md or original_logic_map.md, user figures, equations, data descriptions, and method citations. | Place rationale next to each major technical choice: need, choice, alternative, expected effect, and evidence that later evaluates it. | PASS: method unit contains why-this-design logic and does not overclaim beyond available evidence. |
-| R5 | Evidence, result, or validation unit | Turn numbers and figures into an argument about the main claim instead of reporting metrics as a list. | Results support the motivation only when each number is interpreted as evidence for the central problem. | Strong examples interpret results immediately after reporting them and connect result order to the promised evidence sequence. | The target scene expects evidence-to-claim continuity and clear independent validation or robustness logic where available. | Anchors are evidence_bank.md, figure_asset_map.md, result tables, dataset descriptions, and cited baselines. | Rewrite result paragraphs as evidence, interpretation, comparison, and limitation; move unsupported claims out or soften them. | PASS: every result claim has a nearby evidence anchor and a stated relevance to the motivation. |
-| R6 | Figure, table, heading, or caption unit | Treat visual and heading text as argument-bearing units, not decoration or formatting cleanup. | Captions and headings should help the reader follow how each evidence block supports the motivation. | Reference examples use captions to define the comparison, the measure, and the intended inference without forcing readers to infer the claim alone. | Target venues expect figures/tables to be independently interpretable and consistently labeled. | Anchors are figure_asset_map.md, source_inventory.md, final_paper/main.tex labels, and user-supplied images or tables. | Rewrite headings/captions to state what is being compared, why it matters, and what evidence is safe to infer. | PASS: each caption has a claim boundary and matches the surrounding paragraph. |
-| R7 | Limitation, discussion, or recommendation unit | Close by returning to what the evidence does and does not prove, preventing the motivation from becoming an unsupported overclaim. | The motivation is bounded by the evidence, so the final implication is credible rather than inflated. | Reference papers often end by narrowing claims, naming remaining limits, and explaining practical or scientific meaning. | The target scene expects explicit limitations, transferability boundaries, or recommendations depending on journal/report/competition context. | Anchors are claim_register.md, logic_transfer_audit.md, validation evidence, and any missing or weak evidence noted during audit. | Add a bounded conclusion that restates the contribution, names limits, and points to the next step without inventing new data. | PASS: conclusion returns to motivation, cites evidence boundaries, and avoids unverified claims. |
+| Row ID | Manuscript Unit | Current Problem or Planned Function | Contribution Promise / Claim ID | Motivation Alignment | Reference/SOTA Pattern Learned | Target Scene or Venue Norm | User Evidence or Citation Anchor | Planned Change/Text Move | Final Text Check |
+|---|---|---|---|---|---|---|---|---|---|
+| R0 | Whole-work framework and throughline | Establish the whole-work structure before drafting any section, so the document is not an append-only polish pass. | C1: the confirmed contribution governs the whole paper and every later unit must advance, validate, interpret, or bound this promise. | The confirmed motivation explains why C1 matters and prevents parallel unsupported claims. | The reference/SOTA pattern learned is a problem-gap-design-evidence-limitation arc: strong examples first define what existing work cannot explain, then make the method choices look necessary, then let results answer the opening gap. | The target scene expects a visible architecture of claims, not isolated section summaries; journal, report, and competition norms all reward a line of reasoning that can be traced from opening problem to final implication. | Evidence anchors are source_map.md, evidence_bank.md, confirmed_contribution.md, confirmed_motivation.md, and the available figures/tables/citations; no external reference contributes new user results. | Reframe the whole paper around C1, motivation, method choice, evidence sequence, and bounded implication; sequence sections so each planned text move prepares the next one and creates front/back echo. | PASS: framework row controls all later rows, each section can point back to C1, and no final claim lacks an evidence anchor. |
+| R1 | Executive summary or abstract opening move | State the problem and why the task matters before naming the method, because tool-first openings make the motivation look incidental. | C1: the abstract must state the core contribution at the exact strength licensed by the confirmed claim boundary. | The motivation is narrowed into a reader-facing problem statement that explains why C1 is needed. | Reference examples use an unresolved task difficulty before method naming, so the abstract reads as an argument rather than an advertisement. | The target venue expects a concise contribution summary with problem, gap, method, evidence, and implication in a small space. | Anchors are confirmed_contribution.md, confirmed_motivation.md, research_dossier.md, and headline user result claims. | Rewrite the opening as problem-gap-contribution-evidence, then place numbers only after the reader knows what question they answer. | PASS: final abstract opens with the problem, states C1, names evidence, and does not introduce unsupported claims. |
+| R2 | Background or problem-restatement unit | Convert broad context into the specific gap the work addresses, instead of accumulating general background. | C1: retain only background that establishes the exact gap and challenge the confirmed contribution answers. | The motivation controls which background facts remain: only facts that make the central gap visible should stay. | SOTA gap mapping teaches the move of comparing prior limitations before presenting the new angle, avoiding empty novelty language. | The target scene expects the gap before design details, especially for journal and competition readers who need to see why the method exists. | Anchors are sota_gap_map.md, exemplar_learning_dossier.md, and citation keys already available to the manuscript. | Replace generic background with a staged setup: domain importance, unresolved limitation, consequence, and transition to C1. | PASS: the gap appears before solution details and cites evidence or references. |
+| R3 | Semantic-contract paragraph or problem thesis | Make the governing contribution explicit after the gap, so the paper has one primary promise rather than several equal slogans. | C1: state the confirmed contribution and subordinate enabling method details unless they have separate confirmed claim IDs. | The confirmed motivation remains the necessity argument and prevents secondary details from competing with C1. | Strong reference papers use a thesis paragraph that turns the literature gap into a testable writing contract for the rest of the paper. | The target scene norm is that readers should know what evidence the paper owes them before entering methods or models. | Anchors are confirmed_contribution.md, confirmed_motivation.md, and the claim register or original logic map. | Add or rewrite a thesis paragraph that states C1, subordinates enabling choices, and previews the evidence sequence. | PASS: later Results and Discussion can be checked against C1 and its boundary. |
+| R4 | Method, model, or solution-design unit | Explain why this design is needed, not only what it does, because recipe-style methods do not prove relevance to the contribution. | C1: each method choice must enable the design response or evidence needed to validate the governing promise. | The method aligns with the motivation by turning the gap into concrete choices without creating a new unsupported contribution. | Reference/SOTA examples justify design choices against alternatives and separate necessary mechanisms from implementation detail. | The target scene expects reproducible logic plus rationale, not only architecture labels. | Anchors are claim_register.md or original_logic_map.md, user figures, equations, data descriptions, and method citations. | Place rationale next to each major choice: need, choice, alternative, expected effect, and evidence that later evaluates it. | PASS: method unit contains why-this-design logic and does not overclaim beyond C1. |
+| R5 | Evidence, result, or validation unit | Turn numbers and figures into an argument about the main claim instead of reporting metrics as a list. | C1: this Results unit validates the core contribution promise under the conditions recorded in results_validation.md. | Results support the motivation only when each number is interpreted as evidence for C1 and remains inside its claim boundary. | Strong examples interpret results immediately after reporting them and connect result order to the promised evidence sequence. | The target scene expects evidence-to-claim continuity and clear independent validation or robustness logic where available. | Anchors are evidence_bank.md, figure_asset_map.md, result tables, dataset descriptions, and cited baselines. | Rewrite result paragraphs as evidence, interpretation, comparison, and limitation; move unsupported claims out or soften them. | PASS: every result claim has a nearby evidence anchor and a stated relevance to C1. |
+| R6 | Figure, table, heading, or caption unit | Treat visual and heading text as argument-bearing units, not decoration or formatting cleanup. | C1: visual and heading text must identify which contribution evidence is shown and which inference is allowed. | Captions and headings help the reader follow why each evidence block matters to the aligned motivation. | Reference examples use captions to define the comparison, the measure, and the intended inference without forcing readers to infer the claim alone. | Target venues expect figures/tables to be independently interpretable and consistently labeled. | Anchors are figure_asset_map.md, source_inventory.md, final_paper/main.tex labels, and user-supplied images or tables. | Rewrite headings/captions to state what is compared, why it matters, and what evidence is safe to infer. | PASS: each caption has a C1 claim boundary and matches the surrounding paragraph. |
+| R7 | Limitation, discussion, or recommendation unit | Close by returning to what the evidence does and does not prove, preventing the contribution from becoming an unsupported overclaim. | C1: Discussion interprets the confirmed contribution while enforcing its claims-to-soften and evidence-missing boundaries. | The motivation is bounded by the same evidence, so the final implication is credible rather than inflated. | Reference papers often end by narrowing claims, naming remaining limits, and explaining practical or scientific meaning. | The target scene expects explicit limitations, transferability boundaries, or recommendations depending on journal/report/competition context. | Anchors are claim_register.md, logic_transfer_audit.md, validation evidence, and any missing or weak evidence noted during audit. | Add a bounded conclusion that restates C1, names limits, and points to the next step without inventing new data. | PASS: conclusion returns to C1 and its motivation, cites evidence boundaries, and avoids unverified claims. |
 """
 
 INVALID_RATIONALE_MATRIX = """# Writing Rationale Matrix
 
-| Row ID | Manuscript Unit | Current Problem or Planned Function | Motivation Link | Reference/SOTA Pattern Learned | Target Scene or Venue Norm | User Evidence or Citation Anchor | Planned Change/Text Move | Final Text Check |
-|---|---|---|---|---|---|---|---|---|
-| R0 | Abstract | improve clarity | x | x | x | x | polish wording | x |
+| Row ID | Manuscript Unit | Current Problem or Planned Function | Contribution Promise / Claim ID | Motivation Alignment | Reference/SOTA Pattern Learned | Target Scene or Venue Norm | User Evidence or Citation Anchor | Planned Change/Text Move | Final Text Check |
+|---|---|---|---|---|---|---|---|---|---|
+| R0 | Abstract | improve clarity | x | x | x | x | x | polish wording | x |
 """
 
 
@@ -169,6 +176,30 @@ def write_final_tex(output: Path, *, pdf: bool = False, docx: bool = False) -> N
 
 
 class ArtifactCheckTests(unittest.TestCase):
+    def test_author_voice_artifacts_are_required_only_when_enabled(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            enabled = Path(tmp) / "enabled"
+            enabled.mkdir()
+            write_artifact(
+                enabled,
+                "paper_spine_config.json",
+                json.dumps({"author_voice_restoration": "standard", "word_output": "none"}),
+            )
+            result = run_check(enabled, "rewrite_existing", "--pdf-policy", "never", "--word-policy", "never")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("author_voice_profile.json", result.stdout)
+            self.assertIn("author_voice_revision.json", result.stdout)
+
+            disabled = Path(tmp) / "disabled"
+            disabled.mkdir()
+            write_artifact(
+                disabled,
+                "paper_spine_config.json",
+                json.dumps({"author_voice_restoration": "off", "word_output": "none"}),
+            )
+            result = run_check(disabled, "rewrite_existing", "--pdf-policy", "never", "--word-policy", "never")
+            self.assertNotIn("author_voice_profile.json", result.stdout)
+
     def test_write_option_creates_markdown_report(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp)
@@ -199,7 +230,7 @@ class ArtifactCheckTests(unittest.TestCase):
             write_artifact(
                 output,
                 "paper_spine_config.json",
-                json.dumps({"workflow": "rewrite_existing", "tier": "flash"}),
+                json.dumps({"workflow": "rewrite_existing", "tier": "flash", "review_policy": "strict"}),
             )
             result = run_check(output, "rewrite_existing")
             self.assertEqual(result.returncode, 1)
@@ -245,7 +276,7 @@ class ArtifactCheckTests(unittest.TestCase):
             with self.subTest(workflow=workflow):
                 with tempfile.TemporaryDirectory() as tmp:
                     output = Path(tmp)
-                    config = {"workflow": workflow, "tier": "flash"}
+                    config = {"workflow": workflow, "tier": "flash", "review_policy": "strict"}
                     write_artifacts(output, COMMON_ARTIFACTS + workflow_artifacts, config)
                     write_artifact(output, "writing_rationale_matrix.md", INVALID_RATIONALE_MATRIX)
                     write_final_tex(output)
@@ -254,6 +285,24 @@ class ArtifactCheckTests(unittest.TestCase):
                     self.assertIn("Content Issues", result.stdout)
                     self.assertIn("first data row", result.stdout)
                     self.assertIn("generic or empty", result.stdout)
+
+    def test_balanced_artifact_check_does_not_require_matrix_or_reviewer_form(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            config = {
+                "workflow": "rewrite_existing",
+                "tier": "flash",
+                "word_output": "none",
+                "review_policy": "balanced",
+            }
+            balanced_common = [
+                item for item in COMMON_ARTIFACTS
+                if item not in {"writing_rationale_matrix.md", "reviewer_audit.md"}
+            ]
+            write_artifacts(output, balanced_common + REWRITE_ARTIFACTS, config)
+            write_final_tex(output)
+            result = run_check(output, "rewrite_existing", "--pdf-policy", "never")
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
 
     def test_citation_support_bank_requires_three_x_candidates(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -352,4 +401,3 @@ class ArtifactCheckTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

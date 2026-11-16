@@ -2,18 +2,19 @@
 // endpoint running on this machine. The server (routes/settings/local.ts) does
 // the localhost probing/listing the browser can't do cross-origin, and writes
 // the provider config block.
-import { Component, For, Show, createEffect, createMemo, createResource, createSignal } from "solid-js"
+import { Component, For, Show, createEffect, createMemo, createResource, createSignal, type JSX } from "solid-js"
 import { Button } from "@synsci/ui/button"
-import { Icon } from "@synsci/ui/icon"
+import { Checkbox } from "@synsci/ui/checkbox"
 import { Switch } from "@synsci/ui/switch"
 import { showToast } from "@synsci/ui/toast"
 import { useGlobalSDK } from "@/context/global-sdk"
 import { useGlobalSync } from "@/context/global-sync"
 import { usePlatform } from "@/context/platform"
 import { productPreferences } from "@/context/product-preferences"
+import { useModels } from "@/context/models"
 import { settingsApi } from "./api"
 import { prepareOllamaModels, selectableLocalModels } from "./local-model-selection"
-import { PanelBody, PanelHeader, PanelScroll } from "./_shared"
+import { Card, PanelBody, PanelHeader, PanelScroll, RowCopy, Section, steady } from "./_shared"
 
 interface Detected {
   id: string
@@ -41,6 +42,8 @@ interface Runtime {
 
 type Source = Pick<Detected, "id" | "name" | "baseURL" | "models">
 
+const message = (error: unknown) => (error instanceof Error ? error.message : String(error))
+
 const LocalModels: Component = () => {
   const sdk = useGlobalSDK()
   const sync = useGlobalSync()
@@ -54,27 +57,23 @@ const LocalModels: Component = () => {
     }
     return navigator.clipboard.writeText(command).then(
       () => showToast({ title: "Command copied", description: command }),
-      (error) =>
-        showToast({
-          title: "Couldn't copy command",
-          description: error instanceof Error ? error.message : String(error),
-        }),
+      (error) => showToast({ title: "Couldn't copy command", description: message(error) }),
     )
   }
   const call = <T,>(path: string, init?: RequestInit) =>
     settingsApi<T>(sdk.url, fetchFn, `/settings/local${path}`, init)
 
-  const [detected, { refetch: refetchDetected }] = createResource(() =>
-    call<{ detected: Detected[] }>("/detect").then((r) => r.detected),
+  const [detected, { refetch: refetchDetected }] = steady(
+    createResource(() => call<{ detected: Detected[] }>("/detect").then((r) => r.detected)),
   )
-  const [configured, { refetch: refetchConfigured }] = createResource(() =>
-    call<{ providers: Configured[] }>("").then((r) => r.providers),
+  const [configured, { refetch: refetchConfigured }] = steady(
+    createResource(() => call<{ providers: Configured[] }>("").then((r) => r.providers)),
   )
-  const [status, { refetch: refetchStatus }] = createResource(() =>
-    call<{ runtimes: Runtime[] }>("/status").then((r) => r.runtimes),
+  const [status, { refetch: refetchStatus }] = steady(
+    createResource(() => call<{ runtimes: Runtime[] }>("/status").then((r) => r.runtimes)),
   )
-  const [preferences, { mutate: setPreferences }] = createResource(() =>
-    settingsApi<{ show_local_models: boolean }>(sdk.url, fetchFn, "/settings/preferences"),
+  const [preferences, { mutate: setPreferences }] = steady(
+    createResource(() => settingsApi<{ show_local_models: boolean }>(sdk.url, fetchFn, "/settings/preferences")),
   )
   createEffect(() => {
     const value = preferences()?.show_local_models
@@ -89,15 +88,38 @@ const LocalModels: Component = () => {
     refetchStatus()
   }
 
+  // Load failures and action failures surface inline, like Models, instead of
+  // disappearing into a toast.
+  const [error, setError] = createSignal<string>()
+  const problem = () => error() ?? [detected, configured, status].find((resource) => resource.error)?.error
+  const recover = () => {
+    setError(undefined)
+    refetch()
+  }
+
+  const models = useModels()
   const [busy, setBusy] = createSignal(false)
   const [context, setContext] = createSignal("32768")
+  // The picker only surfaces a curated frontier set by default. A model the
+  // user just added by hand must show up there, or the add looks like a no-op.
+  const reveal = (providerID: string, added: string[]) => {
+    for (const modelID of added) models.setVisibility({ providerID, modelID }, true)
+  }
+  const contextTokens = () => {
+    const tokens = Number(context())
+    if (!Number.isInteger(tokens) || tokens < 1_024 || tokens > 2_097_152) {
+      throw new Error("Context must be an integer between 1,024 and 2,097,152 tokens.")
+    }
+    return tokens
+  }
   const guard = async (fn: () => Promise<unknown>, failure: string) => {
     setBusy(true)
+    setError(undefined)
     try {
       await fn()
       refetch()
     } catch (err) {
-      showToast({ title: failure, description: err instanceof Error ? err.message : String(err) })
+      setError(`${failure}. ${message(err)}`)
     }
     setBusy(false)
   }
@@ -112,10 +134,7 @@ const LocalModels: Component = () => {
   }
   const register = async (input: { url: string; models: string[]; id?: string; name?: string; key?: string }) => {
     const ollama = isOllama(input.id, input.url)
-    const tokens = Number(context())
-    if (ollama && (!Number.isInteger(tokens) || tokens < 1_024 || tokens > 2_097_152)) {
-      throw new Error("Context must be an integer between 1,024 and 2,097,152 tokens.")
-    }
+    const tokens = contextTokens()
     const prepared = ollama
       ? await prepareOllamaModels(input.models, (model) =>
           call<{ model: string }>("/context", {
@@ -133,7 +152,7 @@ const LocalModels: Component = () => {
         key: input.key,
         models: prepared.models,
         aliases: prepared.aliases,
-        contextLimit: ollama ? tokens : undefined,
+        contextLimit: tokens,
         runtime: ollama ? "ollama" : undefined,
         merge: true,
       }),
@@ -165,22 +184,23 @@ const LocalModels: Component = () => {
         models,
       })
       await sync.refreshProviders()
+      reveal(result.id, models)
       showToast({
         variant: "success",
         title: models.length === 1 ? "Model added" : "Models added",
         description: result.tuned
-          ? `Added ${models.length} to the end of the Models catalog.`
-          : `Added ${models.length} to the end of the Models catalog. Restart the local server to enable custom Ollama context tuning.`,
+          ? `${models.length} model(s) are now available in the model picker.`
+          : `${models.length} model(s) are now available in the model picker. Restart the local server to enable custom Ollama context tuning.`,
       })
       setChoice(undefined)
       setChosen(new Set<string>())
-    }, "Failed to add local models")
+    }, "Couldn't add local models")
 
   const removeProvider = (id: string) =>
     guard(async () => {
       await call(`/${encodeURIComponent(id)}`, { method: "DELETE" })
       await sync.refreshProviders()
-    }, "Failed to remove provider")
+    }, "Couldn't remove the provider")
 
   const [visibilityBusy, setVisibilityBusy] = createSignal(false)
   const setVisibility = (visible: boolean) => {
@@ -196,12 +216,9 @@ const LocalModels: Component = () => {
         setPreferences(value)
         productPreferences.sync(value)
       })
-      .catch((error) => {
+      .catch((cause) => {
         productPreferences.sync({ show_local_models: previous })
-        showToast({
-          title: "Couldn't update model visibility",
-          description: error instanceof Error ? error.message : String(error),
-        })
+        setError(`Couldn't update model visibility. ${message(cause)}`)
       })
       .finally(() => setVisibilityBusy(false))
   }
@@ -210,6 +227,7 @@ const LocalModels: Component = () => {
   const [starting, setStarting] = createSignal<string>()
   const startRuntime = async (rt: Runtime) => {
     setStarting(rt.id)
+    setError(undefined)
     try {
       const r = await call<{
         id: string
@@ -227,11 +245,11 @@ const LocalModels: Component = () => {
       } else if (r.running) {
         showToast({ title: `${rt.name} is running`, description: "No models yet — pull one below, then rescan." })
       } else {
-        showToast({ title: `Couldn't start ${rt.name}`, description: "The server didn't come up in time." })
+        setError(`Couldn't start ${rt.name}. The server didn't come up in time.`)
       }
       refetch()
     } catch (err) {
-      showToast({ title: `Couldn't start ${rt.name}`, description: err instanceof Error ? err.message : String(err) })
+      setError(`Couldn't start ${rt.name}. ${message(err)}`)
     }
     setStarting(undefined)
   }
@@ -250,6 +268,8 @@ const LocalModels: Component = () => {
   const [found, setFound] = createSignal<string[]>([])
   const [selected, setSelected] = createSignal<Set<string>>(new Set<string>())
   const [listedUrl, setListedUrl] = createSignal("")
+  const [sshOpen, setSshOpen] = createSignal(false)
+  const [directOpen, setDirectOpen] = createSignal(false)
   const [sshHost, setSshHost] = createSignal("")
   const [sshRemotePort, setSshRemotePort] = createSignal("11434")
   const [sshLocalPort, setSshLocalPort] = createSignal("12434")
@@ -265,20 +285,23 @@ const LocalModels: Component = () => {
       if (!Number.isInteger(localPort) || localPort < 1_024 || localPort > 65_535) {
         throw new Error("Local port must be between 1,024 and 65,535.")
       }
-      const result = await call<{ models: string[] }>("/ssh", {
+      const contextLimit = contextTokens()
+      const result = await call<{ id: string; models: string[] }>("/ssh", {
         method: "POST",
         body: JSON.stringify({
           host: sshHost().trim(),
           remotePort,
           localPort,
           key: sshKey().trim() || undefined,
+          contextLimit,
         }),
       })
       await sync.refreshProviders()
+      reveal(result.id, result.models)
       showToast({
         variant: "success",
         title: "SSH models connected",
-        description: `Added ${result.models.length} model(s) through the encrypted tunnel.`,
+        description: `${result.models.length} model(s) are now available in the model picker through the encrypted tunnel.`,
       })
     }, "Couldn't connect the SSH model host")
 
@@ -306,36 +329,61 @@ const LocalModels: Component = () => {
     guard(async () => {
       const models = [...selected()]
       if (!models.length) throw new Error("Select at least one model.")
-      await register({ url: url().trim(), key: key().trim() || undefined, models })
+      const result = await register({ url: url().trim(), key: key().trim() || undefined, models })
       await sync.refreshProviders()
+      reveal(result.id, models)
       showToast({
         variant: "success",
         title: models.length === 1 ? "Model added" : "Models added",
-        description: `Added ${models.length} to the end of the Models catalog.`,
+        description: `${models.length} model(s) are now available in the model picker.`,
       })
       setUrl("")
       setKey("")
       setFound([])
       setSelected(new Set<string>())
       setListedUrl("")
-    }, "Failed to add local models")
+    }, "Couldn't add local models")
+
+  const runtimeDetail = (rt: Runtime) => {
+    if (!rt.installed) return `Not installed · ${rt.serveHint}`
+    if (rt.running) return `Running · ${rt.models.length} model(s)`
+    return "Installed · not running"
+  }
 
   return (
     <PanelScroll>
       <PanelHeader
-        title="Local and self-hosted models"
-        description="Run models on this machine or connect an OpenAI-compatible server on your own GPU."
+        title="Local models"
+        description="Run models on this machine or connect a self-hosted OpenAI-compatible server on your own GPU."
       />
       <PanelBody>
-        <div class="flex flex-col gap-8">
-          <section class="flex flex-col gap-3">
-            <div class="flex items-center justify-between gap-4 rounded-sm border border-border-weak-base bg-surface-base p-3">
-              <div class="flex min-w-0 flex-col gap-0.5">
-                <span class="text-13-medium text-text-strong">Show local models in Models</span>
-                <span class="text-11-regular text-text-weak">
-                  Keep locally hosted models visible or temporarily hide them from the Models catalog.
-                </span>
-              </div>
+        <Show when={problem()}>
+          {(value) => (
+            <div role="alert" class="settings-alert" data-tone="critical">
+              <span>{String(value())}</span>
+              <Button
+                size="small"
+                variant="secondary"
+                class="settings-panel-action"
+                disabled={busy()}
+                onClick={recover}
+              >
+                Retry
+              </Button>
+            </div>
+          )}
+        </Show>
+
+        <Section
+          title="Catalog"
+          description="Models you add here appear in the model picker alongside your connected providers."
+        >
+          <Card>
+            <div class="settings-row">
+              <RowCopy
+                title="Show local models in Models"
+                description="Hide locally hosted models from the catalog without removing them."
+              />
               <Switch
                 hideLabel
                 checked={productPreferences.localModels()}
@@ -345,156 +393,198 @@ const LocalModels: Component = () => {
                 Show local models in Models
               </Switch>
             </div>
-          </section>
+          </Card>
+        </Section>
 
-          {/* ── Run locally (host it for the user) ── */}
-          <section class="flex flex-col gap-3">
-            <h3 class="text-13-medium text-text-strong">Run a model locally</h3>
-            <p class="text-12-regular text-text-weak/70">
-              Let OpenScience start and host a runtime for you — no terminal needed.
-            </p>
-            <For each={status()}>
-              {(rt) => (
-                <div class="flex items-center justify-between rounded-sm border border-border-weak-base bg-surface-base p-3">
-                  <div class="flex flex-col gap-0.5">
-                    <span class="text-13-medium text-text-strong flex items-center gap-1.5">
-                      <Show when={rt.running}>
-                        <Icon name="check" class="text-text-success" />
-                      </Show>
-                      {rt.name}
-                    </span>
-                    <span class="text-11-regular text-text-weak">
-                      <Show
-                        when={!rt.installed}
-                        fallback={rt.running ? `running · ${rt.models.length} model(s)` : "installed · not running"}
-                      >
-                        not installed — <code>{rt.serveHint}</code>
-                      </Show>
-                    </span>
-                  </div>
-                  <Show
-                    when={rt.installed}
-                    fallback={
-                      <Button
-                        size="small"
-                        variant="secondary"
-                        onClick={() => window.open(rt.install, "_blank", "noopener")}
-                      >
-                        Install
-                      </Button>
-                    }
-                  >
-                    <Show
-                      when={rt.running}
-                      fallback={
-                        <Button
-                          size="small"
-                          variant="primary"
-                          disabled={busy() || !!starting()}
-                          onClick={() => startRuntime(rt)}
-                        >
-                          {starting() === rt.id ? "Starting…" : "Start"}
-                        </Button>
-                      }
-                    >
-                      <Button
-                        size="small"
-                        variant="primary"
-                        disabled={busy() || rt.models.length === 0}
-                        onClick={() => choose(rt)}
-                      >
-                        Choose models
-                      </Button>
-                    </Show>
-                  </Show>
+        {/* ── Run locally (host it for the user) ── */}
+        <Section title="Run a model locally" description="OpenScience starts and hosts a runtime for you.">
+          <Card>
+            <Show
+              when={!status.loading}
+              fallback={
+                <div class="settings-panel-loading__rows" role="status" aria-label="Loading local runtimes">
+                  <span />
+                  <span />
                 </div>
-              )}
-            </For>
-          </section>
+              }
+            >
+              <For
+                each={status()}
+                fallback={
+                  <p class="settings-card-empty" role="status">
+                    No supported local runtime was found on this machine.
+                  </p>
+                }
+              >
+                {(rt) => (
+                  <div class="settings-row">
+                    <RowCopy title={rt.name} description={runtimeDetail(rt)} />
+                    <div class="ml-auto flex max-w-full shrink-0 items-center gap-2">
+                      <Show when={rt.running}>
+                        <span class="settings-row-status">Running</span>
+                      </Show>
+                      <Show
+                        when={rt.installed}
+                        fallback={
+                          <Button
+                            size="small"
+                            variant="secondary"
+                            class="settings-panel-action"
+                            onClick={() => window.open(rt.install, "_blank", "noopener")}
+                          >
+                            Install
+                          </Button>
+                        }
+                      >
+                        <Show
+                          when={rt.running}
+                          fallback={
+                            <Button
+                              size="small"
+                              variant="primary"
+                              class="settings-panel-action"
+                              disabled={busy() || !!starting()}
+                              onClick={() => startRuntime(rt)}
+                            >
+                              {starting() === rt.id ? "Starting…" : "Start"}
+                            </Button>
+                          }
+                        >
+                          <Button
+                            size="small"
+                            variant="primary"
+                            class="settings-panel-action"
+                            disabled={busy() || rt.models.length === 0}
+                            onClick={() => choose(rt)}
+                          >
+                            Choose models
+                          </Button>
+                        </Show>
+                      </Show>
+                    </div>
+                  </div>
+                )}
+              </For>
+            </Show>
+          </Card>
+        </Section>
 
-          {/* ── Pull a model (Ollama) ── */}
-          <section class="flex flex-col gap-2">
-            <h3 class="text-13-medium text-text-strong">Pull a model</h3>
-            <p class="text-12-regular text-text-weak/70">
-              Copy an <code>ollama pull</code> command, then run it in your terminal to download the model.
-            </p>
-            <div class="flex gap-2">
-              <input
-                class="flex-1 rounded-sm border border-border-weak-base bg-surface-base px-3 py-2 text-13-regular text-text-strong placeholder:text-text-weak/60"
-                aria-label="Model to pull with Ollama"
-                placeholder="llama3.1  ·  qwen2.5-coder  ·  phi3"
-                value={pullName()}
-                onInput={(e) => setPullName(e.currentTarget.value)}
-                onKeyDown={(e) => e.key === "Enter" && pull()}
+        {/* ── Pull a model (Ollama) ── */}
+        <Section title="Pull a model" description="Copy an ollama pull command, then run it in your terminal.">
+          <Card>
+            <div class="settings-row">
+              <RowCopy
+                title="Pull a model"
+                description="Type a name from the Ollama library, such as llama3.1, qwen2.5-coder or phi3."
               />
-              <Button size="small" variant="secondary" disabled={!pullName().trim()} onClick={pull}>
-                Copy command
-              </Button>
+              <div class="ml-auto flex max-w-full shrink-0 items-center gap-2">
+                <input
+                  class="settings-field w-44 min-w-0"
+                  aria-label="Model to pull with Ollama"
+                  placeholder="llama3.1"
+                  value={pullName()}
+                  onInput={(e) => setPullName(e.currentTarget.value)}
+                  onKeyDown={(e) => e.key === "Enter" && pull()}
+                />
+                <Button
+                  size="small"
+                  variant="secondary"
+                  class="settings-panel-action shrink-0"
+                  disabled={!pullName().trim()}
+                  onClick={pull}
+                >
+                  Copy command
+                </Button>
+              </div>
             </div>
-            <p class="text-11-regular text-text-weak/60">
-              Need to start Ollama first? Copy this command:{" "}
-              <button
-                class="underline hover:text-text-strong"
+            <div class="settings-row">
+              <RowCopy
+                title="Start Ollama"
+                description="Copies ollama serve. Run it first if the server isn't up yet."
+              />
+              <Button
+                size="small"
+                variant="secondary"
+                class="settings-panel-action ml-auto shrink-0"
                 aria-label="Copy ollama serve command"
                 onClick={() => void copyCommand("ollama serve")}
               >
-                ollama serve
-              </button>
-            </p>
-          </section>
+                Copy command
+              </Button>
+            </div>
+          </Card>
+        </Section>
 
-          {/* ── Detected runtimes ── */}
-          <section class="flex flex-col gap-3">
-            <div class="flex items-center justify-between">
-              <h3 class="text-13-medium text-text-strong">Detected on this machine</h3>
-              <Button size="small" variant="secondary" disabled={busy()} onClick={refetch}>
+        {/* ── Detected runtimes ── */}
+        <Section title="Detected on this machine" description="Servers already running here that OpenScience can use.">
+          <Card>
+            <div class="settings-row">
+              <RowCopy
+                title="Scan for servers"
+                description="Looks for Ollama, LM Studio and other OpenAI-compatible servers on this machine."
+              />
+              <Button
+                size="small"
+                variant="secondary"
+                class="settings-panel-action ml-auto shrink-0"
+                disabled={busy()}
+                onClick={refetch}
+              >
                 Rescan
               </Button>
             </div>
             <Show
-              when={discoveries().length > 0}
+              when={!detected.loading && !status.loading}
               fallback={
-                <p class="text-12-regular text-text-weak/70">
-                  Nothing running yet. Start a server (e.g. <code>ollama serve</code>) and select Rescan, or add a
-                  custom endpoint below.
-                </p>
+                <div class="settings-panel-loading__rows" role="status" aria-label="Scanning for local servers">
+                  <span />
+                  <span />
+                </div>
               }
             >
-              <For each={discoveries()}>
+              <For
+                each={discoveries()}
+                fallback={
+                  <p class="settings-card-empty" role="status">
+                    Nothing running yet. Start a server such as ollama serve, then rescan or add an endpoint below.
+                  </p>
+                }
+              >
                 {(d) => (
-                  <div class="flex items-center justify-between rounded-sm border border-border-weak-base bg-surface-base p-3">
-                    <div class="flex flex-col gap-0.5">
-                      <span class="text-13-medium text-text-strong flex items-center gap-1.5">
-                        <Icon name="check" class="text-text-success" /> {d.name}
-                      </span>
-                      <span class="text-11-regular text-text-weak">
-                        {d.baseURL} · {d.models.length} model(s)
-                      </span>
-                    </div>
-                    <Button size="small" variant="primary" disabled={busy()} onClick={() => choose(d)}>
+                  <div class="settings-row">
+                    <RowCopy title={d.name} description={`${d.baseURL} · ${d.models.length} model(s)`} />
+                    <Button
+                      size="small"
+                      variant="primary"
+                      class="settings-panel-action ml-auto shrink-0"
+                      disabled={busy()}
+                      onClick={() => choose(d)}
+                    >
                       Choose models
                     </Button>
                   </div>
                 )}
               </For>
             </Show>
-          </section>
+          </Card>
+        </Section>
 
-          <Show when={choice()}>
-            {(source) => (
-              <section
-                class="flex flex-col gap-3 rounded-md border border-border-strong-base bg-surface-base p-4"
-                aria-label={`Choose ${source().name} models`}
-              >
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                  <div class="flex flex-col gap-0.5">
-                    <h3 class="text-13-medium text-text-strong">Choose {source().name} models</h3>
-                    <p class="text-11-regular text-text-weak">Only the models you select will appear in Models.</p>
-                  </div>
+        <Show when={choice()}>
+          {(source) => (
+            <Section
+              title={`Choose ${source().name} models`}
+              description="Only the models you select appear in Models."
+            >
+              <div class="settings-card settings-form-card" aria-label={`Choose ${source().name} models`}>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-12-regular text-text-weak">
+                    {chosen().size} of {source().models.length} selected
+                  </span>
                   <div class="flex items-center gap-2">
                     <Button
                       size="small"
                       variant="ghost"
+                      class="settings-panel-action settings-panel-action--quiet"
                       disabled={chosen().size === source().models.length}
                       onClick={() => setChosen(new Set(source().models))}
                     >
@@ -503,6 +593,7 @@ const LocalModels: Component = () => {
                     <Button
                       size="small"
                       variant="ghost"
+                      class="settings-panel-action settings-panel-action--quiet"
                       disabled={chosen().size === 0}
                       onClick={() => setChosen(new Set<string>())}
                     >
@@ -510,191 +601,253 @@ const LocalModels: Component = () => {
                     </Button>
                   </div>
                 </div>
-                <div class="max-h-52 overflow-y-auto rounded-sm border border-border-weak-base p-2">
+                <div class="flex max-h-52 flex-col gap-1 overflow-y-auto">
                   <For each={source().models}>
                     {(model) => (
-                      <label class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-13-regular text-text-strong hover:bg-surface-raised-base">
-                        <input type="checkbox" checked={chosen().has(model)} onChange={() => toggleChoice(model)} />
-                        <span class="min-w-0 truncate font-mono text-12-regular">{model}</span>
-                      </label>
+                      <Checkbox checked={chosen().has(model)} onChange={() => toggleChoice(model)}>
+                        <span class="min-w-0 truncate text-12-regular">{model}</span>
+                      </Checkbox>
                     )}
                   </For>
                 </div>
-                <Show when={isOllama(source().id, source().baseURL)}>
-                  <div class="flex flex-col gap-2 rounded-sm border border-border-weak-base bg-surface-raised-base p-3">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                      <div class="flex min-w-0 flex-col gap-0.5">
-                        <span class="text-12-medium text-text-strong">Context window</span>
-                        <span class="text-11-regular text-text-weak">Applied to the models selected above.</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <input
-                          class="w-32 rounded-sm border border-border-weak-base bg-surface-base px-3 py-2 text-right font-mono text-13-regular text-text-strong"
-                          type="number"
-                          min="1024"
-                          max="2097152"
-                          step="1024"
-                          aria-label="Ollama context window in tokens"
-                          value={context()}
-                          onInput={(event) => setContext(event.currentTarget.value)}
-                        />
-                        <span class="text-11-regular text-text-weak">tokens</span>
-                      </div>
-                    </div>
-                    <p class="text-11-regular text-text-weak/70">
-                      Larger windows use more memory. OpenScience keeps the tuned runtime alias out of the Models
-                      catalog and shows the original model name.
-                    </p>
-                  </div>
-                </Show>
+                <ContextField
+                  value={context()}
+                  onInput={setContext}
+                  description={
+                    isOllama(source().id, source().baseURL)
+                      ? "Applied to the selected models as a tuned Ollama alias. Larger windows use more memory; the alias stays out of the catalog."
+                      : "How much context OpenScience may send to these models. Match the server's configured window; this does not change the server itself."
+                  }
+                />
                 <div class="flex justify-end gap-2">
-                  <Button size="small" variant="secondary" disabled={busy()} onClick={() => setChoice(undefined)}>
+                  <Button
+                    size="small"
+                    variant="secondary"
+                    class="settings-panel-action"
+                    disabled={busy()}
+                    onClick={() => setChoice(undefined)}
+                  >
                     Cancel
                   </Button>
-                  <Button size="small" variant="primary" disabled={busy() || chosen().size === 0} onClick={addChoice}>
+                  <Button
+                    size="small"
+                    variant="primary"
+                    class="settings-panel-action"
+                    disabled={busy() || chosen().size === 0}
+                    onClick={addChoice}
+                  >
                     Add {chosen().size} selected
                   </Button>
                 </div>
-              </section>
-            )}
-          </Show>
+              </div>
+            </Section>
+          )}
+        </Show>
 
-          <section class="flex flex-col gap-3">
-            <div class="flex flex-col gap-1">
-              <h3 class="text-13-medium text-text-strong">Connect over SSH</h3>
-              <p class="text-12-regular text-text-weak/70">
-                Open an encrypted local-forward to a model server running on a remote GPU. The host must already work
-                with your normal SSH config and keys.
-              </p>
+        <Section
+          title="Connect over SSH"
+          description="Open an encrypted local-forward to a model server on a remote GPU. The host must already work with your SSH config and keys."
+        >
+          <Card>
+            <div class="settings-row">
+              <RowCopy
+                title="Remote GPU over SSH"
+                description="Tunnel a model server on a host from your SSH config into this machine."
+              />
+              <Button
+                size="small"
+                variant="secondary"
+                class="settings-panel-action ml-auto shrink-0"
+                aria-expanded={sshOpen()}
+                onClick={() => setSshOpen((value) => !value)}
+              >
+                {sshOpen() ? "Cancel" : "Connect"}
+              </Button>
             </div>
-            <div class="grid grid-cols-1 gap-2 rounded-md border border-border-weak-base bg-surface-base p-3 sm:grid-cols-2">
-              <label class="flex flex-col gap-1 sm:col-span-2">
-                <span class="text-11-medium text-text-weak">SSH host</span>
-                <input
-                  class="w-full rounded-sm border border-border-weak-base bg-surface-base px-3 py-2 text-13-regular text-text-strong placeholder:text-text-weak/60"
+          </Card>
+          <Show when={sshOpen()}>
+            <div class="settings-card settings-form-card">
+              <div class="settings-form-grid">
+                <Field
+                  label="SSH host"
+                  span="full"
                   placeholder="research-gpu or user@gpu.example.org"
                   value={sshHost()}
-                  onInput={(event) => setSshHost(event.currentTarget.value)}
+                  onInput={setSshHost}
                 />
-              </label>
-              <label class="flex flex-col gap-1">
-                <span class="text-11-medium text-text-weak">Remote model port</span>
-                <input
-                  class="w-full rounded-sm border border-border-weak-base bg-surface-base px-3 py-2 text-13-regular text-text-strong"
+                <Field
+                  label="Remote model port"
                   type="number"
                   min="1"
                   max="65535"
+                  placeholder="11434"
                   value={sshRemotePort()}
-                  onInput={(event) => setSshRemotePort(event.currentTarget.value)}
+                  onInput={setSshRemotePort}
                 />
-              </label>
-              <label class="flex flex-col gap-1">
-                <span class="text-11-medium text-text-weak">Local tunnel port</span>
-                <input
-                  class="w-full rounded-sm border border-border-weak-base bg-surface-base px-3 py-2 text-13-regular text-text-strong"
+                <Field
+                  label="Local tunnel port"
                   type="number"
                   min="1024"
                   max="65535"
+                  placeholder="12434"
                   value={sshLocalPort()}
-                  onInput={(event) => setSshLocalPort(event.currentTarget.value)}
+                  onInput={setSshLocalPort}
                 />
-              </label>
-              <label class="flex flex-col gap-1 sm:col-span-2">
-                <span class="text-11-medium text-text-weak">Endpoint key (optional)</span>
-                <input
-                  class="w-full rounded-sm border border-border-weak-base bg-surface-base px-3 py-2 text-13-regular text-text-strong placeholder:text-text-weak/60"
+                <Field
+                  label="Endpoint key (optional)"
+                  span="full"
                   type="password"
-                  autocomplete="off"
                   placeholder="Only if the remote model server requires one"
                   value={sshKey()}
-                  onInput={(event) => setSshKey(event.currentTarget.value)}
+                  onInput={setSshKey}
                 />
-              </label>
-              <div class="sm:col-span-2">
-                <Button size="small" variant="primary" disabled={busy() || !sshHost().trim()} onClick={connectSSH}>
+              </div>
+              <ContextField
+                value={context()}
+                onInput={setContext}
+                description="How much context OpenScience may send to the remote models. Match the server's configured window."
+              />
+              <div class="flex justify-end">
+                <Button
+                  size="small"
+                  variant="primary"
+                  class="settings-panel-action"
+                  disabled={busy() || !sshHost().trim()}
+                  onClick={connectSSH}
+                >
                   Connect models
                 </Button>
               </div>
             </div>
-          </section>
+          </Show>
+        </Section>
 
-          {/* ── Custom endpoint ── */}
-          <section class="flex flex-col gap-3">
-            <div class="flex flex-col gap-1">
-              <h3 class="text-13-medium text-text-strong">Direct endpoint</h3>
-              <p class="text-12-regular text-text-weak/70">
-                Connect a local, LAN, VPN, or HTTPS OpenAI-compatible endpoint directly.
-              </p>
+        {/* ── Custom endpoint ── */}
+        <Section
+          title="Direct endpoint"
+          description="Connect a local, LAN, VPN, or HTTPS OpenAI-compatible endpoint directly."
+        >
+          <Card>
+            <div class="settings-row">
+              <RowCopy
+                title="OpenAI-compatible endpoint"
+                description="A URL on this machine, your LAN or VPN, or over HTTPS."
+              />
+              <Button
+                size="small"
+                variant="secondary"
+                class="settings-panel-action ml-auto shrink-0"
+                aria-expanded={directOpen()}
+                onClick={() => setDirectOpen((value) => !value)}
+              >
+                {directOpen() ? "Cancel" : "Connect"}
+              </Button>
             </div>
-            <div class="flex flex-col gap-2">
-              <label class="flex flex-col gap-1">
-                <span class="text-11-medium text-text-weak">Endpoint URL</span>
-                <input
-                  class="w-full rounded-sm border border-border-weak-base bg-surface-base px-3 py-2 text-13-regular text-text-strong placeholder:text-text-weak/60"
+          </Card>
+          <Show when={directOpen()}>
+            <div class="settings-card settings-form-card">
+              <div class="settings-form-grid">
+                <Field
+                  label="Endpoint URL"
+                  span="full"
                   inputMode="url"
                   placeholder="http://localhost:11434/v1"
                   value={url()}
-                  onInput={(e) => setUrl(e.currentTarget.value)}
+                  onInput={setUrl}
                 />
-              </label>
-              <label class="flex flex-col gap-1">
-                <span class="text-11-medium text-text-weak">API key (optional)</span>
-                <input
-                  class="w-full rounded-sm border border-border-weak-base bg-surface-base px-3 py-2 text-13-regular text-text-strong placeholder:text-text-weak/60"
+                <Field
+                  label="API key (optional)"
+                  span="full"
                   type="password"
-                  autocomplete="off"
                   placeholder="Most local servers need none"
                   value={key()}
-                  onInput={(e) => setKey(e.currentTarget.value)}
+                  onInput={setKey}
                 />
-              </label>
-              <div class="flex gap-2">
-                <Button size="small" variant="secondary" disabled={busy() || !url().trim()} onClick={listCustom}>
+              </div>
+              <div class="flex flex-wrap justify-end gap-2">
+                <Button
+                  size="small"
+                  variant="secondary"
+                  class="settings-panel-action"
+                  disabled={busy() || !url().trim()}
+                  onClick={listCustom}
+                >
                   List models
                 </Button>
                 <Show when={found().length > 0}>
-                  <Button size="small" variant="primary" disabled={busy() || selected().size === 0} onClick={addCustom}>
+                  <Button
+                    size="small"
+                    variant="primary"
+                    class="settings-panel-action"
+                    disabled={busy() || selected().size === 0}
+                    onClick={addCustom}
+                  >
                     Add {selected().size} selected
                   </Button>
                 </Show>
               </div>
+              <Show when={found().length > 0}>
+                <div class="flex flex-col gap-1">
+                  <span class="text-12-regular text-text-weak">{listedUrl()}</span>
+                  <For each={found()}>
+                    {(m) => (
+                      <Checkbox checked={selected().has(m)} onChange={() => toggle(m)}>
+                        <span class="min-w-0 truncate text-12-regular">{m}</span>
+                      </Checkbox>
+                    )}
+                  </For>
+                </div>
+                <ContextField
+                  value={context()}
+                  onInput={setContext}
+                  description={
+                    isOllama(undefined, listedUrl())
+                      ? "Applied to the selected models as a tuned Ollama alias. Larger windows use more memory."
+                      : "How much context OpenScience may send to these models. Match the server's configured window; this does not change the server itself."
+                  }
+                />
+              </Show>
             </div>
-            <Show when={found().length > 0}>
-              <div class="flex flex-col gap-1 rounded-sm border border-border-weak-base bg-surface-base p-2">
-                <span class="text-11-regular text-text-weak px-1">{listedUrl()}</span>
-                <For each={found()}>
-                  {(m) => (
-                    <label class="flex items-center gap-2 px-1 py-1 text-13-regular text-text-strong cursor-pointer">
-                      <input type="checkbox" checked={selected().has(m)} onChange={() => toggle(m)} />
-                      {m}
-                    </label>
-                  )}
-                </For>
-              </div>
-            </Show>
-          </section>
+          </Show>
+        </Section>
 
-          {/* ── Configured ── */}
-          <section class="flex flex-col gap-3">
-            <h3 class="text-13-medium text-text-strong">Configured</h3>
+        {/* ── Configured ── */}
+        <Section
+          title="Configured"
+          description={
+            configured()?.length
+              ? `${configured()?.length} local or self-hosted provider${configured()?.length === 1 ? "" : "s"} in the catalog.`
+              : "Local and self-hosted providers you have added."
+          }
+        >
+          <Card>
             <Show
-              when={(configured()?.length ?? 0) > 0}
-              fallback={<p class="text-12-regular text-text-weak/70">No local or self-hosted providers yet.</p>}
+              when={!configured.loading}
+              fallback={
+                <div class="settings-panel-loading__rows" role="status" aria-label="Loading configured providers">
+                  <span />
+                </div>
+              }
             >
-              <For each={configured()}>
+              <For
+                each={configured()}
+                fallback={
+                  <p class="settings-card-empty" role="status">
+                    No local or self-hosted providers yet.
+                  </p>
+                }
+              >
                 {(p) => (
-                  <div class="flex items-center justify-between rounded-sm border border-border-weak-base bg-surface-base p-3">
-                    <div class="flex flex-col gap-0.5">
-                      <span class="text-13-medium text-text-strong">{p.id}</span>
-                      <span class="text-11-regular text-text-weak">
-                        {p.baseURL} · {p.models.length} model(s)
-                        <Show when={p.runtime?.startsWith("ssh:")}> · SSH tunnel</Show>
-                      </span>
-                    </div>
+                  <div class="settings-row">
+                    <RowCopy
+                      title={p.id}
+                      description={`${p.baseURL} · ${p.models.length} model(s)${p.runtime?.startsWith("ssh:") ? " · SSH tunnel" : ""}`}
+                    />
                     <Button
                       size="small"
                       variant="ghost"
                       icon="trash"
+                      class="settings-panel-action settings-panel-action--danger-quiet ml-auto shrink-0"
                       disabled={busy()}
                       onClick={() => removeProvider(p.id)}
                     >
@@ -704,11 +857,60 @@ const LocalModels: Component = () => {
                 )}
               </For>
             </Show>
-          </section>
-        </div>
+          </Card>
+        </Section>
       </PanelBody>
     </PanelScroll>
   )
 }
 
 export default LocalModels
+
+const Field: Component<{
+  label: string
+  value: string
+  placeholder: string
+  onInput: (value: string) => void
+  span?: "full"
+  type?: JSX.InputHTMLAttributes<HTMLInputElement>["type"]
+  inputMode?: JSX.InputHTMLAttributes<HTMLInputElement>["inputMode"]
+  min?: string
+  max?: string
+}> = (props) => (
+  <label class="flex min-w-0 flex-col gap-1.5" data-span={props.span}>
+    <span class="text-12-medium text-text-strong">{props.label}</span>
+    <input
+      class="settings-field"
+      type={props.type}
+      inputMode={props.inputMode}
+      min={props.min}
+      max={props.max}
+      autocomplete={props.type === "password" ? "off" : undefined}
+      value={props.value}
+      placeholder={props.placeholder}
+      onInput={(event) => props.onInput(event.currentTarget.value)}
+    />
+  </label>
+)
+
+// Every local endpoint records a context window; without one, OpenScience
+// assumes 32k and compacts long research sessions far too early on servers
+// that allow much more.
+const ContextField: Component<{ value: string; description: string; onInput: (value: string) => void }> = (props) => (
+  <div class="settings-row">
+    <RowCopy title="Context window" description={props.description} />
+    <div class="ml-auto flex shrink-0 items-center gap-2">
+      <input
+        class="settings-field w-32 text-right"
+        type="number"
+        min="1024"
+        max="2097152"
+        step="1024"
+        aria-label="Context window in tokens"
+        value={props.value}
+        onInput={(event) => props.onInput(event.currentTarget.value)}
+      />
+      <span class="text-12-regular text-text-weak">tokens</span>
+    </div>
+  </div>
+)

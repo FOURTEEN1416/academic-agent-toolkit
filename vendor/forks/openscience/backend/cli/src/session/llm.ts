@@ -15,7 +15,6 @@ import {
 import { safeParseJSON } from "@ai-sdk/provider-utils"
 import { clone, mergeDeep } from "remeda"
 import { ProviderTransform } from "@/provider/transform"
-import { Config } from "@/config/config"
 import { Instance } from "@/project/instance"
 import type { Agent } from "@/agent/agent"
 import type { MessageV2 } from "./message-v2"
@@ -25,10 +24,19 @@ import { Flag } from "@/flag/flag"
 import { Auth } from "@/auth"
 import { SessionHarness } from "./harness"
 import { SessionTraceStore } from "./trace-store"
-import { ToolSelection } from "./tool-selection"
-import { OutboundTelemetry } from "@/telemetry/outbound"
+import { ToolVisibility } from "@/tool/visibility"
 import { InvalidCall } from "@/tool/invalid-call"
-import { resolveTelemetryRoute } from "./billing-gate"
+import { resolveAccessRoute } from "./access-route"
+import { providerErrorMetadata } from "./provider-error"
+import { Toolset } from "./toolset"
+import { UsageLogging } from "./usage-logging"
+import { ModelCallTrace } from "./model-call-trace"
+
+import { ManagedPricing } from "@/provider/managed-pricing"
+import { SubagentBudget } from "./subagent-budget"
+import { SubagentDispatch } from "./subagent-dispatch"
+import { SubagentInput } from "./subagent-input"
+import { CallLink } from "@/provider/call-link"
 
 export namespace LLM {
   const log = Log.create({ service: "llm" })
@@ -45,15 +53,34 @@ export namespace LLM {
     messages: ModelMessage[]
     small?: boolean
     tools: Record<string, Tool>
+    /** Offer the tools (they are part of the cached prefix) but forbid calling
+     * them, for a request that must answer in text. */
+    toolChoice?: "none"
     retries?: number
-    direct?: boolean
-    inspection?: boolean
     trace?: { messageID: string; attempt: number }
     route?: string
+    onModelResolved?: (model: Provider.Model) => void
     onReasoningEffortResolved?: (effort: string | undefined) => void | Promise<void>
+    /** Response headers arrived for a provider stream request; the body may
+     * still be a keepalive-only prefix, so this is not first output. */
+    onResponse?: () => void
   }
 
   export type StreamOutput = StreamTextResult<ToolSet, unknown>
+
+  // Share the exact header selection with context preflight. An agent with a
+  // prompt of its own replaces the model-family header. Codex sends the header
+  // through `instructions`, separately from the assembled conversation
+  // context, so the header never appears twice on that route.
+  export function prompts(input: Pick<StreamInput, "agent" | "model">, codex = false) {
+    const header = SystemPrompt.provider(input.model)
+    if (!codex) return { system: input.agent.prompt ? [input.agent.prompt] : header, instructions: undefined }
+    // A primary agent's own prompt is its header and travels in the
+    // instructions slot; a worker's contract stays in context beneath the
+    // family header so the header never appears twice.
+    if (input.agent.prompt && input.agent.mode !== "subagent") return { system: [], instructions: input.agent.prompt }
+    return { system: input.agent.prompt ? [input.agent.prompt] : [], instructions: header.join("\n") }
+  }
 
   export async function repairToolCall(failed: Parameters<ToolCallRepairFunction<ToolSet>>[0], tools: ToolSet) {
     const source = InvalidCall.tool(failed.toolCall.toolName)
@@ -79,48 +106,65 @@ export namespace LLM {
   }
 
   export async function stream(input: StreamInput) {
-    const tier = input.small
+    const bounded = await SubagentBudget.read(input.sessionID)
+    if (bounded)
+      input = {
+        ...input,
+        model: await Provider.getModel(bounded.worker.model.providerID, bounded.worker.model.modelID),
+      }
+    const requested = input.small
       ? { model: undefined, options: {}, headers: {} }
       : ProviderTransform.tier(input.model, input.user.tier)
-    const routed = tier.model ? await Provider.getModel(input.model.providerID, tier.model) : input.model
-    const traceRoute = input.route ?? (await resolveTelemetryRoute(routed.providerID, routed.id))
-    const l = log
-      .clone()
-      .tag("providerID", input.model.providerID)
-      .tag("modelID", input.model.id)
-      .tag("sessionID", input.sessionID)
-      .tag("small", (input.small ?? false).toString())
-      .tag("agent", input.agent.name)
-      .tag("mode", input.agent.mode)
+    const selected = requested.model ? await Provider.getModel(input.model.providerID, requested.model) : input.model
+    const traceRoute = SessionTraceStore.ModelCall.shape.route
+      .catch("custom")
+      .parse(input.route ?? (await resolveAccessRoute(selected.providerID, selected.id)))
+    if (bounded)
+      input = {
+        ...input,
+        abort: AbortSignal.any([input.abort, AbortSignal.timeout(Math.max(0, bounded.worker.deadline - Date.now()))]),
+      }
+    if (bounded && (await resolveAccessRoute(selected.providerID, selected.id)) !== bounded.worker.route) {
+      await SubagentBudget.stop(input.sessionID, "route_changed")
+      throw new SubagentBudget.LimitError("route_changed")
+    }
+    const routed =
+      traceRoute === "managed"
+        ? await ManagedPricing.forRequest(selected, input.small ? undefined : input.user.tier)
+        : selected
+    const tier = traceRoute === "managed" && !input.small ? ProviderTransform.tier(routed, input.user.tier) : requested
+    if (traceRoute === "managed") input = { ...input, model: routed }
+    input.onModelResolved?.(routed)
+    // A per-stream copy: the shared "llm" logger is never tagged, so a title
+    // stream and a research stream running at once cannot relabel each other.
+    const l = log.child({
+      providerID: input.model.providerID,
+      modelID: input.model.id,
+      sessionID: input.sessionID,
+      small: (input.small ?? false).toString(),
+      agent: input.agent.name,
+      mode: input.agent.mode,
+    })
     l.info("stream", {
       modelID: input.model.id,
       providerID: input.model.providerID,
     })
-    const [language, cfg, provider, auth, sharing] = await Promise.all([
+    const [language, provider, auth] = await Promise.all([
       Provider.getLanguage(routed),
-      Config.get(),
       Provider.getProvider(input.model.providerID),
       Auth.get(input.model.providerID),
-      OutboundTelemetry.enabled(),
     ])
     const isCodex = isCodexSubscriptionModel(input.model, auth)
+    const prompt = prompts(input, isCodex)
 
     const system = []
     system.push(
       [
-        // use agent prompt otherwise provider prompt
-        // For Codex sessions, skip SystemPrompt.provider() since it's sent via options.instructions
-        ...(input.agent.prompt
-          ? [input.agent.prompt]
-          : isCodex
-            ? []
-            : SystemPrompt.provider(input.model, input.direct, input.inspection)),
+        ...prompt.system,
         // any custom prompt passed into this call
         ...input.system,
         // any custom prompt from last user message
         ...(input.user.system ? [input.user.system] : []),
-        // plan mode instructions (if enabled)
-        ...(ToolSelection.minimalResearchAgent(input.agent.name) ? [] : await SystemPrompt.planModeInstructions()),
       ]
         .filter((x) => x)
         .join("\n"),
@@ -143,8 +187,8 @@ export namespace LLM {
       system.push(header, rest.join("\n"))
     }
 
-    const variant =
-      !input.small && input.model.variants && input.user.variant ? input.model.variants[input.user.variant] : {}
+    const chosen = input.user.variant
+    const variant = !input.small && input.model.variants && chosen ? input.model.variants[chosen] : {}
     const base = input.small
       ? ProviderTransform.smallOptions(input.model)
       : ProviderTransform.options({
@@ -160,10 +204,7 @@ export namespace LLM {
       base as Record<string, any>,
     )
     if (isCodex) {
-      options.instructions =
-        ToolSelection.minimalResearchAgent(input.agent.name) && input.agent.prompt
-          ? input.agent.prompt
-          : SystemPrompt.instructions(input.direct, input.inspection)
+      options.instructions = prompt.instructions
     }
 
     const params = await Plugin.trigger(
@@ -201,7 +242,7 @@ export namespace LLM {
 
     await input.onReasoningEffortResolved?.(resolvedReasoningEffort(params.options))
 
-    const maxOutputTokens = isCodex
+    const requestedOutputTokens = isCodex
       ? undefined
       : ProviderTransform.maxOutputTokens(
           input.model.api.npm,
@@ -233,6 +274,11 @@ export namespace LLM {
     }
 
     const trace = input.trace
+    const configuredTools = Toolset.active(tools)
+    // A change in the offered tools is announced by the loop as a durable
+    // message in the transcript, never as a system line for one request: a
+    // line that appears on the step of the change and vanishes on the next
+    // rewrote the cached system prompt twice per skill load.
     const harness = trace
       ? SessionHarness.snapshot({
           agent: input.agent,
@@ -262,56 +308,101 @@ export namespace LLM {
               content: system.join("\n\n"),
             },
           ]
-        : system.map(
-            (x): ModelMessage => ({
-              role: "system",
-              content: x,
-            }),
-          )),
+        : system.map((x): ModelMessage => ({
+            role: "system",
+            content: x,
+          }))),
       ...input.messages,
     ]
-    const traceMessageID = input.trace?.messageID ?? input.user.id
-    const traceAttempt = input.trace?.attempt ?? 1
-    await OutboundTelemetry.modelRequest({
-      sessionID: input.sessionID,
-      messageID: traceMessageID,
-      attempt: traceAttempt,
-      route: traceRoute,
-      provider: routed.providerID,
-      model: routed.id,
-      system,
-      messages: providerMessages,
-      tools,
-      parameters: {
-        temperature: params.temperature,
-        topP: params.topP,
-        topK: params.topK,
-        providerOptions: ProviderTransform.providerOptions(input.model, params.options),
-        activeTools: Object.keys(tools).filter((x) => x !== "invalid"),
-        maxOutputTokens,
-        headers: { ...input.model.headers, ...tier.headers, ...headers },
-      },
-    }).catch(() => undefined)
-
-    const result = streamText({
-      onError(error) {
-        l.error("stream error", {
-          error,
-        })
-      },
-      async onFinish(output) {
-        await OutboundTelemetry.modelResponse({
+    const logging = await UsageLogging.context().catch(() => undefined)
+    const started = performance.now()
+    const parent = Provider.currentRequestContext()
+    const traceMessageID = input.trace?.messageID ?? parent?.messageID ?? input.user.id
+    const binding = logging
+      ? {
+          context: logging,
           sessionID: input.sessionID,
           messageID: traceMessageID,
-          attempt: traceAttempt,
           route: traceRoute,
           provider: routed.providerID,
-          model: routed.id,
-          message: output,
-          parts: [],
-          tokens: output.totalUsage,
-          finish: output.finishReason,
-        }).catch(() => undefined)
+          model: routed.api.id,
+          operationID: crypto.randomUUID(),
+        }
+      : undefined
+    if (binding) await UsageLogging.bind(binding)
+    const allowance = bounded
+      ? await SubagentDispatch.prepare({
+          sessionID: input.sessionID,
+          model: input.model,
+          route: traceRoute,
+          inputTokens: await SubagentInput.prompt({ system, messages: providerMessages, tools }),
+          tier: input.small ? undefined : input.user.tier,
+          maxOutputTokens: requestedOutputTokens,
+          thinkingTokens: isCodex ? 0 : ProviderTransform.thinkingTokens(input.model.api.npm, params.options),
+          internal: input.small,
+        })
+      : undefined
+    if (allowance?.notice && !input.small)
+      providerMessages.push({ role: "user", content: `<system-reminder>${allowance.notice}</system-reminder>` })
+    const maxOutputTokens = isCodex ? undefined : (allowance?.maxOutputTokens ?? requestedOutputTokens)
+    const activeTools = allowance?.wrapup ? [] : configuredTools
+    const calls = ModelCallTrace.create({
+      context: {
+        ...parent,
+        sessionID: input.sessionID,
+        messageID: traceMessageID,
+        attempt: input.trace?.attempt ?? parent?.attempt ?? 0,
+        modelID: routed.api.id,
+      },
+      route: SessionTraceStore.ModelCall.shape.route.catch("custom").parse(traceRoute),
+      provider: routed.providerID,
+      model: routed.api.id,
+      pricingModel: input.model,
+      outputBound: allowance?.maxOutputTokens ?? requestedOutputTokens,
+      tier: input.small ? undefined : input.user.tier,
+      internal: input.small,
+      binding,
+    })
+    const partial = { text: "", reasoning: "", truncated: false }
+    const capture = (kind: "model.request" | "assistant.message" | "error", payload: Record<string, unknown>) =>
+      binding
+        ? UsageLogging.event({ ...binding, operationID: calls.current() }, kind, payload).catch(() =>
+            l.warn("could not persist trace record"),
+          )
+        : undefined
+    const result = streamText({
+      onChunk({ chunk }) {
+        if (!binding || (chunk.type !== "text-delta" && chunk.type !== "reasoning-delta")) return
+        const field = chunk.type === "text-delta" ? "text" : "reasoning"
+        const remaining = Math.max(0, 128 * 1024 - partial[field].length)
+        partial[field] += chunk.text.slice(0, remaining)
+        if (chunk.text.length > remaining) partial.truncated = true
+      },
+      async onAbort() {
+        await calls.fail("cancelled")
+        await capture("assistant.message", { ...partial, interrupted: true })
+      },
+      async onStepFinish(step) {
+        const call = await calls.complete(
+          CallLink.fromResponse(step.response?.headers, step.response?.id),
+          step.usage,
+          step.providerMetadata,
+        )
+        if (!binding) return
+        await UsageLogging.record({
+          ...binding,
+          usage: step.usage,
+          metadata: step.providerMetadata,
+          duration: performance.now() - started,
+          content: { parts: step.content, toolResults: step.toolResults },
+          finish: step.finishReason,
+          call,
+        }).catch(() => l.warn("could not persist usage record"))
+      },
+      async onError(error) {
+        await calls.fail("failed")
+        l.error("stream error", providerErrorMetadata(error))
+        await capture("error", { error: error.error, partial })
       },
       async experimental_repairToolCall(failed) {
         const repaired = await repairToolCall(failed, tools)
@@ -331,13 +422,21 @@ export namespace LLM {
       temperature: params.temperature,
       topP: params.topP,
       topK: params.topK,
-      providerOptions: ProviderTransform.providerOptions(input.model, params.options),
-      activeTools: Object.keys(tools).filter((x) => x !== "invalid"),
+      providerOptions: ProviderTransform.providerOptions(
+        input.model,
+        ProviderTransform.fitThinking(input.model.api.npm, params.options, allowance?.thinkingTokens),
+      ),
+      activeTools,
       tools,
+      ...(allowance?.wrapup
+        ? { toolChoice: "none" as const }
+        : input.toolChoice
+          ? { toolChoice: input.toolChoice }
+          : {}),
       maxOutputTokens,
       abortSignal: input.abort,
       headers: {
-        ...(routed.providerID === "openrouter" && input.route === "managed"
+        ...(routed.providerID === "openrouter" && traceRoute === "managed"
           ? {
               "x-openscience-project": Instance.project.id,
               "x-openscience-session": input.sessionID,
@@ -372,17 +471,20 @@ export namespace LLM {
               }
               return args.params
             },
+            async wrapStream(args) {
+              // doStream settles when the response headers arrive, before any
+              // body chunk is read: the exact "waiting for first token" edge.
+              const result = await Provider.withRequestContext(calls.context, () => args.doStream())
+              input.onResponse?.()
+              return result
+            },
           },
         ],
       }),
       experimental_telemetry: {
-        isEnabled: cfg.experimental?.openTelemetry === true && sharing,
+        isEnabled: false,
         recordInputs: false,
         recordOutputs: false,
-        metadata: {
-          userId: cfg.username ?? "unknown",
-          sessionId: input.sessionID,
-        },
       },
     })
     await harness
@@ -416,11 +518,12 @@ export namespace LLM {
   }
 
   async function resolveTools(input: Pick<StreamInput, "tools" | "agent" | "user">) {
-    for (const tool of Object.keys(input.tools)) {
-      if (!ToolSelection.enabled(tool, { permission: input.agent.permission, tools: input.user.tools }))
-        delete input.tools[tool]
+    // Retries reuse the caller's record; filtering and _noop insertion need an owned copy.
+    const tools: Record<string, Tool> = {}
+    for (const [id, value] of Object.entries(input.tools)) {
+      if (ToolVisibility.enabled(id, { permission: input.agent.permission, tools: input.user.tools })) tools[id] = value
     }
-    return input.tools
+    return tools
   }
 
   // Check if messages contain any tool-call content

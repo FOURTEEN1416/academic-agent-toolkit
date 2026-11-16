@@ -15,8 +15,16 @@ the claim boundary or replace a gate.
 | Contribution reviewer | manuscript + confirmed contribution | independent contribution review | claim-boundary checks, blocker IDs, output hash |
 | Clarity/figure reviewer | manuscript + rendered figures/pages | independent clarity/visual review | renders inspected, conflicts, output hash |
 
-In strict mode, research specialists may run in parallel and reviewers remain
-independent until synthesis. In balanced mode, one Agent may combine these
-lenses and write a single `structured_review.md`; separate role receipts are
-optional unless an actual dispute, high-stakes claim, or user request warrants
-independent review.
+Research specialists may work in parallel when useful. A reviewer may combine the Methods, Contribution and Clarity lenses, but the author must not present its own check as independent review. Form independent findings before synthesis, using actual sources and current rendered files; separate role receipts are not a prerequisite.
+
+## Canonical host-to-Runner stage contract
+
+When the installed ProductRunner tools are available, the current host executes
+J4-J11 directly. Each transition uses one
+`paperspine5.academic-stage-answer/1.0` bound to the current `task_id`, revision,
+stage, issue ID, and opaque `resume_token`, submitted only through
+`paperspine5_runner_answer_academic_stage`. The host reloads the resulting
+snapshot before continuing. Product Web and flat output are read/resume
+projections of that same task; neither may create a second writable authority.
+The nested Web Agent remains optional and fail-closed, so its blocker never
+counts as a stage answer or manuscript completion.

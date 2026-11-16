@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self'; font-src 'self'; object-src 'self'; base-uri 'self'; form-action 'none'">
-  <meta name="description" content="PaperSpine5 0.3.0-rc.1：本地优先、人工把关的论文写作、科研图审阅与投稿材料工作区。">
+  <meta name="description" content="PaperSpine5 0.4.0-alpha.3：从研究方向到可编辑的 Word / LaTeX 源文件和 PDF，在同一个任务里完成文献、论证、正文、科研配图和引用核验。">
   <meta name="theme-color" content="#e9ece7">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="PaperSpine5 · 0.3.0-rc.1">
-  <meta property="og:description" content="从论文定锚到科研图、规范主稿与投稿循环的本地研究生产工作区。">
+  <meta property="og:title" content="PaperSpine5 · 0.4.0-alpha.3">
+  <meta property="og:description" content="从零开始，快速完成一篇图文完整的论文。研究材料优先保存在本地，论点、引用和图表都以真实资料与证据为依据。">
   <meta property="og:image" content="https://wubing2023.github.io/PaperSpine/v5/assets/brand/paperspine-og.png">
   <link rel="canonical" href="https://wubing2023.github.io/PaperSpine/v5/">
   <link rel="alternate" hreflang="zh-CN" href="https://wubing2023.github.io/PaperSpine/v5/">
@@ -16,11 +16,12 @@
   <link rel="alternate" hreflang="x-default" href="https://wubing2023.github.io/PaperSpine/v5/">
   <link rel="icon" href="assets/brand/paperspine-mark.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/brand/paperspine-plugin-icon-256.png">
-  <title>PaperSpine5 · 0.3.0-rc.1</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>PaperSpine5 · 0.4.0-alpha.3</title>
+  <link rel="stylesheet" href="styles.css?v=20260919-tls">
   <link rel="stylesheet" href="motion.css">
-  <link rel="stylesheet" href="responsive.css">
-  <script src="main.js?v=material-library-1" defer></script>
+  <link rel="stylesheet" href="responsive.css?v=20260919-tls">
+  <script src="legacy-entry.js" data-upgrade-href="../v6/"></script>
+  <script src="main.js?v=20260922-release-sync" defer></script>
 </head>
 <body data-locale="zh-CN" data-manifest-path="downloads/manifest.json">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -29,195 +30,181 @@
   <header class="site-header" aria-label="主导航">
     <a class="wordmark" href="#top" aria-label="PaperSpine5 首页"><img src="assets/brand/paperspine-mark.svg" width="28" height="28" alt=""><span>PaperSpine</span><b>5</b></a>
     <nav aria-label="页面章节">
-      <a href="#install">安装</a><a href="materials/">官方素材库</a><a href="#why">为什么</a><a href="#workflow">五阶段</a><a href="#github">GitHub</a>
+      <a href="#demo">发布片</a><a href="#install">安装</a><a href="materials/">官方素材库</a><a href="#why">为什么</a><a href="#workflow">五个阶段</a><a href="#github">GitHub</a>
     </nav>
-    <div class="header-actions"><button class="support-trigger" type="button" data-support-open aria-haspopup="dialog" aria-controls="support-dialog"><span class="support-label-full">支持我们</span><span class="support-label-short" aria-hidden="true">支持</span></button><a class="language-link" href="en/" hreflang="en" lang="en">EN</a><span class="release-chip">RC · 0.3.0-rc.1</span></div>
+    <div class="header-actions"><a class="language-link" href="../v6/">前往 PaperSpine V6</a><button class="support-trigger" type="button" data-support-open aria-haspopup="dialog" aria-controls="support-dialog"><span class="support-label-full">支持我们</span><span class="support-label-short" aria-hidden="true">支持</span></button><a class="language-link" href="en/" hreflang="en" lang="en">EN</a><span class="release-chip">alpha · 0.4.0-alpha.3</span></div>
   </header>
 
   <main id="main">
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="hero-grid" aria-hidden="true"></div>
+      <figure class="hero-banner reveal">
+        <img src="assets/brand/paperspine-hero.webp" width="1983" height="793" alt="PaperSpine5：论文创作全流程，科研配图一体化。从研究到一篇完整论文。" fetchpriority="high" decoding="async">
+      </figure>
       <div class="hero-copy reveal">
-        <p class="eyebrow"><span>00 / Home</span><span>Research production system</span><span>Local-first · Human-gated</span></p>
-        <h1 id="hero-title">让论文沿着<br><em>证据脊柱</em>交付。</h1>
-        <p class="hero-lede">一个本地论文生产工作区，让贡献、科研图、规范主稿与投稿材料沿着同一套项目状态推进。Agent 负责推进流程，人负责科学判断与外部授权。</p>
-        <div class="hero-proof" aria-label="产品核心特点"><span><b>LOCAL</b> project files</span><span><b>WEB</b> five-stage workspace</span><span><b>HUMAN</b> decision gates</span></div>
+        <p class="eyebrow"><span>PaperSpine5</span><span>论文全流程 AI Skill</span></p>
+        <h1 id="hero-title">从研究方向，<br><em>到完整论文。</em></h1>
+        <p class="hero-lede">查文献、梳理论点、撰写全文、生成科研配图，再完成引用核验与排版，最终交付可编辑的 Word / LaTeX 源文件和 PDF。研究材料优先保存在本地，论点、引用和图表都以真实资料与证据为依据。</p>
+        <div class="hero-proof" aria-label="产品核心特点"><span><b>本地</b> 保存研究材料</span><span><b>网页</b> 预览正文与配图</span><span><b>人工</b> 决定科学判断</span></div>
         <div class="hero-actions">
           <a class="button button-primary" href="#install"><span>交给 AI 安装</span><b>↓</b></a>
           <a class="button button-secondary" href="https://github.com/WUBING2023/PaperSpine" target="_blank" rel="noopener noreferrer"><span>查看 GitHub</span><b>↗</b></a>
         </div>
       </div>
       <aside class="hero-index reveal" aria-label="PaperSpine5 产品构成">
-        <span>ONE PRODUCT / THREE LAYERS</span>
-        <ol><li><b>01</b><a href="#workflow">Agent 推进五阶段流程</a></li><li><b>02</b><a href="#workspace">本地网页呈现状态与门禁</a></li><li><b>03</b><a href="#deliverables">项目文件保留证据与交付</a></li></ol>
-        <p>PaperSpine5 以 Skill 或插件接入宿主，但不是一段孤立指令：它包含本地网页工作区、可恢复状态合同与明确的人类门禁。</p>
+        <span>一个产品 / 三个部分</span>
+        <ol><li><b>01</b><a href="#workflow">Agent 推进五个阶段</a></li><li><b>02</b><a href="#workspace">网页上查看进度和待确认事项</a></li><li><b>03</b><a href="#deliverables">项目文件保存证据和成果</a></li></ol>
+        <p>以 Skill 或插件接入宿主，自带本地网页工作区和可随时接着做的项目状态。</p>
       </aside>
-      <a class="hero-next" href="#install"><span>NEXT / INSTALL</span><b>↓</b></a>
+      <a class="hero-next" href="#install"><span>下一步 / 安装</span><b>↓</b></a>
+    </section>
+
+    <section class="promo paper-section" id="demo" aria-labelledby="promo-title">
+      <div class="promo-head reveal">
+        <div class="section-label"><span>演示</span><p>一分钟发布片</p></div>
+        <h2 id="promo-title">一分钟，<br>看完全流程。</h2>
+        <p>60 秒走完从研究方向到完整论文的路径：查文献、梳理论点、撰写全文、生成科研配图，再做引用核验、审阅修改与排版，最后落到可编辑的 Word / LaTeX 源文件和 PDF。中文配音，逐句字幕。</p>
+      </div>
+      <figure class="promo-player reveal">
+        <video controls preload="none" playsinline width="1920" height="1080" poster="assets/video/paperspine5-promo-poster.jpg?v=20260918-vo2">
+          <source src="assets/video/paperspine5-promo.mp4?v=20260918-vo2" type="video/mp4">
+          你的浏览器不支持内嵌视频，可以<a href="assets/video/paperspine5-promo.mp4">直接下载这段 60 秒发布片</a>（1920 × 1080，MP4）。
+        </video>
+        <figcaption><span>PaperSpine5 · 60 秒发布片 · 中文配音</span><span>1920 × 1080 · MP4 · 含字幕 · <a href="assets/video/paperspine5-promo.zh.srt" download>下载 SRT</a></span></figcaption>
+      </figure>
     </section>
 
     <section class="install-section" id="install" aria-labelledby="install-section-title">
       <div class="install-section-copy reveal">
-        <p class="eyebrow">01 / Install</p>
-        <h2 id="install-section-title">首页之后，<br><em>先完成安装。</em></h2>
-        <p>把从零下载、哈希校验、解压、宿主识别和健康检查交给 AI。所有按钮与可见版本都由同一份公开 manifest 驱动。</p>
-        <div class="release-placeholder-note release-live-note"><span>PRERELEASE · MANIFEST DRIVEN</span><p>0.3.0-rc.1；无独立密码学签名。先核对 SHA-256，再安装；更新仍是手动或明确 opt-in，默认关闭。</p></div>
+        <p class="eyebrow">01 / 安装</p>
+        <h2 id="install-section-title">先把环境装好，<br><em>再开始写。</em></h2>
+        <p>下载、校验、解压、识别宿主和启动自检都可以交给 AI。页面上的下载按钮和版本号直接从发布清单读取，你看到的就是可以下载的那一份。</p>
+        <div class="release-placeholder-note release-live-note"><span>预发布 · 版本与下载实时同步</span><p>0.4.0-alpha.3，没有独立的密码学签名。请先核对 SHA-256 再安装；调用 Skill 时检查更新，已有新版则更新；可以明确关闭自动更新。</p></div>
       </div>
 
       <article class="install-card reveal" aria-labelledby="install-title">
         <div class="install-card-head">
-          <div><p class="eyebrow">AI INSTALL / ZERO → WORKSPACE</p><h2 id="install-title">把这一段交给 AI。</h2></div>
-          <span class="package-state"><i></i><span id="asset-state">读取 manifest</span></span>
+          <div><p class="eyebrow">交给 AI 安装 / 从零到可用</p><h2 id="install-title">把这一步交给 AI。</h2></div>
+          <span class="package-state"><i></i><span id="asset-state">读取发布清单</span></span>
         </div>
-        <p class="install-intro">产品是同一套 PaperSpine5 工作区；通用安装包以 Skill 方式接入，Codex、Claude Code 与 DSH 另有宿主原生包。它们不是四个不同产品。</p>
-        <div class="install-actions">
-          <button class="button button-primary copy-button" type="button" data-copy-target="ai-zero-prompt"><span>复制给 AI，从零安装</span><b>＋</b></button>
-          <a id="primary-download" class="button button-secondary" href="https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/paperspine5-skill-0.3.0-rc.1.zip"><span>直接下载通用包</span><b>↓</b></a>
+        <p class="install-intro">首次安装请选择与你的系统匹配的完整套件：Windows x64、Linux x86_64、Apple Silicon 或 Intel Mac。每个套件都包含运行时、网页工作区和更新回滚。安装器先核对字节数和 SHA-256，并保留论文任务数据。</p>
+        <div class="install-actions"><button class="button button-primary copy-button" type="button" data-copy-target="ai-zero-prompt"><span>复制给 AI，从零安装</span><b>＋</b></button><a id="primary-download" class="button button-secondary" aria-disabled="true"><span>下载 Windows x64 套件</span><b>↓</b></a></div>
+        <div class="install-meta"><span id="release-version">Version · 0.4.0-alpha.3</span><span id="release-size">ZIP · 读取发布清单</span><span>Windows · macOS · Linux</span><a id="manifest-link" href="#">发布清单</a><a id="checksum-link" href="#">SHA-256</a></div>
+        <div id="artifact-grid" class="artifact-grid" aria-label="V5 安装选项">
+          <a data-artifact-kind="suite"><span>Windows x64 套件</span><small>约 <span data-artifact-size="suite">26.46 MB</span> · 内置 runtime</small></a>
+          <a data-artifact-kind="suite-linux-x86_64"><span>Linux x86_64 套件</span><small>约 <span data-artifact-size="suite-linux-x86_64">56.22 MB</span> · glibc</small></a>
+          <a data-artifact-kind="suite-macos-arm64"><span>macOS Apple Silicon</span><small>约 <span data-artifact-size="suite-macos-arm64">40.57 MB</span> · arm64</small></a>
+          <a data-artifact-kind="suite-macos-x86_64"><span>macOS Intel</span><small>约 <span data-artifact-size="suite-macos-x86_64">40.55 MB</span> · x86_64</small></a>
         </div>
-        <div class="install-meta">
-          <span id="release-version">Version · 0.3.0-rc.1</span><span id="release-size">ZIP · 577,038 bytes</span><span>Python 3</span>
-          <a id="manifest-link" href="https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/manifest.json">Manifest</a>
-          <a id="checksum-link" href="https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/checksums.sha256">SHA-256</a>
-        </div>
-        <div id="artifact-grid" class="artifact-grid" aria-label="宿主安装包">
-          <a data-artifact-kind="universal-skill" href="https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/paperspine5-skill-0.3.0-rc.1.zip"><span>通用安装包</span><small>Codex / Claude Code · Skill 安装</small></a>
-          <a data-artifact-kind="codex-plugin" href="https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/paperspine5-codex-plugin-0.3.0-rc.1.zip"><span>Codex 插件</span><small>个人 marketplace 包</small></a>
-          <a data-artifact-kind="claude-code-plugin" href="https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/paperspine5-claude-code-plugin-0.3.0-rc.1.zip"><span>Claude Code 插件</span><small>marketplace 包</small></a>
-          <a data-artifact-kind="dsh-plugin" href="https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/dsh-paperspine5-0.3.0-rc.1.zip"><span>DSH Bundle</span><small>Web profile 包</small></a>
-        </div>
-        <div class="command-shell">
-          <div class="command-shell-bar"><span>AI INSTRUCTION / VERIFIED DOWNLOAD</span><button class="copy-inline copy-button" type="button" data-copy-target="ai-zero-prompt">复制</button></div>
-          <pre id="ai-zero-prompt"><code>请从零开始下载并安装 PaperSpine5 0.3.0-rc.1：
-1. 读取 https://github.com/WUBING2023/PaperSpine/releases/download/v0.3.0-rc.1/manifest.json；
-2. 根据当前宿主选择其中一个包。普通 Codex / Claude Code 优先用 paperspine5-skill-0.3.0-rc.1.zip；需要宿主原生插件时再选对应插件包；
-3. 从 manifest 的 download_url 下载 ZIP，计算 SHA-256，并与 manifest 中同名制品逐字符比较；不一致立即停止；
-4. 解压到新的持久目录，先阅读 README.md、INSTALL.md、UPDATE.md 与 UNINSTALL.md；
-5. 运行包内安装方式。通用包在 Windows/Codex 运行 .\install.ps1 -Target codex；Claude Code 改为 -Target claude-code。macOS/Linux 运行 bash install.sh --host codex 或 --host claude-code；
-6. 不覆盖 settings.json、config.toml 或无关 Skill；如缺少 Python 3 或可选科研图依赖，先说明来源与改动范围，再征得许可；
-7. 必须确认 runtime health 返回 PASS，并在安装后开启新任务或重启宿主，确认 PaperSpine5 可被发现；
-8. 只有存在真实 integration_job.json 时才启动 127.0.0.1 本地网页；不生成假论文任务，不暴露到公网；
-9. 最后分别报告下载 URL、文件字节数、SHA-256、安装目标、备份、runtime health、宿主重新发现和网页 snapshot。未验证项写 NOT VERIFIED。</code></pre>
-        </div>
-        <details class="manual-install"><summary>我想看每种包的安装边界 <span>展开</span></summary><div class="manual-grid"><div><p>通用包</p><code>install.ps1 -Target codex</code></div><div><p>宿主插件</p><code>先解压，再按包内 INSTALL.md</code></div></div></details>
+        <details class="manual-install" id="advanced-install"><summary>高级 / 手动安装</summary><p class="manual-note">当前发布不提供独立 Skill 下载。历史约 0.70 MB 的包缺少 Web 核心和运行时；请使用上方与你的系统匹配的完整套件。已有论文请使用同一 profile 更新，保留原任务。</p></details>
+        <p class="manual-note"><strong>首次安装？</strong>请选择上方对应平台的完整套件（26–56 MB），其中已包含运行时和网页工作区。</p>
+        <div class="command-shell"><div class="command-shell-bar"><span>AI 安装 / 已校验 V5</span><button class="copy-inline copy-button" type="button" data-copy-target="ai-zero-prompt">复制</button></div><pre id="ai-zero-prompt"><code>从公开发布清单下载并安装 PaperSpine5 V5。先识别操作系统与 CPU，选择完全匹配的套件并核对字节数和 SHA-256。Windows x64 运行 install.ps1；macOS/Linux 运行 sh ./install.sh --target codex --clean-legacy。安装器只归档已知 V3/V4 Skill，不删除论文任务数据或设置。安装后确认本地服务正常启动，再重启宿主。</code></pre></div>
+<details class="manual-install"><summary>查看平台与安装边界 <span>展开</span></summary><div class="manual-grid"><div><p>WINDOWS SUITE</p><code>约 <span data-artifact-size="suite">26.46 MB</span> · x64</code></div><div><p>LINUX SUITE</p><code>约 <span data-artifact-size="suite-linux-x86_64">56.22 MB</span> · glibc x86_64</code></div><div><p>MAC SUITES</p><code>约 40.55–40.57 MB · arm64 / x86_64 分包</code></div></div></details>
+        <details class="manual-install"><summary>下载失败？先看这里 <span>展开</span></summary><div class="manual-grid"><div><p>典型报错</p><code>SEC_E_NO_CREDENTIALS / 无法创建 SSL/TLS 安全通道</code></div><div><p>它意味着</p><code>本机 TLS 或代理问题，不是发布缺少资产</code></div><div><p>镜像清单（不同域名）</p><code>wubing2023.github.io/PaperSpine/v5/downloads/manifest.json</code></div><div><p>完全离线安装（两个参数都要给）</p><code>install.ps1 -ManifestPath .\manifest.json -BundlePath .\suite.zip</code></div></div><p class="manual-note">先确认代理：<code>netsh winhttp show proxy</code>。清单可以从网站镜像取，套件 ZIP 只在 GitHub Release 上；换台能连 GitHub 的机器下载后拷过来，安装器照样校验字节数与 SHA-256。详见 <a href="https://github.com/WUBING2023/PaperSpine/blob/main/INSTALL.md">INSTALL.md</a>。</p></details>
       </article>
     </section>
 
     <section class="premise paper-section product-walkthrough" id="workspace">
-      <div class="section-label reveal"><span>02</span><p>The workspace</p></div>
-      <div class="premise-copy reveal"><h2>一个项目状态，<br><em>五个工作阶段。</em></h2><p>网页把当前阶段、待确认事项和交付边界放到同一视野里；权威状态仍然保存在项目文件中，因此换会话、返修或转投都可以沿着既有证据继续。</p></div>
-      <aside class="premise-note reveal"><span>PRODUCT CONTRACT</span><p>Agent 推进流程；人确认贡献、动机、整图、作者声明与外部操作；本地网页负责呈现，不取代项目真源。</p></aside>
+      <div class="section-label reveal"><span>02</span><p>网页工作区</p></div>
+      <div class="premise-copy reveal"><h2>一个任务，<br><em>五个阶段。</em></h2><p>网页上能看到当前做到哪一步、还等你确认什么。真正的状态存在项目文件里，所以换会话、返修或转投都能接着做，不用从头再说一遍。</p></div>
+      <aside class="premise-note reveal"><span>分工</span><p>Agent 负责推进流程；论文的贡献、动机、整图、作者声明和对外操作由你确认。网页只负责显示，不替代项目文件。</p></aside>
       <figure class="workspace-preview reveal" data-tilt>
-        <figcaption><span>PACKAGED CANDIDATE / REAL UI</span><span>五阶段 · 空白演示任务 · 无论文数据</span></figcaption>
-        <img src="assets/workspace-ui-public.png" alt="PaperSpine5 打包候选的科研图件工作区，显示五阶段导航和等待论文定锚的空白演示状态" width="1440" height="900">
+        <figcaption><span>真实运行界面 / 科研图件阶段</span><span>等待整图确认 · 两张候选逐图选择</span></figcaption>
+        <img src="assets/workspace-ui-public.png" alt="PaperSpine5 科研图件阶段的真实运行界面：左侧五阶段导航，中间显示候选模型总览整图，右侧等待逐图确认 figure-01 与 figure-02。" width="1440" height="900">
       </figure>
     </section>
 
     <section class="why-section" id="why" aria-labelledby="why-title">
-      <div class="why-head reveal"><p class="eyebrow">03 / Why PaperSpine5?</p><h2 id="why-title">论文不是一次性生成物。</h2><p>真正困难的不是多写一段文字，而是让主张、证据、图件、作者决定与交付要求在多轮工作中保持一致。</p></div>
+      <div class="why-head reveal"><p class="eyebrow">03 / 为什么用 PaperSpine5？</p><h2 id="why-title">论文不是一次生成就完事。</h2><p>真正难的不是多写一段文字，而是让主张、证据、配图、作者决定和交付要求在多轮修改里始终对得上。</p></div>
       <div class="principle-grid">
-        <article class="reveal"><span>01 / LOCAL AUTHORITY</span><h3>文件先于宣称</h3><p>配置、证据、图件决定、主稿和交付清单都有明确落点。网页是操作窗口，不是唯一记忆。</p></article>
-        <article class="reveal"><span>02 / HUMAN GATES</span><h3>人先于外部动作</h3><p>贡献、动机、整图、作者声明和投稿授权不能因为 Agent 能执行，就被默认为已经允许。</p></article>
-        <article class="reveal"><span>03 / RECOVERABLE STATE</span><h3>恢复先于重做</h3><p>五阶段共享同一状态合同。换会话、返修或转投时，不必重新猜测已经做过的科学决定。</p></article>
+        <article class="reveal"><span>01 / 文件为准</span><h3>先看文件，再谈结论</h3><p>配置、证据、配图决定、主稿和交付清单都有明确的存放位置。网页是操作窗口，记忆不只在网页里。</p></article>
+        <article class="reveal"><span>02 / 由你确认</span><h3>对外的事，先问人</h3><p>贡献、动机、整图、作者声明和投稿授权，不会因为 Agent 能做就默认你已经同意。</p></article>
+        <article class="reveal"><span>03 / 接着做</span><h3>先恢复，再重做</h3><p>五个阶段共用同一份项目状态。换会话、返修或转投时，不用重新猜之前定过什么。</p></article>
       </div>
     </section>
 
     <section class="workflow" id="workflow" aria-labelledby="workflow-title">
-      <div class="workflow-head reveal"><p class="eyebrow">04 / From brief to publication cycle</p><h2 id="workflow-title">从配置到投稿循环，<br>一步一步走。</h2><p>像 OpenDesign 展示产物路径一样，这里直接说明每一步产生什么、等待谁确认，以及下一步消费什么。</p></div>
+      <div class="workflow-head reveal"><p class="eyebrow">04 / 从配置到投稿</p><h2 id="workflow-title">从配置到投稿，<br>一步一步来。</h2><p>每一步会产出什么、要等你确认什么、下一步接着用什么，这里都直接写清楚。</p></div>
       <ol class="workflow-list">
         <li class="reveal is-current"><span class="stage-no">01</span><div><p>CONFIGURE</p><h3>工作配置</h3></div><p>定义任务、材料、语言、引用、图件策略和交付偏好。</p></li>
-        <li class="reveal"><span class="stage-no">02</span><div><p>ANCHOR</p><h3>论文定锚</h3></div><p>贡献与动机由人确认，再约束章节主张和结果组织。</p></li>
-        <li class="reveal"><span class="stage-no">03</span><div><p>FIGURE</p><h3>科研图件</h3></div><p>FigMirror 生成完整候选，逐图审阅并留下可追溯决定。</p></li>
-        <li class="reveal"><span class="stage-no">04</span><div><p>CANONICAL</p><h3>规范主稿</h3></div><p>正文真实消费图件，最终像素与五维门禁全部复核。</p></li>
-        <li class="reveal"><span class="stage-no">05</span><div><p>PUBLICATION</p><h3>投稿循环</h3></div><p>本地准备目标包、返修与转投计划；没有自动投稿按钮。</p></li>
+        <li class="reveal"><span class="stage-no">02</span><div><p>ANCHOR</p><h3>论文定位</h3></div><p>贡献与动机由人确认，再约束章节主张和结果组织。</p></li>
+        <li class="reveal"><span class="stage-no">03</span><div><p>FIGURE</p><h3>科研图件</h3></div><p>FigMirror 生成完整候选图，逐图审阅，每个采用或修改的决定都留档。</p></li>
+        <li class="reveal"><span class="stage-no">04</span><div><p>CANONICAL</p><h3>主稿</h3></div><p>正文真正用上已确认的图件，最后再核对成稿画面和五项检查。</p></li>
+        <li class="reveal"><span class="stage-no">05</span><div><p>PUBLICATION</p><h3>投稿循环</h3></div><p>在本地准备投稿材料、返修和转投计划；页面上没有自动投稿按钮。</p></li>
       </ol>
     </section>
 
     <section class="deliverables paper-section" id="deliverables" aria-labelledby="deliverables-title">
-      <div class="deliverables-head reveal"><p class="eyebrow">05 / What can you deliver?</p><h2 id="deliverables-title">交付的不是一份孤立文件。</h2><p>每类成果都能回到自己的来源、确认记录和下一步用途。</p></div>
+      <div class="deliverables-head reveal"><p class="eyebrow">05 / 你会拿到什么？</p><h2 id="deliverables-title">交付的不是一份孤零零的文件。</h2><p>每一类成果都能看到它的来源、确认记录，以及接下来怎么用。</p></div>
       <div class="deliverable-grid">
-        <article class="deliverable-primary reveal"><span>01 / CANONICAL</span><h3>规范主稿</h3><p>章节主张、引用和已确认图件回到同一规范真源，再输出 LaTeX、PDF 或 Word。</p><b>LaTeX · PDF · Word</b></article>
-        <article class="reveal"><span>02 / FIGURE</span><h3>图件证据包</h3><p>完整候选、整图审阅、源文件与输入链一起保留。</p><b>PPTX · SVG · PNG</b></article>
-        <article class="reveal"><span>03 / TARGET</span><h3>目标投稿包</h3><p>期刊格式、声明和检查清单被显式组织；准备完成不等于已经投稿。</p><b>Checklist · Cover · Source</b></article>
-        <article class="reveal"><span>04 / CYCLE</span><h3>返修与转投</h3><p>审稿意见和新目标继续消费既有状态，不把决定藏进聊天记录。</p><b>Response · Diff · Transfer</b></article>
+        <article class="deliverable-primary reveal"><span>01 / CANONICAL</span><h3>主稿</h3><p>章节主张、引用和已确认的图件保持一致，再输出 LaTeX、PDF 或 Word。</p><b>LaTeX · PDF · Word</b></article>
+        <article class="reveal"><span>02 / FIGURE</span><h3>科研图包</h3><p>候选图、审阅记录、源文件和输入一起保留。</p><b>PPTX · SVG · PNG</b></article>
+        <article class="reveal"><span>03 / TARGET</span><h3>目标投稿包</h3><p>按目标期刊整理格式、声明和检查清单；准备完成不等于已经投稿。</p><b>Checklist · Cover · Source</b></article>
+        <article class="reveal"><span>04 / CYCLE</span><h3>返修与转投</h3><p>审稿意见和新目标接着用已有的项目状态，决定记在文件里，不散落在聊天记录中。</p><b>Response · Diff · Transfer</b></article>
       </div>
       <div class="figure-method reveal">
-        <div><span>FIGURE EVIDENCE FLOW</span><p>论文主张 → 候选创作 → 整图审阅 → 正文引用 → 最终像素</p></div>
-        <p>科研图是论证的一部分。可编辑 PPTX 重建流程感谢 Charlo-O 的 <a href="https://github.com/Charlo-O/img2ppt" target="_blank" rel="noopener noreferrer">img2ppt Skill ↗</a> 提供公开方法与工作流参考；PaperSpine5 的实现、测试与科学门禁仍由本项目负责。</p>
+        <div><span>图件流程</span><p>论文主张 → 生成候选 → 整图审阅 → 正文引用 → 最终成稿</p></div>
+        <p>科研图是论证的一部分。可编辑 PPTX 的重建流程参考了 Charlo-O 的 <a href="https://github.com/Charlo-O/img2ppt" target="_blank" rel="noopener noreferrer">img2ppt Skill ↗</a> 的公开思路；PaperSpine5 的实现、测试和科学检查由本项目自己负责。</p>
       </div>
+      <figure class="figure-editable reveal">
+        <img src="assets/brand/paperspine-figure-editable.webp" width="2400" height="1680" loading="lazy" decoding="async" alt="上：PaperSpine5 交付的完整科研机制图。下：同一个图在 PowerPoint 里 Ctrl+A 全选，122 个元素都是可继续编辑的原生对象。">
+        <figcaption><b>图不是贴上去的截图。</b> 交付的科研图是可编辑的 PPTX：把这张示例图在 PowerPoint 里 Ctrl+A，会选中 122 个原生对象，文字、箭头和数据曲线都还能继续改。</figcaption>
+      </figure>
     </section>
 
     <section class="github" id="github" aria-labelledby="github-title">
       <div class="github-mark reveal" aria-hidden="true">04</div>
       <div class="github-copy reveal">
-        <p class="eyebrow">06 / One core · four host packages</p><h2 id="github-title">选择接入方式，<br>不改变产品核心。</h2>
-        <p>通用 Skill、Codex 插件、Claude Code 插件与 DSH Bundle 共享同一 176 文件核心。PaperSpine5 继续使用既有公开仓库与更新身份，保留历史和社区入口。</p>
+        <p class="eyebrow">06 / 默认安装完整套件</p><h2 id="github-title">默认装完整套件，<br>产品核心不变。</h2>
+        <p>完整套件按 Windows x64、Linux x86_64、macOS arm64 和 macOS x86_64 分开打包，各自带运行时、网页工作区和更新回滚，这是默认入口。当前发布仅提供完整套件。历史独立 Skill 包缺少 Web 核心和运行时，不适合新装或修复现有 V5。四个套件使用同一份 V5 方法。</p>
         <a class="github-link" href="https://github.com/WUBING2023/PaperSpine" target="_blank" rel="noopener noreferrer"><span>打开 WUBING2023 / PaperSpine</span><b>↗</b></a>
-        <a class="github-link github-link-secondary" href="https://github.com/WUBING2023/PaperSpine/releases/tag/v0.3.0-rc.1" target="_blank" rel="noopener noreferrer"><span>查看 v0.3.0-rc.1 prerelease</span><b>↗</b></a>
+        <a class="github-link github-link-secondary" href="https://github.com/WUBING2023/PaperSpine/releases/tag/v0.4.0-alpha.3" target="_blank" rel="noopener noreferrer"><span>查看 v0.4.0-alpha.3 prerelease</span><b>↗</b></a>
       </div>
-      <div class="github-boundary reveal"><span>HOST ADAPTERS / SAME CORE</span><p><b>Universal</b>：Codex / Claude Code Skill</p><p><b>Codex</b>：personal marketplace</p><p><b>Claude Code</b>：marketplace bundle</p><p><b>DSH</b>：Web profile bundle</p></div>
+      <div class="github-boundary reveal"><span>推荐安装</span><p><b>完整套件</b>：Windows / Linux / macOS</p><p>已包含运行时和网页工作区</p><p>「高级 / 手动安装」提供版本核验与已有任务的更新说明。</p></div>
     </section>
 
     <section class="community paper-section" id="community" aria-labelledby="community-title">
-      <div class="section-label reveal"><span>07</span><p>Community Stargazer Atlas</p></div>
-      <div class="premise-copy reveal"><h2 id="community-title">真实社区星图，<br><em>与产品指标分开。</em></h2><p>下方数据来自公开 GitHub Stargazer Atlas 的既有抓取、处理与校验链。它表达公开社区分布，不代表安装量、活跃用户、论文数量、产品能力或机构采用。</p></div>
-      <aside class="premise-note reveal"><span>DATA BOUNDARY</span><p>来源：仓库 <code>atlas/</code>；发布站只使用经过现有 pipeline 处理的公开聚合页面，不把 stargazer 数写成安装量。</p></aside>
+      <div class="section-label reveal"><span>07</span><p>社区星图</p></div>
+      <div class="premise-copy reveal"><h2 id="community-title">真实社区星图，<br><em>与产品指标分开。</em></h2><p>下面的数据来自公开的 GitHub Stargazer Atlas 抓取与处理流程，反映的是公开社区分布，不代表安装量、活跃用户、论文数量、产品能力或机构采用。</p></div>
+      <aside class="premise-note reveal"><span>数据说明</span><p>来源：仓库 <code>atlas/</code>。发布站只展示现有流程处理后的公开聚合页面，不把 star 数写成安装量。</p></aside>
       <div class="community-frame-wrap reveal"><iframe src="community/index.html" title="PaperSpine 公开社区 Stargazer 星图" loading="lazy"></iframe><a href="community/" target="_blank" rel="noopener noreferrer">在独立页面打开社区星图 ↗</a></div>
     </section>
 
     <section class="evidence" id="evidence" aria-labelledby="evidence-title">
-      <div class="evidence-head reveal"><p class="eyebrow">08 / Verified separately</p><h2 id="evidence-title">不把数字相加。<br>把证据分别说清楚。</h2></div>
-      <div class="metrics">
-        <article class="metric reveal"><b data-count="267">267</b><h3>PaperSpine</h3><p>本 RC 接受的 Python 回归基线</p></article>
-        <article class="metric reveal"><b data-count="60">60</b><h3>PaperFigure</h3><p>科研图引擎回归基线</p></article>
-        <article class="metric reveal"><b data-count="19">19</b><h3>Integration</h3><p>V5 整合测试基线</p></article>
-        <article class="metric metric-accent reveal"><b data-count="5">5</b><h3>Stages</h3><p>工作配置到投稿循环</p></article>
-      </div>
-      <div class="readiness reveal" aria-label="五维就绪门禁"><span>Scientific</span><span>Visual</span><span>Citation</span><span>Metadata</span><span>Portable</span></div>
+      <div class="evidence-head reveal"><p class="eyebrow">08 / 分别核验</p><h2 id="evidence-title">这些数字不能相加，<br>每一项分开核验。</h2></div>
+      <div class="metrics"><article class="metric reveal"><b data-count="318">318</b><h3>公开测试</h3><p>当前公开源码的单次单元测试</p></article><article class="metric reveal"><b data-count="4">4</b><h3>发布 ZIP</h3><p>四个平台完整套件</p></article><article class="metric reveal"><b data-count="4">4</b><h3>宿主接入</h3><p>Claude · Codex · OpenClaw · Hermes</p></article><article class="metric metric-accent reveal"><b data-count="1">1</b><h3>Skill 入口</h3><p>只有一个 paper-spine</p></article></div><div class="readiness reveal" aria-label="五项就绪检查"><span>科研</span><span>版式</span><span>引用</span><span>元数据</span><span>可移植</span></div>
     </section>
 
     <section class="release paper-section" id="release">
-      <div class="release-copy reveal"><p class="eyebrow">09 / Release boundary</p><h2>可以公开核验。<br><em>仍然只是 RC。</em></h2><p>四个 ZIP 共享同一 176 文件核心和同一 core digest。没有签名安装器、第二台干净机器、真实远程旧版升级、macOS/Linux 实跑或全部宿主模型调用证据；Open Release Beta/276 不在本 RC。</p></div>
+      <div class="release-copy reveal"><p class="eyebrow">09 / 发布说明与限制</p><h2>可以公开核验。<br><em>目前仍是 alpha 预发布。</em></h2><p>四个平台完整套件 ZIP 均由发布清单和 SHA-256 校验。Windows 本地已通过旧 alpha.2 更新器升级、嵌入式 Python 启动和任务数据保留；<a href="https://github.com/WUBING2023/PaperSpine/actions/runs/35944185453">发版后原生 CI</a> 在四个平台通过旧更新器升级和工作台启动。macOS 套件仍未签名、未公证，自动调用时检查更新，可明确关闭。</p></div>
       <div class="release-status reveal">
-        <div><span>CORE</span><b>9eed412b…ba95f · 176 files</b></div><div><span>UPDATE</span><b>manual + explicit opt-in · default off</b></div><div><span>HOST QA</span><b>Codex / Claude Code / DSH local validation</b></div><div><span>EXTERNAL SUBMISSION</span><b>never authorized by this release</b></div>
+        <div><span>构建版本</span><b>w7a-81c3d2f2bbf6604b5412 · Windows 套件</b></div><div><span>更新</span><b>调用时检查 + 可回滚更新</b></div><div><span>宿主自检</span><b>四个平台发版后原生 CI 通过</b></div><div><span>对外投稿</span><b>本版本从不自动授权</b></div>
       </div>
     </section>
 
     <section class="closing" id="closing">
-      <p class="eyebrow reveal">PaperSpine5 · 0.3.0-rc.1</p><h2 class="reveal">不是让 Agent 替你相信一篇论文。<br><em>是让每一步，都有证据可回去。</em></h2>
-      <div class="closing-actions reveal"><a class="button button-light" href="#install"><span>交给 AI 安装</span><b>↑</b></a><a class="button button-outline-light" href="https://github.com/WUBING2023/PaperSpine/releases/tag/v0.3.0-rc.1" target="_blank" rel="noopener noreferrer"><span>核验 GitHub Release</span><b>↗</b></a></div>
+      <p class="eyebrow reveal">PaperSpine5 · 0.4.0-alpha.3</p><h2 class="reveal">不是让 Agent 替你相信一篇论文。<br><em>是让每一步都留下可以回看的记录。</em></h2>
+      <div class="closing-actions reveal"><a class="button button-light" href="#install"><span>交给 AI 安装</span><b>↑</b></a><a class="button button-outline-light" href="https://github.com/WUBING2023/PaperSpine/releases/tag/v0.4.0-alpha.3" target="_blank" rel="noopener noreferrer"><span>核验 GitHub Release</span><b>↗</b></a></div>
     </section>
 
     <section class="faq-section" id="faq" aria-labelledby="faq-title">
-      <div class="faq-head reveal"><p class="eyebrow">10 / Frequently asked</p><h2 id="faq-title">开始之前，<br>先把边界问清。</h2></div>
+      <div class="faq-head reveal"><p class="eyebrow">10 / 常见问题</p><h2 id="faq-title">开始之前，<br>先把几个问题说清楚。</h2></div>
       <div class="faq-list">
-        <details class="reveal"><summary><span>01</span>PaperSpine5 只是一个 Skill 吗？</summary><p>不是。它是本地优先的论文生产工作区，以 Skill 或插件方式接入宿主，并包含五阶段网页交互。</p></details>
-        <details class="reveal"><summary><span>02</span>四个下载包是四套产品吗？</summary><p>不是。它们适配不同宿主安装合同，但共享同一冻结核心。不确定时优先使用通用安装包。</p></details>
-        <details class="reveal"><summary><span>03</span>安装后会自动替我投稿吗？</summary><p>不会。外部投稿、作者声明、费用与许可始终需要人的明确授权；“准备完成”也不等于“已获授权”。</p></details>
-        <details class="reveal"><summary><span>04</span>社区星图代表安装量吗？</summary><p>不代表。它只表达公开 GitHub Stargazer Atlas 的聚合分布，与安装量、活跃用户和产品能力分开。</p></details>
+        <details class="reveal"><summary><span>01</span>PaperSpine5 只是一个 Skill 吗？</summary><p>不只是。它是一套以本地文件为主的论文写作流程，通过 Skill 或插件接入宿主，并带一个五阶段网页界面。</p></details>
+        <details class="reveal"><summary><span>02</span>四个平台套件是四套产品吗？</summary><p>不是。它们只是按平台分开的运行时包：Windows、Linux、Apple Silicon 和 Intel Mac；本版只提供完整套件，统一安装 paper-spine 入口。</p></details>
+        <details class="reveal"><summary><span>03</span>安装后会自动替我投稿吗？</summary><p>不会。对外投稿、作者声明、费用和许可都需要你明确授权；“准备完成”也不等于“已经投出去”。</p></details>
+        <details class="reveal"><summary><span>04</span>社区星图代表安装量吗？</summary><p>不代表。它只反映公开 GitHub Stargazer Atlas 的聚合分布，和安装量、活跃用户、产品能力是两回事。</p></details>
       </div>
     </section>
   </main>
-  <footer><span>PaperSpine5 / 2026</span><span>MIT · Local-first research production system</span><a href="#top">Back to top ↑</a></footer>
-  <dialog class="support-dialog" id="support-dialog" aria-labelledby="support-title" aria-describedby="support-description">
-    <div class="support-panel">
-      <header class="support-panel-head"><p class="eyebrow">Support independent research tooling</p><button class="support-close" type="button" data-support-close aria-label="关闭支持窗口"><span>关闭</span><b aria-hidden="true">×</b></button></header>
-      <h2 id="support-title">如果它帮到了你，<br><em>欢迎支持我们。</em></h2>
-      <p id="support-description" class="support-intro">你的自愿支持会用于 PaperSpine5 的持续维护；它不会解锁额外功能，也不影响任何人获取产品。</p>
-      <figure class="support-qr">
-        <object class="support-qr-object" data="assets/wechat-support-qr.png" type="image/png" aria-label="微信收款码">
-          <div class="support-qr-placeholder"><span>WECHAT PAY</span><b>微信收款码待添加</b><small>资产位 · assets/wechat-support-qr.png</small></div>
-        </object>
-        <figcaption>请使用微信扫码，自愿支持 PaperSpine5 的持续维护。</figcaption>
-      </figure>
-      <button class="button button-primary support-confirm" type="button" data-support-confirm><span>我已完成支持</span><b aria-hidden="true">→</b></button>
-      <p class="support-privacy">说明：本页面不读取或验证支付结果，也不收集支付信息。点击上方按钮只用于播放感谢动画。</p>
-    </div>
-  </dialog>
+  <footer><span>PaperSpine5 / 2026</span><span>MIT · 本地优先的论文写作流程</span><a href="#top">回到顶部 ↑</a></footer>
+  <dialog class="support-dialog" id="support-dialog" aria-labelledby="support-title" aria-describedby="support-description"><div class="support-panel"><header class="support-panel-head"><p class="eyebrow">支持独立科研工具</p><button class="support-close" type="button" data-support-close aria-label="关闭支持窗口"><span>关闭</span><b aria-hidden="true">×</b></button></header><h2 id="support-title">如果它帮到了你，<br><em>欢迎支持我们。</em></h2><p id="support-description" class="support-intro">自愿支持会用于 PaperSpine5 的维护、文档和公开发布成本；它不会解锁额外功能，也不影响任何人获取产品。</p><div class="support-methods" role="tablist" aria-label="选择支持方式"><button type="button" class="support-method is-active" data-support-method="alipay" role="tab" aria-selected="true">支付宝</button><button type="button" class="support-method" data-support-method="wechat" role="tab" aria-selected="false">微信</button></div><div class="support-qr-grid"><figure class="support-qr-card is-active" data-support-card="alipay"><img src="assets/support/alipay.jpg" alt="支付宝支持二维码"><figcaption><b>支付宝</b><span>打开支付宝扫一扫</span></figcaption></figure><figure class="support-qr-card" data-support-card="wechat" hidden><img src="assets/support/wechat.jpg" alt="微信支持二维码"><figcaption><b>微信</b><span>打开微信扫一扫</span></figcaption></figure></div><details class="support-disclosure"><summary>支持说明</summary><p>这不是捐款、投资、购买服务或慈善募款，也不产生任何产品特权。付款由第三方平台处理；本页面不读取、验证或收集支付信息。</p></details><button class="button button-primary support-confirm" type="button" data-support-confirm><span>完成后关闭</span><b aria-hidden="true">→</b></button></div></dialog>
   <div class="support-thanks" id="support-thanks" hidden role="status" aria-live="polite" aria-atomic="true">
     <div class="support-thanks-card">
       <p>THANK YOU / PAPERSPINE5</p>
       <div class="thanks-spine" aria-hidden="true"><span></span><i></i><i></i><i></i><i></i><i></i></div>
       <h2>谢谢你的支持。</h2>
-      <small>这份心意会继续留在 PaperSpine5 的证据脊柱里。</small>
+      <small>谢谢你的支持，它会用在 PaperSpine5 的维护和文档上。</small>
     </div>
   </div>
   <div class="copy-toast" role="status" aria-live="polite">已复制</div>

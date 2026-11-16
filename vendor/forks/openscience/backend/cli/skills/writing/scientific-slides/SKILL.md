@@ -3,6 +3,14 @@ name: scientific-slides
 description: "[EXPERIMENTAL] Build slide decks and presentations for research talks using Nano Banana Pro AI. Generates stunning PDF presentations with AI-generated slides. Use for conference presentations, seminar talks, thesis defense slides, or any scientific talk. Provides slide structure, design guidance, timing recommendations, and visual validation."
 category: writing
 allowed-tools: [Read, Write, Edit, Bash]
+metadata:
+  upstream: K-Dense-AI/claude-scientific-writer
+  upstream-url: https://github.com/K-Dense-AI/claude-scientific-writer
+  upstream-path: skills/scientific-slides
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: K-Dense Inc.
+  adapted-by: Synthetic Sciences
 ---
 
 # Scientific Slides
@@ -10,9 +18,9 @@ allowed-tools: [Read, Write, Edit, Bash]
 > **[EXPERIMENTAL] External AI Dependency**
 > This skill uses Nano Banana Pro AI for slide image generation — an external
 > model. Inside OpenScience, make every generation/edit with the native
-> `generate_image` tool so the request uses connected OpenRouter BYOK or a funded
-> OpenScience wallet in managed mode. The Python scripts documented below are
-> standalone BYOK helpers, not the in-product wallet route.
+> `generate_image` tool so the request uses the user's connected Gemini or
+> OpenRouter account. The Python scripts documented below are standalone
+> user-key helpers.
 > third-party service that may be unavailable or require separate credentials.
 > The core slide structure and content guidance works independently.
 
@@ -269,7 +277,7 @@ In addition to slide generation, use the **scientific-schematics** skill for tec
 
 **How to generate schematics:**
 ```bash
-python scripts/generate_schematic.py "your diagram description" -o figures/output.png
+python skills/visualization/scientific-schematics/scripts/generate_schematic.py "your diagram description" -o figures/output.png
 ```
 
 For detailed guidance on creating schematics, refer to the scientific-schematics skill documentation.

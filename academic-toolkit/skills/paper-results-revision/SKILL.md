@@ -7,9 +7,9 @@ description: "Use when revising a Results section whose figures and claims are f
 
 ## Overview
 
-Use this skill for late-stage Results revision when the science is mostly stable but the writing architecture is not. It is narrower than `scientific-writing` and `manuscript-optimizer`: the job here is to repair subsection titles, bridge paragraphs, paragraph openings, and local argumentative flow.
+Use this skill for late-stage Results revision when the science is mostly stable but the writing architecture is not. It is narrower than `paper-writing-scientific` and `paper-manuscript-optimize`: the job here is to repair subsection titles, bridge paragraphs, paragraph openings, and local argumentative flow.
 
-Use `scientific-writing` for general prose drafting or rewriting. Use `manuscript-optimizer` when the claim hierarchy, evidence chain, or figure logic is still unstable. Use this skill when the section is largely right but still reads like stitched figure captions rather than a controlled argument.
+Use `paper-writing-scientific` for general prose drafting or rewriting. Use `paper-manuscript-optimize` when the claim hierarchy, evidence chain, or figure logic is still unstable. Use this skill when the section is largely right but still reads like stitched figure captions rather than a controlled argument.
 
 ## Quick Checks
 

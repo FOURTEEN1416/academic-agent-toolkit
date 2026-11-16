@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/product-manifest.schema.json",
+  "title": "PaperSpine5 immutable product identity snapshot",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["contract", "schema_version", "product_id", "product_version", "channel", "build_id", "core_root", "component_versions", "compatibility"],
+  "properties": {
+    "contract": {"const": "paperspine5.product-manifest"},
+    "schema_version": {"const": "1.0"},
+    "product_id": {"const": "paperspine5"},
+    "product_version": {"type": "string", "minLength": 1},
+    "channel": {"type": "string", "minLength": 1},
+    "build_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "core_root": {"type": "string", "minLength": 1},
+    "component_versions": {"type": "object", "additionalProperties": {"type": "string", "minLength": 1}},
+    "compatibility": {"type": "object"}
+  }
+}

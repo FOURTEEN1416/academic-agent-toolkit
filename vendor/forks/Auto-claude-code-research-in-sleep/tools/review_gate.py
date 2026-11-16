@@ -26,7 +26,9 @@ KNOWN_FAMILIES = {
     "zhipu", "minimax", "xiaomi", "bytedance", "xai", "meta", "mistral",
 }
 POSITIVE_VERDICTS = {"ready", "almost"}
-VALID_BACKENDS = {"codex", "manual", "copilot", "copilot-native", "oracle-pro", "agy", "llm-chat"}
+REPORTED_MODEL_BACKENDS = {"antigravity", "grok", "claude-code"}
+SUCCESSFUL_REVIEW_STATUSES = {"ok", "fallback_used", "success", "completed"}
+VALID_BACKENDS = {"codex", "manual", "copilot", "copilot-native", "oracle-pro", "agy", "llm-chat"} | REPORTED_MODEL_BACKENDS
 VALID_VERDICTS = POSITIVE_VERDICTS | {"not ready"}
 
 
@@ -37,6 +39,8 @@ class Transition:
     requires_external_acquittal: bool
     identity_assurance: str
     reason: str
+    review_independence: str = "unknown"
+    acceptance_status: str = "provisional"
 
 
 @dataclass(frozen=True)
@@ -145,6 +149,9 @@ def evaluate_transition(
     manual_available: bool = False,
     manual_identity_reported: bool = False,
     native_evidence: NativeEvidence | None = None,
+    review_completed: bool = False,
+    review_scope_complete: bool = False,
+    review_status: str = "",
 ) -> Transition:
     """Return the authoritative transition for one completed review round.
 
@@ -155,6 +162,9 @@ def evaluate_transition(
     structured verdict are loaded from a revalidated host event artifact.
     Family strings are never accepted as inputs; this helper derives them from
     the model identities itself.
+    For antigravity, grok and claude-code, ``reviewer_model`` must be the
+    actual model reported by the backend, never its requested model or route
+    name. Completion and scope flags describe this review round only.
     """
 
     backend = _normalized(round_backend)
@@ -321,6 +331,47 @@ def evaluate_transition(
             "copilot is drive-only; a positive verdict requires an external finalizer",
         )
 
+    if backend in REPORTED_MODEL_BACKENDS:
+        independence = (
+            "unknown"
+            if executor not in KNOWN_FAMILIES or reviewer not in KNOWN_FAMILIES
+            else "same-family" if executor == reviewer else "cross-family"
+        )
+        if requires_external_acquittal:
+            return Transition(
+                "review_unavailable", None, True, "unverified",
+                "Copilot finalizer state permits only codex or manual",
+                independence,
+            )
+        if (
+            _normalized(review_status) not in SUCCESSFUL_REVIEW_STATUSES
+            or not review_completed
+            or not review_scope_complete
+        ):
+            return Transition(
+                "review_unavailable", None, False, "unverified",
+                "review did not complete successfully within its required scope",
+                independence,
+            )
+        if independence == "unknown":
+            return Transition(
+                "review_unavailable", None, False, "unverified",
+                "reported reviewer or executor model family cannot be derived",
+                independence,
+            )
+        if not positive:
+            return Transition(
+                "continue", backend, False, "caller_declared",
+                "completed reviewer did not meet the positive threshold",
+                independence,
+            )
+        return Transition(
+            "stop", None, False, "caller_declared",
+            "completed reviewer returned a positive verdict within its required scope",
+            independence,
+            "accepted" if independence == "cross-family" else "provisional",
+        )
+
     if not positive:
         return Transition(
             "continue",
@@ -454,6 +505,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--manual-available", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--manual-identity-reported", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--native-evidence", default="")
+    parser.add_argument("--review-completed", action="store_true")
+    parser.add_argument("--review-scope-complete", action="store_true")
+    parser.add_argument("--review-status", default="")
     return parser
 
 
@@ -494,6 +548,9 @@ def main() -> None:
         manual_available=args.manual_available,
         manual_identity_reported=args.manual_identity_reported,
         native_evidence=native_evidence,
+        review_completed=args.review_completed,
+        review_scope_complete=args.review_scope_complete,
+        review_status=args.review_status,
     )
     print(json.dumps(asdict(transition), sort_keys=True))
 

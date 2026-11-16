@@ -1,12 +1,14 @@
 import z from "zod"
 import { spawn } from "child_process"
+import { mkdirSync } from "node:fs"
 import { finished } from "node:stream/promises"
+import { StringDecoder } from "node:string_decoder"
 import { Tool } from "./tool"
 import path from "path"
 import DESCRIPTION from "./bash.txt"
 import { Log } from "../util/log"
 import { Instance } from "../project/instance"
-import { lazy } from "@/util/lazy"
+import { lazy } from "@synsci/util/lazy"
 import { Language } from "web-tree-sitter"
 
 import { $ } from "bun"
@@ -16,8 +18,12 @@ import { Shell } from "@/shell/shell"
 
 import { BashArity } from "@/permission/arity"
 import { Truncate } from "./truncation"
+import { BashOutput } from "./bash-output"
+import { Agent } from "../agent/agent"
 import { OpenScience } from "@/openscience"
 import { Sandbox } from "@/sandbox/sandbox"
+import { NetworkCommands } from "./network-commands"
+import { HostCredentials } from "@/credentials/host"
 import { SessionFilesystem } from "@/session/filesystem"
 import { Filesystem } from "@/util/filesystem"
 import { Provenance } from "@/science/provenance/store"
@@ -26,9 +32,20 @@ import { ExecutionAuthority } from "@/project/execution"
 import { CommandRuntime } from "@/science/command/registry"
 import { AuthoritySignal } from "@/project/authority-signal"
 import { KernelEnvironmentMutation } from "@/science/kernel/environment-mutation"
+import { FileOutputReceipts } from "@/file/output-receipts"
 
 const MAX_METADATA_LENGTH = 30_000
-const DEFAULT_TIMEOUT = Flag.OPENSCIENCE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS || 0
+/** How often the live output card is refreshed while a command runs. */
+const PREVIEW_INTERVAL = 200
+/** Characters of each stream kept for the provenance record (clip() adds the marker). */
+const PROVENANCE_HEAD = 2000
+// A command the model gave no timeout runs for at most twenty minutes. A
+// worker once sat thirty minutes in a Lean process waiting on input that
+// would never come, with the rest of an eight-hour budget ahead of it; a
+// bounded call returns what the command printed and lets the model decide
+// to rerun longer, differently, or as a durable job.
+export const DEFAULT_BASH_TIMEOUT_MS = Flag.OPENSCIENCE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS || 20 * 60_000
+const DEFAULT_TIMEOUT = DEFAULT_BASH_TIMEOUT_MS
 
 export const log = Log.create({ service: "bash-tool" })
 
@@ -145,7 +162,7 @@ const resolveWasm = (asset: string) => {
 
 const parser = lazy(async () => {
   const { Parser } = await import("web-tree-sitter")
-  const { default: treeWasm } = await import("web-tree-sitter/tree-sitter.wasm" as string, {
+  const { default: treeWasm } = await import("web-tree-sitter/web-tree-sitter.wasm" as string, {
     with: { type: "wasm" },
   })
   const treePath = resolveWasm(treeWasm)
@@ -166,7 +183,7 @@ const parser = lazy(async () => {
 
 // TODO: we may wanna rename this tool so it works better on other shells
 export const BashTool = Tool.define("bash", async () => {
-  const shell = Shell.acceptable()
+  const shell = Shell.forTool()
   log.info("bash tool using shell", { shell })
 
   return {
@@ -175,7 +192,13 @@ export const BashTool = Tool.define("bash", async () => {
       .replaceAll("${maxBytes}", String(Truncate.MAX_BYTES)),
     parameters: z.object({
       command: z.string().trim().min(1).describe("The command to execute"),
-      timeout: z.number().describe("Optional timeout in milliseconds").optional(),
+      timeout: z
+        .number()
+        .positive()
+        .describe(
+          "Timeout in milliseconds; default 20 minutes. Give a longer one for a build or run you know takes longer, or use the durable job tool.",
+        )
+        .optional(),
       workdir: z
         .string()
         .describe("The working directory to run the command in. Defaults to the session workspace.")
@@ -203,7 +226,10 @@ export const BashTool = Tool.define("bash", async () => {
       const target = path.isAbsolute(requested) ? requested : path.resolve(workspace, requested)
       const cwd = (await Filesystem.canonical(target)) ?? path.resolve(target)
       const contained = (value: string) => writable.some((root) => Filesystem.contains(root, value))
-      if (params.timeout !== undefined && params.timeout < 0) {
+      // `timeout > 0` is what arms the timer below, so a zero passed
+      // validation and then removed the only bound on the command while the
+      // twenty-minute default never got a chance to apply.
+      if (params.timeout !== undefined && !(params.timeout > 0)) {
         throw new Error(`Invalid timeout value: ${params.timeout}. Timeout must be a positive number.`)
       }
       const timeout = params.timeout ?? DEFAULT_TIMEOUT
@@ -212,9 +238,16 @@ export const BashTool = Tool.define("bash", async () => {
         throw new Error("Failed to parse command")
       }
       const directories = new Map<string, SessionFilesystem.Access>()
-      if (!contained(cwd)) directories.set(cwd, "write")
+      // A working directory is the folder itself; granting its parent would
+      // turn `cd /tmp` into read access to /private on macOS.
+      const folders = new Set<string>()
+      if (!contained(cwd)) {
+        directories.set(cwd, "write")
+        folders.add(cwd)
+      }
       const patterns = new Set<string>()
       const always = new Set<string>()
+      const parsed: string[][] = []
 
       for (const node of tree.rootNode.descendantsOfType("command")) {
         if (!node) continue
@@ -260,6 +293,7 @@ export const BashTool = Tool.define("bash", async () => {
                     : "write"
                 const current = directories.get(normalized)
                 if (!current || access === "write") directories.set(normalized, access)
+                if (command[0] === "cd") folders.add(normalized)
               }
             }
           }
@@ -270,7 +304,42 @@ export const BashTool = Tool.define("bash", async () => {
           patterns.add(command.join(" "))
           always.add(BashArity.prefix(command).join(" ") + "*")
         }
+        if (command.length) parsed.push(command)
       }
+
+      // Commands that need the network (a push, a fetch, an upload, a package
+      // install) cannot work inside the socket-denying sandbox. Ask the user
+      // for the destination once; an approved command then runs with sockets,
+      // the same file confinement, and the machine's own publishing
+      // credentials. A named git remote resolves to its host from the repo.
+      const network = NetworkCommands.detect(parsed)
+      const networkHosts = new Set(network?.hosts ?? [])
+      // The repository may be the cwd, a `cd` target earlier in the script, or
+      // a `git -C` directory; try each until one names the remote.
+      const repositories = [
+        cwd,
+        ...folders,
+        ...parsed.flatMap((command) => {
+          const index = command.indexOf("-C")
+          return command[0] === "git" && index > 0 && command[index + 1] ? [path.resolve(cwd, command[index + 1]!)] : []
+        }),
+      ]
+      for (const remote of network?.remotes ?? []) {
+        for (const repository of repositories) {
+          const url = await $`git remote get-url ${remote}`
+            .cwd(repository)
+            .quiet()
+            .nothrow()
+            .text()
+            .then((value) => value.trim())
+            .catch(() => "")
+          const host = NetworkCommands.hostOf(url)
+          if (!host) continue
+          networkHosts.add(host)
+          break
+        }
+      }
+      if (network && networkHosts.size === 0) networkHosts.add("remote")
 
       for (const [directory, access] of directories) {
         const granted =
@@ -287,7 +356,7 @@ export const BashTool = Tool.define("bash", async () => {
           )
         }
         if (authority.sandbox.enabled) {
-          const parent = path.dirname(directory)
+          const parent = folders.has(directory) ? directory : path.dirname(directory)
           const glob = path.join(parent, "*")
           await ctx.ask({
             permission: "external_directory",
@@ -321,12 +390,32 @@ export const BashTool = Tool.define("bash", async () => {
       const { existsSync, mkdirSync } = await import("fs")
       if (!existsSync(cwd)) mkdirSync(cwd, { recursive: true })
 
-      if (patterns.size > 0) {
+      // Preserve the exact source at the authorization boundary. Extracted
+      // command patterns remain useful for configured deny rules and approval
+      // labels, but they intentionally omit redirects, substitutions, and
+      // compound syntax. PermissionNext classifies the exact source so those
+      // constructs cannot bypass the Ask-risky mode floor. Even a cd-only or
+      // syntactically unusual call crosses this boundary and fails closed.
+      await ctx.ask({
+        permission: "bash",
+        patterns: patterns.size > 0 ? Array.from(patterns) : [params.command],
+        always: Array.from(always),
+        metadata: {
+          shell: {
+            command: params.command,
+          },
+        },
+      })
+      if (network && authority.sandbox.enforced) {
+        const hosts = Array.from(networkHosts)
         await ctx.ask({
-          permission: "bash",
-          patterns: Array.from(patterns),
-          always: Array.from(always),
-          metadata: {},
+          permission: "network",
+          patterns: hosts,
+          always: hosts,
+          metadata: {
+            network: { host: hosts[0], hosts, commands: network.commands },
+            shell: { command: params.command },
+          },
         })
       }
 
@@ -348,12 +437,24 @@ export const BashTool = Tool.define("bash", async () => {
       // the generation check below still rejects any authority change before
       // the subprocess is created. This keeps independent shell launches from
       // timing out behind environment maintenance.
-      const runtime = await KernelEnvironmentMutation.pythonRuntime("python")
+      const runtime = await KernelEnvironmentMutation.pythonSubprocessRuntime()
       if (runtime.env?.PIP_TARGET) readable.add(runtime.env.PIP_TARGET)
 
+      const outputRoots = (decision: ExecutionAuthority.Decision) =>
+        [
+          ...new Set([
+            decision.workspace,
+            ...decision.writable.filter(
+              (root) => Filesystem.contains(Instance.directory, root) || Filesystem.contains(Instance.worktree, root),
+            ),
+          ]),
+        ].filter((root) => decision.writable.some((allowed) => Filesystem.contains(allowed, root)))
+      const before = await FileOutputReceipts.observe({
+        roots: outputRoots(prepared),
+        unreadable: OpenScience.kernelSensitivePaths(),
+      }).catch(() => undefined)
+
       const started = Date.now()
-      const streams = { stdout: "", stderr: "" }
-      let output = ""
 
       ctx.metadata({
         metadata: {
@@ -370,32 +471,68 @@ export const BashTool = Tool.define("bash", async () => {
         }
       }
 
-      const append = (chunk: Buffer) => {
-        output += chunk.toString()
-        const redacted = redact(output)
-        ctx.metadata({
-          metadata: {
-            output:
-              redacted.length > MAX_METADATA_LENGTH ? redacted.slice(0, MAX_METADATA_LENGTH) + "\n\n..." : redacted,
-            description: params.description,
+      // Output is bounded end to end: the model's head preview and the
+      // provenance heads stay in memory, everything past the preview streams
+      // into an owned output file, and the live card is refreshed on a timer
+      // rather than once per chunk.
+      const outputFile = Truncate.file()
+      const clipPreview = (text: string) =>
+        text.length > MAX_METADATA_LENGTH ? text.slice(0, MAX_METADATA_LENGTH) + "\n\n..." : text
+      let publishTimer: ReturnType<typeof setTimeout> | undefined
+      // Annotated to break the publish ↔ capture inference cycle.
+      const publish = (): void => {
+        publishTimer = undefined
+        ctx.metadata({ metadata: { output: clipPreview(capture.current()), description: params.description } })
+      }
+      const capture: BashOutput.Capture = new BashOutput.Capture({
+        redact,
+        maxBytes: Truncate.MAX_BYTES,
+        maxLines: Truncate.MAX_LINES,
+        open: () => {
+          mkdirSync(Truncate.DIR, { recursive: true })
+          return Bun.file(outputFile).writer()
+        },
+        onPreview: () => {
+          publishTimer ??= setTimeout(publish, PREVIEW_INTERVAL)
+        },
+      })
+      const head = () =>
+        new BashOutput.Capture({
+          redact,
+          maxBytes: PROVENANCE_HEAD,
+          maxLines: Truncate.MAX_LINES,
+          previewOnly: true,
+          open: () => {
+            throw new Error("Provenance heads do not write output files")
           },
         })
-      }
-
-      const capture = (channel: keyof typeof streams) => (chunk: Buffer) => {
-        streams[channel] += chunk.toString()
-        append(chunk)
+      const heads = { stdout: head(), stderr: head() }
+      let outputError: unknown
+      const decoders = { stdout: new StringDecoder("utf-8"), stderr: new StringDecoder("utf-8") }
+      const record = (channel: keyof typeof heads, child: ReturnType<typeof spawn>) => (chunk: Buffer) => {
+        if (outputError) return
+        try {
+          const text = decoders[channel].write(chunk)
+          heads[channel].write(text)
+          capture.write(text)
+        } catch (error) {
+          outputError = error
+          void Shell.killTree(child, { exited: () => exited, detached: process.platform !== "win32" }).catch(
+            () => undefined,
+          )
+        }
       }
 
       let exited = false
       let aborted = false
+      const stopped: { reason?: string } = {}
       const { proc, command, kill, sandbox, completion, drain } = await AuthoritySignal.exclusive(async () => {
         const current = await ExecutionAuthority.require({
           projectID: Instance.project.id,
           sessionID: ctx.sessionID,
           capability: "shell",
         })
-        if (current.generation !== prepared.generation) {
+        if (ExecutionAuthority.narrowed(prepared, current)) {
           throw new Error("Execution authority changed while the shell command was being prepared; retry it")
         }
         // Build the wrapper only after the final authority check, while trust
@@ -412,9 +549,15 @@ export const BashTool = Tool.define("bash", async () => {
             path: runtime.env?.PATH,
           },
           options: current.sandbox,
+          escalateNetwork: !!network,
         })
-        return OpenScience.withSubprocessEnv(process.env, async (env) => {
-          const cache = sandbox.sandboxed ? Sandbox.cacheEnvironment(current.workspace) : {}
+        // Publishing credentials travel only with an approved network command,
+        // added after the generic sanitizer so nothing else can smuggle them.
+        const credentialEnv = network
+          ? await HostCredentials.publishEnv(sandbox.temporary, await HostCredentials.discover()).catch(() => ({}))
+          : {}
+        return OpenScience.withSubprocessEnv(process.env, async (env, overlay) => {
+          const cache = sandbox.sandboxed ? Sandbox.cacheEnvironment(current.scratch ?? current.workspace) : {}
           let child: ReturnType<typeof spawn>
           const wrapped = await CommandRuntime.wrap({
             file: sandbox.file,
@@ -427,13 +570,13 @@ export const BashTool = Tool.define("bash", async () => {
               cwd,
               // Re-sanitize at the final process boundary too: runtime/cache
               // overlays must never restore a managed token or re-pair a
-              // user's key with the Credits proxy after subprocessEnv ran.
-              env: OpenScience.filterEnvForSubprocess({ ...env, ...(runtime.env ?? {}), ...cache }),
+              // user's key with the Ace managed proxy after subprocessEnv ran.
+              env: { ...KernelEnvironmentMutation.subprocessEnv(runtime, { ...env, ...cache }), ...credentialEnv },
               stdio: ["ignore", "pipe", "pipe"],
               detached: process.platform !== "win32",
             })
-            child.stdout?.on("data", capture("stdout"))
-            child.stderr?.on("data", capture("stderr"))
+            child.stdout?.on("data", record("stdout", child))
+            child.stderr?.on("data", record("stderr", child))
           } catch (error) {
             Sandbox.cleanup(sandbox)
             throw error
@@ -463,11 +606,15 @@ export const BashTool = Tool.define("bash", async () => {
                 command: params.command,
               },
               child,
-              async () => {
+              async (reason) => {
                 aborted = true
+                stopped.reason = reason
                 await stop()
               },
-              { authorityGeneration: current.generation, windowsRelease: wrapped.release },
+              // The runtime and cache overlays above never restore a synced
+              // key that `env` lacked, so the snapshot's overlay is the one
+              // this child can carry.
+              { authorityGeneration: current.generation, windowsRelease: wrapped.release, overlay },
             )
             const kill = async () => {
               await CommandRuntime.stop(registered.id, registered.projectID, registered.sessionID)
@@ -503,14 +650,54 @@ export const BashTool = Tool.define("bash", async () => {
             }, timeout + 100)
           : undefined
 
-      await Promise.all([completion, drain]).finally(() => {
-        if (timeoutTimer) clearTimeout(timeoutTimer)
-        ctx.abort.removeEventListener("abort", abortHandler)
-        CommandRuntime.finish(command.id)
-        Sandbox.cleanup(sandbox)
-      })
+      const summary = await Promise.all([completion, drain])
+        .finally(() => {
+          if (timeoutTimer) clearTimeout(timeoutTimer)
+          ctx.abort.removeEventListener("abort", abortHandler)
+          CommandRuntime.finish(command.id)
+          Sandbox.cleanup(sandbox)
+          if (publishTimer) clearTimeout(publishTimer)
+          publishTimer = undefined
+        })
+        .finally(() => {
+          // Both streams have ended (or the spawn failed): settle the capture
+          // even when the command itself is reported as an error.
+          for (const channel of ["stdout", "stderr"] as const) {
+            const rest = decoders[channel].end()
+            if (rest) {
+              capture.write(rest)
+              heads[channel].write(rest)
+            }
+          }
+          return Promise.all([capture.end(), heads.stdout.end(), heads.stderr.end()]).finally(() => {
+            if (publishTimer) clearTimeout(publishTimer)
+            publishTimer = undefined
+          })
+        })
+        .then(() => {
+          if (outputError) throw outputError
+          return capture.end()
+        })
 
       const completed = Date.now()
+      const files = before
+        ? await ExecutionAuthority.require({
+            projectID: Instance.project.id,
+            sessionID: ctx.sessionID,
+            capability: "shell",
+          })
+            .then((decision) =>
+              FileOutputReceipts.finish(before, {
+                roots: outputRoots(decision),
+                unreadable: OpenScience.kernelSensitivePaths(),
+              }),
+            )
+            .catch(() => ({
+              outputFiles: [],
+              outputFilesTruncated: true,
+              outputFilesSource: "filesystem-observation" as const,
+            }))
+        : { outputFiles: [], outputFilesTruncated: true, outputFilesSource: "filesystem-observation" as const }
 
       // The command spawned and ran to completion (or was killed) — record a
       // provenance run node so "what ran" is capturable for shell-produced
@@ -522,8 +709,8 @@ export const BashTool = Tool.define("bash", async () => {
         command: params.command,
         cwd,
         exit: proc.exitCode,
-        stdout: streams.stdout,
-        stderr: streams.stderr,
+        stdout: heads.stdout.current(),
+        stderr: heads.stderr.current(),
         startedAt: started,
         completedAt: completed,
       }).catch(() => undefined)
@@ -539,23 +726,41 @@ export const BashTool = Tool.define("bash", async () => {
       }
 
       if (aborted) {
-        resultMetadata.push("User aborted the command")
+        // A credential revocation names itself; anything else is the user.
+        resultMetadata.push(stopped.reason ?? "User aborted the command")
       }
 
-      if (resultMetadata.length > 0) {
-        output += "\n\n<bash_metadata>\n" + resultMetadata.join("\n") + "\n</bash_metadata>"
+      // A failure that printed little, or whose message scrolled into the
+      // saved file, would otherwise read as success: the status travels in
+      // the text the model sees, not only in the metadata.
+      if (proc.exitCode !== null && proc.exitCode !== 0 && !timedOut && !aborted) {
+        resultMetadata.push(`Command exited with code ${proc.exitCode}`)
       }
 
-      const redactedOutput = redact(output)
-      const clipped =
-        redactedOutput.length > MAX_METADATA_LENGTH
-          ? redactedOutput.slice(0, MAX_METADATA_LENGTH) + "\n\n..."
-          : redactedOutput
+      const notes =
+        resultMetadata.length > 0 ? "\n\n<bash_metadata>\n" + resultMetadata.join("\n") + "\n</bash_metadata>" : ""
+      if (summary.truncated) await Truncate.grant(outputFile, ctx.sessionID)
+      const output =
+        (summary.truncated
+          ? Truncate.message(
+              {
+                preview: summary.preview,
+                removed: summary.removed.count,
+                unit: summary.removed.unit,
+                filepath: outputFile,
+                tail: summary.tail,
+              },
+              await Agent.get(ctx.agent).catch(() => undefined),
+            )
+          : summary.preview) + notes
+      const clipped = clipPreview(output)
       ctx.metadata({
         metadata: {
           output: clipped,
           description: params.description,
           provenanceID: node?.id,
+          execution_environment: KernelEnvironmentMutation.subprocessIdentity(runtime, cwd),
+          ...files,
         },
       })
       return {
@@ -565,8 +770,14 @@ export const BashTool = Tool.define("bash", async () => {
           exit: proc.exitCode,
           description: params.description,
           provenanceID: node?.id,
+          execution_environment: KernelEnvironmentMutation.subprocessIdentity(runtime, cwd),
+          ...files,
+          // Truncation happened while streaming; the generic post-execute
+          // pass must not materialize the output again.
+          truncated: summary.truncated,
+          ...(summary.truncated ? { outputPath: outputFile } : {}),
         },
-        output: redactedOutput,
+        output,
       }
     },
   }

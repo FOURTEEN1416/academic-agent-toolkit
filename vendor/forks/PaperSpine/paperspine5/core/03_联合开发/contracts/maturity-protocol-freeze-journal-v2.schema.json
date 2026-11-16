@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/maturity-protocol-freeze-journal-v2.schema.json",
+  "title": "PaperSpine PS-GAP-014 protocol-v2 freeze journal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract", "contract_version", "operation_id", "approval_token",
+    "state", "protocol_path", "protocol_stage_path", "journal_path",
+    "journal_stage_path", "receipt_path", "receipt_stage_path",
+    "before_file_sha256", "after_file_sha256",
+    "protocol_sha256", "frozen_at", "semantic_pins",
+    "target_profile_catalog_sha256", "transaction_implementation",
+    "external_action_authorized",
+    "receipt_file_sha256", "receipt_sha256", "journal_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.maturity-protocol-freeze-journal"},
+    "contract_version": {"const": "2.0"},
+    "operation_id": {"type": "string", "minLength": 1},
+    "approval_token": {"type": "string", "minLength": 1},
+    "state": {"enum": ["prepared", "committed"]},
+    "protocol_path": {"type": "string", "minLength": 1},
+    "protocol_stage_path": {"type": "string", "minLength": 1},
+    "journal_path": {"type": "string", "minLength": 1},
+    "journal_stage_path": {"type": "string", "minLength": 1},
+    "receipt_path": {"type": "string", "minLength": 1},
+    "receipt_stage_path": {"type": "string", "minLength": 1},
+    "before_file_sha256": {"$ref": "#/$defs/sha256"},
+    "after_file_sha256": {"$ref": "#/$defs/sha256"},
+    "protocol_sha256": {"$ref": "#/$defs/sha256"},
+    "frozen_at": {"type": "string", "format": "date-time"},
+    "semantic_pins": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluator_code_sha256", "evaluator_schema_sha256",
+        "protocol_schema_sha256", "target_review_schema_sha256",
+        "canonical_surface_adapter_sha256", "surface_receipt_schema_sha256"
+      ],
+      "properties": {
+        "evaluator_code_sha256": {"$ref": "#/$defs/sha256"},
+        "evaluator_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "protocol_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "target_review_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "canonical_surface_adapter_sha256": {"$ref": "#/$defs/sha256"},
+        "surface_receipt_schema_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "target_profile_catalog_sha256": {"$ref": "#/$defs/sha256"},
+    "transaction_implementation": {"$ref": "#/$defs/transactionImplementation"},
+    "external_action_authorized": {"const": false},
+    "receipt_file_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "receipt_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "journal_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"state": {"const": "prepared"}}},
+      "then": {
+        "properties": {
+          "receipt_file_sha256": {"const": null},
+          "receipt_sha256": {"const": null}
+        }
+      },
+      "else": {
+        "properties": {
+          "receipt_file_sha256": {"$ref": "#/$defs/sha256"},
+          "receipt_sha256": {"$ref": "#/$defs/sha256"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "transactionImplementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["freezer_sha256", "journal_schema_sha256", "receipt_schema_sha256"],
+      "properties": {
+        "freezer_sha256": {"$ref": "#/$defs/sha256"},
+        "journal_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "receipt_schema_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

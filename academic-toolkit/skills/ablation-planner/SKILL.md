@@ -9,6 +9,8 @@ allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit
 
 Systematically design ablation studies that answer the questions reviewers will ask. 独立评审模型主导设计（审稿人视角，经评审桥调用），当前 Agent 复核可行性并实施。
 
+> **执行衔接**：本技能只负责**设计**消融实验；消融的实际执行与结果回收交给 `experiment-bridge`（计划→实现→部署→收集）或 `run-experiment`（单步部署执行）。
+
 ## Context: $ARGUMENTS
 
 ## When to Use

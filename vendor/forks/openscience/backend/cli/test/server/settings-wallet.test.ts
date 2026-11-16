@@ -1,297 +1,221 @@
-import { afterEach, beforeEach, expect, test } from "bun:test"
-import fs from "node:fs/promises"
-import path from "node:path"
-import { Config } from "../../src/config/config"
-import { Global } from "../../src/global"
-import { OpenScience } from "../../src/openscience"
-import { BillingSettingsRoutes } from "../../src/server/routes/settings/billing"
-import { WalletSettingsRoutes } from "../../src/server/routes/settings/wallet"
+import { describe, expect, test } from "bun:test"
+import { OpenScience, type FundingSnapshot } from "../../src/openscience"
+import { readWallet, walletState } from "../../src/server/routes/settings/wallet"
 
-const session = path.join(Global.Path.data, "openscience-session.json")
-const original = globalThis.fetch
-
-beforeEach(async () => {
-  await OpenScience.waitForBillingModeMirror()
-  await fs.mkdir(Global.Path.data, { recursive: true })
-  await fs.writeFile(session, JSON.stringify({ api_key: "thk_wallet-test", user_id: "user-wallet" }))
-  OpenScience.invalidateBalance()
-  await Config.updateGlobal({ billing: { llm: null } })
+const snapshot: FundingSnapshot = Object.freeze({
+  api_key: "thk_wallet_fixture",
+  user_id: "fixture",
+  account: "fixture",
+  organization_id: "workspace-a",
 })
+const credits: OpenScience.Credits = {
+  balanceUsd: 20,
+  balanceCents: 2000,
+  cliBalanceCents: 2000,
+  spendableBalanceCents: 2000,
+  promotionalBalanceCents: 0,
+  cycleCreditsRemainingCents: 0,
+  lifetimeSpentCents: null,
+}
+const mode: OpenScience.BillingMode = {
+  mode: "byok",
+  balance_cents: 2000,
+  balance_usd: 20,
+  managed_supported: true,
+  managed_unlocked: true,
+  ace_enabled: false,
+  access_verified: true,
+}
+const context = {
+  type: "organization" as const,
+  organization_id: snapshot.organization_id,
+  available: true,
+  locked: true,
+  organizations: [],
+}
+const stored: OpenScience.AccountSnapshot = { at: 1_700_000_000_000, context, credits, billing: mode }
+const project = (patch: Partial<OpenScience.AccountSnapshot>) =>
+  walletState({ snapshot: { ...stored, ...patch }, refreshing: false, summary: true, transactions: [] })
+const account = {
+  getFundingSnapshot: async () => snapshot,
+  getAccountSummary: async (): Promise<OpenScience.AccountSummary | null> => ({ ...stored, refreshing: false }),
+  refreshAccount: async () => stored,
+  getTransactions: async () => [],
+}
 
-afterEach(async () => {
-  await OpenScience.waitForBillingModeMirror()
-  globalThis.fetch = original
-  OpenScience.invalidateBalance()
-  await Config.updateGlobal({ billing: { llm: null } })
-  await fs.rm(session, { force: true })
-})
-
-test("uses current Atlas access plus purchased Wallet truth without calling the retired mode write", async () => {
-  const calls: Array<{ path: string; method: string }> = []
-  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
-    const path = new URL(String(input)).pathname
-    const method = init?.method ?? "GET"
-    calls.push({ path, method })
-    if (path === "/api/cli/access") return Response.json({ managed_supported: true, cli_balance_cents: 2500 })
-    if (path === "/api/cli/billing-mode") return new Response("retired", { status: 404 })
-    if (path === "/api/v1/wallet") {
-      return Response.json({ balance_cents: 2500, purchased_cents: 2000, promotional_cents: 500 })
+describe("Wallet account summary", () => {
+  test("distinguishes a failed ledger read from a verified empty ledger without discarding the balance", async () => {
+    for (const getTransactions of [
+      async () => null,
+      async () => {
+        throw new Error("upstream failure")
+      },
+    ]) {
+      const result = await readWallet(false, { ...account, getTransactions })
+      expect(result.balanceUsd).toBe(20)
+      expect(result.transactions).toEqual([])
+      expect(result.error).toContain("transaction history is unavailable")
     }
-    if (path === "/api/credits") return Response.json({ lifetime_spent_cents: 750 })
-    if (path === "/api/credits/transactions") return Response.json({ transactions: [] })
-    if (path === "/api/cli/balance") return Response.json({ balance_cents: 2500, balance_usd: 25 })
-    return new Response("not found", { status: 404 })
-  }) as typeof fetch
-
-  const wallet = await (await WalletSettingsRoutes().request("/")).json()
-  expect(wallet).toMatchObject({ signedIn: true, balanceUsd: 20, lifetimeSpentUsd: 7.5, managedSupported: true })
-  expect(await OpenScience.getBalance()).toBe(25)
-
-  const update = await BillingSettingsRoutes().request("/", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ llm: "managed" }),
-  })
-  expect(update.status).toBe(200)
-  expect(await update.json()).toMatchObject({ llm: "managed", wallet: { signedIn: true, balanceUsd: null } })
-  expect(calls.filter((call) => call.path === "/api/cli/billing-mode" && call.method === "POST")).toHaveLength(0)
-
-  const automatic = await BillingSettingsRoutes().request("/", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ llm: null }),
-  })
-  expect(automatic.status).toBe(200)
-  expect((await automatic.json()).llm).toBeNull()
-  await Bun.sleep(10)
-  expect(calls.filter((call) => call.path === "/api/cli/billing-mode" && call.method === "POST")).toHaveLength(0)
-})
-
-test("mirrors an explicit mode to old Atlas even when the shared access endpoint already exists", async () => {
-  const calls: Array<{ path: string; method: string }> = []
-  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
-    const path = new URL(String(input)).pathname
-    const method = init?.method ?? "GET"
-    calls.push({ path, method })
-    if (path === "/api/cli/access") return Response.json({ managed_supported: true, cli_balance_cents: 2000 })
-    if (path === "/api/cli/billing-mode") {
-      if (method === "POST") return Response.json({ mode: "managed", managed_supported: true, balance_cents: 2000 })
-      return Response.json({ mode: "byok", managed_supported: true, balance_cents: 2000, balance_usd: 20 })
-    }
-    if (path === "/api/cli/sync") {
-      return Response.json({
-        user: { user_id: "user-wallet" },
-        services: {},
-        config: {},
-        cli_keys_mode: "managed",
-      })
-    }
-    if (path === "/api/v1/wallet") return new Response("not found", { status: 404 })
-    if (path === "/api/credits") {
-      return Response.json({ balance_cents: 2000, purchased_credits_cents: 2000, cycle_credits_remaining_cents: 0 })
-    }
-    return new Response("not found", { status: 404 })
-  }) as typeof fetch
-
-  const update = await BillingSettingsRoutes().request("/", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ llm: "managed" }),
-  })
-  expect(update.status).toBe(200)
-  expect(await update.json()).toMatchObject({ llm: "managed", wallet: { signedIn: true, balanceUsd: null } })
-  await OpenScience.waitForBillingModeMirror()
-  expect(calls.filter((call) => call.path === "/api/cli/billing-mode" && call.method === "POST")).toHaveLength(1)
-  expect(calls.some((call) => call.path === "/api/cli/sync")).toBe(true)
-})
-
-test("maps local Automatic to old Atlas own-key-first compatibility", async () => {
-  await Config.updateGlobal({ billing: { llm: "managed" } })
-  const posted: string[] = []
-  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
-    const path = new URL(String(input)).pathname
-    const method = init?.method ?? "GET"
-    if (path === "/api/cli/access") return Response.json({ managed_supported: true })
-    if (path === "/api/cli/billing-mode") {
-      if (method === "POST") {
-        posted.push(String(init?.body))
-        return Response.json({ mode: "byok", managed_supported: true, balance_cents: 2000 })
-      }
-      return Response.json({ mode: "managed", managed_supported: true, balance_cents: 2000, balance_usd: 20 })
-    }
-    if (path === "/api/cli/sync") return Response.json({ user: { user_id: "user-wallet" }, services: {} })
-    return new Response("not found", { status: 404 })
-  }) as typeof fetch
-
-  const update = await BillingSettingsRoutes().request("/", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ llm: null }),
+    const empty = await readWallet(false, account)
+    expect(empty.transactions).toEqual([])
+    expect(empty.error).toBeUndefined()
   })
 
-  expect(update.status).toBe(200)
-  expect((await update.json()).llm).toBeNull()
-  for (let index = 0; index < 100 && posted.length === 0; index++) await Bun.sleep(5)
-  expect(posted).toHaveLength(1)
-  expect(JSON.parse(posted[0]!)).toEqual({ mode: "byok" })
-  expect((await Config.getGlobal()).billing?.llm).toBeNull()
-})
+  test("serves the stored summary at once and reports that a refresh is running", async () => {
+    const result = await readWallet(true, {
+      ...account,
+      getAccountSummary: async () => ({ ...stored, refreshing: true }),
+      getTransactions: async () => {
+        throw new Error("Summary must not fetch the ledger")
+      },
+      refreshAccount: async () => {
+        throw new Error("Summary must not wait for a fresh read")
+      },
+    })
+    expect(result.balanceUsd).toBe(20)
+    expect(result.managedUnlocked).toBe(true)
+    expect(result.refreshing).toBe(true)
+    expect(result.refreshedAt).toBe(stored.at)
+  })
 
-test("coalesces a delayed legacy mirror so the latest local choice wins", async () => {
-  const firstLegacyRead = Promise.withResolvers<Response>()
-  const posted: string[] = []
-  let legacyReads = 0
-  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
-    const path = new URL(String(input)).pathname
-    const method = init?.method ?? "GET"
-    if (path === "/api/cli/access") return Response.json({ managed_supported: true })
-    if (path === "/api/cli/billing-mode" && method === "GET") {
-      legacyReads++
-      if (legacyReads === 1) return firstLegacyRead.promise
-      return Response.json({ mode: "managed", managed_supported: true, balance_cents: 2000, balance_usd: 20 })
+  test("keeps the stored values and surfaces the reason when the latest refresh failed", async () => {
+    const result = await readWallet(true, {
+      ...account,
+      getAccountSummary: async () => ({ ...stored, refreshing: false, error: "Account service unavailable" }),
+    })
+    expect(result.balanceUsd).toBe(20)
+    expect(result.refreshing).toBe(false)
+    expect(result.error).toBe("Account service unavailable")
+  })
+
+  test("a first read with nothing stored that fails stays signed in with no balance", async () => {
+    const result = await readWallet(true, {
+      ...account,
+      getAccountSummary: async () => {
+        throw new Error("The Ace account service is unavailable. Retry when connected.")
+      },
+    })
+    expect(result.signedIn).toBe(true)
+    expect(result.balanceUsd).toBeNull()
+    expect(result.accessVerified).toBe(false)
+    expect(result.managedUnlocked).toBe(false)
+    expect(result.error).toContain("unavailable")
+  })
+
+  test("signed-out readers get the signed-out contract without any account read", async () => {
+    const result = await readWallet(true, { ...account, getAccountSummary: async () => null })
+    expect(result.signedIn).toBe(false)
+    expect(result.refreshing).toBe(false)
+    expect(result.refreshedAt).toBeNull()
+  })
+
+  test("the ledger view always reads fresh and includes transactions", async () => {
+    const state = { refreshes: 0 }
+    const result = await readWallet(false, {
+      ...account,
+      getAccountSummary: async () => {
+        throw new Error("Ledger must not serve the stored summary")
+      },
+      refreshAccount: async (selected) => {
+        expect(selected).toBe(snapshot)
+        state.refreshes++
+        return stored
+      },
+      getTransactions: async () => [
+        { id: "t1", amountCents: -125, source: "ace", description: "Turn", createdAt: "2026-09-01T00:00:00Z" },
+      ],
+    })
+    expect(state.refreshes).toBe(1)
+    expect(result.refreshing).toBe(false)
+    expect(result.transactions).toHaveLength(1)
+    expect(result.balanceUsd).toBe(20)
+  })
+
+  test("never overrides an explicit access denial with cash or Ace reload consent", () => {
+    const result = project({ billing: { ...mode, managed_unlocked: false, ace_enabled: true } })
+    expect(result.balanceUsd).toBe(20)
+    expect(result.managedUnlocked).toBe(false)
+    expect(result.accessVerified).toBe(true)
+  })
+
+  test("a known purchased balance never substitutes for an unavailable access check", () => {
+    for (const unavailable of [null, { ...mode, access_verified: false }]) {
+      const result = project({ billing: unavailable })
+      expect(result.balanceUsd).toBe(20)
+      expect(result.accessVerified).toBe(false)
+      expect(result.managedUnlocked).toBe(false)
     }
-    if (path === "/api/cli/billing-mode" && method === "POST") {
-      posted.push(String(init?.body))
-      return Response.json({ mode: "byok", managed_supported: true, balance_cents: 2000 })
-    }
-    if (path === "/api/cli/sync") return Response.json({ user: { user_id: "user-wallet" }, services: {} })
-    return new Response("not found", { status: 404 })
-  }) as typeof fetch
-
-  const credits = await BillingSettingsRoutes().request("/", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ llm: "managed" }),
-  })
-  expect(credits.status).toBe(200)
-  for (let index = 0; index < 100 && legacyReads === 0; index++) await Bun.sleep(5)
-  expect(legacyReads).toBe(1)
-
-  const automatic = await BillingSettingsRoutes().request("/", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ llm: null }),
-  })
-  expect(automatic.status).toBe(200)
-  expect((await automatic.json()).llm).toBeNull()
-
-  firstLegacyRead.resolve(
-    Response.json({ mode: "byok", managed_supported: true, balance_cents: 2000, balance_usd: 20 }),
-  )
-  await OpenScience.waitForBillingModeMirror()
-
-  expect(posted.map((body) => JSON.parse(body))).toEqual([{ mode: "byok" }])
-  expect((await Config.getGlobal()).billing?.llm).toBeNull()
-})
-
-test("saves Accounts locally while signed in even when the compatibility service is unavailable", async () => {
-  await Config.updateGlobal({ billing: { llm: "managed" } })
-  globalThis.fetch = (async () => new Response("unavailable", { status: 503 })) as unknown as typeof fetch
-
-  const update = await BillingSettingsRoutes().request("/", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ llm: "byok" }),
   })
 
-  expect(update.status).toBe(200)
-  expect((await update.json()).llm).toBe("byok")
-  expect((await Config.getGlobal()).billing?.llm).toBe("byok")
-})
-
-test("acknowledges Accounts before a hanging compatibility read completes", async () => {
-  await Config.updateGlobal({ billing: { llm: "managed" } })
-  const hanging = Promise.withResolvers<Response>()
-  globalThis.fetch = (async () => hanging.promise) as unknown as typeof fetch
-
-  const request = BillingSettingsRoutes().request("/", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ llm: "byok" }),
-  })
-  const outcome = await Promise.race([
-    Promise.resolve(request).then(() => "saved"),
-    Bun.sleep(250).then(() => "timed-out"),
-  ])
-
-  expect(outcome).toBe("saved")
-  expect((await Config.getGlobal()).billing?.llm).toBe("byok")
-  hanging.resolve(new Response("unavailable", { status: 503 }))
-  await OpenScience.waitForBillingModeMirror()
-})
-
-test("saves Accounts locally while signed out", async () => {
-  await Config.updateGlobal({ billing: { llm: "managed" } })
-  await fs.rm(session, { force: true })
-  globalThis.fetch = (async () => {
-    throw new Error("signed-out local update must not call the account service")
-  }) as unknown as typeof fetch
-
-  const update = await BillingSettingsRoutes().request("/", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ llm: "byok" }),
+  test("uses a proved access balance when the separate Wallet read temporarily fails", () => {
+    const result = project({ credits: null, billing: { ...mode, balance_verified: true } })
+    expect(result.balanceUsd).toBe(20)
+    const unknown = project({ credits: null })
+    expect(unknown.balanceUsd).toBeNull()
   })
 
-  expect(update.status).toBe(200)
-  expect((await update.json()).llm).toBe("byok")
-  expect((await Config.getGlobal()).billing?.llm).toBe("byok")
-})
+  test("shows what is spendable now beside the purchased balance without an account-wide inference fee", () => {
+    const result = project({ credits: { ...credits, availableCents: 1550 } })
+    expect(result.balanceUsd).toBe(20)
+    expect(result.availableUsd).toBe(15.5)
+    expect("fundingFeePercent" in result.aceContract).toBe(false)
+    expect("serviceMarginPercent" in result.aceContract).toBe(false)
+    expect(project({ credits: { ...credits, availableCents: null } }).availableUsd).toBeNull()
+    expect(project({ credits: null }).availableUsd).toBeNull()
+    // A private balance keeps its holds private too.
+    expect(project({ credits: { ...credits, availableCents: 1550, balanceRedacted: true } }).availableUsd).toBeNull()
+    // Model-specific fees do not belong in the Wallet reload contract.
+    const stated = walletState({
+      snapshot: stored,
+      refreshing: false,
+      summary: true,
+      transactions: [],
+    })
+    expect("fundingFeePercent" in stated.aceContract).toBe(false)
+    expect(stated.aceContract.reloadAmountUsd).toBe(20)
+    expect(stated.aceContract.reloadThresholdUsd).toBe(5)
+  })
 
-test("does not invent zero lifetime spend when rolling Atlas omits the field", async () => {
-  globalThis.fetch = (async (input: string | URL | Request) => {
-    const path = new URL(String(input)).pathname
-    if (path === "/api/v1/wallet") return Response.json({ balance_cents: 2000, purchased_cents: 2000 })
-    if (path === "/api/cli/access") return Response.json({ managed_supported: true })
-    if (path === "/api/cli/billing-mode") return new Response("retired", { status: 404 })
-    if (path === "/api/credits") return new Response("metadata unavailable", { status: 503 })
-    if (path === "/api/credits/transactions") return Response.json({ transactions: [] })
-    return new Response("not found", { status: 404 })
-  }) as typeof fetch
+  test("the reload rule is the workspace's own configuration, not the public default", () => {
+    // A workspace that reloads $50 whenever it drops below $10.
+    const configured = project({ credits: { ...credits, autoReload: { thresholdCents: 1000, amountCents: 5000 } } })
+    expect(configured.aceContract.reloadThresholdUsd).toBe(10)
+    expect(configured.aceContract.reloadAmountUsd).toBe(50)
+    // The gateway did not describe the rule: the public default stands in.
+    const unknown = project({ credits: { ...credits, autoReload: null } })
+    expect(unknown.aceContract.reloadThresholdUsd).toBe(5)
+    expect(unknown.aceContract.reloadAmountUsd).toBe(20)
+  })
 
-  const wallet = await (await WalletSettingsRoutes().request("/")).json()
-  expect(wallet).toMatchObject({ signedIn: true, balanceUsd: 20, lifetimeSpentUsd: null })
-})
+  test("keeps a private workspace balance hidden without denying verified member access", () => {
+    const result = project({ credits: { ...credits, balanceRedacted: true } })
+    expect(result.balanceUsd).toBeNull()
+    expect(result.balanceRedacted).toBe(true)
+    expect(result.managedUnlocked).toBe(true)
+    const changed = project({ billing: { ...mode, balance_redacted: true } })
+    expect(changed.balanceUsd).toBeNull()
+  })
 
-test("preserves a genuine negative balance instead of aliasing it to unavailable", async () => {
-  globalThis.fetch = (async (input: string | URL | Request) => {
-    const url = String(input)
-    if (url.endsWith("/api/credits/transactions")) return Response.json({ transactions: [] })
-    if (url.endsWith("/api/credits")) {
-      return Response.json({ balance_cents: -100, lifetime_spent_cents: 250 })
-    }
-    if (url.endsWith("/api/cli/billing-mode")) {
-      return Response.json({ mode: "managed", balance_cents: -100, balance_usd: -1, managed_supported: true })
-    }
-    if (url.endsWith("/api/cli/balance")) return Response.json({ balance_usd: -1 })
-    return new Response("not found", { status: 404 })
-  }) as unknown as typeof fetch
-
-  const walletResponse = await WalletSettingsRoutes().request("/")
-  const wallet = await walletResponse.json()
-  expect(wallet).toMatchObject({ signedIn: true, balanceUsd: -1, lifetimeSpentUsd: 2.5 })
-  expect(wallet).not.toHaveProperty("plan")
-
-  const billingResponse = await BillingSettingsRoutes().request("/")
-  const billing = await billingResponse.json()
-  expect(billing.wallet).toEqual({ signedIn: true, balanceUsd: -1 })
-})
-
-test("uses null only when the signed-in balance is genuinely unavailable", async () => {
-  globalThis.fetch = (async () => new Response("unavailable", { status: 503 })) as unknown as typeof fetch
-
-  const walletResponse = await WalletSettingsRoutes().request("/")
-  const wallet = await walletResponse.json()
-  expect(wallet).toMatchObject({ signedIn: true, balanceUsd: null, lifetimeSpentUsd: null })
-
-  const billingResponse = await BillingSettingsRoutes().request("/")
-  const billing = await billingResponse.json()
-  expect(billing.wallet).toEqual({ signedIn: true, balanceUsd: null })
-})
-
-test("wallet route presents PAYG billing without plan copy", async () => {
-  const source = await Bun.file(new URL("../../src/server/routes/settings/wallet.ts", import.meta.url)).text()
-  expect(source).toContain("pay-as-you-go Credits")
-  expect(source).toContain("Get wallet balance, routing mode, and recent transactions")
-  expect(source).not.toMatch(/subscription|plan mode|manage plan/i)
+  test("keeps selected-workspace response proof mandatory", async () => {
+    const correct = Response.json(
+      {},
+      {
+        headers: {
+          "OpenScience-Funding-Protocol": "1",
+          "OpenScience-Funding-Context": "organization:workspace-a",
+        },
+      },
+    )
+    expect(await OpenScience.validateFundingResponse(correct, snapshot)).toBe(correct)
+    const wrong = Response.json(
+      {},
+      {
+        headers: {
+          "OpenScience-Funding-Protocol": "1",
+          "OpenScience-Funding-Context": "organization:workspace-b",
+        },
+      },
+    )
+    await expect(OpenScience.validateFundingResponse(wrong, snapshot)).rejects.toThrow("verify the selected workspace")
+  })
 })

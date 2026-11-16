@@ -44,7 +44,7 @@ Check whether the paper's claims are supported by the available evidence:
 - Are negative results, limitations, and missing baselines presented honestly?
 - Do conclusions stay inside the tested scope?
 
-This audit does not replace `results-analysis` for statistics or `citation-verification` for bibliographic verification. It checks whether paper claims correctly use the available evidence.
+This audit does not replace `results-analysis` for statistics or `paper-citation-verify` for bibliographic verification. It checks whether paper claims correctly use the available evidence.
 
 ### 5. Figure/Table Quality
 
@@ -155,7 +155,13 @@ The Paper Self-Review skill provides a systematic paper quality checking process
 
 ## Reference Files
 
-Load only what is needed:
-- `references/SECTION-CHECKLIST.md` - section-by-section review questions
-- `references/FINAL-VERDICT.md` - how to summarize submission readiness and blocking issues
-- `examples/example-self-review.md` - example review output
+原上游 3 份必读件未随仓（登记见 ASSET-GAP.md），要点已极简内联于下，正文不依赖缺失文件即可执行：
+
+- **section-checklist（内联）**：逐节过检——摘要四要素（问题/方法/结果/贡献）、引言动机明确、方法可复现、结果支持结论、讨论含局限与未来工作；每节先问「这节要证明什么」再挑错。
+- **final-verdict（内联）**：收尾给三档结论——`ready`（无阻断项）/ `ready-after-fixes`（列阻断项+最小修复）/ `not-ready`（结构性缺陷）；阻断项=编译失败、主张无证据、图表缺标注、引用存疑。
+- **example-self-review（内联）**：输出样例形态=按上述 Claim Audit 表 + 质量清单 + 三档结论组织，每条发现给位置与最小修复。
+
+获得上游来源后按原路径回填：
+- `references/SECTION-CHECKLIST.md`（缺失——要点已内联）
+- `references/FINAL-VERDICT.md`（缺失——要点已内联）
+- `examples/example-self-review.md`（缺失——要点已内联）

@@ -1,6 +1,7 @@
 import { createMemo, For, Show, type JSX } from "solid-js"
 import { FileIcon } from "@synsci/ui/file-icon"
 import { IconArchive, IconCopy, IconDownload, IconX } from "@/atlas/shared/Icon"
+import { useFileChrome } from "./file-chrome"
 import { artifactControl, toolbarControls, type FileDescription } from "./file-viewer"
 
 export interface FileToolbarProps {
@@ -11,6 +12,7 @@ export interface FileToolbarProps {
   sourceLabel?: string
   dirty: boolean
   saving: boolean
+  saveDisabled?: boolean
   writable?: boolean
   disabled?: boolean
   artifact?: boolean
@@ -26,6 +28,7 @@ export interface FileToolbarProps {
 }
 
 export function FileToolbar(props: FileToolbarProps): JSX.Element {
+  const chrome = useFileChrome()
   const controls = createMemo(() =>
     toolbarControls({
       description: props.description,
@@ -50,29 +53,36 @@ export function FileToolbar(props: FileToolbarProps): JSX.Element {
     return props.onDownload()
   }
 
+  // One line: the file, then the viewer's own controls, then the actions.
+  // The kind and location ride beside the name in faint text rather than on
+  // a second line, so the header costs the reader one row, not two.
   return (
     <header class="atlas-file-toolbar" data-slot="file-toolbar">
       <div class="atlas-file-identity">
         <span class="atlas-file-kind-icon" aria-hidden="true">
           <FileIcon node={{ path: props.name, type: "file" }} class="atlas-file-type-glyph" />
         </span>
-        <div class="atlas-file-heading">
-          <div class="atlas-file-name" title={props.name}>
-            {props.name}
-          </div>
-          <div class="atlas-file-meta">
-            <span class="atlas-file-type">{props.description.label}</span>
-            <Show when={props.location}>
-              <span class="atlas-file-meta-separator" aria-hidden="true">
-                ·
-              </span>
-              <span class="atlas-file-location" title={props.location}>
-                {props.location}
-              </span>
-            </Show>
-          </div>
+        <div class="atlas-file-name" title={props.location ? `${props.name} · ${props.location}` : props.name}>
+          {props.name}
+        </div>
+        <div class="atlas-file-meta">
+          <span class="atlas-file-type">{props.description.label}</span>
+          <Show when={props.location}>
+            <span class="atlas-file-meta-separator" aria-hidden="true">
+              ·
+            </span>
+            <span class="atlas-file-location" title={props.location}>
+              {props.location}
+            </span>
+          </Show>
         </div>
       </div>
+
+      <div
+        class="atlas-file-viewer-controls"
+        data-slot="file-viewer-controls"
+        ref={(element) => chrome?.setSlot(element)}
+      />
 
       <div class="atlas-file-controls">
         <Show when={views().length > 0}>
@@ -108,7 +118,7 @@ export function FileToolbar(props: FileToolbarProps): JSX.Element {
                   class="atlas-file-button"
                   classList={{ "is-primary": control.id === "save" }}
                   aria-label={control.id === "save" ? "Save changes" : "Discard changes"}
-                  disabled={props.disabled || control.disabled}
+                  disabled={props.disabled || control.disabled || (control.id === "save" && props.saveDisabled)}
                   onClick={() => action(control.id)}
                 >
                   {control.label}
@@ -138,6 +148,7 @@ export function FileToolbar(props: FileToolbarProps): JSX.Element {
             type="button"
             class="atlas-file-action"
             aria-label="Copy contents"
+            title="Copy contents"
             disabled={props.disabled}
             onClick={props.onCopy}
           >
@@ -150,6 +161,7 @@ export function FileToolbar(props: FileToolbarProps): JSX.Element {
             type="button"
             class="atlas-file-action"
             aria-label="Download file"
+            title="Download file"
             disabled={props.disabled}
             onClick={props.onDownload}
           >
@@ -157,12 +169,18 @@ export function FileToolbar(props: FileToolbarProps): JSX.Element {
             <span>Download</span>
           </button>
         </Show>
-        <Show when={props.onClose}>
-          <button type="button" class="atlas-file-close" aria-label="Close file" onClick={() => props.onClose?.()}>
-            <IconX size={16} strokeWidth={1.55} />
-          </button>
-        </Show>
       </div>
+      <Show when={props.onClose}>
+        <button
+          type="button"
+          class="atlas-file-close"
+          aria-label="Close file"
+          title="Close file"
+          onClick={() => props.onClose?.()}
+        >
+          <IconX size={16} strokeWidth={1.5} />
+        </button>
+      </Show>
     </header>
   )
 }

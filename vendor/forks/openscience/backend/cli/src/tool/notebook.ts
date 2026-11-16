@@ -341,7 +341,7 @@ class PythonKernel implements Kernel {
       file: interpreter.binary,
       args: ["-u", scriptPath],
       workspace,
-      readable,
+      readable: [...readable, ...(opts?.extraReadable ?? [])],
       extraWritable: [scriptPath, configPath, cachePath, ...(opts?.extraWritable ?? [])],
       unreadable: OpenScience.kernelSensitivePaths(),
       options: {
@@ -378,8 +378,7 @@ class PythonKernel implements Kernel {
     try {
       proc = spawn(wrapped.file, wrapped.args, {
         cwd,
-        env: {
-          ...OpenScience.kernelEnv(process.env),
+        env: OpenScience.kernelEnv(process.env, {
           ...OpenScience.pythonThreadCapEnv(process.env),
           ...(opts?.env ?? {}),
           ATLAS_CLI_CONFIG_PATH: configPath,
@@ -387,7 +386,9 @@ class PythonKernel implements Kernel {
           XDG_CACHE_HOME: path.join(cachePath, "xdg"),
           PYTHONPYCACHEPREFIX: path.join(cachePath, "pycache"),
           PYTHONUNBUFFERED: "1",
-        },
+          PYTHONIOENCODING: "utf-8",
+          PYTHONUTF8: "1",
+        }),
         stdio: ["pipe", "pipe", "pipe"],
         // Own process group so killing the kernel reaps its children too — a scanpy
         // run forks joblib/BLAS workers that would otherwise be orphaned and keep
@@ -435,6 +436,7 @@ class PythonKernel implements Kernel {
       let buf = ""
       const onData = (d: Buffer) => {
         buf += d.toString()
+        if (process.platform === "win32") buf = buf.replaceAll("\r\n", "\n")
         if (buf.length > 64 * 1024) {
           clearTimeout(timer)
           proc.stdout?.off("data", onData)
@@ -521,6 +523,8 @@ class PythonKernel implements Kernel {
       let buffer = ""
       const onData = (d: Buffer) => {
         buffer += d.toString()
+        // Normalize after accumulation so CRLF split across stdout chunks is recognized.
+        if (process.platform === "win32") buffer = buffer.replaceAll("\r\n", "\n")
         if (!kernel.executionArmed && buffer.includes(EXECUTION_READY)) {
           kernel.executionArmed = true
           buffer = buffer.replace(EXECUTION_READY, "")
@@ -840,7 +844,10 @@ async function executePython(params: PythonInput, ctx: Tool.Context, compatibili
       permission: "bash",
       patterns: ["python"],
       always: ["python*"],
-      metadata: {},
+      // What the approval card says is being run; the source itself is the tool row's input.
+      metadata: {
+        kernel: { language: "python", title: params.title, lines: params.code!.split("\n").length },
+      },
     })
   }
 

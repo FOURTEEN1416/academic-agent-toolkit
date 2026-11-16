@@ -1,4 +1,5 @@
 import { BusEvent } from "@/bus/bus-event"
+import { ManagedH2 } from "../provider/managed-h2"
 import { Bus } from "@/bus"
 import { Log } from "../util/log"
 import { describeRoute, generateSpecs, validator, resolver, openAPIRouteHandler } from "hono-openapi"
@@ -10,10 +11,10 @@ import { webAssetContentSecurityPolicy } from "../web/csp"
 import { isAllowedHost, isAllowedOrigin, isCorsPreflight, isCrossOrigin, isDeploymentAuthorized } from "./host-guard"
 import { timingSafeEqual } from "../util/timing-safe"
 import { FolderResolveRoutes } from "./routes/folder-resolve"
-import { AtlasBridgeRoutes } from "./routes/atlas-bridge"
 import { RepoRoutes } from "./routes/repo"
 import z from "zod"
 import { Provider } from "../provider/provider"
+import { KeyCheck } from "../provider/key-check"
 import { NamedError } from "@synsci/util/error"
 import { LSP } from "../lsp"
 import { Format } from "../format"
@@ -22,10 +23,12 @@ import { Project } from "../project/project"
 import { Vcs } from "../project/vcs"
 import { Agent } from "../agent/agent"
 import { Skill } from "../skill/skill"
+import { PermissionNext } from "../permission/next"
+import { Config } from "../config/config"
 import { Auth } from "../auth"
 import { Command } from "../command"
 import { Global } from "../global"
-import { ProjectRoutes } from "./routes/project"
+import { ProjectRoutes, ProjectListRoutes } from "./routes/project"
 import { SessionRoutes } from "./routes/session"
 import { RuntimeRoutes } from "./routes/runtime"
 import { PtyRoutes } from "./routes/pty"
@@ -36,7 +39,7 @@ import { ProvenanceRoutes } from "./routes/provenance"
 import { ConfigRoutes } from "./routes/config"
 import { ExperimentalRoutes } from "./routes/experimental"
 import { ProviderRoutes } from "./routes/provider"
-import { lazy } from "../util/lazy"
+import { lazy } from "@synsci/util/lazy"
 import { InstanceBootstrap } from "../project/bootstrap"
 import { Storage } from "../storage/storage"
 import type { ContentfulStatusCode } from "hono/utils/http-status"
@@ -44,31 +47,34 @@ import { websocket } from "hono/bun"
 import { HTTPException } from "hono/http-exception"
 import { errors } from "./error"
 import { QuestionRoutes } from "./routes/question"
+import { ExperimentsRoutes } from "./routes/experiments"
 import { PermissionRoutes } from "./routes/permission"
 import { SearchRoutes } from "./routes/search"
 import { GlobalRoutes } from "./routes/global"
-import { AccountRoutes } from "./routes/account"
 import { SettingsSkillsRoutes } from "./routes/settings/skills"
 import { NetworkSettingsRoutes } from "./routes/settings/network"
 import { CredentialsRoutes } from "./routes/settings/credentials"
 import { StorageRoutes } from "./routes/settings/storage"
 import { ComputeSettingsRoutes } from "./routes/settings/compute"
 import { SettingsPreferencesRoutes } from "./routes/settings/preferences"
+import { UsageLoggingRoutes } from "./routes/settings/usage-logging"
+import { UsageSettingsRoutes } from "./routes/settings/usage"
 import { LocalModelsRoutes } from "./routes/settings/local"
 import { SandboxSettingsRoutes } from "./routes/settings/sandbox"
-import { BillingSettingsRoutes } from "./routes/settings/billing"
-import { WalletSettingsRoutes } from "./routes/settings/wallet"
-import { SettingsUsageRoutes } from "./routes/settings/usage"
-import { UpdatesSettingsRoutes } from "./routes/settings/updates"
-import { ResearchToolsSettingsRoutes } from "./routes/settings/research-tools"
+import { CliSettingsRoutes } from "./routes/settings/cli"
+import { UpdatesSettingsRoutes, desktopUpdateShutdownAuthorized } from "./routes/settings/updates"
+import { ScientificToolsSettingsRoutes } from "./routes/settings/scientific-tools"
 import { projectSelection } from "./project-selection"
 import { CredentialLifecycle } from "../credentials/lifecycle"
-import { ComputeJobs } from "../compute/jobs"
-import { CommandRuntime } from "../science/command/registry"
-import { CredentialProcessLedger } from "../credentials/process-ledger"
+import { CredentialTeardown } from "../credentials/teardown"
 import { DataRootBarrier } from "../global/data-root-barrier"
-import { OpenScience } from "../openscience"
-import { accountRequiredResponse, requiresAccountForRequest } from "./account-gate"
+import { OnboardingAuthRoutes } from "./routes/onboarding-auth"
+import { SearchSettingsRoutes } from "./routes/settings/search"
+import { ProviderConnectionRoutes } from "./routes/provider-connection"
+import { AccountRoutes } from "./routes/account"
+import { BillingSettingsRoutes } from "./routes/settings/billing"
+import { WalletSettingsRoutes } from "./routes/settings/wallet"
+import { Startup } from "../util/startup"
 
 // @ts-ignore This global is needed to prevent ai-sdk from logging warnings to stdout https://github.com/vercel/ai/blob/2dc67e0ef538307f21368db32d5a12345d98831b/packages/ai/src/logger/log-warnings.ts#L85
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -76,26 +82,35 @@ globalThis.AI_SDK_LOG_WARNINGS = false
 export namespace Server {
   const log = Log.create({ service: "server" })
 
+  /** Upper bound on events buffered per SSE client before the oldest are dropped. */
+  const EVENT_QUEUE_LIMIT = 2000
+
+  type QueuedEvent = { type: string; properties?: unknown }
+
+  /** Part id of a streamed `message.part.updated` event, used to coalesce a full queue. */
+  function partID(event: QueuedEvent) {
+    if (event.type !== "message.part.updated") return
+    const part = (event.properties as { part?: { id?: unknown } } | undefined)?.part
+    return typeof part?.id === "string" ? part.id : undefined
+  }
+
   let _url: URL | undefined
   let _corsWhitelist: string[] = []
   let _server: Bun.Server<unknown> | undefined
   let credentialLifecycleReady = false
+  let credentialLifecycleBaseline: Promise<void> | undefined
+  let openapiDocument: ReturnType<typeof generateSpecs> | undefined
 
   function startCredentialLifecycle() {
     if (credentialLifecycleReady) return
     credentialLifecycleReady = true
-    CredentialLifecycle.onRevoke(async () => {
-      // Compute jobs and long-running Bash commands do not live in Instance
-      // state. MCP and LSP do, and their disposal callbacks close the
-      // underlying transports/processes.
-      await Promise.all([
-        ComputeJobs.cancelCredentialProcesses(),
-        CommandRuntime.stopAll(),
-        CredentialProcessLedger.revoke("mcp"),
-        Instance.disposeAll(),
-      ])
+    // Which runtimes a revision reaches is decided by its reason; see
+    // CredentialRevocation for why an expired synced overlay must not dispose
+    // every project instance.
+    CredentialLifecycle.onRevoke(CredentialTeardown.apply)
+    credentialLifecycleBaseline = CredentialLifecycle.ensureFresh().then(() => {
+      CredentialLifecycle.watch()
     })
-    CredentialLifecycle.watch()
   }
 
   // Per-process secret marking trusted in-process calls (Server.internalFetch).
@@ -117,6 +132,13 @@ export namespace Server {
     () =>
       // TODO: Break server.ts into smaller route files to fix type inference
       app
+        .use(async (_c, next) => {
+          // Reconcile a durable credential revision before any request can
+          // initialize project state. Running revokers from inside that state
+          // initializer would otherwise wait on the very state being built.
+          await credentialLifecycleBaseline
+          return next()
+        })
         // 404/410 and friends are cacheable by default (RFC 7231 §6.1), and a
         // JSON body with no Cache-Control is fair game for heuristic caching
         // too. A browser that cached one stale-project 410 for /provider then
@@ -139,7 +161,11 @@ export namespace Server {
             else if (err instanceof Provider.ModelNotFoundError) status = 400
             else if (err.name === "SessionFilesystemDeniedError") status = 403
             else if (err.name === "SessionFilesystemInvalidPathError") status = 400
-            else if (err.name === "SessionDirectoryMismatchError" || err.name === "SessionDirectoryImmutableError")
+            else if (
+              err.name === "SessionDirectoryMismatchError" ||
+              err.name === "SessionDirectoryImmutableError" ||
+              err.name === "SessionWorkspaceMismatchError"
+            )
               status = 409
             else if (err.name === "ProjectUnknownError") status = 404
             else if (err.name === "ProjectStaleError") status = 410
@@ -192,6 +218,13 @@ export namespace Server {
           if (
             !health &&
             !preflight &&
+            !(
+              c.req.path === "/settings/updates/dispose" &&
+              desktopUpdateShutdownAuthorized(
+                c.req.header("authorization"),
+                process.env.OPENSCIENCE_DESKTOP_UPDATE_TOKEN,
+              )
+            ) &&
             !isDeploymentAuthorized(process.env["OPENSCIENCE_AUTH_TOKEN"], c.req.header("authorization"))
           ) {
             c.header("WWW-Authenticate", 'Bearer realm="openscience"')
@@ -200,37 +233,22 @@ export namespace Server {
           return next()
         })
         .use(async (c, next) => {
-          const internal = c.req.header(INTERNAL_HEADER)
-          if (internal !== undefined && timingSafeEqual(internal, INTERNAL_NONCE)) return next()
-          if (
-            requiresAccountForRequest({
-              method: c.req.method,
-              path: c.req.path,
-              accept: c.req.header("accept"),
-              upgrade: c.req.header("upgrade"),
-            }) &&
-            !(await OpenScience.isAuthenticated())
-          ) {
-            c.header("WWW-Authenticate", 'Bearer realm="openscience-account"')
-            return c.json(accountRequiredResponse, 401)
-          }
-          return next()
-        })
-        .use(async (c, next) => {
           const skipLogging = c.req.path === "/log"
+          const started = Date.now()
           if (!skipLogging) {
-            log.info("request", {
+            log.debug("request", {
               method: c.req.method,
               path: c.req.path,
             })
           }
-          const timer = log.time("request", {
-            method: c.req.method,
-            path: c.req.path,
-          })
           await next()
           if (!skipLogging) {
-            timer.stop()
+            log.debug("request", {
+              method: c.req.method,
+              path: c.req.path,
+              status: "completed",
+              duration: Date.now() - started,
+            })
           }
         })
         .use(
@@ -254,7 +272,12 @@ export namespace Server {
             c.req.path === "/log" ||
             c.req.path === "/runtime/events" ||
             c.req.header("upgrade") === "websocket"
-          if (switching || streaming) return next()
+          // Health reads nothing under the data root. Keeping it out of the
+          // barrier spares it the per-request marker (fsync and rename, slow
+          // under Windows Defender) and any relocation wait, so a live server
+          // never looks unreachable to the workspace's health check (#1042).
+          const health = c.req.path === "/global/health"
+          if (switching || streaming || health) return next()
           await DataRootBarrier.during(Global.Path.data, next, 120_000)
         })
         .route("/global", GlobalRoutes())
@@ -265,12 +288,40 @@ export namespace Server {
         .route("/settings/storage", StorageRoutes())
         .route("/settings/compute", ComputeSettingsRoutes())
         .route("/settings/preferences", SettingsPreferencesRoutes())
+        .route("/settings/usage-logging", UsageLoggingRoutes())
+        .route("/settings/usage", UsageSettingsRoutes())
         .route("/settings/local", LocalModelsRoutes())
         .route("/settings/sandbox", SandboxSettingsRoutes())
+        .route("/settings/updates", UpdatesSettingsRoutes())
+        .route("/settings/cli", CliSettingsRoutes())
+        .route("/settings/scientific-tools", ScientificToolsSettingsRoutes())
         .route("/settings/billing", BillingSettingsRoutes())
         .route("/settings/wallet", WalletSettingsRoutes())
-        .route("/settings/updates", UpdatesSettingsRoutes())
-        .route("/settings/research-tools", ResearchToolsSettingsRoutes())
+        .route("/settings/search", SearchSettingsRoutes())
+        .route(
+          "/auth",
+          ProviderConnectionRoutes(() => Provider.invalidate()),
+        )
+        .route(
+          "/auth",
+          OnboardingAuthRoutes({
+            readCredential: (providerID) => Auth.get(providerID),
+            saveCredential: (providerID, auth) => Auth.set(providerID, auth),
+            removeCredential: (providerID) => Auth.remove(providerID),
+            verifyKey: (providerID, key) => KeyCheck.verify({ providerID, key, config: () => Config.getGlobal() }),
+            readBillingMode: async () => (await Config.getGlobal()).billing?.llm ?? null,
+            selectByok: async () => {
+              await Config.updateGlobal({ billing: { llm: "byok" } }, { preserveInstances: true })
+            },
+            restoreBillingMode: async (mode) => {
+              await Config.updateGlobal({ billing: { llm: mode } }, { preserveInstances: true })
+            },
+            // Defer this call because Provider imports Server for local fetches;
+            // the route module itself intentionally has no Provider dependency.
+            invalidate: () => Provider.invalidate(),
+            serialize: (action) => CredentialLifecycle.serialized(action),
+          }),
+        )
         .put(
           "/auth/:providerID",
           describeRoute({
@@ -302,12 +353,8 @@ export namespace Server {
             await Auth.set(providerID, info)
             // Don't depend on the client remembering to call global.sync —
             // stale provider state would keep serving the old credential.
-            // Auth.set writes the auth FILE, which no config write covers, so
-            // this call is still the one that makes the new key visible. (When
-            // it also flips billing.llm managed -> byok, Config's global write
-            // has already invalidated before announcing the disposal — see
-            // disposeGlobalInstances — so the SPA refetch that event triggers
-            // cannot beat us to a stale re-memoisation.)
+            // Auth.set writes the auth file directly, so invalidate the provider
+            // memo before the SPA re-reads the catalog.
             Provider.invalidate()
             return c.json(true)
           },
@@ -346,17 +393,17 @@ export namespace Server {
         // Folder picker discovery remains filesystem-global; path validation
         // resolves project capabilities inside the route when one is supplied.
         .route("/api/resolve-folder", FolderResolveRoutes())
-        // Atlas graph bridge — proxies /api/atlas/* to the Atlas REST API
-        // using the user's stored thk_ key (see routes/atlas-bridge.ts).
-        .route("/api/atlas", AtlasBridgeRoutes())
         // Repository tab (status/commit/push/remote) — shells out to git.
         .route("/api/repo", RepoRoutes())
+        // Global library discovery must not bootstrap/register the server cwd.
+        .route("/project", ProjectListRoutes())
         .use(async (c, next) => {
           const selected = await projectSelection(c)
           if (selected.selector) await Project.assertDirectory(selected.selector)
           const directory = selected.directory ?? process.cwd()
           return Instance.provide({
             directory,
+            projectID: selected.project?.id,
             init: InstanceBootstrap,
             async fn() {
               if (selected.project && Instance.project.id !== selected.project.id) {
@@ -392,6 +439,7 @@ export namespace Server {
         .route("/search", SearchRoutes())
         .route("/permission", PermissionRoutes())
         .route("/question", QuestionRoutes())
+        .route("/experiments", ExperimentsRoutes())
         .route("/provider", ProviderRoutes())
         .route("/", FileRoutes())
         .route("/kernels", KernelRoutes())
@@ -400,7 +448,6 @@ export namespace Server {
         .route("/mcp", McpRoutes())
         .route("/settings/skills", SettingsSkillsRoutes())
         .route("/settings/network", NetworkSettingsRoutes())
-        .route("/settings/usage", SettingsUsageRoutes())
         .post(
           "/instance/dispose",
           describeRoute({
@@ -542,6 +589,12 @@ export namespace Server {
           ),
           async (c) => {
             const { service, level, message, extra } = c.req.valid("json")
+            // The workspace reports the moment it became usable; that closes
+            // the startup timing line instead of adding a second entry.
+            if (service === "startup" && message === "interactive") {
+              Startup.interactive(extra)
+              return c.json(true)
+            }
             const logger = Log.create({ service })
 
             switch (level) {
@@ -595,15 +648,41 @@ export namespace Server {
                 description: "List of skills",
                 content: {
                   "application/json": {
-                    schema: resolver(Skill.Info.array()),
+                    schema: resolver(Skill.CatalogEntry.array()),
                   },
                 },
               },
             },
           }),
           async (c) => {
-            const skills = await Skill.all()
-            return c.json(skills)
+            const config = await Config.get()
+            const skills = await Skill.catalog(PermissionNext.fromConfig(config.permission ?? {}))
+            return c.json(skills.library)
+          },
+        )
+        .get(
+          "/skill/:name/content",
+          describeRoute({
+            summary: "Read a skill's instructions",
+            description: "The SKILL.md text and location of one skill, for clients without filesystem access.",
+            operationId: "app.skill.content",
+            responses: {
+              200: {
+                description: "Skill content",
+                content: {
+                  "application/json": {
+                    schema: resolver(z.object({ name: z.string(), location: z.string(), content: z.string() })),
+                  },
+                },
+              },
+              ...errors(404),
+            },
+          }),
+          validator("param", z.object({ name: z.string() })),
+          async (c) => {
+            const result = await Skill.content(c.req.valid("param").name)
+            if (!result) return c.json({ error: "Skill not found" }, 404)
+            return c.json(result)
           },
         )
         .put(
@@ -714,20 +793,14 @@ export namespace Server {
           }),
           async (c) => {
             log.info("event connected")
+            // A UI is in use: keep the managed gateway connection warm.
+            ManagedH2.activity()
             return streamSSE(c, async (stream) => {
               stream.writeSSE({
                 data: JSON.stringify({
                   type: "server.connected",
                   properties: {},
                 }),
-              })
-              const unsub = Bus.subscribeAll(async (event) => {
-                await stream.writeSSE({
-                  data: JSON.stringify(event),
-                })
-                if (event.type === Bus.InstanceDisposed.type) {
-                  stream.close()
-                }
               })
 
               // Send heartbeat every 30s to prevent WKWebView timeout (60s default)
@@ -740,21 +813,87 @@ export namespace Server {
                 })
               }, 30000)
 
-              await new Promise<void>((resolve) => {
-                stream.onAbort(() => {
-                  clearInterval(heartbeat)
-                  unsub()
-                  resolve()
-                  log.info("event disconnected")
-                })
+              // The subscriber never awaits the socket. Events land in a
+              // bounded per-connection queue drained by one writer loop, so a
+              // stalled browser tab cannot backpressure `Bus.publish` callers.
+              const queue: QueuedEvent[] = []
+              const done = Promise.withResolvers<void>()
+              const state = { closed: false, draining: false, overflowed: false }
+              const cleanup = () => {
+                if (state.closed) return
+                state.closed = true
+                clearInterval(heartbeat)
+                unsub()
+                done.resolve()
+              }
+              const drain = async () => {
+                if (state.draining) return
+                state.draining = true
+                try {
+                  for (;;) {
+                    const event = state.closed ? undefined : queue.shift()
+                    if (!event) break
+                    await stream.writeSSE({
+                      data: JSON.stringify(event),
+                    })
+                    // One resync frame covers the losses since the client last
+                    // re-hydrated, so the next overflow has to raise its own.
+                    if (event.type === "server.connected") state.overflowed = false
+                    if (event.type !== Bus.InstanceDisposed.type) continue
+                    cleanup()
+                    stream.close()
+                  }
+                } catch (error) {
+                  log.debug("event write failed", { error })
+                  cleanup()
+                } finally {
+                  state.draining = false
+                }
+              }
+              const unsub = Bus.subscribeAll((event: QueuedEvent) => {
+                if (state.closed) return
+                if (queue.length >= EVENT_QUEUE_LIMIT) {
+                  const part = partID(event)
+                  // Replace the newest queued update for the part, never an
+                  // older one, so the client still receives states in order.
+                  const index = part === undefined ? -1 : queue.findLastIndex((item) => partID(item) === part)
+                  if (index >= 0) {
+                    queue[index] = event
+                    return
+                  }
+                  // Drop a queued part update before anything else: the
+                  // client reconciles whole parts, whereas a dropped status,
+                  // finish, permission or question leaves it stale for good.
+                  const oldestPart = queue.findIndex((item) => partID(item) !== undefined)
+                  const victim =
+                    oldestPart >= 0 ? oldestPart : queue.findIndex((item) => item.type !== "server.connected")
+                  queue.splice(victim >= 0 ? victim : 0, 1)
+                  if (!state.overflowed) {
+                    state.overflowed = true
+                    log.warn("event queue overflow; dropping oldest events", { limit: EVENT_QUEUE_LIMIT })
+                    // Whatever was lost, the client re-hydrates on this frame
+                    // exactly as it does after a reconnect.
+                    queue.unshift({ type: "server.connected", properties: {} } as QueuedEvent)
+                  }
+                }
+                queue.push(event)
+                void drain()
               })
+
+              stream.onAbort(() => {
+                cleanup()
+                log.info("event disconnected")
+              })
+              await done.promise
             })
           },
         )
         .all("/*", async (c) => {
           // Unmatched /api/* must 404 — never SPA-fallback (the SPA would
           // try to JSON.parse `<!doctype`) and never proxy upstream.
-          if (c.req.path.startsWith("/api/")) return c.notFound()
+          if (c.req.path.startsWith("/api/")) {
+            return c.json({ error: "not_found", detail: "API route not found", path: c.req.path }, 404)
+          }
 
           if (wantsJson(c.req.header("accept") ?? null, c.req.header("content-type") ?? null)) {
             log.warn("unmatched API-shaped request", { method: c.req.method, path: c.req.path })
@@ -784,18 +923,24 @@ export namespace Server {
   }
 
   export async function openapi() {
-    // Cast to break excessive type recursion from long route chains
-    const result = await generateSpecs(App() as Hono, {
-      documentation: {
-        info: {
-          title: "openscience",
-          version: "1.0.0",
-          description: "openscience api",
+    if (!openapiDocument) {
+      // hono-openapi resolves nested route schemas in place. Generate the
+      // static application contract once so later callers retain components.
+      openapiDocument = generateSpecs(App() as Hono, {
+        documentation: {
+          info: {
+            title: "openscience",
+            version: "1.0.0",
+            description: "openscience api",
+          },
+          openapi: "3.1.1",
         },
-        openapi: "3.1.1",
-      },
-    })
-    return result
+      }).catch((error) => {
+        openapiDocument = undefined
+        throw error
+      })
+    }
+    return openapiDocument
   }
 
   export function listen(opts: { port: number; cors?: string[] }) {
@@ -822,6 +967,7 @@ export namespace Server {
 
     _url = server.url
     _server = server
+    Startup.listening()
 
     return server
   }

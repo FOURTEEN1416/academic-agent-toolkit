@@ -42,16 +42,23 @@ Use this skill before calling a PaperSpine rewrite or build complete.
 Run when available:
 
 ```bash
-python scripts/integrity_audit.py paper_rewriting_output --markdown --write
-python scripts/artifact_check.py paper_rewriting_output --markdown --write
-python scripts/revision_audit.py <original> <revised> --markdown
-python scripts/structured_review.py paper_rewriting_output --dispatch
+# Resolve scripts from this repository checkout, not the user's project cwd
+# (a bare `python scripts/...` path is the most common reason the command fails).
+REPO="$(git rev-parse --show-toplevel)"
+python "$REPO/academic-toolkit/skills/spine-audit/scripts/integrity_audit.py" paper_rewriting_output --markdown --write
+python "$REPO/academic-toolkit/skills/spine-audit/scripts/artifact_check.py" paper_rewriting_output --markdown --write
+python "$REPO/academic-toolkit/skills/spine-audit/scripts/revision_audit.py" <original> <revised> --markdown
+python "$REPO/academic-toolkit/skills/spine-audit/scripts/structured_review.py" paper_rewriting_output --dispatch
 # Then: launch three parallel sub-agents per review_prompts/dispatch.md
-# After sub-agents complete: python scripts/structured_review.py paper_rewriting_output --validate review_prompts
-python scripts/citation_quality_audit.py paper_rewriting_output --write
-python scripts/latex_guard.py <main.tex> --bib <references.bib> --markdown
-python scripts/word_guard.py paper_rewriting_output/final_paper/paper.docx --markdown --output paper_rewriting_output/word_report.md
+# After sub-agents complete: python "$REPO/academic-toolkit/skills/spine-audit/scripts/structured_review.py" paper_rewriting_output --validate review_prompts
+python "$REPO/academic-toolkit/skills/spine-audit/scripts/citation_quality_audit.py" paper_rewriting_output --write
+python "$REPO/academic-toolkit/skills/spine-audit/scripts/latex_guard.py" <main.tex> --bib <references.bib> --markdown
+python "$REPO/academic-toolkit/skills/spine-audit/scripts/word_guard.py" paper_rewriting_output/final_paper/paper.docx --markdown --output paper_rewriting_output/word_report.md
 ```
+
+Same-name guard scripts exist in several spine skill directories (registered
+in `academic-toolkit/data/duplicate_assets_registry.json`); use this skill's
+own copies shown above.
 
 ## Multi-Agent Review Flow
 

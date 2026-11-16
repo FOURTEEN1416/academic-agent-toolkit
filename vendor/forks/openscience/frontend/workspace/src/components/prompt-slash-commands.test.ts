@@ -1,113 +1,163 @@
 import { expect, test } from "bun:test"
-import { readFileSync } from "node:fs"
-import { fileURLToPath } from "node:url"
 import {
   SLASH_NATIVE,
+  SLASH_CONTEXTUAL,
+  SLASH_CORE,
+  SLASH_SESSION,
   SLASH_ACTION_SKILLS,
+  SLASH_QUERY_LIMIT,
+  SLASH_GROUP_CORE,
+  SLASH_GROUP_PINNED,
+  SLASH_GROUP_SESSION,
   slashActionSkill,
+  slashBlurb,
+  slashCatalog,
   slashGroup,
   slashIcon,
   slashEdit,
   slashMode,
-  slashSource,
+  slashMatches,
+  slashOptionId,
+  slashSubject,
   slashTokenAt,
-  sortSlash,
+  sortSlashGroups,
   type SlashCommand,
 } from "./prompt-slash"
 
-test("slash menu keeps a small toggleable action surface above other skills", () => {
-  const component = readFileSync(fileURLToPath(new URL("./prompt-input.tsx", import.meta.url)), "utf8")
-  const hierarchy = readFileSync(fileURLToPath(new URL("./prompt-slash.ts", import.meta.url)), "utf8")
-  const styles = readFileSync(fileURLToPath(new URL("./prompt-input.css", import.meta.url)), "utf8")
-
-  expect(hierarchy).toContain('export const SLASH_NATIVE = ["compact", "context", "plan", "goal", "status"]')
-  expect(component).toContain("sync.data.command")
-  expect(component).toContain("sync.data.skill")
-  expect(component).toContain("const catalog = new Map(sync.data.command")
-  expect(component).toContain("const builtin = SLASH_NATIVE.filter(")
-  expect(component).toContain("const localTriggers = new Set(local.map((item) => item.trigger))")
-  expect(component).toContain("!localTriggers.has(name)")
-  expect(component).toContain('skillAction(sync.data.config.permission, name) !== "deny"')
-  expect(component).not.toContain("available.has(name)")
-  expect(component).toContain("const slashItems = (query: string) =>")
-  expect(component).toContain("if (!query.trim()) return items")
-  expect(component).toContain('item.source === "builtin" &&')
-  expect(component).toContain("!SLASH_NATIVE.some((name) => name === item.name)")
-  expect(component).toContain('skillAction(sync.data.config.permission, item.name) !== "deny"')
-  expect(component).toContain("const exact = all.filter((item) => trigger(item) === needle)")
-  expect(component).toContain("if (exact.length) return exact")
-  expect(component).toContain("if (prefix.length) return prefix")
-  expect(component).toContain("if (contained.length) return contained")
-  expect(component).toContain('item.type === "skill" || item.type === "mode"')
-  expect(component).toContain("items: slashItems")
-  expect(component).toContain("const enabled = enabledSkills(sync.data.skill ?? [], [], sync.data.config.permission)")
-  expect(component).toContain("const local = command.options")
-  expect(component).toContain('command.trigger(cmd.actionID, "slash")')
-  expect(component).toContain("const skills = enabled")
-  expect(component).toContain(".filter((skill) => !reserved.has(skill.name))")
-  expect(component).toContain('source: "builtin" as const')
-  expect(component).toContain('type: slashActionSkill(s.name) ? ("action" as const) : ("skill" as const)')
-  expect(component).toContain("groupBy: slashGroup")
-  expect(component).toContain("grouped: slashGrouped")
-  expect(component).toContain("aria-label={group.category}")
-  expect(component).toContain('if (cmd.type === "skill")')
-  expect(component).toContain('if (!replaceSlash("")) return')
-  expect(component).toContain('void handleSubmit(new Event("submit"), cmd.trigger)')
-  expect(component).toContain("const intent = slashMode(cmd)")
-  expect(component).toContain("data-composer-intent={intent()}")
-  expect(component).toContain('if (store.intent === "plan")')
-  expect(component).toContain('if (store.intent === "goal")')
-  expect(component).toContain("requestAnimationFrame(scrollSlashActive)")
-  expect(component).toContain("editorRef.focus({ preventScroll: true })")
-  expect(component).toContain("[() => sync.data.command, () => sync.data.skill, () => sync.data.config.permission]")
-  expect(component).toContain('const native = command?.source === "builtin" && command.menu')
-  expect(component.indexOf("if (native && active")).toBeLessThan(component.indexOf("const currentModel"))
-  expect(component).toContain("workspace-composer__slash-icon")
-  expect(component).toContain("workspace-composer__slash-meta")
-  expect(component).toContain('when={group.category === "Skills"}')
-  expect(component).not.toContain("workspace-composer__slash-badge")
-  expect(styles).toMatch(/\.workspace-composer__slash-row\s*\{[^}]*display: grid/s)
-  expect(styles).toMatch(/\.workspace-composer__slash-group\s*\{[^}]*display: grid/s)
-  expect(styles).toMatch(/\.workspace-composer__slash-heading\s*\{[^}]*font-size: 12px/s)
-  expect(styles).toMatch(/\.workspace-composer__suggestions\s*\{[^}]*border-radius: var\(--radius-xl\)/s)
-  expect(styles).toMatch(/\.workspace-composer__suggestions\s*\{[^}]*max-height: min\(360px, 48vh\)/s)
-  expect(styles).toContain(".workspace-composer__intent")
+const command = (
+  trigger: string,
+  source: SlashCommand["source"] = "builtin",
+  extra: Partial<SlashCommand> = {},
+): SlashCommand => ({
+  id: `${source}.${trigger}`,
+  trigger,
+  title: trigger,
+  source,
+  category: source === "skill" ? "skill" : "session",
+  type: source === "skill" ? "skill" : "action",
+  ...extra,
 })
 
-test("slash hierarchy keeps frequent native actions ahead of a stable skills catalog", () => {
-  const command = (trigger: string, source: SlashCommand["source"] = "builtin"): SlashCommand => ({
-    id: `${source}.${trigger}`,
-    trigger,
-    title: trigger,
-    source,
-    category: source === "skill" ? "skill" : "session",
-    type: source === "skill" ? "skill" : "command",
-  })
-  const items = [
-    command("biology", "skill"),
-    command("plan"),
-    command("goal"),
-    command("review", "skill"),
-    command("context"),
-    command("status"),
-    command("compact"),
-  ].toSorted(sortSlash)
+const menu = () => [
+  command("unsloth-fine-tuning", "skill", { skillCategory: "ml-training" }),
+  command("scanpy", "skill", { skillCategory: "biology" }),
+  command("alphafold", "skill", { skillCategory: "biology", skillState: "pinned" }),
+  command("figures", "skill", { skillCategory: "core" }),
+  command("plan", "builtin", { type: "mode" }),
+  command("goal", "builtin", { type: "mode" }),
+  command("compact"),
+  command("research-lookup", "skill", { skillCategory: "core" }),
+  command("checkpoint"),
+  command("init"),
+  command("stop"),
+  command("deploy-docs", "project"),
+]
 
-  expect(SLASH_NATIVE).toEqual(["compact", "context", "plan", "goal", "status"])
-  expect(items.slice(0, 5).map((item) => item.trigger)).toEqual([...SLASH_NATIVE])
-  expect(items.slice(0, 5).every((item) => slashGroup(item) === "Commands")).toBe(true)
-  expect(slashGroup(items.find((item) => item.trigger === "review")!)).toBe("Skills")
-  expect(slashGroup(items.find((item) => item.trigger === "biology")!)).toBe("Skills")
-  expect(slashGroup({ ...command("init", "skill"), type: "action" })).toBe("Skills")
+test("a bare slash lists core in workflow order, then pinned, session and the library by subject", () => {
+  const rows = slashCatalog(menu())
+  expect(rows.map((row) => row.trigger)).toEqual([
+    "plan",
+    "goal",
+    "research-lookup",
+    "figures",
+    "compact",
+    "alphafold",
+    "stop",
+    "init",
+    "checkpoint",
+    "deploy-docs",
+    "scanpy",
+    "unsloth-fine-tuning",
+  ])
+  expect(rows.slice(0, 5).every((row) => slashGroup(row) === SLASH_GROUP_CORE)).toBe(true)
+  expect(slashGroup(rows[5]!)).toBe(SLASH_GROUP_PINNED)
+  expect(rows.slice(6, 10).every((row) => slashGroup(row) === SLASH_GROUP_SESSION)).toBe(true)
+  expect(slashGroup(rows[10]!)).toBe("Biology")
+  expect(slashGroup(rows[11]!)).toBe("ML training")
+  expect(rows.map((row) => row.resultRank)).toEqual(rows.map((_, index) => index))
+  expect(rows.every((row) => row.meta === undefined)).toBe(true)
+
+  const groups = [
+    { category: "Biology", items: [rows[10]!] },
+    { category: SLASH_GROUP_CORE, items: rows.slice(0, 5) },
+  ].sort(sortSlashGroups)
+  expect(groups.map((group) => group.category)).toEqual([SLASH_GROUP_CORE, "Biology"])
+
+  expect(SLASH_NATIVE).toEqual(["plan", "goal", "compact"])
+  expect(SLASH_CONTEXTUAL).toEqual(["stop"])
+  expect(SLASH_SESSION).toEqual(["stop", "init", "handoff", "checkpoint", "resume"])
+  expect(SLASH_CORE.slice(0, 2)).toEqual(["plan", "goal"])
+  expect(SLASH_CORE.at(-1)).toBe("compact")
+  expect(SLASH_CORE).not.toContain("status")
+  expect(SLASH_CORE).not.toContain("context")
+  expect(SLASH_CORE).not.toContain("undo")
+})
+
+test("a query is one flat ranked list with the library subject as meta and core ahead on ties", () => {
+  const results = slashMatches(menu(), "s")
+  // Prefix matches first, then substring matches with core skills ahead.
+  expect(results.map((row) => row.trigger)).toEqual([
+    "stop",
+    "scanpy",
+    "research-lookup",
+    "figures",
+    "unsloth-fine-tuning",
+    "deploy-docs",
+  ])
+  expect(results.every((row) => slashGroup(row) === "")).toBe(true)
+  expect(results.find((row) => row.trigger === "scanpy")?.meta).toBe("Biology")
+  expect(results.find((row) => row.trigger === "unsloth-fine-tuning")?.meta).toBe("ML training")
+  expect(results.find((row) => row.trigger === "figures")?.meta).toBeUndefined()
+  expect(results.find((row) => row.trigger === "stop")?.meta).toBeUndefined()
+
+  const tie = slashMatches(
+    [command("figures", "skill", { skillCategory: "core" }), command("figures-extra", "skill")],
+    "fig",
+  )
+  expect(tie.map((row) => row.trigger)).toEqual(["figures", "figures-extra"])
+  expect(tie[0]!.meta).toBeUndefined()
+
+  const many: SlashCommand[] = Array.from({ length: 60 }, (_, index) =>
+    command(`analysis-${index}`, "skill", { description: "general workflow" }),
+  )
+  expect(slashMatches(many, "analysis", SLASH_QUERY_LIMIT)).toHaveLength(SLASH_QUERY_LIMIT)
+  expect(slashOptionId(many[0]!)).toBe("composer-slash-option-skill-analysis-0")
+
+  const described = slashMatches(
+    [command("cells", "skill", { searchText: "single cell rna sequencing" })],
+    "single cell",
+  )
+  expect(described.map((row) => row.trigger)).toEqual(["cells"])
+})
+
+test("rows carry fixed icons for the core toolkit and subject icons for the library", () => {
+  expect(slashIcon(command("plan", "builtin", { type: "mode" }))).toBe("branch")
+  expect(slashIcon(command("goal", "builtin", { type: "mode" }))).toBe("task")
+  expect(slashIcon(command("compact"))).toBe("collapse")
+  expect(slashIcon(command("research-lookup", "skill"))).toBe("magnifying-glass")
+  expect(slashIcon(command("peer-review", "skill"))).toBe("eye")
+  expect(slashIcon(command("protein-folding", "skill", { skillCategory: "biology" }))).toBe("braces")
+  expect(slashIcon(command("cell-culture", "skill", { skillCategory: "biology" }))).toBe("activity")
+  expect(slashMode(command("plan"))).toBe("plan")
+  expect(slashMode(command("goal"))).toBe("goal")
+  expect(slashMode(command("compact"))).toBeUndefined()
   expect(SLASH_ACTION_SKILLS).toEqual(["init", "stop", "handoff", "checkpoint"])
   expect(SLASH_ACTION_SKILLS.every(slashActionSkill)).toBe(true)
   expect(slashActionSkill("review")).toBe(false)
-  expect(items.slice(0, 5).map(slashSource)).toEqual(["Built in", "Built in", "Built in", "Built in", "Built in"])
-  expect(slashSource(items.find((item) => item.trigger === "biology")!)).toBe("")
-  expect(items.slice(0, 5).map(slashIcon)).toEqual(["collapse", "book-open", "branch", "task", "activity"])
-  expect(slashMode(items.find((item) => item.trigger === "plan")!)).toBe("plan")
-  expect(slashMode(items.find((item) => item.trigger === "goal")!)).toBe("goal")
-  expect(slashMode(items.find((item) => item.trigger === "compact")!)).toBeUndefined()
+})
+
+test("blurbs are one sentence in sentence case and subjects are readable labels", () => {
+  expect(slashBlurb("summarize the conversation so far to free up context")).toBe(
+    "Summarize the conversation so far to free up context",
+  )
+  expect(slashBlurb("Find, rank and read the literature on a question; related work. Then more.")).toBe(
+    "Find, rank and read the literature on a question; related work",
+  )
+  expect(slashBlurb("x".repeat(200), 20)).toHaveLength(20)
+  expect(slashBlurb(undefined)).toBe("")
+  expect(slashSubject("ml-training")).toBe("ML training")
+  expect(slashSubject("cloud-compute")).toBe("Cloud compute")
+  expect(slashSubject(undefined)).toBe("Other")
 })
 
 test("slash skills can be selected at the start, middle, or end of a draft", () => {

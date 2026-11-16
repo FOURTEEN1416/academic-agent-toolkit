@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/delegated-decision-receipt.schema.json",
+  "title": "PaperSpine host delegated-decision receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "contract_version", "task_id", "revision_id", "stage", "decision_class", "action_id", "requested_scope", "material_snapshot_sha256", "run_contract_sha256", "grant_id", "grant_sha256", "choice_sha256", "evidence_bindings", "reversible", "external_action_authorized", "receipt_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.delegated-decision-receipt"},
+    "contract_version": {"const": "1.0"},
+    "task_id": {"type": "string", "minLength": 1},
+    "revision_id": {"type": "string", "pattern": "^[0-9]+$"},
+    "stage": {"enum": ["J5", "J7", "J10-J11"]},
+    "decision_class": {"enum": ["contribution_selection", "motivation_selection", "non_author_local_target_adaptation", "figure_keep_or_transform", "figure_omit", "figure_supplement"]},
+    "action_id": {"type": "string", "minLength": 1},
+    "requested_scope": {"enum": ["manuscript", "local_delivery"]},
+    "material_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "run_contract_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "grant_id": {"type": "string", "minLength": 1},
+    "grant_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "choice_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "evidence_bindings": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+    "reversible": {"const": true},
+    "external_action_authorized": {"const": false},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

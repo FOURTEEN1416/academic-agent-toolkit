@@ -32,11 +32,12 @@ import { useData } from "../context"
 import { useDiffComponent } from "../context/diff"
 import { useCodeComponent } from "../context/code"
 import { useDialog } from "../context/dialog"
-import { useI18n } from "../context/i18n"
+import { type UiI18nKey, useI18n } from "../context/i18n"
+import { ComputeJobDetails } from "./compute-job-details"
 import { BasicTool } from "./basic-tool"
+import { ResearchSearchTool } from "./research-search-tool"
 import { GenericTool } from "./basic-tool"
 import { Button } from "./button"
-import { Card } from "./card"
 import { createTypewriter } from "./typewriter"
 import { Icon } from "./icon"
 import { Checkbox } from "./checkbox"
@@ -44,7 +45,10 @@ import { DiffChanges } from "./diff-changes"
 import { Spinner } from "./spinner"
 import { Markdown } from "./markdown"
 import { ImagePreview } from "./image-preview"
+import { PermissionActions, type PermissionReply } from "./permission-actions"
+import { useClock } from "./clock"
 import { findLast } from "@synsci/util/array"
+import { exactUsd, formatUsd } from "@synsci/util/money"
 import { getDirectory as _getDirectory, getFilename } from "@synsci/util/path"
 import { checksum } from "@synsci/util/encode"
 import { Tooltip } from "./tooltip"
@@ -53,15 +57,21 @@ import { createAutoScroll } from "../hooks"
 import { createResizeObserver } from "@solid-primitives/resize-observer"
 import {
   reasoningDisplayText,
-  reasoningTopic,
+  runningLabel,
   savedArtifact,
   scienceTaskLabel,
   sentenceCaseLabel,
+  loadedSkillName,
   skillActivity,
-  toolErrorDisplay,
+  stripBashMetadata,
+  taskOutcome,
+  taskPhase,
+  toolOutcome,
+  toolChanges,
+  toolSummary,
 } from "./tool-display"
 import { ToolRegistry, type ToolProps } from "./tool-registry"
-import { formatTaskDuration, stripTaskMetadata, summarizeTaskActivity, traceFamily } from "./research-trace"
+import { elapsedLabel, formatTaskDuration, parseTaskHandoff, traceFamily } from "./research-trace"
 
 export { ARTIFACT_TOOL, ToolRegistry, type ToolComponent, type ToolProps } from "./tool-registry"
 
@@ -99,243 +109,6 @@ function DiagnosticsDisplay(props: { diagnostics: Diagnostic[] }): JSX.Element {
             </div>
           )}
         </For>
-      </div>
-    </Show>
-  )
-}
-
-type PermissionReply = "once" | "session" | "project" | "always" | "reject"
-
-function modalMachine(plan: Record<string, any>) {
-  const resources = plan.resources ?? {}
-  return [
-    plan.gpu === "none" ? "CPU" : `${plan.gpu} GPU`,
-    resources.cpus ? `${resources.cpus} CPU` : undefined,
-    resources.memory_gb ? `${resources.memory_gb} GB memory` : undefined,
-    plan.image,
-  ]
-    .filter((value): value is string => Boolean(value))
-    .join(" · ")
-}
-
-function computeDetails(plan: Record<string, any>) {
-  if (plan.provider === "modal") {
-    return [
-      ["Machine", modalMachine(plan)],
-      ["Timeout", `${plan.timeout_minutes} min`],
-      ["Network", plan.network === "none" ? "Blocked" : "Unrestricted"],
-    ]
-  }
-  return [
-    ["Host", `${plan.label} · ${plan.host}`],
-    ["Scheduler", plan.scheduler === "none" ? "Direct SSH" : String(plan.scheduler).toUpperCase()],
-    ["Host key", plan.fingerprint],
-  ]
-}
-
-/** The approval card under a tool awaiting permission. States exactly what is
- *  being granted (access level and target) when the request carries scoped
- *  metadata; "Allow for…" swaps the row to the three standing scopes so every
- *  option stays a plain button. */
-function PermissionActions(props: { respond: (response: PermissionReply) => void; metadata?: Record<string, any> }) {
-  const i18n = useI18n()
-  const [scopes, setScopes] = createSignal(false)
-  let scopeTrigger: HTMLButtonElement | undefined
-  let scopeBack: HTMLButtonElement | undefined
-  const showScopes = () => {
-    setScopes(true)
-    queueMicrotask(() => scopeBack?.focus())
-  }
-  const hideScopes = () => {
-    setScopes(false)
-    queueMicrotask(() => scopeTrigger?.focus())
-  }
-  const compute = () => props.metadata?.compute
-  const mutation = () => props.metadata?.environment_mutation
-  const boundary = () => compute() ?? mutation()
-  const mutationOperation = () => {
-    const value = mutation()?.operation
-    if (value === "package_install") return "Install packages"
-    if (value === "package_remove") return "Remove packages"
-    return "Update environment"
-  }
-  const summary = () => {
-    const filesystem = props.metadata?.filesystem
-    if (filesystem?.path) {
-      const key = filesystem.access === "write" ? "ui.permission.grantWrite" : "ui.permission.grantRead"
-      return i18n.t(key, { path: filesystem.path })
-    }
-    const network = props.metadata?.network
-    if (network?.host) return i18n.t("ui.permission.allowHost", { host: network.host })
-    const query = props.metadata?.query
-    if (typeof query === "string" && query.trim()) return `“${query.trim()}”`
-    return undefined
-  }
-  return (
-    <Show
-      when={Boolean(
-        ((compute()?.provider === "modal" || compute()?.provider === "ssh") && compute()) ||
-          (mutation()?.plan_digest && mutation()),
-      )}
-      fallback={
-        <div data-component="permission-prompt" data-expanded={scopes()} aria-label={i18n.t("ui.permission.required")}>
-          <div data-slot="permission-context">
-            <Icon name="shield" size="small" />
-            <div data-slot="permission-copy">
-              <span data-slot="permission-origin">
-                {scopes() ? i18n.t("ui.permission.chooseScope") : i18n.t("ui.permission.required")}
-              </span>
-              <Show when={summary()}>
-                {(value) => (
-                  <span data-slot="permission-summary" title={value()}>
-                    {value()}
-                  </span>
-                )}
-              </Show>
-            </div>
-          </div>
-          <div data-slot="permission-actions" role="group" aria-label={i18n.t("ui.permission.actions")}>
-            <Show
-              when={scopes()}
-              fallback={
-                <>
-                  <Button variant="ghost" size="small" onClick={() => props.respond("reject")}>
-                    {i18n.t("ui.permission.deny")}
-                  </Button>
-                  <Button
-                    ref={(element: HTMLButtonElement) => (scopeTrigger = element)}
-                    variant="secondary"
-                    size="small"
-                    aria-expanded={scopes()}
-                    onClick={showScopes}
-                  >
-                    {i18n.t("ui.permission.allow")}
-                  </Button>
-                  <Button variant="primary" size="small" onClick={() => props.respond("once")}>
-                    {i18n.t("ui.permission.allowOnce")}
-                  </Button>
-                </>
-              }
-            >
-              <Button
-                ref={(element: HTMLButtonElement) => (scopeBack = element)}
-                variant="ghost"
-                size="small"
-                onClick={hideScopes}
-              >
-                {i18n.t("ui.common.cancel")}
-              </Button>
-              <Button variant="secondary" size="small" onClick={() => props.respond("session")}>
-                {i18n.t("ui.permission.allowSession")}
-              </Button>
-              <Button variant="secondary" size="small" onClick={() => props.respond("project")}>
-                {i18n.t("ui.permission.allowProject")}
-              </Button>
-              <Button variant="secondary" size="small" onClick={() => props.respond("always")}>
-                {i18n.t("ui.permission.allowAlways")}
-              </Button>
-            </Show>
-          </div>
-        </div>
-      }
-    >
-      <div
-        data-component="permission-prompt"
-        data-kind={mutation() ? "environment-mutation" : "remote-compute"}
-        data-expanded={scopes()}
-      >
-        <span data-slot="permission-origin">OpenScience approval</span>
-        <div data-slot="permission-summary" data-kind={mutation() ? "environment-mutation" : "remote-compute"}>
-          <strong data-slot="permission-compute-title">
-            {mutation()
-              ? `Change ${String(mutation().language).toUpperCase()} environment`
-              : boundary().provider === "modal"
-                ? "Run outside the local sandbox"
-                : "Run on a saved SSH host"}
-          </strong>
-          <span data-slot="permission-compute-purpose">{mutation() ? mutationOperation() : boundary().purpose}</span>
-          <div
-            data-slot="permission-compute-details"
-            aria-label={mutation() ? "Environment change details" : "Remote job details"}
-          >
-            <For
-              each={
-                mutation()
-                  ? [
-                      ["Language", String(mutation().language).toUpperCase()],
-                      ["Environment", mutation().environment],
-                      ["Manager", mutation().manager],
-                    ]
-                  : computeDetails(boundary())
-              }
-            >
-              {(row) => (
-                <>
-                  <span>{row[0]}</span>
-                  <strong>{row[1]}</strong>
-                </>
-              )}
-            </For>
-          </div>
-          <span data-slot="permission-compute-warning">
-            {mutation()
-              ? mutation().warning
-              : boundary().provider === "modal"
-                ? "Runs in your Modal account, outside OpenScience's local sandbox. It may incur Modal charges until the job exits, is cancelled, or reaches its timeout."
-                : boundary().warning}
-          </span>
-          <span data-slot="permission-compute-scope">
-            {mutation()
-              ? "Every scope applies only to this exact requested change. A successful change restarts this environment and clears its in-memory state; files and execution history remain."
-              : "Every scope is bound to this exact plan, including its command, machine, image, network, and input file hashes."}
-          </span>
-        </div>
-        <div
-          data-slot="permission-actions"
-          role="group"
-          aria-label={mutation() ? "Environment change approval scope" : "Remote compute approval scope"}
-        >
-          <Show
-            when={scopes()}
-            fallback={
-              <>
-                <Button variant="ghost" size="small" onClick={() => props.respond("reject")}>
-                  {i18n.t("ui.permission.deny")}
-                </Button>
-                <Button
-                  ref={(element: HTMLButtonElement) => (scopeTrigger = element)}
-                  variant="secondary"
-                  size="small"
-                  aria-expanded={scopes()}
-                  onClick={showScopes}
-                >
-                  {i18n.t("ui.permission.allow")}
-                </Button>
-                <Button variant="primary" size="small" onClick={() => props.respond("once")}>
-                  {i18n.t("ui.permission.scopeOnce")}
-                </Button>
-              </>
-            }
-          >
-            <Button
-              ref={(element: HTMLButtonElement) => (scopeBack = element)}
-              variant="ghost"
-              size="small"
-              onClick={hideScopes}
-            >
-              {i18n.t("ui.common.cancel")}
-            </Button>
-            <Button variant="secondary" size="small" onClick={() => props.respond("session")}>
-              {i18n.t("ui.permission.allowSession")}
-            </Button>
-            <Button variant="secondary" size="small" onClick={() => props.respond("project")}>
-              {i18n.t("ui.permission.allowProject")}
-            </Button>
-            <Button variant="secondary" size="small" onClick={() => props.respond("always")}>
-              {i18n.t("ui.permission.scopeGlobal")}
-            </Button>
-          </Show>
-        </div>
       </div>
     </Show>
   )
@@ -397,6 +170,19 @@ function getDirectory(path: string | undefined) {
   return relativizeProjectPaths(_getDirectory(path), data.directory)
 }
 
+/** The folder a search ran in, for tools whose `path` is already a directory
+ * (glob, grep, list). `getDirectory` is for file paths and returns the parent,
+ * which here showed the folder above the one searched. Inside the project the
+ * folder reads relative to it, the project itself as "./". */
+function getSearchDirectory(path: string | undefined) {
+  const data = useData()
+  const trimmed = (path || "/").replace(/[\/\\]+$/, "")
+  const root = data.directory?.replace(/[\/\\]+$/, "")
+  if (root && trimmed === root) return "./"
+  if (root && trimmed.startsWith(`${root}/`)) return `${trimmed.slice(root.length + 1)}/`
+  return `${trimmed}/`
+}
+
 export function getSessionToolParts(store: ReturnType<typeof useData>["store"], sessionId: string): ToolPart[] {
   const messages = store.message[sessionId]?.filter((m) => m.role === "assistant")
   if (!messages) return []
@@ -419,6 +205,15 @@ export type ToolInfo = {
   icon: IconProps["name"]
   title: string
   subtitle?: string
+}
+
+/** A row reads as what happened: "Ran", "Read", "Searched". While the call
+ * executes it reads as what is happening. A pending call is still being
+ * written by the model, so it keeps the noun: nothing is being read or run
+ * yet, and the row's state glyph says "Preparing". */
+function toolVerb(i18n: ReturnType<typeof useI18n>, tool: string, status: string | undefined, done: UiI18nKey) {
+  const key = status === "running" ? runningLabel(tool) : undefined
+  return i18n.t(key ?? done)
 }
 
 export function getToolInfo(tool: string, input: any = {}): ToolInfo {
@@ -888,6 +683,16 @@ PART_MAPPING["tool"] = function ToolPartDisplay(props) {
   const title = () => part.state?.title as string | undefined
 
   const render = createMemo(() => ToolRegistry.render(part.tool, metadata()) ?? GenericTool)
+  const time = () => ("time" in part.state ? part.state.time : undefined)
+  const error = () => (part.state.status === "error" ? part.state.error : undefined)
+  const summary = createMemo(() =>
+    toolSummary({
+      tool: part.tool,
+      status: part.state.status,
+      output: part.state.status === "completed" ? part.state.output : undefined,
+      metadata: partMetadata(),
+    }),
+  )
 
   return (
     <div
@@ -897,61 +702,25 @@ PART_MAPPING["tool"] = function ToolPartDisplay(props) {
       data-tool-family={traceFamily(part.tool)}
       data-tool-status={part.state.status}
     >
-      <Switch>
-        <Match when={part.state.status === "error" && part.state.error}>
-          {(error) => {
-            const display = () => toolErrorDisplay(part.tool, error())
-            return (
-              <Card variant="error">
-                <div data-component="tool-error">
-                  <Icon name="circle-ban-sign" size="small" />
-                  <div data-slot="message-part-tool-error-body">
-                    <Switch>
-                      <Match when={display().title}>
-                        {(title) => (
-                          <div data-slot="message-part-tool-error-content">
-                            <div data-slot="message-part-tool-error-title">{title()}</div>
-                            <span data-slot="message-part-tool-error-message">{display().message}</span>
-                          </div>
-                        )}
-                      </Match>
-                      <Match when={true}>
-                        <span data-slot="message-part-tool-error-message">{display().message}</span>
-                      </Match>
-                    </Switch>
-                    <Show when={display().details}>
-                      {(details) => (
-                        <details data-slot="message-part-tool-error-details">
-                          <summary>Technical details</summary>
-                          <pre>{details()}</pre>
-                        </details>
-                      )}
-                    </Show>
-                  </div>
-                </div>
-              </Card>
-            )
-          }}
-        </Match>
-        <Match when={true}>
-          <Dynamic
-            component={render()}
-            input={input()}
-            tool={part.tool}
-            metadata={metadata()}
-            // @ts-expect-error
-            output={part.state.output}
-            status={part.state.status}
-            partID={part.id}
-            attachments={part.state.status === "completed" ? part.state.attachments : undefined}
-            title={title()}
-            hideDetails={props.hideDetails}
-            forceOpen={forceOpen()}
-            locked={showPermission() || showQuestion()}
-            defaultOpen={props.defaultOpen}
-          />
-        </Match>
-      </Switch>
+      <Dynamic
+        component={render()}
+        input={input()}
+        tool={part.tool}
+        metadata={metadata()}
+        // @ts-expect-error
+        output={part.state.output}
+        status={part.state.status}
+        time={time()}
+        summary={summary()}
+        error={error()}
+        partID={part.id}
+        attachments={part.state.status === "completed" ? part.state.attachments : undefined}
+        title={title()}
+        hideDetails={props.hideDetails}
+        forceOpen={forceOpen()}
+        locked={showPermission() || showQuestion()}
+        defaultOpen={props.defaultOpen}
+      />
       <Show when={showPermission() && permission()}>
         <PermissionActions respond={respond} metadata={permission()?.metadata} />
       </Show>
@@ -961,12 +730,14 @@ PART_MAPPING["tool"] = function ToolPartDisplay(props) {
 }
 
 PART_MAPPING["text"] = function TextPartDisplay(props) {
-  const data = useData()
   const i18n = useI18n()
   const part = props.part as TextPart
-  const displayText = () => relativizeProjectPaths((part.text ?? "").trim(), data.directory)
+  // Paths inside Markdown targets, prose, and code are content, not labels.
+  // Removing a project prefix corrupts their meaning before file resolution.
+  const displayText = () => (part.text ?? "").trim()
   const throttledText = createTypewriter(displayText)
   const [copied, setCopied] = createSignal(false)
+  const streaming = () => props.message.role === "assistant" && !completedAt(props.message) && !part.time?.end
 
   const handleCopy = async () => {
     const content = displayText()
@@ -978,9 +749,13 @@ PART_MAPPING["text"] = function TextPartDisplay(props) {
 
   return (
     <Show when={throttledText()}>
-      <div data-component="text-part">
+      <div data-component="text-part" data-streaming={streaming() ? "true" : undefined}>
         <div data-slot="text-part-body">
-          <Markdown text={throttledText()} cacheKey={part.id} />
+          <Markdown
+            data-slot={props.message.role === "assistant" ? "assistant-prose" : undefined}
+            text={throttledText()}
+            cacheKey={part.id}
+          />
           <Show when={!props.hideCopy}>
             <div data-slot="text-part-copy-wrapper">
               <Tooltip
@@ -1004,30 +779,25 @@ PART_MAPPING["text"] = function TextPartDisplay(props) {
   )
 }
 
-// Keep the provider-visible reasoning bytes untouched in the stored message so
-// signed continuation still works. Normalize only its presentation: OpenRouter
-// can concatenate provider summary headings directly onto adjacent prose.
-// Encrypted reasoning remains in providerMetadata and is never rendered.
+// Display normalization and visibility never alter stored provider continuation.
+
+function completedAt(message: MessageType) {
+  return message.role === "assistant" ? (message as AssistantMessage).time.completed : undefined
+}
 
 PART_MAPPING["reasoning"] = function ReasoningPartDisplay(props) {
   const part = props.part as ReasoningPart
   const text = () => reasoningDisplayText(part.text)
-  const status = () => (text() ? undefined : reasoningTopic(part.text))
-
+  const live = () => !part.time?.end && !completedAt(props.message)
+  // A private-only continuation renders nothing; its time still counts in the
+  // row label, and the persisted provider text is never shown.
   return (
-    <Show when={text() || status()}>
-      <Show
-        when={text()}
-        fallback={
-          <div data-component="reasoning-status-part" data-origin="provider-reasoning-status">
-            {status()}
-          </div>
-        }
-      >
-        <div data-component="reasoning-part" data-origin="provider-reasoning">
+    <Show when={text()}>
+      <div data-component="reasoning-part" data-origin="provider-reasoning" data-live={live() ? "true" : undefined}>
+        <div data-slot="reasoning-part-body">
           <Markdown text={text()} cacheKey={part.id} />
         </div>
-      </Show>
+      </div>
     </Show>
   )
 }
@@ -1095,7 +865,8 @@ function KernelTool(props: ToolProps & { language: "python" | "r"; label: "Pytho
             </div>
           </div>
         </Show>
-        <details data-slot="kernel-tool-source">
+        {/* Nobody should approve code they cannot see: the source is open for as long as the request is. */}
+        <details data-slot="kernel-tool-source" open={props.locked}>
           <summary>
             <span data-slot="kernel-tool-prompt">In [{count() ?? " "}]:</span>
             <span>Code</span>
@@ -1212,8 +983,9 @@ function RemoteComputeTool(props: ToolProps) {
   }
   const gpu = () => {
     const value = job()?.modal
-    if (value && typeof value === "object" && "gpu" in value && typeof value.gpu === "string") return value.gpu
-    return typeof props.input.gpu === "string" ? props.input.gpu : undefined
+    if (value && typeof value === "object" && "gpu" in value && typeof value.gpu === "string" && value.gpu !== "none")
+      return value.gpu
+    return typeof props.input.gpu === "string" && props.input.gpu !== "none" ? props.input.gpu : undefined
   }
   const status = () => (typeof job()?.status === "string" ? job()!.status : props.status)
   return (
@@ -1222,9 +994,29 @@ function RemoteComputeTool(props: ToolProps) {
       icon="console"
       trigger={{
         title: props.title || (props.tool === "modal" ? "Modal compute" : "Remote compute"),
-        subtitle: [gpu(), status()].filter(Boolean).join(" · "),
+        subtitle: [gpu(), job() ? `${status()} at ${props.input.action === "start" ? "dispatch" : "check"}` : status()]
+          .filter(Boolean)
+          .join(" · "),
       }}
     >
+      <Show when={typeof job()?.id === "string" ? (job()!.id as string) : undefined}>
+        {(id) => <ComputeJobDetails id={id()} />}
+      </Show>
+      {/* The Modal plan travels under `compute` (ModalTool); compute_job carries it
+          inside `compute_job`. Only the former renders here. */}
+      <Show
+        when={
+          props.metadata.compute && typeof props.metadata.compute === "object"
+            ? (props.metadata.compute as Record<string, unknown>)
+            : undefined
+        }
+      >
+        {(plan) => (
+          <div data-component="tool-output" data-scrollable>
+            <Markdown text={`\`\`\`json\n${JSON.stringify(plan(), null, 2)}\n\`\`\``} />
+          </div>
+        )}
+      </Show>
       <Show when={typeof props.input.command === "string" ? props.input.command : undefined}>
         {(command) => (
           <div data-component="tool-output" data-scrollable>
@@ -1264,7 +1056,7 @@ ToolRegistry.register({
           {...props}
           icon="glasses"
           trigger={{
-            title: i18n.t("ui.tool.read"),
+            title: toolVerb(i18n, "read", props.status, "ui.tool.read"),
             subtitle: props.input.filePath ? getFilename(props.input.filePath) : "",
             args,
           }}
@@ -1289,41 +1081,20 @@ ToolRegistry.register({
   name: "skill",
   render(props) {
     const activity = () =>
-      skillActivity({ metadata: props.metadata, input: props.input, title: props.title, status: props.status })
+      skillActivity({
+        metadata: props.metadata,
+        input: props.input,
+        title: props.title,
+        status: props.status,
+        error: props.error,
+      })
     return (
       <BasicTool {...props} icon="mcp" trigger={{ title: activity().title, subtitle: activity().subtitle }}>
-        <Show when={props.output}>
-          {(output) => (
-            <div data-component="tool-output" data-scrollable>
-              <Markdown text={output()} />
-            </div>
-          )}
-        </Show>
-      </BasicTool>
-    )
-  },
-})
-
-ToolRegistry.register({
-  name: "modal",
-  render(props) {
-    const plan = () => props.metadata.compute
-    return (
-      <BasicTool
-        {...props}
-        icon="mcp"
-        trigger={{
-          title: props.title || (props.status === "pending" ? "Review Modal job" : "Modal job"),
-          subtitle: props.input.name,
-          args: [props.input.gpu || "none"],
-        }}
-      >
-        <Show when={plan()}>
-          {(value) => (
-            <div data-component="tool-output" data-scrollable>
-              <Markdown text={`\`\`\`json\n${JSON.stringify(value(), null, 2)}\n\`\`\``} />
-            </div>
-          )}
+        <Show when={loadedSkillName(props)}>
+          <details data-slot="skill-load-receipt">
+            <summary>Load details</summary>
+            <pre>{JSON.stringify({ input: props.input, metadata: props.metadata }, null, 2)}</pre>
+          </details>
         </Show>
         <Show when={props.output}>
           {(output) => (
@@ -1345,7 +1116,10 @@ ToolRegistry.register({
       <BasicTool
         {...props}
         icon="bullet-list"
-        trigger={{ title: i18n.t("ui.tool.list"), subtitle: getDirectory(props.input.path || "/") }}
+        trigger={{
+          title: toolVerb(i18n, "list", props.status, "ui.tool.list"),
+          subtitle: getSearchDirectory(props.input.path),
+        }}
       >
         <Show when={props.output}>
           {(output) => (
@@ -1368,8 +1142,8 @@ ToolRegistry.register({
         {...props}
         icon="magnifying-glass-menu"
         trigger={{
-          title: i18n.t("ui.tool.glob"),
-          subtitle: getDirectory(props.input.path || "/"),
+          title: toolVerb(i18n, "glob", props.status, "ui.tool.glob"),
+          subtitle: getSearchDirectory(props.input.path),
           args: props.input.pattern ? ["pattern=" + props.input.pattern] : [],
         }}
       >
@@ -1397,8 +1171,8 @@ ToolRegistry.register({
         {...props}
         icon="magnifying-glass-menu"
         trigger={{
-          title: i18n.t("ui.tool.grep"),
-          subtitle: getDirectory(props.input.path || "/"),
+          title: toolVerb(i18n, "grep", props.status, "ui.tool.grep"),
+          subtitle: getSearchDirectory(props.input.path),
           args,
         }}
       >
@@ -1413,6 +1187,8 @@ ToolRegistry.register({
     )
   },
 })
+
+ToolRegistry.register({ name: "research_search", render: ResearchSearchTool })
 
 ToolRegistry.register({
   name: "webfetch",
@@ -1439,7 +1215,7 @@ ToolRegistry.register({
         {...props}
         icon="window-cursor"
         trigger={{
-          title: downloaded() ? "Downloaded file" : i18n.t("ui.tool.webfetch"),
+          title: downloaded() ? "Downloaded file" : toolVerb(i18n, "webfetch", props.status, "ui.tool.webfetch"),
           subtitle: typeof downloaded()?.path === "string" ? (downloaded()!.path as string) : props.input.url || "",
           args: props.input.format ? ["format=" + props.input.format] : [],
           action: (
@@ -1469,7 +1245,12 @@ ToolRegistry.register({
   render(props) {
     const data = useData()
     const dialog = useDialog()
-    const route = () => (props.metadata.route === "wallet" ? "OpenScience wallet" : "Connected OpenRouter key")
+    const route = () =>
+      props.metadata.route === "gemini"
+        ? "Connected Gemini account"
+        : props.metadata.route === "openrouter"
+          ? "Connected OpenRouter account"
+          : undefined
     const filepath = () =>
       typeof props.metadata.filepath === "string"
         ? props.metadata.filepath
@@ -1485,6 +1266,16 @@ ToolRegistry.register({
           (!filename || !part.filename || part.filename === filename),
       )
     })
+    const preview = createMemo(() => (attachment()?.url?.startsWith("data:image/") ? attachment() : undefined))
+    const open = () => {
+      const image = preview()
+      if (image) {
+        dialog.show(() => <ImagePreview src={image.url} alt={image.filename} />)
+        return
+      }
+      const path = filepath()
+      if (path) data.openFile?.(path)
+    }
     const size = () => {
       const value = typeof props.metadata.size === "number" ? props.metadata.size : undefined
       if (value === undefined) return undefined
@@ -1498,7 +1289,12 @@ ToolRegistry.register({
         icon="photo"
         defaultOpen={true}
         trigger={{
-          title: props.status === "error" ? "Image generation failed" : "Generated image",
+          title:
+            props.status === "error"
+              ? "Image generation failed"
+              : props.status === "completed"
+                ? "Generated image"
+                : "Generating image",
           subtitle: props.title || props.input.output_path || "generated-image.png",
           args: [props.metadata.model || props.input.model, route()].filter((value): value is string => !!value),
         }}
@@ -1506,7 +1302,7 @@ ToolRegistry.register({
         <Show when={props.status === "completed"}>
           <div data-component="generated-image-preview">
             <Show
-              when={attachment()?.url?.startsWith("data:image/") ? attachment() : undefined}
+              when={preview()}
               fallback={
                 <div data-slot="generated-image-placeholder">
                   <Icon name="photo" size="small" />
@@ -1519,7 +1315,7 @@ ToolRegistry.register({
                   type="button"
                   data-slot="generated-image-preview-button"
                   aria-label={`Preview ${image().filename ?? "generated image"}`}
-                  onClick={() => dialog.show(() => <ImagePreview src={image().url} alt={image().filename} />)}
+                  onClick={open}
                 >
                   <img src={image().url} alt={image().filename ?? "Generated image"} loading="lazy" />
                 </button>
@@ -1527,12 +1323,10 @@ ToolRegistry.register({
             </Show>
             <div data-slot="generated-image-meta">
               <span>{[props.metadata.model, size()].filter(Boolean).join(" · ")}</span>
-              <Show when={filepath()}>
-                {(path) => (
-                  <Button variant="secondary" size="small" icon="folder" onClick={() => data.openFile?.(path())}>
-                    Open image
-                  </Button>
-                )}
+              <Show when={preview() || filepath()}>
+                <Button variant="secondary" size="small" icon={preview() ? "photo" : "folder"} onClick={open}>
+                  Open image
+                </Button>
               </Show>
             </div>
           </div>
@@ -1549,40 +1343,164 @@ ToolRegistry.register({
   },
 })
 
+type TaskBudget = {
+  unit: "usd" | "tokens"
+  limit: number
+  spent: number
+  pending: number
+  remaining: number
+  deadline: number
+  stopReason?: string
+}
+
+function isTaskBudget(value: unknown): value is TaskBudget {
+  if (!value || typeof value !== "object") return false
+  const budget = value as Record<string, unknown>
+  return (
+    (budget.unit === "usd" || budget.unit === "tokens") &&
+    ["limit", "spent", "pending", "remaining", "deadline"].every(
+      (key) => typeof budget[key] === "number" && Number.isSafeInteger(budget[key]) && budget[key] >= 0,
+    ) &&
+    (budget.stopReason === undefined || typeof budget.stopReason === "string")
+  )
+}
+
+const taskReasons: Record<string, string> = {
+  budget_limit: "Reached its limit",
+  token_limit: "Reached its limit",
+  budget_wrapup: "Budget wrap-up",
+  deadline_wrapup: "Deadline wrap-up",
+  deadline: "Ran out of time",
+  cancelled: "Cancelled",
+  route_changed: "Access route changed",
+  pricing_unavailable: "Pricing unavailable",
+  setup_required: "Allowance setup required",
+}
+
 ToolRegistry.register({
   name: "task",
   render(props) {
     const data = useData()
     const i18n = useI18n()
-    const summary = () =>
-      (props.metadata.summary ?? []) as { id: string; tool: string; state: { status: string; title?: string } }[]
-
     const childSessionId = () => props.metadata.sessionId as string | undefined
-    const activity = createMemo(() => summarizeTaskActivity(summary()))
-    const findings = createMemo(() => stripTaskMetadata(props.output))
-    const duration = () => formatTaskDuration(props.metadata.durationMs as number | undefined)
+    const handoff = createMemo(() => parseTaskHandoff(props.output ?? props.error))
+    const budget = createMemo(() => {
+      const value: unknown = props.metadata.budget
+      return isTaskBudget(value) ? value : undefined
+    })
+    const amount = (value: number) =>
+      budget()?.unit === "usd" ? formatUsd(value / 1e9, i18n.locale()) : `${value.toLocaleString(i18n.locale())} tokens`
+    const exact = (value: number) =>
+      budget()?.unit === "usd" ? exactUsd(value / 1e9, i18n.locale()) : `${value.toLocaleString(i18n.locale())} tokens`
     const model = () => {
-      const value = props.metadata.model as { providerID?: string; modelID?: string } | undefined
-      return [value?.providerID, value?.modelID].filter(Boolean).join(" / ") || undefined
+      const value: unknown = props.metadata.model
+      if (!value || typeof value !== "object") return
+      const record = value as Record<string, unknown>
+      if (typeof record.providerID === "string" && typeof record.modelID === "string") {
+        return `${record.providerID}/${record.modelID}`
+      }
     }
-    const outcome = () => {
-      if (props.status === "running" || props.status === "pending") return props.status
-      const value = props.metadata.outcome
-      if (value === "completed" || value === "partial" || value === "error" || value === "timed_out") return value
-      return props.status === "error" ? "error" : "completed"
+    const report = () => (typeof props.metadata.handoff === "string" ? props.metadata.handoff.trim() : "")
+    const findings = () =>
+      report()
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line && !/^[#*\s]*(?:Outcome:|Runtime:)/i.test(line))
+        .join(" ")
+        .slice(0, 220)
+    const runtimeReason = () =>
+      budget()?.stopReason ?? (typeof props.metadata.stopReason === "string" ? props.metadata.stopReason : undefined)
+    const interrupted = () => {
+      const value = runtimeReason()
+      return !!value && Object.hasOwn(taskReasons, value)
     }
+    // Limit and deadline stops can be continued by the user from the card.
+    const resumable = () =>
+      !live() && ["budget_limit", "token_limit", "deadline"].includes(runtimeReason() ?? "") && !!childSessionId()
+    const reason = () => {
+      const value = runtimeReason()
+      return value ? (taskReasons[value] ?? value.replaceAll("_", " ")) : undefined
+    }
+    const child = () => {
+      const id = childSessionId()
+      return id ? data.store.session.find((session) => session.id === id) : undefined
+    }
+    const childBusy = () => {
+      const id = childSessionId()
+      const status = id ? data.store.session_status[id] : undefined
+      return !!status && status.type !== "idle"
+    }
+    // A background dispatch settles at once while its worker keeps going; the
+    // card follows the worker until the worker's outcome is on the part.
+    const background = () =>
+      props.status === "completed" && props.metadata.background === true && props.metadata.outcome === undefined
+    const live = () => props.status === "running" || props.status === "pending" || (background() && childBusy())
+    const now = useClock(() => live() && !!props.time?.start)
+    const duration = () => {
+      if (live() && props.time?.start) return elapsedLabel(now() - props.time.start)
+      const recorded = props.metadata.durationMs as number | undefined
+      // A worker whose outcome was never written back: the child's last
+      // activity is the best end time; the dispatch call's own time is not.
+      const finished = background() ? child()?.time?.updated : undefined
+      const measured =
+        finished !== undefined && props.time?.start
+          ? finished - props.time.start
+          : props.time?.end === undefined
+            ? undefined
+            : props.time.end - props.time.start
+      return formatTaskDuration(recorded ?? measured)
+    }
+    // Phases come from the part state and the Task metadata the backend
+    // recorded, never from the pending placeholder alone: a delegation that
+    // fails before a child exists must not look like a worker in trouble.
+    const phase = createMemo(() =>
+      taskPhase({
+        status: props.status,
+        error: props.error,
+        metadata: interrupted() ? { ...props.metadata, outcome: "partial" } : props.metadata,
+        childBusy: childBusy(),
+      }),
+    )
+    const outcome = () => taskOutcome(phase())
     const outcomeLabel = () => {
-      if (outcome() === "running") return "Working"
-      if (outcome() === "pending") return "Queued"
-      if (outcome() === "partial") return "Partial result"
-      if (outcome() === "timed_out") return "Time limit reached"
-      if (outcome() === "error") return "Needs attention"
-      return "Completed"
+      if (interrupted() && props.status === "completed") return "Incomplete"
+      switch (phase()) {
+        case "preparing":
+          return i18n.t("ui.tool.task.preparing")
+        case "queued":
+          return i18n.t("ui.tool.task.queued")
+        case "running":
+          return i18n.t("ui.tool.task.running")
+        case "failed_to_start":
+          return i18n.t("ui.tool.task.failedToStart")
+        case "failed":
+          return i18n.t("ui.tool.task.failed")
+        case "partial":
+          return i18n.t("ui.tool.task.partial")
+        case "timed_out":
+          return i18n.t("ui.tool.task.timedOut")
+        case "cancelled":
+          return i18n.t("ui.tool.status.cancelled")
+        default:
+          return Number(props.metadata.failedToolCalls) > 0
+            ? i18n.t("ui.tool.task.completedWithErrors")
+            : i18n.t("ui.tool.task.completed")
+      }
     }
-    const current = () => summary().findLast((item) => item.state.status === "running") ?? summary().at(-1)
-    const subtitle = () =>
-      (outcome() === "running" || outcome() === "pending" ? current()?.state.title : undefined) ??
-      props.input.description
+    const agentLabel = () =>
+      i18n.t("ui.tool.agent", { type: sentenceCaseLabel(String(props.input.subagent_type || props.tool)) })
+    // The backend mirrors the worker's tool calls onto the dispatch part; the
+    // row names the one in flight so the reader knows what the worker is on
+    // without opening it.
+    const activity = () => {
+      if (!live()) return
+      const summary = props.metadata.summary as
+        Array<{ tool?: string; state?: { status?: string; title?: string } }> | undefined
+      const running = summary?.findLast((entry) => entry.state?.status === "running")
+      if (!running) return
+      const title = running.state?.title?.trim()
+      return title || (running.tool ? sentenceCaseLabel(running.tool) : undefined)
+    }
 
     const childPermission = createMemo(() => {
       const sessionId = childSessionId()
@@ -1599,6 +1517,15 @@ ToolRegistry.register({
     })
 
     const childRequest = createMemo(() => childPermission() ?? childQuestion())
+    // A worker waiting on the user surfaces its request under the row; the
+    // row itself opens the worker's session, where its work and handoff live.
+    const attention = () => (childPermission() ? "permission" : childQuestion() ? "question" : undefined)
+    const statusLabel = () =>
+      attention() === "permission"
+        ? i18n.t("ui.tool.task.needsApproval")
+        : attention() === "question"
+          ? i18n.t("ui.tool.task.hasQuestion")
+          : outcomeLabel()
 
     const childToolPart = createMemo(() => {
       const request = childRequest()
@@ -1629,7 +1556,7 @@ ToolRegistry.register({
       })
     }
 
-    const handleSubtitleClick = () => {
+    const openAgent = () => {
       const sessionId = childSessionId()
       if (sessionId && data.navigateToSession) {
         data.navigateToSession(sessionId)
@@ -1658,189 +1585,133 @@ ToolRegistry.register({
       )
     }
 
+    const canOpen = () => !!childSessionId() && !!data.navigateToSession
     return (
       <div data-component="tool-part-wrapper" data-permission={!!childPermission()} data-question={!!childQuestion()}>
-        <Switch>
-          <Match when={childPermission()}>
-            <>
-              <Show
-                when={childToolPart()}
-                fallback={
-                  <BasicTool
-                    icon="task"
-                    defaultOpen={true}
-                    trigger={{
-                      title: i18n.t("ui.tool.agent", {
-                        type: sentenceCaseLabel(String(props.input.subagent_type || props.tool)),
-                      }),
-                      subtitle: props.input.description,
-                    }}
-                    onSubtitleClick={handleSubtitleClick}
-                  />
-                }
-              >
-                {renderChildToolPart()}
+        <div
+          data-component="delegation-card"
+          data-outcome={outcome()}
+          data-phase={phase()}
+          data-attention={attention()}
+        >
+          <button
+            type="button"
+            data-slot="delegation-summary"
+            aria-label={`${statusLabel()}: ${String(props.input.description || agentLabel())} (${agentLabel()})`}
+            disabled={!canOpen()}
+            onClick={openAgent}
+          >
+            <span data-slot="delegation-mark" aria-hidden="true">
+              <Show when={live() && !attention()} fallback={<Icon name="research" size="small" />}>
+                <Spinner />
               </Show>
-              <PermissionActions respond={respond} metadata={childPermission()?.metadata} />
-            </>
-          </Match>
-          <Match when={childQuestion()}>
-            {(request) => (
-              <>
+            </span>
+            <span data-slot="delegation-heading">
+              <span data-slot="delegation-title">{String(props.input.description || agentLabel())}</span>
+              <span data-slot="delegation-subline">
+                <span data-slot="delegation-status">{statusLabel()}</span>
+                <Show when={model()}>{(value) => <span>{value()}</span>}</Show>
+                <Show when={duration()}>{(value) => <span>{value()}</span>}</Show>
+                <Show when={activity()}>{(value) => <span data-slot="delegation-activity">{value()}</span>}</Show>
+              </span>
+            </span>
+            <span data-slot="delegation-summary-meta">
+              <Show when={props.input.description}>
+                <span data-slot="delegation-agent">{agentLabel()}</span>
+              </Show>
+              <Show when={canOpen()}>
+                <Icon name="chevron-right" size="small" />
+              </Show>
+            </span>
+          </button>
+
+          <Show when={budget() || report() || interrupted()}>
+            <div data-slot="delegation-report">
+              <Show when={budget()}>
+                {(value) => (
+                  <p
+                    data-slot="delegation-budget"
+                    title={`${exact(value().spent)} used of ${exact(value().limit)} · ${exact(value().remaining)} remaining`}
+                  >
+                    {amount(value().spent)} used of {amount(value().limit)} · {amount(value().remaining)} remaining
+                  </p>
+                )}
+              </Show>
+              <Show when={reason()}>{(value) => <p data-slot="delegation-stop-reason">{value()}</p>}</Show>
+              <Show when={resumable() && data.renderTaskActions && child()?.parentID}>
+                {(parent) => (
+                  <div data-slot="delegation-actions">
+                    {data.renderTaskActions!({ sessionID: parent(), taskSessionID: childSessionId()! })}
+                  </div>
+                )}
+              </Show>
+              <Show when={findings()}>{(value) => <p data-slot="delegation-findings">{value()}</p>}</Show>
+              <details data-slot="delegation-report-details">
+                <summary>Assignment details</summary>
+                <Show when={budget()}>
+                  {(value) => (
+                    <>
+                      <p>
+                        {amount(value().pending)} pending · Deadline{" "}
+                        {new Date(value().deadline).toLocaleString(i18n.locale())}
+                      </p>
+                      <p>
+                        {value().unit === "usd"
+                          ? "Allowance use, not a settled Wallet charge."
+                          : "Model tokens, not account quota or cash charges."}
+                      </p>
+                      <p>Calls are checked at dispatch boundaries; in-flight usage may exceed a reservation.</p>
+                    </>
+                  )}
+                </Show>
+                <Show when={report()}>
+                  <p>Worker report (completion claims are separate from the runtime outcome)</p>
+                  <p data-slot="delegation-report-text">{report()}</p>
+                </Show>
+              </details>
+            </div>
+          </Show>
+
+          <Show when={attention()}>
+            <div data-slot="delegation-body">
+              <div data-slot="delegation-attention" data-kind={attention()}>
                 <Show
                   when={childToolPart()}
                   fallback={
-                    <BasicTool
-                      icon="task"
-                      defaultOpen={true}
-                      trigger={{
-                        title: i18n.t("ui.tool.agent", {
-                          type: sentenceCaseLabel(String(props.input.subagent_type || props.tool)),
-                        }),
-                        subtitle: props.input.description,
-                      }}
-                      onSubtitleClick={handleSubtitleClick}
-                    />
+                    <div data-slot="delegation-attention-fallback">
+                      <Icon name="research" size="small" />
+                      <span>{String(props.input.description ?? agentLabel())}</span>
+                    </div>
                   }
                 >
                   {renderChildToolPart()}
                 </Show>
-                <QuestionPrompt request={request()} />
-              </>
-            )}
-          </Match>
-          <Match when={true}>
-            <details
-              data-component="delegation-card"
-              data-outcome={outcome()}
-              open={outcome() === "running" || outcome() === "pending"}
-            >
-              <summary data-slot="delegation-summary" aria-label={`${outcomeLabel()} delegated research`}>
-                <div data-slot="delegation-mark">
-                  <Icon name="research" size="normal" />
-                </div>
-                <div data-slot="delegation-heading">
-                  <strong>
-                    {i18n.t("ui.tool.agent", {
-                      type: sentenceCaseLabel(String(props.input.subagent_type || props.tool)),
-                    })}
-                  </strong>
-                  <Show when={subtitle()}>
-                    <p>{subtitle()}</p>
-                  </Show>
-                </div>
-                <div data-slot="delegation-summary-meta">
-                  <span data-slot="delegation-status">{outcomeLabel()}</span>
-                  <Show when={duration()}>{(value) => <span>{value()}</span>}</Show>
-                  <Show when={props.metadata.toolCalls !== undefined}>
-                    <span>{Number(props.metadata.toolCalls)} ops</span>
-                  </Show>
-                  <Icon name="chevron-down" size="small" />
-                </div>
-              </summary>
-
-              <div data-slot="delegation-body">
-                <div data-slot="delegation-toolbar">
-                  <div data-slot="delegation-metrics" aria-label="Delegated research details">
-                    <Show when={model()}>{(value) => <span>{value()}</span>}</Show>
-                    <Show when={props.metadata.effort}>
-                      <span>{sentenceCaseLabel(String(props.metadata.effort))} effort</span>
-                    </Show>
-                    <Show when={Number(props.metadata.failedToolCalls) > 0}>
-                      <span data-failed>{Number(props.metadata.failedToolCalls)} failed</span>
-                    </Show>
-                  </div>
-                  <Show when={childSessionId()}>
-                    <button type="button" data-slot="delegation-open" onClick={handleSubtitleClick}>
-                      Open agent
-                      <Icon name="arrow-right" size="small" />
-                    </button>
-                  </Show>
-                </div>
-
-                <Show when={(outcome() === "running" || outcome() === "pending") && current()}>
-                  {(item) => (
-                    <div data-slot="delegation-current">
-                      <Spinner />
-                      <span>Current activity</span>
-                      <strong>{item().state.title || getToolInfo(item().tool).title}</strong>
-                    </div>
-                  )}
+                <Show when={childPermission()}>
+                  <PermissionActions respond={respond} metadata={childPermission()?.metadata} />
                 </Show>
-
-                <Show when={findings()}>
-                  {(value) => (
-                    <div data-slot="delegation-findings">
-                      <span data-slot="delegation-section-label">Findings</span>
-                      <Markdown text={value()} />
-                    </div>
-                  )}
-                </Show>
-
-                <Show when={activity().length > 0}>
-                  <div data-slot="delegation-activity">
-                    <span data-slot="delegation-section-label">Activity</span>
-                    <For each={activity()}>
-                      {(group) => (
-                        <div data-slot="delegation-activity-row" data-family={group.family}>
-                          <Icon
-                            name={
-                              group.family === "context"
-                                ? "glasses"
-                                : group.family === "sources"
-                                  ? "window-cursor"
-                                  : group.family === "commands"
-                                    ? "console"
-                                    : group.family === "changes"
-                                      ? "code-lines"
-                                      : group.family === "images"
-                                        ? "photo"
-                                        : group.family === "skills"
-                                          ? "sparkles"
-                                          : "activity"
-                            }
-                            size="small"
-                          />
-                          <div>
-                            <strong>{group.label}</strong>
-                            <span>{group.detail}</span>
-                          </div>
-                          <Show when={group.failed > 0}>
-                            <span data-slot="delegation-activity-failed">{group.failed} failed</span>
-                          </Show>
-                        </div>
-                      )}
-                    </For>
-                  </div>
-                </Show>
-
-                <Show when={summary().length > 0}>
-                  <details data-slot="delegation-raw">
-                    <summary>
-                      Raw operations <span>· {summary().length}</span>
-                    </summary>
-                    <div data-component="task-tools">
-                      <For each={summary()}>
-                        {(item) => {
-                          const info = getToolInfo(item.tool)
-                          return (
-                            <div data-slot="task-tool-item">
-                              <Icon name={info.icon} size="small" />
-                              <span data-slot="task-tool-title">{info.title}</span>
-                              <Show when={item.state.title}>
-                                <span data-slot="task-tool-subtitle">{item.state.title}</span>
-                              </Show>
-                            </div>
-                          )
-                        }}
-                      </For>
-                    </div>
-                  </details>
-                </Show>
+                <Show when={childQuestion()}>{(request) => <QuestionPrompt request={request()} />}</Show>
               </div>
-            </details>
-          </Match>
-        </Switch>
+            </div>
+          </Show>
+
+          <Show when={handoff().outputs.length > 0}>
+            <div data-slot="delegation-outputs">
+              <For each={handoff().outputs}>
+                {(file) => (
+                  <button
+                    type="button"
+                    data-slot="delegation-output"
+                    disabled={!file.artifactID || !data.openArtifact}
+                    onClick={() => file.artifactID && data.openArtifact?.(file.artifactID)}
+                  >
+                    <Icon name="file" size="small" />
+                    {file.filename}
+                  </button>
+                )}
+              </For>
+            </div>
+          </Show>
+        </div>
       </div>
     )
   },
@@ -1850,20 +1721,61 @@ ToolRegistry.register({
   name: "bash",
   render(props) {
     const i18n = useI18n()
+    const command = () => String(props.input.command ?? props.metadata.command ?? "")
+    const output = () => stripAnsi(stripBashMetadata(props.output ?? props.metadata.output))
+    const transcript = () => [command() ? `$ ${command()}` : "", output()].filter(Boolean).join("\n\n")
+    const [copy, setCopy] = createStore({ copied: false, error: false })
+    const handleCopy = async () => {
+      setCopy({ copied: false, error: false })
+      if (!navigator.clipboard?.writeText) {
+        setCopy("error", true)
+        return
+      }
+      await navigator.clipboard.writeText(transcript()).then(
+        () => setCopy("copied", true),
+        () => setCopy("error", true),
+      )
+    }
+    createEffect(() => {
+      if (!copy.copied) return
+      const timer = setTimeout(() => setCopy("copied", false), 2_000)
+      onCleanup(() => clearTimeout(timer))
+    })
+    const subtitle = () => {
+      if (typeof props.input.description === "string" && props.input.description.trim()) return props.input.description
+      const command = typeof props.input.command === "string" ? props.input.command : ""
+      return command.trim().split("\n")[0]?.slice(0, 80) || undefined
+    }
     return (
       <BasicTool
         {...props}
         icon="console"
         trigger={{
-          title: i18n.t("ui.tool.shell"),
-          subtitle: props.input.description,
+          title: toolVerb(i18n, "bash", props.status, "ui.tool.shell"),
+          subtitle: subtitle(),
         }}
       >
-        <Show when={props.input.command || props.metadata.command || props.output || props.metadata.output}>
-          <div data-component="tool-output" data-scrollable>
-            <Markdown
-              text={`\`\`\`\`command\n$ ${props.input.command ?? props.metadata.command ?? ""}${props.output || props.metadata.output ? "\n\n" + stripAnsi(props.output || props.metadata.output) : ""}\n\`\`\`\``}
-            />
+        <Show when={transcript()}>
+          <div data-component="shell-output">
+            <div data-slot="shell-output-actions">
+              <IconButton
+                icon={copy.copied ? "check" : "copy"}
+                variant="ghost"
+                onClick={handleCopy}
+                aria-label={copy.copied ? i18n.t("ui.message.copied") : i18n.t("ui.message.copy")}
+                title={copy.copied ? i18n.t("ui.message.copied") : i18n.t("ui.message.copy")}
+              />
+            </div>
+            <Show when={copy.error}>
+              <div data-slot="shell-output-copy-error" role="status" aria-live="polite">
+                Could not copy. Select the command and output and copy it manually.
+              </div>
+            </Show>
+            <div data-component="tool-output" data-scrollable>
+              <pre>
+                <code>{transcript()}</code>
+              </pre>
+            </div>
           </div>
         </Show>
       </BasicTool>
@@ -1884,7 +1796,7 @@ ToolRegistry.register({
     return (
       <Show
         when={isToolDone(props.status) || bodyReady()}
-        fallback={<ToolProgress label={i18n.t("ui.messagePart.title.edit")} subtitle={filename()} />}
+        fallback={<ToolProgress label={i18n.t("ui.tool.running.edit")} subtitle={filename()} />}
       >
         <BasicTool
           {...props}
@@ -1913,9 +1825,7 @@ ToolRegistry.register({
                 </Show>
               </div>
               <div data-slot="message-part-actions">
-                <Show when={props.metadata.filediff}>
-                  <DiffChanges changes={props.metadata.filediff} />
-                </Show>
+                <Show when={toolChanges(props)}>{(changes) => <DiffChanges changes={changes()} />}</Show>
               </div>
             </div>
           }
@@ -1956,7 +1866,7 @@ ToolRegistry.register({
     return (
       <Show
         when={isToolDone(props.status) || bodyReady()}
-        fallback={<ToolProgress label={i18n.t("ui.messagePart.title.write")} subtitle={filename()} />}
+        fallback={<ToolProgress label={i18n.t("ui.tool.running.write")} subtitle={filename()} />}
       >
         <BasicTool
           {...props}
@@ -1984,7 +1894,9 @@ ToolRegistry.register({
                   </div>
                 </Show>
               </div>
-              <div data-slot="message-part-actions">{/* <DiffChanges diff={diff} /> */}</div>
+              <div data-slot="message-part-actions">
+                <Show when={toolChanges(props)}>{(changes) => <DiffChanges changes={changes()} />}</Show>
+              </div>
             </div>
           }
         >
@@ -2036,14 +1948,15 @@ ToolRegistry.register({
     return (
       <Show
         when={isToolDone(props.status) || files().length > 0}
-        fallback={<ToolProgress label={i18n.t("ui.tool.patch")} subtitle={subtitle()} />}
+        fallback={<ToolProgress label={i18n.t("ui.tool.running.patch")} subtitle={subtitle()} />}
       >
         <BasicTool
           {...props}
           icon="code-lines"
           trigger={{
-            title: i18n.t("ui.tool.patch"),
+            title: toolVerb(i18n, "apply_patch", props.status, "ui.tool.patch"),
             subtitle: subtitle(),
+            action: <Show when={toolChanges(props)}>{(changes) => <DiffChanges changes={changes()} />}</Show>,
           }}
         >
           <Show when={files().length > 0}>
@@ -2184,11 +2097,17 @@ ToolRegistry.register({
     const answers = createMemo(() => (props.metadata.answers ?? []) as QuestionAnswer[])
     const completed = createMemo(() => answers().length > 0)
 
+    // One question reads as "Question · <its header>"; several read as
+    // "Questions · 3 questions". Answered, the count of answers follows.
+    const title = createMemo(() =>
+      questions().length === 1 ? i18n.t("ui.tool.question") : i18n.t("ui.tool.questions"),
+    )
     const subtitle = createMemo(() => {
       const count = questions().length
       if (count === 0) return ""
       if (completed()) return i18n.t("ui.question.subtitle.answered", { count })
-      return `${count} ${i18n.t(count > 1 ? "ui.common.question.other" : "ui.common.question.one")}`
+      if (count === 1) return questions()[0]?.header ?? ""
+      return `${count} ${i18n.t("ui.common.question.other")}`
     })
 
     return (
@@ -2197,7 +2116,7 @@ ToolRegistry.register({
         defaultOpen={completed()}
         icon="bubble-5"
         trigger={{
-          title: i18n.t("ui.tool.questions"),
+          title: title(),
           subtitle: subtitle(),
         }}
       >
@@ -2377,6 +2296,15 @@ export function QuestionPrompt(props: { request: QuestionRequest }) {
   })
 
   const question = createMemo(() => questions()[store.tab])
+  // A question that asks for a login or token is a credential request: point
+  // at the encrypted store instead of letting a secret land in the chat.
+  const credential = createMemo(
+    () =>
+      !!data.openCredentials &&
+      /\b(credentials?|tokens?|api\s*keys?|log\s*in|login|sign\s*in|gh auth|hf auth|hugging\s*face|github)\b/i.test(
+        `${question()?.header ?? ""} ${question()?.question ?? ""}`,
+      ),
+  )
   const confirm = createMemo(() => !single() && store.tab === questions().length)
   const options = createMemo(() => question()?.options ?? [])
   const input = createMemo(() => store.custom[store.tab] ?? "")
@@ -2472,7 +2400,20 @@ export function QuestionPrompt(props: { request: QuestionRequest }) {
   }
 
   return (
-    <div data-component="question-prompt">
+    <div
+      data-component="request-card"
+      data-kind="question"
+      aria-label={`${i18n.t("ui.question.eyebrow")}: ${question()?.header ?? ""}`}
+    >
+      <div data-slot="request-head">
+        <Icon name="help" size="small" />
+        <div data-slot="request-copy">
+          <span data-slot="request-eyebrow">{i18n.t("ui.question.eyebrow")}</span>
+          <Show when={single() && question()?.header}>
+            {(header) => <strong data-slot="request-title">{header()}</strong>}
+          </Show>
+        </div>
+      </div>
       <Show when={!single()}>
         <div data-slot="question-tabs">
           <For each={questions()}>
@@ -2503,57 +2444,91 @@ export function QuestionPrompt(props: { request: QuestionRequest }) {
             {question()?.question}
             {multi() ? " " + i18n.t("ui.question.multiHint") : ""}
           </div>
-          <div data-slot="question-options">
+          <Show when={credential()}>
+            <div data-slot="question-credential">
+              <span>{i18n.t("ui.question.credentialHint")}</span>
+              <button type="button" onClick={() => data.openCredentials?.()}>
+                {i18n.t("ui.question.openCredentials")}
+              </button>
+            </div>
+          </Show>
+          <div
+            data-slot="question-options"
+            role={multi() ? "group" : "radiogroup"}
+            data-multiple={multi() ? "true" : undefined}
+          >
             <For each={options()}>
               {(opt, i) => {
                 const picked = () => store.answers[store.tab]?.includes(opt.label) ?? false
+                // The model marks its recommendation in the label itself; show
+                // it as a quiet tag and keep the full label as the answer.
+                const recommended = () => /\s*\(recommended\)\s*$/i.test(opt.label)
+                const shown = () => opt.label.replace(/\s*\(recommended\)\s*$/i, "")
                 return (
-                  <button data-slot="question-option" data-picked={picked()} onClick={() => selectOption(i())}>
-                    <span data-slot="option-label">{opt.label}</span>
-                    <Show when={opt.description}>
-                      <span data-slot="option-description">{opt.description}</span>
-                    </Show>
-                    <Show when={picked()}>
-                      <Icon name="check-small" size="normal" />
-                    </Show>
+                  <button
+                    type="button"
+                    data-slot="question-option"
+                    data-picked={picked()}
+                    role={multi() ? "checkbox" : "radio"}
+                    aria-checked={picked()}
+                    onClick={() => selectOption(i())}
+                  >
+                    <span data-slot="option-mark" aria-hidden="true" />
+                    <span data-slot="option-copy">
+                      <span data-slot="option-label">
+                        {shown()}
+                        <Show when={recommended()}>
+                          <span data-slot="option-tag">{i18n.t("ui.question.recommended")}</span>
+                        </Show>
+                      </span>
+                      <Show when={opt.description}>
+                        <span data-slot="option-description">{opt.description}</span>
+                      </Show>
+                    </span>
                   </button>
                 )
               }}
             </For>
-            <button
-              data-slot="question-option"
-              data-picked={customPicked()}
-              onClick={() => selectOption(options().length)}
-            >
-              <span data-slot="option-label">{i18n.t("ui.messagePart.option.typeOwnAnswer")}</span>
-              <Show when={!store.editing && input()}>
-                <span data-slot="option-description">{input()}</span>
+            <Show when={question()?.custom !== false}>
+              <button
+                type="button"
+                data-slot="question-option"
+                data-custom="true"
+                data-picked={customPicked()}
+                role={multi() ? "checkbox" : "radio"}
+                aria-checked={customPicked()}
+                onClick={() => selectOption(options().length)}
+              >
+                <span data-slot="option-mark" aria-hidden="true" />
+                <span data-slot="option-copy">
+                  <span data-slot="option-label">{i18n.t("ui.messagePart.option.typeOwnAnswer")}</span>
+                  <Show when={!store.editing && input()}>
+                    <span data-slot="option-description">{input()}</span>
+                  </Show>
+                </span>
+              </button>
+              <Show when={store.editing}>
+                <form data-slot="custom-input-form" onSubmit={handleCustomSubmit}>
+                  <input
+                    ref={(el) => setTimeout(() => el.focus(), 0)}
+                    type="text"
+                    data-slot="custom-input"
+                    placeholder={i18n.t("ui.question.custom.placeholder")}
+                    value={input()}
+                    onInput={(e) => {
+                      const inputs = [...store.custom]
+                      inputs[store.tab] = e.currentTarget.value
+                      setStore("custom", inputs)
+                    }}
+                  />
+                  <Button type="submit" variant="primary" size="small">
+                    {multi() ? i18n.t("ui.common.add") : i18n.t("ui.common.submit")}
+                  </Button>
+                  <Button type="button" variant="ghost" size="small" onClick={() => setStore("editing", false)}>
+                    {i18n.t("ui.common.cancel")}
+                  </Button>
+                </form>
               </Show>
-              <Show when={customPicked()}>
-                <Icon name="check-small" size="normal" />
-              </Show>
-            </button>
-            <Show when={store.editing}>
-              <form data-slot="custom-input-form" onSubmit={handleCustomSubmit}>
-                <input
-                  ref={(el) => setTimeout(() => el.focus(), 0)}
-                  type="text"
-                  data-slot="custom-input"
-                  placeholder={i18n.t("ui.question.custom.placeholder")}
-                  value={input()}
-                  onInput={(e) => {
-                    const inputs = [...store.custom]
-                    inputs[store.tab] = e.currentTarget.value
-                    setStore("custom", inputs)
-                  }}
-                />
-                <Button type="submit" variant="primary" size="small">
-                  {multi() ? i18n.t("ui.common.add") : i18n.t("ui.common.submit")}
-                </Button>
-                <Button type="button" variant="ghost" size="small" onClick={() => setStore("editing", false)}>
-                  {i18n.t("ui.common.cancel")}
-                </Button>
-              </form>
             </Show>
           </div>
         </div>

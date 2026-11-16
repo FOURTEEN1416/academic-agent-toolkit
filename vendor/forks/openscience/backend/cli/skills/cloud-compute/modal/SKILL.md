@@ -6,6 +6,14 @@ version: 5.0.0
 author: Synthetic Sciences
 license: MIT
 tags: [Infrastructure, Serverless, GPU, Cloud, Modal, Sandboxes, Compute]
+metadata:
+  upstream: K-Dense-AI/scientific-agent-skills
+  upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+  upstream-path: scientific-packages/modal
+  upstream-license: MIT
+  upstream-relationship: adapted and rewritten
+  skill-author: Synthetic Sciences
+  adapted-by: Synthetic Sciences
 ---
 
 # Modal through `compute_job`

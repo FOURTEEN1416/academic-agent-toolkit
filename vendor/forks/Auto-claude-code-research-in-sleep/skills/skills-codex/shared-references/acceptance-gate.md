@@ -4,18 +4,21 @@
 > current Codex agent and the default reviewer is a fresh `spawn_agent` Codex
 > agent. That route is same-family: it may drive revisions and terminate a loop,
 > but its positive verdict is recorded as `acceptance_status: provisional` and
-> never as cross-family `accepted`. A Claude/Gemini overlay or a deterministic
-> verifier may record `accepted`. Where the mainline examples name Claude or
-> `mcp__codex__codex`, read them as current executor or fresh `spawn_agent`;
-> follow-up dialogue uses `send_input` only when continuity is intentional.
+> never as cross-family `accepted`. Select other reviewers through
+> [Selectable Reviewers](reviewer-backends.md). Accepted semantic assurance needs
+> a completed, positive, in-scope review with known different actual executor and
+> reviewer model families. A selected transport alone grants no acceptance.
+> Deterministic verifiers accept only the mechanical obligations they check.
+> Native Codex examples use `spawn_agent`; `send_input` is only for intentional
+> continuity. Other routes preserve the same freshness and continuity boundaries.
 
 ## Core Principle
 
 **An autonomous loop's STOP/ACCEPT gate determines its assurance level. The
 thing being judged at that gate — not the loop's subject matter, not how many
-agents ran — decides whether a base Codex review is provisional or an overlay /
-deterministic route may mark it accepted.** (A deterministic verifier accepts
-only what a PROCESS can actually decide — compilation, schema validity, hash
+agents ran — decides whether a same-family review stays provisional or a
+completed positive cross-family review may support accepted assurance.**
+(A deterministic verifier accepts only what a PROCESS can actually decide — compilation, schema validity, hash
 freshness, test suites. It can never acquit a SEMANTIC judgment — proof
 correctness, claim support, novelty — however it is labeled; see
 `skill-governance.md`, which scopes deterministic verifiers to mechanical
@@ -44,8 +47,9 @@ config, recompile, re-run the failed job, spawn ten search branches.
 What it may not do is *claim accepted acquittal* of its own work — declare the
 paper submission-ready, the proof valid, the claim supported, the idea novel,
 or the review satisfied **as accepted assurance**. A base Codex verdict is a
-traceable provisional gate; accepted acquittal requires a cross-family overlay
-or deterministic verifier.
+traceable provisional gate; accepted semantic acquittal requires a completed
+positive cross-family review of that gate's full scope. Mechanical acceptance
+stays limited to what an applicable deterministic verifier actually checks.
 
 ## The two gate types
 
@@ -81,9 +85,10 @@ is not (that's Type-B).
 
 A judgment of *merit, correctness, or sufficiency*. A fresh base Codex reviewer
 may evaluate this gate and advance/terminate the loop, but it records
-`same-family` / `provisional`. An `accepted` Type-B gate requires a different
-model family through the Claude/Gemini overlay, or a deterministic verifier,
-with the route recorded in `reviewer-routing.md`.
+`same-family` / `provisional`. An `accepted` Type-B gate requires a completed,
+positive, in-scope review with known different actual model families, through
+the selected route recorded under `reviewer-backends.md`. A deterministic
+Type-A result cannot substitute for this semantic judgment.
 
 - ❌ "the paper is good" / "submission-ready"
 - ❌ "the proof is valid" / "the gap is closed"
@@ -106,7 +111,8 @@ hundred rounds of Claude-judging-Claude is still one model family.
 >
 > **Yes → Type-A** (Claude may self-judge — it's bookkeeping).
 > **No, it needs taste / correctness / domain judgment → Type-B** (base Codex
-> review is provisional; use an overlay or deterministic verifier for accepted assurance).
+> review is provisional; accepted semantic assurance requires a completed
+> positive cross-family review of the actual obligation).
 
 "The PDF compiled" needs no taste — Type-A. "The PDF is a good paper"
 is nothing *but* taste — Type-B. "The job exited 0" — Type-A. "The job's
@@ -117,8 +123,8 @@ output is the right answer" — Type-B.
 Many natural-language stop conditions secretly bundle an A-part and a
 B-part. `/auto-review-loop`'s real condition is *"score >= 6 AND verdict
 contains 'ready'"* evaluated each round — the fresh base Codex reviewer
-records that score/verdict as `provisional`, while an overlay or deterministic
-route may record it `accepted`. The A-part is only "did round N's reviewer
+records that score/verdict as `provisional`; a completed positive cross-family
+review covering the semantic obligation may support `accepted`. The A-part is only "did round N's reviewer
 return?" and "is round < MAX_ROUNDS?".
 
 When you meet a compound gate, decompose it:
@@ -127,7 +133,7 @@ When you meet a compound gate, decompose it:
 STOP when "the paper is submission-ready"
   ├─ A: all 3 audits were invoked and emitted JSON   → Codex self-checks
   ├─ A: verify_paper_audits.sh exit code == 0         → external process, Codex reads it
-  └─ B: "the paper is actually good enough to submit" → overlay/deterministic accepted verdict
+  └─ B: "the paper is actually good enough to submit" → completed positive cross-family review
 ```
 
 Never collapse a compound gate to its A-part and call the loop safe. The
@@ -152,14 +158,15 @@ When you author or review a "keep working until X" skill:
 
 4. **For every Type-B gate:** route it per `reviewer-routing.md`. The default
    fresh `spawn_agent` Codex review is `same-family` and therefore
-   `provisional`; use a Claude/Gemini overlay or deterministic verifier when
-   accepted assurance is required. Pass file paths, not summaries
+   `provisional`; use the selected route for a completed positive cross-family
+   review when accepted semantic assurance is required. Pass file paths, not summaries
    (`reviewer-independence.md`). The loop may continue or stop on the recorded
    reviewer verdict, but the artifact must preserve its assurance class
    (`integration-contract.md` §3).
 
 5. **State the provenance in the SKILL.** One line: "STOP gate = Type-B,
-   base Codex = provisional; overlay/deterministic route = accepted." A reviewer
+   same-family = provisional; accepted semantic assurance requires a completed
+   positive review with known different families and full scope." A reviewer
    of the SKILL should be able to find the assurance class for each terminating
    condition.
 
@@ -171,8 +178,8 @@ When you author or review a "keep working until X" skill:
 Rule of thumb: **if removing the recorded reviewer would silently upgrade a
 quality decision to accepted, the loop is self-acquitting.** A base Codex
 Type-B loop may terminate at provisional assurance; an accepted loop is
-designed so that removing its overlay/deterministic verdict leaves it unable to
-claim accepted assurance.
+designed so that removing its completed positive cross-family verdict leaves
+it unable to claim accepted semantic assurance.
 
 ## ARIS loops mapped to the taxonomy
 
@@ -193,7 +200,7 @@ writes.
 | `/experiment-audit` | integrity verdict (fake GT, normalization fraud) | B | fresh **Codex** audit | ⚠ provisional in base |
 | `/paper-claim-audit` | every number matches result files | B | fresh **Codex** reviewer | ⚠ provisional in base |
 | `/citation-audit` | every entry real & in-context | B | fresh **Codex** reviewer | ⚠ provisional in base |
-| `/paper-writing` Phase 6 (submission) | `verify_paper_audits.sh` exit 0 | A (gate) wrapping B (the audits) | verifier aggregates provenance JSON | ✅ accepted only with overlay/deterministic audits |
+| `/paper-writing` Phase 6 (submission) | `verify_paper_audits.sh` exit 0 | A (gate) wrapping B (the audits) | verifier aggregates provenance JSON | ✅ accepted only with complete accepted audit coverage; no mechanical substitute for semantic audits |
 
 > 📌 The `/auto-review-loop` row reflects the skill's stop logic: `score >= 6`
 > AND verdict contains "ready"/"almost", evaluated each round. (Its `Constants`
@@ -214,8 +221,9 @@ Two patterns to notice:
   is Type-B and must route out — see the dse caveat below.)
 
 - **Every quality/correctness loop records its reviewer route.** Base Codex
-  routes are provisional; overlays and deterministic verifiers provide accepted
-  assurance. This makes the distinction operational for the next author.
+  routes are provisional; completed positive cross-family reviews may provide
+  accepted semantic assurance, while deterministic checks retain their mechanical
+  scope. This makes the distinction operational for the next author.
 
 ### The dse-loop caveat (objective ≠ acceptance)
 
@@ -266,7 +274,8 @@ Fan-out and this contract compose cleanly: fan-out (same family) does the broad
 *driving*; the loop always funnels into one classified Type-B verdict. Breadth
 degrades gracefully across runtimes (fewer parallel agents = slower, not
 unsafe); the assurance class does not get silently upgraded — base Codex stays
-provisional and overlay/deterministic routes are accepted.
+provisional. Accepted semantic assurance requires a completed positive
+cross-family review; mechanical checks remain limited to their checked obligations.
 
 ## Required components (for a loop to claim same-family-safe)
 
@@ -276,11 +285,13 @@ A loop is same-family-safe iff **all** hold:
    gates split).
 2. **Every Type-B gate records its reviewer route** per `reviewer-routing.md`;
    the loop's continue/stop reads that verdict, not an executor re-judgment of
-   it. Base Codex is provisional; overlay/deterministic routes are accepted.
+   it. Same-family review is provisional; accepted semantic assurance requires
+   a completed positive cross-family review of the full obligation.
 3. **The verdict is an artifact** (`integration-contract.md` §3) — a JSON/file
    a third party can inspect to confirm its assurance class and provenance.
 4. **No same-family majority is treated as accepted Type-B assurance** — fan-out
-   breadth never substitutes for an overlay/deterministic acceptance route.
+   breadth never substitutes for the required completed positive cross-family
+   semantic review.
 5. **Type-A self-judgment prefers an external check** (exit code, stat,
    counter) over an LLM "I think it's done" wherever one exists.
 
@@ -327,9 +338,8 @@ A green gate lowers risk; it does not transfer accountability.
 - `experiment-integrity.md` — the experiment form: the model that writes
   experiment code must not judge its integrity. `/experiment-audit`'s
   Type-B verdict is the loop instance of this rule.
-- `reviewer-routing.md` — where Type-B gates send their verdict (codex
-  default, oracle-pro on request, manual only with a verified non-Claude
-  target).
+- `reviewer-backends.md` / `reviewer-routing.md` — select the reviewer and
+  preserve its actual identity, completion, scope and session contract.
 - `fan-out-pattern.md` — breadth via same-family spawn; this doc's
   fan-out section is the guardrail that keeps breadth out of the jury box.
 - `integration-contract.md` §3 — the cross-model verdict must leave an

@@ -368,6 +368,176 @@ describe("acp.agent event subscription", () => {
     })
   })
 
+  test("completes a todowrite tool call whose output is not valid JSON", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const { agent, controller, updates, stop } = createFakeAgent()
+        const cwd = "/tmp/openscience-acp-test"
+
+        const sessionID = await agent.newSession({ cwd, mcpServers: [] }).then((x) => x.sessionId)
+
+        controller.push({
+          directory: cwd,
+          payload: {
+            type: "message.part.updated",
+            properties: {
+              part: {
+                id: "prt_todo_invalid",
+                sessionID,
+                messageID: "msg_1",
+                callID: "call_1",
+                type: "tool",
+                tool: "todowrite",
+                state: {
+                  status: "completed",
+                  input: {},
+                  output: "the model narrated instead of emitting json",
+                  title: "todowrite",
+                  metadata: {},
+                  time: { start: 1, end: 2 },
+                },
+              },
+            },
+          },
+        })
+
+        await waitFor(() => (updates.get(sessionID) ?? []).includes("tool_call_update"))
+
+        expect(updates.get(sessionID)).toContain("tool_call_update")
+        expect(updates.get(sessionID)).not.toContain("plan")
+        stop()
+      },
+    })
+  })
+
+  test("replays a session whose todowrite history is not valid JSON", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const { agent, updates, stop, sdk } = createFakeAgent()
+        const cwd = "/tmp/openscience-acp-test"
+
+        const sessionID = await agent.newSession({ cwd, mcpServers: [] }).then((x) => x.sessionId)
+
+        sdk.session.messages = async () => ({
+          data: [
+            {
+              info: { role: "assistant", sessionID },
+              parts: [
+                {
+                  type: "tool",
+                  callID: "call_replay",
+                  tool: "todowrite",
+                  state: {
+                    status: "completed",
+                    input: {},
+                    output: "not json",
+                    title: "todowrite",
+                    metadata: {},
+                  },
+                },
+              ],
+            },
+          ],
+        })
+
+        await agent.loadSession({ sessionId: sessionID, cwd, mcpServers: [] })
+
+        expect(updates.get(sessionID)).toContain("tool_call_update")
+        stop()
+      },
+    })
+  })
+
+  test("handles a rejected edit preview write instead of leaving it unhandled", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const unhandled: unknown[] = []
+        const onUnhandled = (reason: unknown) => {
+          unhandled.push(reason)
+        }
+        process.on("unhandledRejection", onUnhandled)
+        try {
+          const { agent, controller, connection, replies, stop } = createFakeAgent()
+          connection.writeTextFile = async () => {
+            throw new Error("path is outside the client roots")
+          }
+
+          const sessionID = await agent.newSession({ cwd: tmp.path, mcpServers: [] }).then((x) => x.sessionId)
+          const filepath = `${tmp.path}/paper.txt`
+          await Bun.write(filepath, "old\n")
+
+          controller.push({
+            directory: tmp.path,
+            payload: {
+              type: "permission.asked",
+              properties: {
+                id: "permission-rejected-preview",
+                sessionID,
+                permission: "edit",
+                patterns: [filepath],
+                always: [filepath],
+                metadata: { filepath, diff: "@@ -1,1 +1,1 @@\n-old\n+new\n" },
+              },
+            },
+          })
+
+          await waitFor(() => replies.length === 1)
+          await Bun.sleep(50)
+
+          expect(unhandled).toEqual([])
+          expect(replies[0]).toMatchObject({ requestID: "permission-rejected-preview", reply: "once" })
+          stop()
+        } finally {
+          process.off("unhandledRejection", onUnhandled)
+        }
+      },
+    })
+  })
+
+  test("pages sessions without dropping those sharing a boundary millisecond", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const { agent, stop, sdk } = createFakeAgent()
+        const session = (id: string, updated: number) => ({
+          id,
+          directory: tmp.path,
+          title: id,
+          time: { updated },
+        })
+
+        sdk.session.list = async () => ({
+          data: [
+            ...Array.from({ length: 99 }, (_, i) => session(`ses_top_${i}`, 200 - i)),
+            session("ses_boundary_Z", 101),
+            session("ses_boundary_a", 101),
+            session("ses_tail_1", 100),
+            session("ses_tail_2", 99),
+            session("ses_tail_3", 98),
+          ],
+        })
+
+        const first = await agent.listSessions({ cwd: tmp.path })
+        const second = await agent.listSessions({ cwd: tmp.path, cursor: first.nextCursor })
+
+        const ids = [...first.sessions, ...second.sessions].map((entry) => entry.sessionId)
+        expect(new Set(ids).size).toBe(ids.length)
+        expect(ids).toContain("ses_boundary_a")
+        const legacy = await agent.listSessions({ cwd: tmp.path, cursor: "101" })
+        expect(legacy.sessions.map((entry) => entry.sessionId)).toEqual(["ses_tail_1", "ses_tail_2", "ses_tail_3"])
+        expect(ids).toHaveLength(104)
+        stop()
+      },
+    })
+  })
+
   test("permission.asked events are handled and replied", async () => {
     await using tmp = await tmpdir()
     await Instance.provide({

@@ -18,6 +18,8 @@ metadata:
 
 Execute, monitor, interpret, and verify experiments for academic research. Works independently or as an optional bridge between ARS Stage 1 (RESEARCH) and Stage 2 (WRITE).
 
+> **本仓分工声明（路由去歧义）**：本技能是**多模式实验编排入口**（run / manage / validate / plan）。单步 GPU 实验部署优先用 `run-experiment`；W&B 训练质量巡检用 `training-check`；远程实验巡检与结果收集用 `monitor-experiment`；严格统计分析与证据包用 `results-analysis`。本技能触发词 "run experiment" 与 `run-experiment` 重叠：需要编排/监控/验证/规划全流程时用本技能，只需部署执行时直接用 `run-experiment`。
+
 **Role**: Executor + Monitor. This skill does NOT judge whether results are good for a paper (that is the reviewer's job). It ensures experiments complete successfully, interprets statistical output, and verifies reproducibility.
 
 ## Quick Start
@@ -98,13 +100,13 @@ Two capabilities: **statistical interpretation** and **reproducibility verificat
 
 1. **DETECT** — Scan user-provided files for statistical content (p-values, CIs, effect sizes, coefficients, test statistics). Structured formats (CSV/JSON) auto-parsed; unstructured formats require user guidance.
 
-2. **INTERPRET** — Item-by-item analysis. See `references/statistical_interpretation_guide.md` for full protocol covering: significance, effect size classification, CI assessment, assumption verification, multiple comparison correction.
+2. **INTERPRET** — Item-by-item analysis. Full protocol was in `references/statistical_interpretation_guide.md`（未随仓集成，见 ASSET-GAP.md）。缺席时按最小协议执行：逐项报告显著性（p 值与 α 比较）、效应量分类（Cohen's d/h、Cramér's V 小/中/大界标）、CI 是否覆盖零/实用阈值、检验前提核查（正态性/独立性/方差齐性）、多重比较校正（Bonferroni 或 FDR）。
 
-3. **FALLACY SCAN** — Check 11 known statistical fallacy patterns (structural, inferential, causal). See `references/statistical_interpretation_guide.md` for the full checklist. All 11 must be checked; report coverage in output.
+3. **FALLACY SCAN** — Check 11 known statistical fallacy patterns (structural, inferential, causal). Full checklist was in `references/statistical_interpretation_guide.md`（未随仓集成，见 ASSET-GAP.md）。缺席时至少覆盖以下高频谬误并逐项报告覆盖情况：以显著性断言因果、忽略多重比较、幸存者偏差/选择性报告、样本量不足下解读 p 值、比较组不可比（混杂）、基线不齐、单元/单位错配、重复测量当独立、以子群效应推翻/支持总体结论、以相关强度夸大预测力、隐藏负结果。All fallacy checks must be reported; report coverage in output.
 
-4. **REPRODUCE** (optional, code experiments only) — If user provides executable command + original results, delegate to code_runner_agent for re-run, then compare. See `references/reproducibility_protocol.md`. Not applicable to human studies or non-rerunnable external systems.
+4. **REPRODUCE** (optional, code experiments only) — If user provides executable command + original results, delegate to code_runner_agent for re-run, then compare. Protocol was in `references/reproducibility_protocol.md`（未随仓集成，见 ASSET-GAP.md）；缺席时按 Quality Standards 判据执行：确定性实验要求逐字节一致，随机实验默认相对差异 < 5%。Not applicable to human studies or non-rerunnable external systems.
 
-5. **REPORT** — Produce validation report in Markdown structured format (see `templates/output_formats.md`). Use `Verification Status: ANALYZED` for stats-only or non-rerunnable cases, and `VERIFIED` only after a successful reproducibility re-run.
+5. **REPORT** — Produce validation report in Markdown structured format. Template was in `templates/output_formats.md`（未随仓集成，见 ASSET-GAP.md）；缺席时按最小结构输出：`## Material Passport`（id/type/mode/status/timestamp）→ `## Statistical Findings`（逐项表：指标/估计值/CI/p 值/效应量/判读）→ `## Fallacy Scan`（逐项 ✅/⚠️/❌ 与理由）→ `## Reproducibility`（verdict + 差异）→ `## Warnings`。Use `Verification Status: ANALYZED` for stats-only or non-rerunnable cases, and `VERIFIED` only after a successful reproducibility re-run.
 
 **Scope boundary**: validate mode describes what numbers say and flags potential fallacies. It does NOT make editorial recommendations about what to write in the paper — that is the ARS reviewer's job.
 
@@ -122,7 +124,7 @@ Socratic dialogue to help users design experiments before running them. plan mod
 4. **Method selection** — Based on RQ + design, suggest appropriate methods
 5. **Sample** — Population, sampling strategy, power analysis for sample size
 6. **Analysis strategy** — Which statistical tests? What are the assumptions?
-7. **Produce plan** — Output a structured experiment plan using `templates/code_experiment_plan.md` or `templates/study_protocol.md`
+7. **Produce plan** — Output a structured experiment plan. Templates were in `templates/code_experiment_plan.md` / `templates/study_protocol.md`（均未随仓集成，见 ASSET-GAP.md）；缺席时按最小字段产出计划：研究问题与假设、变量清单（IV/DV/控制/混杂）、设计类型与理由、方法与检验选择、样本量与功效依据、分析策略、风险与伦理要点、里程碑。
 
 One question at a time. Multiple choice preferred. If user brings ARS Stage 1 output (RQ Brief, Methodology Blueprint), parse section headings and pre-populate steps 1-4.
 
@@ -132,14 +134,14 @@ One question at a time. Multiple choice preferred. If user brings ARS Stage 1 ou
 
 All outputs use **Markdown-based structured format** with Material Passport (ARS Schema 9) for compatibility. Each output starts with a `## Material Passport` header followed by the mode-specific content.
 
-See `templates/output_formats.md` for complete templates for the three execution/validation outputs:
+Complete templates were in `templates/output_formats.md`（未随仓集成，见 ASSET-GAP.md）。缺席时按下述最小结构直接产出：
 - **Experiment Result** (run mode): Material Passport + ID, type, status, command, output files, anomalies
 - **Study Status** (manage mode): Material Passport + ID, phase, progress, ethics status, risks, data readiness
 - **Validation Report** (validate mode): Material Passport + statistical findings table, warnings, fallacy scan, reproducibility verdict
 
-Plan mode outputs use separate templates and also carry Material Passport:
-- **Code Experiment Plan** (plan mode, code path): `templates/code_experiment_plan.md`
-- **Study Protocol** (plan mode, human-study path): `templates/study_protocol.md`
+Plan mode outputs carry the same Material Passport header（模板未随仓，按 plan mode step 7 的最小字段产出）:
+- **Code Experiment Plan** (plan mode, code path)
+- **Study Protocol** (plan mode, human-study path)
 
 ---
 
@@ -186,15 +188,17 @@ Plan mode outputs use separate templates and also carry Material Passport:
 
 ## Reference Files
 
-| File | Purpose |
-|------|---------|
-| `references/stall_detection_protocol.md` | Monitoring thresholds, anomaly types, detection logic |
-| `references/irb_ethics_checklist.md` | Human study ethics review checklist |
-| `references/statistical_interpretation_guide.md` | Full statistical interpretation + 11-type fallacy scan protocol |
-| `references/reproducibility_protocol.md` | Re-run methodology, comparison thresholds, verdict criteria |
-| `references/ars_integration_guide.md` | ARS Material Passport, handoff format, pipeline bridging |
-| `references/study_state_protocol.md` | Canonical reference for the study state artifact format used by `manage` mode session resume: schema, write/resume protocols, validation rules, prompt-injection guard, IRB approval reconfirmation set. |
-| `templates/output_formats.md` | Complete Markdown output templates for all three output types |
+> **⚠️ 以下参考文件当前均未随仓集成（完整清单见本目录 ASSET-GAP.md）**。表中「缺席降级」列给出文件缺失时的最小执行口径；正文步骤已内联等效要点，不因缺件而阻塞。
+
+| File | Purpose | 缺席降级 |
+|------|---------|----------|
+| `references/stall_detection_protocol.md` | Monitoring thresholds, anomaly types, detection logic | 按默认阈值巡检：进程存活 + 超时 + 日志报错扫描，异常即 ADVISORY 上报 |
+| `references/irb_ethics_checklist.md` | Human study ethics review checklist | 人工核查：知情同意、数据最小化、退出机制、隐私保护四项必查 |
+| `references/statistical_interpretation_guide.md` | Full statistical interpretation + 11-type fallacy scan protocol | 按 validate mode 步骤 2/3 内联的最小协议与谬误清单执行 |
+| `references/reproducibility_protocol.md` | Re-run methodology, comparison thresholds, verdict criteria | 按 Quality Standards：确定性逐字节一致，随机 <5% 相对差异 |
+| `references/ars_integration_guide.md` | ARS Material Passport, handoff format, pipeline bridging | 仅保留 Material Passport 头部兼容；其余 ARS 桥接按用户手动衔接 |
+| `references/study_state_protocol.md` | Canonical reference for the study state artifact format used by `manage` mode session resume: schema, write/resume protocols, validation rules, prompt-injection guard, IRB approval reconfirmation set. | 状态文件按最小 schema（study_id/phase/updated_at/next_action/notes）记录，resume 前人工确认 |
+| `templates/output_formats.md` | Complete Markdown output templates for all three output types | 按 Output Formats 节的最小结构直接产出 |
 
 ---
 
@@ -206,7 +210,7 @@ This skill works independently. When used with ARS:
 - **Producing ARS-compatible output**: All outputs carry Material Passport (Schema 9). Users bring results to ARS Stage 2 manually.
 - **ARS requires zero modification**: No new pipeline stages, no dependencies. The user is the bridge.
 
-See `references/ars_integration_guide.md` for details.
+Details were in `references/ars_integration_guide.md`（未随仓集成，见 ASSET-GAP.md）；缺席时按上文三条桥接口径执行。
 
 ---
 

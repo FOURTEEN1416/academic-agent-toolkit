@@ -78,10 +78,6 @@ export const dict = {
   "command.session.compact.description": "컨텍스트 크기를 줄이기 위해 세션 요약",
   "command.session.fork": "메시지에서 분기",
   "command.session.fork.description": "이전 메시지에서 새 세션 생성",
-  "command.session.share": "세션 공유",
-  "command.session.share.description": "이 세션을 공유하고 URL을 클립보드에 복사",
-  "command.session.unshare": "세션 공유 중지",
-  "command.session.unshare.description": "이 세션 공유 중지",
 
   "palette.search.placeholder": "파일 및 명령어 검색",
   "palette.empty": "결과 없음",
@@ -93,7 +89,6 @@ export const dict = {
   "dialog.provider.group.popular": "인기",
   "dialog.provider.group.other": "기타",
   "dialog.provider.tag.recommended": "추천",
-  "dialog.provider.synsci.note": "curated models including Claude, GPT, Gemini and more",
   "dialog.provider.anthropic.note": "Claude Pro/Max 또는 API 키로 연결",
   "dialog.provider.openai.note": "ChatGPT Pro/Plus 또는 API 키로 연결",
   "dialog.provider.google.note": "Gemini models for fast, structured responses",
@@ -106,10 +101,6 @@ export const dict = {
   "dialog.model.empty": "모델 결과 없음",
   "dialog.model.manage": "모델 관리",
   "dialog.model.manage.description": "모델 선택기에 표시할 모델 사용자 지정",
-
-  "dialog.model.unpaid.freeModels.title": "연결된 공급자의 무료 모델",
-  "dialog.model.unpaid.empty": "no free models available yet — connect a provider to add models.",
-  "dialog.model.unpaid.addMore.title": "인기 공급자의 모델 추가",
 
   "dialog.provider.viewAll": "더 많은 공급자 보기",
 
@@ -262,15 +253,10 @@ export const dict = {
   "dialog.project.edit.worktree.startup": "작업 공간 시작 스크립트",
   "dialog.project.edit.worktree.startup.description": "새 작업 공간(작업 트리)을 만든 뒤 실행됩니다.",
   "dialog.project.edit.worktree.startup.placeholder": "예: bun install",
-  "context.breakdown.title": "컨텍스트 분석",
-  "context.breakdown.note": '입력 토큰의 대략적인 분석입니다. "기타"에는 도구 정의 및 오버헤드가 포함됩니다.',
-  "context.breakdown.system": "시스템",
   "context.breakdown.user": "사용자",
   "context.breakdown.assistant": "어시스턴트",
   "context.breakdown.tool": "도구 호출",
-  "context.breakdown.other": "기타",
 
-  "context.systemPrompt.title": "시스템 프롬프트",
   "context.rawMessages.title": "원시 메시지",
 
   "context.stats.session": "세션",
@@ -331,16 +317,6 @@ export const dict = {
   "toast.file.listFailed.title": "파일 목록을 불러오지 못했습니다",
   "toast.context.noLineSelection.title": "줄 선택 없음",
   "toast.context.noLineSelection.description": "먼저 파일 탭에서 줄 범위를 선택하세요.",
-  "toast.session.share.copyFailed.title": "URL 클립보드 복사 실패",
-  "toast.session.share.success.title": "세션 공유됨",
-  "toast.session.share.success.description": "공유 URL이 클립보드에 복사되었습니다!",
-  "toast.session.share.failed.title": "세션 공유 실패",
-  "toast.session.share.failed.description": "세션을 공유하는 동안 오류가 발생했습니다",
-
-  "toast.session.unshare.success.title": "세션 공유 해제됨",
-  "toast.session.unshare.success.description": "세션 공유가 성공적으로 해제되었습니다!",
-  "toast.session.unshare.failed.title": "세션 공유 해제 실패",
-  "toast.session.unshare.failed.description": "세션 공유를 해제하는 동안 오류가 발생했습니다",
 
   "toast.session.listFailed.title": "{{project}}에 대한 세션을 로드하지 못했습니다",
 
@@ -377,8 +353,8 @@ export const dict = {
   "error.chain.mcpFailed": 'MCP 서버 "{{name}}" 실패. 참고: OpenScience는 아직 MCP 인증을 지원하지 않습니다.',
   "error.chain.providerAuthFailed": "공급자 인증 실패 ({{provider}}): {{message}}",
   "error.chain.providerInitFailed": '공급자 "{{provider}}" 초기화 실패. 자격 증명과 구성을 확인하세요.',
-  "error.chain.configJsonInvalid": "{{path}}의 구성 파일이 유효한 JSON(C)가 아닙니다",
-  "error.chain.configJsonInvalidWithMessage": "{{path}}의 구성 파일이 유효한 JSON(C)가 아닙니다: {{message}}",
+  "error.chain.configJsonInvalid": "{{path}}의 구성 파일이 유효한 JSON가 아닙니다",
+  "error.chain.configJsonInvalidWithMessage": "{{path}}의 구성 파일이 유효한 JSON가 아닙니다: {{message}}",
   "error.chain.configDirectoryTypo":
     '{{path}}의 "{{dir}}" 디렉터리가 유효하지 않습니다. 디렉터리 이름을 "{{suggestion}}"으로 변경하거나 제거하세요. 이는 흔한 오타입니다.',
   "error.chain.configFrontmatterError": "{{path}}의 frontmatter 파싱 실패:\n{{message}}",
@@ -434,19 +410,6 @@ export const dict = {
   "status.popover.tab.lsp": "LSP",
   "status.popover.tab.plugins": "플러그인",
   "status.popover.action.manageServers": "서버 관리",
-
-  "session.share.popover.title": "웹에 게시",
-  "session.share.popover.description.shared": "이 세션은 웹에 공개되었습니다. 링크가 있는 누구나 액세스할 수 있습니다.",
-  "session.share.popover.description.unshared":
-    "세션을 웹에 공개적으로 공유합니다. 링크가 있는 누구나 액세스할 수 있습니다.",
-  "session.share.action.share": "공유",
-  "session.share.action.publish": "게시",
-  "session.share.action.publishing": "게시 중...",
-  "session.share.action.unpublish": "게시 취소",
-  "session.share.action.unpublishing": "게시 취소 중...",
-  "session.share.action.view": "보기",
-  "session.share.copy.copied": "복사됨",
-  "session.share.copy.copyLink": "링크 복사",
 
   "lsp.tooltip.none": "LSP 서버 없음",
   "lsp.label.connected": "{{count}} LSP",

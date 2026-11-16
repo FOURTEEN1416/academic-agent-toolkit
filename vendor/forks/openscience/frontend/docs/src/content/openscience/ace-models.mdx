@@ -1,0 +1,55 @@
+---
+title: "Ace model directory"
+description: "Browse the reviewed managed model identities and token limits shipped with this documentation version."
+---
+
+This directory is generated from the reviewed Ace roster shipped with OpenScience. It contains 22 chat models. Live account access, route availability, pricing, and supported controls still come from the managed service. A listed model is not a guarantee that it is available to your account at this moment.
+
+## Choose and verify a model
+
+Open **Customize → Models → Rates and limits**, or use the conversation model picker. Confirm the funding label, selected speed, context option, and current rates. Copy an exact CLI identifier from `openscience models --flat`; service model IDs in the table below are not complete CLI provider/model selections.
+
+Context and maximum output are token limits, not a promise that both can be used at their maximum simultaneously. Runtime metadata and the selected route may constrain them further. A pricing threshold can differ from the context window. GPT-6 models also have a reviewed maximum input of 922,000 tokens.
+
+## Reviewed chat roster
+
+| Model | Service model ID | Context tokens | Maximum output tokens |
+| --- | --- | ---: | ---: |
+| GPT-6 Astra | `openai/gpt-6-astra` | 1,050,000 | 128,000 |
+| GPT-6 Luna | `openai/gpt-6-luna` | 1,050,000 | 128,000 |
+| Claude Opus 5.5 | `anthropic/claude-opus-5.5` | 1,000,000 | 128,000 |
+| Claude Fable 5.1 | `anthropic/claude-fable-5.1` | 1,000,000 | 128,000 |
+| Claude Sonnet 5 | `anthropic/claude-sonnet-5` | 1,000,000 | 128,000 |
+| Claude Haiku 4.5 | `anthropic/claude-haiku-4.5` | 200,000 | 64,000 |
+| Gemini 3.1 Pro Preview | `google/gemini-3.1-pro-preview` | 1,048,576 | 65,536 |
+| Gemini 3.8 Flash | `google/gemini-3.8-flash` | 1,048,576 | 65,536 |
+| Gemini 4 Argon | `google/gemini-4-argon` | 1,048,576 | 32,768 |
+| Grok 4.7 | `x-ai/grok-4.7` | 500,000 | 450,000 |
+| GLM 5.3 | `z-ai/glm-5.3` | 1,310,720 | 131,072 |
+| GLM 5.3 Flash | `z-ai/glm-5.3-flash` | 1,310,720 | 131,072 |
+| DeepSeek V4 Pro | `deepseek/deepseek-v4-pro` | 1,048,576 | 384,000 |
+| DeepSeek V4.1 Flash | `deepseek/deepseek-v4.1-flash` | 1,048,576 | 384,000 |
+| Qwen 3.8 Max | `qwen/qwen3.8-max` | 1,000,000 | 131,072 |
+| Qwen 3.8 Flash Next | `qwen/qwen3.8-flash` | 1,000,000 | 131,072 |
+| Kimi K3 | `moonshotai/kimi-k3` | 1,048,576 | 943,718 |
+| Kimi K2.7 Code | `moonshotai/kimi-k2.7-code` | 262,144 | 235,929 |
+| MiniMax M3 | `minimax/minimax-m3` | 1,048,576 | 512,000 |
+| MiMo V2.6 Pro | `xiaomi/mimo-v2.6-pro` | 1,048,576 | 131,072 |
+| Muse Spark 1.3 | `meta/muse-spark-1.3` | 1,048,576 | 943,718 |
+| Nemotron 3 Ultra | `nvidia/nemotron-3-ultra-550b-a55b` | 262,144 | 16,384 |
+
+Gemini 4 Argon uses the backend Gemini route with Low, Medium and High reasoning (Medium by default). Ace currently limits synchronous output to the deployed key’s verified 32,768 tokens. It appears only after the managed service explicitly confirms availability.
+
+## Effort and Fast mode
+
+Supported effort choices vary by model and connection. GPT-6 Astra, Claude Opus 5.5, and Claude Fable 5.1 expose Low through Max; Sol and Luna also support a no-reasoning option. The picker is authoritative for the route you selected. Research effort (Normal or Ultra) and worker delegation are separate controls from model reasoning effort.
+
+Ace Fast for the GPT-6 family uses its separately verified priority route and pricing. Claude and Gemini do not offer Ace Fast. Fast only appears after route metadata confirms support; Refresh options reloads metadata without sending a paid inference request.
+
+## Images and retired models
+
+The managed image route is Nano Banana Pro, documented in [Image generation](/openscience/image-generation). Selecting a chat model does not replace the image tool's separate route, requirements, or billing.
+
+Existing conversations retain their saved model identities. If a prior model is unavailable, select a current model before continuing. Your own provider can expose a different roster; do not infer Ace availability from a provider-key catalog.
+
+See [Ace and your account](/openscience/ace) for hosting and funding, [Models and providers](/openscience/models) for selection and reasoning, [Pricing](/openscience/pricing) for Wallet rates, and [Usage reports](/openscience/usage) for actual activity.

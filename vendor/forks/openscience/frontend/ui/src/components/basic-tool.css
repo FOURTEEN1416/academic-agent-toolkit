@@ -9,10 +9,48 @@
 
   [data-slot="basic-tool-tool-trigger-content"] {
     width: 100%;
+    min-width: 0;
     display: flex;
     align-items: center;
     align-self: stretch;
     gap: 20px;
+  }
+
+  /* Reuse the classic tool icon position for lifecycle state. */
+  [data-slot="basic-tool-tool-status"] {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--icon-weak);
+
+    [data-component="spinner"] {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  [data-slot="basic-tool-tool-status"][data-outcome="error"] {
+    color: var(--icon-critical-base);
+  }
+
+  /* A cancelled call is an outcome, not an alarm; its label already says so. */
+  [data-slot="basic-tool-tool-status"][data-outcome="cancelled"] {
+    color: var(--icon-weak);
+  }
+
+  [data-slot="basic-tool-tool-failure-label"] {
+    flex-shrink: 0;
+    color: var(--text-critical-base);
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-regular);
+  }
+
+  &[data-outcome="cancelled"] [data-slot="basic-tool-tool-failure-label"],
+  &[data-outcome="pending"] [data-slot="basic-tool-tool-failure-label"] {
+    color: var(--text-weak);
   }
 
   [data-slot="icon-svg"] {

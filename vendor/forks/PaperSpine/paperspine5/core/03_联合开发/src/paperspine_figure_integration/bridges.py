@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .contracts import ContractError, load_json, validate_figure_requests, write_json_atomic
+from .redesign_selection import bind_current_figure_sha
 
 
 class BridgeError(RuntimeError):
@@ -167,6 +168,7 @@ class PaperSpineBridge:
                         f"{figure['figure_id']} current_figure does not exist: {current}"
                     )
                 figure["current_figure"] = str(current)
+            bind_current_figure_sha(figure, project_root)
         return requests, self.progress_snapshot()
 
 
@@ -178,6 +180,25 @@ class FigMirrorBridge:
 
     def _command(self, *parts: str) -> dict[str, Any]:
         return _run_json([sys.executable, str(self.cli), *parts], cwd=Path(self.job["project_root"]))
+
+    def execute_correction(
+        self, operation: dict[str, Any], output_path: str | Path
+    ) -> dict[str, Any]:
+        """Pass one PaperSpine-signed operation to the narrow FigMirror CLI."""
+
+        operation_hash = operation.get("operation_sha256")
+        if (
+            not isinstance(operation_hash, str)
+            or len(operation_hash) != 64
+            or any(character not in "0123456789abcdef" for character in operation_hash)
+        ):
+            raise BridgeError("figure correction operation_sha256 is invalid")
+        correction_dir = self.job_dir / "corrections"
+        operation_path = correction_dir / f"operation-{operation_hash}.json"
+        write_json_atomic(operation_path, operation)
+        return self._command(
+            "apply-text-correction", str(operation_path), str(output_path)
+        )
 
     def prepare(self, requests: dict[str, Any]) -> dict[str, Any]:
         self.job_dir.mkdir(parents=True, exist_ok=True)
@@ -201,6 +222,13 @@ class FigMirrorBridge:
                 "current_figure_metadata",
                 "panel_count",
                 "decision",
+                "repair_reasons",
+                "scientific_identity",
+                "placement",
+                "final_size_context",
+                "publication_role",
+                "editorial_rationale",
+                "claim_coverage",
                 "figure_role",
                 "scientific_question",
                 "intended_conclusion",
@@ -322,29 +350,57 @@ class FigMirrorBridge:
 
     def write_auto_decision(self, requests: dict[str, Any], ranking: dict[str, Any]) -> dict[str, Any]:
         selected = ranking.get("selected_candidates", {})
+        ranking_by_id = {
+            item.get("figure_id"): item
+            for item in ranking.get("figures", [])
+            if isinstance(item, dict) and item.get("figure_id")
+        }
         figures: list[dict[str, Any]] = []
         for request in requests["figures"]:
             figure_id = request["figure_id"]
-            if request.get("decision") == "keep":
+            if request.get("publication_role", "main") == "omit":
                 figures.append(
                     {
                         "figure_id": figure_id,
-                        "selected_candidate": "existing",
-                        "panel_count": len(request.get("panels", [])),
-                        "panel_decisions": [
-                            {"panel_id": panel["panel_id"], "action": "keep"}
-                            for panel in request.get("panels", [])
-                        ],
+                        "selected_candidate": "omitted",
+                        "panel_count": 0,
+                        "panel_decisions": [],
                         "confirmed": True,
-                        "notes": "Existing publication-ready figure retained by the PaperSpine story decision.",
+                        "selection_authority": "editorial_disposition",
+                        "comparison_receipt": None,
+                        "fallback_reason": None,
+                        "notes": "Omitted under the validated publication-disposition contract.",
                     }
                 )
                 continue
             candidate_id = selected.get(figure_id)
-            if candidate_id not in {"A", "B", "C"}:
+            if request.get("decision") == "keep" or (
+                request.get("decision") in {"redesign", "improve"} and candidate_id == "existing"
+            ):
+                comparison = (ranking_by_id.get(figure_id) or {}).get("redesign_comparison") or {}
+                figures.append(
+                    {
+                        "figure_id": figure_id,
+                        "selected_candidate": "existing",
+                        "panel_count": 0,
+                        "panel_decisions": [],
+                        "confirmed": True,
+                        "selection_authority": (
+                            "independent_comparison_fail_safe"
+                            if request.get("decision") in {"redesign", "improve"}
+                            else "paperspine_keep"
+                        ),
+                        "comparison_receipt": comparison.get("receipt"),
+                        "fallback_reason": comparison.get("fallback_reason"),
+                        "notes": "Existing figure retained by the PaperSpine decision or independent redesign fail-safe.",
+                    }
+                )
+                continue
+            if not isinstance(candidate_id, str):
                 raise BridgeError(f"ranking did not select a candidate for {figure_id}")
             manifest = load_json(self.job_dir / "candidates" / figure_id / candidate_id / "panel_manifest.json")
             panels = manifest.get("panels", [])
+            comparison = (ranking_by_id.get(figure_id) or {}).get("redesign_comparison") or {}
             figures.append(
                 {
                     "figure_id": figure_id,
@@ -355,11 +411,18 @@ class FigMirrorBridge:
                         for panel in panels
                     ],
                     "confirmed": True,
+                    "selection_authority": (
+                        "independent_strict_superiority"
+                        if request.get("decision") in {"redesign", "improve"}
+                        else "figmirror_auto_rank"
+                    ),
+                    "comparison_receipt": comparison.get("receipt"),
+                    "fallback_reason": comparison.get("fallback_reason"),
                     "notes": "Automatically selected after all configured FigMirror gates passed.",
                 }
             )
         decision = {
-            "schema_version": "1.0",
+            "schema_version": "1.1",
             "project_id": requests["paper_id"],
             "review_scope": "all_figures",
             "status": "confirmed",

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".svg", ".webp", ".tif", ".tiff"}
@@ -23,6 +24,8 @@ class InventoryItem:
     file_type: str
     role_hint: str
     size_bytes: int
+    mtime_ns: int
+    mtime_utc: str
 
 
 def parse_args() -> argparse.Namespace:
@@ -78,13 +81,18 @@ def inventory(root: Path) -> list[InventoryItem]:
     items: list[InventoryItem] = []
     for path in iter_files(root):
         rel = path.relative_to(root).as_posix()
+        stat = path.stat()
         items.append(
             InventoryItem(
                 path=rel,
                 extension=path.suffix.lower(),
                 file_type=classify_type(path),
                 role_hint=infer_role(path),
-                size_bytes=path.stat().st_size,
+                size_bytes=stat.st_size,
+                mtime_ns=stat.st_mtime_ns,
+                mtime_utc=datetime.fromtimestamp(stat.st_mtime_ns / 1_000_000_000, timezone.utc)
+                .isoformat(timespec="microseconds")
+                .replace("+00:00", "Z"),
             )
         )
     return items
@@ -97,12 +105,13 @@ def to_markdown(items: list[InventoryItem], root: Path) -> str:
         f"- Materials directory: `{root}`",
         f"- Files found: {len(items)}",
         "",
-        "| Path | Type | Role Hint | Size Bytes |",
-        "|---|---|---|---:|",
+        "| Path | Type | Role Hint | Size Bytes | Modified UTC | mtime ns |",
+        "|---|---|---|---:|---|---:|",
     ]
     for item in items:
         lines.append(
-            f"| `{item.path}` | {item.file_type} | {item.role_hint} | {item.size_bytes} |"
+            f"| `{item.path}` | {item.file_type} | {item.role_hint} | {item.size_bytes} | "
+            f"{item.mtime_utc} | {item.mtime_ns} |"
         )
     lines.append("")
     return "\n".join(lines)

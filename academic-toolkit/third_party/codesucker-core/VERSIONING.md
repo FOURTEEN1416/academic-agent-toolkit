@@ -78,6 +78,11 @@ npm run verify
 - 读取高于当前支持版本的 schema 时不得猜测解析，应提示升级应用
 - 没有 `schemaVersion` 的早期配置视为 legacy 配置，按 schema 1 兼容读取并在下次保存时升级
 
+读取和保存共用字段白名单。未知字段丢弃；错误类型退回默认值；文件顺序和排除列表只保留扫描到的相对路径并去重；清洗开关逐项补默认值，同时保留有效的 `false`。用户选择的工程外导出目录仍然有效。未来 schema 只提示升级，保存时也拒绝覆盖。
+
+配置文件只接受普通文件，拒绝符号链接、目录或设备。保存使用同目录独占临时文件，写入并同步后原子替换，POSIX 平台还会同步父目录。替换前失败保留原配置并清理本次临时文件；替换后目录同步失败会明确提示“已替换，但持久性未确认”。Windows 不额外承诺断电持久性。SIGKILL 或断电可能留下独占临时文件，应用不会扫描并删除未知残留。
+
+
 ## 合规规则版本
 
 以下变化需要更新 `RULES_VERSION`，格式使用 `YYYY.MM`；同月多次变化可使用 `YYYY.MM.N`：
@@ -116,6 +121,34 @@ npm run verify
 
 tag 校验会拒绝缺少对应版本日期标题的发布。
 
+## Actions 验证与打包
+
+| 触发方式 | 工作流 | 执行内容 |
+| --- | --- | --- |
+| PR 创建、重新打开、推送修复提交 | `Verify` | 工作流语法检查、版本/许可证检查、测试、构建和 worker 集成验证 |
+| 推送到 `main` | `Verify` | 验证合并后的代码 |
+| 手动运行 | `Package and Release` | 一次完整验证、三平台安装包、macOS 签名校验及原生架构启动冒烟、Windows 启动冒烟；不发布 Release |
+| 推送 `v*` 标签 | `Package and Release` | 标签校验、一次完整验证、三平台打包、校验和与 GitHub Release |
+
+普通 PR 不生成安装包。单独提交 `@codex` 审核评论不会触发这两个工作流；审核后的修复提交会重新运行 `Verify`。CI 的旧运行会被同一 PR 的新运行取消。
+
+涉及 Electron、依赖、安装器、平台行为或工作流的改动，应在合并前手动生成测试包并完成相关平台验证：
+
+1. 打开 GitHub → Actions → `Package and Release` → `Run workflow`。
+2. 选择待验收分支，并确认该分支最新提交就是本次验收目标。工作流文件须已存在于默认分支；新策略首次合入前应先完成本地校验。
+3. 运行成功后，在该次运行的 Artifacts 中下载 `codesucker-macos-x64`、`codesucker-macos-arm64`、`codesucker-windows-x64`。
+4. 将运行链接、提交 SHA 和安装验证结果记录到 PR；随后若修改影响打包或运行的内容，需要重新验收。
+
+也可以通过 CLI 指定仓库和分支：
+
+```bash
+gh workflow run release.yml --repo fanbuz/codesucker --ref <branch>
+```
+
+手动生成的安装包保留 3 天，只用于验收，不代表已经发布；即使手动选择版本标签，也不会创建 GitHub Release。同一 ref 的手动重复运行会取消旧运行。正式标签发布与手动打包使用独立并发组，不会互相取消；标签构建产物保留 7 天，已发布的 Release 附件不受这个期限影响。
+
+`Verify` 使用固定版本 actionlint 检查工作流。`npm run verify` 已包含许可证检查，因此发布工作流不再建立独立的重复许可证任务。将来启用 PR 必需检查时，应选择 `Verify` 的 `verify` 任务，不将手动打包任务设为所有 PR 的必需条件。
+
 ## 发布流程
 
 1. 确认目标 milestone 中所有 `release-blocker` 已关闭
@@ -125,11 +158,23 @@ tag 校验会拒绝缺少对应版本日期标题的发布。
 5. 执行 `npm run verify`
 6. 提交 `chore(release): v<version>`
 7. 创建 annotated tag：`git tag -a v<version> -m "CodeSucker v<version>"`
-8. 推送 main 与 tag；CI 再次校验 tag、版本和 CHANGELOG 一致
-9. `Package and Release` 工作流生成 macOS x64、macOS arm64、Windows x64 安装包与 SHA-256 校验文件，并创建 GitHub Release
+8. 推送 main 与 tag；`Verify` 验证 main，标签只触发 `Package and Release`，先校验 tag、版本和 CHANGELOG 一致再安装依赖和运行完整验证
+9. 验证通过后，`Package and Release` 生成 macOS x64、macOS arm64、Windows x64 安装包与 SHA-256 校验文件，并创建 GitHub Release；预发布标签生成 pre-release
 
-当前发布流程暂不产出 Linux 安装包；macOS 安装包未签名、未公证，必须在 Release 说明和 README 中保留 Gatekeeper 指引。正式签名凭据只能存放在 GitHub Secrets，不得写入仓库或构建日志。
+当前发布流程暂不产出 Linux 安装包。从 v0.5.3 起，macOS 应用包及内嵌组件显式使用 ad hoc 临时签名（`mac.identity: "-"`）；当前 electron-builder 版本配合 `hardenedRuntime: false`，避免没有 Team ID 时的库验证启动失败。上传安装包前运行 `codesign --verify --deep --strict --all-architectures`，并检查应用标识、签名类型与资源封印；原生架构执行启动冒烟，跨架构产物仍必须通过签名校验。
+
+临时签名不需要付费证书，但不能验证开发者身份，也不能代替 Developer ID 正式签名与 Apple 公证；Release 说明和 README 必须保留 Gatekeeper 指引。后续接入正式签名时应重新启用 hardened runtime 并配置相应 entitlements。正式签名凭据只能存放在 GitHub Secrets，不得写入仓库或构建日志。
 
 ## 当前版本
 
-源码当前产品版本为 `0.4.4`。正式发布仍以 `v0.4.4` tag 和对应 GitHub Release 为准；仅修改源码中的版本字段不代表已经发布。
+源码当前产品版本为 `0.5.3`。正式发布以 `v0.5.3` tag 和对应 GitHub Release 为准；仅修改源码中的版本字段不代表已经发布。
+
+## 应用内更新
+
+v0.5.3 起采用独立更新器：macOS ZIP 包由更新助手在应用退出后替换，保留完整 ad hoc 签名并等待新版窗口就绪确认，启动失败恢复旧应用；Windows 使用 NSIS 安装器升级。下载和安装均需用户主动操作，运行中的流水线任务会阻止安装。
+
+正式发布需同时上传三个安装器、两个 macOS ZIP、`SHA256SUMS.txt`、`update-manifest.json` 和 `update-manifest.sig`。清单包含版本、平台、架构、文件名、大小与 SHA-256，发布任务使用 `CODESUCKER_UPDATE_SIGNING_KEY` Secret 进行 Ed25519 签名；应用仅信任源码内嵌公钥，私钥不得进入源码、制品或日志。更换密钥前须先发布包含新信任根的过渡版本。
+
+应用内安装仅跟随 `x.y.z` 正式版本。预发布及含构建元数据的版本继续正常生成安装包和 Release，但跳过更新清单，使用手动安装。
+
+手动三平台打包包含原生 macOS 真应用替换与重启、失败回滚测试，以及 Windows v0.5.2 → 当前版本 NSIS 升级测试。v0.5.2 及更早版本不具备更新安装能力，需手动安装首个支持版本一次。

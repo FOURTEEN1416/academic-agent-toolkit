@@ -3,10 +3,18 @@ name: crewai-multi-agent
 description: Multi-agent orchestration framework for autonomous AI collaboration. Use when building teams of specialized agents working together on complex tasks, when you need role-based agent collaboration with memory, or for production workflows requiring sequential/hierarchical execution. Built without LangChain dependencies for lean, fast execution.
 category: llm-tools
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Agents, CrewAI, Multi-Agent, Synthetic Sciencestion, Collaboration, Role-Based, Autonomous, Workflows, Memory, Production]
 dependencies: [crewai>=1.2.0, crewai-tools>=1.2.0]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 14-agents/crewai
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # CrewAI - Multi-Agent Synthetic Sciencestion Framework

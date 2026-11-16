@@ -690,7 +690,7 @@ class TestCheckAccuracyPrecision(unittest.TestCase):
         guideline explicitly permits.
         """
         res = run_script("check_accuracy_precision", "-i", str(FIXTURES / "ap_no_group.csv"),
-                         "--design-check", "assay")
+                         "--design-check", "assay", "--test-concentration", "100")
         self.assertEqual(res.returncode, 0, res.stderr)
         self.assertIn("option (b)", res.stderr)
 
@@ -713,7 +713,8 @@ class TestCheckDetectionLimits(unittest.TestCase):
                          "--blanks", str(FIXTURES / "blanks.csv"), "--format", "json")
         payload = json.loads(res.stdout)[0]
         approaches = [e["approach"] for e in payload["estimates"]]
-        self.assertGreaterEqual(len(approaches), 3)
+        self.assertEqual(len(approaches), 2)
+        self.assertFalse(any("intercept" in a for a in approaches))
         self.assertTrue(any("blanks" in a for a in approaches))
         self.assertTrue(any("residual SD" in a for a in approaches))
 
@@ -736,6 +737,7 @@ class TestCheckDetectionLimits(unittest.TestCase):
                          str(FIXTURES / "lowrange_calibration.csv"),
                          "--confirm-ql", "0.05",
                          "--confirm-data", str(FIXTURES / "ql_confirmation.csv"),
+                         "--confirm-accuracy-limit", "10", "--confirm-rsd-limit", "10",
                          "--format", "json")
         payload = json.loads(res.stdout)[0]
         metrics = {r["metric"]: r["value"] for r in payload["confirmation"]}
@@ -772,7 +774,8 @@ class TestCheckDetectionLimits(unittest.TestCase):
                          "--blanks", str(FIXTURES / "blanks.csv"),
                          "--confirm-ql", "0.005", "--reporting-threshold", "0.010")
         self.assertNotIn("straddle", res.stderr)
-        self.assertEqual(res.returncode, 0, res.stderr)
+        self.assertEqual(res.returncode, 1, res.stderr)
+        self.assertIn("no confirmation data", res.stderr)
 
     def test_signal_to_noise_requires_level(self):
         res = run_script("check_detection_limits", "--calibration",
@@ -893,6 +896,33 @@ class TestCompareMethods(unittest.TestCase):
 
 
 class TestInputHandling(unittest.TestCase):
+    def test_json_csv_and_tsv_normalize_the_same_record(self):
+        record = {" level ": 0, " response ": " 10100 ", " sample ": " sample A ", " note ": None}
+        expected = [{"level": "0", "response": "10100", "sample": "sample A", "note": ""}]
+        for payload in ([record], {"rows": [record]}, {"data": [record]}):
+            with self.subTest(payload=payload):
+                rows = common.parse_rows(json.dumps(payload))
+                self.assertEqual(rows, expected)
+                common.require_columns(rows, ["level", "response"])
+        for delimiter in (",", "\t"):
+            with self.subTest(delimiter=delimiter):
+                text = delimiter.join(record) + "\n"
+                text += delimiter.join(("0", " 10100 ", " sample A ", "")) + "\n"
+                self.assertEqual(common.parse_rows(text), expected)
+
+    def test_padded_json_produces_the_same_analysis_as_csv(self):
+        rows = common.parse_rows((FIXTURES / "calibration_good.csv").read_text())
+        padded = [{f" {key} ": f" {value} " for key, value in row.items()} for row in rows]
+        result = subprocess.run(
+            [sys.executable, str(SCRIPTS_DIR / "check_response.py"), "-i", "-", "--format", "json"],
+            input=json.dumps(padded), capture_output=True, text=True, check=False,
+        )
+        baseline = run_script("check_response", "-i", str(FIXTURES / "calibration_good.csv"),
+                              "--format", "json")
+        self.assertEqual(baseline.returncode, 0, baseline.stderr)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), json.loads(baseline.stdout))
+
     def test_json_input_accepted(self):
         res = run_script("check_response", "-i", str(FIXTURES / "calibration_good.json"),
                          "--format", "json")
@@ -907,6 +937,31 @@ class TestInputHandling(unittest.TestCase):
         res = run_script("check_response", "-i", str(FIXTURES / "calibration_nonnumeric.csv"))
         self.assertEqual(res.returncode, 2)
         self.assertIn("not numeric", res.stderr)
+
+    def test_ragged_csv_and_tsv_name_the_data_row(self):
+        for delimiter, suffix in ((",", ".csv"), ("\t", ".tsv")):
+            with self.subTest(suffix=suffix):
+                text = delimiter.join(("level", "response")) + "\n"
+                text += delimiter.join(("50", "10100")) + "\n"
+                text += delimiter.join(("100", "20100", "extra")) + "\n"
+                with self.assertRaisesRegex(
+                    common.InputError, "row 2: more fields than the header"
+                ):
+                    common.parse_rows(text, path_hint="calibration" + suffix)
+
+    def test_ragged_and_short_rows_are_cli_input_errors(self):
+        for row, message in (("100,20100,extra", "more fields than the header"),
+                             ("100", "not numeric")):
+            with self.subTest(row=row):
+                res = subprocess.run(
+                    [sys.executable, str(SCRIPTS_DIR / "check_response.py"), "-i", "-"],
+                    input="level,response\n50,10100\n" + row + "\n",
+                    capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(res.returncode, 2, res.stderr)
+                self.assertIn(message, res.stderr)
+                self.assertNotIn("Traceback", res.stderr)
+                self.assertEqual(res.stdout, "")
 
     def test_missing_file_exits_2(self):
         res = run_script("check_response", "-i", str(FIXTURES / "does_not_exist.csv"))

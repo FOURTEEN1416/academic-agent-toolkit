@@ -24,6 +24,7 @@ that returns structured JSON and supports multi-turn sessions via `SESSION_ID`.
 > constraint, fallback code-collaboration mode, safety guardrails, and
 > collaboration state capsule format).  Only collaborator-CLI-specific
 > additions (for the current `claude` example) are listed below.
+> <!--ACAT-GOVERNANCE: `../../_shared/collaboration-base.md` 未随本仓库集成（资产缺口已登记于 latex-paper-collab-breadth/ASSET-GAP.md），共享基线文件缺失。降级执行口径：无共享基线时按本页要点执行——候选产出仅作输入不直写工件（Candidates-Only）、协作者不可用即跳过并由当前 Agent 自审降级、不生成/不覆写 `ref.bib`、协作输出须经验证后方可采纳。-->
 
 ## When to Use
 - contribution-map initial draft needs claim-level stress testing.
@@ -108,6 +109,6 @@ Each template specifies its input sources, output artifact mappings, and constra
 - For session testing: run one prompt with `--output-format stream-json` and confirm JSON contains `success: true` and a `SESSION_ID`.
 
 ## References
-- `../../_shared/collaboration-base.md` (shared rules)
+- `../../_shared/collaboration-base.md` (shared rules) <!--ACAT-GOVERNANCE: 该共享基线文件未随本仓库集成（见 latex-paper-collab-breadth/ASSET-GAP.md）；缺失时按上方 Shared rules 降级口径执行-->
 - `assets/prompt-template.md` (prompt patterns)
 - `references/shell-quoting.md` (shell quoting/backticks)

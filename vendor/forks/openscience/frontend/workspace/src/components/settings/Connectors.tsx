@@ -1,14 +1,20 @@
+import { ConnectorFormError } from "./form-error"
 import { For, Show, createMemo, createSignal, onMount } from "solid-js"
+import { Button } from "@synsci/ui/button"
+import { Select } from "@synsci/ui/select"
 import { Switch } from "@synsci/ui/switch"
 import { Icon } from "@synsci/ui/icon"
-import { IconButton } from "@synsci/ui/icon-button"
 import { showToast } from "@synsci/ui/toast"
 import { useDialog } from "@synsci/ui/context/dialog"
 import { confirmDialog } from "@/atlas/dialogs"
 import { useGlobalSync } from "@/context/global-sync"
 import { useGlobalSDK } from "@/context/global-sdk"
+import { useLanguage } from "@/context/language"
+import { usePlatform } from "@/context/platform"
+import { useServer } from "@/context/server"
 import type { Config, McpInspection, McpStatus } from "@synsci/sdk/v2/client"
 import "./connectors.css"
+import { settingsApi } from "./api"
 import {
   PanelScroll,
   PanelHeader,
@@ -16,7 +22,6 @@ import {
   Toolbar,
   SearchInput,
   AddMenu,
-  SectionLabel,
   EmptyState,
   FormField,
   FormButton,
@@ -24,7 +29,10 @@ import {
 import {
   blankConnectorForm,
   buildConnectorConfig,
+  catalogPresetConfig,
+  connectorFormFromCatalog,
   connectorFormFromConfig,
+  connectorConflictsWithCatalogPreset,
   connectorIdentity,
   maskConnectorConfig,
   type ConfiguredMcp,
@@ -32,17 +40,46 @@ import {
   type McpType,
   type OAuthMode,
 } from "./connector-form"
+import type { ConnectorCatalogRecord } from "./scientific-tools-state"
+import { loadScientificTools } from "./scientific-tools-loader"
+import { ProviderLogo } from "./ProviderLogo"
 
 type McpConfig = NonNullable<Config["mcp"]>[string]
+type PendingAuthorization = { authorizationUrl: string; flowId: string }
+type AuthenticationStart = ({ state: "pending" } & PendingAuthorization) | { state: "settled"; result: McpStatus }
 
 function isConfigured(value: McpConfig | undefined): value is ConfiguredMcp {
   return !!value && typeof value === "object" && "type" in value
 }
 
+const OAUTH_OPTIONS = [
+  { value: "auto", label: "settings.connectors.oauthMode.auto" },
+  { value: "client", label: "settings.connectors.oauthMode.client" },
+  { value: "off", label: "settings.connectors.oauthMode.off" },
+] as const satisfies ReadonlyArray<{ value: OAuthMode; label: string }>
+
 export default function Connectors() {
   const sync = useGlobalSync()
   const sdk = useGlobalSDK()
   const dialog = useDialog()
+  const platform = usePlatform()
+  const server = useServer()
+  const language = useLanguage()
+  const message = (error: unknown) =>
+    error instanceof ConnectorFormError
+      ? language.t(error.key, {
+          ...error.values,
+          ...(error.values.label
+            ? {
+                label: language.t(
+                  error.values.label === "Environment"
+                    ? "settings.validation.environment"
+                    : "settings.validation.headers",
+                ),
+              }
+            : {}),
+        })
+      : rawMessage(error)
 
   const [status, setStatus] = createSignal<Record<string, McpStatus>>({})
   const [details, setDetails] = createSignal<Record<string, McpInspection>>({})
@@ -50,9 +87,14 @@ export default function Connectors() {
   const [search, setSearch] = createSignal("")
   const [busyKeys, setBusyKeys] = createSignal(new Set<string>())
   const [problem, setProblem] = createSignal("")
+  const [catalog, setCatalog] = createSignal<ConnectorCatalogRecord[]>([])
+  const [catalogProblem, setCatalogProblem] = createSignal("")
+  const [catalogLoading, setCatalogLoading] = createSignal(true)
+  const [catalogExpanded, setCatalogExpanded] = createSignal<string>()
   const [expanded, setExpanded] = createSignal<string>()
   const [editing, setEditing] = createSignal<string | undefined>()
   const [form, setForm] = createSignal<ConnectorFormState | undefined>()
+  const [pendingAuthorizations, setPendingAuthorizations] = createSignal<Record<string, PendingAuthorization>>({})
   const busy = (key?: string) => (key ? busyKeys().has(key) : busyKeys().size > 0)
   const setBusy = (key: string, value: boolean) =>
     setBusyKeys((current) => {
@@ -62,12 +104,68 @@ export default function Connectors() {
       return next
     })
 
-  const entries = createMemo(() =>
-    Object.entries(sync.data.config.mcp ?? {})
-      .filter((e): e is [string, ConfiguredMcp] => isConfigured(e[1]))
-      .filter((e) => !search().trim() || e[0].toLowerCase().includes(search().trim().toLowerCase()))
-      .sort((a, b) => a[0].localeCompare(b[0])),
+  const configuredEntries = createMemo(() =>
+    Object.entries(sync.data.config.mcp ?? {}).filter((e): e is [string, ConfiguredMcp] => isConfigured(e[1])),
   )
+  const entries = createMemo(() => {
+    const needle = search().trim().toLowerCase()
+    return configuredEntries()
+      .filter(([name, config]) => {
+        if (!needle) return true
+        const identity = connectorIdentity(name, config)
+        const target = config.type === "local" ? config.command.join(" ") : config.url
+        return [name, identity.label, target].some((value) => value.toLowerCase().includes(needle))
+      })
+      .sort((a, b) => {
+        const rank = ([name, config]: [string, ConfiguredMcp]) => {
+          if (status()[name]?.status === "connected") return 0
+          if (config.enabled !== false) return 1
+          return 2
+        }
+        return rank(a) - rank(b) || a[0].localeCompare(b[0])
+      })
+  })
+  const matchingCatalogEntries = createMemo(() => {
+    const needle = search().trim().toLowerCase()
+    return catalog().filter(
+      (entry) =>
+        !needle ||
+        [entry.name, entry.provider, entry.summary, ...entry.read_operations].some((value) =>
+          value.toLowerCase().includes(needle),
+        ),
+    )
+  })
+  const isCatalogConfigured = (entry: ConnectorCatalogRecord) => {
+    const providerLogo = entry.id === "s3" ? "aws" : entry.id
+    return configuredEntries().some(([name, config]) => {
+      if (entry.setup?.name === name) return true
+      return connectorIdentity(name, config).providerLogo === providerLogo
+    })
+  }
+  const catalogEntries = createMemo(() =>
+    matchingCatalogEntries()
+      .filter((entry) => entry.status === "official_setup" && !isCatalogConfigured(entry))
+      .sort((a, b) => Number(b.recommended) - Number(a.recommended) || a.name.localeCompare(b.name)),
+  )
+  const manualCatalogEntries = createMemo(() =>
+    matchingCatalogEntries()
+      .filter((entry) => entry.status === "manual_review" && !isCatalogConfigured(entry))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  )
+
+  async function loadCatalog(refresh = false) {
+    setCatalogLoading(true)
+    try {
+      const fetcher = platform.fetch ?? fetch
+      const result = await loadScientificTools(server.url, fetcher, refresh)
+      setCatalog(result.connectors)
+      setCatalogProblem("")
+    } catch (error) {
+      setCatalogProblem(message(error))
+    } finally {
+      setCatalogLoading(false)
+    }
+  }
 
   async function refresh() {
     try {
@@ -86,7 +184,7 @@ export default function Connectors() {
     setInspectionProblems((current) => ({ ...current, [name]: "" }))
     try {
       const result = await sdk.client.mcp.inspect({ name })
-      if (!result.data) throw new Error("The connector returned no capability details.")
+      if (!result.data) throw new Error(language.t("settings.connectors.inspect.empty"))
       setDetails((current) => ({ ...current, [name]: result.data! }))
     } catch (error) {
       setInspectionProblems((current) => ({ ...current, [name]: message(error) }))
@@ -99,7 +197,11 @@ export default function Connectors() {
     setExpanded(opening ? name : undefined)
     if (opening && !details()[name]) void inspect(name)
   }
-  onMount(() => void refresh().catch(() => undefined))
+  onMount(() => {
+    void refresh().catch(() => undefined)
+    void loadCatalog()
+    void restorePendingAuthorizations()
+  })
 
   function dot(s: McpStatus | undefined): "active" | "muted" | "error" | "pending" {
     if (!s) return "muted"
@@ -109,12 +211,12 @@ export default function Connectors() {
     return "muted"
   }
   const statusText = (s: McpStatus | undefined) => {
-    if (!s) return "Checking"
-    if (s.status === "connected") return "Connected"
-    if (s.status === "disabled") return "Off"
-    if (s.status === "failed") return "Error"
-    if (s.status === "needs_auth") return "Needs authentication"
-    return "Needs client registration"
+    if (!s) return language.t("settings.connectors.status.checking")
+    if (s.status === "connected") return language.t("mcp.status.connected")
+    if (s.status === "disabled") return language.t("settings.connectors.status.off")
+    if (s.status === "failed") return language.t("settings.connectors.status.error")
+    if (s.status === "needs_auth") return language.t("settings.connectors.status.needsAuth")
+    return language.t("settings.connectors.status.needsClientRegistration")
   }
   async function toggle(name: string, on: boolean) {
     const key = `row:${name}`
@@ -128,7 +230,11 @@ export default function Connectors() {
       sync.set("config", "mcp", name, next)
       await refresh()
     } catch (err) {
-      showToast({ variant: "error", title: `Could not turn connector ${on ? "on" : "off"}`, description: message(err) })
+      showToast({
+        variant: "error",
+        title: language.t(on ? "settings.connectors.toast.turnOnFailed" : "settings.connectors.toast.turnOffFailed"),
+        description: message(err),
+      })
     } finally {
       setBusy(key, false)
     }
@@ -138,9 +244,10 @@ export default function Connectors() {
     const key = `row:${name}`
     if (busy(key)) return
     const confirmed = await confirmDialog(dialog, {
-      title: `Remove "${name}"?`,
-      message: "This disconnects the connector and deletes it from your global OpenScience configuration.",
-      confirmLabel: "Remove connector",
+      cancelLabel: language.t("common.cancel"),
+      title: language.t("settings.connectors.remove.title", { name }),
+      message: language.t("settings.connectors.remove.message"),
+      confirmLabel: language.t("settings.connectors.action.remove"),
       danger: true,
     })
     if (!confirmed) return
@@ -155,7 +262,108 @@ export default function Connectors() {
       await refresh()
       if (editing() === name) closeForm()
     } catch (err) {
-      showToast({ variant: "error", title: "Remove failed", description: message(err) })
+      showToast({
+        variant: "error",
+        title: language.t("settings.connectors.toast.removeFailed"),
+        description: message(err),
+      })
+    } finally {
+      setBusy(key, false)
+    }
+  }
+
+  const authPath = (name: string, suffix = "") => `/mcp/${encodeURIComponent(name)}/auth${suffix}`
+  const fetcher = () => platform.fetch ?? fetch
+  function setPendingAuthorization(name: string, value?: PendingAuthorization) {
+    setPendingAuthorizations((current) => {
+      const next = { ...current }
+      if (value) next[name] = value
+      else delete next[name]
+      return next
+    })
+  }
+  async function acceptAuthenticationResult(name: string, result: McpStatus): Promise<McpStatus> {
+    if (result.status !== "connected") {
+      throw new Error(
+        result.status === "failed"
+          ? result.error
+          : language.t("settings.connectors.error.returned", { status: result.status.replaceAll("_", " ") }),
+      )
+    }
+    await refresh()
+    await inspect(name)
+    return result
+  }
+  async function waitForAuthentication(name: string, operation: PendingAuthorization): Promise<McpStatus> {
+    setPendingAuthorization(name, operation)
+    try {
+      const result = await settingsApi<McpStatus>(
+        server.url,
+        fetcher(),
+        `${authPath(name, "/wait")}?flow_id=${encodeURIComponent(operation.flowId)}`,
+        { method: "POST" },
+      )
+      return await acceptAuthenticationResult(name, result)
+    } finally {
+      setPendingAuthorization(name)
+    }
+  }
+  async function beginAuthentication(name: string): Promise<McpStatus> {
+    const existing = pendingAuthorizations()[name]
+    if (existing) return waitForAuthentication(name, existing)
+    const key = `auth-start:${name}`
+    if (busy(key)) throw new Error(language.t("settings.connectors.error.authStarting"))
+    setBusy(key, true)
+    let started: AuthenticationStart
+    try {
+      started = await settingsApi<AuthenticationStart>(server.url, fetcher(), authPath(name), { method: "POST" })
+      if (started.state === "settled") return await acceptAuthenticationResult(name, started.result)
+      setPendingAuthorization(name, started)
+      await Promise.resolve(platform.openLink(started.authorizationUrl)).catch(() => undefined)
+    } finally {
+      setBusy(key, false)
+    }
+    return waitForAuthentication(name, started)
+  }
+  async function restorePendingAuthorizations() {
+    const configured = Object.entries(sync.data.config.mcp ?? {}).filter(
+      (entry): entry is [string, ConfiguredMcp] => isConfigured(entry[1]) && entry[1].type === "remote",
+    )
+    await Promise.all(
+      configured.map(async ([name]) => {
+        const result = await settingsApi<{ pending: boolean; authorizationUrl?: string; flowId?: string }>(
+          server.url,
+          fetcher(),
+          authPath(name, "/pending"),
+        ).catch(() => undefined)
+        if (!result?.pending || !result.authorizationUrl || !result.flowId) return
+        const operation = { authorizationUrl: result.authorizationUrl, flowId: result.flowId }
+        setPendingAuthorization(name, operation)
+        void waitForAuthentication(name, operation).catch(() => undefined)
+      }),
+    )
+  }
+  async function cancelAuthentication(name: string) {
+    const operation = pendingAuthorizations()[name]
+    if (!operation) return
+    const key = `auth-cancel:${name}`
+    if (busy(key)) return
+    setBusy(key, true)
+    try {
+      await settingsApi<{ success: true }>(
+        server.url,
+        fetcher(),
+        `${authPath(name, "/pending")}?flow_id=${encodeURIComponent(operation.flowId)}`,
+        { method: "DELETE" },
+      )
+      setPendingAuthorization(name)
+      showToast({ title: language.t("settings.connectors.toast.authCancelled.named", { name }) })
+    } catch (error) {
+      showToast({
+        variant: "error",
+        title: language.t("settings.connectors.toast.cancelFailed"),
+        description: message(error),
+      })
     } finally {
       setBusy(key, false)
     }
@@ -163,25 +371,21 @@ export default function Connectors() {
 
   async function authenticate(name: string) {
     const key = `row:${name}`
-    if (busy(key)) return
-    setBusy(key, true)
+    if (busy(key) || pendingAuthorizations()[name]) return
     try {
-      const result = await sdk.client.mcp.auth.authenticate({ name })
-      if (!result.data) throw new Error("The connector did not return an authentication result.")
-      await refresh()
-      await inspect(name)
-      if (result.data.status !== "connected") {
-        throw new Error(
-          result.data.status === "failed"
-            ? result.data.error
-            : `Connector returned ${result.data.status.replaceAll("_", " ")}`,
-        )
-      }
-      showToast({ variant: "success", title: `"${name}" connected` })
+      await beginAuthentication(name)
+      showToast({ variant: "success", title: language.t("settings.connectors.toast.connected", { name }) })
     } catch (err) {
-      showToast({ variant: "error", title: "Authentication failed", description: message(err) })
-    } finally {
-      setBusy(key, false)
+      const description = message(err)
+      showToast({
+        variant: description.toLowerCase().includes("cancel") ? undefined : "error",
+        title: language.t(
+          description.toLowerCase().includes("cancel")
+            ? "settings.connectors.toast.authCancelled"
+            : "settings.connectors.toast.authFailed",
+        ),
+        description,
+      })
     }
   }
 
@@ -189,9 +393,10 @@ export default function Connectors() {
     const key = `row:${name}`
     if (busy(key)) return
     const confirmed = await confirmDialog(dialog, {
-      title: `Disconnect "${name}"?`,
-      message: "This removes the connector's OAuth credentials from this machine. Its configuration stays in place.",
-      confirmLabel: "Disconnect",
+      cancelLabel: language.t("common.cancel"),
+      title: language.t("settings.connectors.disconnect.title", { name }),
+      message: language.t("settings.connectors.disconnect.message"),
+      confirmLabel: language.t("common.disconnect"),
       danger: true,
     })
     if (!confirmed) return
@@ -200,9 +405,13 @@ export default function Connectors() {
       await sdk.client.mcp.auth.remove({ name })
       await refresh()
       await inspect(name)
-      showToast({ variant: "success", title: `"${name}" disconnected` })
+      showToast({ variant: "success", title: language.t("settings.connectors.toast.disconnected", { name }) })
     } catch (err) {
-      showToast({ variant: "error", title: "Disconnect failed", description: message(err) })
+      showToast({
+        variant: "error",
+        title: language.t("settings.connectors.toast.disconnectFailed"),
+        description: message(err),
+      })
     } finally {
       setBusy(key, false)
     }
@@ -211,6 +420,92 @@ export default function Connectors() {
   function openForm(type: McpType) {
     setEditing(undefined)
     setForm(blankConnectorForm(type))
+  }
+  function reviewCatalogSetup(entry: ConnectorCatalogRecord) {
+    if (!entry.setup) return
+    setEditing(undefined)
+    setForm(connectorFormFromCatalog(entry.setup))
+  }
+  async function addCatalogPreset(entry: ConnectorCatalogRecord) {
+    const setup = entry.setup
+    if (!setup?.one_click_disabled && !setup?.one_click_connect) return reviewCatalogSetup(entry)
+    const key = `catalog:${entry.id}`
+    if (busy(key)) return
+    const current = sync.data.config.mcp?.[setup.name]
+    const configured = isConfigured(current) ? current : undefined
+    if (connectorConflictsWithCatalogPreset(configured, setup)) {
+      showToast({
+        variant: "error",
+        title: language.t("settings.connectors.preset.nameInUse", { name: setup.name }),
+        description: language.t("settings.connectors.preset.nameInUse.description"),
+      })
+      return
+    }
+    setBusy(key, true)
+    setBusy(`row:${setup.name}`, true)
+    let created = false
+    try {
+      const config = catalogPresetConfig(setup)
+      if (!configured) {
+        await sdk.client.mcp.config.set({ name: setup.name, config, scope: "global" })
+        sync.set("config", "mcp", setup.name, maskConnectorConfig(config))
+        created = true
+      }
+      await refresh()
+      if (setup.one_click_connect) {
+        await beginAuthentication(setup.name)
+        sync.set("config", "mcp", setup.name, { ...maskConnectorConfig(config), enabled: true })
+        await refresh()
+        await inspect(setup.name)
+        showToast({
+          variant: "success",
+          title: language.t("settings.connectors.preset.connected", { name: entry.name }),
+          description: language.t("settings.connectors.preset.connected.description"),
+        })
+        return
+      }
+      showToast({
+        variant: "success",
+        title: language.t("settings.connectors.preset.added", { name: entry.name }),
+        description: language.t("settings.connectors.preset.added.description"),
+      })
+    } catch (error) {
+      let rollbackProblem = ""
+      if (created && setup.one_click_connect) {
+        await sdk.client.mcp.config
+          .remove({ name: setup.name, scope: "global" })
+          .then(() => {
+            sync.set("config", "mcp", (current = {}) => {
+              const next = { ...current }
+              delete next[setup.name]
+              return next
+            })
+          })
+          .catch((cause) => {
+            rollbackProblem = message(cause)
+          })
+        await refresh().catch(() => undefined)
+      }
+      showToast({
+        variant: "error",
+        title: language.t(
+          setup.one_click_connect ? "settings.connectors.preset.notConnected" : "settings.connectors.preset.notAdded",
+          { name: entry.name },
+        ),
+        description:
+          created && setup.one_click_connect
+            ? rollbackProblem
+              ? language.t("settings.connectors.preset.cleanupFailed", {
+                  error: message(error),
+                  cleanup: rollbackProblem,
+                })
+              : language.t("settings.connectors.preset.rolledBack", { error: message(error) })
+            : message(error),
+      })
+    } finally {
+      setBusy(key, false)
+      setBusy(`row:${setup.name}`, false)
+    }
   }
   function editConnector(name: string, config: ConfiguredMcp) {
     setEditing(name)
@@ -228,7 +523,7 @@ export default function Connectors() {
     if (!state) return
     const name = state.name.trim()
     if (!name) {
-      showToast({ variant: "error", title: "Connector name is required" })
+      showToast({ variant: "error", title: language.t("settings.connectors.toast.nameRequired") })
       return
     }
     setBusy(key, true)
@@ -254,20 +549,29 @@ export default function Connectors() {
       if (live?.status === "failed") {
         showToast({
           variant: "error",
-          title: `Connector "${name}" saved, but could not connect`,
+          title: language.t("settings.connectors.toast.savedFailed", { name }),
           description: live.error,
+        })
+      } else if (config.enabled === false || live?.status === "disabled") {
+        showToast({
+          title: language.t("settings.connectors.toast.savedOff", { name }),
+          description: language.t("settings.connectors.toast.savedOff.description"),
         })
       } else if (live?.status === "needs_auth" || live?.status === "needs_client_registration") {
         showToast({
-          title: `Connector "${name}" saved`,
+          title: language.t("settings.connectors.toast.saved", { name }),
           description:
-            live.status === "needs_auth" ? "Authentication is required before its tools are available." : live.error,
+            live.status === "needs_auth" ? language.t("settings.connectors.toast.saved.needsAuth") : live.error,
         })
       } else {
-        showToast({ variant: "success", title: `Connector "${name}" saved and connected` })
+        showToast({ variant: "success", title: language.t("settings.connectors.toast.savedConnected", { name }) })
       }
     } catch (err) {
-      showToast({ variant: "error", title: "Save failed", description: message(err) })
+      showToast({
+        variant: "error",
+        title: language.t("settings.connectors.toast.saveFailed"),
+        description: message(err),
+      })
     } finally {
       setBusy(key, false)
     }
@@ -277,46 +581,20 @@ export default function Connectors() {
     <PanelScroll>
       <div class="connectors-panel">
         <PanelHeader
-          title="Connectors"
-          description="Connect MCP servers that provide external research tools and data."
-          toolbar={
-            <Show when={!form()}>
-              <Toolbar>
-                <SearchInput
-                  value={search()}
-                  onInput={setSearch}
-                  placeholder="Search connectors"
-                  ariaLabel="Search connectors"
-                />
-                <AddMenu
-                  label="Add connector"
-                  items={[
-                    {
-                      icon: "cloud",
-                      label: "Hosted server",
-                      description: "Connect an MCP endpoint over HTTPS",
-                      onSelect: () => openForm("remote"),
-                    },
-                    {
-                      icon: "console",
-                      label: "Local process",
-                      description: "Run a trusted MCP command on this machine",
-                      onSelect: () => openForm("local"),
-                    },
-                  ]}
-                />
-              </Toolbar>
-            </Show>
-          }
+          title={language.t("settings.connectors.title")}
+          description={language.t("settings.connectors.description")}
         />
 
         <PanelBody>
           <Show when={problem()}>
             <div role="alert" class="settings-alert mb-4" data-tone="critical">
-              <span class="text-12-regular">Connector status unavailable. {problem()}</span>
-              <button
-                type="button"
-                class="text-12-medium"
+              <span class="text-12-regular">
+                {language.t("settings.connectors.status.unavailable", { problem: problem() })}
+              </span>
+              <Button
+                size="small"
+                variant="secondary"
+                class="settings-panel-action"
                 disabled={busy("refresh")}
                 onClick={() => {
                   setBusy("refresh", true)
@@ -325,9 +603,36 @@ export default function Connectors() {
                     .finally(() => setBusy("refresh", false))
                 }}
               >
-                Retry
-              </button>
+                {language.t("settings.connectors.retry")}
+              </Button>
             </div>
+          </Show>
+          <Show when={!form()}>
+            <Toolbar>
+              <SearchInput
+                value={search()}
+                onInput={setSearch}
+                placeholder={language.t("settings.connectors.search.placeholder")}
+                ariaLabel={language.t("settings.connectors.search.placeholder")}
+              />
+              <AddMenu
+                label={language.t("settings.connectors.add")}
+                items={[
+                  {
+                    icon: "cloud",
+                    label: language.t("settings.connectors.type.remote"),
+                    description: language.t("settings.connectors.type.remote.description"),
+                    onSelect: () => openForm("remote"),
+                  },
+                  {
+                    icon: "console",
+                    label: language.t("settings.connectors.type.local"),
+                    description: language.t("settings.connectors.type.local.description"),
+                    onSelect: () => openForm("local"),
+                  },
+                ]}
+              />
+            </Toolbar>
           </Show>
           <Show when={form()}>
             {(state) => (
@@ -343,38 +648,55 @@ export default function Connectors() {
           </Show>
 
           <Show when={!form()}>
-            <Show
-              when={entries().length > 0}
-              fallback={
-                <Show
-                  when={!search()}
-                  fallback={
-                    <EmptyState
-                      icon="mcp"
-                      title="No matching connectors"
-                      hint="Try a different name or clear the search."
-                    />
-                  }
+            <Show when={catalogProblem()}>
+              <div role="alert" class="settings-alert mb-4" data-tone="critical">
+                <span class="text-12-regular">
+                  {language.t("settings.connectors.catalog.unavailable", { problem: catalogProblem() })}
+                </span>
+                <Button
+                  size="small"
+                  variant="secondary"
+                  class="settings-panel-action"
+                  disabled={catalogLoading()}
+                  onClick={() => void loadCatalog(true)}
                 >
-                  <div class="connectors-empty">
-                    <div class="connectors-empty__icon">
-                      <Icon name="mcp" size="normal" />
-                    </div>
-                    <div class="connectors-empty__copy">
-                      <strong>Connect your research tools</strong>
-                      <p>Add a hosted MCP server with optional OAuth, or run a trusted MCP command on this machine.</p>
-                    </div>
-                    <div class="connectors-empty__actions">
-                      <FormButton label="Hosted server" onClick={() => openForm("remote")} />
-                      <FormButton label="Local process" variant="ghost" onClick={() => openForm("local")} />
-                    </div>
+                  {language.t("settings.connectors.retry")}
+                </Button>
+              </div>
+            </Show>
+
+            <Show when={catalogLoading() && !catalogProblem() && configuredEntries().length === 0}>
+              <section class="settings-section" aria-label={language.t("settings.connectors.loading")}>
+                <div class="settings-section-heading">
+                  <div>
+                    <h3>{language.t("settings.connectors.section.available")}</h3>
                   </div>
-                </Show>
-              }
-            >
-              <section class="settings-section connectors-section" aria-label="Configured connectors">
-                <SectionLabel label="Connectors" count={entries().length} />
-                <div class="connectors-list" role="list">
+                </div>
+                <div
+                  class="settings-panel-loading__rows"
+                  role="status"
+                  aria-label={language.t("settings.connectors.loading")}
+                >
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </section>
+            </Show>
+
+            <Show when={entries().length > 0}>
+              <section
+                class="settings-section connectors-section"
+                aria-label={language.t("settings.connectors.section.configured")}
+              >
+                <div class="settings-section-heading">
+                  <div>
+                    <h3>{language.t("settings.connectors.section.yours")}</h3>
+                    <p>{language.t("settings.connectors.section.yours.description")}</p>
+                  </div>
+                  <span>{entries().length}</span>
+                </div>
+                <div class="settings-card connectors-list" role="list">
                   <For each={entries()}>
                     {(entry) => {
                       const name = entry[0]
@@ -389,51 +711,81 @@ export default function Connectors() {
                           role="listitem"
                         >
                           <div class="connectors-row">
-                            <div class="connectors-identity" data-kind={identity.icon}>
-                              <Icon name={identity.icon} size="small" />
-                            </div>
+                            <span class="settings-row-logo" aria-hidden="true">
+                              <Show when={identity.providerLogo} fallback={<Icon name={identity.icon} size="small" />}>
+                                {(provider) => <ProviderLogo id={provider()} label={identity.label} size="small" />}
+                              </Show>
+                            </span>
                             <div class="connectors-copy">
                               <div class="connectors-copy__title">
                                 <strong>{name}</strong>
-                                <span>{identity.label}</span>
                               </div>
                               <p title={config.type === "local" ? config.command.join(" ") : config.url}>
-                                {config.type === "local" ? config.command.join(" ") : config.url}
+                                {identity.label} · {config.type === "local" ? config.command.join(" ") : config.url}
+                                <Show when={detail()}>
+                                  {(value) => (
+                                    <>
+                                      {" "}
+                                      ·{" "}
+                                      {language.t("settings.connectors.count.tools", {
+                                        count: value().tools.length,
+                                      })}{" "}
+                                      ·{" "}
+                                      {language.t("settings.connectors.count.resources", {
+                                        count: value().resources.length,
+                                      })}{" "}
+                                      ·{" "}
+                                      {language.t("settings.connectors.count.prompts", {
+                                        count: value().prompts.length,
+                                      })}
+                                    </>
+                                  )}
+                                </Show>{" "}
+                                <button
+                                  type="button"
+                                  class="settings-inline-link"
+                                  aria-expanded={expanded() === name}
+                                  aria-label={language.t(
+                                    expanded() === name
+                                      ? "settings.connectors.details.hide.ariaLabel"
+                                      : "settings.connectors.details.show.ariaLabel",
+                                    { name },
+                                  )}
+                                  onClick={() => toggleDetails(name)}
+                                >
+                                  {language.t(
+                                    expanded() === name
+                                      ? "settings.connectors.details.hide"
+                                      : "settings.connectors.details",
+                                  )}
+                                </button>
                               </p>
-                              <Show when={detail()}>
-                                {(value) => (
-                                  <div class="connectors-capability-summary">
-                                    <span>{value().tools.length} tools</span>
-                                    <span>{value().resources.length} resources</span>
-                                    <span>{value().prompts.length} prompts</span>
-                                  </div>
-                                )}
-                              </Show>
                             </div>
                             <span class="connectors-status" data-tone={dot(s())}>
-                              <span aria-hidden="true" />
                               {statusText(s())}
                             </span>
                             <div class="connectors-row__actions">
-                              <Show when={config.type === "remote" && config.oauth !== false}>
+                              <Show
+                                when={
+                                  config.type === "remote" &&
+                                  config.oauth !== false &&
+                                  s()?.status !== "connected" &&
+                                  detail()?.auth !== "authenticated"
+                                }
+                              >
                                 <button
                                   type="button"
                                   class="connectors-action"
-                                  disabled={busy(`row:${name}`)}
+                                  disabled={
+                                    busy(`row:${name}`) || busy(`auth-start:${name}`) || !!pendingAuthorizations()[name]
+                                  }
                                   onClick={() => void authenticate(name)}
                                 >
-                                  {detail()?.auth === "authenticated" || s()?.status === "connected"
-                                    ? "Reconnect"
-                                    : "Connect"}
+                                  {pendingAuthorizations()[name]
+                                    ? language.t("settings.connectors.waiting")
+                                    : language.t("common.connect")}
                                 </button>
                               </Show>
-                              <IconButton
-                                icon="edit"
-                                variant="ghost"
-                                disabled={busy(`row:${name}`)}
-                                aria-label={`Edit ${name}`}
-                                onClick={() => editConnector(name, config)}
-                              />
                               <Switch
                                 checked={config.enabled !== false}
                                 disabled={busy(`row:${name}`)}
@@ -442,22 +794,44 @@ export default function Connectors() {
                               >
                                 {name}
                               </Switch>
-                              <IconButton
-                                icon={expanded() === name ? "chevron-down" : "chevron-right"}
-                                variant="ghost"
-                                aria-expanded={expanded() === name}
-                                aria-label={expanded() === name ? `Hide ${name} details` : `Show ${name} details`}
-                                onClick={() => toggleDetails(name)}
-                              />
                             </div>
                           </div>
+                          <Show when={pendingAuthorizations()[name]}>
+                            {(authorization) => (
+                              <div class="connectors-oauth" role="status" aria-live="polite">
+                                <div>
+                                  <strong>{language.t("settings.connectors.oauth.waiting.title")}</strong>
+                                  <span>{language.t("settings.connectors.oauth.waiting.description")}</span>
+                                </div>
+                                <div class="connectors-oauth__actions">
+                                  <button
+                                    type="button"
+                                    class="connectors-detail-action"
+                                    onClick={() => platform.openLink(authorization().authorizationUrl)}
+                                  >
+                                    {language.t("settings.connectors.oauth.open")}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    class="connectors-detail-action"
+                                    disabled={busy(`auth-cancel:${name}`)}
+                                    onClick={() => void cancelAuthentication(name)}
+                                  >
+                                    {busy(`auth-cancel:${name}`)
+                                      ? language.t("settings.connectors.cancelling")
+                                      : language.t("common.cancel")}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </Show>
                           <Show when={expanded() === name}>
                             <div class="connectors-details">
                               <Show
                                 when={!busy(`inspect:${name}`)}
                                 fallback={
                                   <div class="connectors-inspection-state" role="status">
-                                    Inspecting available tools and resources…
+                                    {language.t("settings.connectors.inspecting")}
                                   </div>
                                 }
                               >
@@ -465,9 +839,13 @@ export default function Connectors() {
                                   when={!inspectionProblems()[name]}
                                   fallback={
                                     <div class="connectors-inspection-state" role="alert">
-                                      <span>Could not inspect this connector. {inspectionProblems()[name]}</span>
+                                      <span>
+                                        {language.t("settings.connectors.inspect.failed", {
+                                          problem: inspectionProblems()[name],
+                                        })}
+                                      </span>
                                       <button type="button" onClick={() => void inspect(name)}>
-                                        Retry
+                                        {language.t("settings.connectors.retry")}
                                       </button>
                                     </div>
                                   }
@@ -476,6 +854,20 @@ export default function Connectors() {
                                 </Show>
                               </Show>
                               <div class="connectors-details__actions">
+                                <Show when={config.type === "remote" && config.oauth !== false}>
+                                  <button
+                                    type="button"
+                                    class="connectors-detail-action"
+                                    disabled={
+                                      busy(`row:${name}`) ||
+                                      busy(`auth-start:${name}`) ||
+                                      !!pendingAuthorizations()[name]
+                                    }
+                                    onClick={() => void authenticate(name)}
+                                  >
+                                    {language.t("settings.connectors.action.reconnect")}
+                                  </button>
+                                </Show>
                                 <Show when={detail()?.auth === "authenticated" || detail()?.auth === "expired"}>
                                   <button
                                     type="button"
@@ -483,7 +875,7 @@ export default function Connectors() {
                                     disabled={busy(`row:${name}`)}
                                     onClick={() => void disconnectAuth(name)}
                                   >
-                                    Disconnect OAuth
+                                    {language.t("settings.connectors.action.disconnectOAuth")}
                                   </button>
                                 </Show>
                                 <button
@@ -492,7 +884,7 @@ export default function Connectors() {
                                   disabled={busy(`row:${name}`)}
                                   onClick={() => editConnector(name, config)}
                                 >
-                                  Edit configuration
+                                  {language.t("settings.connectors.action.edit")}
                                 </button>
                                 <button
                                   type="button"
@@ -500,7 +892,7 @@ export default function Connectors() {
                                   disabled={busy(`row:${name}`)}
                                   onClick={() => void remove(name)}
                                 >
-                                  Remove connector
+                                  {language.t("settings.connectors.action.remove")}
                                 </button>
                               </div>
                             </div>
@@ -521,9 +913,208 @@ export default function Connectors() {
                       .finally(() => setBusy("refresh", false))
                   }}
                 >
-                  <Icon name="refresh" size="small" /> Refresh status
+                  <Icon name="refresh" size="small" /> {language.t("settings.connectors.action.refresh")}
                 </button>
               </section>
+            </Show>
+
+            <Show when={catalogEntries().length > 0}>
+              <section
+                class="settings-section connectors-catalog"
+                aria-label={language.t("settings.connectors.section.available")}
+              >
+                <div class="settings-section-heading">
+                  <div>
+                    <h3>{language.t("settings.connectors.section.available")}</h3>
+                    <p>{language.t("settings.connectors.section.available.description")}</p>
+                  </div>
+                  <span>{catalogEntries().length}</span>
+                </div>
+                <div class="settings-card connectors-catalog__list" role="list">
+                  <For each={catalogEntries()}>
+                    {(entry) => (
+                      <article
+                        class="connectors-catalog__row"
+                        role="listitem"
+                        data-state={entry.status}
+                        data-expanded={catalogExpanded() === entry.id ? "true" : undefined}
+                      >
+                        <div class="connectors-catalog__main">
+                          <span class="settings-row-logo" aria-hidden="true">
+                            <ProviderLogo id={entry.id === "s3" ? "aws" : entry.id} label={entry.name} size="small" />
+                          </span>
+                          <div class="connectors-catalog__copy">
+                            <div class="connectors-catalog__title">
+                              <strong>{entry.name}</strong>
+                            </div>
+                            <p>
+                              <span data-tag={entry.status}>
+                                {language.t(
+                                  entry.recommended
+                                    ? "settings.connectors.tag.recommended"
+                                    : "settings.connectors.tag.official",
+                                )}
+                              </span>{" "}
+                              · {entry.summary}{" "}
+                              <button
+                                type="button"
+                                class="settings-inline-link"
+                                aria-expanded={catalogExpanded() === entry.id}
+                                aria-label={language.t(
+                                  catalogExpanded() === entry.id
+                                    ? "settings.connectors.details.hide.ariaLabel"
+                                    : "settings.connectors.details.show.ariaLabel",
+                                  { name: entry.name },
+                                )}
+                                onClick={() =>
+                                  setCatalogExpanded(catalogExpanded() === entry.id ? undefined : entry.id)
+                                }
+                              >
+                                {language.t(
+                                  catalogExpanded() === entry.id
+                                    ? "settings.connectors.details.hide"
+                                    : "settings.connectors.details",
+                                )}
+                              </button>
+                            </p>
+                          </div>
+                          <div class="connectors-catalog__actions">
+                            <button
+                              type="button"
+                              class="connectors-action"
+                              disabled={busy(`catalog:${entry.id}`)}
+                              onClick={() => void addCatalogPreset(entry)}
+                            >
+                              {entry.setup?.one_click_connect
+                                ? busy(`catalog:${entry.id}`)
+                                  ? language.t("settings.connectors.connecting")
+                                  : language.t("common.connect")
+                                : language.t("settings.connectors.action.setUp")}
+                            </button>
+                          </div>
+                        </div>
+                        <Show when={catalogExpanded() === entry.id}>
+                          <div class="connectors-catalog__details">
+                            <p>{entry.safety}</p>
+                            <dl>
+                              <div>
+                                <dt>{language.t("settings.connectors.catalog.needs")}</dt>
+                                <dd>
+                                  {entry.requirements.join(" · ") ||
+                                    language.t("settings.connectors.catalog.needs.none")}
+                                </dd>
+                              </div>
+                              <div>
+                                <dt>{language.t("settings.connectors.catalog.writes")}</dt>
+                                <dd>
+                                  {entry.upstream_write_operations.join(" · ") ||
+                                    language.t("settings.connectors.catalog.writes.none")}
+                                </dd>
+                              </div>
+                            </dl>
+                            <button
+                              type="button"
+                              class="connectors-detail-action"
+                              onClick={() => platform.openLink(entry.source_url)}
+                            >
+                              {language.t("settings.connectors.action.docs")}
+                            </button>
+                          </div>
+                        </Show>
+                      </article>
+                    )}
+                  </For>
+                </div>
+              </section>
+            </Show>
+
+            <Show when={manualCatalogEntries().length > 0}>
+              <section
+                class="settings-section connectors-catalog"
+                aria-label={language.t("settings.connectors.section.manual")}
+              >
+                <div class="settings-section-heading">
+                  <div>
+                    <h3>{language.t("settings.connectors.section.manual")}</h3>
+                    <p>{language.t("settings.connectors.section.manual.description")}</p>
+                  </div>
+                </div>
+                <div class="settings-card connectors-manual__list" role="list">
+                  <For each={manualCatalogEntries()}>
+                    {(entry) => (
+                      <article class="connectors-manual__row" role="listitem">
+                        <span class="settings-row-logo" aria-hidden="true">
+                          <ProviderLogo id={entry.id} label={entry.name} size="small" />
+                        </span>
+                        <div class="connectors-catalog__copy">
+                          <div class="connectors-catalog__title">
+                            <strong>{entry.name}</strong>
+                          </div>
+                          <p>
+                            {language.t("settings.connectors.tag.manual")} · {entry.summary}{" "}
+                            <button
+                              type="button"
+                              class="settings-inline-link"
+                              onClick={() => platform.openLink(entry.source_url)}
+                            >
+                              {language.t("settings.connectors.action.guide")}
+                            </button>
+                          </p>
+                        </div>
+                        <div class="connectors-catalog__actions">
+                          <button
+                            type="button"
+                            class="connectors-action"
+                            onClick={() => openForm(entry.id === "dropbox" ? "local" : "remote")}
+                          >
+                            {language.t("ui.common.add")}
+                          </button>
+                        </div>
+                      </article>
+                    )}
+                  </For>
+                </div>
+              </section>
+            </Show>
+
+            <Show
+              when={
+                !catalogLoading() &&
+                !catalogProblem() &&
+                entries().length === 0 &&
+                catalogEntries().length === 0 &&
+                manualCatalogEntries().length === 0
+              }
+            >
+              <Show
+                when={!search()}
+                fallback={
+                  <EmptyState
+                    icon="mcp"
+                    title={language.t("settings.connectors.empty.search.title")}
+                    hint={language.t("settings.connectors.empty.search.hint")}
+                  />
+                }
+              >
+                <div class="connectors-empty">
+                  <EmptyState
+                    icon="mcp"
+                    title={language.t("settings.connectors.empty.title")}
+                    hint={language.t("settings.connectors.empty.hint")}
+                  />
+                  <div class="connectors-empty__actions">
+                    <FormButton
+                      label={language.t("settings.connectors.type.remote")}
+                      onClick={() => openForm("remote")}
+                    />
+                    <FormButton
+                      label={language.t("settings.connectors.type.local")}
+                      variant="ghost"
+                      onClick={() => openForm("local")}
+                    />
+                  </div>
+                </div>
+              </Show>
             </Show>
           </Show>
         </PanelBody>
@@ -540,29 +1131,48 @@ function ConnectorForm(props: {
   onSave: () => void
   onCancel: () => void
 }) {
+  const language = useLanguage()
+  const oauthOptions = createMemo(() =>
+    OAUTH_OPTIONS.map((option) => ({ value: option.value, label: language.t(option.label) })),
+  )
   const set = <K extends keyof ConnectorFormState>(key: K, value: ConnectorFormState[K]) =>
     props.onChange({ ...props.state, [key]: value })
   return (
-    <section class="settings-section connectors-form-section">
-      <SectionLabel label={props.editing ? "Edit connector" : `Add ${props.state.type} connector`} />
-      <div class="connectors-form">
+    <section class="settings-section">
+      <div class="settings-section-heading">
+        <div>
+          <h3>
+            {language.t(
+              props.editing
+                ? "settings.connectors.form.edit"
+                : props.state.type === "remote"
+                  ? "settings.connectors.form.add.remote"
+                  : "settings.connectors.form.add.local",
+            )}
+          </h3>
+        </div>
+      </div>
+      <div class="settings-card settings-form-card connectors-form">
         <div class="connectors-form__lead">
-          <div class="connectors-identity" data-kind={props.state.type === "remote" ? "cloud" : "console"}>
-            <Icon name={props.state.type === "remote" ? "cloud" : "console"} size="small" />
-          </div>
-          <div>
-            <strong>{props.state.type === "remote" ? "Hosted MCP server" : "Local MCP process"}</strong>
-            <p>
-              {props.state.type === "remote"
-                ? "Connect over HTTPS and authenticate with OAuth or headers."
-                : "Launch a trusted command and pass environment values locally."}
-            </p>
-          </div>
+          <strong>
+            {language.t(
+              props.state.type === "remote"
+                ? "settings.connectors.form.remote.title"
+                : "settings.connectors.form.local.title",
+            )}
+          </strong>
+          <p>
+            {language.t(
+              props.state.type === "remote"
+                ? "settings.connectors.form.remote.description"
+                : "settings.connectors.form.local.description",
+            )}
+          </p>
         </div>
         <div class="connectors-form__grid">
           <div class="connectors-form__field">
             <FormField
-              label="Name"
+              label={language.t("settings.connectors.form.name")}
               value={props.state.name}
               onInput={(v) => set("name", v)}
               placeholder="linear, filesystem…"
@@ -570,7 +1180,7 @@ function ConnectorForm(props: {
           </div>
           <div class="connectors-form__field">
             <FormField
-              label="Request timeout (ms)"
+              label={language.t("settings.connectors.form.timeout")}
               value={props.state.timeout}
               onInput={(v) => set("timeout", v)}
               mono
@@ -583,7 +1193,7 @@ function ConnectorForm(props: {
               <>
                 <div class="connectors-form__field" data-span="full">
                   <FormField
-                    label="Command"
+                    label={language.t("settings.connectors.form.command")}
                     value={props.state.command}
                     onInput={(v) => set("command", v)}
                     mono
@@ -592,7 +1202,7 @@ function ConnectorForm(props: {
                 </div>
                 <div class="connectors-form__field" data-span="full">
                   <FormField
-                    label="Environment (JSON)"
+                    label={language.t("settings.connectors.form.env")}
                     value={props.state.env}
                     onInput={(v) => set("env", v)}
                     multiline
@@ -601,10 +1211,7 @@ function ConnectorForm(props: {
                   />
                 </div>
                 <Show when={props.editing && props.state.env}>
-                  <p class="connectors-form__hint">
-                    Stored values are masked. Keep the mask to preserve a value, replace it to update, or remove its key
-                    to delete it.
-                  </p>
+                  <p class="connectors-form__hint">{language.t("settings.connectors.form.env.masked")}</p>
                 </Show>
               </>
             }
@@ -618,21 +1225,23 @@ function ConnectorForm(props: {
                 placeholder="https://mcp.example.com/mcp"
               />
             </div>
-            <label class="connectors-form__field connectors-form__select">
+            <div class="connectors-form__field connectors-form__select">
               <span>OAuth</span>
-              <select
-                value={props.state.oauth}
-                class="settings-field"
-                onInput={(e) => set("oauth", e.currentTarget.value as OAuthMode)}
-              >
-                <option value="auto">Automatic registration</option>
-                <option value="client">Pre-registered client</option>
-                <option value="off">No OAuth</option>
-              </select>
-            </label>
+              <Select
+                aria-label="OAuth"
+                options={oauthOptions()}
+                current={oauthOptions().find((option) => option.value === props.state.oauth)}
+                value={(option) => option.value}
+                label={(option) => option.label}
+                onSelect={(option) => option && set("oauth", option.value)}
+                variant="secondary"
+                size="small"
+                triggerVariant="settings"
+              />
+            </div>
             <div class="connectors-form__field" data-span="full">
               <FormField
-                label="Headers (JSON)"
+                label={language.t("settings.connectors.form.headers")}
                 value={props.state.headers}
                 onInput={(v) => set("headers", v)}
                 multiline
@@ -641,47 +1250,74 @@ function ConnectorForm(props: {
               />
             </div>
             <Show when={props.editing && props.state.headers}>
-              <p class="connectors-form__hint">
-                Stored header values are masked. Keep the mask to preserve a value, replace it to update, or remove its
-                key to delete it.
-              </p>
+              <p class="connectors-form__hint">{language.t("settings.connectors.form.headers.masked")}</p>
             </Show>
             <Show when={props.state.oauth === "client"}>
               <div class="connectors-form__field">
-                <FormField label="Client ID" value={props.state.clientId} onInput={(v) => set("clientId", v)} mono />
-              </div>
-              <div class="connectors-form__field">
                 <FormField
-                  label="Client secret"
-                  value={props.state.clientSecret}
-                  onInput={(v) => set("clientSecret", v)}
+                  label={language.t("settings.connectors.form.clientId")}
+                  value={props.state.clientId}
+                  onInput={(v) => set("clientId", v)}
                   mono
                 />
               </div>
+              <div class="connectors-form__field">
+                <FormField
+                  label={language.t(
+                    props.state.requireClientSecret
+                      ? "settings.connectors.form.clientSecret.required"
+                      : "settings.connectors.form.clientSecret",
+                  )}
+                  value={props.state.clientSecret}
+                  onInput={(v) => set("clientSecret", v)}
+                  mono
+                  secret
+                />
+              </div>
               <div class="connectors-form__field" data-span="full">
-                <FormField label="Scope" value={props.state.scope} onInput={(v) => set("scope", v)} mono />
+                <FormField
+                  label={language.t("settings.connectors.form.scope")}
+                  value={props.state.scope}
+                  onInput={(v) => set("scope", v)}
+                  mono
+                />
               </div>
             </Show>
           </Show>
         </div>
         <div class="connectors-form__actions">
           <FormButton
-            label={props.busy ? "Saving…" : props.editing ? "Save connector" : "Add connector"}
+            label={language.t("common.cancel")}
+            variant="ghost"
+            onClick={props.onCancel}
+            disabled={props.busy}
+          />
+          <FormButton
+            label={language.t(
+              props.busy
+                ? "settings.saving"
+                : props.editing
+                  ? "settings.connectors.form.save"
+                  : "settings.connectors.add",
+            )}
             disabled={props.busy}
             onClick={props.onSave}
           />
-          <FormButton label="Cancel" variant="ghost" onClick={props.onCancel} disabled={props.busy} />
         </div>
+        <Show when={props.state.initiallyDisabled && !props.editing}>
+          <p class="connectors-form__hint">{language.t("settings.connectors.form.catalogOff")}</p>
+        </Show>
       </div>
     </section>
   )
 }
 
-function message(err: unknown) {
+function rawMessage(err: unknown) {
   return err instanceof Error ? err.message : String(err)
 }
 
 function ConnectorInspection(props: { detail?: McpInspection }) {
+  const language = useLanguage()
   const failures = () => {
     if (!props.detail) return []
     const status = props.detail.status.status === "failed" ? [props.detail.status.error] : []
@@ -689,7 +1325,12 @@ function ConnectorInspection(props: { detail?: McpInspection }) {
   }
   return (
     <div class="connectors-inspection">
-      <Show when={props.detail} fallback={<span class="connectors-inspection__loading">Inspecting connector…</span>}>
+      <Show
+        when={props.detail}
+        fallback={
+          <span class="connectors-inspection__loading">{language.t("settings.connectors.inspecting.connector")}</span>
+        }
+      >
         {(detail) => (
           <>
             <Show when={failures().length > 0}>
@@ -700,8 +1341,8 @@ function ConnectorInspection(props: { detail?: McpInspection }) {
             <div class="connectors-inspection__grid">
               <CapabilityList
                 icon="settings-gear"
-                title="Tools"
-                empty="No tools reported"
+                title={language.t("settings.connectors.capability.tools")}
+                empty={language.t("settings.connectors.capability.tools.empty")}
                 items={detail().tools.map((tool) => ({
                   name: tool.name,
                   description: tool.description,
@@ -709,8 +1350,8 @@ function ConnectorInspection(props: { detail?: McpInspection }) {
               />
               <CapabilityList
                 icon="folder"
-                title="Resources"
-                empty="No resources reported"
+                title={language.t("settings.connectors.capability.resources")}
+                empty={language.t("settings.connectors.capability.resources.empty")}
                 items={detail().resources.map((resource) => ({
                   name: resource.name,
                   description: resource.description ?? resource.uri,
@@ -718,8 +1359,8 @@ function ConnectorInspection(props: { detail?: McpInspection }) {
               />
               <CapabilityList
                 icon="speech-bubble"
-                title="Prompts"
-                empty="No prompts reported"
+                title={language.t("settings.connectors.capability.prompts")}
+                empty={language.t("settings.connectors.capability.prompts.empty")}
                 items={detail().prompts.map((prompt) => ({
                   name: prompt.name,
                   description: prompt.description,

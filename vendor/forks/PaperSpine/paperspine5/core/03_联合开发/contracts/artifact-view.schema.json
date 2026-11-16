@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/artifact-view.schema.json",
+  "title": "PaperSpine5 verified artifact read projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "task_id", "current_revision", "reference_revision", "freshness", "receipt", "payload"],
+  "properties": {
+    "contract": {"const": "paperspine5.artifact-view"},
+    "schema_version": {"const": "1.0"},
+    "task_id": {"type": "string", "minLength": 1},
+    "current_revision": {"type": "integer", "minimum": 0},
+    "reference_revision": {"type": "integer", "minimum": 0},
+    "freshness": {"enum": ["fresh", "stale", "missing"]},
+    "receipt": {"$ref": "artifact-receipt.schema.json"},
+    "payload": {}
+  }
+}

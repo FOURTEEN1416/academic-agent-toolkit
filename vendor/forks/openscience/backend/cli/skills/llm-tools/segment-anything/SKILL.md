@@ -3,10 +3,18 @@ name: segment-anything-model
 description: Foundation model for image segmentation with zero-shot transfer. Use when you need to segment any object in images using points, boxes, or masks as prompts, or automatically generate all object masks in an image.
 category: llm-tools
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Multimodal, Image Segmentation, Computer Vision, SAM, Zero-Shot]
 dependencies: [segment-anything, transformers>=4.30.0, torch>=1.7.0]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 18-multimodal/segment-anything
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # Segment Anything Model (SAM)

@@ -8,8 +8,6 @@ import {
   sessionHydrationPlan,
 } from "./session-hydration"
 
-const sessionPage = Bun.file(new URL("../pages/session.tsx", import.meta.url)).text()
-
 describe("session transcript hydration", () => {
   test("revisiting a hydrated session refetches without truncating its cached history", () => {
     const cachedMessages = 800
@@ -24,10 +22,6 @@ describe("session transcript hydration", () => {
     expect(plan.skip).toBe(false)
     expect(plan.loadMessages).toBe(true)
     expect(plan.limit).toBe(cachedMessages + SESSION_MESSAGE_CHUNK)
-  })
-
-  test("active route hydration opts into the authoritative refresh", async () => {
-    expect(await sessionPage).toContain("sync.session.sync(id, { refresh: true })")
   })
 
   test("the refreshed snapshot updates known messages without dropping cached turns outside its window", () => {

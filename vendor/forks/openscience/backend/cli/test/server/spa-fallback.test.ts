@@ -8,6 +8,11 @@ import { WEB_INDEX } from "../../src/web/assets"
 const projectRoot = path.join(__dirname, "../..")
 Log.init({ print: false })
 
+// The manifest is gitignored, so a fresh clone has none and the SPA test
+// skips. CI builds frontend/workspace before this suite runs, and a skip there
+// would hide a workflow that stopped building it, so fail instead.
+const spa = process.env.CI ? test : test.skipIf(!WEB_INDEX)
+
 describe("spa fallback", () => {
   test("unmatched API-shaped request under /settings gets a JSON 404, not SPA HTML", async () => {
     await Instance.provide({
@@ -28,7 +33,12 @@ describe("spa fallback", () => {
     })
   })
 
-  test.skipIf(!WEB_INDEX)("browser navigation to an unmatched route still gets the SPA index.html", async () => {
+  spa("browser navigation to an unmatched route still gets the SPA index.html", async () => {
+    if (!WEB_INDEX) {
+      throw new Error(
+        "src/web/assets.generated.ts is missing: build frontend/workspace, then run script/generate-web-assets.ts",
+      )
+    }
     await Instance.provide({
       directory: projectRoot,
       fn: async () => {
@@ -47,7 +57,7 @@ describe("spa fallback", () => {
     })
   })
 
-  test("unmatched /api/* request still 404s (regression)", async () => {
+  test("unmatched /api/* request returns a structured 404", async () => {
     await Instance.provide({
       directory: projectRoot,
       fn: async () => {
@@ -55,6 +65,13 @@ describe("spa fallback", () => {
         const response = await fetch("http://openscience.internal/api/also-nonexistent")
 
         expect(response.status).toBe(404)
+        expect(response.headers.get("content-type")).toContain("application/json")
+        expect(response.headers.get("cache-control")).toBe("no-store")
+        expect(await response.json()).toEqual({
+          error: "not_found",
+          detail: "API route not found",
+          path: "/api/also-nonexistent",
+        })
       },
     })
   })

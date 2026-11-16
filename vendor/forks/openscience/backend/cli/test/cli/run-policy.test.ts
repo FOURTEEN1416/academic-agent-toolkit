@@ -1,0 +1,961 @@
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
+import { Config } from "../../src/config/config"
+import path from "path"
+import { createOpenScienceClient } from "@synsci/sdk/v2"
+import { Instance } from "../../src/project/instance"
+import { PermissionNext } from "../../src/permission/next"
+import { Provider } from "../../src/provider/provider"
+import { Server } from "../../src/server/server"
+import { execute, session, type RunInput } from "../../src/cli/cmd/run"
+import { computeJobTesting } from "../../src/tool/compute-job"
+import { RunEvents } from "../../src/cli/run-events"
+import { Log } from "../../src/util/log"
+import { tmpdir, trustProject } from "../fixture/fixture"
+import { STRESS_PROVIDER_ID, STRESS_PROVIDER_MODEL, stressProviderConfig } from "../fixture/stress-provider"
+
+const savedDefaults: { content?: string } = {}
+beforeEach(async () => {
+  savedDefaults.content = (await Config.getGlobalRaw()).content
+  await Config.updateGlobal(
+    { subagents: { enabled: true, tokens: 1000000, deadlineMs: 600000 } },
+    { preserveInstances: true },
+  )
+})
+
+Log.init({ print: false })
+
+const MODEL = `${STRESS_PROVIDER_ID}/${STRESS_PROVIDER_MODEL}`
+
+type ChatRequest = { messages?: unknown; tools?: unknown }
+
+function textFrom(value: unknown): string {
+  if (typeof value === "string") return value
+  if (Array.isArray(value)) return value.map(textFrom).join("\n")
+  if (!value || typeof value !== "object") return ""
+  return Object.values(value).map(textFrom).join("\n")
+}
+
+function hasToolResult(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(hasToolResult)
+  if (!value || typeof value !== "object") return false
+  const record = value as Record<string, unknown>
+  if (record.role === "tool" || record.type === "tool-result") return true
+  return Object.values(record).some(hasToolResult)
+}
+
+function chunk(delta: Record<string, unknown>, finish: string | null) {
+  return {
+    id: "chatcmpl-run",
+    object: "chat.completion.chunk",
+    created: 1,
+    model: STRESS_PROVIDER_MODEL,
+    choices: [{ index: 0, delta: finish ? {} : delta, finish_reason: finish }],
+    ...(finish ? { usage: { prompt_tokens: 10, completion_tokens: 4, total_tokens: 14 } } : {}),
+  }
+}
+
+function sse(events: ReturnType<typeof chunk>[]) {
+  const body = events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join("")
+  return new Response(`${body}data: [DONE]\n\n`, {
+    headers: { "content-type": "text/event-stream", "cache-control": "no-cache" },
+  })
+}
+
+function text(reply: string, reasoning?: string) {
+  return sse([
+    ...(reasoning ? [chunk({ role: "assistant", reasoning_content: reasoning }, null)] : []),
+    chunk({ role: "assistant", content: reply }, null),
+    chunk({}, "stop"),
+  ])
+}
+
+// Providers issue a distinct id per call; two calls of one tool in one turn
+// with the same id would be merged into one part by the loop.
+let calls = 0
+function call(name: string, args: Record<string, unknown>) {
+  calls += 1
+  return sse([
+    chunk(
+      {
+        role: "assistant",
+        tool_calls: [
+          {
+            index: 0,
+            id: `call_${name}_${calls}`,
+            type: "function",
+            function: { name, arguments: JSON.stringify(args) },
+          },
+        ],
+      },
+      null,
+    ),
+    chunk({}, "tool_calls"),
+  ])
+}
+
+/**
+ * A deterministic OpenAI-compatible provider. Requests carrying a tool
+ * schema are the agent turn; everything else (titles, summaries) gets a
+ * plain reply so background work never blocks the test.
+ */
+function provider(options: { secret: string; hold?: () => Promise<void> }) {
+  const requests: string[] = []
+  const server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    async fetch(request) {
+      if (new URL(request.url).pathname !== "/v1/chat/completions") return new Response("not found", { status: 404 })
+      const body = (await request.json()) as ChatRequest
+      const prompt = textFrom(body.messages)
+      const main = Array.isArray(body.tools) && body.tools.length > 0
+      if (!main) return text("Background reply")
+      requests.push(prompt)
+      const done = hasToolResult(body.messages)
+      if (prompt.includes("RUN_READ")) {
+        return done ? text("RUN_READ_DONE") : call("read", { filePath: options.secret })
+      }
+      if (prompt.includes("RUN_ASK_AUTHORITY")) {
+        return done
+          ? text("RUN_ASK_AUTHORITY_DONE")
+          : call("question", {
+              reason: "missing_authority",
+              questions: [
+                {
+                  header: "Input",
+                  question: "Please provide the reference table.",
+                  options: [{ label: "Provide the table", description: "Upload it" }],
+                },
+              ],
+            })
+      }
+      if (prompt.includes("RUN_QUESTION")) {
+        return done
+          ? text("RUN_QUESTION_DONE")
+          : call("question", {
+              reason: "consequential",
+              questions: [
+                {
+                  header: "Choice",
+                  question: "Continue?",
+                  options: [
+                    { label: "Yes (Recommended)", description: "Go on" },
+                    { label: "No", description: "Stop" },
+                  ],
+                },
+              ],
+            })
+      }
+      if (prompt.includes("RUN_HOLD")) await options.hold?.()
+      // The lead delegates once; only the child's conversation lacks the
+      // lead's marker, so it is recognized by its brief alone (checked last).
+      if (prompt.includes("RUN_DELEGATE")) {
+        return done
+          ? text("RUN_DELEGATE_DONE")
+          : call("task", {
+              description: "Inspect files",
+              prompt: "CHILD_BRIEF inspect the files",
+              subagent_type: "explore",
+            })
+      }
+      // The lead starts a slow background worker, then asks it for its result
+      // by task_id while it is still running; the tool waits and hands over
+      // the report once.
+      if (prompt.includes("RUN_BACKGROUND_JOIN")) {
+        const started = prompt.match(/<task id="(ses_[^"]+)" state="running">/)
+        if (prompt.includes("Waited for this background worker")) return text("RUN_JOIN_DONE")
+        if (started) {
+          return call("task", {
+            description: "Collect findings",
+            prompt: "What do you have so far?",
+            subagent_type: "explore",
+            task_id: started[1],
+          })
+        }
+        return call("task", {
+          description: "Inspect files slowly",
+          prompt: "CHILD_SLOW inspect the files",
+          subagent_type: "explore",
+          background: true,
+        })
+      }
+      // The worker is quick; the lead's turn on its report is slow, as a
+      // real integration turn is. The run must wait for that turn too.
+      if (prompt.includes("RUN_BACKGROUND_SLOWWAKE")) {
+        if (prompt.includes('state="completed"')) {
+          await Bun.sleep(7_000)
+          return text("RUN_SLOWWAKE_DONE")
+        }
+        return done
+          ? text("Launched the inspection; its report will arrive as a new turn.")
+          : call("task", {
+              description: "Inspect files later",
+              prompt: "CHILD_BRIEF inspect the files",
+              subagent_type: "explore",
+              background: true,
+            })
+      }
+      // A worker slower than the run's idle grace: the lead answers long
+      // before the child does, as a real worker on a real task does.
+      if (prompt.includes("RUN_BACKGROUND_SLOW")) {
+        return done
+          ? text("RUN_BACKGROUND_DONE")
+          : call("task", {
+              description: "Inspect files slowly",
+              prompt: "CHILD_SLOW inspect the files",
+              subagent_type: "explore",
+              background: true,
+            })
+      }
+      // The lead starts a slow local compute job and waits once; the wait
+      // times out, the job wakes the lead when it settles, and the run must
+      // still be alive to carry that turn.
+      if (prompt.includes("RUN_COMPUTE_WAKE")) {
+        if (prompt.includes("ended with status")) return text("RUN_COMPUTE_WOKE")
+        if (prompt.includes("will_wake")) return text("Waiting for the job; it will wake me.")
+        const started = prompt.match(/Dispatched local job ([\w-]+)\./)
+        if (started) return call("compute_job", { action: "wait", job_id: started[1], seconds: 1 })
+        return call("compute_job", {
+          action: "start",
+          name: "Slow probe",
+          purpose: "Exercise the wake path.",
+          command: "sleep 6; echo COMPUTE_WAKE_DONE",
+          target: { kind: "local" },
+        })
+      }
+      if (prompt.includes("RUN_BACKGROUND")) {
+        return done
+          ? text("RUN_BACKGROUND_DONE")
+          : call("task", {
+              description: "Inspect files later",
+              prompt: "CHILD_BRIEF inspect the files",
+              subagent_type: "explore",
+              background: true,
+            })
+      }
+      if (prompt.includes("CHILD_SLOW")) {
+        await Bun.sleep(12_000)
+        return text("CHILD_DONE: two files inspected, slowly.")
+      }
+      if (prompt.includes("CHILD_BRIEF")) return text("CHILD_DONE: two files inspected.")
+      if (prompt.includes("RUN_DENIED")) {
+        return done ? text("RUN_DENIED_DONE") : call("bash", { command: "echo blocked", description: "blocked" })
+      }
+      return text("RUN_TEXT_DONE", "Thinking about the request.")
+    },
+  })
+  return { server, requests, baseURL: `http://127.0.0.1:${server.port}/v1` }
+}
+
+function sink() {
+  const lines: string[] = []
+  return {
+    write(text: string) {
+      lines.push(...text.split("\n").filter(Boolean))
+      return true
+    },
+    events() {
+      return lines.map((line) => RunEvents.Event.parse(JSON.parse(line)))
+    },
+  }
+}
+
+// The server resolves the project from the request, so the client must name
+// the fixture directory the same way `run` names its cwd.
+const sdk = (directory: string) =>
+  createOpenScienceClient({ baseUrl: "http://openscience.internal", fetch: Server.internalFetch(), directory })
+
+function run(input: Partial<RunInput> & Pick<RunInput, "sdk" | "sessionID" | "message" | "policy">) {
+  const out = sink()
+  const code = execute({
+    files: [],
+    model: MODEL,
+    effort: "normal",
+    bare: false,
+    format: "json",
+    stdout: out,
+    ...input,
+  })
+  return { out, code }
+}
+
+const servers: Bun.Server<unknown>[] = []
+afterEach(async () => {
+  await Promise.all(servers.splice(0).map((server) => server.stop(true)))
+  if (savedDefaults.content !== undefined) await Config.replaceGlobal(savedDefaults.content)
+})
+
+describe("openscience run policy loop", () => {
+  test("command requests preserve uploaded files and explicitly selected effort", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({
+      git: true,
+      config: {
+        ...stressProviderConfig(stub.baseURL),
+        command: { inspect: { template: "Inspect the supplied attachment", subtask: false } },
+        agent: { title: { disable: true } },
+      },
+    })
+    await Instance.provide({
+      directory: tmp.path,
+      init: trustProject,
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const sessionID = await session(client, { message: "Inspect" })
+        if (!sessionID) throw new Error("Missing session")
+        const file = {
+          type: "file" as const,
+          filename: "measurements.txt",
+          mime: "text/plain",
+          url: "data:text/plain;base64,bWVhc3VyZW1lbnQ6IDQy",
+        }
+        const { out, code } = run({
+          sdk: client,
+          sessionID,
+          message: "Read the file",
+          command: "inspect",
+          files: [file],
+          effort: "ultra",
+          policy: "deny",
+        })
+        expect(await code).toBe(0)
+        const messages = (await client.session.messages({ sessionID }, { throwOnError: true })).data
+        const user = messages.find((message) => message.info.role === "user")
+        expect(user?.info.role === "user" && user.info.effort).toBe("ultra")
+        expect(user?.parts).toContainEqual(expect.objectContaining(file))
+        expect(stub.requests).toHaveLength(1)
+        expect(stub.requests[0]).toContain("measurement: 42")
+        const emitted = out.events().find((event) => event.type === "user")
+        expect(emitted?.type === "user" && emitted.parts).toContainEqual(file)
+      },
+    })
+  })
+
+  test("streams user, reasoning, text, step and done events and exits 0", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const sessionID = await session(client, { message: "RUN_TEXT please" })
+        expect(sessionID).toBeDefined()
+        const created = await client.session.get({ sessionID: sessionID! })
+        expect(created.data?.permission).toEqual([{ permission: "question", pattern: "*", action: "deny" }])
+
+        const { out, code } = run({ sdk: client, sessionID: sessionID!, message: "RUN_TEXT please", policy: "allow" })
+        expect(await code).toBe(0)
+
+        const events = out.events()
+        const types = events.map((event) => event.type)
+        expect(types[0]).toBe("user")
+        expect(types.at(-1)).toBe("done")
+        expect(types).toContain("step_start")
+        expect(types).toContain("reasoning")
+        expect(types).toContain("text")
+        expect(types).toContain("step_finish")
+        expect(types).not.toContain("error")
+
+        const user = events.find((event) => event.type === "user")
+        expect(user?.type === "user" && user.parts).toEqual([{ type: "text", text: "RUN_TEXT please" }])
+        const done = events.at(-1)
+        expect(done?.type === "done" && done.status).toBe("completed")
+        expect(done?.type === "done" && done.exitCode).toBe(0)
+        expect(done?.type === "done" && done.tokens.input).toBe(10)
+        expect(done?.type === "done" && done.tokens.output).toBe(4)
+        for (const event of events) expect(event.sessionID).toBe(sessionID!)
+        expect(stub.requests).toHaveLength(1)
+      },
+    })
+  }, 20_000)
+
+  test("auto-approve answers a permission request once and the tool completes", async () => {
+    await using tmp = await tmpdir({ git: true })
+    const secret = path.join(tmp.path, "secret.txt")
+    await Bun.write(secret, "top secret\n")
+    const stub = provider({ secret })
+    servers.push(stub.server)
+    await Bun.write(path.join(tmp.path, "openscience.json"), JSON.stringify(stressProviderConfig(stub.baseURL)))
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const created = await client.session.create({
+          permission: [{ permission: "read", pattern: "*secret.txt", action: "ask" }],
+        })
+        const sessionID = created.data!.id
+
+        const { out, code } = run({ sdk: client, sessionID, message: "RUN_READ the secret", policy: "allow" })
+        expect(await code).toBe(0)
+
+        const events = out.events()
+        const permission = events.find((event) => event.type === "permission")
+        expect(permission?.type === "permission" && permission.reply).toBe("once")
+        expect(permission?.type === "permission" && permission.request.permission).toBe("read")
+        expect(permission?.type === "permission" && permission.request.sessionID).toBe(sessionID)
+        const tool = events.find((event) => event.type === "tool_use")
+        expect(tool?.type === "tool_use" && tool.part.state.status).toBe("completed")
+        expect(events.at(-1)).toMatchObject({ type: "done", status: "completed", exitCode: 0 })
+        expect(await PermissionNext.standing()).toEqual([])
+        expect(stub.requests).toHaveLength(2)
+      },
+    })
+  }, 20_000)
+
+  test("deny-prompts rejects the request, reports the failed tool call, and exits 3", async () => {
+    await using tmp = await tmpdir({ git: true })
+    const secret = path.join(tmp.path, "secret.txt")
+    await Bun.write(secret, "top secret\n")
+    const stub = provider({ secret })
+    servers.push(stub.server)
+    await Bun.write(path.join(tmp.path, "openscience.json"), JSON.stringify(stressProviderConfig(stub.baseURL)))
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const created = await client.session.create({
+          permission: [{ permission: "read", pattern: "*secret.txt", action: "ask" }],
+        })
+        const sessionID = created.data!.id
+
+        const { out, code } = run({ sdk: client, sessionID, message: "RUN_READ the secret", policy: "deny" })
+        expect(await code).toBe(3)
+
+        const events = out.events()
+        const permission = events.find((event) => event.type === "permission")
+        expect(permission?.type === "permission" && permission.reply).toBe("reject")
+        const tool = events.find((event) => event.type === "tool_use")
+        expect(tool?.type === "tool_use" && tool.part.state.status).toBe("error")
+        expect(events.at(-1)).toMatchObject({ type: "done", status: "rejected", exitCode: 3 })
+        expect(stub.requests).toHaveLength(1)
+      },
+    })
+  }, 20_000)
+
+  test("under auto-approve a question is answered with its recommended option and the run completes", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        // No question rule on purpose: the tool is offered and the model asks.
+        const sessionID = (await client.session.create({})).data!.id
+        const { out, code } = run({ sdk: client, sessionID, message: "RUN_QUESTION now", policy: "allow" })
+        expect(await code).toBe(0)
+        const tool = out.events().find((event) => event.type === "tool_use")
+        expect(tool?.type === "tool_use" && tool.part.tool).toBe("question")
+        // A consequential question under the autonomous posture resolves to its
+        // recommended option inside the runtime; the run never sees a request
+        // and never ends the turn over it.
+        expect(tool?.type === "tool_use" && tool.part.state.status).toBe("completed")
+        expect(tool?.type === "tool_use" && tool.part.state.status === "completed" && tool.part.state.output).toContain(
+          "Yes (Recommended)",
+        )
+        expect(out.events().at(-1)).toMatchObject({ type: "done", status: "completed", exitCode: 0, children: [] })
+      },
+    })
+  }, 20_000)
+
+  test("under auto-approve a request for input is answered as the run's own assumption, not as a user's reply", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const sessionID = (await client.session.create({})).data!.id
+        const { out, code } = run({ sdk: client, sessionID, message: "RUN_ASK_AUTHORITY now", policy: "allow" })
+        expect(await code).toBe(0)
+        const tool = out.events().find((event) => event.type === "tool_use")
+        expect(tool?.type === "tool_use" && tool.part.tool).toBe("question")
+        // A missing_authority question reaches the run's policy, which takes
+        // the first option; the model must hear that nobody answered rather
+        // than "the user has answered", or it treats its own guess as
+        // confirmed and waits for a file no one will send.
+        const output = tool?.type === "tool_use" && tool.part.state.status === "completed" ? tool.part.state.output : ""
+        expect(output).toContain("No one is available to answer in this run")
+        expect(output).toContain("Provide the table")
+        expect(output).not.toContain("User has answered")
+        expect(out.events().at(-1)).toMatchObject({ type: "done", status: "completed", exitCode: 0 })
+      },
+    })
+  }, 20_000)
+
+  test("under deny-prompts a stray question is rejected instead of hanging the run", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const sessionID = (await client.session.create({})).data!.id
+        const { out, code } = run({ sdk: client, sessionID, message: "RUN_QUESTION now", policy: "deny" })
+        expect(await code).toBe(3)
+        expect(out.events().at(-1)).toMatchObject({ type: "done", status: "rejected", exitCode: 3 })
+      },
+    })
+  }, 20_000)
+
+  test("answers permission requests from descendant sessions and ignores unrelated ones", async () => {
+    const gate = Promise.withResolvers<void>()
+    const release = Promise.withResolvers<void>()
+    const stub = provider({
+      secret: "",
+      hold: async () => {
+        gate.resolve()
+        await release.promise
+      },
+    })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const root = (await client.session.create({})).data!.id
+        const child = (await client.session.create({ parentID: root })).data!.id
+        const grandchild = (await client.session.create({ parentID: child })).data!.id
+        const stranger = (await client.session.create({})).data!.id
+
+        const { out, code } = run({ sdk: client, sessionID: root, message: "RUN_HOLD", policy: "allow" })
+        await gate.promise
+
+        const ask = (sessionID: string) =>
+          PermissionNext.ask({
+            sessionID,
+            permission: "read",
+            patterns: ["/tmp/x"],
+            always: [],
+            metadata: {},
+            ruleset: [],
+          })
+        await expect(ask(grandchild)).resolves.toBeUndefined()
+        const foreign = ask(stranger)
+        await Bun.sleep(100)
+        expect((await PermissionNext.list()).map((item) => item.sessionID)).toEqual([stranger])
+        release.resolve()
+        expect(await code).toBe(0)
+
+        const permission = out.events().find((event) => event.type === "permission")
+        expect(permission?.type === "permission" && permission.request.sessionID).toBe(grandchild)
+        expect(permission?.type === "permission" && permission.reply).toBe("once")
+
+        const pending = await PermissionNext.list()
+        await PermissionNext.reply({ requestID: pending[0].id, reply: "reject" })
+        await expect(foreign).rejects.toBeInstanceOf(PermissionNext.RejectedError)
+      },
+    })
+  }, 20_000)
+
+  test("an unknown model is a usage error before any request is made", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const sessionID = (await client.session.create({})).data!.id
+        const { out, code } = run({
+          sdk: client,
+          sessionID,
+          message: "RUN_TEXT",
+          policy: "allow",
+          model: `${STRESS_PROVIDER_ID}/does-not-exist`,
+        })
+        expect(await code).toBe(2)
+        const events = out.events()
+        expect(events.map((event) => event.type)).toEqual(["error", "done"])
+        expect(events[0].type === "error" && String(events[0].error.data.message)).toContain("does-not-exist")
+        expect(events.at(-1)).toMatchObject({ type: "done", status: "error", exitCode: 2 })
+        expect(stub.requests).toHaveLength(0)
+      },
+    })
+  })
+
+  test("a prompt that fails before the loop exits 2 instead of waiting for idle", async () => {
+    await using tmp = await tmpdir({ git: true, config: { enabled_providers: ["no-such-provider"] } })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const sessionID = (await client.session.create({})).data!.id
+        const { out, code } = run({ sdk: client, sessionID, message: "hello", policy: "deny", model: undefined })
+        expect(await code).toBe(2)
+        const events = out.events()
+        const error = events.find((event) => event.type === "error")
+        expect(error?.type === "error" && String(error.error.data.message)).toContain("No model providers")
+        expect(events.at(-1)).toMatchObject({ type: "done", status: "error", exitCode: 2 })
+      },
+    })
+  }, 20_000)
+})
+
+describe("openscience run headless harness", () => {
+  test("--delegation standard streams child events with parentID and rolls child usage into done", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const sessionID = (await client.session.create({})).data!.id
+        const { out, code } = run({
+          sdk: client,
+          sessionID,
+          message: "RUN_DELEGATE the inspection",
+          policy: "allow",
+          delegation: "standard",
+          deadline: 600,
+        })
+        expect(await code).toBe(0)
+        const events = out.events()
+        const childSteps = events.filter((event) => event.type === "step_finish" && event.parentID === sessionID)
+        expect(childSteps.length).toBeGreaterThan(0)
+        for (const step of childSteps) expect(step.sessionID).not.toBe(sessionID)
+        const childText = events.find((event) => event.type === "text" && event.parentID === sessionID)
+        expect(childText?.type === "text" && childText.part.text).toContain("CHILD_DONE")
+        const done = events.at(-1)
+        if (done?.type !== "done") throw new Error("missing done")
+        expect(done.children).toHaveLength(1)
+        expect(done.children[0]).toMatchObject({ parentID: sessionID, agent: "explore" })
+        const summed = childSteps.reduce(
+          (total, step) => (step.type === "step_finish" ? total + step.part.tokens.input : total),
+          0,
+        )
+        expect(done.children[0].tokens.input).toBe(summed)
+        // The lead's own usage excludes the child's.
+        const rootSteps = events.filter((event) => event.type === "step_finish" && !event.parentID)
+        expect(done.tokens.input).toBe(
+          rootSteps.reduce((total, step) => (step.type === "step_finish" ? total + step.part.tokens.input : total), 0),
+        )
+        // The task result reached the lead in the OpenCode envelope.
+        const task = events.find((event) => event.type === "tool_use" && event.part.tool === "task")
+        expect(task?.type === "tool_use" && task.part.state.status === "completed" && task.part.state.output).toContain(
+          "<task_result>",
+        )
+        // --deadline shows as the time budget in the environment block.
+        expect(stub.requests.some((request) => /Time budget: 10m/.test(request))).toBe(true)
+      },
+    })
+  }, 30_000)
+
+  test("a background worker keeps the run alive until its result wakes the lead", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const sessionID = (await client.session.create({})).data!.id
+        const { out, code } = run({
+          sdk: client,
+          sessionID,
+          message: "RUN_BACKGROUND now",
+          policy: "allow",
+          delegation: "standard",
+        })
+        expect(await code).toBe(0)
+        const events = out.events()
+        const task = events.find((event) => event.type === "tool_use" && event.part.tool === "task")
+        expect(task?.type === "tool_use" && task.part.state.status === "completed" && task.part.state.output).toContain(
+          'state="running"',
+        )
+        // The child ran, and its completion reached the lead as a second turn
+        // that the run waited for: the lead's answer comes after the child's.
+        const childText = events.findIndex((event) => event.type === "text" && event.parentID === sessionID)
+        expect(childText).toBeGreaterThan(-1)
+        const woken = events.findIndex(
+          (event, index) =>
+            index > childText &&
+            event.type === "text" &&
+            !event.parentID &&
+            event.part.text.includes("RUN_BACKGROUND_DONE"),
+        )
+        expect(woken).toBeGreaterThan(childText)
+        const done = events.at(-1)
+        if (done?.type !== "done") throw new Error("missing done")
+        expect(done.status).toBe("completed")
+        expect(done.children).toHaveLength(1)
+        const messages = (await client.session.messages({ sessionID })).data ?? []
+        const woke = messages.some((message) =>
+          message.parts.some(
+            (part) => part.type === "text" && part.synthetic && part.text.includes('state="completed"'),
+          ),
+        )
+        expect(woke).toBe(true)
+        // The worker's result is the runtime's message, not a person's: no
+        // request was told that additional user messages had arrived, which
+        // would also have rewritten the cached system prompt mid-turn.
+        expect(stub.requests.some((request) => request.includes("Additional user messages arrived"))).toBe(false)
+        expect(stub.requests.some((request) => request.includes('state="completed"'))).toBe(true)
+      },
+    })
+  }, 30_000)
+
+  test("a compute job still running keeps the run alive, and its end wakes the lead", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        // The six-second probe must outlive the dispatch grace to exercise
+        // the wake path; at the default grace it would settle inline.
+        using _grace = computeJobTesting({ settleGraceMs: 1_000 })
+        const client = sdk(tmp.path)
+        const sessionID = (await client.session.create({})).data!.id
+        const { out, code } = run({
+          sdk: client,
+          sessionID,
+          message: "RUN_COMPUTE_WAKE now",
+          policy: "allow",
+        })
+        expect(await code).toBe(0)
+        const events = out.events()
+        // The wait returned at its timeout saying the job would wake the lead,
+        // rather than handing back a step that invites another wait.
+        const waited = events.find(
+          (event) =>
+            event.type === "tool_use" &&
+            event.part.tool === "compute_job" &&
+            event.part.state.status === "completed" &&
+            event.part.state.output.includes("will_wake"),
+        )
+        expect(waited).toBeDefined()
+        // The run did not end at that idle: the job's completion arrived as a
+        // new turn and the lead answered it.
+        const woken = events.some((event) => event.type === "text" && event.part.text.includes("RUN_COMPUTE_WOKE"))
+        expect(woken).toBe(true)
+        const messages = (await client.session.messages({ sessionID })).data ?? []
+        expect(
+          messages.some((message) =>
+            message.parts.some(
+              (part) => part.type === "text" && part.synthetic && part.text.includes("ended with status"),
+            ),
+          ),
+        ).toBe(true)
+        const doneEvent = events.at(-1)
+        if (doneEvent?.type !== "done") throw new Error("missing done")
+        expect(doneEvent.status).toBe("completed")
+      },
+    })
+  }, 60_000)
+
+  test("a background worker slower than the idle grace is waited for, not aborted", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const sessionID = (await client.session.create({})).data!.id
+        const started = Date.now()
+        const { out, code } = run({
+          sdk: client,
+          sessionID,
+          message: "RUN_BACKGROUND_SLOW now",
+          policy: "allow",
+          delegation: "standard",
+        })
+        expect(await code).toBe(0)
+        // The run outlived the ten-second grace because a worker was pending.
+        expect(Date.now() - started).toBeGreaterThan(11_000)
+        const events = out.events()
+        const childText = events.findIndex((event) => event.type === "text" && event.parentID === sessionID)
+        expect(childText).toBeGreaterThan(-1)
+        expect(events[childText].type === "text" && events[childText].part.text).toContain("slowly")
+        const woken = events.findIndex(
+          (event, index) =>
+            index > childText &&
+            event.type === "text" &&
+            !event.parentID &&
+            event.part.text.includes("RUN_BACKGROUND_DONE"),
+        )
+        expect(woken).toBeGreaterThan(childText)
+        const done = events.at(-1)
+        if (done?.type !== "done") throw new Error("missing done")
+        expect(done.status).toBe("completed")
+        expect(done.children).toHaveLength(1)
+      },
+    })
+  }, 60_000)
+
+  test("the turn that takes a worker's report is waited for even when it outlasts the wait tick", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const sessionID = (await client.session.create({})).data!.id
+        const { out, code } = run({
+          sdk: client,
+          sessionID,
+          message: "RUN_BACKGROUND_SLOWWAKE now",
+          policy: "allow",
+          delegation: "standard",
+        })
+        expect(await code).toBe(0)
+        const events = out.events()
+        // The lead's answer to the worker's report is in the run's output:
+        // the run did not stop when the pending set emptied.
+        const final = events.filter((event) => event.type === "text" && !event.parentID).at(-1)
+        expect(final?.type === "text" && final.part.text).toContain("RUN_SLOWWAKE_DONE")
+        const done = events.at(-1)
+        if (done?.type !== "done") throw new Error("missing done")
+        expect(done.status).toBe("completed")
+        const messages = (await client.session.messages({ sessionID })).data ?? []
+        const aborted = messages.some(
+          (message) => message.info.role === "assistant" && message.info.error?.name === "MessageAbortedError",
+        )
+        expect(aborted).toBe(false)
+      },
+    })
+  }, 60_000)
+
+  test("resuming a background worker that is still running waits for its report and delivers it once", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        const sessionID = (await client.session.create({})).data!.id
+        const { out, code } = run({
+          sdk: client,
+          sessionID,
+          message: "RUN_BACKGROUND_JOIN now",
+          policy: "allow",
+          delegation: "standard",
+        })
+        expect(await code).toBe(0)
+        const events = out.events()
+        const tasks = events.filter(
+          (event) => event.type === "tool_use" && event.part.tool === "task" && !event.parentID,
+        )
+        expect(tasks).toHaveLength(2)
+        const second = tasks[1]
+        if (second.type !== "tool_use" || second.part.state.status !== "completed")
+          throw new Error("second task call did not complete")
+        // The resume waited for the worker instead of interrupting it: no
+        // provider error, the worker's own words, one report.
+        expect(second.part.state.output).toContain("Waited for this background worker")
+        expect(second.part.state.output).toContain("slowly")
+        expect(second.part.state.output).toContain('state="completed"')
+        expect(second.part.state.output).not.toContain("provider error")
+        expect(second.part.state.time.end - second.part.state.time.start).toBeGreaterThan(5_000)
+        const final = events.filter((event) => event.type === "text" && !event.parentID).at(-1)
+        expect(final?.type === "text" && final.part.text).toContain("RUN_JOIN_DONE")
+        // The completion did not also arrive as a wake-up turn.
+        const messages = (await client.session.messages({ sessionID })).data ?? []
+        const woke = messages.some((message) =>
+          message.parts.some((part) => part.type === "text" && part.synthetic && part.text.includes("<task id=")),
+        )
+        expect(woke).toBe(false)
+        const done = events.at(-1)
+        if (done?.type !== "done") throw new Error("missing done")
+        expect(done.status).toBe("completed")
+        expect(done.children).toHaveLength(1)
+      },
+    })
+  }, 60_000)
+
+  test("a denied tool call does not end an auto-approved run", async () => {
+    const stub = provider({ secret: "" })
+    servers.push(stub.server)
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(stub.baseURL) })
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        await trustProject()
+        await Provider.invalidate()
+      },
+      fn: async () => {
+        const client = sdk(tmp.path)
+        // bash is denied for the session; the tool is hidden, so the model's
+        // call is repaired into the invalid tool and the loop continues.
+        const sessionID = (
+          await client.session.create({ permission: [{ permission: "bash", pattern: "*", action: "deny" }] })
+        ).data!.id
+        const { out, code } = run({ sdk: client, sessionID, message: "RUN_DENIED now", policy: "allow" })
+        expect(await code).toBe(0)
+        const events = out.events()
+        const schema = stub.requests[0]
+        expect(schema).not.toContain('"name":"bash"')
+        expect(events.some((event) => event.type === "tool_use" && event.part.tool === "invalid")).toBe(true)
+        expect(events.at(-1)).toMatchObject({ type: "done", status: "completed", exitCode: 0 })
+      },
+    })
+  }, 30_000)
+})

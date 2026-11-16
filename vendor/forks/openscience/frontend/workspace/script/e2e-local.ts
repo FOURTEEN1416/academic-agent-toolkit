@@ -110,9 +110,6 @@ const serverEnv = {
   OPENSCIENCE_E2E_MESSAGE: "Seeded for UI e2e",
   OPENSCIENCE_E2E_MODEL: fakeModelID,
   OPENSCIENCE_E2E_FAKE_MODEL: "1",
-  // Keep the synthetic account key entirely inside the isolated harness.
-  // A production 401 would correctly revoke it and collapse the account gate.
-  SYNSC_API_BASE: `http://127.0.0.1:${modelPort}`,
   OPENSCIENCE_CONFIG_CONTENT: JSON.stringify({
     ...fakeModelConfig(`http://127.0.0.1:${modelPort}/v1`),
     // The isolated browser suite does not exercise repository snapshots. The
@@ -157,6 +154,11 @@ const providerCredentialEnvKeys = [
   "FIREWORKS_API_KEY",
   "CEREBRAS_API_KEY",
   "SAMBANOVA_API_KEY",
+  "NVIDIA_API_KEY",
+  "NGC_API_KEY",
+  "MODAL_TOKEN_ID",
+  "MODAL_TOKEN_SECRET",
+  "FIRECRAWL_API_KEY",
 ] as const
 
 for (const key of providerCredentialEnvKeys) {

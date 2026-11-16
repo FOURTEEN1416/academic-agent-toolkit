@@ -7,6 +7,8 @@ author: Yuan1z skill rebuilt from course notes plus Academic Phrasebank
 
 # Nature-Style Academic Polishing
 
+> **分工**：论文结构起草/全文生成（Nature 沙漏架构）用 `paper-write-nature`；本技能负责已有文稿的语言层润色与翻译。
+
 Use this skill to improve scientific writing at two levels:
 
 - `main strategy`: paper architecture, published-article patterns, section logic, reader workflow, evidence thresholds, and ethics
@@ -69,12 +71,7 @@ Polishing should help the paper answer these questions in this order.
 
 ### 3. Use the hourglass structure
 
-Strong papers often mirror an hourglass:
-
-- `Introduction`: open broadly, then narrow to the specific gap, question, hypothesis, methods, and study
-- `Discussion/Conclusion`: widen again, connecting the findings back to the literature and explaining how the knowledge gap was filled
-
-If a paragraph or section violates this architecture, rebuild it before polishing wording.
+沙漏结构（Introduction 宽入窄出、Discussion/Conclusion 再放宽收束）与各章节职责的权威表述见 `paper-write-nature` 的 `Hourglass Structure` 与 `Section Responsibilities` 节（写作=结构起草，本技能=语言层润色，二者按此分工）。若段落或小节违反该架构，先按 `paper-write-nature` 的架构规则重构，再做语言层润色。
 
 ### 4. Use the correct writing order
 
@@ -129,6 +126,8 @@ Prioritize in this order:
 `paper type -> section job -> paragraph logic -> claim/evidence/boundary -> sentence polish`
 
 ## Section responsibilities
+
+> 与 `paper-write-nature` 的 `## Section Responsibilities`（结构起草权威版）分工：那边管"每节写什么、怎么组织"，本节只保留润色视角的增补要点（时态、统计表述、消息句等）。架构冲突时以写作版为准。
 
 ### Introduction
 

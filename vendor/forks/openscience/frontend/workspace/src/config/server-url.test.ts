@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test"
-import { resolveDefaultServerUrl, resolveDesktopServerUrl, resolveServerRoute } from "./server-url"
+import {
+  hasDesktopUpdateCapability,
+  remoteWorkspace,
+  resolveDefaultServerUrl,
+  resolveDesktopServerUrl,
+  resolveServerRoute,
+} from "./server-url"
 
 const base = {
   hostname: "127.0.0.1",
@@ -26,12 +32,34 @@ describe("resolveDefaultServerUrl", () => {
   test("falls back to the static origin only when no server is configured", () => {
     expect(resolveDefaultServerUrl(base)).toBe("http://127.0.0.1:3010")
   })
+
+  test("a page served by a loopback server ignores a stale loopback default from another port", () => {
+    // A desktop sidecar or an earlier dev server picked a new port since the
+    // default was stored; the server that just served this page is the one to use.
+    expect(resolveDefaultServerUrl({ ...base, stored: "http://127.0.0.1:57536" })).toBe("http://127.0.0.1:3010")
+    expect(resolveDefaultServerUrl({ ...base, stored: "http://localhost:4096" })).toBe("http://127.0.0.1:3010")
+    // The same server under another spelling is not stale.
+    expect(resolveDefaultServerUrl({ ...base, stored: "http://127.0.0.1:3010/" })).toBe("http://127.0.0.1:3010/")
+    // A remote default is a deliberate choice and still wins.
+    expect(resolveDefaultServerUrl({ ...base, stored: "https://lab.example.org" })).toBe("https://lab.example.org")
+    // The Vite dev origin serves no API, so its stored default stays authoritative.
+    expect(
+      resolveDefaultServerUrl({ ...base, dev: true, origin: "http://localhost:5173", stored: "http://localhost:4096" }),
+    ).toBe("http://localhost:4096")
+  })
 })
 
 describe("resolveDesktopServerUrl", () => {
   test("pins the native app to the random loopback origin", () => {
     expect(resolveDesktopServerUrl("?desktop=1", "http://127.0.0.1:43819")).toBe("http://127.0.0.1:43819")
     expect(resolveDesktopServerUrl("", "http://127.0.0.1:43819")).toBeUndefined()
+  })
+
+  test("enables native staging only when the host advertises its trusted updater", () => {
+    expect(hasDesktopUpdateCapability("?desktop=1&desktop-update=1")).toBe(true)
+    expect(hasDesktopUpdateCapability("?desktop=1")).toBe(false)
+    expect(hasDesktopUpdateCapability("?desktop-update=1")).toBe(false)
+    expect(hasDesktopUpdateCapability("")).toBe(false)
   })
 })
 
@@ -57,4 +85,13 @@ describe("resolveServerRoute", () => {
       "http://127.0.0.1:4096/settings/updates?refresh=1",
     )
   })
+})
+
+test("remote windows retain server folder selection after navigating and reloading", () => {
+  sessionStorage.clear()
+  expect(remoteWorkspace("", sessionStorage)).toBe(false)
+  expect(remoteWorkspace("?desktop=1&remote-workspace=1", sessionStorage)).toBe(true)
+  expect(remoteWorkspace("", sessionStorage)).toBe(true)
+  sessionStorage.clear()
+  expect(remoteWorkspace("?desktop=1", sessionStorage)).toBe(false)
 })

@@ -10,8 +10,7 @@ user-approved semantic contract with two ordered parts:
    matters to the field and target venue. Motivation may sharpen the framing;
    it may not replace or silently enlarge the contribution.
 
-No blueprinting, Results planning, rewriting, or drafting may begin until both
-artifacts exist and the contribution gate passes.
+Use the existing confirmed contribution and motivation before making dependent writing choices. Resolve a genuinely missing or changed decision through the current public task, but do not require two historical files or a legacy checker to inspect, plan, review or safely continue the paper.
 
 ## Inputs
 
@@ -34,10 +33,10 @@ Each motivation option must name the contribution option it supports. An option
 that requires evidence the user does not have must either weaken its claim or
 state the missing work explicitly.
 
-## User Decision Gate
+## Decision Authority Gate
 
-Stop and ask the user to choose, revise, combine, or replace the proposed
-contracts. Confirmation is ordered:
+In `guided` mode, stop and ask the user to choose, revise, combine, or replace
+the proposed contracts. Confirmation is ordered:
 
 1. Lock the contribution and its evidence/claim boundary.
 2. Lock a motivation that explains the need and significance of that exact
@@ -47,7 +46,16 @@ The user may confirm both in one response, but PaperSpine must record them as
 two separate artifacts so later checks can distinguish "what is established"
 from "why it matters".
 
-After explicit confirmation:
+In `delegated_local_test`, the current host may select an evidence-supported
+contribution and motivation without another user question only when the exact
+task/material/local-scope grant contains both `contribution_selection` and
+`motivation_selection`. The choices must stay inside the evidence/claim
+boundary and each must produce its own hash-bound `delegated-decision.` receipt.
+The delegated-decision principal replaces author identity for this operation;
+never invent author facts. Any missing/expired/drifted grant returns to the
+guided typed issue before revision mutation.
+
+After valid guided confirmation or valid delegated receipts:
 
 - create `confirmed_contribution.md` using `references/contribution.md`;
 - create `confirmed_motivation.md` using
@@ -66,5 +74,4 @@ python scripts/progress_check.py paper_rewriting_output --gate semantic_confirma
 `motivation_confirmation` remains a compatibility alias for the second command,
 but new documentation and automation must use `semantic_confirmation`.
 
-If either command fails, remain at this stage. Do not create section blueprints,
-`results_validation.md`, or manuscript prose.
+If a check exposes a real claim, evidence or user-choice gap, resolve that gap before making dependent assertions. Continue independent, safe work in the same task; a missing legacy artifact or command failure alone does not prohibit all planning or prose.

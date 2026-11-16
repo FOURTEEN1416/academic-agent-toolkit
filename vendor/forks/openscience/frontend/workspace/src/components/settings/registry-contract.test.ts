@@ -1,20 +1,23 @@
 import { describe, expect, test } from "bun:test"
-import { SETTINGS_PANELS, SETTINGS_PANEL_IDS, SETTINGS_PRIMARY_PANELS, SETTINGS_SECTIONS, panelRoot } from "./registry"
+import { SETTINGS_PANELS, SETTINGS_PANEL_IDS, SETTINGS_SECTIONS } from "./registry"
 
 const root = new URL("./", import.meta.url)
 const modules: Record<(typeof SETTINGS_PANEL_IDS)[number], string> = {
+  general: "General",
+  workspaces: "Workspaces",
+  ace: "Ace",
+  usage: "Usage",
   models: "Models",
   "local-models": "LocalModels",
   skills: "Skills",
+  "scientific-tools": "ScientificTools",
   connectors: "Connectors",
-  "research-tools": "ResearchTools",
   compute: "Compute",
   network: "Network",
   permissions: "Permissions",
   sandbox: "Sandbox",
   credentials: "Credentials",
   storage: "Storage",
-  general: "General",
 }
 
 describe("settings registry source contract", () => {
@@ -30,20 +33,26 @@ describe("settings registry source contract", () => {
     }
   })
 
-  test("keeps seven primary destinations and valid progressive-disclosure children", () => {
-    expect(SETTINGS_PRIMARY_PANELS.map((panel) => panel.title)).toEqual([
-      "Models",
-      "Skills",
-      "Connectors",
-      "Compute",
-      "Security & access",
-      "Storage",
+  test("keeps every destination visible in the grouped rail", () => {
+    expect(SETTINGS_PANELS.map((panel) => panel.title)).toEqual([
       "General",
+      "Workspaces",
+      "Ace",
+      "Usage",
+      "Models",
+      "Local models",
+      "Skills",
+      "Tools",
+      "Connectors",
+      "Credentials",
+      "Compute",
+      "Permissions",
+      "Network",
+      "Sandbox",
+      "Storage",
     ])
-    for (const panel of SETTINGS_PANELS) {
-      expect(panelRoot(panel.id).parent).toBeUndefined()
-      if (panel.parent) expect(SETTINGS_PANEL_IDS).toContain(panel.parent)
-    }
+    expect(SETTINGS_SECTIONS.map((section) => section.label)).toEqual(["Account", "Models", "Research", "System"])
+    expect(SETTINGS_PANELS.every((panel) => "parent" in panel === false)).toBe(true)
   })
 
   test("keeps every panel inside the shared settings frame", async () => {
@@ -59,14 +68,24 @@ describe("settings registry source contract", () => {
     }
   })
 
-  test("keeps nested model and general surfaces in the audited source set", async () => {
+  test("keeps nested model, ace and general surfaces in the audited source set", async () => {
     const models = await Bun.file(new URL("Models.tsx", root)).text()
+    const ace = await Bun.file(new URL("Ace.tsx", root)).text()
     const general = await Bun.file(new URL("General.tsx", root)).text()
+    const permissions = await Bun.file(new URL("Permissions.tsx", root)).text()
 
-    expect(models).toContain("<ManagedInference")
+    // Money and identity live on Ace; Models keeps connections and preferences.
+    expect(ace).toContain("<ManagedInference")
+    expect(ace).toContain('title="Account"')
+    expect(ace).toContain('"/account/login-browser"')
+    expect(models).not.toContain("ManagedInference")
     expect(models).toContain("<CodexConnection")
     expect(models).toContain("<ProviderKeys")
     expect(general).toContain("<AppearanceSections")
+    expect(general).not.toContain('"/account/login-browser"')
+    // Trace sharing is a consent control, so it sits with the permissions.
+    expect(permissions).toContain("<UsageLogging")
+    expect(general).not.toContain("<UsageLogging")
     expect(general).not.toContain('title="Navigation"')
     expect(general).not.toContain('title="Gateway"')
     expect(general).not.toContain('title="Trace"')
@@ -79,5 +98,10 @@ describe("settings registry source contract", () => {
     expect(SETTINGS_PANEL_IDS).not.toContain("memory" as never)
     expect(SETTINGS_PANELS.map((panel) => panel.title)).not.toContain("Specialists")
     expect(SETTINGS_PANELS.map((panel) => panel.title)).not.toContain("Memory")
+  })
+
+  test("keeps research controls in the composer instead of duplicating a settings destination", () => {
+    expect(SETTINGS_PANEL_IDS).not.toContain("research-tools" as never)
+    expect(SETTINGS_PANELS.map((panel) => panel.title)).not.toContain("Research tools")
   })
 })

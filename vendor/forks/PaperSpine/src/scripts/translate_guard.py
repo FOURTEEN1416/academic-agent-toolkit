@@ -40,17 +40,25 @@ TRANSLATION_COMMON = [
     "exemplar_learning_dossier.zh.md",
     "style_profile.zh.md",
     "sota_gap_map.zh.md",
+    "contribution_options_after_research.zh.md",
     "motivation_options_after_research.zh.md",
+    "confirmed_contribution.zh.md",
     "confirmed_motivation.zh.md",
     "section_blueprints.zh.md",
     "writing_rationale_matrix.zh.md",
     "citation_support_bank.zh.md",
+    "structured_review.zh.md",
+    "reviewer_audit.zh.md",
     "final_structure.zh.md",
     "final_paper.zh.md",
     "full_paper_translation.zh.md",
     "latex_report.zh.md",
     "final_artifact_manifest.zh.md",
     "artifact_check.zh.md",
+]
+
+TRANSLATION_EVIDENCE_BEARING = [
+    "results_validation.zh.md",
 ]
 
 TRANSLATION_REWRITE = [
@@ -68,7 +76,7 @@ TRANSLATION_BUILD = [
 
 # source -> target mapping for density checks
 TRANSLATION_SOURCE: dict[str, str] = {}
-for _t in TRANSLATION_COMMON + TRANSLATION_REWRITE + TRANSLATION_BUILD:
+for _t in TRANSLATION_COMMON + TRANSLATION_EVIDENCE_BEARING + TRANSLATION_REWRITE + TRANSLATION_BUILD:
     _en = _t.replace(".zh.md", ".md")
     TRANSLATION_SOURCE[_t] = _en
 
@@ -80,6 +88,10 @@ LARGE_TABULAR = {
     "research_dossier.zh.md",
     "exemplar_learning_dossier.zh.md",
     "sota_gap_map.zh.md",
+    "contribution_options_after_research.zh.md",
+    "confirmed_contribution.zh.md",
+    "results_validation.zh.md",
+    "reviewer_audit.zh.md",
     "original_logic_map.zh.md",
     "rewrite_matrix.zh.md",
     "source_inventory.zh.md",
@@ -171,6 +183,8 @@ def load_config(out_dir: Path) -> dict:
 def check_file_completeness(trans_dir: Path, out_dir: Path, config: dict) -> list[TranslationFinding]:
     workflow = config.get("workflow", "rewrite_existing")
     required = list(TRANSLATION_COMMON)
+    if str(config.get("scene") or "").strip().lower() in {"journal", "conference", "competition"}:
+        required.extend(TRANSLATION_EVIDENCE_BEARING)
     if workflow == "rewrite_existing":
         required.extend(TRANSLATION_REWRITE)
     else:
@@ -389,6 +403,8 @@ def check_manifest(trans_dir: Path, config: dict) -> list[TranslationFinding]:
     # Check manifest references actual files
     workflow = config.get("workflow", "rewrite_existing")
     required = list(TRANSLATION_COMMON)
+    if str(config.get("scene") or "").strip().lower() in {"journal", "conference", "competition"}:
+        required.extend(TRANSLATION_EVIDENCE_BEARING)
     if workflow == "rewrite_existing":
         required.extend(TRANSLATION_REWRITE)
     else:

@@ -9,10 +9,14 @@
   padding: 6px 12px;
   overflow: clip;
 
+  /* A failure is stated, not shouted: the card keeps the neutral surface,
+     a thin critical accent on the left names the state, and only the icon and
+     the title carry the critical colour. The message stays readable body text. */
   &[data-variant="error"] {
-    background-color: var(--surface-critical-weak);
-    border: 1px solid var(--border-critical-base);
-    color: rgba(218, 51, 25, 0.6);
+    background-color: var(--surface-inset-base);
+    border: 1px solid var(--border-weaker-base);
+    border-left: 2px solid var(--border-critical-base);
+    color: var(--text-base);
 
     /* text-12-regular */
     font-family: var(--font-family-sans);

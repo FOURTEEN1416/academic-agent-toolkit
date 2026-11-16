@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/figure-correction-receipt.schema.json",
+  "title": "Audited PaperSpine figure-correction receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "contract_version", "operation_kind", "operation_id", "operation_sha256", "figure_id", "subject", "authority", "executor", "source", "overlay", "output", "changes_applied", "authorized_regions", "pixel_diff", "scientific_invariants", "target_size_legibility", "independent_final_review", "status", "external_action_authorized", "receipt_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.figure-correction-receipt"},
+    "contract_version": {"const": "1.0"},
+    "operation_kind": {"enum": ["svg_text_correction", "pdf_overlay_composition"]},
+    "operation_id": {"type": "string", "minLength": 1},
+    "operation_sha256": {"$ref": "#/$defs/sha256"},
+    "figure_id": {"type": "string", "minLength": 1},
+    "subject": {"$ref": "#/$defs/taskSubject"},
+    "authority": {"const": "paper-spine"},
+    "executor": {"const": "figmirror"},
+    "source": {"$ref": "#/$defs/artifact"},
+    "overlay": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact"}]},
+    "output": {"$ref": "#/$defs/artifact"},
+    "changes_applied": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/change"}},
+    "authorized_regions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["change_id", "region", "mask"],
+        "properties": {
+          "change_id": {"type": "string", "minLength": 1},
+          "region": {"$ref": "#/$defs/region"},
+          "mask": {"$ref": "#/$defs/mask"}
+        }
+      }
+    },
+    "pixel_diff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["render_width_px", "render_height_px", "changed_pixels", "changed_pixel_fraction", "outside_mask_changed_pixels", "within_bounds"],
+      "properties": {
+        "render_width_px": {"type": "integer", "minimum": 1},
+        "render_height_px": {"type": "integer", "minimum": 1},
+        "changed_pixels": {"type": "integer", "minimum": 0},
+        "changed_pixel_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+        "outside_mask_changed_pixels": {"type": "integer", "minimum": 0},
+        "within_bounds": {"const": true}
+      }
+    },
+    "scientific_invariants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["panels_preserved", "data_curves_preserved", "data_values_preserved"],
+      "properties": {
+        "panels_preserved": {"const": true},
+        "data_curves_preserved": {"const": true},
+        "data_values_preserved": {"const": true}
+      }
+    },
+    "target_size_legibility": {"$ref": "target-size-legibility.schema.json"},
+    "independent_final_review": {"$ref": "#/$defs/review"},
+    "status": {"const": "PASS"},
+    "external_action_authorized": {"const": false},
+    "receipt_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "media_type", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "media_type": {"enum": ["image/svg+xml", "application/pdf"]},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["change_id", "element_id", "from_token", "to_token"],
+      "properties": {
+        "change_id": {"type": "string", "minLength": 1},
+        "element_id": {"type": "string", "minLength": 1},
+        "from_token": {"type": "string", "minLength": 1},
+        "to_token": {"type": "string", "minLength": 1}
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": {"type": "number"},
+        "y": {"type": "number"},
+        "width": {"type": "number", "exclusiveMinimum": 0},
+        "height": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "mask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "feather_px"],
+      "properties": {
+        "kind": {"const": "rectangle"},
+        "feather_px": {"const": 0}
+      }
+    },
+    "taskSubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "revision", "material_snapshot_sha256"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "revision": {"type": "integer", "minimum": 0},
+        "material_snapshot_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "reviewSubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "revision", "material_snapshot_sha256", "operation_id", "operation_sha256", "source_sha256", "overlay_sha256", "output_sha256", "pixel_diff_sha256", "scientific_invariants_sha256", "target_size_legibility_sha256"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "revision": {"type": "integer", "minimum": 0},
+        "material_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "operation_id": {"type": "string", "minLength": 1},
+        "operation_sha256": {"$ref": "#/$defs/sha256"},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "overlay_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+        "output_sha256": {"$ref": "#/$defs/sha256"},
+        "pixel_diff_sha256": {"$ref": "#/$defs/sha256"},
+        "scientific_invariants_sha256": {"$ref": "#/$defs/sha256"},
+        "target_size_legibility_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "reviewerAttestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["principal_id", "session_id", "run_id", "independence_group", "attestation_input_id", "actor_kind", "provenance_sha256"],
+      "properties": {
+        "principal_id": {"type": "string", "minLength": 1},
+        "session_id": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1},
+        "independence_group": {"type": "string", "minLength": 1},
+        "attestation_input_id": {"type": "string", "minLength": 1},
+        "actor_kind": {"const": "host_independent_multimodal"},
+        "provenance_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "contract_version", "subject", "reviewer_id", "reviewer_type", "reviewer", "producer_ids", "producer_actor", "checks", "status", "reviewed_at", "external_action_authorized", "review_sha256"],
+      "properties": {
+        "contract": {"const": "paperspine5.figure-correction-review"},
+        "contract_version": {"const": "1.0"},
+        "subject": {"$ref": "#/$defs/reviewSubject"},
+        "reviewer_id": {"type": "string", "minLength": 1, "not": {"enum": ["paper-spine-producer", "figmirror"]}},
+        "reviewer_type": {"const": "independent_multimodal"},
+        "reviewer": {"$ref": "#/$defs/reviewerAttestation"},
+        "producer_ids": {"type": "array", "minItems": 2, "maxItems": 2, "uniqueItems": true, "items": {"enum": ["paper-spine", "figmirror"]}},
+        "producer_actor": {"const": "figmirror"},
+        "checks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowed_tokens_only", "mask_scope_valid", "scientific_invariants_valid", "target_size_legible"],
+          "properties": {
+            "allowed_tokens_only": {"const": true},
+            "mask_scope_valid": {"const": true},
+            "scientific_invariants_valid": {"const": true},
+            "target_size_legible": {"const": true}
+          }
+        },
+        "status": {"const": "pass"},
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "external_action_authorized": {"const": false},
+        "review_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

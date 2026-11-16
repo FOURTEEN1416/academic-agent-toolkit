@@ -32,6 +32,11 @@ environment), add `-InPlace` to run the wizard in the current terminal instead;
 if stdin is still not interactive, fall back to numbered menus or native
 structured questions. Never silently skip configuration.
 
+One launch of the wizard fulfills both roles at once: opening the interactive
+window (this skill) and collecting + writing the config files (`spine-intake`).
+Run the wizard once — do not invoke `spine-config-ui` and `spine-intake` as
+two separate wizard runs.
+
 The UI writes:
 
 ```text

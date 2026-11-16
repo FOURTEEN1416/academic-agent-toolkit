@@ -3,7 +3,8 @@
 ARIS Research Wiki — Helper utilities.
 Canonical helper for the /research-wiki skill and integration hooks in other
 skills. The SKILL.md prose for paper-reading skills (research-lit, arxiv,
-alphaxiv, deepxiv, semantic-scholar, exa-search) delegates ingest to this
+alphaxiv, deepxiv, semantic-scholar, exa-search, firecrawl-search) delegates
+ingest to this
 script; no skill duplicates the page-creation schema.
 
 Usage:
@@ -48,6 +49,8 @@ import argparse
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
 import time
 import unicodedata
@@ -481,6 +484,23 @@ def _yaml_quote(s: str) -> str:
     return f'"{s}"'
 
 
+def _curl_get(url: str, headers: dict, timeout: float) -> bytes | None:
+    """Re-issue a GET through ``curl`` after urllib was answered HTTP 406.
+
+    export.arxiv.org refuses urllib from some networks for minutes at a time
+    while curl gets 200 on the same URL, so retrying urllib cannot recover.
+    Returns the body, or None when curl is missing or the request fails.
+    """
+    curl = shutil.which("curl")
+    if curl is None:
+        return None
+    cmd = [curl, "-sf", "--max-time", str(int(timeout))]
+    for key, value in headers.items():
+        cmd += ["-H", f"{key}: {value}"]
+    proc = subprocess.run(cmd + [url], capture_output=True)
+    return proc.stdout if proc.returncode == 0 else None
+
+
 def _arxiv_api_get(url: str, what: str, timeout: float = 15.0) -> bytes:
     """GET an arXiv API URL with a descriptive User-Agent + retry/backoff.
 
@@ -490,16 +510,21 @@ def _arxiv_api_get(url: str, what: str, timeout: float = 15.0) -> bytes:
     plain-text "Rate exceeded." body the API sometimes returns with 200 OK.
     ``what`` is a label for error messages (e.g. the id or id-list).
     """
-    req = urllib.request.Request(url, headers={"User-Agent": _arxiv_user_agent()})
+    headers = {"User-Agent": _arxiv_user_agent()}
+    req = urllib.request.Request(url, headers=headers)
     for attempt in (1, 2, 3):
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 body = resp.read()
         except urllib.error.HTTPError as e:
-            if e.code == 429 and attempt < 3:
+            rescued = _curl_get(url, headers, timeout) if e.code == 406 else None
+            if rescued is not None:
+                body = rescued
+            elif e.code in (406, 429) and attempt < 3:
                 time.sleep(5 * attempt)
                 continue
-            raise RuntimeError(f"arXiv API fetch failed for {what}: {e}")
+            else:
+                raise RuntimeError(f"arXiv API fetch failed for {what}: {e}")
         except (urllib.error.URLError, TimeoutError, OSError) as e:
             if attempt < 3:
                 time.sleep(2 * attempt)

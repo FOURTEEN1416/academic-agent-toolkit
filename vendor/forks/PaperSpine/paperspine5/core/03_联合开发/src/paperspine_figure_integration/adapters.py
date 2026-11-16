@@ -10,6 +10,8 @@ def host_message(job: dict[str, Any], state: dict[str, Any], host: str | None = 
     if selected_host not in {"codex", "claude-code", "dsh", "standalone-skill"}:
         raise ValueError("host must be codex, claude-code, dsh, or standalone-skill")
     stage = state["stage"]
+    open_issues = [issue for issue in state.get("issues", []) if issue.get("status") == "open"]
+    manuscript = state.get("context", {}).get("manuscript_revision") or {}
     plan = {
         "initialized": (
             "advance",
@@ -32,8 +34,12 @@ def host_message(job: dict[str, Any], state: dict[str, Any], host: str | None = 
             "Consume figure_body_contract.json in Results and captions, add real body references, then finish the PaperSpine final pixel audit before advancing again.",
         ),
         "canonical_paper_ready": (
-            "choose_publication_operation",
-            "The canonical paper is ready. Validate a target profile, assemble a submission bundle, check or render rebuttal materials, or plan a destination rebuild.",
+            "review_manuscript_revision"
+            if manuscript.get("status") != "confirmed"
+            else "choose_publication_operation",
+            "Review the PDF page by page, edit only the canonical source sections when needed, rebuild PDF/Word, refresh invalidated receipts, and confirm current hashes before assemble."
+            if manuscript.get("status") != "confirmed"
+            else "The current manuscript hashes are confirmed. Validate a target profile, assemble a submission bundle, check or render rebuttal materials, or plan a destination rebuild.",
         ),
         "target_profile_ready": (
             "prepare_target_materials",
@@ -62,6 +68,9 @@ def host_message(job: dict[str, Any], state: dict[str, Any], host: str | None = 
         "blocked": ("resolve_blocker", state.get("last_error", "Resolve the recorded integration blocker.")),
     }
     action, instruction = plan.get(stage, ("inspect", state.get("next_action", "Inspect integration state.")))
+    if open_issues:
+        action = "needs_user_input"
+        instruction = open_issues[0]["question"]
     host_hints = {
         "codex": "Codex should call the PaperSpine5 MCP tools in the current task and keep all generated candidate evidence in the FigMirror job directory.",
         "claude-code": "Claude Code should call the same PaperSpine5 MCP tools; slash commands are optional because the JSON state is authoritative.",
@@ -70,14 +79,21 @@ def host_message(job: dict[str, Any], state: dict[str, Any], host: str | None = 
     }
     host_hint = host_hints[selected_host]
     return {
-        "protocol_version": "1.0",
-        "message_type": "paperspine.figure.next_action",
+        "protocol_version": "1.1",
+        "message_type": "paperspine5.needs_user_input" if open_issues else "paperspine.figure.next_action",
         "job_id": job["job_id"],
         "host": selected_host,
         "stage": stage,
         "action": action,
         "instruction": instruction,
         "host_hint": host_hint,
+        "events": [
+            {
+                "type": "paperspine5.needs_user_input",
+                "issue": issue,
+            }
+            for issue in open_issues
+        ],
         "artifacts": {
             "job": job["job_file"],
             "state": job["state_file"],

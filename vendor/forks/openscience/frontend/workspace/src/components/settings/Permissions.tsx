@@ -18,7 +18,9 @@ import { useGlobalSDK } from "@/context/global-sdk"
 import { useGlobalSync } from "@/context/global-sync"
 import { resolveProjectRoute } from "@/utils/project-route"
 import { PermissionToolDefaults } from "../settings-permissions"
-import { PanelBody, PanelHeader, PanelScroll, Section } from "./_shared"
+import { PanelBody, PanelHeader, PanelScroll, Section, steady } from "./_shared"
+import { UsageLogging } from "./UsageLogging"
+import { useSettingsNav } from "./nav"
 import "./preference-panels.css"
 
 interface StandingApproval {
@@ -38,51 +40,92 @@ interface FolderGrant {
   time: { created: number }
 }
 
+/** What a standing approval covers, in the words the card used. A Modal
+ * approval on a 64-hex plan digest covers one exact job and nothing else; an
+ * allowance covers Modal jobs up to a total of job time; a study pattern
+ * covers that study's runs. */
+function approvalTitle(approval: { permission: string; pattern: string }) {
+  if (approval.permission === "modal") {
+    if (/^allowance:\d+$/.test(approval.pattern)) return "Modal jobs"
+    if (approval.pattern.startsWith("study:")) return "Study runs on Modal"
+    if (/^[a-f0-9]{64}$/.test(approval.pattern)) return "One exact Modal job"
+    return "Modal"
+  }
+  if (approval.permission === "environment_mutation") return "One exact environment change"
+  return approval.permission
+}
+
+function approvalDetail(approval: { permission: string; pattern: string }) {
+  if (approval.pattern === "*") return undefined
+  if (approval.permission === "modal") {
+    const allowance = /^allowance:(\d+)$/.exec(approval.pattern)
+    if (allowance) {
+      const minutes = Number(allowance[1])
+      return `up to ${minutes % 60 === 0 ? `${minutes / 60} h` : `${minutes} min`} of job time`
+    }
+    if (approval.pattern.startsWith("study:")) return approval.pattern.slice("study:".length)
+    if (/^[a-f0-9]{64}$/.test(approval.pattern)) return `plan ${approval.pattern.slice(0, 12)}`
+  }
+  if (approval.permission === "environment_mutation" && /^[a-f0-9]{64}$/.test(approval.pattern)) {
+    return `plan ${approval.pattern.slice(0, 12)}`
+  }
+  return approval.pattern
+}
+
 const Permissions: Component = () => {
   const params = useParams()
   const sdk = useGlobalSDK()
   const globalSync = useGlobalSync()
   const dialog = useDialog()
+  const navigate = useSettingsNav()
   const [busy, setBusy] = createSignal(false)
   const [showAllDefaults, setShowAllDefaults] = createSignal(false)
 
   const route = createMemo(() => resolveProjectRoute(params.dir, globalSync.data.project))
 
-  const [standing, { refetch }] = createResource(
-    () => route()?.directory ?? false,
-    async (directory) => {
-      const response = await sdk.client.permission.standing.list({ directory })
-      return (response.data ?? []) as StandingApproval[]
-    },
+  const [standing, { refetch }] = steady(
+    createResource(
+      () => route()?.directory ?? false,
+      async (directory) => {
+        const response = await sdk.client.permission.standing.list({ directory })
+        return (response.data ?? []) as StandingApproval[]
+      },
+    ),
   )
 
-  const [trust, trustControls] = createResource(
-    () => {
-      const value = route()
-      if (!value) return
-      return { projectID: value.projectID, directory: value.directory }
-    },
-    async (input) => {
-      const response = await sdk.client.project.trust.get(input)
-      if (!response.data) throw new Error("Project trust status was empty.")
-      return response.data
-    },
+  const [trust, trustControls] = steady(
+    createResource(
+      () => {
+        const value = route()
+        if (!value) return
+        return { projectID: value.projectID, directory: value.directory }
+      },
+      async (input) => {
+        const response = await sdk.client.project.trust.get(input)
+        if (!response.data) throw new Error("Project trust status was empty.")
+        return response.data
+      },
+    ),
   )
 
-  const [folders, folderControls] = createResource(
-    () => {
-      const value = route()
-      const sessionID = params.id
-      if (!value || !sessionID || sessionID === "new") return
-      return { sessionID, directory: value.directory }
-    },
-    async (input) => {
-      const response = await sdk.client.session.filesystem.list(input)
-      return (response.data?.grants ?? []).filter(
-        (grant): grant is FolderGrant =>
-          (grant.source === "permission" || grant.source === "api") && !grant.time.consumed && !grant.time.revoked,
-      )
-    },
+  const [folders, folderControls] = steady(
+    createResource(
+      () => {
+        const value = route()
+        const sessionID = params.id
+        if (!value) return
+        return { sessionID: sessionID && sessionID !== "new" ? sessionID : undefined, directory: value.directory }
+      },
+      async (input) => {
+        const response = input.sessionID
+          ? await sdk.client.session.filesystem.list({ ...input, sessionID: input.sessionID })
+          : await sdk.client.project.filesystem.list({ directory: input.directory })
+        return (response.data?.grants ?? []).filter(
+          (grant): grant is FolderGrant =>
+            (grant.source === "permission" || grant.source === "api") && !grant.time.consumed && !grant.time.revoked,
+        )
+      },
+    ),
   )
 
   const revoke = async (approval: StandingApproval) => {
@@ -103,8 +146,8 @@ const Permissions: Component = () => {
 
   const revokeFolder = async (grant: FolderGrant) => {
     const value = route()
-    const sessionID = params.id
-    if (!value || !sessionID || busy()) return
+    const sessionID = params.id ?? ""
+    if (!value || busy() || (grant.scope !== "project" && (!sessionID || sessionID === "new"))) return
     const confirmed = await confirmDialog(dialog, {
       title: `Revoke access to ${grant.path}?`,
       message: "OpenScience will stop affected kernels so the folder cannot remain mounted with stale access.",
@@ -113,8 +156,11 @@ const Permissions: Component = () => {
     })
     if (!confirmed) return
     setBusy(true)
-    await sdk.client.session.filesystem
-      .revoke({ sessionID, grantID: grant.id, directory: value.directory })
+    await (
+      grant.scope === "project"
+        ? sdk.client.project.filesystem.revoke({ grantID: grant.id, directory: value.directory })
+        : sdk.client.session.filesystem.revoke({ sessionID, grantID: grant.id, directory: value.directory })
+    )
       .then(() => folderControls.refetch())
       .catch((error) =>
         showToast({
@@ -173,37 +219,34 @@ const Permissions: Component = () => {
               <div class="settings-card settings-preferences-card">
                 <Show
                   when={!trust.loading}
-                  fallback={<div class="settings-panel-loading-copy">Checking project trust…</div>}
+                  fallback={
+                    <div class="settings-panel-loading__rows" role="status" aria-label="Checking project trust">
+                      <span />
+                    </div>
+                  }
                 >
                   <Show
                     when={!trust.error}
                     fallback={
-                      <div class="settings-row settings-preference-row" role="alert">
-                        <span class="settings-preference-icon" data-tone="warning" aria-hidden="true">
-                          <Icon name="alert-circle" size="small" />
-                        </span>
-                        <span class="min-w-0 flex-1 text-12-regular text-text-danger">
-                          Project trust could not be loaded. {String(trust.error)}
-                        </span>
-                        <Button size="small" variant="ghost" onClick={() => void trustControls.refetch()}>
+                      <div class="settings-alert" data-tone="critical" role="alert">
+                        <span>Project trust could not be loaded. {String(trust.error)}</span>
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          class="settings-panel-action"
+                          onClick={() => void trustControls.refetch()}
+                        >
                           Retry
                         </Button>
                       </div>
                     }
                   >
                     <div class="settings-row settings-preference-row justify-between">
-                      <span
-                        class="settings-preference-icon"
-                        data-tone={trust()?.canExecuteProjectCode ? "success" : "warning"}
-                        aria-hidden="true"
-                      >
-                        <Icon name={trust()?.canExecuteProjectCode ? "shield" : "shield-alert"} size="small" />
-                      </span>
                       <div class="settings-row-copy">
                         <strong>
                           {trust()?.canExecuteProjectCode ? "Project code enabled" : "Project extensions blocked"}
                         </strong>
-                        <span class="text-11-regular text-text-weak break-all">{trust()?.root}</span>
+                        <span class="break-all">{trust()?.root}</span>
                       </div>
                       <span
                         class="settings-preference-status"
@@ -226,24 +269,31 @@ const Permissions: Component = () => {
             </Section>
           </Show>
 
-          <Show when={route() && params.id && params.id !== "new"}>
+          <Show when={route()}>
             <Section
               title="Connected folders"
-              description="Review durable read-only and read-write access from the active research session."
+              description="Review folder access for this project. Add folders, change access, and choose where work happens in Workspaces."
             >
               <div class="settings-card settings-preferences-card">
                 <Show
                   when={!folders.loading}
-                  fallback={<div class="settings-panel-loading-copy">Loading connected folders…</div>}
+                  fallback={
+                    <div class="settings-panel-loading__rows" role="status" aria-label="Loading connected folders">
+                      <span />
+                    </div>
+                  }
                 >
                   <Show
                     when={!folders.error}
                     fallback={
-                      <div class="settings-row settings-preference-row" role="alert">
-                        <span class="min-w-0 flex-1 text-12-regular text-text-danger">
-                          Connected folders could not be loaded.
-                        </span>
-                        <Button size="small" variant="ghost" onClick={() => void folderControls.refetch()}>
+                      <div class="settings-alert" data-tone="critical" role="alert">
+                        <span>Connected folders could not be loaded.</span>
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          class="settings-panel-action"
+                          onClick={() => void folderControls.refetch()}
+                        >
                           Retry
                         </Button>
                       </div>
@@ -252,25 +302,17 @@ const Permissions: Component = () => {
                     <Show
                       when={(folders() ?? []).length > 0}
                       fallback={
-                        <div class="settings-row settings-preference-row">
-                          <span class="settings-preference-icon" aria-hidden="true">
-                            <Icon name="folder" size="small" />
-                          </span>
-                          <span class="min-w-0 flex-1 text-12-regular text-text-weak">
-                            No connected folders in this session.
-                          </span>
-                        </div>
+                        <p class="settings-card-empty" role="status">
+                          No connected folders in this project.
+                        </p>
                       }
                     >
                       <For each={folders()}>
                         {(grant) => (
                           <div class="settings-row settings-preference-row justify-between">
-                            <span class="settings-preference-icon" aria-hidden="true">
-                              <Icon name="folder" size="small" />
-                            </span>
                             <div class="settings-row-copy">
                               <strong class="break-all">{grant.path}</strong>
-                              <span class="text-11-regular text-text-weak">
+                              <span class="text-12-regular text-text-weak">
                                 {grant.access === "write" ? "Read & write" : "Read only"} ·{" "}
                                 {grant.scope === "installation"
                                   ? "Every project"
@@ -294,6 +336,9 @@ const Permissions: Component = () => {
                   </Show>
                 </Show>
               </div>
+              <Button variant="secondary" onClick={() => navigate("workspaces")}>
+                Manage workspace folders
+              </Button>
             </Section>
           </Show>
 
@@ -306,19 +351,25 @@ const Permissions: Component = () => {
               <div class="settings-card settings-preferences-card">
                 <Show
                   when={!standing.loading}
-                  fallback={<div class="settings-panel-loading-copy">Loading standing approvals…</div>}
+                  fallback={
+                    <div class="settings-panel-loading__rows" role="status" aria-label="Loading standing approvals">
+                      <span />
+                      <span />
+                    </div>
+                  }
                 >
                   <Show
                     when={!standing.error}
                     fallback={
-                      <div class="settings-row settings-preference-row" role="alert">
-                        <span class="settings-preference-icon" data-tone="warning" aria-hidden="true">
-                          <Icon name="alert-circle" size="small" />
-                        </span>
-                        <span class="min-w-0 flex-1 text-12-regular text-text-danger">
-                          Standing approvals could not be loaded. {String(standing.error)}
-                        </span>
-                        <Button size="small" variant="ghost" disabled={standing.loading} onClick={() => void refetch()}>
+                      <div class="settings-alert" data-tone="critical" role="alert">
+                        <span>Standing approvals could not be loaded. {String(standing.error)}</span>
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          class="settings-panel-action"
+                          disabled={standing.loading}
+                          onClick={() => void refetch()}
+                        >
                           Retry
                         </Button>
                       </div>
@@ -327,31 +378,22 @@ const Permissions: Component = () => {
                     <Show
                       when={(standing() ?? []).length > 0}
                       fallback={
-                        <div class="settings-row settings-preference-row">
-                          <span class="settings-preference-icon" aria-hidden="true">
-                            <Icon name="checklist" size="small" />
-                          </span>
-                          <span class="min-w-0 flex-1 text-12-regular text-text-weak">
-                            No standing approvals yet. Conversation-scoped approvals end with their session and are
-                            never listed here.
-                          </span>
-                        </div>
+                        <p class="settings-card-empty" role="status">
+                          No standing approvals yet. Conversation-scoped approvals end with their session.
+                        </p>
                       }
                     >
                       <For each={standing()}>
                         {(approval) => (
                           <div class="settings-row settings-preference-row justify-between">
-                            <span class="settings-preference-icon" aria-hidden="true">
-                              <Icon name="checklist" size="small" />
-                            </span>
                             <div class="settings-row-copy">
                               <strong class="break-all">
-                                {approval.permission}
-                                <Show when={approval.pattern !== "*"}>
-                                  <span class="text-text-weak font-normal"> · {approval.pattern}</span>
+                                {approvalTitle(approval)}
+                                <Show when={approvalDetail(approval)}>
+                                  {(detail) => <span class="text-text-weak font-normal"> · {detail()}</span>}
                                 </Show>
                               </strong>
-                              <span class="text-11-regular text-text-weak">
+                              <span class="text-12-regular text-text-weak">
                                 {approval.scope === "global" ? "Everywhere" : "This project"} · granted{" "}
                                 {when(approval.created)}
                               </span>
@@ -402,6 +444,7 @@ const Permissions: Component = () => {
               </button>
             </div>
           </div>
+          <UsageLogging />
         </PanelBody>
       </div>
     </PanelScroll>

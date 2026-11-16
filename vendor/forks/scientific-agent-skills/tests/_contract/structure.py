@@ -44,11 +44,26 @@ BANNED_OS_CALLS = frozenset({"system", "popen"})
 _INLINE_PATH = re.compile(r"`((?:assets|references|scripts)/[A-Za-z0-9_./-]+)`")
 _MARKDOWN_LINK = re.compile(r"\]\(((?:assets|references|scripts)/[A-Za-z0-9_./-]+)\)")
 
+# A path in executable position -- `python scripts/thumbnail.py`, `./scripts/run.sh`.
+# Inside a fenced block these carry no backticks, so the two patterns above miss
+# them, yet they are the references that strand an agent hardest: it runs the
+# command and gets "No such file or directory" instead of a document it can work
+# around. Matching only the executable slot keeps output paths (`-o assets/x.svg`)
+# and prose about deleted files out of the results.
+_COMMAND_PATH = re.compile(
+    r"(?:^|\s)(?:python[23]?|bash|sh|uv run(?: python)?)\s+"
+    r"((?:assets|references|scripts)/[A-Za-z0-9_./-]+)"
+    r"|(?:^|\s)\./((?:assets|references|scripts)/[A-Za-z0-9_./-]+)"
+)
+
 # An absolute path under someone's home or drive mount is a leaked local
 # environment: it names a person, and it cannot work on any other machine.
 _PERSONAL_PATH = re.compile(
     r"/(?:mnt/[a-z]/Users|home|Users)/(?!<|\$|\{)([A-Za-z0-9._-]+)/"
 )
+# A public website path can legitimately contain /home/<section>/ or /Users/.
+# Stop before query/fragment data, which may itself contain a local filename.
+_HTTP_URL_PATH = re.compile(r"https?://[^/\s<>\"'`?#]+[^\s<>\"'`?#]*", re.IGNORECASE)
 
 # Service and platform accounts that legitimately appear in documentation --
 # `/home/dnanexus/` is where a DNAnexus worker runs, not somebody's laptop --
@@ -84,6 +99,20 @@ def all_skill_names(skills_dir: Path = SKILLS_DIR) -> set[str]:
         for skill in skills_dir.iterdir()
         if skill.is_dir() and (skill / "SKILL.md").is_file()
     }
+
+
+def documented_skills(skills_dir: Path = SKILLS_DIR) -> list[Path]:
+    """Every skill directory, whether or not it ships scripts.
+
+    The document-level rules in `DOCUMENT_RULES` apply here. Restricting them to
+    script-bearing skills would leave the docs of a reference-only skill
+    unchecked, which is how a broken `references/` link can survive review.
+    """
+    return [
+        skill
+        for skill in sorted(skills_dir.iterdir())
+        if skill.is_dir() and (skill / "SKILL.md").is_file()
+    ]
 
 
 def _frontmatter(skill: Path) -> str | None:
@@ -270,16 +299,26 @@ def link_problems(skill: Path, known_skills: Iterable[str] | None = None) -> lis
     named on the same line and owns it.
     """
     names = set(known_skills) if known_skills is not None else all_skill_names()
-    documents = [skill / "SKILL.md", *sorted((skill / "references").glob("*.md"))]
+    documents = [
+        skill / "SKILL.md",
+        *sorted((skill / "references").glob("*.md")),
+        *sorted((skill / "assets").glob("*.md")),
+    ]
 
     problems = []
     for document in documents:
         if not document.is_file():
             continue
         for number, line in enumerate(document.read_text(encoding="utf-8").splitlines(), 1):
+            commands = {
+                match
+                for pair in _COMMAND_PATH.findall(line)
+                for match in pair
+                if match
+            }
             for relative in set(_INLINE_PATH.findall(line)) | set(
                 _MARKDOWN_LINK.findall(line)
-            ):
+            ) | commands:
                 if (skill / relative).exists():
                     continue
                 owners = [
@@ -386,7 +425,10 @@ def personal_path_problems(skill: Path) -> list[str]:
         for number, line in enumerate(
             document.read_text(encoding="utf-8", errors="replace").splitlines(), 1
         ):
+            web_paths = [match.span() for match in _HTTP_URL_PATH.finditer(line)]
             for match in _PERSONAL_PATH.finditer(line):
+                if any(start <= match.start() < end for start, end in web_paths):
+                    continue
                 if match.group(1).lower() in _IMPERSONAL_ACCOUNTS:
                     continue
                 problems.append(
@@ -430,3 +472,16 @@ CHECKS: dict[str, Callable[[Path], list[str]]] = {
     "no_personal_paths": personal_path_problems,
     "shell_scripts": shell_script_problems,
 }
+
+# Rules that read only SKILL.md, `references/`, and `assets/`. They hold for every
+# skill; the rest of `CHECKS` inspects `scripts/` and is meaningful only where a
+# skill ships some.
+DOCUMENT_RULES = frozenset(
+    {
+        "frontmatter",
+        "skill_md_length",
+        "no_tests_under_skills",
+        "local_links_resolve",
+        "no_personal_paths",
+    }
+)

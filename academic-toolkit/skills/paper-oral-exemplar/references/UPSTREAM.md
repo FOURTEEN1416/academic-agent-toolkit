@@ -1,7 +1,7 @@
 # Oral Paper Skill 上游溯源与许可状态
 
 - Upstream: https://github.com/Adkid-Zephyr/oral-paper-skill（向顶会优秀论文学科研｜Oral Paper Skill）
-- Pinned commit: a2c4bc41b3aa6946b2ccce1c844ce9936ef83308（2026-09-22 拉取，本地浅克隆在 `vendor/forks/oral-paper-skill/`，gitignored）
+- Pinned commit: a2c4bc41b3aa6946b2ccce1c844ce9936ef83308（2026-09-22 拉取；快照已随 vendor 整体入库 `vendor/forks/oral-paper-skill/`——.gitignore:157，2026-09-28 裁决，实测 1026 文件；原「本地浅克隆 gitignored」表述作废）
 - Checklist date: 2026-09-22
 - License: **未声明**——上游仓库根目录无 LICENSE/COPYING 文件（2026-09-22 经 GitHub API 核查 `license: null`，git tracked 文件中无 license 文件）。本仓以 status `experimental` 收编。
 - Local use: `skills/paper-oral-exemplar/` 论文范例对照改进与学习复盘；八十八三篇证据卡语料与蒸馏脚本未入库，仅存上游仓库/本地 vendor 副本。

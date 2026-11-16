@@ -1,3 +1,42 @@
+/* The route's own loading state (the Suspense fallback in app.tsx) stands in
+   for this page before it renders, and it renders outside .science-home, with
+   none of the chrome above the card. So everything between the top of the
+   surface and the top of the loading card's mark is declared once, here, and
+   both the page's rules and the fallback's offset read it: move one of these
+   and the fallback moves with it instead of the mark jumping on cold boot.
+   The lede below the title is one line at every width the page lays out for. */
+:root {
+  --science-home-bar: 54px;
+  --science-home-main-top: 52px;
+  --science-home-title-size: 29px;
+  --science-home-title-leading: 1.08;
+  --science-home-copy-gap: 8px;
+  --science-home-action-height: 38px;
+  /* The heading is one row until the actions stack under the copy. */
+  --science-home-heading-stack: 0px;
+  --science-home-state-gap: 30px;
+  /* The generic card's (error/empty) own ≤520 retune -- never the loading
+     card's; see --science-home-loading-pad below. */
+  --science-home-state-top: 40px;
+  /* The loading card's own vertical padding. Deliberately never redefined by
+     a band: the ≤520 rule below retunes the generic card via
+     --science-home-state-top, and without its own token the loading card
+     would inherit that retune too (same property, equal selector specificity,
+     later in the cascade) and silently lose its padding at narrow widths. */
+  --science-home-loading-pad: 40px;
+  --science-home-loader-top: calc(
+    var(--science-home-bar) + var(--science-home-main-top) + var(--science-home-title-size) *
+      var(--science-home-title-leading) + var(--science-home-copy-gap) + var(--font-size-base) * 1.5 +
+      var(--science-home-heading-stack) + var(--science-home-state-gap) + var(--science-home-loading-pad)
+  );
+}
+
+/* The fallback shows the card's mark where the card will put it. */
+.science-home__fallback {
+  align-content: start;
+  padding-top: var(--science-home-loader-top);
+}
+
 .science-home {
   display: flex;
   min-height: 0;
@@ -15,7 +54,7 @@
 }
 
 .science-home__bar.g-strip {
-  min-height: 54px;
+  min-height: var(--science-home-bar);
   gap: 10px !important;
   padding: 8px 24px !important;
   border-bottom-color: var(--color-border);
@@ -87,7 +126,7 @@
 
 .science-home__icon:hover,
 .science-home__server:hover {
-  background: var(--surface-base-hover);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -105,7 +144,7 @@
   padding: 0 9px;
   border: 1px solid var(--color-border);
   background: transparent;
-  font-size: 12.5px;
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
 }
 
@@ -143,7 +182,7 @@
   min-height: 0;
   flex: 1;
   overflow-y: auto;
-  padding: 52px 32px 80px;
+  padding: var(--science-home-main-top) 32px 80px;
 }
 
 .science-home__content {
@@ -162,14 +201,14 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--science-home-copy-gap);
 }
 
 .science-home__heading-copy > p {
   max-width: 560px;
   margin: 0;
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-regular);
   line-height: 1.5;
 }
@@ -185,15 +224,15 @@
   margin: 0;
   color: var(--color-text);
   font-family: var(--font-family-sans);
-  font-size: 29px;
+  font-size: var(--science-home-title-size);
   font-weight: var(--font-weight-emphasis);
-  line-height: 1.08;
+  line-height: var(--science-home-title-leading);
   letter-spacing: -0.028em;
 }
 
 .science-home__refreshing {
   color: var(--color-text-faint);
-  font-size: 12px;
+  font-size: var(--font-size-small);
   font-variant-numeric: tabular-nums;
 }
 
@@ -229,7 +268,7 @@
   flex: 1;
   color: var(--color-text);
   font-family: var(--font-family-sans);
-  font-size: 14px;
+  font-size: var(--font-size-base);
   line-height: 1;
 }
 
@@ -252,7 +291,7 @@
 }
 
 .science-home__search button:hover {
-  background: var(--surface-base-hover);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -292,7 +331,7 @@
 
 .science-home__project-row:hover,
 .science-home__project-row:focus-within {
-  background: var(--surface-base-hover);
+  background: var(--color-hover);
 }
 
 .science-home__project {
@@ -335,7 +374,7 @@
   align-items: center;
   gap: 7px;
   color: var(--color-text-faint);
-  font-size: 12px;
+  font-size: var(--font-size-small);
   line-height: 1.3;
   font-variant-numeric: tabular-nums;
 }
@@ -397,7 +436,7 @@
   padding: 0 14px;
   border-radius: var(--atlas-radius-sm);
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--font-size-medium);
   font-weight: var(--font-weight-medium);
   list-style: none;
 }
@@ -408,7 +447,7 @@
 
 .science-home__archived > summary:hover,
 .science-home__archived > summary:focus-visible {
-  background: var(--surface-base-hover);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -427,9 +466,9 @@
   margin-left: auto;
   padding: 0 6px;
   border-radius: var(--atlas-radius-pill);
-  background: var(--surface-base-hover);
+  background: var(--color-hover);
   color: var(--color-text-faint);
-  font-size: 11px;
+  font-size: var(--font-size-x-small);
   font-variant-numeric: tabular-nums;
 }
 
@@ -463,7 +502,7 @@
   flex: 1;
   overflow: hidden;
   color: var(--color-text);
-  font-size: 13px;
+  font-size: var(--font-size-medium);
   font-weight: var(--font-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -477,12 +516,12 @@
   border-radius: var(--atlas-radius-xs);
   color: var(--color-text-muted);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
 }
 
 .science-home__archived button:hover {
-  background: var(--surface-base-hover);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -492,7 +531,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 28px;
-  margin-top: 30px;
+  margin-top: var(--science-home-state-gap);
   padding: 24px 26px;
 }
 
@@ -507,15 +546,26 @@
   gap: 6px;
 }
 
+/* Both classes named: a single ".science-home__state--loading" is the same
+   specificity as the ≤520 ".science-home__state" rule below and loses to it
+   on source order, which is what silently retuned this card's padding to the
+   generic card's narrower one. The compound selector outranks it instead, at
+   every width, so this card's own padding-top stays what the fallback above
+   sums into --science-home-loader-top. */
+.science-home__state.science-home__state--loading {
+  justify-content: center;
+  padding: var(--science-home-loading-pad) 26px;
+}
+
 .science-home__state strong {
   color: var(--color-text);
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-emphasis);
 }
 
 .science-home__state > div > span {
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--font-size-medium);
   line-height: 1.5;
 }
 
@@ -523,19 +573,9 @@
   border-color: color-mix(in srgb, var(--color-error) 36%, var(--color-border));
 }
 
-.science-home__spinner {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
-  border: 1.5px solid var(--color-border-strong);
-  border-top-color: var(--color-text);
-  border-radius: 50%;
-  animation: science-home-spin 800ms linear infinite;
-}
-
 .science-home__button {
   display: inline-flex;
-  min-height: 38px;
+  min-height: var(--science-home-action-height);
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -545,7 +585,7 @@
   background: var(--color-surface-solid);
   color: var(--color-text);
   font-family: var(--font-family-sans);
-  font-size: 13px;
+  font-size: var(--font-size-medium);
   font-weight: var(--font-weight-emphasis);
   letter-spacing: -0.005em;
   white-space: nowrap;
@@ -557,7 +597,7 @@
 
 .science-home__button:hover {
   border-color: var(--color-border-strong);
-  background: var(--surface-base-hover);
+  background: var(--color-hover);
 }
 
 .science-home__button--primary {
@@ -585,13 +625,13 @@
   outline-offset: 2px;
 }
 
-@keyframes science-home-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @media (max-width: 760px) {
+  :root {
+    --science-home-main-top: 42px;
+    --science-home-heading-gap: 22px;
+    --science-home-heading-stack: calc(var(--science-home-heading-gap) + var(--science-home-action-height));
+  }
+
   .science-home__bar.g-strip {
     padding-inline: 14px !important;
   }
@@ -611,13 +651,13 @@
   }
 
   .science-home__main {
-    padding: 42px 20px 60px;
+    padding: var(--science-home-main-top) 20px 60px;
   }
 
   .science-home__heading {
     align-items: flex-start;
     flex-direction: column;
-    gap: 22px;
+    gap: var(--science-home-heading-gap);
   }
 
   .science-home__toolbar {
@@ -636,16 +676,18 @@
 }
 
 @media (max-width: 520px) {
-  .science-home__main {
-    padding: 34px 14px 48px;
+  :root {
+    --science-home-main-top: 34px;
+    --science-home-title-size: 26px;
+    --science-home-state-top: 22px;
   }
 
-  .science-home__title h1 {
-    font-size: 26px;
+  .science-home__main {
+    padding: var(--science-home-main-top) 14px 48px;
   }
 
   .science-home__heading-copy > p {
-    font-size: 13.5px;
+    font-size: var(--font-size-base);
   }
 
   .science-home__heading-actions {
@@ -686,7 +728,7 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 18px;
-    padding: 22px;
+    padding: var(--science-home-state-top);
   }
 }
 
@@ -718,13 +760,20 @@
 }
 
 @media (pointer: coarse) {
+  :root {
+    --science-home-action-height: 44px;
+    /* The taller controls outgrow the strip's own minimum: their height plus
+       its 8px padding twice and its 1px rule. */
+    --science-home-bar: calc(var(--science-home-action-height) + 17px);
+  }
+
   .science-home__icon,
   .science-home__server,
   .science-home__button,
   .science-home__project-action,
   .science-home__search button {
     min-width: 44px;
-    min-height: 44px;
+    min-height: var(--science-home-action-height);
   }
 
   .science-home__archived > summary,
@@ -734,11 +783,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .science-home__spinner {
-    animation: none;
-    border-top-color: var(--color-border-strong);
-  }
-
   .science-home__icon,
   .science-home__server,
   .science-home__button,

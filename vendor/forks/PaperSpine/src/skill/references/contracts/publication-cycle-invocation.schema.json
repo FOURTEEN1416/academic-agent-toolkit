@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:paperspine:publication-cycle:invoke-request:1.0",
+  "title": "PaperSpine Publication Cycle Invocation Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "interface_version", "operation", "project_root", "inputs"],
+  "properties": {
+    "contract": {
+      "const": "paperspine.publication-cycle.invoke-request"
+    },
+    "interface_version": {
+      "const": "1.0"
+    },
+    "operation": {
+      "enum": ["profile_check", "assemble", "rebuttal_check", "rebuttal_render", "transfer_plan"]
+    },
+    "project_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "profile": {"type": "string", "minLength": 1},
+        "plan": {"type": "string", "minLength": 1},
+        "review_round": {"type": "string", "minLength": 1},
+        "origin_profile": {"type": "string", "minLength": 1},
+        "destination_profile": {"type": "string", "minLength": 1},
+        "transfer_request": {"type": "string", "minLength": 1}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "directory": {"type": "string", "minLength": 1}
+      }
+    },
+    "options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "write_report": {"type": "boolean", "default": false}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"operation": {"const": "profile_check"}}},
+      "then": {"properties": {"inputs": {"required": ["profile"]}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "assemble"}}},
+      "then": {
+        "required": ["outputs"],
+        "properties": {
+          "inputs": {"required": ["profile", "plan"]},
+          "outputs": {"required": ["directory"]}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"operation": {"const": "rebuttal_check"}}},
+      "then": {"properties": {"inputs": {"required": ["review_round"]}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "rebuttal_render"}}},
+      "then": {
+        "required": ["outputs"],
+        "properties": {
+          "inputs": {"required": ["review_round"]},
+          "outputs": {"required": ["directory"]}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"operation": {"const": "transfer_plan"}}},
+      "then": {
+        "required": ["outputs"],
+        "properties": {
+          "inputs": {"required": ["origin_profile", "destination_profile", "transfer_request"]},
+          "outputs": {"required": ["directory"]}
+        }
+      }
+    }
+  ]
+}

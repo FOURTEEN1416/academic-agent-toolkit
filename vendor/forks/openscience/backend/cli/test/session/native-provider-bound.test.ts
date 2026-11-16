@@ -28,6 +28,10 @@ function flatten(value: unknown): string {
   return Object.values(value).map(flatten).join("\n")
 }
 
+/** The per-step status block is the one reminder that rides in the user
+ * channel, at the tail of the request; every other reminder stays in system. */
+const STATUS = /<system-reminder kind="status">[\s\S]*?<\/system-reminder>/g
+
 function userText(adapter: Adapter, body: Body) {
   const messages = adapter === "anthropic" ? body.messages : body.contents
   if (!Array.isArray(messages)) return ""
@@ -36,7 +40,7 @@ function userText(adapter: Adapter, body: Body) {
       (message): message is Record<string, unknown> =>
         !!message && typeof message === "object" && message.role === "user",
     )
-    .map((message) => flatten(adapter === "anthropic" ? message.content : message.parts))
+    .map((message) => flatten(adapter === "anthropic" ? message.content : message.parts).replace(STATUS, ""))
     .join("\n")
 }
 
@@ -264,10 +268,14 @@ describe("native provider system and continuation boundaries", () => {
         })
         await local.quiet()
 
+        // One conversation request per scenario. The summary rides the
+        // conversation's own system blocks, custom system included, so it
+        // carries the marker of the turn it summarizes and is counted apart.
         for (const scenario of ["disabled", "explicit", "context-first", "context-second", "context-after"]) {
           expect(
             local.requests.filter(
-              (request) => request.adapter === adapter && request.scenario === `${scenario}-${adapter}`,
+              (request) =>
+                request.adapter === adapter && request.scenario === `${scenario}-${adapter}` && !request.summary,
             ),
           ).toHaveLength(1)
         }
@@ -283,9 +291,7 @@ describe("native provider system and continuation boundaries", () => {
           expect(userText(adapter, request.body)).not.toContain("Research effort:")
           expect(userText(adapter, request.body)).not.toContain("<system-reminder>")
           expect(systemText(adapter, request.body)).toContain("Research effort: NORMAL")
-          expect(systemText(adapter, request.body)).toContain(
-            "as many useful workers as available machine capacity permits",
-          )
+          expect(systemText(adapter, request.body)).toContain("is never a worker's job")
           expect(systemText(adapter, request.body)).not.toContain("<system-reminder>")
         }
 

@@ -5,6 +5,17 @@ description: "Generate and rank research ideas given a broad direction. Use when
 
 # Research Idea Creator
 
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
+
 Generate publishable research ideas for: $ARGUMENTS
 
 ## Overview
@@ -13,11 +24,15 @@ Given a broad research direction from the user, systematically generate, validat
 
 ## Constants
 
+Reviewer overrides apply to Phase 4 and reviewer-bearing children. Phase 2
+brainstorming and native lens workers keep their existing generation model; do
+not pass a selected MCP reviewer model into a native generation call.
+
 - **PILOT_MAX_HOURS = 2** — Skip any pilot estimated to take > 2 hours per GPU. Flag as "needs manual pilot".
 - **PILOT_TIMEOUT_HOURS = 3** — Hard timeout: kill pilots exceeding 3 hours. Collect partial results if available.
 - **MAX_PILOT_IDEAS = 3** — Pilot at most 3 ideas in parallel. Additional ideas are validated on paper only.
 - **MAX_TOTAL_GPU_HOURS = 8** — Total GPU budget for all pilots combined.
-- **REVIEWER_MODEL = `gpt-5.6-sol`** — Model used via a secondary Codex agent for brainstorming and review. Must be an OpenAI model (e.g., `gpt-5.6-sol`, `o3`, `gpt-4o`).
+- **REVIEWER_MODEL = `gpt-6-astra`** — Model used via a secondary Codex agent for brainstorming and review. For `backend=codex`, use an OpenAI model (e.g., `gpt-6-astra`, `gpt-6.1-sol`).
 - **REVIEWER_BACKEND = `codex`** — Default: Codex xhigh reviewer through `spawn_agent` / `send_input`. Use `--reviewer: oracle-pro` only when explicitly requested; if Oracle is unavailable, warn and fall back to Codex xhigh.
 - **OUTPUT_DIR = `idea-stage/`** — All idea-stage outputs go here. Create the directory if it doesn't exist.
 
@@ -27,13 +42,24 @@ Given a broad research direction from the user, systematically generate, validat
 
 ### Fan-out contract
 
-Idea generation is breadth-bound, so use one fresh `spawn_agent` shard per
-analytic lens when delegation is available; otherwise run the same lenses
-sequentially in fresh contexts. Each shard is read-only and returns
-`{"shard_id": ..., "candidates": [{"payload": ..., "dedup_key": ...}]}`.
-Merge and mechanically deduplicate by `dedup_key`; shards must not rank, reject,
-or write shared files. The final Codex jury sees the full deduped set and records
-same-family provisional, never accepted. See
+Idea generation is breadth-bound. Freeze the complete analytic-lens list before
+dispatch and partition it into `max_shards: 8` or fewer. The executor may use
+at most `max_concurrency: 4` active shards and requests `max_turns: 8`,
+read-only behavior, and `recursion: false` in every leaf-equivalent prompt.
+
+**Stock Codex enforcement: prompt-only.** Standard Codex `spawn_agent` exposes
+no per-child tool allowlist, recursion flag, or child turn-cap parameter. These
+worker restrictions are prompt conventions unless the active host supplies
+structural enforcement, so stock Codex does not provide the same hard tool,
+non-recursion, and turn boundary as the Claude leaf. The executor still enforces
+fixed shard and concurrency limits, no replacement workers, and the coverage
+receipt. A failed, malformed, or timed-out shard gets at most one executor-side
+**sequential fallback** and no replacement agent. Each shard returns
+`{shard_id, assigned_unit_ids, covered_unit_ids, status, candidates, errors}`.
+Before mechanical deduplication, emit a **coverage receipt** listing planned,
+completed, failed, and uncovered lens IDs plus `coverage_complete`. The final
+selected reviewer receives both the receipt and full deduped candidate set;
+record its actual identity/completion. Same-family positives remain provisional. See
 [`fan-out-pattern.md`](../shared-references/fan-out-pattern.md).
 
 ### Phase 0: Load Research Wiki (if active)
@@ -153,7 +179,7 @@ Map the research area to understand what exists and where the gaps are.
 
 ### Phase 2: Idea Generation (brainstorm with external LLM)
 
-Use a secondary Codex agent for divergent thinking:
+Use a secondary Codex generation agent for divergent thinking (this is not the reviewer slot):
 
 ```
 spawn_agent:
@@ -204,14 +230,17 @@ spawn_agent:
 
 Save the agent id for follow-up.
 
-Then spawn the **same bundle once more** with `model: gpt-5.5` (same xhigh
+Then spawn the **same bundle once more** with `model: gpt-6.1-sol` (same xhigh
 reasoning, a fresh agent) and take the union — the two models fail differently
 as generators, and the union keeps either model's taste from capping the pool.
-Save both agent ids; Phase 4's `send_input` follow-ups go to the default-model
-agent. Tag each candidate with the model that produced it; merge both sets by
-mechanical dedup only — never drop a candidate for being "weak" (that is the
-Phase-4 verdict). If the second spawn errors (model unavailable on this
-account), print one WARN line and continue single-model.
+This is another GPT model, not cross-family acceptance; if it equals the chosen
+primary model, skip the duplicate second spawn. Save the IDs of agents actually
+created; Phase 4's `send_input` follow-ups go to the default-model agent. Tag each
+candidate with
+the model that produced it; merge both sets by mechanical dedup only — never
+drop a candidate for being "weak" (that is the Phase-4 verdict). If the second
+spawn errors (model unavailable on this account), print one WARN line and
+continue single-model.
 
 Save a Review Tracing record for this `spawn_agent` call following `../shared-references/review-tracing.md`, including the landscape summary, prompt summary, raw idea list path, reviewer route, and saved agent id.
 
@@ -248,9 +277,9 @@ quality/novelty narrowing.
 
 For each surviving idea, run a deeper evaluation:
 
-1. **Novelty check**: Use the `/novelty-check` workflow (multi-source search + GPT-5.6-Sol cross-verification) for each idea
+1. **Novelty check**: Use the `/novelty-check` workflow (multi-source search + GPT-6-Astra cross-verification) for each idea
 
-2. **Critical review**: Use GPT-5.6-Sol via `send_input` (same agent):
+2. **Critical review**: Use GPT-6-Astra via `send_input` (same agent):
    ```text
    send_input:
      target: [saved reviewer id from the earlier idea review]
@@ -274,7 +303,7 @@ For each surviving idea, run a deeper evaluation:
        deserves a pilot slot and what result would convince you.
    ```
 
-3. **Combine rankings**: Merge your assessment with GPT-5.6-Sol's ranking. Select top 2-3 ideas for pilot experiments.
+3. **Combine rankings**: Merge your assessment with GPT-6-Astra's ranking. Select top 2-3 ideas for pilot experiments.
 
 ### Phase 5: Parallel Pilot Experiments (for top 2-3 ideas)
 

@@ -5,6 +5,17 @@ description: "Workflow 1: Full idea discovery pipeline to go from a broad resear
 
 # Workflow 1: Idea Discovery Pipeline
 
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
+
 Orchestrate a complete idea discovery workflow for: **$ARGUMENTS**
 
 ## Overview
@@ -25,7 +36,7 @@ Each phase builds on the previous one's output. The final deliverables are a val
 - **MAX_PILOT_IDEAS = 3** — Run pilots for at most 3 top ideas in parallel. Additional ideas are validated on paper only.
 - **MAX_TOTAL_GPU_HOURS = 8** — Total GPU budget across all pilots. If exceeded, skip remaining pilots and note in report.
 - **AUTO_PROCEED = true** — When `true`, checkpoints are informational: report the selected option and continue in the same turn. Set to `false` to ask for explicit user confirmation and end the turn at each selection checkpoint.
-- **REVIEWER_MODEL = `gpt-5.6-sol`** — Model used via a secondary Codex agent. Must be an OpenAI model (e.g., `gpt-5.6-sol`, `o3`, `gpt-4o`). Passed to sub-skills.
+- **REVIEWER_MODEL = `gpt-6-astra`** — Model used via a secondary Codex agent. For `backend=codex`, use an OpenAI model (e.g., `gpt-6-astra`, `gpt-6.1-sol`). Passed to sub-skills.
 - **ARXIV_DOWNLOAD = false** — When `true`, `/research-lit` downloads the top relevant arXiv PDFs during Phase 1. When `false` (default), only fetches metadata. Passed through to `/research-lit`.
 - **COMPACT = false** — When `true`, generate compact summary files for short-context sessions and downstream skills. Writes `idea-stage/IDEA_CANDIDATES.md`.
 - **OUTPUT_DIR = `idea-stage/`** — All idea-stage outputs go here. Create the directory if it doesn't exist.
@@ -66,7 +77,7 @@ state record.
 
 For a new run, derive `<run_id>` from the direction slug and date, then start
 this ordered state record with `--executor <actual-Codex-model>
---provisional-advances` (for example, `codex-gpt-5.6-sol`):
+--provisional-advances` (for example, `codex-gpt-6-astra`):
 
 ```text
 research-lit,idea-creator,novelty-check,research-review,research-refine-pipeline
@@ -87,13 +98,15 @@ check the canonical report rather than scattered scratch files:
 `novelty-check` and `research-review` are **reviewer-bearing phases**. A
 `done` status or a heading alone is not review evidence. After each phase has
 folded substantive findings into its anchored report section, first record it
-`done`, then, only after the secondary Codex reviewer actually returns a
-positive, identity-bearing verdict, record its honest same-family receipt using the
-actual reviewer model and durable agent/trace id:
+`done`, then, only after the selected reviewer actually returns a positive, completed,
+identity-bearing verdict, record its actual review class. For a same-family
+review use the provisional receipt below, with the actual reviewer model and
+durable session/trace id; for a known different-family review use `accept` as
+described below:
 
 ```text
-python3 <resolved-run_state.py> mark-provisional . <run_id> novelty-check --verdict-id "<agent-or-trace-id>" --reviewer "<actual-Codex-reviewer-model>"
-python3 <resolved-run_state.py> mark-provisional . <run_id> research-review --verdict-id "<agent-or-trace-id>" --reviewer "<actual-Codex-reviewer-model>"
+python3 <resolved-run_state.py> mark-provisional . <run_id> novelty-check --verdict-id "<agent-or-trace-id>" --reviewer "<actual-reviewer-model>"
+python3 <resolved-run_state.py> mark-provisional . <run_id> research-review --verdict-id "<agent-or-trace-id>" --reviewer "<actual-reviewer-model>"
 ```
 
 Never invent either value and never mark a phase provisional without the
@@ -107,8 +120,8 @@ output was not folded into the report. `--provisional-advances` is required
 because these same-family receipts are explicitly provisional, not
 cross-family acceptance.
 
-If a reviewer overlay actually returns a recognized **different-family** model
-(for example Claude reviewing a Codex run), use `accept` with that overlay's
+If the selected reviewer actually returns a recognized **different-family** model
+(for example Claude reviewing a Codex run), use `accept` with that review's
 real model and trace id instead. Do not mislabel a cross-family receipt as
 provisional; the evidence gate validates either honest route from the recorded
 families.
@@ -245,7 +258,7 @@ Invoke `/idea-creator` with the landscape context and `idea-stage/REF_PAPER_SUMM
 
 **What this does:**
 - If `idea-stage/REF_PAPER_SUMMARY.md` exists, include it as context so ideas explicitly build on, improve, or extend the reference paper
-- Brainstorm 8-12 concrete ideas via GPT-5.6-Sol xhigh
+- Brainstorm 8-12 concrete ideas via GPT-6-Astra xhigh
 - Filter by feasibility, compute cost, quick novelty search
 - Deep validate top ideas (full novelty check + devil's advocate)
 - Run parallel pilot experiments on available GPUs (top 2-3 ideas)
@@ -286,7 +299,7 @@ For each top idea (positive pilot signal), run a thorough novelty check:
 
 **What this does:**
 - Multi-source literature search (arXiv, Scholar, Semantic Scholar)
-- Cross-verify with GPT-5.6-Sol xhigh
+- Cross-verify with GPT-6-Astra xhigh
 - Check for concurrent work (last 3-6 months)
 - Identify closest existing work and differentiation points
 
@@ -301,7 +314,7 @@ For the surviving top idea(s), get a sharp outside read — strongest case, name
 ```
 
 **What this does:**
-- GPT-5.6-Sol xhigh acts as a senior reviewer (NeurIPS/ICML level)
+- GPT-6-Astra xhigh acts as a senior reviewer (NeurIPS/ICML level)
 - Scores the idea, identifies weaknesses, suggests minimum viable improvements
 - Provides concrete feedback on experimental design
 
@@ -323,7 +336,7 @@ After review, refine the top idea into a concrete proposal and plan experiments:
 
 **What this does:**
 - Freeze a **Problem Anchor** to prevent scope drift
-- Refine the method via GPT-5.6-Sol review — reviewer risks choose the next tests, they do not add components; the score is advisory, and preserving the core hypothesis outranks pleasing the reviewer
+- Refine the method via GPT-6-Astra review — reviewer risks choose the next tests, they do not add components; the score is advisory, and preserving the core hypothesis outranks pleasing the reviewer
 - Generate a claim-driven experiment roadmap with ablations, budgets, and run order
 - Output: `refine-logs/FINAL_PROPOSAL.md`, `refine-logs/EXPERIMENT_PLAN.md`, `refine-logs/EXPERIMENT_TRACKER.md`
 

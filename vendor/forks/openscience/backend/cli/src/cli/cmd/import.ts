@@ -6,6 +6,36 @@ import { Storage } from "../../storage/storage"
 import { Instance } from "../../project/instance"
 import { EOL } from "os"
 
+export type SessionExport = {
+  info: Session.Info
+  messages: Array<{
+    info: any
+    parts: any[]
+  }>
+}
+
+/** Read an exported session file, saying which of the two failures it was.
+ * A single `json().catch(() => {})` reported a malformed file as missing, and
+ * the second copy of the same check below was unreachable. */
+export async function readExport(
+  file: string,
+): Promise<{ ok: true; data: SessionExport } | { ok: false; message: string }> {
+  if (!(await Bun.file(file).exists())) return { ok: false, message: `File not found: ${file}` }
+  let data: unknown
+  try {
+    data = await Bun.file(file).json()
+  } catch (error) {
+    return {
+      ok: false,
+      message: `Failed to read session data from ${file}: ${error instanceof Error ? error.message : String(error)}`,
+    }
+  }
+  if (typeof data !== "object" || data === null || !("info" in data) || !("messages" in data)) {
+    return { ok: false, message: `Failed to read session data from ${file}: expected an object with info and messages` }
+  }
+  return { ok: true, data: data as SessionExport }
+}
+
 export const ImportCommand = cmd({
   command: "import <file>",
   describe: "import session data from JSON file",
@@ -18,29 +48,16 @@ export const ImportCommand = cmd({
   },
   handler: async (args) => {
     await bootstrap(process.cwd(), async () => {
-      let exportData:
-        | {
-            info: Session.Info
-            messages: Array<{
-              info: any
-              parts: any[]
-            }>
-          }
-        | undefined
-
-      const file = Bun.file(args.file)
-      exportData = await file.json().catch(() => {})
-      if (!exportData) {
-        process.stdout.write(`File not found: ${args.file}`)
-        process.stdout.write(EOL)
+      const read = await readExport(args.file)
+      if (!read.ok) {
+        // A failure here is the whole result of the command, so it must not
+        // exit 0 and read as a success in a script.
+        process.stderr.write(read.message)
+        process.stderr.write(EOL)
+        process.exitCode = 1
         return
       }
-
-      if (!exportData) {
-        process.stdout.write(`Failed to read session data`)
-        process.stdout.write(EOL)
-        return
-      }
+      const exportData = read.data
 
       await Storage.write(["session", Instance.project.id, exportData.info.id], exportData.info)
 

@@ -8,6 +8,24 @@
   "properties": {
     "schema_version": {"const": "1.0"},
     "paper_id": {"type": "string", "minLength": 1},
+    "layout_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document_layout_mode", "one_column_width_mm"],
+      "properties": {
+        "document_layout_mode": {"enum": ["single_column", "two_column"]},
+        "one_column_width_mm": {"type": "number", "exclusiveMinimum": 0},
+        "two_column_span_width_mm": {"type": "number", "exclusiveMinimum": 0},
+        "render_dpi": {"type": "integer", "minimum": 72, "default": 300}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"document_layout_mode": {"const": "two_column"}}},
+          "then": {"required": ["two_column_span_width_mm"]},
+          "else": {"not": {"required": ["two_column_span_width_mm"]}}
+        }
+      ]
+    },
     "figures": {
       "type": "array", "minItems": 1,
       "items": {
@@ -17,7 +35,81 @@
         "properties": {
           "figure_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
           "figure_kind": {"enum": ["data", "schematic"]},
-          "decision": {"enum": ["keep", "redesign", "create"]},
+          "decision": {"enum": ["keep", "redesign", "improve", "create"]},
+          "repair_reasons": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}
+          },
+          "scientific_identity": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["authority_status", "canonical_name", "authority_artifact", "authority_locator"],
+            "properties": {
+              "authority_status": {"enum": ["verified", "unresolved"]},
+              "canonical_name": {"type": "string", "minLength": 1},
+              "authority_artifact": {"type": "string", "minLength": 1},
+              "authority_locator": {"type": "string", "minLength": 1},
+              "forbidden_names": {"type": "array", "items": {"type": "string", "minLength": 1}},
+              "locked_surfaces": {
+                "type": "array",
+                "minItems": 5,
+                "maxItems": 5,
+                "uniqueItems": true,
+                "items": {"enum": ["final_pixels", "editable_source", "caption", "body_contract", "lineage_receipt"]}
+              }
+            }
+          },
+          "placement": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "column_span": {"enum": ["one_column", "two_column_span"]}
+            }
+          },
+          "final_size_context": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["document_layout_mode", "column_span", "physical_width_mm", "render_dpi"],
+            "properties": {
+              "document_layout_mode": {"enum": ["single_column", "two_column"]},
+              "column_span": {"enum": ["one_column", "two_column_span"]},
+              "physical_width_mm": {"type": "number", "exclusiveMinimum": 0},
+              "render_dpi": {"type": "integer", "minimum": 72}
+            }
+          },
+          "publication_role": {"enum": ["main", "supplementary", "omit"]},
+          "editorial_rationale": {"type": "string", "minLength": 8},
+          "claim_coverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["essential_main_claim_ids", "replacement_support", "narrowed_claim_ids", "author_confirmation_status"],
+            "properties": {
+              "essential_main_claim_ids": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}
+              },
+              "replacement_support": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["claim_id", "figure_id"],
+                  "properties": {
+                    "claim_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+                    "figure_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}
+                  }
+                }
+              },
+              "narrowed_claim_ids": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}
+              },
+              "author_confirmation_status": {"enum": ["confirmed", "pending", "not_required"]}
+            }
+          },
           "figure_role": {"type": "string", "minLength": 1},
           "scientific_question": {"type": "string", "minLength": 8},
           "claim": {"type": "string", "minLength": 12},
@@ -48,6 +140,7 @@
           "reference_assets": {"type": "array", "items": {"type": "string", "minLength": 1}},
           "candidate_reference_assets": {"type": "array", "items": {"type": "string", "minLength": 1}},
           "current_figure": {"type": "string", "minLength": 1},
+          "current_figure_sha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
           "current_figure_metadata": {"type": "object"},
           "panel_count": {"oneOf": [{"type": "integer", "minimum": 1}, {"const": "auto"}]}
         },
@@ -67,10 +160,35 @@
           },
           {
             "if": {
+              "required": ["publication_role"],
+              "properties": {"publication_role": {"enum": ["supplementary", "omit"]}}
+            },
+            "then": {"required": ["editorial_rationale", "claim_coverage"]}
+          },
+          {
+            "if": {
               "required": ["decision"],
-              "properties": {"decision": {"enum": ["keep", "redesign"]}}
+              "properties": {"decision": {"enum": ["keep", "redesign", "improve"]}}
             },
             "then": {"required": ["current_figure"]}
+          },
+          {
+            "if": {
+              "required": ["repair_reasons"],
+              "properties": {"repair_reasons": {"contains": {"const": "scientific_identity_error"}}}
+            },
+            "then": {
+              "required": ["decision", "current_figure", "scientific_identity"],
+              "properties": {
+                "decision": {"enum": ["redesign", "improve"]},
+                "scientific_identity": {
+                  "properties": {
+                    "authority_status": {"const": "verified"},
+                    "forbidden_names": {"type": "array", "minItems": 1}
+                  }
+                }
+              }
+            }
           },
           {
             "if": {

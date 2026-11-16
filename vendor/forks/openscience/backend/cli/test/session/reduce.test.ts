@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { MessageV2 } from "../../src/session/message-v2"
 import { Token } from "../../src/util/token"
 import type { Provider } from "../../src/provider/provider"
+import { PayloadIntegrity } from "../../src/tool/payload-integrity"
 
 const sessionID = "session"
 
@@ -110,6 +111,39 @@ describe("session.message-v2.toolSummary", () => {
     expect(s).toContain("refs.bib:41")
     expect(s).not.toContain("→ cleared")
   })
+
+  test("retains partial outcomes and bounded immutable output handles independently of handoff prose", () => {
+    const artifacts = Array.from({ length: 10 }, (_, index) => ({
+      artifactID: `artifact-${index}`,
+      versionID: `v-${index}`,
+    }))
+    for (const handoff of ["", "Long findings. ".repeat(1000)]) {
+      const summary = MessageV2.toolSummary(
+        "task",
+        completedTool("task", { prompt: "Run analysis" }, "raw output", {
+          metadata: {
+            outcome: "partial",
+            stopReason: "empty_handoff",
+            sessionId: "ses_child",
+            handoff,
+            evidence: { artifacts },
+          },
+        }),
+      )
+      expect(summary).toContain("Runtime execution: partial")
+      expect(summary).toContain("empty_handoff")
+      expect(summary).toContain("ses_child")
+      expect(summary).toContain('artifact_id="artifact-0", version_id="v-0"')
+      expect(summary).toContain('artifact_id="artifact-7", version_id="v-7"')
+      expect(summary).not.toContain('artifact_id="artifact-8"')
+      expect(summary).toContain("More saved outputs are listed in the full child trace")
+    }
+    const malformed = MessageV2.toolSummary(
+      "task",
+      completedTool("task", {}, "", { metadata: { evidence: { artifacts: [null, { artifactID: "incomplete" }] } } }),
+    )
+    expect(malformed).not.toContain("artifact_id=")
+  })
 })
 
 describe("session.message-v2.toModelMessages — compacted tool rendering (P2.2)", () => {
@@ -177,28 +211,32 @@ describe("session.message-v2.toModelMessages — compacted tool rendering (P2.2)
   })
 })
 
-describe("session.message-v2.truncateArgs (P2.3)", () => {
-  test("truncates a string value longer than the cap and marks how much was dropped", () => {
-    const out = MessageV2.truncateArgs({ content: "x".repeat(1000) }, 200)
-    expect(out.content).toBe("x".repeat(200) + "…[+800 chars]")
+describe("legacy argument history recognition", () => {
+  test("reconstructs older previews for integrity checks", () => {
+    expect(PayloadIntegrity.legacyPreview("x".repeat(1000))).toBe("x".repeat(200) + "…[+800 chars]")
   })
 
-  test("leaves short strings and non-string values untouched", () => {
-    const out = MessageV2.truncateArgs({ filePath: "/a", count: 5, deep: { a: 1 } }, 200)
-    expect(out).toEqual({ filePath: "/a", count: 5, deep: { a: 1 } })
+  test("leaves short strings untouched", () => {
+    expect(PayloadIntegrity.legacyPreview("/a")).toBe("/a")
+  })
+
+  test("recognizes only the internal argument-compaction marker", () => {
+    expect(MessageV2.hasArgTruncationMarker("assignment…[+1712 chars]")).toBe(true)
+    expect(MessageV2.hasArgTruncationMarker("ordinary [1712 chars] assignment")).toBe(false)
   })
 })
 
 describe("session.message-v2.toModelMessages — compacted tool args (P2.3)", () => {
-  test("truncates oversized args of a compacted tool call, keeps small ones", () => {
+  test("keeps every argument exact after output compaction without mutating stored input", () => {
     const state = completedTool("write", { filePath: "/a", content: "x".repeat(1000) }, "ok", { compacted: true })
     const input: MessageV2.WithParts[] = [
       { info: assistantInfo("a1", "u1"), parts: [toolPart("a1", "t1", "write", state)] },
     ]
     const s = JSON.stringify(MessageV2.toModelMessages(input, model))
-    expect(s).not.toContain("x".repeat(1000))
-    expect(s).toContain("chars]") // truncation marker present
-    expect(s).toContain("/a") // small arg preserved
+    expect(s).toContain("x".repeat(1000))
+    expect(s).not.toContain("chars]")
+    expect(s).toContain("/a")
+    expect(state.input).toEqual({ filePath: "/a", content: "x".repeat(1000) })
   })
 
   test("does NOT truncate args of a live (non-compacted) tool call", () => {
@@ -210,7 +248,22 @@ describe("session.message-v2.toModelMessages — compacted tool args (P2.3)", ()
     expect(s).toContain("x".repeat(1000))
   })
 
-  test("truncates oversized args of a SUPERSEDED (duplicate) tool call — its output is a stub, so the args are dead weight", () => {
+  test("keeps a compacted Task assignment byte-exact", () => {
+    const prompt = `Collect six exact identifiers:\n${"🧬ßλ".repeat(400)}`
+    const state = completedTool("task", { description: "Collect papers", prompt, subagent_type: "explore" }, "done", {
+      compacted: true,
+      metadata: { handoff: "## Outcome\nPartial" },
+    })
+    const input: MessageV2.WithParts[] = [
+      { info: assistantInfo("a1", "u1"), parts: [toolPart("a1", "t1", "task", state)] },
+    ]
+    const rendered = JSON.stringify(MessageV2.toModelMessages(input, model))
+
+    expect(rendered).toContain(JSON.stringify(prompt).slice(1, -1))
+    expect(rendered).not.toContain("…[+")
+  })
+
+  test("keeps duplicate call arguments exact while reducing duplicate results", () => {
     const big = "y".repeat(300)
     const content = "z".repeat(1000)
     const input: MessageV2.WithParts[] = [
@@ -224,8 +277,9 @@ describe("session.message-v2.toModelMessages — compacted tool args (P2.3)", ()
       },
     ]
     const s = JSON.stringify(MessageV2.toModelMessages(input, model))
-    expect(s).toContain("chars]") // the later (superseded) call's content arg is truncated
-    expect(s.split(content).length - 1).toBe(1) // the full content ships only once (the kept first call)
+    expect(s).not.toContain("chars]")
+    expect(s.split(content).length - 1).toBe(2)
+    expect(s.split(big).length - 1).toBe(1)
   })
 })
 

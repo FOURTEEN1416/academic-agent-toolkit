@@ -3,8 +3,9 @@ import { describeRoute, resolver, validator } from "hono-openapi"
 import path from "path"
 import z from "zod"
 import { Global } from "../../../global"
-import { lazy } from "../../../util/lazy"
+import { lazy } from "@synsci/util/lazy"
 import { Log } from "../../../util/log"
+import { JsonStore } from "../../../util/jsonstore"
 
 const log = Log.create({ service: "settings-preferences" })
 
@@ -14,7 +15,8 @@ const log = Log.create({ service: "settings-preferences" })
 // across every client talking to this local server.
 const filepath = path.join(Global.Path.config, "settings.json")
 
-export const Preferences = z.object({
+// Rows persisted verbatim to settings.json.
+const Stored = z.object({
   // Model reasoning effort applied when a model exposes it (General → Model).
   reasoning_effort: z.enum(["minimal", "low", "medium", "high"]).default("medium"),
   // Licensing use-intent (General → Licensing). Persisted for provenance /
@@ -37,6 +39,9 @@ export const Preferences = z.object({
   // browser storage cannot remember setup. Persist the completed wizard
   // revision in the shared local settings store instead.
   desktop_onboarding_version: z.number().int().min(0).default(0),
+  // The step a partially completed setup should resume at. Account state is
+  // read from the server, but whether Ace was skipped is only known here.
+  desktop_onboarding_step: z.enum(["account", "ace", "connect", "done"]).default("account"),
   // Atlas is opt-in navigation. The switch controls only whether its local
   // project surface is shown; it never changes or deletes graph data.
   atlas_enabled: z.boolean().default(false),
@@ -57,22 +62,26 @@ export const Preferences = z.object({
   // Deprecated no-op retained so older 2.x clients and settings files still round-trip.
   delegation_diversity: z.enum(["focused", "balanced", "exploratory"]).default("balanced"),
 })
+type Stored = z.infer<typeof Stored>
+
+export const Preferences = Stored
 export type Preferences = z.infer<typeof Preferences>
 
 const PreferencesPatch = z.object({
-  reasoning_effort: Preferences.shape.reasoning_effort.removeDefault().optional(),
-  intent: Preferences.shape.intent.removeDefault().optional(),
-  extra_budget_usd: Preferences.shape.extra_budget_usd.removeDefault().optional(),
-  show_trace: Preferences.shape.show_trace.removeDefault().optional(),
-  show_local_models: Preferences.shape.show_local_models.removeDefault().optional(),
-  desktop_onboarding_version: Preferences.shape.desktop_onboarding_version.removeDefault().optional(),
-  atlas_enabled: Preferences.shape.atlas_enabled.removeDefault().optional(),
-  delegation_enabled: Preferences.shape.delegation_enabled.removeDefault().optional(),
-  delegation_specialist: Preferences.shape.delegation_specialist.removeDefault().optional(),
-  delegation_level: Preferences.shape.delegation_level.removeDefault().optional(),
-  delegation_worker_model: Preferences.shape.delegation_worker_model.removeDefault().optional(),
-  delegation_autonomy: Preferences.shape.delegation_autonomy.removeDefault().optional(),
-  delegation_diversity: Preferences.shape.delegation_diversity.removeDefault().optional(),
+  reasoning_effort: Stored.shape.reasoning_effort.removeDefault().optional(),
+  intent: Stored.shape.intent.removeDefault().optional(),
+  extra_budget_usd: Stored.shape.extra_budget_usd.removeDefault().optional(),
+  show_trace: Stored.shape.show_trace.removeDefault().optional(),
+  show_local_models: Stored.shape.show_local_models.removeDefault().optional(),
+  desktop_onboarding_version: Stored.shape.desktop_onboarding_version.removeDefault().optional(),
+  desktop_onboarding_step: Stored.shape.desktop_onboarding_step.removeDefault().optional(),
+  atlas_enabled: Stored.shape.atlas_enabled.removeDefault().optional(),
+  delegation_enabled: Stored.shape.delegation_enabled.removeDefault().optional(),
+  delegation_specialist: Stored.shape.delegation_specialist.removeDefault().optional(),
+  delegation_level: Stored.shape.delegation_level.removeDefault().optional(),
+  delegation_worker_model: Stored.shape.delegation_worker_model.removeDefault().optional(),
+  delegation_autonomy: Stored.shape.delegation_autonomy.removeDefault().optional(),
+  delegation_diversity: Stored.shape.delegation_diversity.removeDefault().optional(),
 })
 
 function normalizeDelegation(value: unknown) {
@@ -87,19 +96,39 @@ function normalizeDelegation(value: unknown) {
   return next
 }
 
-async function read(): Promise<Preferences> {
-  try {
-    const raw = await Bun.file(filepath).json()
-    return Preferences.parse(normalizeDelegation(raw))
-  } catch {
-    // Missing / malformed file → schema defaults.
-    return Preferences.parse({})
+async function stored(): Promise<Stored> {
+  const raw = await JsonStore.read(filepath)
+  const parsed = Stored.safeParse(normalizeDelegation(raw))
+  if (!parsed.success) {
+    log.error("invalid settings file; preserving it and serving safe defaults", { issues: parsed.error.issues })
+    return Stored.parse({})
   }
+  return parsed.data
 }
 
-async function write(next: Preferences): Promise<Preferences> {
-  await Bun.write(filepath, JSON.stringify(next, null, 2), { mode: 0o600 })
-  return next
+async function mutate(fn: (current: Stored) => Stored): Promise<Stored> {
+  let result: Stored | undefined
+  await JsonStore.update(filepath, (raw) => {
+    const current = Stored.safeParse(normalizeDelegation(raw))
+    if (!current.success) {
+      throw new Error("The OpenScience settings file is invalid; refusing to overwrite it")
+    }
+    result = Stored.parse(fn(current.data))
+    return result as unknown as Record<string, unknown>
+  })
+  if (!result) throw new Error("OpenScience did not persist the settings update")
+  return result
+}
+
+/** Revision recorded by new installs. Completed older revisions stay complete. */
+export const ONBOARDING_VERSION = 2
+
+/** Read the shared local preferences (used by the CLI setup as well as the routes). */
+export const readPreferences = stored
+
+/** Merge a validated patch into the shared local preferences. */
+export function patchPreferences(patch: Partial<Stored>) {
+  return mutate((current) => Stored.parse({ ...current, ...patch }))
 }
 
 export const SettingsPreferencesRoutes = lazy(() =>
@@ -116,7 +145,7 @@ export const SettingsPreferencesRoutes = lazy(() =>
           },
         },
       }),
-      async (c) => c.json(await read()),
+      async (c) => c.json(await stored()),
     )
     .patch(
       "/",
@@ -133,9 +162,11 @@ export const SettingsPreferencesRoutes = lazy(() =>
       validator("json", PreferencesPatch),
       async (c) => {
         const patch = normalizeDelegation(c.req.valid("json")) as Partial<Preferences>
-        const merged = Preferences.parse({ ...(await read()), ...patch })
         log.info("update", { keys: Object.keys(patch) })
-        return c.json(await write(merged))
+        // Retired compaction fields from older clients are stripped by the schema.
+        // App preference updates never rewrite the user's openscience.json.
+        if (Object.keys(patch).length > 0) await mutate((current) => Stored.parse({ ...current, ...patch }))
+        return c.json(await stored())
       },
     ),
 )

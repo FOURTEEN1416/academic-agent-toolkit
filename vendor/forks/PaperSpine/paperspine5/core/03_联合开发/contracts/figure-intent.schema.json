@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/figure-intent.schema.json",
+  "title": "PaperSpine5 FigureIntent receipt",
+  "type": "object",
+  "required": ["contract", "contract_version", "subject", "mode", "decision_basis_artifact_ids", "figures", "producer_id", "status", "external_action_authorized", "receipt_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.figure-intent"},
+    "contract_version": {"const": "1.0"},
+    "subject": {"$ref": "quality-subject.schema.json"},
+    "mode": {"enum": ["zero", "keep", "redesign", "create"]},
+    "decision_basis_artifact_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "figures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["figure_id", "panels", "reference_plan_binding", "reference_plan", "selected_asset", "outcome", "comparison_sha256"],
+        "properties": {
+          "figure_id": {"type": "string", "minLength": 1},
+          "panels": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "reference_plan_binding": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/asset"}]},
+          "reference_plan": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/reference_plan_projection"}]},
+          "selected_asset": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/asset"}]},
+          "outcome": {"enum": ["kept", "redesign_selected", "fallback_original", "created", "zero"]},
+          "comparison_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "producer_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "external_action_authorized": {"const": false},
+    "receipt_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "PASS"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "figures": {
+            "items": {
+              "properties": {
+                "reference_plan_binding": {"$ref": "#/$defs/asset"},
+                "reference_plan": {"$ref": "#/$defs/reference_plan_projection"}
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "asset": {
+      "type": "object",
+      "required": ["artifact_id", "sha256", "revision_id"],
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "revision_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "reference_plan_projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapping_id", "plan_status", "figure", "design_provenance", "references", "scientific_story", "domain_mappings", "external_action_authorized"],
+      "properties": {
+        "mapping_id": {"type": "string", "minLength": 1},
+        "plan_status": {"const": "PASS"},
+        "figure": {"$ref": "figure-reference-mapping.schema.json#/$defs/figure"},
+        "design_provenance": {"enum": ["reference_guided", "original_no_reference"]},
+        "original_design_rationale": {"type": ["string", "null"]},
+        "references": {"type": "array", "items": {"$ref": "#/$defs/reference_projection"}},
+        "scientific_story": {"$ref": "figure-reference-mapping.schema.json#/$defs/scientific_story"},
+        "domain_mappings": {"type": "array", "minItems": 1, "items": {"$ref": "figure-reference-mapping.schema.json#/$defs/domain_mapping"}},
+        "grammar_reuse_justification": {"type": ["string", "null"]},
+        "external_action_authorized": {"const": false}
+      }
+    },
+    "reference_projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference_id", "source_id", "source_locator", "figure_locator", "asset_sha256", "asset_sha256_short", "preview_artifact_id", "preview_sha256", "preview_media_type", "panels"],
+      "properties": {
+        "reference_id": {"$ref": "figure-reference-mapping.schema.json#/$defs/id"},
+        "source_id": {"$ref": "figure-reference-mapping.schema.json#/$defs/id"},
+        "source_locator": {"type": "string", "minLength": 3},
+        "figure_locator": {"type": "string", "minLength": 3},
+        "asset_sha256": {"$ref": "#/$defs/sha256"},
+        "asset_sha256_short": {"type": "string", "pattern": "^[0-9a-f]{12}$"},
+        "preview_artifact_id": {"$ref": "figure-reference-mapping.schema.json#/$defs/id"},
+        "preview_sha256": {"$ref": "#/$defs/sha256"},
+        "preview_media_type": {"enum": ["image/png", "image/jpeg", "image/svg+xml"]},
+        "panels": {"type": "array", "minItems": 1, "items": {"$ref": "figure-reference-mapping.schema.json#/$defs/reference_panel"}}
+      }
+    }
+  },
+  "additionalProperties": false
+}

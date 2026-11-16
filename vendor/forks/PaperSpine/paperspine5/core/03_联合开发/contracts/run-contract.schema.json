@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/run-contract.schema.json",
+  "title": "PaperSpine5 W3 Run Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "task_id", "revision_id", "product_build_id", "runner_version", "material_snapshot_sha256", "configuration", "created_at", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.run-contract"},
+    "schema_version": {"const": "1.0"},
+    "task_id": {"type": "string", "minLength": 1},
+    "revision_id": {"type": "string", "pattern": "^[0-9]+$"},
+    "product_build_id": {"type": "string", "minLength": 1},
+    "runner_version": {"enum": ["0.1.0", "0.2.0"]},
+    "material_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "configuration": {"$ref": "run-configuration.schema.json"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "external_action_authorized": {"const": false}
+  }
+}

@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
+from .composition import build_component_routing_plan, make_composition_contract, validate_composition_plan
 from .config import load_config
 from .data import sha256_file
 from .evidence_bridge import materialize_schematic_evidence, validate_materialized_evidence_svg
@@ -105,6 +106,8 @@ def _candidate_contract(
     publication = figure["quality_profile"] == "publication"
     pipeline = str(figure["schematic_pipeline"])
     process_files = ["reference_deconstruction.json", "complexity_audit.json"] if publication else []
+    if publication:
+        process_files.append("composition_plan.json")
     if publication and not schematic:
         process_files.extend(["data_profile.json", "FIGURE_QA.json"])
     if publication and schematic:
@@ -169,15 +172,30 @@ def _candidate_contract(
     if schematic and pipeline == "direct_vector" and figure["allow_raster_in_svg"]:
         schematic_instructions.extend(
             [
-                "Hybrid mode is explicit: AI-generated raster assets may represent only declared non-text scientific illustrations whose texture or organic geometry materially benefits from image generation.",
+                "Hybrid mode is component-level: a declared, bounded raster asset may represent only a verified source image or a text-free complex background/object whose texture or organic geometry materially benefits from image generation.",
                 "Keep every label, arrow, border, frame, network node, legend, and data chart as live SVG; never ask the image generator to render them and never use a full-figure raster blueprint.",
-                "Declare each permitted PNG/JPEG in FigureSpec assets with kind=raster and a scientific-illustration role; retain the source file, provenance, and node mapping for audit.",
+                "Treat maps, microscopy, material textures, and complex structures as clean-base assets: crop or generate only the local text-free region, scale it inside its declared bbox, and place native overlays above it.",
+                "Declare each permitted PNG/JPEG in FigureSpec assets with kind=raster and a scientific-illustration role; retain the source file, provenance, bbox, and node mapping for audit.",
             ]
         )
+    composition_contract = make_composition_contract(
+        figure_kind=str(figure["figure_kind"]),
+        image_generation=figure["image_generation"],
+        composition=figure["composition"],
+        data_evidence_available=bool(data_evidence),
+        source_data_available=bool(figure.get("source_data")),
+    )
+    initial_composition_plan = build_component_routing_plan(
+        figure["composition"]["regions"], composition_contract
+    )
     story_contract = {
         key: figure[key]
         for key in (
             "decision",
+            "repair_reasons",
+            "scientific_identity",
+            "placement",
+            "final_size_context",
             "figure_role",
             "scientific_question",
             "intended_conclusion",
@@ -190,12 +208,35 @@ def _candidate_contract(
     }
     return {
         "candidate_id": strategy["candidate_id"],
+        "producer_identity": str(figure.get("generator_identity") or "UNASSIGNED"),
+        "producer_role": "candidate_generator_agent",
         "strategy": strategy["strategy"],
         "strategy_brief": strategy["brief"],
         "figure_id": figure["figure_id"],
         "figure_kind": figure["figure_kind"],
         "claim": figure["claim"],
         "story_contract": story_contract,
+        "redesign_comparison_contract": (
+            {
+                "required": True,
+                "current_figure": {
+                    "path": figure["current_figure"],
+                    "sha256": figure["current_figure_sha256"],
+                    "role": "preserved_original_and_fail_safe_winner",
+                },
+                "reviewer_role": "independent_reviewer_agent",
+                "identity_separation_required": True,
+                "blinded_candidate_identity": True,
+                "strict_superiority_required": True,
+                "final_size_context": figure.get("final_size_context"),
+                "final_size_render_required": figure.get("final_size_context") is not None,
+                "fallback_selection": "existing",
+                "prepare_command": "prepare-redesign-review",
+                "record_command": "record-redesign-review",
+            }
+            if figure.get("decision") in {"redesign", "improve"}
+            else None
+        ),
         "panel_count": figure["panel_count"],
         "authoring_contract": {
             "canonical_source": (
@@ -242,6 +283,10 @@ def _candidate_contract(
             ),
             "required_process_files": process_files,
         },
+        "image_generation_contract": figure["image_generation"],
+        "pipeline_fallback": figure["pipeline_fallback"],
+        "composition_contract": composition_contract,
+        "initial_composition_plan": initial_composition_plan,
         "reference_contract": {
             "one_to_one": bool(references),
             "assets": references,
@@ -380,11 +425,24 @@ def _candidate_contract(
             "Use two to four exportable panels, but allow scientifically earned nested subviews inside a panel when needed to match the reference's evidence density.",
             "Do not submit a cleaner but materially simpler figure: complexity_audit.json must meet the declared minimum ratio and record the visual comparison verdict.",
             "Keep every measured value bound to a declared source; clearly identify schematic content.",
+            "Use figure_kind only as the primary evidence authority. A schematic may contain native data-plot regions, and a data figure may contain a verified schematic inset; declare both in composition_plan.json.",
+            "Route every region independently. Native geometry, data marks, text, arrows, borders, and legends stay native; only bounded text-free complex backgrounds or objects may use verified/generated image assets.",
+            "If image_generation_contract.available is false, resolve every region to native_vector, native_data_plot, or a verified source asset. Never invoke Img2PPT as a fallback; block a non-derivable complex region that explicitly disallows native fallback.",
             "When a schematic uses data-study results, consume only an aggregate schematic_evidence.json bundle through bind-schematic-evidence; map each evidence node to stable fact IDs, materialize the published display_text into the pipeline's programmatic text source, and preserve the bundle's scientific limits.",
             "For data figures, profile the source before choosing a chart; preserve the statistical unit, missingness, groups, pairing, units, uncertainty, tests, effect sizes, and multiple-comparison policy in data_binding.json and data_profile.json.",
             "When units, reference intervals, repeated-person identity, or clinical thresholds are absent, disclose the limitation instead of inventing metadata or cutoffs.",
             "For architecture figures, read the actual model source and record verified modules, connections, shapes, branches, repeats, heads, and objectives in architecture_manifest.json.",
             *schematic_instructions,
+            *(
+                [
+                    "This is a redesign/improve task: retain the bound current_figure byte-for-byte as the fail-safe baseline and never overwrite it.",
+                    "After every configured candidate is finalized, run prepare-redesign-review and hand only comparison_request.json plus its blind/ assets to a reviewer Agent whose identity differs from every candidate producer.",
+                    "The candidate-generating Agent must not self-attest as the independent reviewer. Only a validated immutable comparison receipt may authorize automatic candidate promotion.",
+                    "A tie, weaker dimension, insufficient evidence, missing reviewer, identity conflict, hash change, or contradictory conclusion selects the original.",
+                ]
+                if figure.get("decision") in {"redesign", "improve"}
+                else []
+            ),
             "Do not hand-score composition before the pipeline QA passes; vector modes use layout_report.json, high-resolution raster mode uses pixel/seam gates, and Img2PPT uses pre-review, native-object, real-replacement, and post-review gates.",
             "Write the candidate-specific source into this directory and retain it with all exports.",
         ],
@@ -421,6 +479,10 @@ def plan_agent_generation(job_dir: str | Path, *, write: bool = True) -> dict[st
                     key: figure[key]
                     for key in (
                         "decision",
+                        "repair_reasons",
+                        "scientific_identity",
+                        "placement",
+                        "final_size_context",
                         "figure_role",
                         "scientific_question",
                         "intended_conclusion",
@@ -438,6 +500,16 @@ def plan_agent_generation(job_dir: str | Path, *, write: bool = True) -> dict[st
                 },
                 "source_data": _asset_records(job, figure["source_data"]),
                 "data_evidence": _asset_records(job, figure["data_evidence"]),
+                "current_figure": (
+                    {
+                        "path": figure["current_figure"],
+                        "sha256": figure["current_figure_sha256"],
+                        "role": "preserved_original_and_fail_safe_winner",
+                    }
+                    if figure.get("current_figure")
+                    else None
+                ),
+                "redesign_comparison_required": figure.get("decision") in {"redesign", "improve"},
                 "candidates": candidate_requests,
             }
         )
@@ -453,6 +525,7 @@ def plan_agent_generation(job_dir: str | Path, *, write: bool = True) -> dict[st
             "blueprint_selection": "human" if config["review_points"] == "blueprint_and_final" else "automatic",
             "vector_reconstruction": "automatic",
             "final_selection": "human",
+            "redesign_auto_selection": "independent_strict-comparison-or-original-fallback",
             "exception_escalation": "human_on_hard_failure_or_unresolved_uncertainty",
         },
         "drawing_repository_required": False,
@@ -573,6 +646,12 @@ def _process_artifacts(candidate: Path, request: dict[str, Any]) -> list[Path]:
         for section in ("programmatic", "scientific", "visual"):
             if not isinstance(figure_qa.get(section), dict):
                 raise ValueError(f"FIGURE_QA.json requires a {section} section")
+    composition_plan = records.get("composition_plan.json")
+    if composition_plan is not None:
+        contract = request.get("composition_contract")
+        if not isinstance(contract, dict):
+            raise ValueError("composition_plan.json requires composition_contract in generation_request.json")
+        validate_composition_plan(composition_plan, contract, asset_root=candidate)
     vector_blueprint = records.get("vector_blueprint_manifest.json")
     if vector_blueprint is not None:
         if str(vector_blueprint.get("pipeline") or "") != "direct_vector":
@@ -791,6 +870,10 @@ def finalize_agent_candidate(
         "figure_id": request.get("figure_id"),
         "figure_kind": figure_kind,
         "generation_mode": "agent_native",
+        "producer_identity": request.get("producer_identity"),
+        "scientific_identity": (request.get("story_contract") or {}).get(
+            "scientific_identity"
+        ),
         "rendering_mode": "hybrid-raster-vector" if svg_audit.raster_image_count else "vector",
         "source_records": [
             {"path": str(path.resolve()), "sha256": sha256_file(path), "bytes": path.stat().st_size}

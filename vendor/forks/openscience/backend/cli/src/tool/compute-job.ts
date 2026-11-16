@@ -6,9 +6,16 @@ import type { ComputeCapabilities } from "@/compute/capabilities"
 import { ModalPlan } from "@/compute/modal/plan"
 import { ModalUpload } from "@/compute/modal/upload"
 import { Instance } from "@/project/instance"
+import { ComputeAllowance } from "@/permission/allowance"
 import { SessionFilesystem } from "@/session/filesystem"
 import { Filesystem } from "@/util/filesystem"
+import { SafeDirectoryIO } from "@/file/safe-directory-io"
+import { SafeFileIO } from "@/file/safe-io"
+import { SafeTrashIO } from "@/file/safe-trash-io"
 import { Tool } from "./tool"
+import { SessionWake } from "@/session/wake"
+import { SessionPrompt } from "@/session/prompt"
+import { Log } from "@/util/log"
 
 const COMPUTE_ACTIONS = [
   "targets",
@@ -31,7 +38,7 @@ const ACTION_DESCRIPTIONS = {
   start: "Create and dispatch a detached compute job after any required approval.",
   list: "List project-scoped compute jobs, optionally filtered by status.",
   status: "Inspect the latest state of one existing job.",
-  wait: "Wait for meaningful job, output, delivery, or resource change without model-driven polling.",
+  wait: "Suspend until the job's state changes or it settles, or the timeout passes; log lines alone do not end the wait (read them with logs). A wait that reaches its timeout hands control back and the job wakes you when it ends, so wait once rather than polling.",
   logs: "Read lifecycle events and bounded command output for one existing job.",
   artifacts: "Inspect expected and delivered outputs for one existing job.",
   cancel: "Stop one live job after dedicated approval.",
@@ -77,7 +84,7 @@ const ComputeWorkload = z
       .max(2_000)
       .optional()
       .describe(
-        "Relative working directory. Remote compute uses Session scratch when it exists there, or snapshots approved regular files from the same relative Project-files directory before planning. Omit for the workspace root.",
+        'Directory the job runs in, relative to Session scratch or Project files, e.g. "autoresearch_churn" with command "python train.py". Uses the scratch copy when it exists, else snapshots the Project-files directory (never its root). Omit for the workspace root.',
       ),
     target: ComputeTarget,
     resources: JobBroker.Resources.optional(),
@@ -87,15 +94,16 @@ const ComputeWorkload = z
       .array(z.string().trim().min(1).max(2_000))
       .max(100)
       .optional()
-      .describe("Relative output paths or globs."),
+      .describe("Output paths or globs, relative to cwd."),
     checkpoint: z.string().trim().min(1).max(2_000).optional().describe("Relative checkpoint path."),
     uploads: z
       .array(z.string().trim().min(1).max(2_000))
       .max(100)
       .optional()
       .describe(
-        "Relative session files to stage. Remote targets stage the selected cwd by default; pass an explicit empty array for no inputs.",
+        "Files to stage, relative to cwd; remote targets stage all of cwd by default, an empty array nothing. Swept files fit 100 MiB together; a file named by exact path (no glob) may be up to 2 GiB.",
       ),
+    exclude_uploads: z.array(z.string().trim().min(1).max(2_000)).max(20).optional(),
     packages: z.array(z.string().trim().min(1).max(500)).max(100).optional(),
     image: z.string().trim().min(1).max(2_000).optional(),
     gpu: z.string().trim().min(1).max(120).optional(),
@@ -130,7 +138,7 @@ const ComputeJobActionParameters = z
       .object({
         action: action("wait"),
         job_id: z.string().trim().min(1),
-        seconds: z.number().int().min(1).default(600),
+        seconds: z.number().int().min(1).default(3_600),
       })
       .strict()
       .describe(ACTION_EXAMPLES.wait),
@@ -181,6 +189,7 @@ export const ComputeJobParameters = z
     artifacts: ComputeWorkload.shape.artifacts,
     checkpoint: ComputeWorkload.shape.checkpoint,
     uploads: ComputeWorkload.shape.uploads,
+    exclude_uploads: ComputeWorkload.shape.exclude_uploads,
     packages: ComputeWorkload.shape.packages,
     image: ComputeWorkload.shape.image,
     gpu: ComputeWorkload.shape.gpu,
@@ -249,6 +258,7 @@ function normalizeInput(input: unknown): unknown {
       "image",
       "gpu",
       "secret_refs",
+      "exclude_uploads",
     ]
     const allowed: Record<ComputeAction, Set<string>> = {
       targets: new Set(["action"]),
@@ -320,7 +330,11 @@ type Metadata = {
     job?: JobBroker.Job
     plan?: JobBroker.Plan
   }
-  compute?: JobBroker.Plan & { name: string }
+  compute?: JobBroker.Plan & {
+    name: string
+    /** The time allowance offered beside a Modal job, and the one covering it. */
+    allowance?: { proposed_minutes: number; covered_by?: string; used_minutes?: number }
+  }
   job?: JobBroker.Job
 }
 
@@ -328,6 +342,7 @@ const summary = (job: JobBroker.Job) => ({
   id: job.id,
   name: job.name,
   purpose: job.purpose,
+  capability: job.capability,
   target: job.target_label,
   status: job.status,
   execution: job.lifecycle?.execution,
@@ -349,14 +364,25 @@ const summary = (job: JobBroker.Job) => ({
 
 const json = (value: unknown) => JSON.stringify(value, null, 2)
 
-type ResolvedOptions = JobBroker.Options & {
+export type ResolvedOptions = JobBroker.Options & {
   projectDirectory: string
   workspace: string
   capabilities?: ComputeCapabilities.Target[]
 }
 
+/** Broker options for a session's compute, shared with the study driver. */
+export async function computeOptions(sessionID: string, base?: JobBroker.Options): Promise<ResolvedOptions> {
+  return options(sessionID, base)
+}
+
 async function options(sessionID: string, base?: JobBroker.Options): Promise<ResolvedOptions> {
-  const workspace = await SessionFilesystem.workspace(sessionID)
+  // Where the session's relative paths resolve, which is where its code is:
+  // the lead's own scratch or project, and for a worker the lead's directory
+  // it was given to work in. The worker's private scratch is not it: with
+  // that as the compute workspace every worker's `start` was refused as
+  // "Compute project does not match the session workspace", and workers
+  // ran their long computations through the shell instead.
+  const workspace = await SessionFilesystem.toolDirectory(sessionID)
   if (base) return { ...base, projectDirectory: base.projectDirectory ?? Instance.directory, workspace }
   const module = await import("@/server/routes/settings/compute")
   const settings = await module.ComputeSettings.get()
@@ -382,12 +408,54 @@ type PreparedRequest = {
 }
 
 const COMPUTE_STAGE_DISK_RESERVE_BYTES = 512 * 1024 * 1024
+/** Written into a scratch copy this tool staged from Project files. Under
+ * `.openscience`, so the upload policy never ships it. */
+const STAGED_MARKER = ".openscience/staged.json"
 
 async function directory(root: string, relative: string) {
   const target = path.resolve(root, relative)
   const canonical = await Filesystem.canonical(target)
   const info = canonical ? await fs.stat(canonical).catch(() => undefined) : undefined
   return { target, canonical, info }
+}
+
+/**
+ * The working directory as the staging code wants it: relative to the two
+ * roots. A model that just read a file by its full path names the job's
+ * directory the same way; an absolute path inside Session scratch or Project
+ * files is the same request as its relative form, so it is converted rather
+ * than refused. The Project-files root itself has no relative form and is
+ * refused with the directory to name instead.
+ */
+export async function relativeWorkingDirectory(input: {
+  cwd: string
+  projectDirectory: string
+  workspace: string
+}): Promise<string> {
+  const hint =
+    'Give the directory that holds the code, relative to Session scratch or Project files (for example cwd "autoresearch_churn" with command "python train.py"); when the code sits at the project root, copy the scripts it needs into a subdirectory and name that. No compute job was dispatched.'
+  if (!path.isAbsolute(input.cwd)) {
+    if (input.cwd.split(/[\\/]/).includes("..")) {
+      throw new Error(`Compute working directory cannot contain '..': ${input.cwd}. ${hint}`)
+    }
+    return input.cwd
+  }
+  const target = (await Filesystem.canonical(input.cwd)) ?? path.resolve(input.cwd)
+  for (const root of [input.workspace, input.projectDirectory]) {
+    const canonical = await Filesystem.canonical(root)
+    if (!canonical || !Filesystem.contains(canonical, target)) continue
+    const relative = path.relative(canonical, target)
+    // Jobs run in Session scratch, so its root is a working directory (in a
+    // headless run it is the project itself, and the code is there). The
+    // Project-files root has no relative form and is refused with the
+    // directory to name instead.
+    if (relative === "" && root === input.workspace) return "."
+    if (relative === "") {
+      throw new Error(`Compute working directory is the Project files root itself: ${input.cwd}. ${hint}`)
+    }
+    return relative
+  }
+  throw new Error(`Compute working directory is outside Session scratch and Project files: ${input.cwd}. ${hint}`)
 }
 
 async function stageProjectDirectory(input: {
@@ -397,6 +465,11 @@ async function stageProjectDirectory(input: {
   target: JobBroker.Target
   uploads?: string[]
   explicitUploads: boolean
+  exclude?: readonly string[]
+  /** Overlay the project's files even onto a scratch directory this tool did
+   * not stage: a study's root under Project files is authoritative, and the
+   * agent may have left a same-named directory in scratch. */
+  refresh?: boolean
 }): Promise<string | undefined> {
   if (path.isAbsolute(input.cwd) || input.cwd.split(/[\\/]/).includes("..")) {
     throw new Error(
@@ -415,12 +488,29 @@ async function stageProjectDirectory(input: {
   if (!current.canonical || !Filesystem.contains(workspace, current.canonical)) {
     throw new Error(`Compute working directory escaped Session scratch: ${input.cwd}`)
   }
-  if (current.info?.isDirectory()) return
-  if (current.info) {
+  // A copy this tool staged earlier mirrors Project files as they were at
+  // that dispatch. Refresh it from the project when the source is still
+  // there, so the code a study just changed is the code the run gets; the
+  // outputs earlier runs delivered into the copy stay. A directory the agent
+  // made in scratch itself has no marker and is left alone.
+  const staged = current.info?.isDirectory()
+    ? input.refresh ||
+      (await fs
+        .stat(path.join(current.target, STAGED_MARKER))
+        .then(() => true)
+        .catch(() => false))
+    : false
+  if (current.info?.isDirectory() && !staged) return
+  if (current.info && !current.info.isDirectory()) {
     throw new Error(`Compute working directory is not a directory in Session scratch: ${input.cwd}`)
   }
 
   const source = await directory(project, input.cwd)
+  // Session scratch and Project files are one directory in a headless run
+  // (`--workspace project`): the code is already where the job runs, and a
+  // study's refresh has nothing to overlay.
+  if (source.canonical && current.canonical === source.canonical) return
+  if (staged && (!source.canonical || !source.info?.isDirectory())) return
   if (!source.canonical || !Filesystem.contains(project, source.canonical) || !source.info?.isDirectory()) {
     throw new Error(
       `Compute working directory "${input.cwd}" does not exist in Session scratch or Project files. ` +
@@ -428,27 +518,28 @@ async function stageProjectDirectory(input: {
         "No compute job was dispatched.",
     )
   }
-  if (input.target.kind === "local") {
-    throw new Error(
-      `Local compute working directory "${input.cwd}" exists only in Project files. ` +
-        "Copy it into Session scratch before dispatch; automatic bounded snapshots are available for Modal and SSH only. " +
-        "No compute job was dispatched.",
-    )
-  }
-
   const parent = await Filesystem.canonical(path.dirname(current.target))
   if (!parent || !Filesystem.contains(workspace, parent)) {
     throw new Error(`Compute working directory escaped Session scratch while staging: ${input.cwd}`)
   }
 
-  const label = input.target.kind === "ssh" ? "SSH staging" : "Modal staging"
-  const manifest = await ModalPlan.stagingFiles(source.canonical, input.uploads ?? [], label, {
-    prefix: input.target.kind === "ssh" ? input.cwd.replaceAll("\\", "/").replace(/^\.\//, "") : undefined,
+  // Local jobs run only inside Session scratch, and a study in an isolated
+  // session keeps its code under Project files, so a local run gets the same
+  // bounded snapshot as a remote one: the whole folder unless uploads narrow it.
+  const label =
+    input.target.kind === "ssh" ? "SSH staging" : input.target.kind === "local" ? "Local staging" : "Modal staging"
+  const patterns = input.uploads ?? (input.target.kind === "local" ? ["**/*"] : [])
+  const manifest = await ModalPlan.stagingFiles(source.canonical, patterns, label, {
+    prefix:
+      input.target.kind === "ssh" && input.cwd !== "."
+        ? input.cwd.replaceAll("\\", "/").replace(/^\.\//, "")
+        : undefined,
     denied: input.explicitUploads ? "error" : "skip",
+    exclude: input.exclude,
   })
   const disk = await fs.statfs(workspace)
-  const available = disk.bavail * disk.bsize
-  if (!Number.isSafeInteger(available) || available < 0) {
+  const available = Math.min(disk.bavail * disk.bsize, Number.MAX_SAFE_INTEGER)
+  if (!Number.isFinite(available) || available < 0) {
     throw new Error(`${label} disk capacity could not be represented safely; no compute job was dispatched`)
   }
   const capacity = Math.max(0, available - COMPUTE_STAGE_DISK_RESERVE_BYTES)
@@ -459,13 +550,14 @@ async function stageProjectDirectory(input: {
     )
   }
 
-  await fs.mkdir(path.dirname(current.target), { recursive: true, mode: 0o700 })
+  await SafeDirectoryIO.ensureDirectory(path.dirname(current.target))
   const materializedParent = await Filesystem.canonical(path.dirname(current.target))
   if (!materializedParent || !Filesystem.contains(workspace, materializedParent)) {
     throw new Error(`Compute working directory escaped Session scratch while staging: ${input.cwd}`)
   }
   const temporary = await fs.mkdtemp(path.join(workspace, ".compute-stage-"))
   const snapshot = path.join(temporary, "snapshot")
+  const recovery = { retained: false }
   try {
     await fs.mkdir(snapshot, { recursive: true, mode: 0o700 })
     for (const file of manifest.files) {
@@ -475,19 +567,76 @@ async function stageProjectDirectory(input: {
       await fs.mkdir(path.dirname(target), { recursive: true, mode: 0o700 })
       await ModalUpload.stage(file.canonical, target, { size: file.size, sha256: file.sha256 }, label)
     }
-    await fs.rename(snapshot, current.target).catch(async (error: NodeJS.ErrnoException) => {
-      if (error.code !== "EEXIST" && error.code !== "ENOTEMPTY") throw error
-      const existing = await directory(workspace, input.cwd)
-      if (!existing.canonical || !Filesystem.contains(workspace, existing.canonical) || !existing.info?.isDirectory()) {
-        throw error
+    await fs.mkdir(path.join(snapshot, path.dirname(STAGED_MARKER)), { recursive: true, mode: 0o700 })
+    await fs.writeFile(
+      path.join(snapshot, STAGED_MARKER),
+      JSON.stringify({ source: source.canonical, at: new Date().toISOString() }),
+    )
+    if (staged) {
+      // Overlay: the project's current files replace their copies, file by
+      // file; whatever else the copy holds (delivered outputs) is kept.
+      for (const file of [...manifest.files.map((item) => item.path), STAGED_MARKER]) {
+        const target = path.resolve(current.target, file)
+        if (!Filesystem.contains(current.target, target))
+          throw new Error(`${label} destination escaped Session scratch: ${file}`)
+        // A job can replace its output directories with symlinks after a
+        // path check. Hold verified directory handles for every mutation,
+        // and retain the previous file if a concurrent change blocks rollback.
+        await SafeDirectoryIO.ensureDirectory(path.dirname(target))
+        const previous = await SafeFileIO.inspect(target).catch((error: NodeJS.ErrnoException) => {
+          if (error.code === "ENOENT") return
+          throw error
+        })
+        if (previous && previous.type !== "file") {
+          throw new Error(`${label} cannot replace a non-file destination: ${file}`)
+        }
+        const backup = path.join(temporary, "previous")
+        if (previous) {
+          await SafeFileIO.rename(target, backup, previous).catch((error) => {
+            recovery.retained = true
+            throw new Error(`${label} could not move ${file} safely; staging data retained at ${temporary}`, {
+              cause: error,
+            })
+          })
+        }
+        try {
+          const source = path.resolve(snapshot, file)
+          await SafeFileIO.rename(source, target, await SafeFileIO.inspect(source))
+        } catch (error) {
+          if (previous) {
+            await SafeFileIO.rename(backup, target, previous).catch((rollback) => {
+              recovery.retained = true
+              throw new AggregateError(
+                [error, rollback],
+                `${label} could not restore ${file}; its original is preserved at ${backup}`,
+              )
+            })
+          }
+          throw error
+        }
+        if (previous) await SafeTrashIO.remove(backup)
       }
-    })
+    } else {
+      await SafeFileIO.rename(snapshot, current.target, await SafeFileIO.inspect(snapshot)).catch(
+        async (error: NodeJS.ErrnoException) => {
+          if (error.code !== "EEXIST" && error.code !== "ENOTEMPTY") throw error
+          const existing = await directory(workspace, input.cwd)
+          if (
+            !existing.canonical ||
+            !Filesystem.contains(workspace, existing.canonical) ||
+            !existing.info?.isDirectory()
+          ) {
+            throw error
+          }
+        },
+      )
+    }
   } finally {
-    await fs.rm(temporary, { recursive: true, force: true })
+    if (!recovery.retained) await SafeTrashIO.remove(temporary)
   }
 
-  const staged = await directory(workspace, input.cwd)
-  if (!staged.canonical || !Filesystem.contains(workspace, staged.canonical) || !staged.info?.isDirectory()) {
+  const placed = await directory(workspace, input.cwd)
+  if (!placed.canonical || !Filesystem.contains(workspace, placed.canonical) || !placed.info?.isDirectory()) {
     throw new Error(`OpenScience could not stage Project files into Session scratch: ${input.cwd}`)
   }
   return input.cwd
@@ -497,39 +646,63 @@ async function request(
   input: Extract<Input, { action: "plan" | "start" }>,
   sessionID: string,
   options: ResolvedOptions,
+  capability?: JobBroker.CapabilityBinding,
+  capabilityExecution?: JobBroker.CapabilityExecution,
+  refresh = false,
 ): Promise<PreparedRequest> {
+  const cwd = input.cwd
+    ? await relativeWorkingDirectory({
+        cwd: input.cwd,
+        projectDirectory: options.projectDirectory,
+        workspace: options.workspace,
+      })
+    : undefined
+  // A path given from the project root for a file inside the cwd names the
+  // same file: "autoresearch_churn/train.py" with cwd "autoresearch_churn" is
+  // "train.py". Strip the prefix rather than upload nothing.
+  const inside = (value: string) => {
+    if (!cwd) return value
+    const prefix = `${cwd.replaceAll("\\", "/").replace(/\/$/, "")}/`
+    return value.startsWith(prefix) ? value.slice(prefix.length) : value
+  }
+  const explicitUploads = input.uploads?.map(inside)
   const uploads =
-    input.uploads ??
+    explicitUploads ??
     (input.target.kind === "modal"
       ? ["**/*"]
-      : input.target.kind === "ssh" && input.cwd
-        ? [`${input.cwd.replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/$/, "")}/**/*`]
+      : input.target.kind === "ssh" && cwd
+        ? [`${cwd.replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/$/, "")}/**/*`]
         : undefined)
-  const staged = input.cwd
+  const staged = cwd
     ? await stageProjectDirectory({
-        cwd: input.cwd,
+        cwd,
         projectDirectory: options.projectDirectory,
         workspace: options.workspace,
         target: input.target,
         uploads,
         explicitUploads: input.uploads !== undefined,
+        exclude: input.exclude_uploads,
+        refresh,
       })
     : undefined
   return {
     value: {
       sessionID,
+      capability,
+      capability_execution: capabilityExecution,
       name: input.name,
       purpose: input.purpose,
       command: input.command,
-      cwd: input.cwd,
+      cwd,
       target: input.target,
       resources: input.resources,
       modules: input.modules,
       container: input.container,
-      artifacts: input.artifacts,
+      artifacts: input.artifacts?.map(inside),
       checkpoint: input.checkpoint,
       uploads,
       default_uploads: input.target.kind === "modal" && input.uploads === undefined,
+      exclude_uploads: input.exclude_uploads,
       packages: input.packages,
       image: input.image,
       gpu: input.target.kind === "modal" ? (input.gpu ?? "none") : input.gpu,
@@ -544,28 +717,173 @@ async function jobs(sessionID: string, base?: JobBroker.Options) {
   return { resolved, jobs: await JobBroker.list(resolved) }
 }
 
+/** Edits (insert, delete, substitute) between two short strings. */
+function distance(a: string, b: string) {
+  const row = Array.from({ length: b.length + 1 }, (_, i) => i)
+  for (let i = 1; i <= a.length; i++) {
+    let previous = row[0]!
+    row[0] = i
+    for (let j = 1; j <= b.length; j++) {
+      const current = row[j]!
+      row[j] = Math.min(row[j]! + 1, row[j - 1]! + 1, previous + (a[i - 1] === b[j - 1] ? 0 : 1))
+      previous = current
+    }
+  }
+  return row[b.length]!
+}
+
+/** The job an id names. A twelve-character random id is mis-copied about
+ * once a run (a case flip, one hex digit off, a dropped character), and the
+ * wait or the log read then never happened. An id that names no job resolves
+ * to the one job it is unambiguously closest to, or to the one job with that
+ * name; otherwise the error lists what exists instead of inviting another
+ * guess. */
+function resolve(id: string, jobs: JobBroker.Job[]) {
+  const exact = jobs.find((item) => item.id === id)
+  if (exact) return exact
+  const wanted = id.trim().toLowerCase()
+  const relaxed = jobs.find((item) => item.id.toLowerCase() === wanted)
+  if (relaxed) return relaxed
+  const named = jobs.filter((item) => item.name === id.trim())
+  if (named.length === 1) return named[0]
+  const near = jobs.filter((item) => distance(item.id.toLowerCase(), wanted) <= 2)
+  if (near.length === 1) return near[0]
+}
+
 async function selected(id: string, sessionID: string, base?: JobBroker.Options) {
   const state = await jobs(sessionID, base)
-  const job = state.jobs.find((item) => item.id === id)
-  if (!job) throw new Error(`Compute job ${id} was not found in this project`)
+  const job = resolve(id, state.jobs)
+  if (!job) {
+    const known = state.jobs
+      .slice(-8)
+      .map((item) => `${item.id} (${item.name}, ${item.status})`)
+      .join("; ")
+    throw new Error(
+      `Compute job ${id} was not found in this project.${known ? ` Jobs in this project: ${known}.` : ""}`,
+    )
+  }
   return { ...state, job }
 }
 
 function artifacts(job: JobBroker.Job) {
   const files = [...(job.artifacts ?? []), ...(job.checkpoint ? [job.checkpoint] : [])]
+  // Delivered paths are relative to the job's working directory, which for
+  // an isolated session is scratch that dies with the conversation. Say
+  // where that is and how to keep what matters, so the outputs are not
+  // hunted for with globs and then left where they will be deleted.
+  const root = job.cwd
+  const inProject = !!root && Filesystem.contains(Instance.directory, root)
   return {
     job: summary(job),
     expected: [...(job.artifact_patterns ?? []), ...(job.checkpoint_path ? [job.checkpoint_path] : [])],
     delivered: files.filter((file, index) => files.findIndex((item) => item.path === file.path) === index),
+    delivered_root: root,
+    delivered_in: root ? (inProject ? "project files" : "session scratch") : undefined,
+    keep: root
+      ? inProject
+        ? "These paths are under Project files and persist."
+        : `These paths are relative to ${root}, session scratch that is deleted with the conversation. Keep results with the artifact tool (Results) or copy them into Project files with bash.`
+      : undefined,
     capture_error: job.capture_error,
   }
+}
+
+const log = Log.create({ service: "tool.compute-job" })
+
+/** A watcher is not a lease on the run: a job that never settles stops being
+ * waited on after a day, and `status` still answers for it. */
+const WAKE_LIMIT_MS = 24 * 60 * 60_000
+/** How long a dispatch waits for its job before handing back a step. */
+const settle = { graceMs: 30_000 }
+
+/** A test's barrier for the dispatch grace; disabled outside tests. */
+export function computeJobTesting(input: { settleGraceMs: number }) {
+  if (!process.env.OPENSCIENCE_TEST_HOME) throw new Error("compute_job test hooks are disabled outside tests")
+  const prior = settle.graceMs
+  settle.graceMs = input.settleGraceMs
+  return {
+    [Symbol.dispose]() {
+      settle.graceMs = prior
+    },
+  }
+}
+/** The tail of a job's output a settled report carries inline. */
+const REPORT_TAIL_BYTES = 6_000
+
+/** A settled job as the model needs it in one reading: the summary, the
+ * tail of its command output, and what it delivered. */
+async function settledReport(job: JobBroker.Job, options: JobBroker.Options) {
+  const output = await JobBroker.log(job.id, { ...options, bytes: REPORT_TAIL_BYTES }).catch(() => "")
+  const { job: _repeated, ...delivered } = artifacts(job)
+  return {
+    ...summary(job),
+    output_tail: output || "No command output was captured.",
+    ...delivered,
+    note: "This is the job's final state. Its full output is one `logs` call away if the tail is not enough.",
+  }
+}
+
+/** Jobs already being watched, so repeated waits arm one watcher each. */
+const watched = new Set<string>()
+
+/** Wait for a job to settle, detached from the turn that asked, then deliver
+ * its outcome to the session as a synthetic message. Mirrors the background
+ * worker path in `task.ts`: work that outlives its turn reports itself instead
+ * of being polled for. */
+async function armWake(
+  ctx: { sessionID: string; messageID: string; agent: string; extra?: { [key: string]: any } },
+  jobID: string,
+  resolved: JobBroker.Options,
+) {
+  if (watched.has(jobID)) return true
+  // Arming a wake never fails the wait it rides on: a call with no resolvable
+  // turn behind it (a direct invocation, a test harness) simply keeps the
+  // old behaviour of returning at the timeout.
+  const origin = await SessionWake.origin({
+    sessionID: ctx.sessionID,
+    messageID: ctx.messageID,
+    agent: ctx.agent,
+    variant: ctx.extra?.variant,
+  }).catch(() => undefined)
+  if (!origin) return false
+  watched.add(jobID)
+  SessionPrompt.detached(async () => {
+    try {
+      const job = await JobBroker.wait(jobID, { ...resolved, timeout: WAKE_LIMIT_MS })
+      await SessionWake.deliver({
+        ...origin,
+        text: `Compute job ${job.id} (${job.name}) ended with status ${job.status}. Read its logs with compute_job logs and its outputs with compute_job artifacts before continuing.`,
+        describe: `compute job ${jobID}`,
+        source: "compute",
+        label: `Compute job ${job.name} ${job.status}`,
+      })
+    } catch (error) {
+      // The wake is what a caller waits on, so a watcher that cannot report
+      // the outcome still reports that: silence would leave a headless run
+      // waiting for a turn that never comes.
+      log.warn("a compute job could not wake its session", { jobID, error: `${error}` })
+      await SessionWake.deliver({
+        ...origin,
+        text: `Compute job ${jobID} could not be watched to completion (${error instanceof Error ? error.message : String(error)}). Check it with compute_job status.`,
+        describe: `compute job ${jobID}`,
+        source: "compute",
+        label: `Compute job ${jobID} could not be watched`,
+      }).catch(() => undefined)
+    } finally {
+      watched.delete(jobID)
+    }
+  }).catch((error: unknown) => {
+    watched.delete(jobID)
+    log.warn("a compute job wake could not be started", { jobID, error: `${error}` })
+  })
+  return true
 }
 
 export function createComputeJobTool(base?: JobBroker.Options) {
   return Tool.define<typeof ComputeJobParameters, Metadata>("compute_job", {
     description: [
       "Detached local, SSH/scheduler, and Modal jobs; prefer Python/R for interactive work.",
-      "Use targets to discover, plan to preview, start to dispatch, and wait instead of shell polling. list/status/logs/artifacts inspect jobs; cancel, retry_delivery, and release manage them.",
+      "Use targets to discover, plan to preview, start to dispatch, and wait instead of shell polling. A start that settles within 30 s returns the job's outcome, output tail and deliveries in that one step; a longer job wakes you when it ends. list/status/logs/artifacts inspect jobs; cancel, retry_delivery, and release manage them.",
       "plan/start require name, purpose, command, and target. Remote starts require scoped approval. Other job actions use job_id.",
       'Example: {"action":"start","name":"Analysis","purpose":"Produce results","command":"python analysis.py","target":{"kind":"local"}}.',
       'Use "action", never "operation"; target is an object, never a JSON string. Never call Modal SDK/CLI directly.',
@@ -602,10 +920,30 @@ export function createComputeJobTool(base?: JobBroker.Options) {
                   ? "Outbound network access is enabled for approved Modal jobs."
                   : "Outbound network access is blocked. Do not submit jobs that download packages, models, or repositories; enable it in Compute settings first.",
               outputs: "Write and declare relative artifact/checkpoint paths under the job workspace, not /tmp.",
-              gpu: "Set gpu to the exact Modal GPU request, or none for CPU-only discovery.",
+              gpu: "Set gpu to a Modal GPU type (T4, L4, A10, L40S, A100, A100-80GB, H100, H200, B200; 'H100:2' for two), or none for CPU-only discovery. Modal may upgrade A100 to 80 GB and H100 to H200.",
             },
           },
           capabilities: resolved.capabilities,
+          // One preflight answer instead of facts scattered over settings:
+          // whether a job could run, download, and reach a model API.
+          readiness: (() => {
+            const configured = Boolean(resolved.modal && resolved.resolveCredentials)
+            const network = resolved.modal?.network === "unrestricted"
+            const secrets = (resolved.capabilities ?? []).find((target) => target.kind === "modal")?.secret_refs ?? []
+            return {
+              remote_compute_configured: configured,
+              outbound_network: network ? "enabled" : "blocked",
+              downloads_permitted: network,
+              secret_refs_available: secrets,
+              credential_forwarding:
+                "Only the listed secret_refs can be placed in a job. Provider API keys saved for chat (OpenRouter, OpenAI, Anthropic, Google) are not forwarded; a job that must call a model API needs a key the user provides for it.",
+              ready_to_execute: configured
+                ? network
+                  ? "yes"
+                  : "only jobs that need no downloads and no network"
+                : "no remote target; local jobs only",
+            }
+          })(),
         }
         return {
           title: "Compute targets",
@@ -616,7 +954,16 @@ export function createComputeJobTool(base?: JobBroker.Options) {
 
       if (input.action === "plan" || input.action === "start") {
         const resolved = await options(ctx.sessionID, base)
-        const prepared = await request(input, ctx.sessionID, resolved)
+        const capability = JobBroker.CapabilityBinding.safeParse(ctx.extra?.scientificCapability)
+        const capabilityExecution = JobBroker.CapabilityExecution.safeParse(ctx.extra?.scientificCapabilityExecution)
+        const prepared = await request(
+          input,
+          ctx.sessionID,
+          resolved,
+          capability.success ? capability.data : undefined,
+          capabilityExecution.success ? capabilityExecution.data : undefined,
+          ctx.extra?.studyStaging === "refresh",
+        )
         const value = prepared.value
         const plan = await JobBroker.plan(value, resolved)
         const metadata: Metadata = {
@@ -636,12 +983,51 @@ export function createComputeJobTool(base?: JobBroker.Options) {
           }
         }
 
-        ctx.metadata({ title: `Review ${plan.provider} job: ${input.name}`, metadata })
+        // A study's runs share the approval its creation asked for; the
+        // digest of each dispatched plan is still recorded on the job.
+        const scope =
+          plan.provider !== "local" && typeof ctx.extra?.studyApproval === "string"
+            ? ctx.extra.studyApproval
+            : undefined
+        // Outside a study, a Modal job asks under a time allowance the person
+        // granted earlier when its timeout still fits; otherwise it asks on
+        // its exact plan and offers an allowance beside it, so the next job
+        // in the same piece of work does not prompt again.
+        const allowance =
+          plan.provider === "modal" && !scope
+            ? await ComputeAllowance.cover({
+                sessionID: ctx.sessionID,
+                timeoutMinutes: plan.timeout_minutes,
+                jobs: await JobBroker.list(resolved).catch(() => []),
+              })
+            : undefined
+        const proposed =
+          plan.provider === "modal" && !scope ? ComputeAllowance.propose(plan.timeout_minutes) : undefined
+        const approval = {
+          ...metadata,
+          compute: {
+            ...metadata.compute,
+            ...(proposed !== undefined
+              ? {
+                  allowance: {
+                    proposed_minutes: proposed,
+                    ...(allowance ? { covered_by: allowance.pattern, used_minutes: allowance.used } : {}),
+                  },
+                }
+              : {}),
+          },
+        }
+        ctx.metadata({ title: `Review ${plan.provider} job: ${input.name}`, metadata: approval })
         await ctx.ask({
           permission: plan.provider === "modal" ? "modal" : plan.provider === "ssh" ? "remote_compute" : "compute_job",
-          patterns: [plan.digest],
-          always: plan.provider === "local" ? [] : [plan.digest],
-          metadata,
+          patterns: [scope ?? allowance?.pattern ?? plan.digest],
+          always:
+            plan.provider === "local"
+              ? []
+              : scope
+                ? [scope]
+                : [plan.digest, ...(proposed !== undefined ? [ComputeAllowance.pattern(proposed)] : [])],
+          metadata: approval,
         })
         const job = await JobBroker.start(
           { ...value, approval: plan.provider === "local" ? undefined : plan.digest },
@@ -649,10 +1035,32 @@ export function createComputeJobTool(base?: JobBroker.Options) {
         )
         const complete: Metadata = { ...metadata, compute_job: { action: input.action, plan, job }, job }
         ctx.metadata({ title: `Compute job: ${input.name}`, metadata: complete })
+        // Most jobs finish in seconds, and the dispatch used to hand back a
+        // step that said only "queued": the model then spent a wait, a logs
+        // and an artifacts call on each — four round-trips, each re-sending
+        // the whole context, for work a shell command returns in one. A job
+        // that settles within the grace comes back with its output; one that
+        // runs on wakes the session when it ends.
+        const settled = await JobBroker.wait(job.id, { ...resolved, timeout: settle.graceMs, signal: ctx.abort }).catch(
+          () => undefined,
+        )
+        const staged = prepared.staged ? `Staged Project files/${prepared.staged} into Session scratch. ` : ""
+        if (settled) {
+          return {
+            title: `Compute job: ${input.name}`,
+            metadata: { ...complete, job: settled },
+            output: `${staged}${json(await settledReport(settled, resolved))}`,
+          }
+        }
+        const woken = await armWake(ctx, job.id, resolved)
         return {
           title: `Compute job: ${input.name}`,
           metadata: complete,
-          output: `${prepared.staged ? `Staged Project files/${prepared.staged} into Session scratch. ` : ""}Dispatched ${plan.provider} job ${job.id}. Status: ${job.status}. Use compute_job wait to suspend until meaningful progress, completion, or your selected timeout; do not poll with shell sleep.`,
+          output: `${staged}Dispatched ${plan.provider} job ${job.id}. Status: ${job.status} after ${Math.round(settle.graceMs / 1000)} s.${
+            woken
+              ? " It will wake you with its outcome when it ends: continue with other work, or end your turn and the wake starts a new one. Use compute_job wait only if nothing else can proceed; do not poll with shell sleep."
+              : " Use compute_job wait to suspend until it settles or your selected timeout; do not poll with shell sleep."
+          }`,
         }
       }
 
@@ -676,22 +1084,64 @@ export function createComputeJobTool(base?: JobBroker.Options) {
         }
       }
       if (input.action === "wait") {
-        const result = await JobBroker.waitForChange(state.job.id, {
+        // A wait the person interrupts (a stop, a message that ends the turn)
+        // is not a failure of the job, which keeps running where it is. Say
+        // exactly that, with the job's state, instead of a bare abort that
+        // left one agent unsure whether to dispatch the job a second time.
+        const started = Date.now()
+        const interrupted = await JobBroker.waitForChange(state.job.id, {
           ...state.resolved,
           timeout: input.seconds * 1_000,
           signal: ctx.abort,
           after: state.job,
-        })
+        }).then(
+          (value) => ({ result: value }),
+          (error: unknown) => {
+            if (!ctx.abort.aborted) throw error
+            // No lookup here: the turn is ending and a late result must land
+            // before its call is closed as aborted. The state at the start of
+            // the wait is what is known.
+            return { job: state.job, waited_ms: Date.now() - started }
+          },
+        )
+        if (!("result" in interrupted)) {
+          return {
+            title: `Compute job: ${interrupted.job.name}`,
+            metadata: { compute_job: { action: input.action, job: interrupted.job } },
+            output: json({
+              ...summary(interrupted.job),
+              wait_interrupted: true,
+              waited_ms: interrupted.waited_ms,
+              note: `The wait was interrupted after ${Math.round(interrupted.waited_ms / 1000)} s; job ${interrupted.job.id} was ${interrupted.job.status} when the wait began and continues on ${interrupted.job.target_label}. Do not dispatch it again: check it with compute_job status or wait for it again.`,
+            }),
+          }
+        }
+        const result = interrupted.result
+        // A wait that reaches its timeout used to hand back a step that said
+        // nothing and invited another wait: 396 such calls across one campaign,
+        // each re-sending the whole context. The job now wakes the session when
+        // it settles, the same way a background worker does, so the model can
+        // do other work or end its turn.
+        const woken = result.timed_out ? await armWake(ctx, state.job.id, state.resolved) : false
+        // A settled job's wait carries what the model would otherwise fetch
+        // with two more calls: the output's tail and the delivered artifacts.
+        const report = result.changed.includes("settled") ? await settledReport(result.job, state.resolved) : undefined
         return {
           title: `Compute job: ${result.job.name}`,
           metadata: { compute_job: { action: input.action, job: result.job } },
           output: json({
-            ...summary(result.job),
+            ...(report ?? summary(result.job)),
             changed: result.changed,
             waited_ms: result.waited_ms,
             timed_out: result.timed_out,
             output_bytes: result.output_bytes,
             event_bytes: result.event_bytes,
+            ...(woken
+              ? {
+                  will_wake: true,
+                  note: `Job ${state.job.id} is still running and will wake you with its outcome when it ends. Do not wait for it again: continue with other work, or end your turn and the wake starts a new one.`,
+                }
+              : {}),
           }),
         }
       }

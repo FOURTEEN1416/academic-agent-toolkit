@@ -8,6 +8,8 @@ description: "论文方法框架图的多候选共设计（人在环）：按论
 
 Version: `3.2.15f`.
 
+> 来源与适配见 `ADAPTATION.md`（技能版本 v3.2.15f）。本技能在本仓由当前执行会话驱动执行：各步骤产物路径与核验按当前执行会话的步骤合同承接（finish/output_contract 统一核验），模型只负责实质设计与生成质量；候选/精修的中间产物按步骤合同落盘。
+
 Candidate-count contract: S1/S2 use C01-C04 only; S4/S5 use F01-F02 only.
 
 本 skill 用于为工程与应用科学研究论文设计并生成 publication-ready 候选框架图、架构图、流程图、机制图和方法总览图。它只服务论文框架图，不服务海报、宣传图、封面图、展板、营销视觉或把 PPT 页面内容塞进图里的演示页。

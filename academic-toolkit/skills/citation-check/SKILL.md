@@ -9,8 +9,8 @@ description: "引用检查（CUMCM 参考文献质量检查）：格式一致性
 国赛论文参考文献质量检查工具。覆盖：格式一致性、GB/T 7714 规范性、引用完整性、来源可信度评估。
 
 ## 依赖
-- `lit-citation-manage` — scientific-agent-skills 子 skill，通用引用管理
-- Python 脚本 `tools/citation_checker.py`（本目录）
+- `lit-citation-manage` — 通用引用管理技能（同仓 `academic-toolkit/skills/lit-citation-manage/`）
+- Python 脚本 `academic-toolkit/tools/citation_checker.py`（**仓库级 tools/ 目录，非本技能目录**——本技能目录内无 tools/、无 scripts/，勿在本目录下找脚本）
 
 ## 检查清单
 
@@ -62,8 +62,10 @@ description: "引用检查（CUMCM 参考文献质量检查）：格式一致性
 - 格式不统一会扣分
 
 ## 调用方式
-```powershell
-skill("lit-citation-manage")   # 通用引用管理
-skill("citation-check")            # 国赛引用检查
-python tools/citation_checker.py --input paper.md
+
+通用引用管理 → 使用 `lit-citation-manage` 技能；国赛引用检查 → 本技能（按上文检查清单执行），格式与完整性机检用仓库级脚本：
+
+```bash
+# 从仓库根运行；该工具只收位置参数（.bib 或 .md），无 --input 旗标
+python academic-toolkit/tools/citation_checker.py paper.md
 ```

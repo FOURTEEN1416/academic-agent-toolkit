@@ -2,7 +2,7 @@
 
 > **For AI agents reading this repo cold.** If you are a human, see [README.md](README.md) or [docs/ARIS_INTRO.html](https://wanshuiyin.github.io/Auto-claude-code-research-in-sleep/ARIS_INTRO.html).
 
-ARIS is a research harness: composable Markdown skills that orchestrate the ML research lifecycle through cross-model adversarial collaboration. Executor (Claude / Codex / Cursor / Antigravity / Copilot CLI) writes code & papers; reviewer (GPT-5.6-Sol via Codex MCP, Claude / Gemini via `claude-review` / `gemini-review` MCP, or Copilot's evidence-gated native complementary reviewer for `/auto-review-loop`) critiques independently.
+ARIS is a research harness: composable Markdown skills that orchestrate the ML research lifecycle through cross-model adversarial collaboration. Executor (Claude / Codex / Cursor / Antigravity / Copilot CLI) writes code & papers; reviewer (GPT-6-Astra via Codex MCP, Claude / Gemini via `claude-review` / `gemini-review` MCP, or Copilot's evidence-gated native complementary reviewer for `/auto-review-loop`) critiques independently.
 
 > **Source of Truth.** This file is a *routing index*, not a specification.
 > Behavior of a skill lives in `skills/<name>/SKILL.md`. System-wide
@@ -15,21 +15,77 @@ ARIS is a research harness: composable Markdown skills that orchestrate the ML r
 |----------|-----------|-------|
 | Claude Code / Cursor / Trae / Antigravity / Copilot CLI | `skills/<name>/SKILL.md` | Mainline skills; native `SKILL.md` invocation |
 | Codex CLI | `skills/skills-codex/<name>/SKILL.md` | Codex mirror; uses `spawn_agent` instead of `mcp__codex__codex` |
-| Codex + Claude-review | `skills/skills-codex-claude-review/` | Overlay on top of `skills-codex/` |
-| Codex + Gemini-review | `skills/skills-codex-gemini-review/` | Same pattern, Gemini reviewer |
+| Codex + Claude-review | `skills/skills-codex-claude-review/` | Frozen legacy overlay; use full Codex pack + reviewer selection |
+| Codex + Gemini-review | `skills/skills-codex-gemini-review/` | Frozen legacy overlay; existing links retained |
+| DeepSeek Harness | `dsh plugin --profile web add dsh-aris` | One plugin, mainline skills unchanged; see the [`dsh-aris` branch](https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/tree/dsh-aris#readme) |
 
 Codex base review is a fresh same-family `spawn_agent` review. It may drive and
 complete workflows but records `review_independence: same-family` and
-`acceptance_status: provisional`. Claude/Gemini overlays or deterministic
-verifiers may record accepted; never describe base Codex self-review as
-cross-model acceptance.
+`acceptance_status: provisional`. The complete pack supports optional backends
+through [reviewer selection](skills/skills-codex/shared-references/reviewer-backends.md);
+acceptance requires actual identities, completed scope, and the applicable gate.
+The two partial overlays are frozen; [migration](skills/skills-codex/README.md#migrate-frozen-partial-overlays)
+preserves existing links and customizations.
 
-**Full catalog**: [`docs/SKILLS_CATALOG.md`](docs/SKILLS_CATALOG.md) — **82 skills**, grouped by role.
+**Full catalog**: [`docs/SKILLS_CATALOG.md`](docs/SKILLS_CATALOG.md) — **87 skills**, grouped by role.
+
+Use [`/lean-formalize`](skills/lean-formalize/SKILL.md) when the user requests Lean work or a substantial mathematical obligation benefits from formal verification. It preserves the original statement, connects the proof, and checks the final declaration and its axioms; ordinary mathematical drafting continues to use `/proof-writer`.
 
 Invocation syntax is identical across hosts:
 ```
 /skill-name "arguments" — key: value, key2: value2
 ```
+
+**The `codex` MCP server is ARIS's own.** codex-cli 0.154.0 removed `codex mcp-server`; `mcp__codex__codex` / `mcp__codex__codex-reply` are served by [`mcp-servers/codex-exec/server.py`](mcp-servers/codex-exec/README.md), a zero-dependency bridge over `codex exec` with the identical tool contract. Registration: `claude mcp add codex -s user -- python3 <aris-repo>/mcp-servers/codex-exec/server.py` (other MCP hosts: same `codex` key, command `python3` + that path). Never register `codex mcp-server`. A `codex-reply` keeps the model, effort, sandbox and cwd its thread was created with — do not re-send them.
+
+**Selectable reviewer backends.** The complete Claude Code and Codex packs support
+`— reviewer: codex|antigravity|grok|claude-code`, with invocation selection taking
+precedence over `.aris/reviewer.json` and then host defaults. See the
+[backend contract](skills/shared-references/reviewer-backends.md) for MCP setup,
+actual model identity, and first-call/continuation rules. The legacy `agy` route
+still uses `gemini-review`; existing frozen Gemini overlay links retain their
+`review*` protocol. No installer change or global configuration write is needed
+to select a reviewer in the complete pack.
+
+**Optional writing workers.** [Model Worker MCP](mcp-servers/model-worker/README.md)
+lets a configured Antigravity, Grok, or Claude Code model read and write draft
+files, then revise them in the same session. Choose writer/model/effort separately
+from the reviewer. The executor establishes facts and integrates the writing;
+without an external writer it writes directly. Both complete skill packs apply
+[HERO and the launch principle](skills/shared-references/writing-principles.md#launch-mindset)
+through planning, drafting, and revision, whoever does the writing.
+
+**Codex Goal Pulse.** When the user starts or resumes a Goal, or the main agent
+takes over an active Goal, read and enable [HERO Goal Pulse](https://github.com/wanshuiyin/HERO-Anti-OverDefense/tree/main/skills/goal-pulse)
+for the current thread by default, without another confirmation. Read the installed
+`${CODEX_HOME:-~/.codex}/skills/goal-pulse/SKILL.md` first; if missing, follow HERO's guide. Follow the
+[Codex setup and thread-binding instructions](skills/skills-codex/README.md#goal-pulse-for-codex-goals).
+This is a main-agent instruction; installing ARIS or ordinary chat does not start
+a timer. HERO owns the implementation; ARIS keeps its existing skill inventory,
+reviewer selection, and writing-worker selection.
+
+**Claude Code Goal Pulse.** For `/goal` start/resume or an explicitly authorized
+long autonomous task, read the installed `~/.claude/skills/goal-pulse/SKILL.md`
+and its `references/claude-code.md`, then enable the current session's 30-minute
+reminder by default. If missing, use [HERO's Claude Code installation](https://github.com/wanshuiyin/HERO-Anti-OverDefense/blob/main/skills/goal-pulse/README.md#claude-code)
+to install the Markdown skill and persistent `CLAUDE.md` instruction. This route
+uses native `CronList` / `CronCreate` / `CronDelete` (or `/loop`); no Codex Python
+watcher is involved. Reuse a matching task reminder, honor user opt-out, and cancel
+it on completion, pause, replacement, or an input/approval/budget stop. Scheduled
+prompts run between turns; the agent applies these task checks. Installing the
+skill or ordinary chat does not create a cron. HERO remains the single source;
+ARIS does not add another skill copy or change either reviewer/worker route.
+
+**Session handoff.** For a fresh context, use the shared [HERO Session Handoff
+skill](https://github.com/wanshuiyin/HERO-Anti-OverDefense/tree/main/skills/session-handoff)
+(`$session-handoff prepare` in Codex, `/session-handoff prepare` in Claude Code).
+It updates the project's existing recovery entrypoint from current artifacts and
+provides a prompt for a manually opened fresh session. Use `continue` there to
+read that entrypoint, check live work, and continue authorized tasks. It reuses
+Pipeline Status, research contracts, and workflow checkpoints; it does not move
+Goal state or budgets between sessions. HERO maintains the single Markdown skill
+and installation instructions; ARIS does not bundle another copy. See the
+[session recovery guide](docs/SESSION_RECOVERY_GUIDE.md#prepare-a-fresh-session-with-hero).
 
 ## Common Parameters
 
@@ -57,7 +113,7 @@ Controls whether mandatory audits gate the final report. `lite` / `balanced` def
 — human checkpoint: true | false             # pause for approval (default: false)
 — AUTO_PROCEED: true | false                 # auto-continue at gates (default: true)
 — difficulty: medium | hard | nightmare      # reviewer adversarial level
-— venue: ICLR | NeurIPS | ICML | ...         # target venue
+— venue: ICLR | NeurIPS | ICML | ...         # target venue (no silent default; /research-pipeline binds it at the paper stage)
 — sources: web, zotero, deepxiv, exa, ...    # literature sources
 — gpu: local | remote | vast | modal         # GPU backend
 — reviewer: auto | codex | oracle-pro | manual # reviewer routing; auto is native only for Copilot /auto-review-loop
@@ -172,13 +228,14 @@ Advisory CI lint at `.github/workflows/lint-skills-helpers.yml` flags hardcoded 
 ## Cross-Model Protocol
 
 - **Executor** (Claude / Codex / Cursor / Antigravity / Copilot): writes code, runs experiments, drafts papers
-- **Reviewer** (GPT-5.6-Sol via Codex MCP, default; or Claude / Gemini via `*-review` MCP overlays): critiques, scores, demands revisions
-- **Rule**: executor and reviewer **must** be different model families. Same-family review is a non-feature.
+- **Reviewer** (GPT-6-Astra by host default; or a selected backend in the complete pack): critiques, scores, demands revisions
+- **Rule**: accepted semantic review requires known different actual model families and a completed positive review within scope. Same-family adversarial review can drive revisions and stop a loop provisionally.
 - **Reviewer independence**: pass file paths only, never summaries or interpretations
-- **Thread freshness**: every reviewer call uses `mcp__codex__codex` (or equivalent), **never** `codex-reply` — narrative accumulation inflates scores
+- **Thread freshness**: audit-class skills open a fresh session on the selected route at their specified review boundaries. `/auto-review-loop` retains its ordinary reviewer session across rounds; separate nightmare verification stays fresh (its SKILL.md governs).
+- **Scope limits in every reviewer prompt**: the [`review-scope-limits.md`](skills/shared-references/review-scope-limits.md) block bounds what a reviewer may *propose* (no hashes, no over-defense, no corner-case obsession, not a security product), never what it looks for
 - **Experiment integrity**: executor must NOT judge its own eval code — reviewer audits directly per [`shared-references/experiment-integrity.md`](skills/shared-references/experiment-integrity.md)
 
-The external Codex default is `gpt-5.6-sol` with two-tier reasoning (deep-audit `ultra` / regular `xhigh`, since 2026-07-10; needs codex-cli ≥ 0.144.1). `gpt-5.5` is the capability fallback; legacy `gpt-5.4` is available as `--- reviewer-model: gpt-5.4`. In a bound Copilot CLI session, `/auto-review-loop` instead defaults to the built-in `rubber-duck` subagent and accepts it only when host events prove the dynamically selected model is from a different family. Oracle Pro tier (`gpt-5.5-pro`) via `--- reviewer: oracle-pro` is a separate routing path.
+The external Codex default is `gpt-6-astra` with two-tier reasoning (deep-audit `ultra` / regular `xhigh`, since 2026-07-10; needs codex-cli ≥ 0.144.1). Capability fallback runs `gpt-6.1-sol`, then `gpt-5.6-sol`, then `gpt-5.5`, all at xhigh; legacy `gpt-5.4` is available as `--- reviewer-model: gpt-5.4`. In a bound Copilot CLI session, `/auto-review-loop` instead defaults to the built-in `rubber-duck` subagent and accepts it only when host events prove the dynamically selected model is from a different family. Oracle Pro tier (`gpt-5.5-pro`) via `--- reviewer: oracle-pro` is a separate routing path.
 
 ## Shared References
 
@@ -194,7 +251,14 @@ Read these before invoking review-related or audit-class skills:
 | [`assurance-contract.md`](skills/shared-references/assurance-contract.md) | 6-state verdict schema, audit gating |
 | [`integration-contract.md`](skills/shared-references/integration-contract.md) | Helper resolution + failure policies (writing new SKILL.md) |
 | [`review-tracing.md`](skills/shared-references/review-tracing.md) | Where to save reviewer traces |
-| [`reviewer-routing.md`](skills/shared-references/reviewer-routing.md) | `--- reviewer: oracle-pro` etc. |
+| [`reviewer-routing.md`](skills/shared-references/reviewer-routing.md) | `--- reviewer: oracle-pro` etc., model tiers, capability fallback |
+| [`review-scope-limits.md`](skills/shared-references/review-scope-limits.md) | The block every reviewer prompt carries — what a reviewer may propose |
+| [`taste-calibration.md`](skills/shared-references/taste-calibration.md) | Grading subjective quality against written, anchored taste |
+| [`evidence-precheck.md`](skills/shared-references/evidence-precheck.md) | Reconciling a model's self-report against artifacts before trusting it |
+| [`resumable-runs.md`](skills/shared-references/resumable-runs.md) | Long runs that survive context compaction / restarts |
+| [`output-language.md`](skills/shared-references/output-language.md) | Which language artifacts and replies are written in |
+| [`skill-governance.md`](skills/shared-references/skill-governance.md) | Who may change the skill corpus (`/meta-apply`) |
+| [`compute-env-contract.md`](skills/shared-references/compute-env-contract.md) | Declaring GPU / remote environments for experiment skills |
 | [`citation-discipline.md`](skills/shared-references/citation-discipline.md) | Citation rules |
 | [`effort-contract.md`](skills/shared-references/effort-contract.md) | Effort level specifications |
 | [`writing-principles.md`](skills/shared-references/writing-principles.md) | Writing standards |

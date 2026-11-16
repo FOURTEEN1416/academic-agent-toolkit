@@ -5,7 +5,7 @@
   min-height: 32px;
   align-items: center;
   gap: 10px;
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -13,12 +13,7 @@
   width: auto;
   min-width: 0;
   flex: 1;
-  accent-color: var(--icon-strong-base);
-}
-
-.settings-sound-volume input:focus-visible {
-  outline: 2px solid var(--border-selected);
-  outline-offset: 3px;
+  accent-color: var(--color-icon-strong);
 }
 
 .settings-sound-volume input:disabled {
@@ -28,40 +23,18 @@
 .settings-sound-volume output {
   flex: 0 0 auto;
   width: 4ch;
-  color: var(--text-base);
+  color: var(--color-text-secondary);
   font-size: var(--font-size-small);
   text-align: right;
 }
-.settings-update-history {
-  display: grid;
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--border-base);
-  border-radius: 14px;
-  background: var(--border-weak-base);
-}
-
+/* Recent releases are one more borderless settings card of interactive rows;
+   the shell owns the surface, radius, hover, and focus ring. */
 .settings-update-history button {
-  display: flex;
-  min-width: 0;
-  align-items: center;
+  width: 100%;
+  flex-wrap: nowrap;
   justify-content: space-between;
-  gap: 18px;
-  padding: 13px 15px;
-  border: 0;
-  background: var(--surface-raised-base);
-  color: var(--text-base);
+  color: var(--color-text-secondary);
   text-align: left;
-}
-
-.settings-update-history button:hover,
-.settings-update-history button:focus-visible {
-  background: var(--surface-base-hover);
-}
-
-.settings-update-history button:focus-visible {
-  outline: 2px solid var(--border-interactive-base);
-  outline-offset: -2px;
 }
 
 .settings-update-history span {
@@ -78,15 +51,15 @@
 }
 
 .settings-update-history strong {
-  color: var(--text-strong);
-  font-size: 12px;
-  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
 }
 
 .settings-update-history small,
 .settings-update-history time {
-  color: var(--text-weak);
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
 }
 
 .settings-update-history time {

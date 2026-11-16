@@ -3,10 +3,18 @@ name: mamba-architecture
 description: State-space model with O(n) complexity vs Transformers' O(n²). 5× faster inference, million-token sequences, no KV cache. Selective SSM with hardware-aware design. Mamba-1 (d_state=16) and Mamba-2 (d_state=128, multi-head). Models 130M-2.8B on HuggingFace.
 category: ml-training
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Model Architecture, Mamba, State Space Models, SSM, Linear Complexity, Long Context, Efficient Inference, Hardware-Aware, Alternative To Transformers]
 dependencies: [mamba-ssm, torch, transformers, causal-conv1d]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 01-model-architecture/mamba
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # Mamba - Selective State Space Models
@@ -227,12 +235,6 @@ model = MambaLMHeadModel.from_pretrained("state-spaces/mamba-2.8b")
 
 ## Advanced topics
 
-**Selective SSM**: See [references/selective-ssm.md](references/selective-ssm.md) for mathematical formulation, state-space equations, and how selectivity enables O(n) complexity.
-
-**Mamba-2 architecture**: See [references/mamba2-details.md](references/mamba2-details.md) for multi-head structure, tensor parallelism, and distributed training setup.
-
-**Performance optimization**: See [references/performance.md](references/performance.md) for hardware-aware design, CUDA kernels, and memory efficiency techniques.
-
 ## Hardware requirements
 
 - **GPU**: NVIDIA with CUDA 11.6+
@@ -250,7 +252,6 @@ model = MambaLMHeadModel.from_pretrained("state-spaces/mamba-2.8b")
 - **Memory**: 50% less (no KV cache)
 - **Scaling**: Linear vs quadratic
 
-
 ## Known Conflicts
 
 - **Do not install alongside `flash-attention`** in the same environment. Both compile custom CUDA kernels that may conflict. Use separate virtual environments or Modal containers.
@@ -262,5 +263,4 @@ model = MambaLMHeadModel.from_pretrained("state-spaces/mamba-2.8b")
 - GitHub: https://github.com/state-spaces/mamba ⭐ 13,000+
 - Models: https://huggingface.co/state-spaces
 - Docs: Repository README and wiki
-
 

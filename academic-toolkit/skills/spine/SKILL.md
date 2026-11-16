@@ -50,6 +50,7 @@ Required fields:
 | `reference_mode` | `local_first`, `specified_paths`, `web` |
 | `reference_paths` | list of local reference folders/files; default `["."]` |
 | `citation_target_count` | integer; default `20` |
+| `humanize_tier` | `none`, `light`, `medium`, `heavy`; default `medium` |
 
 ## Non-Negotiable Route
 
@@ -88,7 +89,9 @@ Required fields:
 9. Before drafting, both workflows must create `section_blueprints.md` and
    `writing_rationale_matrix.md`. The matrix is the execution plan, not a
    post-hoc summary.
-10. Run the integrity audit: `python scripts/integrity_audit.py paper_rewriting_output --markdown --write`.
+10. Run the integrity audit with the script resolved inside this repository
+    checkout: set `REPO="$(git rev-parse --show-toplevel)"`, then run
+    `python "$REPO/academic-toolkit/skills/spine/scripts/integrity_audit.py" paper_rewriting_output --markdown --write`.
     This produces `integrity_audit.md` — a teaching report where every finding
     includes root cause, fix action, downstream impact, and a teaching note.
     The report must show no BLOCKED findings before LaTeX compilation can proceed.
@@ -99,14 +102,26 @@ Required fields:
 13. If `word_output` is `docx`, produce and check a Word version.
 14. If `output_language` is `en` and `translation_package` is `zh`, use
     `spine-translate-zh` to produce the complete `translation_zh/` package.
-    Run `python scripts/translate_guard.py paper_rewriting_output --markdown --write`
+    Run `python "$REPO/academic-toolkit/skills/spine/scripts/translate_guard.py" paper_rewriting_output --markdown --write`
+    (with `REPO="$(git rev-parse --show-toplevel)"` resolved first)
     and require PASS. The translation package must cover every required
     intermediate and final artifact with row-by-row translation of large
     tabular files. Summaries are not acceptable.
 15. Use `spine-audit` before declaring the work complete.
+   If the user requests a submission package, also produce
+   `submission_package/` per `references/orchestrator-branch-map.md` stage 10
+   (gate: `submission`) before the final audit.
 
 If another skill is unavailable, follow the referenced workflow locally and
 produce the same artifacts.
+
+**Guard script paths:** run guard commands from the user's project directory
+with the script resolved inside this repository checkout — never as a bare
+`python scripts/...` relative path. Set `REPO="$(git rev-parse --show-toplevel)"`
+first and prefix the script path with `$REPO/academic-toolkit/skills/...`.
+Same-name script copies exist across several spine skill directories
+(registered in `academic-toolkit/data/duplicate_assets_registry.json`); each
+skill's commands use the copy in that same skill's own directory.
 
 ## Standard Artifacts
 
@@ -158,9 +173,11 @@ Final artifacts:
 
 `writing_rationale_matrix.md` must be created before final writing in both
 `rewrite_existing` and `build_from_materials`. It must be a Markdown table used
-as the execution plan:
+as the execution plan. Column headers are owned by the single source of truth
+`spine-rewrite/references/writing-rationale-matrix.md` (an identical copy lives
+in `spine-build/references/`); the table below repeats them for convenience.
 
-| Row ID | Manuscript Unit | Current/Planned Function | Motivation Link | Reference/SOTA Pattern Learned | Target Scene or Venue Norm | User Evidence or Citation Anchor | Planned Change | Final Text Check |
+| Row ID | Manuscript Unit | Current Problem or Planned Function | Motivation Link | Reference/SOTA Pattern Learned | Target Scene or Venue Norm | User Evidence or Citation Anchor | Planned Change/Text Move | Final Text Check |
 |---|---|---|---|---|---|---|---|---|
 
 The first data row must justify the whole-work framework, structure, or main

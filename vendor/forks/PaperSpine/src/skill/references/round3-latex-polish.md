@@ -8,9 +8,9 @@
 
 ## Phase 0: Markdown → LaTeX Conversion
 
-**This is the bridge step that determines whether all prior revision work reaches the final paper.** The Round 2 draft is Markdown; the final output must be LaTeX. Work section by section, never in bulk.
+**Conversion must carry the verified manuscript into the requested final formats.** Use a suitable existing template or the current semantic exporter. A deterministic whole-document conversion is acceptable; verify its output section by section against the source, including numbers, equations, citations and figure dependencies.
 
-**Template-first approach**: Copy the original `.tex` file from the user-provided draft as the base. Use targeted `Edit` operations on each section's prose. Preserve in place: preamble, `\newcommand` blocks, figure floats (with `\label{}` and `\caption{}`), equation environments, `\maketitle`, and bibliography commands. Only modify text paragraphs — never rewrite LaTeX scaffolding. This reduces effort by ~70% and eliminates transcription errors.
+**Template-first approach**: Copy the original `.tex` file from the user-provided draft as the base. Use targeted `Edit` operations on each section's prose. Preserve in place: preamble, `\newcommand` blocks, figure floats (with `\label{}` and `\caption{}`), equation environments, `\maketitle`, and bibliography commands. Only modify text paragraphs — never rewrite LaTeX scaffolding. This can reduce avoidable transcription work; still verify every section, number, equation, citation and figure dependency after conversion.
 
 ### Conversion Procedure
 
@@ -56,16 +56,16 @@ Check every noun phrase:
 - First mention of a specific entity → "a/an"
 - Previously mentioned or unique entity → "the"
 - Generic/uncountable reference → no article
-- Read each sentence aloud; if an article sounds missing or wrong, it is
+- Read each sentence in context; confirm article changes from countability, definiteness, intended meaning and the target's usage rather than intuition alone.
 
 **2. Prepositions**
 Common corrections:
 - "dependent of" → "dependent on"
-- "consist with" → "consist of"
+- Use "consist of" for composition. If the intended meaning is agreement or compatibility, use the appropriate expression, such as "be consistent with", rather than changing the relation.
 - "different to" → "different from"
 - "result to" → "result in" (cause) / "result from" (be caused by)
 - "compare with" (differences) vs "compare to" (similarities)
-- "based in" → "based on"
+- Use "based on" for an evidential basis; retain "based in" when it correctly states a location or other intended meaning.
 
 **3. Sentence length and variety**
 - Split run-on sentences (Chinese academic writing often fuses multiple ideas into one sentence)
@@ -85,8 +85,8 @@ Common corrections:
 - 存在 → not always "exist"; often implicit in English
 - 可以/可能 → "can/may" is overused; English often states directly
 - Topic-comment structures: "The data, we analyzed them" → "We analyzed the data"
-- Dangling modifiers: "Based on the results, the model..." → "On the basis of the results, the model..."
-- Missing relative pronouns: "The method we proposed" → "The method that we proposed" (include in formal academic)
+- Dangling modifiers: identify who made the inference. For example, use "On the basis of these results, we infer that ..." when that is the intended claim; changing "Based on" to "On the basis of" alone does not resolve a missing or wrong subject.
+- Relative clauses: both "The method we proposed" and "The method that we proposed" can be grammatical. Add a pronoun only when needed for the intended syntax or clarity.
 
 **6. Collocations and naturalness**
 - Check verb+noun pairs: "make an experiment" → "conduct/perform an experiment"
@@ -100,7 +100,7 @@ Common corrections:
 3. Check each sentence against the pitfalls list above
 4. After the full draft is polished, do a second pass on sentence variety:
    - Count sentences starting with "We" / "The" / "This" / "These"
-   - If >40% start with one of these, vary the openings
+   - Vary openings only where repetition harms clarity or emphasis; a fixed percentage is not a quality threshold, and conventional Methods repetition may be appropriate.
    - Use adverbial openers ("Interestingly,..."), prepositional phrases ("In the context of X,..."), and inverted structures where appropriate
 
 ### Output

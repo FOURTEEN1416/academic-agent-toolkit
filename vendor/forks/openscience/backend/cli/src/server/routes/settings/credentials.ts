@@ -35,10 +35,14 @@ import { Global } from "@/global"
 import { Env } from "@/env"
 import { OpenScience } from "@/openscience"
 import { CredentialLifecycle } from "@/credentials/lifecycle"
-import { lazy } from "@/util/lazy"
+import { CredentialOverlay } from "@/credentials/overlay"
+import { lazy } from "@synsci/util/lazy"
+import { errors } from "../../error"
 import { JsonStore } from "@/util/jsonstore"
 import { SecretFile } from "@/util/secret-file"
 import { SecretBox } from "@/util/secret-box"
+import { WorkspaceCredentials } from "@/openscience/workspace-credentials"
+import { HostCredentials } from "@/credentials/host"
 
 type FieldType = "password" | "text" | "textarea"
 
@@ -59,8 +63,6 @@ interface ServiceSpec {
   /** Trusted-only credentials are resolved by an in-process adapter and are
    * never copied into process.env or agent-controlled subprocesses. */
   trusted?: boolean
-  /** Compute credentials sync to the account unless explicitly device-only. */
-  portable?: boolean
 }
 
 // Known services and the shape of the secret each one needs. "Custom" entries
@@ -70,7 +72,8 @@ const CATALOG: ServiceSpec[] = [
   {
     id: "aws",
     label: "AWS",
-    description: "Access key for S3, Bedrock, and other AWS services.",
+    description:
+      "Credential-only bridge for AWS CLI/SDK skills such as S3 and Bedrock; OpenScience does not provide a first-party AWS job adapter.",
     category: "compute",
     fields: [
       { name: "access_key_id", label: "Access key ID", type: "text", placeholder: "AKIA…" },
@@ -88,7 +91,8 @@ const CATALOG: ServiceSpec[] = [
   {
     id: "gcp",
     label: "Google Cloud",
-    description: "Service-account credentials for GCP APIs and storage.",
+    description:
+      "Credential-only bridge for Google Cloud CLI/SDK skills; OpenScience does not provide a first-party Google Cloud job adapter.",
     category: "compute",
     fields: [
       { name: "project_id", label: "Project ID", type: "text", optional: true },
@@ -105,7 +109,7 @@ const CATALOG: ServiceSpec[] = [
   {
     id: "firecrawl",
     label: "Firecrawl",
-    description: "Optional own API key for enhanced web search when Ace managed search is unavailable.",
+    description: "Your Firecrawl API key for web and research search.",
     category: "integration",
     fields: [{ name: "api_key", label: "API key", type: "password", placeholder: "fc-…" }],
     trusted: true,
@@ -113,7 +117,8 @@ const CATALOG: ServiceSpec[] = [
   {
     id: "azure",
     label: "Microsoft Azure",
-    description: "Service principal or API credentials for Azure workloads.",
+    description:
+      "Credential-only bridge for Azure CLI/SDK skills; OpenScience does not provide a first-party Azure job adapter.",
     category: "compute",
     fields: [
       { name: "tenant_id", label: "Tenant ID", type: "text", optional: true },
@@ -127,19 +132,19 @@ const CATALOG: ServiceSpec[] = [
   {
     id: "nvidia",
     label: "NVIDIA API",
-    description: "API key for NVIDIA NIM / build.nvidia.com models.",
-    category: "compute",
+    description: "NVIDIA-hosted science tools, including Boltz-2, DiffDock, and Evo 2.",
+    category: "integration",
     fields: [{ name: "api_key", label: "API key", type: "password", placeholder: "nvapi-…" }],
     trusted: true,
   },
   {
     id: "nvidia_ngc",
     label: "NVIDIA NGC Registry",
-    description: "Device-local NGC key for approved NVIDIA container pulls on trusted compute adapters.",
+    description:
+      "Device-local registry credential for approved NVIDIA container pulls on an existing trusted adapter; it does not add an NVIDIA compute backend.",
     category: "compute",
     fields: [{ name: "api_key", label: "NGC API key", type: "password" }],
     trusted: true,
-    portable: false,
   },
   {
     id: "openalex",
@@ -196,6 +201,14 @@ const StoreEntry = z.object({
   fields: z.record(z.string(), z.string()),
   updated_at: z.string(),
   source: z.enum(["local", "account"]).default("local"),
+  organization_id: z.string().optional(),
+  removal: z
+    .object({
+      token: z.string().uuid(),
+      remote: z.boolean(),
+      requested_at: z.string(),
+    })
+    .optional(),
 })
 type StoreEntry = z.infer<typeof StoreEntry>
 const Store = z.record(z.string(), StoreEntry)
@@ -221,19 +234,59 @@ async function decrypt(payload: string): Promise<string> {
   return SecretBox.open(await machineKey(), payload)
 }
 
-function parseStore(data: Record<string, unknown>): Store {
+function parseStore(data: Record<string, unknown>, strict = false): Store {
   const parsed = Store.safeParse(data)
-  return parsed.success ? parsed.data : {}
+  if (!parsed.success && strict) throw new Error("Saved service credentials could not be read")
+  if (!parsed.success) return {}
+  for (const [id, entry] of Object.entries(parsed.data)) {
+    // Old dashboard copies are explicitly attributed but have no current
+    // workspace grant. Never adopt them as permanent device-owned secrets.
+    if (entry.source === "account") {
+      delete parsed.data[id]
+      continue
+    }
+    if (entry.removal) entry.removal.remote = false
+  }
+  return parsed.data
 }
 
-async function readStore(): Promise<Store> {
-  return parseStore(await JsonStore.read(storePath))
+async function readStore(options: { strict?: boolean; service?: string } = {}): Promise<Store> {
+  const local = parseStore(
+    await JsonStore.read(storePath, options).catch((error) => {
+      if (options.strict) throw new Error("Saved service credentials could not be read")
+      throw error
+    }),
+    options.strict,
+  )
+  // A device-owned credential takes precedence and does not depend on whether
+  // an unrelated workspace overlay is currently readable.
+  if (options.service && local[options.service]) return local
+  const workspace = await WorkspaceCredentials.read({ strict: options.strict })
+  if (!workspace) return local
+  for (const [id, values] of Object.entries(workspace.services)) {
+    if (local[id]) continue
+    const spec = specFor(id)
+    if (!spec) continue
+    const fields: Record<string, string> = {}
+    for (const field of spec.fields) {
+      const value = values[field.name]
+      if (value && validField(id, field.name, value)) fields[field.name] = await encrypt(value)
+    }
+    if (Object.keys(fields).length)
+      local[id] = {
+        fields,
+        source: "account",
+        organization_id: workspace.organization_id,
+        updated_at: new Date().toISOString(),
+      }
+  }
+  return local
 }
 
 async function updateStore(fn: (store: Store) => void | Promise<void>): Promise<Store> {
   const result: { value?: Store } = {}
   await JsonStore.update(storePath, async (data) => {
-    const store = Store.parse(data)
+    const store = parseStore(data)
     await fn(store)
     result.value = store
     return store
@@ -354,6 +407,9 @@ function mapServiceEnv(id: string, f: Record<string, string>): Record<string, st
 interface CredentialEnv {
   env: Record<string, string>
   secrets: string[]
+  /** Env keys whose value came from an account-sourced (synced workspace)
+   * entry, mapped to the workspace that granted it. */
+  account: Map<string, string>
   materializationError?: unknown
 }
 
@@ -386,20 +442,48 @@ async function validDecryptedFields(id: string, entry: StoreEntry): Promise<Reco
 
 /** Resolve one encrypted service credential for a trusted in-process adapter.
  * Values are never returned by HTTP routes and never copied into process.env. */
-export async function resolveCredentialFields(id: string): Promise<Record<string, string> | undefined> {
+/** Encrypt and persist the non-empty fields of one service credential. */
+export async function saveCredential(id: string, fields: Record<string, string>, label?: string) {
+  return mutateCredentialStore(id, `settings-credential.set:${id}`, async () => {
+    const stored = await updateStore(async (current) => {
+      const entry = current[id] ?? { fields: {}, updated_at: new Date().toISOString() }
+      if (entry.removal) {
+        throw new Error(`Credential ${id} removal is pending; retry removal before reconnecting`)
+      }
+      const next = { ...entry.fields }
+      for (const [name, value] of Object.entries(fields)) {
+        const trimmed = value.trim()
+        if (!trimmed) continue
+        next[name] = await encrypt(trimmed)
+      }
+      current[id] = {
+        label: label ?? entry.label,
+        fields: next,
+        updated_at: new Date().toISOString(),
+        source: "local",
+      }
+    })
+    return stored
+  })
+}
+
+export async function resolveCredentialFields(
+  id: string,
+  options: { required?: string[] } = {},
+): Promise<Record<string, string> | undefined> {
   const spec = specFor(id)
   if (!spec?.trusted) return
-  const entry = (await readStore())[id]
-  if (!entry) return
+  const entry = (await readStore({ strict: options.required !== undefined, service: id }))[id]
+  if (!entry || entry.removal) return
   const fields = await validDecryptedFields(id, entry)
+  if (options.required?.some((name) => !fields[name]?.trim())) {
+    throw new Error(
+      `Your saved ${spec.label} credential could not be read. Reconnect it in Customize → Connectors; no other funding source was used.`,
+    )
+  }
   if (!Object.keys(fields).length) return
   OpenScience.registerSecretValues(Object.values(fields))
   return fields
-}
-
-export async function hasCredentialFields(id: string, names: string[]): Promise<boolean> {
-  const fields = await resolveCredentialFields(id)
-  return !!fields && names.every((name) => !!fields[name])
 }
 
 async function atomicSecretWrite(filepath: string, content: string): Promise<void> {
@@ -431,15 +515,20 @@ async function readDecryptedEnv(): Promise<CredentialEnv> {
   const store = await readStore()
   const env: Record<string, string> = {}
   const secrets: string[] = []
+  const account = new Map<string, string>()
   let gcp: string | undefined
   let materializationError: unknown
   for (const [id, entry] of Object.entries(store)) {
+    if (entry.removal) continue
     const fields = await validDecryptedFields(id, entry)
     if (specFor(id)?.trusted) secrets.push(...Object.values(fields))
     if (id === "gcp") gcp = fields.service_account_json
     const mapped = mapServiceEnv(id, fields)
+    const organization = entry.source === "account" ? entry.organization_id : undefined
     for (const [key, value] of Object.entries(mapped)) {
       env[key] = value
+      if (organization) account.set(key, organization)
+      else account.delete(key)
       if (!NON_SECRET_ENV.test(key)) secrets.push(value)
     }
   }
@@ -459,7 +548,7 @@ async function readDecryptedEnv(): Promise<CredentialEnv> {
     // Remove the materialized plaintext before dropping the environment path.
     await fs.rm(gcpPath, { force: true }).catch(() => undefined)
   }
-  return { env, secrets, materializationError }
+  return { env, secrets, account, materializationError }
 }
 
 // Env keys this module has set, so a re-apply after save can update our own
@@ -469,10 +558,15 @@ const ownedKeys = new Set<string>()
 /** Decrypt stored service credentials and inject them into the process
  *  environment so the real consumers use them (see the module header). Explicit
  *  shell exports always win. Registers secret values for redaction. Best-effort;
- *  never throws. Call at boot and after every save/delete. */
+ *  never throws. Call at boot and after every save/delete.
+ *
+ *  Account-sourced values are recorded in CredentialOverlay as they enter
+ *  process.env and forgotten only when they actually leave it, so the
+ *  subprocess env builder stamps a child with the overlay exactly when the
+ *  child inherits one of these values. */
 export async function applyCredentialEnv(options: { strict?: boolean } = {}): Promise<boolean> {
   try {
-    const { env, secrets, materializationError } = await readDecryptedEnv()
+    const { env, secrets, account, materializationError } = await readDecryptedEnv()
     const state = { staleChildSnapshot: false }
     // Drop vars we previously injected that are gone now (credential removed) —
     // but never touch a key the user exported in their own shell.
@@ -480,6 +574,7 @@ export async function applyCredentialEnv(options: { strict?: boolean } = {}): Pr
       if (key in env) continue
       state.staleChildSnapshot = true
       delete process.env[key]
+      CredentialOverlay.release(key)
       try {
         Env.remove(key)
       } catch {
@@ -492,6 +587,9 @@ export async function applyCredentialEnv(options: { strict?: boolean } = {}): Pr
       if (ownedKeys.has(key) && process.env[key] !== value) state.staleChildSnapshot = true
       process.env[key] = value
       ownedKeys.add(key)
+      const organization = account.get(key)
+      if (organization) CredentialOverlay.inject(key, value, organization)
+      else CredentialOverlay.release(key)
       try {
         Env.set(key, value)
       } catch {
@@ -508,43 +606,6 @@ export async function applyCredentialEnv(options: { strict?: boolean } = {}): Pr
     // best-effort; a broken store must not break boot or a save response
     return false
   }
-}
-
-const PORTABLE_CREDENTIAL_IDS = new Set(["aws", "gcp", "azure", "nvidia"])
-
-export async function reconcileAccountCredentialFields(
-  portable: Record<string, { fields: Record<string, string>; updated_at?: string | null }>,
-): Promise<void> {
-  const incoming = Object.fromEntries(Object.entries(portable).filter(([id]) => PORTABLE_CREDENTIAL_IDS.has(id)))
-  await updateStore(async (current) => {
-    for (const [id, entry] of Object.entries(current)) {
-      if (!PORTABLE_CREDENTIAL_IDS.has(id) || entry.source !== "account" || id in incoming) continue
-      delete current[id]
-    }
-    for (const [id, payload] of Object.entries(incoming)) {
-      const existing = current[id]
-      // A device-local override remains authoritative until its next save
-      // successfully reaches the account. Account-owned entries follow the
-      // dashboard across devices.
-      if (existing?.source === "local") continue
-      const spec = specFor(id)
-      if (!spec) continue
-      const allowed = new Set(spec.fields.map((field) => field.name))
-      const fields: Record<string, string> = {}
-      for (const [name, value] of Object.entries(payload.fields)) {
-        if (!allowed.has(name) || !value.trim() || !validField(id, name, value)) continue
-        fields[name] = await encrypt(value)
-      }
-      if (!Object.keys(fields).length) continue
-      current[id] = {
-        label: spec.label,
-        fields,
-        updated_at: payload.updated_at ?? new Date().toISOString(),
-        source: "account",
-      }
-    }
-  })
-  await applyCredentialEnv({ strict: true })
 }
 
 const ServiceView = z.object({
@@ -566,6 +627,7 @@ const ServiceView = z.object({
   set_fields: z.array(z.string()),
   updated_at: z.string().nullable(),
   source: z.enum(["local", "account"]).nullable(),
+  organization_id: z.string().nullable(),
 })
 
 async function view(store: Store) {
@@ -574,7 +636,8 @@ async function view(store: Store) {
     CATALOG.map(async (spec) => {
       seen.add(spec.id)
       const entry = store[spec.id]
-      const set = entry ? Object.keys(await validDecryptedFields(spec.id, entry)) : []
+      const active = entry && !entry.removal ? entry : undefined
+      const set = active ? Object.keys(await validDecryptedFields(spec.id, active)) : []
       const required = spec.fields.filter((field) => !field.optional).map((field) => field.name)
       return {
         id: spec.id,
@@ -591,14 +654,15 @@ async function view(store: Store) {
         })),
         connected: required.length ? required.every((field) => set.includes(field)) : set.length > 0,
         set_fields: set,
-        updated_at: entry?.updated_at ?? null,
-        source: entry?.source ?? null,
+        updated_at: active?.updated_at ?? null,
+        source: active?.source ?? null,
+        organization_id: active?.organization_id ?? null,
       }
     }),
   )
   const custom = await Promise.all(
     Object.entries(store)
-      .filter(([id]) => !seen.has(id))
+      .filter(([id, entry]) => !seen.has(id) && !entry.removal)
       .map(async ([id, entry]) => {
         const names = Object.keys(await validDecryptedFields(id, entry))
         return {
@@ -611,7 +675,8 @@ async function view(store: Store) {
           connected: names.length > 0,
           set_fields: names,
           updated_at: entry.updated_at,
-          source: entry.source,
+          source: "local" as const,
+          organization_id: null,
         }
       }),
   )
@@ -634,6 +699,59 @@ export const CredentialsRoutes = lazy(() =>
         },
       }),
       async (c) => c.json({ services: await view(await readStore()) }),
+    )
+    .get(
+      "/host",
+      describeRoute({
+        summary: "Credentials this machine already holds",
+        description:
+          "Whether GitHub (gh login) and Hugging Face (hf token) credentials exist on this computer, and where they come from. Never returns values.",
+        operationId: "settings.credentials.host",
+        responses: {
+          200: {
+            description: "Host credential status",
+            content: {
+              "application/json": {
+                schema: resolver(
+                  z
+                    .object({
+                      service: z.enum(["github", "huggingface"]),
+                      available: z.boolean(),
+                      source: z.enum(["environment", "gh", "huggingface-cli", "token-file"]).optional(),
+                    })
+                    .array(),
+                ),
+              },
+            },
+          },
+        },
+      }),
+      validator("query", z.object({ fresh: z.enum(["true", "false"]).optional() })),
+      async (c) => c.json(await HostCredentials.status({ fresh: c.req.valid("query").fresh === "true" })),
+    )
+    .post(
+      "/host/import",
+      describeRoute({
+        summary: "Import a credential this machine already holds",
+        description: "Copy the machine's GitHub or Hugging Face token into OpenScience's encrypted credential store.",
+        operationId: "settings.credentials.importHost",
+        responses: {
+          200: {
+            description: "Services",
+            content: { "application/json": { schema: resolver(z.object({ services: ServiceView.array() })) } },
+          },
+          ...errors(400),
+        },
+      }),
+      validator("json", z.object({ service: z.enum(["github", "huggingface"]) })),
+      async (c) => {
+        const service = c.req.valid("json").service
+        const found = (await HostCredentials.discover({ fresh: true })).find((item) => item.service === service)
+        if (!found) return c.json({ error: `No ${service} credential was found on this computer.` }, 400)
+        await saveCredential(service, service === "github" ? { token: found.token } : { api_key: found.token })
+        await applyCredentialEnv()
+        return c.json({ services: await view(await readStore()) })
+      },
     )
     .put(
       "/:id",
@@ -683,38 +801,8 @@ export const CredentialsRoutes = lazy(() =>
         if (id === "gcp" && gcp && !validField(id, "service_account_json", gcp)) {
           return c.json({ error: "Google Cloud service account credentials must be a JSON object" }, 400)
         }
-        const store = await mutateCredentialStore(id, `settings-credential.set:${id}`, () =>
-          updateStore(async (current) => {
-            const entry = current[id] ?? { fields: {}, updated_at: new Date().toISOString() }
-            const fields = { ...entry.fields }
-            for (const [name, value] of Object.entries(body.fields)) {
-              const trimmed = value.trim()
-              if (!trimmed) continue
-              fields[name] = await encrypt(trimmed)
-            }
-            current[id] = {
-              label: body.label ?? entry.label,
-              fields,
-              updated_at: new Date().toISOString(),
-              source: "local",
-            }
-          }),
-        )
-        if (spec?.category === "compute" && spec.portable !== false) {
-          const entry = store[id]
-          const fields = entry ? await validDecryptedFields(id, entry) : {}
-          const authenticated = await OpenScience.isAuthenticated()
-          if (authenticated && !(await OpenScience.savePortableCredential(id, fields, spec.label))) {
-            throw new Error(`${spec.label} was saved on this device but could not be synced to your account`)
-          }
-          if (authenticated && entry) {
-            entry.source = "account"
-            await updateStore((current) => {
-              if (current[id]) current[id]!.source = "account"
-            })
-          }
-        }
-        return c.json({ services: await view(store) })
+        await saveCredential(id, body.fields, body.label)
+        return c.json({ services: await view(await readStore()) })
       },
     )
     .delete(
@@ -734,17 +822,35 @@ export const CredentialsRoutes = lazy(() =>
       async (c) => {
         const id = c.req.valid("param").id
         const spec = specFor(id)
-        if (spec?.category === "compute" && spec.portable !== false && (await OpenScience.isAuthenticated())) {
-          if (!(await OpenScience.deletePortableCredential(id))) {
-            return c.json({ error: `${spec.label} could not be removed from your account` }, 502)
-          }
+        if ((await readStore())[id]?.source === "account") {
+          return c.json({ error: "Manage this synced credential in your workspace on app.syntheticsciences.ai." }, 409)
         }
-        const store = await mutateCredentialStore(id, `settings-credential.remove:${id}`, () =>
+        const tombstoned = await mutateCredentialStore(id, `settings-credential.remove:${id}:tombstone`, () =>
           updateStore((current) => {
-            delete current[id]
+            const entry = current[id]
+            if (entry?.removal) return
+            if (!entry) return
+            current[id] = {
+              label: entry?.label ?? spec?.label,
+              fields: {},
+              updated_at: new Date().toISOString(),
+              source: "local",
+              removal: {
+                token: crypto.randomUUID(),
+                remote: false,
+                requested_at: new Date().toISOString(),
+              },
+            }
           }),
         )
-        return c.json({ services: await view(store) })
+        const pending = tombstoned[id]?.removal
+        if (!pending) return c.json({ services: await view(tombstoned) })
+        await mutateCredentialStore(id, `settings-credential.remove:${id}:finalize`, () =>
+          updateStore((current) => {
+            if (current[id]?.removal?.token === pending.token) delete current[id]
+          }),
+        )
+        return c.json({ services: await view(await readStore()) })
       },
     ),
 )

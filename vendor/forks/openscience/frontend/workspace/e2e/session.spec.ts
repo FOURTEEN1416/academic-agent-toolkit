@@ -35,10 +35,15 @@ test("session heading rename persists through the real session API", async ({ pa
   try {
     await gotoSession(created.id)
 
-    await sessionHeading(page, title).focus()
-    await sessionHeading(page, title).press("F2")
+    // The heading re-mounts as the session's metadata settles after
+    // navigation; F2 pressed across that re-render is lost, so enter editing
+    // until the editor takes focus.
     const editor = page.getByRole("textbox", { name: "Session name", exact: true })
-    await expect(editor).toBeFocused()
+    await expect(async () => {
+      await sessionHeading(page, title).focus()
+      await sessionHeading(page, title).press("F2")
+      await expect(editor).toBeFocused({ timeout: 1_500 })
+    }).toPass({ timeout: 15_000 })
     await editor.fill(renamed)
     const responsePromise = page.waitForResponse((response) => isSessionResponse(response, "PATCH", created.id))
     await editor.press("Enter")
@@ -92,7 +97,11 @@ test("session lifecycle works through the sidebar UI", async ({ page, slug, sdk,
     await expect(page).toHaveURL(new RegExp(`/${slug}/session/new(?:\\?|#|$)`))
     await expect(rows).toHaveCount(baselineCount)
 
-    const created = await sdk.session.create().then((response) => response.data)
+    // A unique seed title: earlier specs leave "New session" rows behind, and
+    // a text filter on the default title would match those too.
+    const created = await sdk.session
+      .create({ title: `e2e ui lifecycle seed ${Date.now()}` })
+      .then((response) => response.data)
     if (!created?.id || !created.title) throw new Error("Session create returned no id or title")
     sessionID = created.id
     await gotoSession(sessionID)
@@ -100,10 +109,14 @@ test("session lifecycle works through the sidebar UI", async ({ page, slug, sdk,
 
     const originalRow = rows.filter({ hasText: created.title })
     await expect(originalRow).toHaveCount(1)
-    await originalRow.getByTitle("Double-click to rename").dblclick()
 
+    // The list refreshes right after navigation; a double-click that lands
+    // across a row re-render is lost, so open the editor until it appears.
     const editor = rows.locator("input")
-    await expect(editor).toBeVisible()
+    await expect(async () => {
+      await originalRow.getByTitle("Double-click to rename").dblclick()
+      await expect(editor).toBeVisible({ timeout: 1_500 })
+    }).toPass({ timeout: 15_000 })
     await expect(editor).toHaveValue(created.title)
     await editor.fill(renamedTitle)
     const renameResponsePromise = page.waitForResponse((response) => isSessionResponse(response, "PATCH", sessionID))

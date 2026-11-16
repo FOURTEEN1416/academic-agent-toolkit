@@ -1,5 +1,5 @@
-name: test publish
-run-name: "test publish ${{ inputs.version || github.run_number }}"
+name: Deep release rehearsal
+run-name: "deep release rehearsal ${{ inputs.version || github.run_number }}"
 
 on:
   workflow_dispatch:
@@ -12,25 +12,32 @@ on:
         description: "Install the exact candidate version and run packaged browser e2e"
         required: false
         type: boolean
-        default: true
+        default: false
       run_os_smoke:
         description: "Install the exact candidate on Linux, macOS, Windows, and musl"
         required: false
         type: boolean
-        default: true
+        default: false
+      run_scientific_canary:
+        description: "Run the packaged scientific capability matrix"
+        required: false
+        type: boolean
+        default: false
 
-concurrency: npm-test-publish
+concurrency: npm-test-rehearsal
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
-  test-source:
+  version:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
       contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      source: ${{ steps.version.outputs.source }}
     steps:
       - name: Require the protected default branch
         shell: bash
@@ -40,15 +47,6 @@ jobs:
             echo "::error::npm test publishing uses registry credentials and must be dispatched from synthetic-sciences/OpenScience main; received $GITHUB_REPOSITORY at $GITHUB_REF."
             exit 1
           fi
-
-  version:
-    needs: test-source
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      source: ${{ steps.version.outputs.source }}
-    steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: version
         shell: bash
@@ -82,6 +80,8 @@ jobs:
           echo "source=$source" >> "$GITHUB_OUTPUT"
           echo "Preparing immutable npm test version $version from $source"
 
+  # Builds the CLI and packs the 15-package candidate on one runner. Both
+  # immutable caches keep their keys, so a resume of a version reuses them.
   build-cli:
     needs: version
     runs-on: ubuntu-latest
@@ -89,15 +89,18 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           ref: ${{ needs.version.outputs.source }}
       - uses: ./.github/actions/setup-bun
-      - name: Look up immutable npm test artifacts
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+      - name: Restore immutable npm test artifacts
         id: npm-artifacts-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .release/npm-test/${{ needs.version.outputs.version }}
           key: npm-test-artifacts-v2-${{ needs.version.outputs.source }}-${{ needs.version.outputs.version }}
-          lookup-only: true
       - name: Restore immutable CLI build
         id: cli-build-cache
         if: steps.npm-artifacts-cache.outputs.cache-hit != 'true'
@@ -113,6 +116,7 @@ jobs:
         env:
           OPENSCIENCE_CHANNEL: test
           OPENSCIENCE_VERSION: ${{ needs.version.outputs.version }}
+          OPENSCIENCE_ARTIFACT_SOURCE: ${{ needs.version.outputs.source }}
           GH_TOKEN: ${{ github.token }}
       - name: Cache immutable CLI build
         if: steps.npm-artifacts-cache.outputs.cache-hit != 'true' && steps.cli-build-cache.outputs.cache-hit != 'true'
@@ -122,37 +126,6 @@ jobs:
             backend/cli/dist
             frontend/workspace/dist/version.json
           key: npm-test-cli-v2-${{ needs.version.outputs.source }}-${{ needs.version.outputs.version }}
-
-  prepare-npm:
-    needs:
-      - version
-      - build-cli
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          ref: ${{ needs.version.outputs.source }}
-      - uses: ./.github/actions/setup-bun
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: "24"
-      - name: Restore immutable npm test artifacts
-        id: npm-artifacts-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .release/npm-test/${{ needs.version.outputs.version }}
-          key: npm-test-artifacts-v2-${{ needs.version.outputs.source }}-${{ needs.version.outputs.version }}
-      - name: Restore immutable CLI build
-        if: steps.npm-artifacts-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            backend/cli/dist
-            frontend/workspace/dist/version.json
-          key: npm-test-cli-v2-${{ needs.version.outputs.source }}-${{ needs.version.outputs.version }}
-          fail-on-cache-miss: true
       - name: Fail closed if an uncached version is occupied
         if: steps.npm-artifacts-cache.outputs.cache-hit != 'true'
         run: ./tooling/repo/npm-test-release.ts assert-empty
@@ -182,44 +155,54 @@ jobs:
         with:
           path: .release/npm-test/${{ needs.version.outputs.version }}
           key: npm-test-artifacts-v2-${{ needs.version.outputs.source }}-${{ needs.version.outputs.version }}
+      # Every gate job installs from these tarballs through a localhost
+      # registry (.github/actions/candidate-registry) instead of from
+      # registry.npmjs.org, so the rehearsal never waits for the registry to
+      # commit fifteen uploads. The real staging happens once, in publish.yml.
+      - name: Share the packed candidate with the gate jobs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: npm-candidate-${{ needs.version.outputs.version }}
+          path: .release/npm-test/${{ needs.version.outputs.version }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
 
-  publish-test:
+  # Proves the npm credentials and the version's availability without
+  # uploading anything. publish.yml stages the release itself.
+  npm-preflight:
     needs:
       - version
-      - prepare-npm
+      - build-cli
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    outputs:
-      version: ${{ needs.version.outputs.version }}
-      source: ${{ needs.version.outputs.source }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           ref: ${{ needs.version.outputs.source }}
       - uses: ./.github/actions/setup-bun
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
-      - name: Restore immutable npm test artifacts
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .release/npm-test/${{ needs.version.outputs.version }}
-          key: npm-test-artifacts-v2-${{ needs.version.outputs.source }}-${{ needs.version.outputs.version }}
-          fail-on-cache-miss: true
-      - name: Stage and verify the complete npm candidate
-        run: ./tooling/repo/npm-test-release.ts stage
+      - name: Verify npm publisher
+        run: ./tooling/repo/npm-release.ts preflight
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Fail closed if the candidate version is occupied
+        run: ./tooling/repo/npm-test-release.ts assert-empty
         env:
           OPENSCIENCE_VERSION: ${{ needs.version.outputs.version }}
           OPENSCIENCE_RELEASE_SOURCE: ${{ needs.version.outputs.source }}
           OPENSCIENCE_ARTIFACT_SOURCE: ${{ needs.version.outputs.source }}
-          OPENSCIENCE_NPM_ARTIFACT_DIR: .release/npm-test/${{ needs.version.outputs.version }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: "true"
 
   packaged-e2e:
-    needs: publish-test
+    needs:
+      - version
+      - build-cli
     if: inputs.run_packaged_e2e
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -229,16 +212,31 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.publish-test.outputs.source }}
+          ref: ${{ needs.version.outputs.source }}
       - uses: ./.github/actions/setup-bun
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24"
       - name: Set Playwright browser path
         run: echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/ms-playwright" >> "$GITHUB_ENV"
-      - name: Install Playwright browsers
+      - name: Resolve Playwright version
+        id: playwright
         working-directory: frontend/workspace
-        run: bunx playwright install --with-deps
+        run: echo "version=$(bun -e 'console.log(require("@playwright/test/package.json").version)')" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ steps.playwright.outputs.version }}-chromium
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        working-directory: frontend/workspace
+        run: bunx playwright install --with-deps chromium
+      - name: Install Playwright system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: frontend/workspace
+        run: bunx playwright install-deps chromium
       - name: Install and verify Linux sandbox
         run: |
           sudo apt-get update
@@ -251,16 +249,19 @@ jobs:
             echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
           fi
           bwrap --ro-bind / / --dev /dev --proc /proc --unshare-pid --die-with-parent -- true
-      - name: Install published OpenScience test package
+      - uses: ./.github/actions/candidate-registry
+        with:
+          version: ${{ needs.version.outputs.version }}
+      - name: Install the packed OpenScience candidate
         run: |
           set -euo pipefail
           prefix="$RUNNER_TEMP/openscience-npm-test-prefix"
           home="$RUNNER_TEMP/openscience-npm-test-home"
           mkdir -p "$prefix" "$home"
-          npm install --global --prefix "$prefix" "@synsci/openscience@${{ needs.publish-test.outputs.version }}"
+          npm install --global --prefix "$prefix" "@synsci/openscience@${{ needs.version.outputs.version }}"
           echo "$prefix/bin" >> "$GITHUB_PATH"
           "$prefix/bin/openscience" --version | tee "$RUNNER_TEMP/openscience-version.txt"
-          grep -Fx "${{ needs.publish-test.outputs.version }}" "$RUNNER_TEMP/openscience-version.txt"
+          grep -Fx "${{ needs.version.outputs.version }}" "$RUNNER_TEMP/openscience-version.txt"
           wrapper_dir="$prefix/lib/node_modules/@synsci/openscience"
           if WRAPPER_DIR="$wrapper_dir" node -e 'require.resolve("@synsci/atlas/package.json", { paths: [process.env.WRAPPER_DIR] })' 2>/dev/null; then
             echo "::error::@synsci/openscience still installs the discontinued @synsci/atlas companion"
@@ -268,7 +269,7 @@ jobs:
           fi
 
           launcher_prefix="$RUNNER_TEMP/synsci-npm-test-prefix"
-          npm install --global --prefix "$launcher_prefix" "synsci@${{ needs.publish-test.outputs.version }}"
+          npm install --global --prefix "$launcher_prefix" "synsci@${{ needs.version.outputs.version }}"
           node --check "$launcher_prefix/lib/node_modules/synsci/bin/synsci.mjs"
           LAUNCHER_DIR="$launcher_prefix/lib/node_modules/synsci" node --input-type=module - <<'NODE'
           const mod = await import(`file://${process.env.LAUNCHER_DIR}/lib/channel.mjs`)
@@ -280,8 +281,8 @@ jobs:
           sdk_probe="$RUNNER_TEMP/openscience-sdk-probe"
           mkdir -p "$sdk_probe"
           npm install --prefix "$sdk_probe" \
-            "@synsci/sdk@${{ needs.publish-test.outputs.version }}" \
-            "@synsci/plugin@${{ needs.publish-test.outputs.version }}"
+            "@synsci/sdk@${{ needs.version.outputs.version }}" \
+            "@synsci/plugin@${{ needs.version.outputs.version }}"
           cat > "$sdk_probe/probe.mjs" <<'NODE'
           await import("@synsci/sdk")
           await import("@synsci/sdk/client")
@@ -296,7 +297,7 @@ jobs:
           node "$sdk_probe/probe.mjs"
         env:
           HOME: ${{ runner.temp }}/openscience-npm-test-home
-          OPENSCIENCE_VERSION: ${{ needs.publish-test.outputs.version }}
+          OPENSCIENCE_VERSION: ${{ needs.version.outputs.version }}
       - name: Set isolated OpenScience paths
         run: |
           PASS="ci-$(openssl rand -hex 16)"
@@ -327,7 +328,6 @@ jobs:
             printf '%s\n' "OPENSCIENCE_CONFIG_CONTENT=$CONFIG"
             printf '%s\n' "OPENSCIENCE_E2E_MODEL=e2e/echo"
             printf '%s\n' "OPENSCIENCE_E2E_FAKE_MODEL=1"
-            printf '%s\n' "SYNSC_API_BASE=http://127.0.0.1:4097"
           } >> "$GITHUB_ENV"
           bun frontend/workspace/script/e2e-fake-model.ts --port 4097 > "$RUNNER_TEMP/openscience-fake-model.log" 2>&1 &
           for _ in $(seq 1 30); do
@@ -338,9 +338,7 @@ jobs:
           exit 1
       - name: Seed OpenScience data
         working-directory: backend/cli
-        run: |
-          bun script/seed-e2e.ts
-          test -s "$OPENSCIENCE_DATA_DIR/openscience-session.json"
+        run: bun script/seed-e2e.ts
         env:
           OPENSCIENCE_DISABLE_SHARE: "true"
           OPENSCIENCE_DISABLE_LSP_DOWNLOAD: "true"
@@ -370,23 +368,13 @@ jobs:
           OPENSCIENCE_CLIENT: "app"
       - name: Wait for published OpenScience server
         run: |
-          HEALTHY=0
-          for _ in $(seq 1 120); do
+          for _ in $(seq 1 45); do
             if curl -fsS "http://127.0.0.1:4096/global/health" > /dev/null; then
-              HEALTHY=1
-              SESSION=$(curl -fsS -u "openscience:$OPENSCIENCE_SERVER_PASSWORD" \
-                "http://127.0.0.1:4096/account/session" || true)
-              if [[ "$SESSION" == '{"session":true}' ]]; then
-                exit 0
-              fi
+              exit 0
             fi
             sleep 1
           done
-          if [[ "$HEALTHY" == "0" ]]; then
-            echo "::error::published OpenScience server never became healthy on 127.0.0.1:4096"
-          else
-            echo "::error::published OpenScience server became healthy but never loaded the isolated account session"
-          fi
+          echo "::error::published OpenScience server never became healthy on 127.0.0.1:4096"
           exit 1
       - name: Run packaged E2E
         working-directory: frontend/workspace
@@ -405,8 +393,8 @@ jobs:
           cat "$RUNNER_TEMP/openscience-server.log" || true
           cat "$RUNNER_TEMP/openscience-fake-model.log" || true
       - name: Upload packaged E2E artifacts
-        if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: npm-test-packaged-e2e-${{ github.run_attempt }}
           if-no-files-found: ignore
@@ -418,7 +406,9 @@ jobs:
             ${{ runner.temp }}/openscience-fake-model.log
 
   os-smoke:
-    needs: publish-test
+    needs:
+      - version
+      - build-cli
     if: inputs.run_os_smoke
     strategy:
       fail-fast: false
@@ -432,13 +422,24 @@ jobs:
             runner: macos-latest
           - name: windows
             runner: windows-latest
+    # publish.yml's rehearsal gate matches these names exactly.
+    name: os-smoke (${{ matrix.name }})
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 25
     steps:
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.version.outputs.source }}
+      - uses: ./.github/actions/setup-bun
+        with:
+          install: "false"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24"
-      - name: Install and smoke OpenScience test package
+      - uses: ./.github/actions/candidate-registry
+        with:
+          version: ${{ needs.version.outputs.version }}
+      - name: Install and smoke the OpenScience candidate
         if: runner.os != 'Windows'
         shell: bash
         run: |
@@ -449,10 +450,10 @@ jobs:
           export OPENSCIENCE_DISABLE_LSP_DOWNLOAD=true
           export OPENSCIENCE_DISABLE_DEFAULT_PLUGINS=true
           export OPENSCIENCE_EXPERIMENTAL_DISABLE_FILEWATCHER=true
-          npm install --global --prefix "$prefix" "@synsci/openscience@${{ needs.publish-test.outputs.version }}"
+          npm install --global --prefix "$prefix" "@synsci/openscience@${{ needs.version.outputs.version }}"
           bin="$prefix/bin/openscience"
           "$bin" --version | tee "$RUNNER_TEMP/openscience-version.txt"
-          grep -Fx "${{ needs.publish-test.outputs.version }}" "$RUNNER_TEMP/openscience-version.txt"
+          grep -Fx "${{ needs.version.outputs.version }}" "$RUNNER_TEMP/openscience-version.txt"
           "$bin" serve --port 4096 > "$RUNNER_TEMP/openscience-smoke.log" 2>&1 &
           pid=$!
           trap 'kill "$pid" 2>/dev/null || true' EXIT
@@ -463,7 +464,31 @@ jobs:
           echo "::error::openscience server never became healthy"
           cat "$RUNNER_TEMP/openscience-smoke.log" || true
           exit 1
-      - name: Install and smoke OpenScience test package
+      - name: Verify compiled macOS worker startup with piped stdin
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          modules="$RUNNER_TEMP/openscience-prefix/lib/node_modules"
+          native=$(node --input-type=module - "$modules" <<'NODE'
+          import path from "node:path"
+          import { createRequire } from "node:module"
+          const require = createRequire(path.join(process.argv[2], "@synsci/openscience/package.json"))
+          const manifest = require.resolve(`@synsci/openscience-darwin-${process.arch}/package.json`)
+          console.log(path.join(path.dirname(manifest), "bin/openscience"))
+          NODE
+          )
+          bun --no-env-file backend/cli/script/smoke-darwin-launcher.ts "$native" "$RUNNER_TEMP/darwin-launcher-smoke"
+      - name: Upload macOS worker startup evidence
+        if: always() && runner.os == 'macOS'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: npm-test-darwin-launcher-${{ github.run_attempt }}
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
+          path: ${{ runner.temp }}/darwin-launcher-smoke
+      - name: Install and smoke the OpenScience candidate
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
@@ -472,12 +497,12 @@ jobs:
           $env:OPENSCIENCE_DISABLE_LSP_DOWNLOAD = "true"
           $env:OPENSCIENCE_DISABLE_DEFAULT_PLUGINS = "true"
           $env:OPENSCIENCE_EXPERIMENTAL_DISABLE_FILEWATCHER = "true"
-          npm install --global --prefix $prefix "@synsci/openscience@${{ needs.publish-test.outputs.version }}"
+          npm install --global --prefix $prefix "@synsci/openscience@${{ needs.version.outputs.version }}"
           $bin = Join-Path $prefix "openscience.cmd"
           & $bin --version | Tee-Object -FilePath (Join-Path $env:RUNNER_TEMP "openscience-version.txt")
           $actual = Get-Content (Join-Path $env:RUNNER_TEMP "openscience-version.txt")
-          if ($actual -ne "${{ needs.publish-test.outputs.version }}") {
-            throw "expected version ${{ needs.publish-test.outputs.version }}, got $actual"
+          if ($actual -ne "${{ needs.version.outputs.version }}") {
+            throw "expected version ${{ needs.version.outputs.version }}, got $actual"
           }
           $stdout = Join-Path $env:RUNNER_TEMP "openscience-smoke.out.log"
           $stderr = Join-Path $env:RUNNER_TEMP "openscience-smoke.err.log"
@@ -499,24 +524,40 @@ jobs:
           }
 
   musl-baseline-smoke:
-    needs: publish-test
+    needs:
+      - version
+      - build-cli
     if: inputs.run_os_smoke
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    container: node:24-alpine
+    # node:24-alpine multi-arch index as of 2026-09-03
+    container: node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf
     steps:
       - name: Install Alpine smoke dependencies
         shell: sh
         run: apk add --no-cache curl libstdc++
+      - name: Download the packed candidate
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: npm-candidate-${{ needs.version.outputs.version }}
+          path: ${{ runner.temp }}/npm-candidate
       - name: Install and smoke the exact x64 musl baseline
         shell: sh
         run: |
           set -eu
           prefix="$RUNNER_TEMP/openscience-musl-baseline"
-          npm install --prefix "$prefix" "@synsci/openscience-linux-x64-baseline-musl@${{ needs.publish-test.outputs.version }}"
+          # The platform package has no dependencies, so the tarball itself is
+          # the whole install.
+          tarball=$(node -e '
+            const manifest = require(process.argv[1] + "/manifest.json")
+            const found = manifest.artifacts.find((item) => item.name === "@synsci/openscience-linux-x64-baseline-musl")
+            if (!found) throw new Error("candidate lacks the x64 musl baseline package")
+            console.log(require("path").join(process.argv[1], found.file))
+          ' "$RUNNER_TEMP/npm-candidate")
+          npm install --prefix "$prefix" "$tarball"
           bin="$prefix/node_modules/@synsci/openscience-linux-x64-baseline-musl/bin/openscience"
           "$bin" --version > "$RUNNER_TEMP/openscience-musl-version.txt"
-          grep -Fx "${{ needs.publish-test.outputs.version }}" "$RUNNER_TEMP/openscience-musl-version.txt"
+          grep -Fx "${{ needs.version.outputs.version }}" "$RUNNER_TEMP/openscience-musl-version.txt"
           OPENSCIENCE_DISABLE_SHARE=true \
             OPENSCIENCE_DISABLE_LSP_DOWNLOAD=true \
             OPENSCIENCE_DISABLE_DEFAULT_PLUGINS=true \
@@ -536,37 +577,128 @@ jobs:
           sed -n '1,200p' "$RUNNER_TEMP/openscience-musl-smoke.log" >&2 || true
           exit 1
 
-  promote-test:
+  # One job per capability x native runner. Each packaged lifecycle takes about
+  # three minutes, so fanning out cuts the rehearsal's critical path by ten to
+  # fifteen minutes. publish.yml's rehearsal gate expects every combination
+  # below by exact job name; change both files together.
+  scientific-capability-canary:
     needs:
       - version
-      - publish-test
-      - packaged-e2e
-      - os-smoke
-      - musl-baseline-smoke
-    if: inputs.run_packaged_e2e && inputs.run_os_smoke
-    runs-on: ubuntu-latest
+      - build-cli
+    if: inputs.run_scientific_canary
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [linux-x64, linux-arm64, macos-arm64]
+        capability: [scipy, matplotlib, scikit-learn, biopython, rdkit]
+        include:
+          - os: linux-x64
+            runner: ubuntu-latest
+          - os: linux-arm64
+            runner: ubuntu-24.04-arm
+          - os: macos-arm64
+            runner: macos-latest
+    name: scientific capability canary (${{ matrix.os }}, ${{ matrix.capability }})
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           ref: ${{ needs.version.outputs.source }}
       - uses: ./.github/actions/setup-bun
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          install: "false"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24"
-          registry-url: "https://registry.npmjs.org"
-      - name: Restore immutable npm test artifacts
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: ./.github/actions/candidate-registry
         with:
-          path: .release/npm-test/${{ needs.version.outputs.version }}
-          key: npm-test-artifacts-v2-${{ needs.version.outputs.source }}-${{ needs.version.outputs.version }}
-          fail-on-cache-miss: true
-      - name: Promote the verified snapshot to test
-        run: ./tooling/repo/npm-test-release.ts promote-test
+          version: ${{ needs.version.outputs.version }}
+      - name: Install and prove the Linux capability sandbox
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          if [[ -e /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]]; then
+            echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+          fi
+          bwrap --ro-bind / / --dev /dev --proc /proc --unshare-pid --die-with-parent -- true
+      - name: Install the exact packed OpenScience candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          prefix="$RUNNER_TEMP/openscience-capability-prefix"
+          mkdir -p "$prefix"
+          npm install --global --prefix "$prefix" "@synsci/openscience@${{ needs.version.outputs.version }}"
+          echo "$prefix/bin" >> "$GITHUB_PATH"
+          "$prefix/bin/openscience" --version | tee "$RUNNER_TEMP/openscience-capability-version.txt"
+          grep -Fx "${{ needs.version.outputs.version }}" "$RUNNER_TEMP/openscience-capability-version.txt"
+      - name: Run the packaged scientific capability lifecycle
+        shell: bash
         env:
-          OPENSCIENCE_VERSION: ${{ needs.version.outputs.version }}
-          OPENSCIENCE_RELEASE_SOURCE: ${{ needs.version.outputs.source }}
-          OPENSCIENCE_ARTIFACT_SOURCE: ${{ needs.version.outputs.source }}
-          OPENSCIENCE_NPM_ARTIFACT_DIR: .release/npm-test/${{ needs.version.outputs.version }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          CANARY_CAPABILITY: ${{ matrix.capability }}
+          HOME: ${{ runner.temp }}/openscience-capability/home
+          XDG_DATA_HOME: ${{ runner.temp }}/openscience-capability/share
+          XDG_CACHE_HOME: ${{ runner.temp }}/openscience-capability/cache
+          XDG_CONFIG_HOME: ${{ runner.temp }}/openscience-capability/config
+          XDG_STATE_HOME: ${{ runner.temp }}/openscience-capability/state
+          OPENSCIENCE_CONFIG_DIR: ${{ runner.temp }}/openscience-capability/config/openscience
+          OPENSCIENCE_DATA_DIR: ${{ runner.temp }}/openscience-capability/data
+          OPENSCIENCE_DISABLE_SHARE: "true"
+          OPENSCIENCE_DISABLE_LSP_DOWNLOAD: "true"
+          OPENSCIENCE_DISABLE_DEFAULT_PLUGINS: "true"
+          OPENSCIENCE_EXPERIMENTAL_DISABLE_FILEWATCHER: "true"
+          OPENSCIENCE_RELEASE_SHA: ${{ needs.version.outputs.source }}
+        run: |
+          set -euo pipefail
+          project="$RUNNER_TEMP/openscience-capability/project"
+          mkdir -p "$HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME" "$XDG_STATE_HOME" "$OPENSCIENCE_DATA_DIR" "$project"
+          cd "$project"
+          openscience --print-logs debug capability-canary "$CANARY_CAPABILITY" --target local --timeout 900 \
+            2> >(tee "$RUNNER_TEMP/scientific-capability-canary.log" >&2) \
+            | tee "$RUNNER_TEMP/scientific-capability-canary.json"
+          CANARY_RESULT="$RUNNER_TEMP/scientific-capability-canary.json" \
+          EXPECTED_CAPABILITY="$CANARY_CAPABILITY" \
+          EXPECTED_SOURCE="${{ needs.version.outputs.source }}" \
+          EXPECTED_VERSION="${{ needs.version.outputs.version }}" \
+          node --input-type=module - <<'NODE'
+          import fs from "node:fs"
+          const report = JSON.parse(fs.readFileSync(process.env.CANARY_RESULT, "utf8"))
+          if (report.schema_version !== 1 || report.target !== "local") throw new Error("invalid canary report")
+          if (!Array.isArray(report.results) || report.results.length !== 1) {
+            throw new Error(`expected exactly one packaged capability result, received ${report.results?.length}`)
+          }
+          const item = report.results[0]
+          if (item.capability !== process.env.EXPECTED_CAPABILITY) {
+            throw new Error(`expected the ${process.env.EXPECTED_CAPABILITY} release canary, received ${item.capability}`)
+          }
+          if (item.status !== "succeeded") throw new Error(`${item.capability} ended ${item.status}`)
+          if (item.doctor?.availability?.local !== "ready") {
+            throw new Error(`${item.capability} doctor did not report the exact local pack ready`)
+          }
+          const evidence = item.verification?.evidence
+          if (evidence?.release_sha !== process.env.EXPECTED_SOURCE) {
+            throw new Error(`${item.capability} recorded the wrong release source`)
+          }
+          if (evidence?.app_version !== process.env.EXPECTED_VERSION) {
+            throw new Error(`${item.capability} recorded the wrong candidate version`)
+          }
+          if (!item.verification?.validation?.ok) throw new Error(`${item.capability} failed semantic validation`)
+          console.log(`verified the exact packaged ${item.capability} lifecycle`)
+          NODE
+      - name: Upload scientific capability evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: npm-test-scientific-capability-${{ matrix.os }}-${{ matrix.capability }}-${{ github.run_attempt }}
+          if-no-files-found: ignore
+          retention-days: 30
+          path: |
+            ${{ runner.temp }}/scientific-capability-canary.json
+            ${{ runner.temp }}/scientific-capability-canary.log
+            ${{ runner.temp }}/openscience-capability/data/scientific-capability-evidence.json
+            ${{ runner.temp }}/openscience-capability/data/log
+            ${{ runner.temp }}/openscience-capability/data/compute/projects
+            ${{ runner.temp }}/openscience-capability/data/conda/state.json

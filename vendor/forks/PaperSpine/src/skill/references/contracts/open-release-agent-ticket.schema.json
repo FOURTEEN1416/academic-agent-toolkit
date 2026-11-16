@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:paperspine:open-release:agent-ticket:1.0",
+  "title": "PaperSpine Open Release Agent Ticket",
+  "type": "object",
+  "required": ["contract", "schema_version", "interface_version", "ticket_id", "release_id", "manifest", "confirmation", "external_action_authorized", "authorized_platforms", "actions", "authority_boundary"],
+  "properties": {
+    "contract": {"const": "paperspine.open-release.agent-ticket"},
+    "schema_version": {"const": "1.0"},
+    "interface_version": {"const": "0.1-beta"},
+    "ticket_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "release_id": {"type": "string", "minLength": 1},
+    "issued_at": {"type": "string"},
+    "manifest": {"type": "object", "required": ["path", "sha256"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}, "additionalProperties": false},
+    "confirmation": {"type": "object", "required": ["path", "sha256", "confirmed_by", "confirmed_at"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "confirmed_by": {"type": "string", "minLength": 1}, "confirmed_at": {"type": "string", "minLength": 1}}, "additionalProperties": false},
+    "external_action_authorized": {"const": true},
+    "authorized_platforms": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "actions": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "authority_boundary": {"type": "object", "required": ["exact_scope_only", "may_accept_new_fees_licenses_or_declarations", "may_upload_changed_artifacts", "guided_platforms_may_not_exceed_maximum_agent_action"], "properties": {"exact_scope_only": {"const": true}, "may_accept_new_fees_licenses_or_declarations": {"const": false}, "may_upload_changed_artifacts": {"const": false}, "guided_platforms_may_not_exceed_maximum_agent_action": {"const": true}}, "additionalProperties": false}
+  }
+}

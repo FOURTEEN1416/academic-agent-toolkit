@@ -238,7 +238,7 @@ This is the single most valuable advice for any applicant. Never skip.
 
 - Save DOCX to `<output-dir>/grants_<topic-slug>_<YYYY-MM-DD>.docx`
 - Chat summary: file path + audit counts + plan tier + verdict on institute targets
-- Validate: check zip integrity with `python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).testzip()" <docx>` (no output = intact), then confirm the required sections are present
+- Validate: check zip integrity with `python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).testzip()" <docx>` (no output = intact), then confirm the required sections are present（本机用 `python` 不用 `python3`：`python3` 可能触发 Microsoft Store 存根、exit 49）
 
 ## Tooling
 

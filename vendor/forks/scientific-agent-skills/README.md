@@ -1,8 +1,9 @@
 # Scientific Agent Skills
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
-[![Version](https://img.shields.io/badge/Version-2.64.0-blue.svg)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/Skills-163-brightgreen.svg)](#-whats-included)
+[![arXiv](https://img.shields.io/badge/arXiv-2609.00065-b31b1b.svg)](https://arxiv.org/abs/2609.00065)
+[![Version](https://img.shields.io/badge/Version-2.72.0-blue.svg)](pyproject.toml)
+[![Skills](https://img.shields.io/badge/Skills-177-brightgreen.svg)](#-whats-included)
 [![Databases](https://img.shields.io/badge/Databases-100%2B-orange.svg)](#-whats-included)
 [![Agent Skills](https://img.shields.io/badge/Standard-Agent_Skills-blueviolet.svg)](https://agentskills.io/)
 [![Agent Plugins](https://img.shields.io/badge/Standard-Agent_Plugins-0A7A72.svg)](https://agent-plugins.org/)
@@ -16,36 +17,43 @@
 
 > **🔔 Claude Scientific Skills is now Scientific Agent Skills.** Same skills, broader compatibility — now works with any AI agent that supports the open [Agent Skills](https://agentskills.io/) standard, not just Claude.
 
-> **New: [K-Dense BYOK](https://github.com/K-Dense-AI/k-dense-byok)** — A free, open-source AI co-scientist that runs on your desktop, powered by Scientific Agent Skills. Bring your own API keys, pick from 40+ models, and get a full research workspace with web search, file handling, 100+ scientific databases, and access to all 161 skills in this repo. Your data stays on your computer, and you can optionally scale to cloud compute via [Modal](https://modal.com/) for heavy workloads. [Get started here.](https://github.com/K-Dense-AI/k-dense-byok)
+> **New: [K-Dense BYOK](https://github.com/K-Dense-AI/k-dense-byok)** — A free, open-source AI co-scientist that runs on your desktop, powered by Scientific Agent Skills. Bring your own API keys, pick from 40+ models, and get a full research workspace with web search, file handling, 100+ scientific databases, and access to all 177 skills in this repo. Your data stays on your computer, and you can optionally scale to cloud compute via [Modal](https://modal.com/) for heavy workloads. [Get started here.](https://github.com/K-Dense-AI/k-dense-byok)
 
-> **🎥 Live webinar — [Getting Started with K-Dense BYOK](https://luma.com/nucztxt5)** · Tuesday, August 25, 2026 · 2:00 PM PT / 5:00 PM ET · Online, free
-> Join us for a hands-on walkthrough of [K-Dense BYOK](https://github.com/K-Dense-AI/k-dense-byok), our free, open-source AI co-scientist that runs locally on your own machine and is powered by Scientific Agent Skills. We'll show you how to set it up, bring your own API keys, and run real research workflows with these skills. No prior technical experience needed, and questions are welcome throughout. **[Save your spot →](https://luma.com/nucztxt5)**
+> **🎥 Webinar recording — [Getting Started with K-Dense BYOK](https://youtu.be/Du3BIE48DKc?si=9dPpETKSc2PeQbvU)**
+> A hands-on walkthrough of [K-Dense BYOK](https://github.com/K-Dense-AI/k-dense-byok), our free, open-source AI co-scientist that runs locally on your own machine and is powered by Scientific Agent Skills. We cover how to set it up, bring your own API keys, and run real research workflows with these skills. No prior technical experience needed. **[Watch the recording →](https://youtu.be/Du3BIE48DKc?si=9dPpETKSc2PeQbvU)**
 
 > **Stay up to date:** Follow K-Dense on [X](https://x.com/k_dense_ai), [LinkedIn](https://www.linkedin.com/company/k-dense-inc), [YouTube](https://www.youtube.com/@K-Dense-Inc), and [Reddit](https://www.reddit.com/user/-k-dense-/) for new skills, release announcements, walkthroughs, research workflow demos, and examples you can use with your own AI agent.
 
-A comprehensive collection of **163 ready-to-use scientific and research skills** (covering cancer genomics, individual-level 1000 Genomes queries, hosted regulatory-sequence prediction, live pathogen-variant surveillance, analytical method validation, PK/PD modelling and dose selection, full-text biomedical and regulatory literature retrieval, drug-target binding, bounded biomedical knowledge graph search, molecular dynamics, RNA velocity, microbiome foundation models, geospatial science, time series forecasting, scientific ML resource discovery via Hugging Science, 78+ scientific databases, and more) for any AI agent that supports the open [Agent Skills](https://agentskills.io/) standard, created by [K-Dense](https://k-dense.ai). The repository is also a portable [Agent Plugins](https://agent-plugins.org/) package (`plugin.json` + `skills/`), so plugin-capable clients can load the whole collection as one plugin. Works with **Cursor, Claude Code, Codex, Google Antigravity, and more**. Transform your AI agent into a research assistant capable of executing complex multi-step scientific workflows across biology, chemistry, medicine, and beyond.
+> **📄 Paper:** Scientific Agent Skills is described in [*Scientific Agent Skills: A Library of Procedural Knowledge for Research Agents*](https://arxiv.org/abs/2609.00065) (arXiv:2609.00065). If you use these skills in your research, please [cite the paper](#-citation).
+
+A collection of **177 scientific and research skills** for AI agents, created by [K-Dense](https://k-dense.ai). The skills cover biology, chemistry, medicine, physics, engineering, Earth science, data analysis, and scientific communication. Each provides guidance for a specific package, data source, or workflow, including the scientific conventions and validation checks needed to use it.
+
+The collection follows the open [Agent Skills](https://agentskills.io/) standard and works with **Cursor, Claude Code, Codex, Google Antigravity, and other compatible hosts**. It is also a portable [Agent Plugins](https://agent-plugins.org/) package (`plugin.json` + `skills/`), so clients that support that standard can load the collection as one plugin. Browse the [illustrated skill guides](docs/skill-guides/README.md), [skill categories](#-available-skills), or [complete catalog](docs/skills.md) to choose the skills relevant to your work.
 
 > ⭐ **Help make AI for science easier to discover:** If Scientific Agent Skills saves you time, teaches your agent a workflow, or helps your lab move faster, please [star this repository](https://github.com/K-Dense-AI/scientific-agent-skills). A star is a public signal that these open, reusable research skills are worth maintaining: it helps scientists, engineers, and open-source contributors find the project, shows which agent-skill standards are gaining real adoption, and gives us a clear reason to keep expanding the collection for the community.
 
 ---
 
 These skills enable your AI agent to seamlessly work with specialized scientific libraries, databases, and tools across multiple scientific domains. While the agent can use any Python package or API on its own, these explicitly defined skills provide curated documentation and examples that make it significantly stronger and more reliable for the workflows below:
-- 🧬 Bioinformatics & Genomics - Sequence analysis, single-cell RNA-seq, gene regulatory networks, variant annotation, phylogenetic analysis
-- 🧪 Cheminformatics & Drug Discovery - Molecular property prediction, virtual screening, ADMET analysis, molecular docking, lead optimization
+- 🧬 Bioinformatics & Genomics - Sequence analysis, single-cell RNA-seq, pooled CRISPR screens, primer design, amplicon microbiomes, variant annotation, phylogenetics
+- 🧪 Cheminformatics & Drug Discovery - Molecular property prediction, virtual screening, ADMET analysis, molecular docking, lead optimization, calibrated 1D NMR processing
 - 🔬 Proteomics & Mass Spectrometry - LC-MS/MS processing, peptide identification, spectral matching, protein quantification
 - 🏥 Clinical Research & Evidence Workflows - Clinical trials, pharmacogenomics, variant evidence review, pharmacokinetic/pharmacodynamic modelling and dose-regimen evaluation, aggregate decision-support evaluation, source-bound draft report structures, and formatting of clinician-authored treatment decisions
 - 🧠 Healthcare AI & Biosignal Research - EHR and model research, physiological signal analysis, and retrospective validation—not patient-specific diagnosis, treatment, alarms, or deployment decisions
-- 🖼️ Medical Imaging & Digital Pathology - Privacy-aware DICOM processing and research-only whole-slide image analysis, computational pathology, and radiology data workflows
+- 🐭 Preclinical Research & Animal Welfare - Multivariate severity scoring and humane-endpoint forecasting for laboratory animal studies, for 3Rs/refinement analysis and EU Directive 2010/63/EU reporting—an aid to severity assessment, never a decision rule
+- 🖼️ Microscopy, Medical Imaging & Digital Pathology - Quantitative fluorescence microscopy, privacy-aware DICOM processing, research-only whole-slide image analysis, computational pathology, and radiology data workflows
+- 🧠 Neuroscience & Electrophysiology - BIDS datasets, NWB conversion and clock alignment, extracellular recordings, and physiological signals
 - 🤖 Machine Learning & AI - Deep learning, reinforcement learning, time series analysis, model interpretability, Bayesian methods
-- 🔮 Materials Science & Chemistry - Crystal structure analysis, phase diagrams, metabolic modeling, computational chemistry
+- 🔮 Materials Science & Chemistry - Crystal structure analysis, CALPHAD phase equilibria, metabolic modeling, computational chemistry
 - 🌌 Physics & Astronomy - Astronomical data analysis, coordinate transformations, cosmological calculations, symbolic mathematics, physics computations
-- ⚙️ Engineering & Simulation - Discrete-event simulation, multi-objective optimization, metabolic engineering, systems modeling, process optimization
+- ⚙️ Engineering & Simulation - Battery cycling models, chemical kinetics and ignition delay, fluid dynamics, lab hardware CAD and custom-part fabrication, discrete-event simulation, process optimization
 - 📊 Data Analysis & Visualization - Statistical analysis, network analysis, time series, publication-quality figures, large-scale data processing, EDA
+- 🌊 Chemical Oceanography - Seawater carbonate chemistry, ocean acidification, mineral saturation, and measurement uncertainty
 - 🌍 Geospatial Science & Remote Sensing - Satellite imagery processing, GIS analysis, spatial statistics, terrain analysis, machine learning for Earth observation
 - 🧪 Laboratory Automation - Liquid handling protocols, lab equipment control, workflow automation, LIMS integration
 - 📚 Scientific Communication - Evidence-traceable writing, confidential authorized peer review, literature synthesis, document processing, macro-free PPTX posters, slides, schematics, and citation management
-- 🔬 Multi-omics & Systems Biology - Multi-modal data integration, pathway analysis, network biology, systems-level insights
-- 🧬 Protein Engineering & Design - Protein language models, structure prediction, sequence design, function annotation
+- 🔬 Multi-omics & Systems Biology - Multi-modal data integration, pathway analysis, carbon-13 metabolic flux inference, biochemical kinetic models
+- 🧬 Protein Engineering & Design - Protein language models, structure prediction, cryo-EM refinement, sequence design, function annotation
 - 🧰 Agent Platforms & Infrastructure - Build on Pi with SDK, RPC, extensions, custom providers/models, packages, TUI components, and session tooling
 - 🎓 Research Methodology - Evidence-bounded candidate hypotheses, scientific brainstorming, critical thinking, grant writing, and qualitative low-stakes evaluation of scholarly works
 - ⚖️ Regulatory & Standards - Draft evidence-preparation artifacts for ISO management-system and laboratory standards, plus analytical method validation, verification, and transfer under ICH/USP/CLSI frameworks—prepared for qualified review, never a certification, accreditation, or method-release decision
@@ -70,27 +78,48 @@ Recorded walkthroughs of these skills on real research tasks, from the [K-Dense 
 
 ## 📦 What's Included
 
-This repository provides **163 scientific and research skills** organized into the following categories:
+This repository provides **177 scientific and research skills** organized into the following categories:
 
-- **100+ Scientific & Financial Databases** - A unified database-lookup skill provides deterministic, provenance-rich access to 78 public databases (PubChem, ChEMBL, UniProt, COSMIC, ClinicalTrials.gov, FRED, USPTO, and more), plus dedicated skills for DepMap, Imaging Data Commons, PrimeKG, NCATS ARAX, U.S. Treasury Fiscal Data, Hugging Science, OneKGPd, and Genomic Intelligence. Multi-database packages like BioServices (~40 bioinformatics services), BioPython (39 NCBI sub-databases via Entrez), and gget (20+ genomics databases) add further coverage
+- **100+ Scientific & Financial Databases** - The [Database Lookup](skills/database-lookup/SKILL.md) skill documents 80 databases with public, registered, or licensed access (PubChem, ChEMBL, UniProt, COSMIC, ClinicalTrials.gov, FRED, USPTO, and more), including endpoint selection, pagination, and provenance. Dedicated skills cover DepMap, Imaging Data Commons, PrimeKG, NCATS ARAX, U.S. Treasury Fiscal Data, Hugging Science, OneKGPd, Genomic Intelligence, and AlphaGenome. Multi-database packages such as BioServices, Biopython, and gget add further coverage
 - **70+ Optimized Python Package Skills** - Explicitly defined, version-aware workflows for RDKit, Scanpy, PyTorch Lightning, scikit-learn, PyTDC, PathML, pydicom, NeuroKit2, PufferLib, QuTiP, GeoPandas, pymatgen, BioPython, Qiskit, Molecular Dynamics (OpenMM/MDAnalysis), and others. The agent can still use *any* Python package; these skills provide stronger, safer guidance for the packages listed
 - **9 Scientific Integration Skills** - Explicitly defined skills for Benchling, DNAnexus, LatchBio, OMERO, Protocols.io, Open Notebook, Ginkgo Cloud Lab, LabArchives, and Opentrons. Again, the agent is not limited to these — any API or platform reachable from Python is fair game; these skills are the optimized, pre-documented paths
 - **30+ Analysis & Communication Tools** - Literature review, evidence-traceable scientific writing, confidential peer review, document processing, Paperclip (full-text papers, FDA/PMDA/EMA filings, and trial registries with line-pinned citations), Paperzilla, Exa Search, macro-free PPTX posters, slides, schematics, infographics, Mermaid diagrams, and more
 - **10+ Research & Clinical Tools** - Evidence-bounded hypothesis generation, grant writing, aggregate clinical decision-support research, clinician-authored treatment-plan formatting, PK/PD modelling and simulation (NCA, population PK, exposure-response, bioequivalence, first-in-human dose), BIDS, ISO standards-readiness evidence preparation (ISO 13485, ISO 14971, ISO/IEC 17025, ISO 15189), analytical method validation and transfer (ICH Q2(R2)/Q14, ICH M10, USP, CLSI EP), scenario analysis, and workflow-derived skill drafting with Autoskill
 
-Each skill includes:
-- ✅ Comprehensive documentation (`SKILL.md`)
-- ✅ Practical code examples
-- ✅ Use cases and best practices
-- ✅ Integration guides
-- ✅ Reference materials
-- ✅ A test suite for every skill that ships `scripts/` — CI blocks a pull request that adds bundled tooling without one
+Every skill has a `SKILL.md` with its purpose, workflow, and version metadata. Depending on the workflow, it also includes code examples, reference documentation, executable helpers, or templates. Skills with bundled `scripts/` have a corresponding test suite under `tests/<skill-name>/` and a dependency entry in [`tests/skill-requirements.toml`](tests/skill-requirements.toml).
+
+### What's new in 2.72.0
+
+The `docx`, `pdf`, `pptx`, and `xlsx` document skills, which were vendored from [anthropics/skills](https://github.com/anthropics/skills) under Anthropic's own license, are no longer bundled. The collection now has **177 skills**; install those four from Anthropic's repository if you rely on them. [Scientific Slides](skills/scientific-slides/SKILL.md) now builds PowerPoint decks with PptxGenJS or python-pptx and reviews them through LibreOffice and its own rendering and validation scripts.
+
+### What's new in 2.71.0
+
+This update refreshes all **181 skills**, including package and API guidance, dependency requirements, reference documentation, and validation workflows. Highlights include:
+
+- **Database retrieval:** [Database Lookup](skills/database-lookup/SKILL.md) now catalogs 80 sources, with access requirements, retrieval contracts, and provenance checks.
+- **Package compatibility:** Updated documented baselines include [PathML 3.0.8](skills/pathml/SKILL.md), [GeoPandas 1.2.0](skills/geopandas/SKILL.md), and [build123d 0.13.0 for lab hardware CAD](skills/lab-hardware-cad/SKILL.md). [PufferLib](skills/pufferlib/SKILL.md) distinguishes native 5.0, PyPI 3.0.0, and historical 4.0 workflows.
+- **Image generation and agent tooling:** [Generate Image](skills/generate-image/SKILL.md) uses the OpenRouter Image API with model discovery and request validation. [Pi Agent](skills/pi-agent/SKILL.md) documents Pi 0.99.2, native MCP, and updated ecosystem packages.
+- **RNA-seq workflow boundaries:** [Bulk RNA-seq](skills/bulk-rnaseq/SKILL.md) prepares reads and validated counts for a [PyDESeq2](skills/pydeseq2/SKILL.md) handoff; [Pathway Enrichment](skills/pathway-enrichment/SKILL.md) covers downstream enrichment.
+
+Each skill records its own compatibility requirements and validation scope. Check those details before reusing an older workflow; local tests, live-service checks, and illustrative examples have different coverage.
+
+### Recently added workflows
+
+| Research task | Skills | Workflow focus |
+|---|---|---|
+| Design and analyze assays | [Primer Design](skills/primer-design/SKILL.md), [FlowKit](skills/flowkit/SKILL.md), [MAGeCK](skills/mageck/SKILL.md), [CellProfiler](skills/cellprofiler/SKILL.md) | PCR specificity screening, cytometry compensation and gating, pooled CRISPR contrasts, and microscopy segmentation QC |
+| Process spectra and model metabolism | [nmrglue](skills/nmrglue/SKILL.md), [13C Metabolic Flux](skills/13c-metabolic-flux/SKILL.md), [Tellurium](skills/tellurium/SKILL.md) | Calibrated 1D NMR, isotope-tracing inference with identifiability checks, and reproducible biochemical simulations |
+| Reconstruct structures and preserve neural data | [RELION](skills/relion/SKILL.md), [NWB Conversion](skills/nwb-conversion/SKILL.md) | Cryo-EM half-map validation and two-photon imaging/behavior conversion with clock alignment |
+| Analyze microbiomes and seawater chemistry | [QIIME 2 Amplicon](skills/qiime2-amplicon/SKILL.md), [Marine Carbonate Chemistry](skills/marine-carbonate-chemistry/SKILL.md) | Paired-end 16S processing with read-retention checks, carbonate speciation, and measurement uncertainty |
+| Simulate energy and materials systems | [PyBaMM](skills/pybamm/SKILL.md), [Cantera](skills/cantera/SKILL.md), [pycalphad](skills/pycalphad/SKILL.md) | Battery cycling, ignition delay, and alloy phase equilibria with numerical checks and input provenance |
 
 ---
 
 ## 📋 Table of Contents
 
 - [What's Included](#-whats-included)
+- [What's New in 2.72.0](#whats-new-in-2720)
+- [Recently Added Workflows](#recently-added-workflows)
 - [Why Use This?](#-why-use-this)
 - [Getting Started](#-getting-started)
 - [Security Disclaimer](#%EF%B8%8F-security-disclaimer)
@@ -117,8 +146,8 @@ Each skill includes:
 - **Multi-Step Workflows** - Execute complex pipelines with a single prompt
 
 ### 🎯 **Comprehensive Coverage**
-- **161 Skills** - Extensive coverage across all major scientific domains
-- **100+ Databases** - Unified access to 78+ databases via database-lookup, plus dedicated data access skills and multi-database packages like BioServices, BioPython, and gget
+- **177 Skills** - Extensive coverage across all major scientific domains
+- **100+ Databases** - 80 databases documented by Database Lookup, plus dedicated data access skills and multi-database packages such as BioServices, Biopython, and gget
 - **70+ Optimized Python Package Skills** - Current, version-scoped guidance for packages including RDKit, Scanpy, PyTorch Lightning, scikit-learn, PyTDC, pydicom, PufferLib, QuTiP, GeoPandas, pymatgen, Qiskit, Molecular Dynamics (OpenMM/MDAnalysis), scVelo, and TimesFM (the agent can use any Python package; these are the pre-documented paths)
 
 ### 🔧 **Easy Integration**
@@ -128,7 +157,7 @@ Each skill includes:
 
 ### 🌟 **Maintained & Supported**
 - **Regular Updates** - Continuously maintained and expanded by K-Dense team
-- **Tested in CI** - Every skill that ships `scripts/` has a suite under `tests/`, plus a repo-wide structural contract (frontmatter, link resolution, script parsing, `--help` behavior) that runs on every pull request
+- **Validation in CI** - Relevant pull requests run the repository-wide structural checks and standard-library-only skill suites. Scientific dependencies are tested in separate environments; see [Testing](#testing) for the full validation workflow
 - **Community Driven** - Open source with active community contributions
 - **Enterprise Ready** - Commercial support available for advanced needs
 
@@ -172,7 +201,7 @@ Pin to a specific release tag or commit SHA for reproducible installs:
 
 ```bash
 # Pin to a release tag
-gh skill install K-Dense-AI/scientific-agent-skills --pin v2.64.0
+gh skill install K-Dense-AI/scientific-agent-skills --pin v2.71.0
 
 # Pin to a commit SHA
 gh skill install K-Dense-AI/scientific-agent-skills --pin abc123def
@@ -224,7 +253,7 @@ For Hermes versions that support skill taps, add the repository as a tap:
 hermes skills tap add K-Dense-AI/scientific-agent-skills
 ```
 
-Every `SKILL.md` has YAML frontmatter, but legacy and community skills vary in `metadata` formatting (block or flow style) and optional extension fields. Repository updates must keep `metadata.version` as a quoted numeric string and pass canonical `skills-ref validate ./skills/<skill-name>` checks. Hosts may interpret optional metadata and credential prompts differently, so verify behavior on the target host. Because 161 skills add up to a lot of standing context, consider installing a topical subset rather than the whole collection.
+Every `SKILL.md` uses YAML frontmatter with a quoted `metadata.version`. Repository contributions must use block-style YAML; JSON-style flow mappings fail the reference validator. Optional host-specific configuration belongs under `metadata`, with host manifest blocks kept as nested mappings. See [AGENTS.md](AGENTS.md#frontmatter) for the complete rules. Hosts may interpret optional metadata and credential prompts differently, so verify behavior on the target host. Installing a topical subset keeps the available skill catalog focused on your work.
 
 > **NemoClaw note:** NemoClaw runs agents inside NVIDIA OpenShell with default-deny outbound networking. Skills are discovered and loaded normally, but any skill that needs the network — package installs via `uv`, or API calls (Exa, Parallel, Benchling, NCBI, Materials Project, …) — only works once the operator pre-approves the relevant domains in the OpenShell TUI.
 
@@ -273,19 +302,15 @@ Scientific Agent Skills is powered by **50+ incredible open source projects** ma
 
 ---
 
-## 🙏 Skill Credits
-
-The **[docx](skills/docx/)**, **[pdf](skills/pdf/)**, **[pptx](skills/pptx/)**, and **[xlsx](skills/xlsx/)** document skills are created and maintained by **Anthropic** and vendored here from [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills). They are used under Anthropic's terms — see each skill's `LICENSE.txt` — and we track upstream so you get their latest improvements. All credit for those four skills goes to Anthropic.
-
----
-
 ## ⚙️ Prerequisites
 
 - **Python**: 3.13+ for repository tooling; individual skill dependencies may support broader Python ranges
 - **uv**: Python package manager (required for installing skill dependencies)
 - **Client**: Any agent that supports the [Agent Skills](https://agentskills.io/) standard (Cursor, Claude Code, Gemini CLI, Codex, Google Antigravity, etc.)
 - **System**: macOS, Linux, or Windows with WSL2
-- **Dependencies**: Automatically handled by individual skills (check `SKILL.md` files for specific requirements)
+- **Dependencies**: Follow each skill's `compatibility` field and setup instructions for packages, system tools, credentials, and network access. Installing the skill files does not install their dependencies
+
+Use a separate environment for each scientific workflow: some skills require different Python versions or incompatible package pins. `uv sync` installs the repository's development and validation tools, not every scientific package in the collection.
 
 ### Installing uv
 
@@ -429,6 +454,7 @@ networks, and search GEO for similar patterns.
 - **Variant Database Management**: Build scalable VCF databases with TileDB-VCF for incremental sample addition, efficient population-scale queries, and compressed storage of genomic variant data
 - **Population Genomics**: Query variants, cohort sample IDs, and relatedness in the 3,202-person GRCh38 1000 Genomes cohort with OneKGPd
 - **Regulatory Sequence Models**: Run hosted Genomic Intelligence promoter, splice, enhancer, chromatin, expression, and gene-annotation predictions for research—not clinical or diagnostic decisions
+- **Variant Effect Prediction**: Look up AlphaGenome Atlas AVI scores, Phred ranks, feature attributions, and per-tissue track effects for any GRCh38 SNV, or score variants and run in silico mutagenesis with the AlphaGenome model — for research prioritisation, not diagnosis
 - **Pathogen Surveillance**: Track which viral lineages are circulating now and how fast they are growing (SARS-CoV-2, influenza including H5N1, RSV, mpox, measles, dengue) through the GenSpectrum LAPIS API, with reporting lag measured rather than assumed
 - **Gene Discovery**: Query NCBI Gene, UniProt, and Ensembl for comprehensive gene information
 - **Network Analysis**: Identify protein-protein interactions via STRING, map to pathways (KEGG, Reactome)
@@ -458,31 +484,42 @@ networks, and search GEO for similar patterns.
 - **Protocol Design**: Author and simulate Opentrons or PyLabRobot protocols before trained-operator review
 - **LIMS/ELN Integration**: Prepare scoped Benchling and LabArchives operations with explicit authorization for remote writes
 - **Workflow Automation**: Validate and simulate multi-step laboratory workflows offline; physical execution stays behind equipment-specific operator safety gates
+- **Custom Lab Hardware Fabrication**: Pre-flight STEP files, then quote CNC-machined or 3D-printed parts on Fictiv with DFM feedback and lead-time options relayed back; nothing is ordered without explicit approval of the exact total
 
 ---
 
 ## 📚 Available Skills
 
-This repository contains **163 scientific and research skills** organized across multiple domains. Each skill provides comprehensive documentation, code examples, and best practices for working with scientific libraries, databases, and tools.
+This repository contains **177 scientific and research skills** organized across multiple domains. Each skill provides comprehensive documentation, code examples, and best practices for working with scientific libraries, databases, and tools.
 
 ### Skill Categories
 
 > **Note:** The Python package and integration skills listed below are *explicitly defined* skills — curated with documentation, examples, and best practices for stronger, more reliable performance. They are not a ceiling: the agent can install and use *any* Python package or call *any* API, even without a dedicated skill. The skills listed simply make common workflows faster and more dependable.
 
-#### 🧬 **Bioinformatics & Genomics** (27 skills)
-- RNA-seq pipelines: Bulk RNA-seq (end-to-end FASTQ -> counts -> DE -> enrichment orchestrator)
+Categories overlap: a skill may appear in more than one domain, so the category counts do not sum to the 177 unique skills.
+
+Package versions below identify the baselines documented by the skills. Follow each linked `SKILL.md` for its complete dependency stack, runtime requirements, and validation scope.
+
+#### 🧬 **Bioinformatics & Genomics** (32 skills)
+- RNA-seq preparation: [Bulk RNA-seq](skills/bulk-rnaseq/SKILL.md) (FASTQ and quantification workflows, sample/reference QC, and validated gene-level counts for a PyDESeq2 handoff)
 - Sequence analysis: BioPython, pysam, scikit-bio, BioServices
+- PCR assay design: [Primer Design](skills/primer-design/SKILL.md) (Primer3 candidates, thermodynamics, variant masking, tails, and bounded local or BLAST-assisted specificity screening)
 - Single-cell analysis: Scanpy, AnnData, scvi-tools, scVelo (RNA velocity), Arboreto, Cellxgene Census
-- Genomic tools: gget, current geniml/Gtars interval workflows, deepTools, FlowIO, Polars-Bio, Zarr, TileDB-VCF
+- Genomic tools: gget, current geniml/Gtars interval workflows, deepTools, Polars-Bio, Zarr, TileDB-VCF
+- Flow cytometry: FlowIO (FCS input/output), [FlowKit](skills/flowkit/SKILL.md) (compensation, transforms, hierarchical gating, and FlowJo workspace analysis)
 - Coordinate hygiene: Genomic Coordinates (convert intervals across BED/GFF/GTF/VCF/SAM/WIG conventions, normalise variant representations, and catch 0-based vs 1-based and assembly/contig-naming mismatches before they corrupt an analysis)
 - Population and sequence intelligence: OneKGPd (individual-level 1000 Genomes cohort queries) and Genomic Intelligence (hosted regulatory/gene-expression predictions; research only)
+- Variant effect prediction: AlphaGenome (DeepMind's AlphaGenome Atlas of precomputed effects for every GRCh38 SNV — AVI score with Phred rank and 18 SHAP feature attributions, plus raw and quantile scores across 9,440 RNA-seq, DNase, ATAC, ChIP, CAGE, splicing and contact-map tracks — and on-demand model scoring, in silico mutagenesis and REF-vs-ALT track prediction for human and mouse; research only, not clinical)
 - Differential expression: PyDESeq2
+- Pooled CRISPR screens: [MAGeCK](skills/mageck/SKILL.md) (guide counting, replicate QC, explicit contrasts, and gene hit ranking)
+- Amplicon microbiomes: [QIIME 2 Amplicon](skills/qiime2-amplicon/SKILL.md) (paired-end 16S import, primer trimming, denoising, taxonomy, and read-retention checks)
 - Functional enrichment: Pathway Enrichment (ORA, GSEA/preranked, ssGSEA via gseapy + g:Profiler; GO, KEGG, Reactome, WikiPathways, MSigDB)
 - Phylogenetics: ETE Toolkit, Phylogenetics (MAFFT, IQ-TREE 2, FastTree)
 - Microbiome foundation models: Waypoint (Outpost Bio's open Waypoint-6m/45m/170m checkpoints, the Atlas 539k-sample MGnify pretraining corpus, and the eight-task Compass benchmark — embedding, fine-tuning, benchmarking, and pretraining on taxonomic abundance profiles, with MetaPhlAn/Kraken2/QIIME 2 conversion)
 
-#### 🧪 **Cheminformatics & Drug Discovery** (10 skills)
+#### 🧪 **Cheminformatics & Drug Discovery** (11 skills)
 - Molecular manipulation: RDKit, Datamol, Molfeat
+- NMR processing: [nmrglue](skills/nmrglue/SKILL.md) (calibrated 1D FIDs, phase/baseline correction, peak candidates, and signed integration)
 - Deep learning: DeepChem, TorchDrug
 - Docking & screening: DiffDock
 - Molecular dynamics: OpenMM + MDAnalysis (MD simulation & trajectory analysis)
@@ -502,18 +539,23 @@ This repository contains **163 scientific and research skills** organized across
 - Decision-support research: local, aggregate or synthetic Clinical Decision Support evaluation and governance artifacts only
 - Clinical documentation: source-bound Clinical Reports drafts and formatting of verified clinician-authored decisions with Treatment Plans; neither skill diagnoses or recommends care
 
-#### 🖼️ **Medical Imaging & Digital Pathology** (4 skills)
+#### 🐭 **Preclinical Research & Animal Welfare** (1 skill)
+- Severity assessment: RELSA Severity Assessment (multivariate RELSA scores from body weight, temperature, clinical/nesting scores, biomarkers, activity, heart rate, burrowing and wheel running; ARIMA humane-endpoint forecasting with 95% prediction intervals; KDE-derived attention and danger zones for 3Rs/refinement and EU Directive 2010/63/EU severity reporting) — an aid to severity assessment, never a decision rule
+
+#### 🖼️ **Microscopy, Medical Imaging & Digital Pathology** (5 skills)
 - DICOM processing: pydicom 3.0.2 with privacy-first local preflight and no diagnostic or de-identification-compliance claims
-- Whole slide imaging: histolab and research-only PathML 3.0.5
+- Whole slide imaging: histolab and research-only [PathML 3.0.8](skills/pathml/SKILL.md)
+- Quantitative microscopy: [CellProfiler](skills/cellprofiler/SKILL.md) (reusable nuclei-measurement pipeline, channel manifests, segmentation overlays, and measurement checks)
 - Virtual spatial transcriptomics: noncommercial DeepSpot-M for transcriptome-wide spatial gene expression from 224x224 H&E tiles
 
-#### 🧠 **Neuroscience & Electrophysiology** (3 skills)
-- Data standards: BIDS (Brain Imaging Data Structure for neuroscience and biomedical datasets)
+#### 🧠 **Neuroscience & Electrophysiology** (4 skills)
+- Data standards: BIDS (Brain Imaging Data Structure for neuroscience and biomedical datasets; pairs with DataLad for retrieval — OpenNeuro at github.com/OpenNeuroDatasets and DANDI at github.com/dandisets publish their holdings as DataLad datasets — and for BIDS-App runs under recorded provenance, with BEP028 the extension proposal for provenance records in derivatives)
 - Neural recordings: Neuropixels-Analysis (extracellular spikes, silicon probes, spike sorting)
+- Data conversion: [NWB Conversion](skills/nwb-conversion/SKILL.md) (two-photon TIFF and behavioral positions, clock alignment, round-trip preservation, and NWB validation)
 - Physiological signals: NeuroKit2 0.2.13 for reproducible research workflows—not diagnosis, monitoring decisions, or medical-device validation
 
 #### 🤖 **Machine Learning & AI** (14 core skills)
-- Deep learning: PyTorch Lightning, Transformers, Stable Baselines3, and version-separated PufferLib 3.0/4.0 workflows
+- Deep learning: PyTorch Lightning, Transformers, Stable Baselines3, and [PufferLib](skills/pufferlib/SKILL.md) workflows for native 5.0, published 3.0.0, and pinned historical 4.0
 - Classical ML: scikit-learn, scikit-survival 0.28, and SHAP
 - Time series: aeon, TimesFM (Google's zero-shot foundation model for univariate forecasting)
 - Bayesian methods: PyMC
@@ -522,26 +564,34 @@ This repository contains **163 scientific and research skills** organized across
 - Dimensionality reduction: UMAP-learn
 - Statistical modeling: statsmodels
 
-#### 🔮 **Materials Science, Chemistry & Physics** (7 skills)
+#### 🔮 **Materials Science, Chemistry & Physics** (8 skills)
 - Materials: current split pymatgen wrapper/core plus explicitly bounded Materials Project queries
+- Alloy thermodynamics: [pycalphad](skills/pycalphad/SKILL.md) (TDB-driven phase equilibria, phase fractions, composition checks, and database provenance)
 - Metabolic modeling: COBRApy
 - Astronomy: Astropy
-- Quantum computing: Cirq, PennyLane, Qiskit, QuTiP 5.3
+- Quantum computing: Cirq, PennyLane, Qiskit, [QuTiP 5.3.1](skills/qutip/SKILL.md)
 
-#### ⚙️ **Engineering & Simulation** (6 skills)
-- Lab hardware CAD: parametric build123d 0.11.1 models for microfluidic chips and molds, optomechanical mounts, microplate and cuvette adapters, and behavior rigs, checked against ANSI/SLAS and optical-table dimensional standards and reviewed with mandatory multi-view renders
-- Numerical computing: proprietary MATLAB R2026a and distinct GNU Octave 11.3 planning/review workflows
+#### ⚙️ **Engineering & Simulation** (9 skills)
+- Lab hardware CAD: parametric [build123d 0.13.0 workflows](skills/lab-hardware-cad/SKILL.md) for microfluidic chips and molds, optomechanical mounts, microplate and cuvette adapters, and behavior rigs, with interface checks and multi-view renders
+- Custom-part fabrication: Fictiv (browser-driven CNC, 3D printing, sheet metal, urethane casting and molding quotes, DFM review, lead-time and region tiers, and checkout, with CAD pre-flight checks and an explicit approval gate before any order, quote request or share)
+- Numerical computing: [MATLAB and GNU Octave](skills/matlab/SKILL.md) planning/review workflows, with R2026b documentation, an explicit R2026a Python-integration baseline, and GNU Octave 11.3.0
 - Computational fluid dynamics: bounded FluidSim 0.9 simulations with numerical-validity and HPC checks
 - Experimental flow measurement: OpenPIV (velocity fields from PIV image pairs, interrogation-window cross-correlation, spurious-vector validation, vorticity/strain-rate/turbulence statistics)
 - Discrete-event simulation: SimPy 4.1.2 with replication, warm-up, and output-analysis guidance
+- Chemical kinetics: [Cantera](skills/cantera/SKILL.md) (homogeneous ignition delay, mechanism snapshots, numerical refinement, and conservation checks)
+- Battery experiments: [PyBaMM](skills/pybamm/SKILL.md) (charge/discharge protocols, parameter provenance, numerical checks, and measured-curve comparisons)
 - Symbolic math: SymPy
 
-#### 📊 **Data Analysis & Visualization** (22 skills)
+#### 🌊 **Chemical Oceanography** (1 skill)
+
+- [Marine Carbonate Chemistry](skills/marine-carbonate-chemistry/SKILL.md): paired seawater measurements with PyCO2SYS, carbonate speciation, pH-scale handling, lab-to-in-situ corrections, aragonite/calcite saturation, and uncertainty propagation
+
+#### 📊 **Data Analysis & Visualization** (18 skills)
 - Visualization: Matplotlib, Seaborn, Scientific Visualization
-- Geospatial analysis: GeoPandas 1.1.4 and GeoMaster (remote sensing, GIS, satellite imagery, spatial ML, 500+ examples)
+- Geospatial analysis: [GeoPandas 1.2.0](skills/geopandas/SKILL.md) and GeoMaster (remote sensing, GIS, satellite imagery, and spatial ML)
 - Data processing: Dask, Polars, Vaex
 - Network analysis: NetworkX
-- Document processing: LiteParse (local PDF/document parsing with bounding boxes and OCR), MarkItDown, PDF, DOCX, PPTX, and XLSX
+- Document processing: LiteParse (local PDF/document parsing with bounding boxes and OCR) and MarkItDown
 - Infographics: Infographics (AI-powered professional infographic creation)
 - Diagrams: Markdown & Mermaid Writing (text-based diagrams as default documentation standard)
 - Exploratory data analysis: bounded local EDA for explicitly supported formats, with unknown formats failing closed
@@ -556,35 +606,39 @@ This repository contains **163 scientific and research skills** organized across
 - Protocol management: bounded protocols.io reads across documented v3/v4 endpoints and non-executing write plans
 - LIMS/ELN integration: Benchling and the separate LabArchives legacy ELN and Inventory v1 APIs
 
-#### 🔬 **Multi-omics & Systems Biology** (3 skills)
+#### 🔬 **Multi-omics & Systems Biology** (5 skills)
 - Pathway analysis: via Database Lookup (KEGG, Reactome, STRING) and PrimeKG
 - Data management: LaminDB
+- Biochemical dynamics: [Tellurium](skills/tellurium/SKILL.md) (kinetic models, time-course simulations, perturbations, and reproducible model exchange)
+- Carbon-13 metabolic flux inference: [13C Metabolic Flux](skills/13c-metabolic-flux/SKILL.md) (validated atom maps, steady-state isotope simulation, constrained fitting, and flux-identifiability profiles)
 
-#### 🧬 **Protein Engineering & Design** (4 skills)
+#### 🧬 **Protein Engineering & Design** (5 skills)
 - Protein language models: ESM
+- Experimental structure reconstruction: [RELION](skills/relion/SKILL.md) (extracted-particle refinement, optics/STAR validation, and half-map/FSC checks)
 - Glycoengineering: Glycoengineering (N/O-glycosylation prediction, therapeutic antibody optimization)
 - Cloud laboratory platform: Adaptyv (automated protein testing and validation)
 - Cloud structure & design platform: Tamarind (managed-GPU access to AlphaFold, Boltz, Chai, ESMFold, RFdiffusion, ProteinMPNN, BoltzGen, antibody/nanobody design, DiffDock/Vina docking, binding affinity, and MSA generation via REST API or MCP)
 
-#### 📚 **Scientific Communication** (27 skills)
+#### 📚 **Scientific Communication** (23 skills)
 - Literature: Paper Lookup (PubMed, PMC, bioRxiv, medRxiv, arXiv, OpenAlex, Crossref, Semantic Scholar, CORE, Unpaywall), Literature Review, Paperzilla
 - Full-text corpus access: Paperclip (read-only virtual filesystem over ~11M full-text papers, 217K+ FDA/PMDA/EMA regulatory documents, clinical trial registries, and UniProt/PDB/ChEMBL entries — source-scoped semantic search, corpus-wide grep, SQL metadata queries, map/reduce reading across many papers, figure vision analysis, and line-pinned citations)
 - Advanced paper search: BGPT Paper Search (25+ structured fields per paper — methods, results, sample sizes, quality scores — from full text, not just abstracts)
 - Web intelligence: Parallel Web (web search, URL/PDF extraction, deep research, structured enrichment, entity discovery, and recurring monitoring), Exa Search, and Research Lookup
 - Research notebooks: Open Notebook (self-hosted NotebookLM alternative — PDFs, videos, audio, web pages; 16+ AI providers; multi-speaker podcast generation)
 - Writing: evidence-traceable Scientific Writing and local, confidential, authorized Peer Review
-- Document processing: LiteParse, PDF, DOCX, PPTX, XLSX, and MarkItDown
+- Document processing: LiteParse and MarkItDown
 - Publishing and paper workflows: Venue Templates
 - Presentations: Scientific Slides, LaTeX Posters, and macro-free PPTX Posters generated from author-approved local manifests
 - Diagrams: Scientific Schematics, Markdown & Mermaid Writing
 - Infographics: Infographics (10 types, 8 styles, colorblind-safe palettes)
 - Citations: Citation Management, pyzotero
-- Illustration: Generate Image (AI image generation with FLUX.2 Pro and Gemini 3.1 Flash Image / Nano Banana 2)
+- Illustration: [Generate Image](skills/generate-image/SKILL.md) (generation, editing, and compositing through the OpenRouter Image API, with model discovery, capability checks, and dry runs)
 
-#### 🔬 **Scientific Databases & Data Access** (11 skills → 100+ databases total)
-> A unified database-lookup skill provides deterministic REST API access to 78 public databases across all domains, with retrieval contracts, pagination/count reconciliation, and endpoint provenance. Dedicated skills cover specialized data platforms. Multi-database packages like BioServices (~40 bioinformatics services), BioPython (39 NCBI sub-databases via Entrez), and gget (20+ genomics databases) add further coverage.
-- Unified access: Database Lookup (78 databases spanning chemistry, genomics, clinical, pathways, patents, economics, and more — PubChem, ChEMBL, UniProt, PDB, AlphaFold, KEGG, Reactome, STRING, ClinVar, COSMIC, ClinicalTrials.gov, FDA, FRED, USPTO, SEC EDGAR, and dozens more — with auditable filters and provenance)
+#### 🔬 **Scientific Databases & Data Access** (13 skills → 100+ databases total)
+> [Database Lookup](skills/database-lookup/SKILL.md) documents 80 databases with public, registered, or licensed access across scientific and financial domains, with retrieval contracts, pagination/count reconciliation, and endpoint provenance. Dedicated skills cover specialized data platforms. Multi-database packages such as BioServices, Biopython, and gget add further coverage.
+- Unified access: Database Lookup (80 databases spanning chemistry, genomics, clinical, pathways, patents, economics, and more — PubChem, ChEMBL, UniProt, PDB, AlphaFold, KEGG, Reactome, STRING, ClinVar, COSMIC, ClinicalTrials.gov, FDA, FRED, USPTO, SEC EDGAR, and dozens more — with auditable filters and provenance)
 - Cancer genomics: DepMap (cancer cell line dependencies, drug sensitivity, gene effect profiles)
+- Public germline variant evidence: [Folklore Variant Evidence](skills/folklore-variant-evidence/SKILL.md) (ClinGen gene-disease validity assertions and source-linked evidence for one supported GRCh38 variant, with explicit ambiguity handling and related literature for qualified professional review)
 - Cancer imaging: Imaging Data Commons (NCI radiology & pathology datasets via idc-index)
 - Knowledge graph: PrimeKG (precision medicine knowledge graph — genes, drugs, diseases, phenotypes)
 - Biomedical knowledge graph search: [NCATS ARAX](skills/ncats-arax/) (bounded, Biolink-constrained one-hop and endpoint-pinned two-hop queries over knowledge graphs with up to five explicitly selected NCATS Translator providers, with provenance preservation)
@@ -592,11 +646,13 @@ This repository contains **163 scientific and research skills** organized across
 - Scientific ML resource catalog: Hugging Science (curated index of datasets, models, blog posts, and interactive Spaces across 17 scientific domains — astronomy, biology, chemistry, climate, genomics, materials science, medicine, physics, scientific reasoning, and more — with usage patterns for `datasets`, `transformers`, and `gradio_client`)
 - Individual-level population genomics: OneKGPd (3,202-person high-coverage 1000 Genomes cohort queries)
 - Hosted regulatory genomics: Genomic Intelligence (promoter, splice, enhancer, chromatin, expression, and gene-annotation predictions for research use)
+- Precomputed variant effects: AlphaGenome (Atlas lookups for every GRCh38 SNV with AVI, Phred, SHAP feature attributions, and per-track scores; on-demand AlphaGenome model scoring for indels, mouse, and custom scorers; Atlas website deep links)
 - Ontology identifiers: Ontology Term Resolution (resolve free-text tissue, cell-type, disease, phenotype, assay, chemical, organism, and developmental-stage labels to term IDs and validate CURIEs against EBI OLS4, for GEO/ENA/BioSamples/CELLxGENE/HCA/ISA-Tab metadata)
 - Live pathogen surveillance: Pathogen Variant Surveillance (which viral lineages are circulating now, how fast they are growing, and what mutations they carry — SARS-CoV-2, influenza including H5N1, RSV, mpox, measles, dengue and more through the GenSpectrum LAPIS API, with lineage names resolved against the live pango-designation nomenclature and reporting lag measured rather than assumed)
 
-#### 🔧 **Infrastructure & Platforms** (11 skills)
+#### 🔧 **Infrastructure & Platforms** (12 skills)
 - Cloud compute: Modal
+- Data distribution and provenance: DataLad (clone and fetch OpenNeuro, DANDI and registry.datalad.org datasets over git-annex, capture re-executable provenance with datalad run/rerun and containers-run, publish to siblings)
 - GPU acceleration: Optimize for GPU (CuPy, Numba CUDA, Warp, cuDF, cuML, cuGraph, KvikIO, cuCIM, cuxfilter, cuVS, cuSpatial, RAFT)
 - Genomics platforms: DNAnexus, LatchBio
 - Workflow engines: Nextflow (build/run/debug Nextflow & nf-core pipelines — DSL2 modules, executors/containers, HPC/cloud scaling) and pacsomatic (operator toolkit for the nf-core/pacsomatic tumor-normal somatic variant-calling workflow)
@@ -604,7 +660,7 @@ This repository contains **163 scientific and research skills** organized across
 - Automation: Opentrons
 - Resource detection: Get Available Resources on request or before a clearly resource-sensitive local workload; redacted and without stress tests
 - Workflow mining: Autoskill (local screenpipe-based repeated workflow detection and skill drafting)
-- Agent platform development: Pi Agent (using Pi as a terminal coding harness and building on it with SDK, RPC/JSONL, extensions, custom providers/models, packages, TUI components, and session tooling)
+- Agent platform development: [Pi Agent](skills/pi-agent/SKILL.md) (Pi 0.99.2 terminal harness, SDK, RPC/JSONL, native MCP, extensions, providers/models, packages, TUI components, and session tooling)
 
 #### 🎓 **Research Methodology & Planning** (13 skills)
 - Ideation: evidence-aware Scientific Brainstorming and non-scoring Hypothesis Generation that keeps hypotheses labeled as candidates
@@ -679,7 +735,7 @@ Deep dives, benchmarks, and guides from the [K-Dense blog](https://www.k-dense.a
 
 We welcome contributions to expand and improve this scientific skills repository!
 
-For detailed instructions on adding or updating a skill, see [CONTRIBUTING.md](CONTRIBUTING.md). The guide covers repository structure, required `SKILL.md` frontmatter, Agent Skills specification requirements, versioning, validation, security scanning, and pull request expectations.
+Read [AGENTS.md](AGENTS.md) before creating or changing a skill, and see [CONTRIBUTING.md](CONTRIBUTING.md) for the detailed workflow and pull request process. Contributions should focus on a scientific package, database, platform, or research workflow; broad coding, infrastructure, and routing skills are outside the repository's scope.
 
 ### Ways to Contribute
 
@@ -722,20 +778,31 @@ For detailed instructions on adding or updating a skill, see [CONTRIBUTING.md](C
 
 ### Testing
 
-Every skill that ships `scripts/` must have a test suite under `tests/<skill-name>/` and an entry in `tests/skill-requirements.toml`. This is enforced — `tests/_meta` fails a pull request that adds bundled tooling without one, and it also runs a repo-wide structural contract over all skills (frontmatter conformance, `SKILL.md` length, local links resolving, scripts parsing, no shipped bytecode, no hardcoded local paths, `--help` behavior).
+Every skill that ships `scripts/` must have a test suite under `tests/<skill-name>/` and an entry in [`tests/skill-requirements.toml`](tests/skill-requirements.toml). The `tests/_meta` guard checks this coverage and the shared structural contract: frontmatter, document length, local links, script syntax, bytecode, and hardcoded local paths. It also validates `plugin.json` against the bundled Agent Plugins schema and checks that its version matches `pyproject.toml`. CLI `--help` and worked-example execution checks belong to the individual skill suites.
 
 ```bash
+# Install repository development and validation tools
+uv sync
+
 # Structural contract and coverage guard — seconds, no scientific packages needed
 uv run python -m pytest tests/_meta -q
 
-# One skill's suite
+# Validate one skill's Agent Skills frontmatter
+uv run skills-ref validate skills/<skill-name>
+
+# One skill's suite in the current environment
 uv run --with pytest python -m pytest tests/<skill-name> -q
+
+# One skill with its declared packages and Python version
+uv run python tests/run_all.py --isolated <skill-name>
 
 # Every suite, each in its own throwaway environment
 uv run python tests/run_all.py --isolated
 ```
 
-The [Skill Tests](https://github.com/K-Dense-AI/scientific-agent-skills/actions/workflows/skill-tests.yml) workflow runs the contract plus the standard-library-only suites on every pull request; the full `--isolated` sweep builds ~100 environments and is run locally or on a schedule.
+Run one skill per pytest process: different skills reuse module names such as `_common`, so collecting several suites together can import the wrong module. `tests/run_all.py` handles process isolation; `--isolated` also provides each skill's declared dependency environment. A suite run in the current environment may skip checks when required packages are absent.
+
+The [Skill Tests](https://github.com/K-Dense-AI/scientific-agent-skills/actions/workflows/skill-tests.yml) workflow runs the contract and standard-library-only suites for relevant pull requests and pushes to `main`, and can be triggered manually. The full scientific dependency sweep is not run in CI; run it before a release or when changing the shared contract. Some skills need external runtimes or system tools; installation gaps are documented in [`tests/skill-requirements.toml`](tests/skill-requirements.toml).
 
 ### Security Scanning
 
@@ -823,13 +890,13 @@ A: The core `SKILL.md` format follows the open [Agent Skills](https://agentskill
 ### Installation & Setup
 
 **Q: Do I need all the Python packages installed?**  
-A: No! Only install the packages you need. Each skill specifies its requirements in its `SKILL.md` file.
+A: No. Install only the dependencies for the workflows you use, following each `SKILL.md`. Keep workflows with incompatible package or Python requirements in separate environments.
 
 **Q: What if a skill doesn't work?**  
 A: First check the [Troubleshooting](#-troubleshooting) section. If the issue persists, file an issue on GitHub with detailed reproduction steps.
 
 **Q: Do the skills work offline?**  
-A: Database skills require internet access to query APIs. Package skills work offline once Python dependencies are installed.
+A: Local analysis can work offline once its dependencies, reference data, and model files are available. Database queries, hosted models, and cloud platforms need network access; check the individual skill's requirements.
 
 ### Contributing
 
@@ -855,42 +922,63 @@ Need help? Here's how to get support:
 
 ## 📖 Citation
 
-If you use Scientific Agent Skills in your research or project, please cite the overall collection and, when relevant, the individual skill or skills that materially supported your work.
+If you use Scientific Agent Skills in your research or project, please cite our paper:
 
-The collection citation helps others find the repository, understand the broader skill ecosystem used in your workflow, and credit the maintenance effort behind Scientific Agent Skills. Individual skill citations give more precise credit for the specific package, database, or workflow guidance your agent used.
+> Timothy Kassis, Vinayak Agarwal, Yuhuan He, Darshil Patel, and Aubrey M. Brueckner. **Scientific Agent Skills: A Library of Procedural Knowledge for Research Agents.** arXiv:2609.00065, 2026. [https://arxiv.org/abs/2609.00065](https://arxiv.org/abs/2609.00065)
+
+When relevant, also cite the individual skill or skills that materially supported your work.
+
+GitHub's **Cite this repository** button, backed by [`CITATION.cff`](CITATION.cff), produces the same paper citation in APA or BibTeX.
+
+The paper citation helps others find the repository, understand the broader skill ecosystem used in your workflow, and credit the maintenance effort behind Scientific Agent Skills. Individual skill citations give more precise credit for the specific package, database, or workflow guidance your agent used.
 
 Recommended practice:
-- Always cite **Scientific Agent Skills** using one of the formats below.
+- Always cite the **Scientific Agent Skills paper** using one of the formats below.
 - Also cite each individual skill that directly contributed to your analysis, code, figures, reports, or research workflow.
 - If a skill wraps or documents an external package, database, or platform, cite that upstream project too when your field's norms require it.
 
-### Collection Citation
+### Paper Citation
 
 #### BibTeX
+```bibtex
+@misc{kassis2026scientificagentskills,
+  title         = {Scientific Agent Skills: A Library of Procedural Knowledge for Research Agents},
+  author        = {Kassis, Timothy and Agarwal, Vinayak and He, Yuhuan and Patel, Darshil and Brueckner, Aubrey M.},
+  year          = {2026},
+  eprint        = {2609.00065},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  url           = {https://arxiv.org/abs/2609.00065}
+}
+```
+
+#### APA
+```
+Kassis, T., Agarwal, V., He, Y., Patel, D., & Brueckner, A. M. (2026). Scientific Agent Skills: A library of procedural knowledge for research agents. arXiv. https://arxiv.org/abs/2609.00065
+```
+
+#### MLA
+```
+Kassis, Timothy, et al. "Scientific Agent Skills: A Library of Procedural Knowledge for Research Agents." arXiv, 2026, arxiv.org/abs/2609.00065.
+```
+
+#### Plain Text
+```
+Kassis, T., Agarwal, V., He, Y., Patel, D., & Brueckner, A. M. (2026). Scientific Agent Skills: A Library of Procedural Knowledge for Research Agents. arXiv:2609.00065. https://arxiv.org/abs/2609.00065
+```
+
+### Software Citation
+
+If you also need to cite a specific version of the repository itself (for example, to pin the exact skill set an analysis ran against), add a software citation alongside the paper and record the release tag or commit you used:
+
 ```bibtex
 @software{scientific_agent_skills_2026,
   author = {{K-Dense Inc.}},
   title = {Scientific Agent Skills: A Comprehensive Collection of Scientific Tools for AI Agents},
   year = {2026},
   url = {https://github.com/K-Dense-AI/scientific-agent-skills},
-  note = {161 skills covering databases, packages, integrations, and analysis tools}
+  note = {177 skills covering databases, packages, integrations, and analysis tools}
 }
-```
-
-#### APA
-```
-K-Dense Inc. (2026). Scientific Agent Skills: A comprehensive collection of scientific tools for AI agents [Computer software]. https://github.com/K-Dense-AI/scientific-agent-skills
-```
-
-#### MLA
-```
-K-Dense Inc. Scientific Agent Skills: A Comprehensive Collection of Scientific Tools for AI Agents. 2026, github.com/K-Dense-AI/scientific-agent-skills.
-```
-
-#### Plain Text
-```
-Scientific Agent Skills by K-Dense Inc. (2026)
-Available at: https://github.com/K-Dense-AI/scientific-agent-skills
 ```
 
 ### Individual Skill Citation
@@ -903,14 +991,14 @@ When citing a specific skill, include the skill name, version from `metadata.ver
   title = {Astropy Skill for Scientific Agent Skills},
   year = {2026},
   url = {https://github.com/K-Dense-AI/scientific-agent-skills/tree/main/skills/astropy},
-  note = {Version 1.0, part of Scientific Agent Skills}
+  note = {Version 1.5, part of Scientific Agent Skills}
 }
 ```
 
 Plain text format:
 
 ```text
-Astropy skill for Scientific Agent Skills, version 1.0.
+Astropy skill for Scientific Agent Skills, version 1.5.
 K-Dense Inc. (2026).
 https://github.com/K-Dense-AI/scientific-agent-skills/tree/main/skills/astropy
 ```
@@ -936,13 +1024,3 @@ See [LICENSE.md](LICENSE.md) for full terms.
 ### Individual Skill Licenses
 
 > ⚠️ **Important**: Each skill has its own license specified in the `license` metadata field within its `SKILL.md` file. These licenses may differ from the repository's MIT License and may include additional terms or restrictions. **Users are responsible for reviewing and adhering to the license terms of each individual skill they use.**
-
-## Star History
-
-<a href="https://star-history.dera.page/#K-Dense-AI/scientific-agent-skills">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=K-Dense-AI/scientific-agent-skills&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=K-Dense-AI/scientific-agent-skills" />
-   <img alt="Star History Chart" src="https://star-history.dera.page/svg?repos=K-Dense-AI/scientific-agent-skills" />
- </picture>
-</a>

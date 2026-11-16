@@ -1,0 +1,63 @@
+---
+title: "Scientific tools"
+description: "Check which analysis tools can run and what setup they need."
+---
+
+Open **Customize → Tools** to inspect the scientific tools offered for your device and connected accounts. The panel separates local tools from connected services.
+
+## Browse the complete catalog
+
+The [scientific tool catalog](/openscience/tool-catalog) lists every entry with its purpose, source documentation, and how to use it in this version. It distinguishes supported local setup, connected science tools, reference-only software, and unavailable entries.
+
+For everyday file operations, search, Python, R, and jobs, use the [built-in tools guide](/openscience/built-in-tools). For reusable procedures, use the dedicated [Skills directory](/openscience/skill-library).
+
+## Understand availability
+
+| Status | What to do |
+| --- | --- |
+| Ready | Start with a small, known input. |
+| Connected | Confirm the account and any service charges before use. |
+| Not installed | Install the packaged local environment; the local tools share it. |
+| Setup needed | Connect the service the tool runs on: an NVIDIA key in Credentials, or Modal in Compute. |
+| Hosted only | This device has no packaged local environment for the tool. It runs on Modal once Compute is connected. |
+| Needs attention | Open the reported problem and resolve it before retrying. |
+| Unavailable | Use another supported tool or resolve the missing prerequisite. |
+
+Availability can differ across machines, operating systems, and accounts. An experimental tool should be checked on a small case with an expected result before larger work.
+
+## Local scientific workflows
+
+Supported setup paths include common numerical, plotting, machine-learning, sequence-analysis, and cheminformatics tools such as SciPy, Matplotlib, scikit-learn, Biopython, and RDKit.
+
+The packaged local environment is released for Apple silicon Macs and for Linux on x64 and arm64. On Windows and on Intel Macs the same tools are listed under **Connected science** as **Hosted only** and run on Modal instead. A package installed into the project's own Python environment is separate from the packaged tool runtime and does not change the row.
+
+```text
+Check whether RDKit is ready. If it is, calculate molecular weights for
+the SMILES in data/molecules.csv and save the results. Report invalid
+structures separately instead of discarding them.
+```
+
+If setup is needed, review the proposed installation and confirm where the outputs will be saved.
+
+## Connected scientific services
+
+Some structural-biology, sequence, and molecular-design workflows require your own service account or key. Use the connection shown for that tool and check its requirements.
+
+A service connection does not imply unrestricted access, included compute, or a validated scientific prediction. Read the service's model and data terms when relevant to your work.
+
+## Skills, databases, and tools
+
+| Capability | Purpose |
+| --- | --- |
+| [Skills](/openscience/skills) | Instructions and procedures for a workflow. |
+| [Databases](/openscience/databases) | Search and retrieve scientific records. |
+| Scientific tools | Perform analysis or prediction with configured software. |
+| [Connectors](/openscience/connectors) | Add tools and services through an external connection. |
+
+A package mentioned by a skill is not necessarily installed or available as a runnable tool. Ask OpenScience to check readiness before promising an output.
+
+## Verify results
+
+Specify input formats, identifiers, units, and expected checks. Preserve failed inputs and warnings.
+
+Ask for the tool version when available, parameters, output files, and limitations. For predictions, distinguish the model's output from experimental evidence.

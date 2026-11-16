@@ -1,6 +1,12 @@
 import { expect, test } from "bun:test"
 import type { MessageV2 } from "../../src/session/message-v2"
-import { observableToolFailure, observableToolStatus } from "../../src/session/tool-outcome"
+import { CredentialRevocation } from "../../src/credentials/revocation"
+import {
+  abortedToolPart,
+  interruptionReceipt,
+  observableToolFailure,
+  observableToolStatus,
+} from "../../src/session/tool-outcome"
 
 function completed(tool: string, metadata: Record<string, unknown>, title = `${tool} execution`): MessageV2.ToolPart {
   return {
@@ -96,6 +102,22 @@ test("exposes bounded Task checkpoints as partial without mutating retained outp
   expect(task).toEqual(before)
 })
 
+test("exposes unsettled managed search as partial instead of transport-completed", () => {
+  const search = completed(
+    "research_search",
+    {
+      outcome: "partial",
+      stopReason: "operation_pending",
+      operationId: "call_search",
+      creditState: "pending",
+    },
+    "Managed search pending",
+  )
+
+  expect(observableToolStatus(search)).toBe("partial")
+  expect(observableToolFailure(search)).toBeUndefined()
+})
+
 test("counts terminal Task failures while keeping partial checkpoints non-failing", () => {
   const timedOut = completed("task", { outcome: "timed_out" }, "Collect literature")
   const failed = completed("task", { outcome: "error" }, "Analyze cohort")
@@ -107,4 +129,82 @@ test("counts terminal Task failures while keeping partial checkpoints non-failin
   expect(observableToolFailure(failed)).toBe("Analyze cohort failed")
   expect(observableToolStatus(partial)).toBe("partial")
   expect(observableToolFailure(partial)).toBeUndefined()
+})
+
+test("a call cancelled by a credential revocation records the cause, not a fake failure", () => {
+  const pending: MessageV2.ToolPart = {
+    id: "part_pending",
+    sessionID: "ses_outcome",
+    messageID: "msg_outcome",
+    type: "tool",
+    callID: "call_pending",
+    tool: "bash",
+    state: { status: "pending", input: {}, raw: "" },
+  }
+  const closed = abortedToolPart(pending, CredentialRevocation.EXPIRED, { now: 50 })
+  if (closed.state.status !== "error") throw new Error("Expected the pending call to be closed")
+  expect(closed.state.error).toBe(
+    "Interrupted: synchronized workspace credentials expired before they could be renewed. The bash call had not started; no action was taken.",
+  )
+  expect(closed.state.metadata).toEqual({ cancelled: true, started: false })
+  expect(closed.state.time).toEqual({ start: 50, end: 50 })
+  expect(closed.state.input).toEqual({})
+  expect(observableToolFailure(closed)).toStartWith(CredentialRevocation.EXPIRED)
+  expect(observableToolFailure(closed)).not.toContain("failed")
+
+  const running: MessageV2.ToolPart = {
+    ...pending,
+    id: "part_running",
+    callID: "call_running",
+    state: { status: "running", input: { command: "sleep 30" }, metadata: { output: "" }, time: { start: 10 } },
+  }
+  const stopped = abortedToolPart(running, CredentialRevocation.EXPIRED, { now: 40 })
+  if (stopped.state.status !== "error") throw new Error("Expected the running call to be closed")
+  expect(stopped.state.error).toBe(CredentialRevocation.EXPIRED)
+  expect(stopped.state.metadata).toEqual({ output: "", cancelled: true, started: true })
+  expect(stopped.state.time).toEqual({ start: 10, end: 40 })
+  expect(stopped.state.input).toEqual({ command: "sleep 30" })
+
+  const truncated = abortedToolPart(pending, "Model output was truncated; no action was taken.", { explain: false })
+  if (truncated.state.status !== "error") throw new Error("Expected the truncated call to be closed")
+  expect(truncated.state.error).toBe("Model output was truncated; no action was taken.")
+})
+
+test("an interrupted question says what happened to the decision instead of warning about side effects", () => {
+  const question: MessageV2.ToolPart = {
+    id: "part_question",
+    sessionID: "ses_q",
+    messageID: "msg_q",
+    type: "tool",
+    tool: "question",
+    callID: "call_question",
+    state: { status: "running", input: { questions: [] }, metadata: {}, time: { start: 10 } },
+  }
+  const shown = abortedToolPart(question, "Tool execution aborted", { now: 40 })
+  if (shown.state.status !== "error") throw new Error("Expected the question to be closed")
+  expect(shown.state.error).toBe(
+    "Tool execution aborted. The question was shown but no answer arrived before the interruption: no option was chosen and nothing was recorded. Ask again if the decision is still open.",
+  )
+  expect(interruptionReceipt("question", false)).toBe("The question had not been shown; nothing was asked or recorded.")
+  // A read that was cut off changed nothing; a command may have.
+  expect(interruptionReceipt("read", true)).toBe("The read call only reads; nothing changed.")
+  expect(interruptionReceipt("bash", true)).toBe(
+    "Its side effects may have completed; inspect the current state before retrying.",
+  )
+  const read: MessageV2.ToolPart = { ...question, tool: "read", state: { ...question.state, input: { filePath: "a" } } }
+  const cut = abortedToolPart(read, "Tool execution aborted", { now: 40 })
+  if (cut.state.status !== "error") throw new Error("Expected the read to be closed")
+  expect(cut.state.error).toBe("Tool execution aborted. The read call only reads; nothing changed.")
+  // A wait on a compute job that is cut off leaves the job running: the
+  // receipt says so, and says not to dispatch it again.
+  const wait: MessageV2.ToolPart = {
+    ...question,
+    tool: "compute_job",
+    state: { ...question.state, input: { action: "wait", job_id: "89d89528-909", seconds: 600 } },
+  }
+  const interrupted = abortedToolPart(wait, "Tool execution aborted", { now: 40 })
+  if (interrupted.state.status !== "error") throw new Error("Expected the wait to be closed")
+  expect(interrupted.state.error).toBe(
+    "Tool execution aborted. The wait was interrupted; job 89d89528-909 keeps running on its target. Check it with compute_job status or wait again rather than dispatching it a second time.",
+  )
 })

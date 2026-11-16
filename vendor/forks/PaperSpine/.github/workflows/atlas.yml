@@ -30,6 +30,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'release' && 'main' || github.ref }}
 
       - uses: actions/setup-python@v5
         with:
@@ -57,15 +59,44 @@ jobs:
       - name: Refuse empty atlas data
         run: python atlas/validate_data.py atlas/data.js
 
+      - name: Verify the V5 community view uses the refreshed atlas
+        run: |
+          python atlas/validate_data.py website/community/data.js
+          cmp atlas/data.js website/community/data.js
+
       - name: Build and verify PaperSpine5 website
         run: python paperspine5/release_tools/build_site.py
 
       - name: Assemble site (static files only)
         run: |
           mkdir _site
-          cp atlas/index.html atlas/echarts.min.js atlas/worldgeo.js atlas/data.js _site/
+          cp atlas/{index.html,zh.html,community.css,community-map.js,echarts.min.js,worldgeo.js,data.js} _site/
+          python -B atlas/static_preview.py _site
+          mkdir -p _site/contributors
+          cp atlas/contributors.html _site/contributors/index.html
+          cp atlas/contributors-zh.html _site/contributors/zh.html
+          cp atlas/contributors.js _site/contributors/
           mkdir -p _site/v5
           cp -R build/v5-site/. _site/v5/
+          if [ -f website/v6/downloads/channel.json ]; then
+            rm -r _site/v5/v6
+            python -B 'paperspine5/core/07_发布页/v6/build_v6.py' site website/v6/downloads _site/v6
+            cp _site/v6/llms.txt _site/llms.txt
+          fi
+
+      - name: Snapshot V6 release download statistics
+        if: ${{ hashFiles('website/v6/downloads/channel.json') != '' }}
+        continue-on-error: true
+        env:
+          PAPERSPINE_RELEASE_READ_TOKEN: ${{ github.token }}
+        run: |
+          python -B 'paperspine5/core/07_发布页/v6/build_v6.py' download-stats website/v6/downloads _site/v6/download-stats.json
+
+      - name: Snapshot GitHub contributors
+        continue-on-error: true
+        env:
+          ATLAS_GITHUB_TOKEN: ${{ github.token }}
+        run: python -B atlas/community_snapshot.py _site/contributors/contributors-data.json
 
       - uses: actions/configure-pages@v5
         with:

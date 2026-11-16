@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test"
+import { Identifier } from "../../src/id/id"
+import { SessionCompaction } from "../../src/session/compaction"
 import { MessageV2 } from "../../src/session/message-v2"
 import type { Provider } from "../../src/provider/provider"
 
@@ -142,6 +144,122 @@ describe("session.message-v2.toModelMessage — media budgeting", () => {
     expect((s.match(/older image omitted/g) ?? []).length).toBe(2) // the two older ones stripped
   })
 
+  test("the image window releases its older half at once, so a new figure does not rewrite an earlier message", () => {
+    const names = ["a", "b", "c", "d", "e", "f"]
+    const input = (count: number): MessageV2.WithParts[] => [
+      {
+        info: userInfo("m-imgs"),
+        parts: names.slice(0, count).map((name, index) => imagePart(`i${index}`, `${name}.png`)) as MessageV2.Part[],
+      },
+    ]
+    const kept = (count: number) =>
+      names
+        .slice(0, count)
+        .filter((name) =>
+          JSON.stringify(MessageV2.toModelMessages(input(count), model, { keepRecentImages: 4 })).includes(
+            `"filename":"${name}.png"`,
+          ),
+        )
+    // Four images fit. The fifth spills the window, which keeps its newest half.
+    expect(kept(4)).toEqual(["a", "b", "c", "d"])
+    expect(kept(5)).toEqual(["d", "e"])
+    // The sixth joins without touching what the fifth settled: a, b, c stay
+    // placeholders and d stays in full, so the request prefix is unchanged.
+    expect(kept(6)).toEqual(["d", "e", "f"])
+    expect(MessageV2.retainedImages(["1", "2", "3"], 0).size).toBe(0)
+  })
+
+  test("imageBytes bounds what one request carries; the newest image always travels and a lone giant is nudged instead", () => {
+    // Three 3 MB figures were read in a row; a count window of 20 keeps all
+    // of them, so the request body is what the gateway rejects.
+    const big = (id: string, name: string) => ({
+      ...basePart("m-imgs", id),
+      type: "file" as const,
+      mime: "image/png",
+      filename: name,
+      url: `data:image/png;base64,${Buffer.alloc(3 * 1024 * 1024, id.charCodeAt(0)).toString("base64")}`,
+    })
+    const input: MessageV2.WithParts[] = [
+      {
+        info: userInfo("m-imgs"),
+        parts: [big("x", "x.png"), big("y", "y.png"), big("z", "z.png")] as MessageV2.Part[],
+      },
+    ]
+    const direct = JSON.stringify(
+      MessageV2.toModelMessages(input, model, { keepRecentImages: 20, imageBytes: 12 * 1024 * 1024 }),
+    )
+    expect((direct.match(/"type":"file"/g) ?? []).length).toBe(3)
+
+    const capped = MessageV2.toModelMessages(input, model, { keepRecentImages: 20, imageBytes: 7 * 1024 * 1024 })
+    const s = JSON.stringify(capped)
+    // 9 MB over a 7 MB budget releases down to half: only the newest stays.
+    expect((s.match(/"type":"file"/g) ?? []).length).toBe(1)
+    expect(s).toContain('"filename":"z.png"')
+    expect((s.match(/omitted to keep this request under the route's image limit/g) ?? []).length).toBe(2)
+    expect(s).not.toContain("omitted to save context")
+
+    // On the managed route a single 3 MB figure is over the per-image cap too:
+    // it is replaced by the resize nudge rather than shipped to a certain 502.
+    const managed = JSON.stringify(
+      MessageV2.toModelMessages(input, model, {
+        keepRecentImages: 20,
+        imageBytes: SessionCompaction.IMAGE_BYTES_MANAGED,
+      }),
+    )
+    expect(managed).not.toContain('"type":"file"')
+    expect(managed).toContain("2 MB limit on this route")
+    expect(managed).toContain("thumbnail((1400,1400))")
+
+    // 12 over a budget of 10 releases down to half the budget, not just under it.
+    expect(MessageV2.retainedImageBytes(["a", "b", "c"], () => 4, 10)).toEqual(new Set(["c"]))
+    expect(MessageV2.retainedImageBytes(["a", "b", "c"], () => 2, 10)).toEqual(new Set(["a", "b", "c"]))
+    expect(MessageV2.retainedImageBytes(["a"], () => 40, 10)).toEqual(new Set(["a"]))
+    expect(MessageV2.retainedImageBytes(["a", "b"], () => 4, 0).size).toBe(0)
+    expect(MessageV2.decodedBytes(`data:image/png;base64,${Buffer.alloc(300).toString("base64")}`)).toBe(300)
+    expect(MessageV2.decodedBytes("https://example.com/x.png")).toBe(0)
+  })
+
+  test("toolOutputMaxChars cuts long tool results head-and-tail for a reduced-fidelity handoff", () => {
+    const long = `${"A".repeat(2_500)}MIDDLE${"Z".repeat(2_500)}`
+    const input: MessageV2.WithParts[] = [
+      { info: userInfo("m-u"), parts: [{ ...basePart("m-u", "u1"), type: "text", text: "run" }] as MessageV2.Part[] },
+      {
+        info: assistantInfo("m-a", "m-u"),
+        parts: [
+          {
+            ...basePart("m-a", "a1"),
+            type: "tool",
+            callID: "call-long",
+            tool: "bash",
+            state: {
+              status: "completed",
+              input: { command: "cat big.log" },
+              output: long,
+              title: "Bash",
+              metadata: {},
+              time: { start: 0, end: 1 },
+            },
+          },
+        ] as MessageV2.Part[],
+      },
+    ]
+    const full = JSON.stringify(MessageV2.toModelMessages(input, model))
+    expect(full).toContain("MIDDLE")
+    const reduced = JSON.stringify(MessageV2.toModelMessages(input, model, { toolOutputMaxChars: 2_000 }))
+    expect(reduced).not.toContain("MIDDLE")
+    expect(reduced).toContain("characters of this result omitted for the handoff")
+    expect(reduced.length).toBeLessThan(full.length - 900)
+    expect(MessageV2.capOutput("short", 2_000)).toBe("short")
+    expect(MessageV2.capOutput("x".repeat(10), undefined)).toBe("x".repeat(10))
+    expect(SessionCompaction.REDUCED_TOOL_OUTPUT_CHARS).toBe(2_000)
+  })
+
+  test("the image byte budget follows the route", () => {
+    expect(SessionCompaction.imageBytes("managed")).toBe(2 * 1024 * 1024)
+    expect(SessionCompaction.imageBytes("byok")).toBe(12 * 1024 * 1024)
+    expect(SessionCompaction.imageBytes(undefined)).toBe(12 * 1024 * 1024)
+  })
+
   test("stripMedia replaces every image with a placeholder (compaction summary path)", () => {
     const out = MessageV2.toModelMessages(imagesInput(), model, { stripMedia: true })
     const s = JSON.stringify(out)
@@ -168,6 +286,106 @@ describe("session.message-v2.toModelMessage — media budgeting", () => {
     const serialized = JSON.stringify(MessageV2.toModelMessages(input, model, { keepRecentImages: 1 }))
     expect((serialized.match(/"type":"file"/g) ?? []).length).toBe(1)
     expect(serialized).toContain(MessageV2.DUPLICATE_IMAGE)
+  })
+})
+
+describe("session.message-v2.toModelMessage — a compaction head rendered against its conversation", () => {
+  const textPart = (messageID: string, id: string, text: string, synthetic?: boolean) =>
+    ({ ...basePart(messageID, id), type: "text" as const, text, synthetic }) as MessageV2.Part
+  const reasoningPart = (messageID: string, id: string, text: string) =>
+    ({
+      ...basePart(messageID, id),
+      type: "reasoning" as const,
+      text,
+      time: { start: 0, end: 1 },
+      metadata: { openai: { reasoningEncryptedContent: `enc-${id}` } },
+    }) as MessageV2.Part
+  const imagePart = (messageID: string, id: string, name: string) =>
+    ({
+      ...basePart(messageID, id),
+      type: "file" as const,
+      mime: "image/png",
+      filename: name,
+      url: `data:image/png;base64,${Buffer.from(name).toString("base64")}`,
+    }) as MessageV2.Part
+  const typed = (id: string, text: string): MessageV2.WithParts => ({
+    info: { ...userInfo(id), internal: { type: "prompt", epoch: id } } as MessageV2.User,
+    parts: [textPart(id, `${id}-t`, text)],
+  })
+  const reply = (id: string, parentID: string, text: string): MessageV2.WithParts => ({
+    info: { ...assistantInfo(id, parentID), finish: "stop" } as MessageV2.Assistant,
+    parts: [reasoningPart(id, `${id}-r`, `thinking about ${text}`), textPart(id, `${id}-x`, text)],
+  })
+  // Two typed requests with reasoning replies, a study update the runtime
+  // wrote, then the compaction carrier: the shape of a long research session.
+  const conversation = (): MessageV2.WithParts[] => [
+    typed("u1", "Run the EDA."),
+    reply("a1", "u1", "EDA done."),
+    typed("u2", "Now train the model."),
+    reply("a2", "u2", "Baseline trained."),
+    {
+      info: {
+        ...userInfo("u3"),
+        internal: { type: "continuation", kind: "harness", text: "Study update", epoch: "u2", transaction: "u3" },
+      } as MessageV2.User,
+      parts: [textPart("u3", "u3-t", "Study update: run 4 finished.", true)],
+    },
+    reply("a3", "u3", "Recorded run 4."),
+    {
+      info: { ...userInfo("cc"), internal: { type: "compaction", auto: true, epoch: "u2", transaction: "cc" } },
+      parts: [{ ...basePart("cc", "cc-c"), type: "compaction", auto: true } as MessageV2.Part],
+    },
+  ]
+
+  test("the head keeps the conversation's reasoning boundary, so its bytes are the cached prefix", () => {
+    const all = conversation()
+    const full = MessageV2.toModelMessages(all, model)
+    // The tail starts at the newest request; everything before it is the head.
+    const head = all.slice(0, 2)
+    const rendered = MessageV2.toModelMessages(head, model, { conversation: all })
+    expect(JSON.stringify(rendered)).toBe(JSON.stringify(full.slice(0, rendered.length)))
+    expect(JSON.stringify(rendered)).not.toContain("thinking about")
+    // Rendered on its own, the boundary moves to the head's newest request and
+    // the reply behind it replays the reasoning the conversation never sent.
+    expect(JSON.stringify(MessageV2.toModelMessages(head, model))).toContain("thinking about EDA")
+  })
+
+  test("a head that ends after a runtime carrier still renders every reply as an earlier turn", () => {
+    const all = conversation()
+    const full = MessageV2.toModelMessages(all, model)
+    const head = all.slice(0, 6)
+    const rendered = MessageV2.toModelMessages(head, model, { conversation: all })
+    expect(JSON.stringify(rendered)).toBe(JSON.stringify(full.slice(0, rendered.length)))
+    // Inside the conversation the boundary is u2, so a2 and a3 replay their
+    // reasoning there and here alike; a1 does not.
+    expect(JSON.stringify(rendered)).not.toContain("thinking about EDA")
+    expect(JSON.stringify(rendered)).toContain("thinking about Baseline")
+  })
+
+  test("the image budget is the conversation's, so a head image the tail pushed out stays a placeholder", () => {
+    const all: MessageV2.WithParts[] = [
+      {
+        info: typed("u1", "Plot it.").info,
+        parts: [textPart("u1", "u1-t", "Plot it."), imagePart("u1", "u1-i", "old.png")],
+      },
+      reply("a1", "u1", "Plotted."),
+      {
+        info: typed("u2", "Again.").info,
+        parts: [textPart("u2", "u2-t", "Again."), imagePart("u2", "u2-i", "new.png")],
+      },
+    ]
+    const full = MessageV2.toModelMessages(all, model, { keepRecentImages: 1 })
+    const rendered = MessageV2.toModelMessages(all.slice(0, 2), model, { keepRecentImages: 1, conversation: all })
+    expect(JSON.stringify(rendered)).toBe(JSON.stringify(full.slice(0, rendered.length)))
+    expect(JSON.stringify(rendered)).toContain("older image omitted")
+  })
+
+  test("without a conversation the head is rendered as before", () => {
+    const all = conversation()
+    const head = all.slice(0, 2)
+    expect(JSON.stringify(MessageV2.toModelMessages(head, model, { conversation: head }))).toBe(
+      JSON.stringify(MessageV2.toModelMessages(head, model)),
+    )
   })
 })
 
@@ -211,6 +429,25 @@ describe("session.message-v2.toModelMessage", () => {
             text: "ignored",
             ignored: true,
           },
+        ] as MessageV2.Part[],
+      },
+    ]
+
+    expect(MessageV2.toModelMessages(input, model)).toStrictEqual([])
+  })
+
+  test("drops ignored assistant text the same way it drops ignored user text", () => {
+    // A slash-command notice pair (/status, /stop): the user line and the
+    // assistant answer are both display-only and must not reach the model.
+    const input: MessageV2.WithParts[] = [
+      {
+        info: userInfo("m-notice"),
+        parts: [{ ...basePart("m-notice", "p1"), type: "text", text: "/status", ignored: true }] as MessageV2.Part[],
+      },
+      {
+        info: assistantInfo("m-notice-reply", "m-notice"),
+        parts: [
+          { ...basePart("m-notice-reply", "a1"), type: "text", text: "### Session status", ignored: true },
         ] as MessageV2.Part[],
       },
     ]
@@ -946,6 +1183,94 @@ describe("session.message-v2.toModelMessage", () => {
     expect(JSON.stringify(result)).not.toContain('"format":"anthropic-claude-v1","index":0}}')
   })
 
+  test("replays the encrypted reasoning of the turn in progress and nothing of earlier turns, without per-token summaries", () => {
+    const openrouter = {
+      ...model,
+      id: "openai/gpt-6-astra",
+      providerID: "openrouter",
+      api: { ...model.api, id: "openai/gpt-6-astra", npm: "@openrouter/ai-sdk-provider" },
+    }
+    const encrypted = (id: string) => ({
+      type: "reasoning.encrypted",
+      id,
+      data: `encrypted-${id}`,
+      format: "openai-responses-v1",
+      index: 0,
+    })
+    const summaries = ["**Planning", " the", " read**"].map((summary) => ({
+      type: "reasoning.summary",
+      summary,
+      format: "openai-responses-v1",
+      index: 0,
+    }))
+    const step = (assistantID: string, parentID: string, rs: string) => ({
+      info: assistantInfo(assistantID, parentID, undefined, { providerID: "openrouter", modelID: openrouter.id }),
+      parts: [
+        {
+          ...basePart(assistantID, `${assistantID}-reasoning`),
+          type: "reasoning",
+          text: "[REDACTED]Planning the read",
+          metadata: { openrouter: { reasoning_details: [...summaries, encrypted(rs)] } },
+          time: { start: 0, end: 1 },
+        },
+        {
+          ...basePart(assistantID, `${assistantID}-tool`),
+          type: "tool",
+          callID: `${assistantID}-call`,
+          tool: "read",
+          state: {
+            status: "completed",
+            input: { filePath: "a.md" },
+            output: "a",
+            title: "a.md",
+            metadata: {},
+            time: { start: 1, end: 2 },
+          },
+          metadata: { openrouter: { reasoning_details: [...summaries, encrypted(rs)] } },
+        },
+      ] as MessageV2.Part[],
+    })
+    const input: MessageV2.WithParts[] = [
+      {
+        info: userInfo("u1"),
+        parts: [{ ...basePart("u1", "u1-text"), type: "text", text: "First request" }] as MessageV2.Part[],
+      },
+      step("a1", "u1", "rs_old"),
+      {
+        info: userInfo("u2"),
+        parts: [{ ...basePart("u2", "u2-text"), type: "text", text: "Second request" }] as MessageV2.Part[],
+      },
+      step("a2", "u2", "rs_now"),
+      // A worker's result lands mid-work as a synthetic user message; it is not a turn.
+      {
+        info: userInfo("u3"),
+        parts: [
+          {
+            ...basePart("u3", "u3-text"),
+            type: "text",
+            text: '<task id="ses_w" state="completed">done</task>',
+            synthetic: true,
+          },
+        ] as MessageV2.Part[],
+      },
+      step("a3", "u3", "rs_after_worker"),
+    ]
+    const serialized = JSON.stringify(MessageV2.toModelMessages(input, openrouter))
+    // The work since the person's last request keeps its encrypted items; the earlier turn's reasoning is gone.
+    expect(serialized).toContain("encrypted-rs_now")
+    expect(serialized).toContain("encrypted-rs_after_worker")
+    expect(serialized).not.toContain("encrypted-rs_old")
+    expect((serialized.match(/"type":"reasoning"/g) ?? []).length).toBe(2)
+    // Per-token summary fragments never travel; the transcript still has them.
+    expect(serialized).not.toContain("reasoning.summary")
+    expect(MessageV2.replayableOpenRouterReplay({ openrouter: { reasoning_details: summaries } })).toEqual({
+      openrouter: { reasoning_details: [] },
+    })
+    // Untouched when there is nothing to trim, so a signed Anthropic block stays byte-identical.
+    const signed = { openrouter: { reasoning_details: [{ type: "reasoning.text", text: "t", signature: "s" }] } }
+    expect(MessageV2.replayableOpenRouterReplay(signed)).toBe(signed)
+  })
+
   test("does not replay an unsigned OpenRouter Anthropic reasoning detail", () => {
     const assistantID = "m-openrouter-unsigned"
     const openrouter = {
@@ -1127,11 +1452,12 @@ describe("session.message-v2.filterCompacted — verbatim tail (P3.2)", () => {
     expect(out.map((message) => message.info.id)).toEqual(["u1", "a1", "cc", "sum"])
   })
 
-  test("a missing tailStartId falls back to [carrier, summary, continuation] — never the whole history", async () => {
+  test("a missing tailStartId keeps the history in order with the summary as its recap, never dropping the newest request", async () => {
     // The summary references a tail anchor that is no longer in the stream (e.g. the tail
-    // messages were reverted/migrated away). The retain scan can't find it; the re-splice
-    // must still honour the compaction boundary and drop pre-carrier history, not return
-    // the entire un-truncated history.
+    // messages were reverted/migrated away). The tail was the only place the newest
+    // request lived, since the summary never saw it: dropping everything before the
+    // carrier would resume from a handoff about older work. Keep the history the scan
+    // collected, chronological, with the summary and continuation after it.
     const msgs: MessageV2.WithParts[] = [
       mk("cont", "assistant", [txt("cont", "go")], { finish: "stop", parentID: "cc" }),
       mk("sum", "assistant", [txt("sum", "HANDOFF")], {
@@ -1141,10 +1467,78 @@ describe("session.message-v2.filterCompacted — verbatim tail (P3.2)", () => {
         tailStartId: "gone",
       }),
       compactionCarrier("cc"),
-      mk("old2", "assistant", [txt("old2", "old a")]),
+      mk("a2", "assistant", [txt("a2", "work on the newest request")], { finish: "tool-calls", parentID: "u2" }),
+      mk("u2", "user", [txt("u2", "newest request")]),
+      mk("old2", "assistant", [txt("old2", "old a")], { finish: "stop", parentID: "old1" }),
       mk("old1", "user", [txt("old1", "old q")]),
     ]
     const out = await MessageV2.filterCompacted(streamOf(msgs))
-    expect(out.map((m) => m.info.id)).toEqual(["cc", "sum", "cont"])
+    expect(out.map((m) => m.info.id)).toEqual(["old1", "old2", "u2", "a2", "cc", "sum", "cont"])
+  })
+
+  test("a missing tailStartId is bounded by the previous compaction: history before that boundary stays dropped", async () => {
+    const msgs: MessageV2.WithParts[] = [
+      mk("cont", "assistant", [txt("cont", "go")], { finish: "stop", parentID: "cc2" }),
+      mk("sum2", "assistant", [txt("sum2", "HANDOFF 2")], {
+        summary: true,
+        finish: "stop",
+        parentID: "cc2",
+        tailStartId: "gone",
+      }),
+      compactionCarrier("cc2"),
+      mk("a2", "assistant", [txt("a2", "work on the newest request")], { finish: "tool-calls", parentID: "u2" }),
+      mk("u2", "user", [txt("u2", "newest request")]),
+      mk("sum1", "assistant", [txt("sum1", "HANDOFF 1")], { summary: true, finish: "stop", parentID: "cc1" }),
+      compactionCarrier("cc1"),
+      mk("old2", "assistant", [txt("old2", "old a")], { finish: "stop", parentID: "old1" }),
+      mk("old1", "user", [txt("old1", "old q")]),
+    ]
+    const out = await MessageV2.filterCompacted(streamOf(msgs))
+    expect(out.map((m) => m.info.id)).toEqual(["cc1", "sum1", "u2", "a2", "cc2", "sum2", "cont"])
+  })
+
+  test("a superseded unanswered request cannot pin every later compaction tail", () => {
+    const id = () => Identifier.ascending("message")
+    const earlier = Array.from({ length: 3 }, () => [id(), id()] as const)
+    const orphan = id()
+    const retry = id()
+    const reply = id()
+    const recent = Array.from({ length: 8 }, () => [id(), id()] as const)
+    const messages = [
+      ...earlier.flatMap(([user, assistant], index) => [
+        mk(user, "user", [txt(user, `earlier request ${index}`)]),
+        mk(assistant, "assistant", [txt(assistant, `earlier reply ${index}`)], {
+          finish: "stop",
+          parentID: user,
+        }),
+      ]),
+      mk(orphan, "user", [txt(orphan, "request superseded before it received a direct reply")]),
+      mk(retry, "user", [txt(retry, "retry of the request")]),
+      mk(reply, "assistant", [txt(reply, "reply to the retry")], { finish: "stop", parentID: retry }),
+      ...recent.flatMap(([user, assistant], index) => [
+        mk(user, "user", [txt(user, `recent request ${index}`)]),
+        mk(assistant, "assistant", [txt(assistant, `recent reply ${index}`)], {
+          finish: "stop",
+          parentID: user,
+        }),
+      ]),
+    ]
+
+    const selected = SessionCompaction.selectTail(messages, {
+      tailTurns: SessionCompaction.TAIL_TURNS,
+      tailTokens: SessionCompaction.TAIL_TOKENS_MAX,
+    })
+    expect(selected.tailStartId).not.toBe(orphan)
+    expect(recent.some(([user]) => user === selected.tailStartId)).toBe(true)
+  })
+
+  test("keeps a queued unanswered span that begins at the first message", () => {
+    const first = Identifier.ascending("message")
+    const second = Identifier.ascending("message")
+    const messages = [
+      mk(first, "user", [txt(first, "first request still waiting for the same provider turn")]),
+      mk(second, "user", [txt(second, "second queued request")]),
+    ]
+    expect(SessionCompaction.selectTail(messages, { tailTurns: 1, tailTokens: 1 })).toEqual({})
   })
 })

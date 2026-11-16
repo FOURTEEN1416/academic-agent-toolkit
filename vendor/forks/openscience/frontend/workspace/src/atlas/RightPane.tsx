@@ -2,6 +2,7 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  createUniqueId,
   For,
   Match,
   on,
@@ -13,21 +14,22 @@ import {
   type JSX,
 } from "solid-js"
 import { uiStore, type ContextTab, type WorkTab } from "@/atlas/store/ui"
-import { AtlasCanvas } from "@/atlas/AtlasCanvas"
 import { ComputeSurface } from "@/atlas/ComputeSurface"
+import { AutoresearchPane } from "@/atlas/AutoresearchPane"
 import { ExternalFileAccess } from "@/atlas/FileExplorer"
 import { FilesPane } from "@/atlas/FilesPane"
 import { FileView } from "@/atlas/FilePreview"
 import { TerminalSurface } from "@/atlas/TerminalSurface"
-import { SessionTraceSurface } from "@/atlas/SessionTraceSurface"
 import { useDialog } from "@synsci/ui/context/dialog"
+import { DropdownMenu } from "@synsci/ui/dropdown-menu"
+import { useSDK } from "@/context/sdk"
 import { FileIcon } from "@synsci/ui/file-icon"
 import { StoredArtifactView } from "@/artifacts/StoredArtifactView"
 import { confirmDialog } from "@/atlas/dialogs"
 import { discardFileDraft } from "@/atlas/file-drafts"
-import { AsciiSpinner } from "@/atlas/shared/AsciiSpinner"
+import { AtomLoader } from "@synsci/ui/atom-loader"
+import { PaneResizer } from "@/atlas/PaneResizer"
 import {
-  IconActivity,
   IconArchive,
   IconArtifact,
   IconChevronLeft,
@@ -35,33 +37,33 @@ import {
   IconCpu,
   IconExpand,
   IconFolder,
-  IconNetwork,
   IconSplit,
   IconTerminal,
   IconX,
+  IconActivity,
 } from "@/atlas/shared/Icon"
 import {
   DEFAULT_PANE_WIDTH,
   MIN_PANE_WIDTH,
   INLINE_PANE_BREAKPOINT,
-  clampPaneWidth,
   equalPaneWidth,
   legacyPaneWidthKey,
   maxPaneWidthForWorkspace,
   paneWidthForWorkspace,
   paneWidthKey,
+  presetPaneWidth,
   readPaneWidth,
   savePaneWidth,
 } from "@/atlas/right-pane-layout"
 import "./right-pane-tabs.css"
 
-const RESIZE_STEP = 16
 const labels: Record<ContextTab, string> = {
   artifact: "Files",
   files: "Files",
   terminal: "Terminal",
   canvas: "Synthetic Sciences",
   kernels: "Compute",
+  autoresearch: "Autoresearch",
   trace: "Trace",
 }
 
@@ -85,6 +87,7 @@ const focusable =
   'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])'
 
 export function RightPaneFrame(props: {
+  id?: string
   modal: boolean
   mobile: boolean
   stacked: boolean
@@ -177,6 +180,7 @@ export function RightPaneFrame(props: {
         />
       </Show>
       <aside
+        id={props.id}
         ref={(element) => {
           refs.pane = element
           props.onPane?.(element)
@@ -226,9 +230,14 @@ export function RightPane(
     route?: string
   } = {},
 ): JSX.Element {
+  const sdk = useSDK()
+  const paneID = createUniqueId()
   const context = uiStore.context
   const project = () => props.project ?? props.route ?? window.location.pathname
   const session = () => props.session ?? "new"
+  const fileOwner = createMemo(() => ({ server: sdk.url, project: project(), session: session() }))
+  let live = true
+  onCleanup(() => (live = false))
   const key = createMemo(() => paneWidthKey(project()))
   const legacy = createMemo(() => [
     legacyPaneWidthKey(project(), session()),
@@ -251,7 +260,6 @@ export function RightPane(
   const [seen, setSeen] = createSignal(context() === "files")
   const limit = createMemo(() => maxPaneWidthForWorkspace(workspace(), persistentSidebar()))
   const paneWidth = createMemo(() => paneWidthForWorkspace(width(), workspace(), persistentSidebar()))
-  const drag = { start: null as { x: number; width: number } | null }
   const frame: {
     observer?: ResizeObserver
     mutation?: MutationObserver
@@ -271,7 +279,10 @@ export function RightPane(
   const selectedFile = (tab: Extract<WorkTab, { kind: "file" }>) => {
     const current = uiStore.file()
     return (
-      current?.directory === tab.file.directory && current.path === tab.file.path && current.scope === tab.file.scope
+      current?.directory === tab.file.directory &&
+      current.path === tab.file.path &&
+      current.scope === tab.file.scope &&
+      current.sessionID === tab.file.sessionID
     )
   }
   const visibleFile = (tab: Extract<WorkTab, { kind: "file" }>) =>
@@ -280,6 +291,7 @@ export function RightPane(
     setDirtyFiles((items) => (dirty ? [...new Set([...items, id])] : items.filter((item) => item !== id)))
   const openDirty = () => dirtyFiles().filter((id) => fileTabs().some((tab) => tab.id === id))
   const closeWorkTab = async (id?: string) => {
+    const owner = fileOwner()
     const target = uiStore.workTabs().find((tab) => tab.id === (id ?? uiStore.activeWorkTab()))
     if (target?.kind === "file" && openDirty().includes(target.id)) {
       const confirmed = await confirmDialog(dialog, {
@@ -288,13 +300,15 @@ export function RightPane(
         confirmLabel: "Discard and close",
         danger: true,
       })
-      if (!confirmed) return
+      if (!confirmed || !live || fileOwner() !== owner) return
       markDirty(target.id, false)
     }
-    if (target?.kind === "file") discardFileDraft(target.file.directory, target.file.path, target.file.scope)
-    uiStore.closeWorkTab(id)
+    if (target?.kind === "file")
+      discardFileDraft(target.file.directory, target.file.path, target.file.scope, target.file.sessionID, owner.server)
+    uiStore.closeWorkTab(target?.id ?? id)
   }
   const closePane = async () => {
+    const owner = fileOwner()
     const pending = openDirty()
     if (pending.length > 0) {
       const confirmed = await confirmDialog(dialog, {
@@ -303,18 +317,27 @@ export function RightPane(
         confirmLabel: "Discard and close",
         danger: true,
       })
-      if (!confirmed) return
-      setDirtyFiles([])
+      if (!confirmed || !live || fileOwner() !== owner) return
+      // Edits made while confirmation is open still need their own discard decision.
+      setDirtyFiles((items) => items.filter((item) => !pending.includes(item)))
     }
     for (const id of pending) {
       const tab = fileTabs().find((item) => item.id === id)
-      if (tab) discardFileDraft(tab.file.directory, tab.file.path, tab.file.scope)
+      if (tab) discardFileDraft(tab.file.directory, tab.file.path, tab.file.scope, tab.file.sessionID, owner.server)
       uiStore.closeWorkTab(id)
     }
     uiStore.closeContext()
   }
 
-  createEffect(on(key, () => setWidth(initial())))
+  createEffect(
+    on(key, () => {
+      setWidth(initial())
+      setExpanded(false)
+    }),
+  )
+  createEffect(() => {
+    if (!uiStore.rightPaneOpen()) setExpanded(false)
+  })
   createEffect(() => {
     if (context() === "files") setSeen(true)
   })
@@ -372,47 +395,18 @@ export function RightPane(
     attachSidebar()
   }
 
-  const onHandlePointerDown = (event: PointerEvent) => {
-    drag.start = { x: event.clientX, width: paneWidth() }
-    ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
-    document.body.style.cursor = "ew-resize"
-    event.preventDefault()
-  }
-  const onHandlePointerMove = (event: PointerEvent) => {
-    if (!drag.start) return
-    const next = clampPaneWidth(drag.start.width + (drag.start.x - event.clientX), limit())
+  const resize = (next: number) => {
     setWidth(next)
+    savePaneWidth(key(), next)
   }
-  const onHandlePointerUp = (event: PointerEvent) => {
-    if (!drag.start) return
-    drag.start = null
-    ;(event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId)
-    document.body.style.cursor = ""
-    try {
-      savePaneWidth(key(), width())
-    } catch {}
-  }
-  const onHandleKeyDown = (event: KeyboardEvent) => {
-    const delta = event.key === "ArrowLeft" ? RESIZE_STEP : event.key === "ArrowRight" ? -RESIZE_STEP : 0
-    if (!delta) return
-    event.preventDefault()
-    const next = clampPaneWidth(paneWidth() + delta, limit())
-    setWidth(next)
-    try {
-      savePaneWidth(key(), next)
-    } catch {}
-  }
-  const splitEvenly = () => {
-    const next = equalPaneWidth(workspace(), persistentSidebar())
-    setWidth(next)
-    try {
-      savePaneWidth(key(), next)
-    } catch {}
-  }
+  const splitEvenly = () => resize(equalPaneWidth(workspace(), persistentSidebar()))
+  const preset = (value: Parameters<typeof presetPaneWidth>[0]) =>
+    resize(presetPaneWidth(value, workspace(), persistentSidebar()))
 
   return (
     <RightPaneGate>
       <RightPaneFrame
+        id={paneID}
         modal={uiStore.rightPaneOpen() && (narrow() || expanded())}
         mobile={uiStore.rightPaneOpen() && narrow()}
         stacked={false}
@@ -422,24 +416,16 @@ export function RightPane(
         onPane={observePane}
       >
         <>
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            aria-label="Resize research inspector"
-            aria-valuemin={MIN_PANE_WIDTH}
-            aria-valuemax={limit()}
-            aria-valuenow={paneWidth()}
-            tabindex={narrow() ? -1 : 0}
-            onKeyDown={onHandleKeyDown}
-            on:pointerdown={onHandlePointerDown}
-            on:pointermove={onHandlePointerMove}
-            on:pointerup={onHandlePointerUp}
-            on:pointercancel={onHandlePointerUp}
-            onDblClick={splitEvenly}
-            title="Drag to resize. Double-click to split evenly."
-            aria-hidden={narrow() ? "true" : undefined}
-            hidden={narrow() || expanded()}
-            class="research-inspector__resize"
+          <PaneResizer
+            owner={key()}
+            controls={paneID}
+            disabled={narrow() || expanded() || !uiStore.rightPaneOpen()}
+            width={paneWidth()}
+            preferredWidth={width()}
+            max={limit()}
+            onResize={setWidth}
+            onCommit={(next) => savePaneWidth(key(), next)}
+            onReset={splitEvenly}
           />
           <div class="research-inspector__header">
             <Show
@@ -460,15 +446,36 @@ export function RightPane(
             </Show>
             <div class="research-inspector__controls">
               <Show when={!narrow() && !expanded()}>
-                <button
-                  type="button"
-                  class="research-inspector__control"
-                  onClick={splitEvenly}
-                  title="Split workspace evenly"
-                  aria-label="Split workspace evenly"
-                >
-                  <IconSplit size={16} strokeWidth={1.45} />
-                </button>
+                <DropdownMenu placement="bottom-end">
+                  <DropdownMenu.Trigger
+                    class="research-inspector__control"
+                    title="Workspace layout"
+                    aria-label="Workspace layout"
+                  >
+                    <IconSplit size={16} strokeWidth={1.5} />
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content class="research-inspector__layout-menu">
+                      <DropdownMenu.Item onSelect={splitEvenly}>
+                        <DropdownMenu.ItemLabel>Equal split</DropdownMenu.ItemLabel>
+                      </DropdownMenu.Item>
+                      <DropdownMenu.Item onSelect={() => preset("conversation")}>
+                        <DropdownMenu.ItemLabel>Wider conversation</DropdownMenu.ItemLabel>
+                      </DropdownMenu.Item>
+                      <DropdownMenu.Item onSelect={() => preset("inspector")}>
+                        <DropdownMenu.ItemLabel>Wider inspector</DropdownMenu.ItemLabel>
+                      </DropdownMenu.Item>
+                      <DropdownMenu.Item onSelect={() => preset("default")}>
+                        <DropdownMenu.ItemLabel>Reset width</DropdownMenu.ItemLabel>
+                      </DropdownMenu.Item>
+                      <DropdownMenu.Separator />
+                      <DropdownMenu.Item onSelect={() => uiStore.closeContext()}>
+                        <DropdownMenu.ItemLabel>Focus conversation</DropdownMenu.ItemLabel>
+                        <DropdownMenu.ItemDescription>Keep files and tabs open</DropdownMenu.ItemDescription>
+                      </DropdownMenu.Item>
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu>
               </Show>
               <Show when={!narrow()}>
                 <button
@@ -477,9 +484,10 @@ export function RightPane(
                   onClick={() => setExpanded((value) => !value)}
                   title={expanded() ? "Restore inspector" : "Open inspector full screen"}
                   aria-label={expanded() ? "Restore inspector" : "Open inspector full screen"}
+                  aria-pressed={expanded()}
                 >
-                  <Show when={expanded()} fallback={<IconExpand size={16} strokeWidth={1.55} />}>
-                    <IconCollapse size={16} strokeWidth={1.55} />
+                  <Show when={expanded()} fallback={<IconExpand size={16} strokeWidth={1.5} />}>
+                    <IconCollapse size={16} strokeWidth={1.5} />
                   </Show>
                 </button>
               </Show>
@@ -491,8 +499,8 @@ export function RightPane(
                 aria-label={narrow() ? "Back to conversation" : "Close context"}
                 data-modal-initial-focus
               >
-                <Show when={narrow()} fallback={<IconX size={17} strokeWidth={1.6} />}>
-                  <IconChevronLeft size={17} strokeWidth={1.6} />
+                <Show when={narrow()} fallback={<IconX size={16} strokeWidth={1.5} />}>
+                  <IconChevronLeft size={16} strokeWidth={1.5} />
                 </Show>
               </button>
             </div>
@@ -525,7 +533,7 @@ export function RightPane(
                       directory={tab.file.directory}
                       path={tab.file.path}
                       scope={tab.file.scope ?? "project"}
-                      sessionID={session() === "new" ? undefined : session()}
+                      sessionID={tab.file.sessionID ?? (session() === "new" ? undefined : session())}
                       subtitle={
                         tab.file.scope === "auto"
                           ? undefined
@@ -575,14 +583,11 @@ export function RightPane(
               <Match when={context() === "files" && uiStore.saved()}>
                 {(current) => <StoredArtifactView artifact={current()} />}
               </Match>
-              <Match when={context() === "canvas"}>
-                <AtlasCanvas />
-              </Match>
               <Match when={context() === "kernels"}>
                 <ComputeSurface />
               </Match>
-              <Match when={context() === "trace"}>
-                <SessionTraceSurface session={session()} />
+              <Match when={context() === "autoresearch"}>
+                <AutoresearchPane />
               </Match>
             </Switch>
           </Suspense>
@@ -607,8 +612,7 @@ function workTabIcon(tab: WorkTab): JSX.Element {
   if (tab.context === "files") return <IconFolder size={16} strokeWidth={1.5} />
   if (tab.context === "terminal") return <IconTerminal size={16} strokeWidth={1.5} />
   if (tab.context === "kernels") return <IconCpu size={16} strokeWidth={1.5} />
-  if (tab.context === "canvas") return <IconNetwork size={16} strokeWidth={1.5} />
-  if (tab.context === "trace") return <IconActivity size={16} strokeWidth={1.5} />
+  if (tab.context === "autoresearch") return <IconActivity size={16} strokeWidth={1.5} />
   return <IconArtifact size={16} strokeWidth={1.5} />
 }
 
@@ -708,7 +712,7 @@ function WorkTabStrip(props: {
               aria-label={`Close ${workTabLabel(tab)}`}
               onClick={() => props.onClose(tab.id)}
             >
-              <IconX size={11} strokeWidth={1.5} />
+              <IconX size={12} strokeWidth={1.5} />
             </button>
           </div>
         )}
@@ -721,9 +725,11 @@ function InspectorLoading(props: { label: string }): JSX.Element {
   return (
     <div
       data-component="inspector-loading"
-      style={{ flex: 1, display: "flex", "align-items": "center", "justify-content": "center" }}
+      role="status"
+      aria-live="polite"
+      style={{ flex: 1, "min-height": 0, display: "grid", "place-items": "center" }}
     >
-      <AsciiSpinner size={10} label={`Loading ${props.label.toLowerCase()}…`} color="var(--color-text-faint)" />
+      <AtomLoader size={144} caption={`Loading ${props.label.toLowerCase()}`} />
     </div>
   )
 }

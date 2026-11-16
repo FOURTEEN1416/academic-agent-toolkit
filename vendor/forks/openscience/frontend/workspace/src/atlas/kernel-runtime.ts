@@ -1,6 +1,6 @@
 export type KernelState = "lazy" | "starting" | "idle" | "running" | "stopped" | "crashed"
 
-export type KernelEnvironment = {
+type KernelEnvironment = {
   cwd: string
   interpreter?: {
     name: string
@@ -25,7 +25,7 @@ export type KernelEnvironment = {
   }
 }
 
-export type KernelResources = {
+type KernelResources = {
   cpu_percent?: number
   memory_bytes?: number
   gpu_percent?: number
@@ -46,7 +46,7 @@ export type CommandStatus = {
   resources?: Pick<KernelResources, "cpu_percent" | "memory_bytes">
 }
 
-export type ExecutionAuthority = {
+type ExecutionAuthority = {
   allowed: boolean
   reason: "allowed" | "project_untrusted" | "sandbox_unavailable"
   mode: "read_only" | "sandboxed" | "host"

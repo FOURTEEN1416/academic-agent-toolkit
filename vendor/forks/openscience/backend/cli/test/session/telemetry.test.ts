@@ -17,19 +17,31 @@ describe("session.telemetry.recordContext", () => {
         Bus.subscribe(SessionTelemetry.Event.Context, (e) => seen.push(e.properties))
         await SessionTelemetry.recordContext({
           sessionID: "ses_ctx",
-          composition: { system: 1, text: 2, reasoning: 3, tool: 4, skills: 5, image: 6, images: 1, total: 21 },
-          budget: { total: 30, newest: 20, history: 10, usable: 100, soft: 70, hard: 90 },
+          composition: {
+            system: 1,
+            definitions: 8,
+            text: 2,
+            reasoning: 3,
+            tool: 4,
+            skills: 5,
+            image: 6,
+            images: 1,
+            document: 7,
+            total: 36,
+          },
+          budget: { total: 38, newest: 20, history: 10, usable: 100, soft: 70, hard: 90 },
         })
         expect(seen).toEqual([
           {
             sessionID: "ses_ctx",
-            tokens: { system: 1, text: 2, reasoning: 3, tool: 4, skills: 5, image: 6 },
+            tokens: { system: 1, definitions: 8, text: 2, reasoning: 3, tool: 4, skills: 5, image: 6, document: 7 },
             images: 1,
-            total: 21,
-            budget: { total: 30, newest: 20, history: 10, usable: 100, soft: 70, hard: 90 },
+            total: 36,
+            budget: { total: 38, newest: 20, history: 10, usable: 100, soft: 70, hard: 90 },
           },
         ])
-        expect(SessionTelemetry.context("ses_ctx")).toMatchObject({ total: 30, hard: 90, composition: { total: 21 } })
+        expect(SessionTelemetry.context("ses_ctx")).toMatchObject({ total: 38, hard: 90, composition: { total: 36 } })
+        expect(Object.values(seen[0].tokens).reduce((sum: number, value) => sum + Number(value), 0)).toBe(seen[0].total)
       },
     })
   })
@@ -80,6 +92,42 @@ describe("session.telemetry.recordCompaction", () => {
           reclaimed: 176_000,
         })
         expect(seen[0]).toMatchObject({ trigger: "overflow", mechanism: "summary", before: 180_000, after: 4_000 })
+      },
+    })
+  })
+})
+
+describe("session.telemetry.recordProgress", () => {
+  test("evicts finished requests first and the least recently updated one after that", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        // Matches LATEST_LIMIT in telemetry.ts.
+        const limit = 256
+        const record = (n: number, phase: SessionTelemetry.RequestPhase) =>
+          SessionTelemetry.recordProgress({
+            sessionID: `ses_evict_${n}`,
+            messageID: `msg_evict_${n}`,
+            attempt: 1,
+            agent: "research",
+            providerID: "stress",
+            modelID: "fixture-model",
+            phase,
+          })
+        Array.from({ length: limit }, (_, n) => record(n, "connecting"))
+        // Updating the oldest record makes it the most recent, so the next
+        // insert evicts its neighbour instead of cutting it off mid-request.
+        record(0, "waiting_first_token")
+        record(limit, "connecting")
+        expect(SessionTelemetry.progress("ses_evict_0")?.phase).toBe("waiting_first_token")
+        expect(SessionTelemetry.progress("ses_evict_1")).toBeUndefined()
+        // A finished request goes before any in-flight one, however old.
+        record(5, "done")
+        record(limit + 1, "connecting")
+        expect(SessionTelemetry.progress("ses_evict_5")).toBeUndefined()
+        expect(SessionTelemetry.progress("ses_evict_2")?.phase).toBe("connecting")
+        expect(SessionTelemetry.progress(`ses_evict_${limit + 1}`)?.phase).toBe("connecting")
       },
     })
   })

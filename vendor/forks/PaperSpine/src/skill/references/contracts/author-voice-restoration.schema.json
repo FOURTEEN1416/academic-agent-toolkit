@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/author-voice-restoration.schema.json",
+  "title": "PaperSpine authorial-voice restoration revision contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "mode", "rewriter_id", "original", "revised", "authority_files", "protected_terms", "changes", "semantic_audit", "author_confirmation"],
+  "properties": {
+    "contract": {"const": "paperspine.author-voice-restoration"},
+    "schema_version": {"const": "1.0"},
+    "mode": {"enum": ["rewrite", "no_op"]},
+    "rewriter_id": {"type": "string", "minLength": 1},
+    "output_language": {"type": "string", "minLength": 1, "description": "The actual language tag of this output. Evaluate each requested language separately; unsupported assessment must be reported explicitly rather than silently mapped to English."},
+    "original": {"$ref": "#/$defs/file"},
+    "revised": {"$ref": "#/$defs/file"},
+    "authority_files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [
+          {"$ref": "#/$defs/file"},
+          {"type": "object", "required": ["purpose"], "properties": {"purpose": {"type": "string", "minLength": 1}}}
+        ]
+      }
+    },
+    "protected_terms": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["change_id", "source_locator", "revised_locator", "reason", "evidence_anchor"],
+        "properties": {
+          "change_id": {"type": "string", "minLength": 1},
+          "source_locator": {"type": "string", "minLength": 1},
+          "revised_locator": {"type": "string", "minLength": 1},
+          "reason": {"enum": ["delete_empty_framing", "restore_author_preference", "clarify_claim_evidence_link", "remove_unsupported_evaluation", "repair_paragraph_function", "section_register", "other_reader_facing_problem"]},
+          "evidence_anchor": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "semantic_audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["audit_method", "reviewer_id", "independent_from_rewriter", "status", "original_sha256", "revised_sha256", "unsupported_new_claims", "claim_strength_drift", "causal_direction_changes", "negation_changes", "modality_uncertainty_changes", "citation_meaning_changes", "findings"],
+      "properties": {
+        "audit_method": {"enum": ["independent_agent", "deterministic_identity"]},
+        "reviewer_id": {"type": "string", "minLength": 1},
+        "independent_from_rewriter": {"type": "boolean"},
+        "status": {"enum": ["pass", "blocked"]},
+        "original_sha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+        "revised_sha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+        "unsupported_new_claims": {"type": "integer", "minimum": 0},
+        "claim_strength_drift": {"type": "integer", "minimum": 0},
+        "causal_direction_changes": {"type": "integer", "minimum": 0},
+        "negation_changes": {"type": "integer", "minimum": 0},
+        "modality_uncertainty_changes": {"type": "integer", "minimum": 0},
+        "citation_meaning_changes": {"type": "integer", "minimum": 0},
+        "findings": {"type": "array", "items": {"type": "object"}}
+      }
+    },
+    "author_confirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "confirmed_sha256", "confirmed_at"],
+      "properties": {
+        "status": {"enum": ["confirmed", "pending", "rejected"]},
+        "confirmed_sha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+        "confirmed_at": {"type": "string", "minLength": 1},
+        "note": {"type": "string"}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"mode": {"const": "rewrite"}}},
+      "then": {
+        "properties": {
+          "changes": {"minItems": 1},
+          "semantic_audit": {"properties": {"audit_method": {"const": "independent_agent"}, "independent_from_rewriter": {"const": true}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"mode": {"const": "no_op"}}},
+      "then": {"properties": {"changes": {"maxItems": 0}}}
+    }
+  ],
+  "$defs": {
+    "file": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"}
+      }
+    }
+  }
+}
+

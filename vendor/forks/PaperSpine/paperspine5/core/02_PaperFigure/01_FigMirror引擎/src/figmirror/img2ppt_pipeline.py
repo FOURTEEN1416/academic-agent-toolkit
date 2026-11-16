@@ -64,6 +64,9 @@ def _request(candidate: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         raise ValueError("Img2PPT preparation requires a schematic generation request")
     if architecture.get("pipeline") != IMG2PPT_PIPELINE:
         raise ValueError("generation_request.json is not configured for img2ppt_hybrid")
+    image_generation = request.get("image_generation_contract")
+    if not isinstance(image_generation, dict) or image_generation.get("available") is not True:
+        raise ValueError("img2ppt_hybrid requires an explicitly available image-generation capability")
     contract = request.get("img2ppt_contract")
     if not isinstance(contract, dict):
         raise ValueError("generation_request.json requires img2ppt_contract")
@@ -118,6 +121,8 @@ def prepare_img2ppt_candidate(candidate_dir: str | Path) -> dict[str, Any]:
             "editable_connectors_required": bool(contract["require_editable_connectors"]),
             "minimum_real_replacements": int(contract["minimum_real_replacements"]),
             "image_assets_must_contain_text": False,
+            "component_routing_required": True,
+            "image_assets_are_bounded_clean_bases": True,
         },
     }
     _write_object(candidate / "img2ppt_plan.json", plan)
@@ -261,12 +266,37 @@ def assemble_img2ppt_candidate(candidate_dir: str | Path) -> dict[str, Any]:
         raise ValueError("replacement_manifest.json replacements must be a list")
     failures: list[str] = []
     declared_hashes: list[str] = []
+    composition_contract = request.get("composition_contract")
+    max_image_area = 0.55
+    if isinstance(composition_contract, dict):
+        rules = composition_contract.get("rules")
+        if isinstance(rules, dict):
+            max_image_area = float(rules.get("max_image_region_area_ratio", max_image_area))
     for index, entry in enumerate(replacements):
         if not isinstance(entry, dict):
             failures.append(f"replacement {index} must be an object")
             continue
         if entry.get("approved") is not True or entry.get("contains_text") is not False:
             failures.append(f"replacement {index} must be approved and text-free")
+        bbox = entry.get("bbox_normalized")
+        if (
+            not isinstance(bbox, list)
+            or len(bbox) != 4
+            or any(isinstance(item, bool) or not isinstance(item, (int, float)) for item in bbox)
+        ):
+            failures.append(f"replacement {index} requires bbox_normalized [x,y,width,height]")
+        else:
+            x, y, width, height = (float(item) for item in bbox)
+            if x < 0 or y < 0 or width <= 0 or height <= 0 or x + width > 1.000001 or y + height > 1.000001:
+                failures.append(f"replacement {index} bbox_normalized must remain inside the page")
+            elif width * height > max_image_area:
+                failures.append(f"replacement {index} exceeds the bounded image-area limit")
+        if entry.get("native_overlay") is not True:
+            failures.append(f"replacement {index} requires native_overlay=true")
+        if entry.get("asset_treatment") not in {"text_free_clean_base", "text_free_complex_object"}:
+            failures.append(f"replacement {index} requires a supported text-free asset_treatment")
+        if not str(entry.get("semantic_role") or "").strip():
+            failures.append(f"replacement {index} requires semantic_role")
         raw_path = str(entry.get("asset") or "")
         asset = (candidate / raw_path).resolve()
         try:

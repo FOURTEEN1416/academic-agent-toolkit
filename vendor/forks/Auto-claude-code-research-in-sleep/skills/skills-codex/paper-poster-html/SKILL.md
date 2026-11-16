@@ -2,10 +2,21 @@
 name: paper-poster-html
 description: "DEFAULT poster pipeline — build an academic conference poster (ICML/NeurIPS/ICLR/CVPR/...) as a single HTML/CSS file with measurement-driven hard gates, real paper figures, a two-hue design-token system, and print-ready PDF via headless Chromium. Use when the user says \"做海报\", \"poster\", \"conference poster\", \"paper poster\", or asks to design/redo a research poster."
 argument-hint: "[paper-dir-or-pdf] [— venue: ICLR, canvas: 185x90cm landscape, venue-colors: true]"
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, mcp__antigravity__antigravity, mcp__antigravity__antigravity-reply, mcp__grok__grok, mcp__grok__grok-reply, mcp__claude-review__review, mcp__claude-review__review_reply, mcp__claude-review__review_start, mcp__claude-review__review_reply_start, mcp__claude-review__review_status
 ---
 
 # Paper Poster (HTML): measurement-gated poster generation
+
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
 
 One HTML file styled for an exact print canvas (`@page { size: W H }`), rendered to PDF
 via Playwright print emulation. **Iterate by measuring, not eyeballing** — the screen
@@ -44,7 +55,7 @@ paper (.tex / PDF) ──► content plan + claim→evidence audit (fresh review
                     executor visual review (≤3 issues × ≤3 rounds, fix-vocabulary only)
                               │ score ≥ 9
                               ▼
-                    final fresh-agent review (same-family provisional, full HTML+PDF)
+                    final selected review (full HTML+PDF; same-family stays provisional)
                               │ pass
                               ▼
                     verify-final → poster.pdf + GATE_REPORT.json
@@ -73,7 +84,7 @@ paper (.tex / PDF) ──► content plan + claim→evidence audit (fresh review
 
   If unresolved, the install is broken: abort and tell the user to re-install (Policy A
   — the gates ARE the skill; never improvise replacements).
-- **REVIEWER_MODEL** = `gpt-5.6-sol`, reasoning effort `xhigh`, **fresh reviewer agent per
+- **REVIEWER_MODEL** = `gpt-6-astra`, reasoning effort `xhigh`, **fresh reviewer agent per
   review call** (a new `spawn_agent:` every time; never reuse a reviewer agent across
   review boundaries).
 - **CANVAS** — from the venue's official spec, looked up live in Phase 0. Never assume.
@@ -145,13 +156,15 @@ never reverted.
    claim/evidence pill table for numeric-heavy posters. **Do not invent an algorithm.**
    If the paper has only an objective, label the component "objective flow" or "loss
    anatomy", never "algorithm".
-2. **Fresh-agent content audit** (same-family provisional): give it the content plan path
+2. **Fresh selected content audit** (same-family stays provisional): give it the content plan path
    + paper source path(s) — paths only, no summaries — and ask for a claim→evidence
    table. Save to `poster_html/CLAIM_EVIDENCE.md`.
 
+   > Resolve this reviewer slot first; the following is the `backend=codex` example.
+
    ```text
    spawn_agent:
-     model: gpt-5.6-sol
+     model: gpt-6-astra
      reasoning_effort: xhigh
      message: |
        Audit a conference-poster content plan against its source paper.
@@ -241,7 +254,7 @@ final capped `SCORE`, never the raw composite.
 
 The visual review writes `CALIBRATION: anchored|none`, per-axis scores, and the
 mandatory GAP paragraph. A fresh Codex review may drive another layout round but
-its positive result is `acceptance_status: provisional`.
+classify its result from actual identities and completion; same-family positives remain `acceptance_status: provisional`.
 
 Score strictly 1–10. **Critical caps** (hard floors — a calibrated composite
 never overrides them): < 2 real paper figures → ≤ 3; broken canvas /
@@ -284,15 +297,17 @@ Forbidden: new inline styles, new hex values anywhere, bespoke decorative SVG,
 per-element font-size overrides. **A new component may not be born inside the visual
 loop** — stop, get a human checkpoint, add it to `COMPONENTS.md`, re-run from Phase 3.
 
-### Phase 6 — Final review (fresh reviewer agent, same-family provisional)
+### Phase 6 — Final review (fresh selected session; same-family stays provisional)
 
 All hard gates PASS + polish warnings zero-or-waived + visual ≥ 9 first. Then a fresh
 reviewer agent reviews the **final artifacts** (not the content plan) — paths only, no
 executor framing:
 
+> Resolve this reviewer slot first; the following is the `backend=codex` example.
+
 ```text
 spawn_agent:
-  model: gpt-5.6-sol
+  model: gpt-6-astra
   reasoning_effort: xhigh
   message: |
     Final print-readiness audit of a conference poster. Read these files yourself:

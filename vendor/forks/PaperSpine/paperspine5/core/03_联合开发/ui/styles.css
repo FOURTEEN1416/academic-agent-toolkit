@@ -417,6 +417,45 @@ code, pre { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
 .file-row strong { min-width: 0; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .file-row span { color: var(--ink-faint); font-size: 9px; }
 
+.manuscript-workbench { border-top: 1px solid var(--line); background: #fbfaf7; }
+.manuscript-heading { display: flex; justify-content: space-between; gap: 28px; align-items: flex-start; padding: 36px 44px 26px; border-bottom: 1px solid var(--line); }
+.manuscript-heading h2 { margin: 4px 0 8px; font-family: var(--serif); font-size: 28px; }
+.manuscript-heading > div > p:last-child { max-width: 720px; margin: 0; color: var(--ink-soft); font-size: 11px; line-height: 1.65; }
+.manuscript-grid { display: grid; grid-template-columns: minmax(360px, .9fr) minmax(420px, 1.1fr); min-height: 680px; }
+.pdf-review-panel { min-width: 0; padding: 22px; border-right: 1px solid var(--line); background: #343432; }
+.pdf-toolbar { display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 12px; color: white; font-size: 10px; }
+.pdf-toolbar button, .section-editor-heading button, .section-tools button, .issue-actions button { padding: 7px 10px; border: 1px solid var(--line); border-radius: 3px; background: white; color: var(--ink-soft); font-size: 9px; }
+#pdf-preview { width: 100%; height: 610px; border: 0; background: white; }
+.source-editor-panel { min-width: 0; padding: 24px 28px 32px; }
+.source-editor-panel > .field textarea { min-height: 95px; }
+.section-editor-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin: 22px 0 10px; }
+.section-editor-heading > div { display: grid; gap: 3px; }
+.section-editor-heading span, .revision-evidence-grid > section > span { color: var(--clay); font-size: 9px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.section-editor-heading strong { font-family: var(--serif); font-size: 16px; }
+.manuscript-sections { display: grid; gap: 10px; max-height: 470px; overflow: auto; padding-right: 3px; }
+.manuscript-section { padding: 12px; border: 1px solid var(--line); background: white; }
+.manuscript-section header { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 8px; }
+.manuscript-section input { width: 100%; padding: 8px 9px; border: 1px solid var(--line); font-family: var(--serif); font-size: 14px; }
+.manuscript-section textarea { width: 100%; min-height: 120px; resize: vertical; padding: 10px; border: 1px solid var(--line); font-family: "Cascadia Code", Consolas, monospace; font-size: 10px; line-height: 1.55; }
+.section-tools { display: flex; gap: 4px; }
+.section-tools button { padding: 5px 7px; }
+.section-tools button[data-action="delete"] { color: #8e3b2e; }
+.manuscript-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.revision-evidence-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+.revision-evidence-grid section { min-width: 0; padding: 24px 28px 30px; }
+.revision-evidence-grid section + section { border-left: 1px solid var(--line); }
+.revision-evidence-grid pre { max-height: 260px; overflow: auto; margin: 9px 0 0; padding: 12px; border: 1px solid var(--line); background: white; color: var(--ink-soft); font-size: 9px; line-height: 1.5; white-space: pre-wrap; }
+
+.issue-modal { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(25, 31, 29, .54); backdrop-filter: blur(3px); }
+.issue-dialog { width: min(520px, 100%); max-height: calc(100vh - 40px); overflow: auto; padding: 26px; border: 1px solid #a9792d; background: var(--paper); box-shadow: 0 22px 70px rgba(0,0,0,.24); }
+.issue-dialog header { display: flex; justify-content: space-between; gap: 20px; color: #8b5b00; font-size: 9px; font-weight: 850; letter-spacing: .12em; }
+.issue-dialog h2 { margin: 12px 0 8px; font-family: var(--serif); font-size: 25px; }
+.issue-dialog > p { color: var(--ink-soft); font-size: 11px; line-height: 1.65; }
+.issue-missing { display: grid; gap: 5px; margin: 14px 0; padding: 11px; border: 1px solid #e5c88d; background: #fff7e5; font-size: 9px; overflow-wrap: anywhere; }
+.issue-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.issue-actions button { border-color: var(--forest); color: var(--forest-dark); }
+#issue-error { min-height: 18px; margin-bottom: 0; color: #9b3426; }
+
 .authority-banner { display: grid; grid-template-columns: 120px 1fr; gap: 20px; padding: 20px 44px; border-bottom: 1px solid #e5c88d; background: #fff7e5; }
 .authority-banner strong { color: #8b5b00; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
 .authority-banner p { margin: 0; color: var(--ink-soft); font-size: 11px; line-height: 1.65; }
@@ -500,6 +539,8 @@ code, pre { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
   .package-grid { grid-template-columns: 1fr; }
   .package-summary { border-right: 0; border-bottom: 1px solid var(--line); }
   .publication-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .manuscript-grid { grid-template-columns: 1fr; }
+  .pdf-review-panel { border-right: 0; border-bottom: 1px solid var(--line); }
 }
 
 @media (max-width: 760px) {
@@ -541,6 +582,10 @@ code, pre { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
   .authority-banner, .publication-result { grid-template-columns: 1fr; padding-inline: 20px; }
   .publication-form { padding: 24px 20px; }
   .publication-inputs, .publication-actions { grid-template-columns: 1fr; }
+  .manuscript-heading { display: grid; padding-inline: 20px; }
+  .source-editor-panel { padding-inline: 20px; }
+  .revision-evidence-grid { grid-template-columns: 1fr; }
+  .revision-evidence-grid section + section { border-top: 1px solid var(--line); border-left: 0; }
   .evidence-inspector { padding-inline: 20px; }
   .inspector-view { display: block; }
 }

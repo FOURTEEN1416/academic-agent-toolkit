@@ -142,6 +142,8 @@ fi
 
 After successful rendering, 执行 Agent MUST read the generated PNG and perform a STRICT review:
 
+> **适用范围**：STRICT ≥9 评分闸适用于高赌注图（论文主图、投稿/答辩/评审用图）。普通示意图、过程说明图通过 mmdc 语法校验 + 人工目检（无箭头错误、内容齐全、可读）即可交付，不必强制多轮迭代刷分。
+
 ```markdown
 ## 执行 Agent's STRICT Review of <diagram-name>
 
@@ -300,6 +302,7 @@ When the diagram is intended for academic papers, apply these style standards:
 - **Outputs**: Orange (#EA580C / #F97316)
 - **Arrows**: Black or dark gray (#333333 / #1F2937)
 - **Background**: Pure white (#FFFFFF)
+- **Palette source**: 上述色值为示例；正式配色或取自 `paper-figure-palette` 注册表（`skills/paper-figure-palette/assets/palette_registry.json`），色值不得自创
 
 ### What to AVOID
 - Rainbow color schemes (too many colors)
@@ -415,7 +418,7 @@ figures/
 3. **ALWAYS read the reference documentation** before generating code for a diagram type
 4. **ALWAYS verify syntax** — Run mmdc or manually validate before accepting
 5. **ALWAYS review the rendered PNG** — Read the image and perform STRICT scoring
-6. **NEVER accept score < 9** — Keep refining until excellence
+6. **NEVER accept score < 9** — Keep refining until excellence（高赌注图适用；普通图过 mmdc + 目检即可，见 Step 5 适用范围）
 7. **VERIFY EVERY ARROW DIRECTION** — Wrong direction = automatic fail (score ≤ 6)
 8. **VERIFY EVERY BLOCK CONTENT** — Wrong content = automatic fail (score ≤ 7)
 9. **BE SPECIFIC in feedback** — "Arrow from A to B points wrong" not "arrow is wrong"

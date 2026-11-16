@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/maturity-semantic-diff-v3.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["contract", "contract_version", "authority", "predecessor_protocol_file_sha256", "predecessor_protocol_sha256", "predecessor_fixture_index_file_sha256", "predecessor_fixture_index_sha256", "successor_design_subject_sha256", "preserved_semantic_commitments", "old_canonical_surface_adapter_sha256", "new_canonical_surface_adapter_sha256", "allowed_change_classes", "sample_order_changed", "sample_semantics_changed", "coverage_changed", "thresholds_changed", "registered_entry_semantics_changed", "expected_verdict_relaxed", "external_action_authorized", "receipt_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.maturity-semantic-diff-v3"},
+    "contract_version": {"const": "3.0"},
+    "authority": {"const": "paperspine5-product-acceptance-semantic-diff"},
+    "predecessor_protocol_file_sha256": {"$ref": "#/$defs/sha256"},
+    "predecessor_protocol_sha256": {"$ref": "#/$defs/sha256"},
+    "predecessor_fixture_index_file_sha256": {"$ref": "#/$defs/sha256"},
+    "predecessor_fixture_index_sha256": {"$ref": "#/$defs/sha256"},
+    "successor_design_subject_sha256": {"$ref": "#/$defs/sha256"},
+    "preserved_semantic_commitments": {"$ref": "#/$defs/commitments"},
+    "old_canonical_surface_adapter_sha256": {"$ref": "#/$defs/sha256"},
+    "new_canonical_surface_adapter_sha256": {"$ref": "#/$defs/sha256"},
+    "allowed_change_classes": {"type": "array", "uniqueItems": true, "items": {"enum": ["v3_contract_namespace", "successor_evidence_paths", "current_canonical_adapter_pin", "v3_transaction_and_receipt_paths", "future_freeze_time_and_self_hashes"]}},
+    "sample_order_changed": {"const": false},
+    "sample_semantics_changed": {"const": false},
+    "coverage_changed": {"const": false},
+    "thresholds_changed": {"const": false},
+    "registered_entry_semantics_changed": {"const": false},
+    "expected_verdict_relaxed": {"const": false},
+    "external_action_authorized": {"const": false},
+    "receipt_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "commitments": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sample_order_sha256", "samples_sha256", "coverage_requirements_sha256", "thresholds_sha256", "registered_entry_semantics_sha256", "required_evidence_sha256", "target_profile_catalog_sha256", "fixture_payload_set_sha256"],
+      "properties": {
+        "sample_order_sha256": {"$ref": "#/$defs/sha256"}, "samples_sha256": {"$ref": "#/$defs/sha256"}, "coverage_requirements_sha256": {"$ref": "#/$defs/sha256"}, "thresholds_sha256": {"$ref": "#/$defs/sha256"}, "registered_entry_semantics_sha256": {"$ref": "#/$defs/sha256"}, "required_evidence_sha256": {"$ref": "#/$defs/sha256"}, "target_profile_catalog_sha256": {"$ref": "#/$defs/sha256"}, "fixture_payload_set_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/review-calibration.schema.json",
+  "title": "PaperSpine AI-human review calibration delta",
+  "type": "object",
+  "required": ["schema_version", "paper_id", "method", "metrics", "alignments", "suggestions", "automatic_registry_mutation", "alignment_requires_human_confirmation"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "paper_id": {"type": ["string", "null"]},
+    "method": {"type": "string"},
+    "alignment_requires_human_confirmation": {"type": "boolean"},
+    "metrics": {
+  "type": "object",
+  "required": [
+    "n_human",
+    "n_ai",
+    "n_hits",
+    "n_misses",
+    "n_false_alarms",
+    "precision",
+    "recall",
+    "f1",
+    "severity_weighted_recall"
+  ],
+  "properties": {
+    "n_human": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "n_ai": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "n_hits": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "n_misses": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "n_false_alarms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "precision": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "recall": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "f1": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "severity_weighted_recall": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+},
+    "alignments": {"type": "array"},
+    "suggestions": {"type": "array"},
+    "automatic_registry_mutation": {"const": false}
+  },
+  "additionalProperties": true
+}

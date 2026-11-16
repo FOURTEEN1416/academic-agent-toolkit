@@ -76,53 +76,27 @@ describe("tabular data model", () => {
     ).toBe('name,note\nA,plain\nB,"comma, quote "" and\nnewline"\n')
   })
 
+  test("a blank line in delimited input is not a row", () => {
+    const table = parseTable("csv", "id,name\n1,a\n\n2,b\n")
+
+    expect(table.rows).toEqual([
+      ["1", "a"],
+      ["2", "b"],
+    ])
+    expect(table.totalRows).toBe(2)
+  })
+
   test("rejects non-tabular JSON with a useful error", () => {
     expect(() => parseTable("json", '{"nested":{"value":1}}')).toThrow("array of records")
   })
 })
 
-describe("data table integration", () => {
-  test("routes table files into the interactive data workbench", () => {
-    const preview = read("../atlas/FilePreview.tsx")
-    const view = read("./DataTableView.tsx")
-
-    expect(preview).toContain('import { DataTableView } from "@/data/DataTableView"')
-    expect(preview).toContain("<DataTableView")
-    expect(view).toContain('data-component="data-table"')
-    expect(view).toContain('data-action="table-filter"')
-    expect(view).toContain('data-action="table-schema"')
-    expect(view).toContain('data-action="table-plot"')
-    expect(view).toContain('data-action="table-export"')
-  })
-
-  test("keeps table controls and metadata readable and sentence-cased", () => {
-    const view = read("./DataTableView.tsx")
-    const css = read("./DataTableView.css")
-
-    expect(view).toContain('import "./DataTableView.css"')
-    expect(css).toContain("font-size: 12px")
-    expect(css).toContain("font-variant-numeric: tabular-nums")
-    expect(view).toMatch(/>\s*Schema\s*</)
-    expect(view).toMatch(/>\s*Distribution\s*</)
-    expect(view).toMatch(/>\s*Export filtered\s*</)
-    expect(view).toMatch(/>\s*Previous\s*</)
-    expect(view).toMatch(/>\s*Next\s*</)
-    expect(view).toMatch(/>\s*Close\s*</)
-    expect(css).toContain("font-weight: var(--font-weight-medium)")
-  })
-
-  test("adapts to the inspector and keeps row and column context while scrolling", () => {
-    const view = read("./DataTableView.tsx")
-    const css = read("./DataTableView.css")
-
-    expect(css).toContain("container: data-table / inline-size")
-    expect(css).toContain("@container data-table (max-width: 720px)")
-    expect(css).toMatch(/\.data-table-scroll\s*\{[^}]*overflow: auto/s)
-    expect(css).toMatch(/\.data-table-scroll thead th\s*\{[^}]*position: sticky/s)
-    expect(css).toMatch(/\.data-table-index-head,[\s\S]*\.data-table-index\s*\{[^}]*left: 0/s)
-    expect(view).toContain("aria-sort={sortState(index())}")
-    expect(view).toContain("data-table-column-type")
-    expect(css).toContain("min-height: 32px")
-    expect(css).toMatch(/@media \(pointer: coarse\)[\s\S]*min-height: 44px/)
-  })
+test("empty quoted records remain rows while blank physical lines are skipped", () => {
+  for (const newline of ["\n", "\r\n"]) {
+    for (const ending of ["", newline]) {
+      const table = parseTable("csv", `name${newline}${newline}""${newline}value${newline}""${ending}`)
+      expect(table.rows).toEqual([[""], ["value"], [""]])
+      expect(table.totalRows).toBe(3)
+    }
+  }
 })

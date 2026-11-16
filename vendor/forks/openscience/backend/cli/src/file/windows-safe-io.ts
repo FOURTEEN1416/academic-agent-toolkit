@@ -1,5 +1,5 @@
+import { FileIdentity } from "./identity"
 import crypto from "node:crypto"
-import type { Stats } from "node:fs"
 import fs from "node:fs/promises"
 import path from "node:path"
 import { dlopen, FFIType } from "bun:ffi"
@@ -18,14 +18,14 @@ export namespace WindowsSafeIO {
   type Handle = number | bigint
 
   export type Entry = {
-    dev: number
-    ino: number
+    dev: FileIdentity.Value
+    ino: FileIdentity.Value
     type: "file" | "directory"
   }
 
   export type Identity = {
-    dev: number
-    ino: number
+    dev: FileIdentity.Value
+    ino: FileIdentity.Value
     size: number
     mode: number
     mtimeMs: number
@@ -65,7 +65,7 @@ export namespace WindowsSafeIO {
 
   type WriteOptions = {
     mode: number
-    approved?: { bytes: Buffer; dev: number; ino: number }
+    approved?: { bytes: Buffer; dev: FileIdentity.Value; ino: FileIdentity.Value }
     afterVerify?: (target: string) => void | Promise<void>
   }
 
@@ -261,7 +261,7 @@ export namespace WindowsSafeIO {
 
   async function canonical(target: string, type?: "file" | "directory") {
     const resolved = path.resolve(target)
-    const [current, real] = await Promise.all([fs.lstat(resolved), fs.realpath(resolved)])
+    const [current, real] = await Promise.all([FileIdentity.lstat(resolved), fs.realpath(resolved)])
     if (current.isSymbolicLink() || !equal(real, resolved)) {
       throw new Error(`Refusing an indirect Windows path: ${target}`)
     }
@@ -275,7 +275,7 @@ export namespace WindowsSafeIO {
     const locked = openNative(before.resolved, { mutable, parent: true })
     try {
       const after = await canonical(before.resolved, "directory")
-      if (before.current.dev !== after.current.dev || before.current.ino !== after.current.ino) {
+      if (!FileIdentity.same(before.current, after.current)) {
         throw new Error(`Windows directory identity changed during access: ${before.resolved}`)
       }
       return locked
@@ -289,7 +289,7 @@ export namespace WindowsSafeIO {
     const resolved = path.resolve(target)
     const locked = openNative(resolved, options)
     try {
-      const current = await fs.lstat(resolved)
+      const current = await FileIdentity.lstat(resolved)
       if (current.isSymbolicLink() && !options?.reparse) throw new Error(`Refusing a Windows reparse point: ${target}`)
       if (!locked.identity.reparse) {
         const real = await fs.realpath(resolved)
@@ -330,7 +330,7 @@ export namespace WindowsSafeIO {
     const missing: string[] = []
     const cursor = { path: resolved.parent }
     while (true) {
-      const current = await fs.lstat(cursor.path).catch((error: NodeJS.ErrnoException) => {
+      const current = await FileIdentity.lstat(cursor.path).catch((error: NodeJS.ErrnoException) => {
         if (error.code === "ENOENT") return
         throw error
       })
@@ -358,13 +358,13 @@ export namespace WindowsSafeIO {
     }
   }
 
-  function entry(stat: Stats): Entry {
+  function entry(stat: FileIdentity.Stat): Entry {
     const type = stat.isFile() ? "file" : stat.isDirectory() ? "directory" : undefined
     if (!type) throw new Error("Only regular files and directories can be mutated")
     return { dev: stat.dev, ino: stat.ino, type }
   }
 
-  function identity(stat: Stats): Identity {
+  function identity(stat: FileIdentity.Stat): Identity {
     const kind = stat.isFile() ? "file" : stat.isDirectory() ? "directory" : undefined
     if (!kind) throw new Error("Only regular files and directories can be moved to trash")
     return {
@@ -379,11 +379,11 @@ export namespace WindowsSafeIO {
   }
 
   function sameEntry(left: Entry, right: Entry) {
-    return left.dev === right.dev && left.ino === right.ino && left.type === right.type
+    return FileIdentity.same(left, right) && left.type === right.type
   }
 
   function sameObject(left: Identity, right: Identity) {
-    return left.dev === right.dev && left.ino === right.ino && left.kind === right.kind
+    return FileIdentity.same(left, right) && left.kind === right.kind
   }
 
   function same(left: Identity, right: Identity) {
@@ -452,7 +452,7 @@ export namespace WindowsSafeIO {
     })()
     if (!error) return
     if (!replace && (error === ERROR_ACCESS_DENIED || error === ERROR_SHARING_VIOLATION)) {
-      const exists = await fs.lstat(target).then(
+      const exists = await FileIdentity.lstat(target).then(
         () => true,
         () => false,
       )
@@ -494,7 +494,7 @@ export namespace WindowsSafeIO {
     if (locked.locked.identity.type === "directory") return identity(locked.stat)
     const handle = await fs.open(target, "r")
     try {
-      const before = await handle.stat()
+      const before = await FileIdentity.stat(handle)
       const hash = crypto.createHash("sha256")
       const chunk = Buffer.allocUnsafe(64 * 1024)
       const cursor = { value: 0 }
@@ -505,14 +505,13 @@ export namespace WindowsSafeIO {
         cursor.value += result.bytesRead
         await hooks?.afterSnapshotChunk?.(result.bytesRead)
       }
-      const after = await handle.stat()
-      const current = await fs.lstat(target)
+      const after = await FileIdentity.stat(handle)
+      const current = await FileIdentity.lstat(target)
       const approved = identity(locked.stat)
       const final = identity(current)
       if (
         !same(approved, final) ||
-        before.dev !== after.dev ||
-        before.ino !== after.ino ||
+        !FileIdentity.same(before, after) ||
         before.size !== after.size ||
         before.mtimeMs !== after.mtimeMs ||
         before.ctimeMs !== after.ctimeMs ||
@@ -554,7 +553,7 @@ export namespace WindowsSafeIO {
       throw error
     })
     try {
-      const before = identity(await input.stat())
+      const before = identity(await FileIdentity.stat(input))
       if (!same(before, expected)) throw new Error(`Trash payload changed while restoring ${source}`)
       const chunk = Buffer.allocUnsafe(1024 * 1024)
       const cursor = { value: 0 }
@@ -571,7 +570,7 @@ export namespace WindowsSafeIO {
       }
       await output.truncate(expected.size)
       await output.sync()
-      if (!same(before, identity(await input.stat()))) {
+      if (!same(before, identity(await FileIdentity.stat(input)))) {
         throw new Error(`Trash payload changed while restoring ${source}`)
       }
     } catch (error) {
@@ -604,8 +603,7 @@ export namespace WindowsSafeIO {
     const digest = crypto.createHash("sha256").update(expected.bytes).digest("hex")
     if (
       result.kind !== "file" ||
-      result.dev !== expected.dev ||
-      result.ino !== expected.ino ||
+      !FileIdentity.same(result, expected) ||
       result.size !== expected.bytes.byteLength ||
       result.sha256 !== digest
     ) {
@@ -670,6 +668,11 @@ export namespace WindowsSafeIO {
     }
   }
 
+  export async function ensureDirectory(target: string): Promise<void> {
+    const opened = await createParent(path.join(path.resolve(target), ".openscience-directory"))
+    opened.directory.close()
+  }
+
   export async function inspect(target: string): Promise<Entry> {
     const source = await existingParent(target)
     try {
@@ -704,7 +707,7 @@ export namespace WindowsSafeIO {
         throw new Error(`Refusing to rename ${source.path}: the source identity changed after approval`)
       }
       await options?.afterVerify?.(source.path, target.path)
-      const final = entry(await fs.lstat(source.path))
+      const final = entry(await FileIdentity.lstat(source.path))
       if (!sameEntry(final, expected)) {
         throw new Error(`Refusing to rename ${source.path}: the source identity changed before mutation`)
       }
@@ -714,7 +717,7 @@ export namespace WindowsSafeIO {
       })
       try {
         await options?.afterMutation?.(source.path, target.path)
-        const result = entry(await fs.lstat(target.path))
+        const result = entry(await FileIdentity.lstat(target.path))
         if (!sameEntry(result, expected)) throw new Error(`Renamed source identity changed for ${target.path}`)
       } catch (error) {
         await renameHandle(current.locked, source.directory, source.child, {
@@ -778,7 +781,7 @@ export namespace WindowsSafeIO {
     const trash = await ensure(root, [".openscience-trash"])
     try {
       const ignore = path.join(trash.path, ".gitignore")
-      const exists = await fs.lstat(ignore).then(
+      const exists = await FileIdentity.lstat(ignore).then(
         () => true,
         () => false,
       )
@@ -828,7 +831,7 @@ export namespace WindowsSafeIO {
         throw new Error(`Refusing to trash ${source.path}: the approved item changed before deletion`)
       }
       await hooks?.afterDirectoryVerify?.("move", source.path)
-      const final = identity(await fs.lstat(source.path))
+      const final = identity(await FileIdentity.lstat(source.path))
       if (!same(final, expected)) {
         throw new Error(`Refusing to trash ${source.path}: the approved item changed before deletion`)
       }
@@ -837,7 +840,7 @@ export namespace WindowsSafeIO {
         child: source.child,
       })
       moved.value = true
-      const result = identity(await fs.lstat(target.path))
+      const result = identity(await FileIdentity.lstat(target.path))
       if (!sameObject(result, expected) || result.size !== expected.size || result.mtimeMs !== expected.mtimeMs) {
         await renameHandle(current.locked, source.directory, source.child, {
           directory: target.directory,
@@ -892,7 +895,7 @@ export namespace WindowsSafeIO {
         throw new Error(`Trash payload identity mismatch for ${source.path}`)
       }
       await hooks?.afterDirectoryVerify?.("restore", target.path)
-      if (!sameObject(identity(await fs.lstat(source.path)), expected)) {
+      if (!sameObject(identity(await FileIdentity.lstat(source.path)), expected)) {
         throw new Error(`Trash payload identity mismatch for ${source.path}`)
       }
       await renameHandle(current.locked, target.directory, target.child, {
@@ -900,7 +903,7 @@ export namespace WindowsSafeIO {
         child: source.child,
       })
       try {
-        const restored = identity(await fs.lstat(target.path))
+        const restored = identity(await FileIdentity.lstat(target.path))
         if (!sameObject(restored, expected)) throw new Error(`Restored item identity mismatch for ${target.path}`)
       } catch (error) {
         await renameHandle(current.locked, source.directory, source.child, {
@@ -942,7 +945,7 @@ export namespace WindowsSafeIO {
       const staged = await copyStage(target.directory, source.path, expected, mode)
       const moved = { value: false }
       try {
-        const final = identity(await fs.lstat(source.path))
+        const final = identity(await FileIdentity.lstat(source.path))
         if (!same(identity(current.stat), final))
           throw new Error(`Trash payload changed while restoring ${source.path}`)
         await renameHandle(staged.locked.locked, target.directory, target.child, {

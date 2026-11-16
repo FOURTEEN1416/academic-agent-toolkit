@@ -20,7 +20,9 @@ from _paper_spine_utils import (
     review_policy,
     year_from_row,
 )
+from author_voice_check import validate_author_voice
 from citation_bank_check import source_identity
+from evidence_grounded_review import validate_file as validate_evidence_review_file
 
 WORKFLOWS = ("rewrite_existing", "build_from_materials")
 TIERS = ("flash", "pro")
@@ -44,6 +46,8 @@ COMMON = (
     "section_blueprints.md",
     "writing_rationale_matrix.md",
     "structured_review.md",
+    "evidence_review.json",
+    "evidence_review_check.md",
     "reviewer_audit.md",
 )
 EVIDENCE_BEARING = (
@@ -223,6 +227,8 @@ DOWNSTREAM_UPSTREAM_PAIRS = (
     ("section_blueprints.md", "confirmed_motivation.md"),
     ("results_validation.md", "confirmed_contribution.md"),
     ("reviewer_audit.md", "structured_review.md"),
+    ("evidence_review_check.md", "evidence_review.json"),
+    ("reviewer_audit.md", "evidence_review.json"),
     ("citation_quality_audit.md", "citation_support_bank.md"),
     ("rewrite_matrix.md", "writing_rationale_matrix.md"),
     ("logic_transfer_audit.md", "original_logic_map.md"),
@@ -375,6 +381,17 @@ def config_requests_chinese_word(config: dict[str, object]) -> bool:
     return language == "zh" or (language == "en" and package == "zh")
 
 
+def config_requests_author_voice(config: dict[str, object]) -> bool:
+    explicit = config.get("author_voice_restoration")
+    if isinstance(explicit, dict):
+        explicit = explicit.get("enabled", True)
+    if explicit is not None:
+        if explicit is False:
+            return False
+        return str(explicit).strip().lower() not in {"none", "off", "false", "no", "0", "disabled"}
+    return str(config.get("humanize_tier") or "none").strip().lower() in {"light", "medium", "heavy"}
+
+
 def required_artifacts(
     workflow: str,
     output_dir: Path,
@@ -387,7 +404,12 @@ def required_artifacts(
     if review_policy(config) == "balanced":
         items = [
             item for item in items
-            if item not in {"writing_rationale_matrix.md", "reviewer_audit.md"}
+            if item not in {
+                "writing_rationale_matrix.md",
+                "reviewer_audit.md",
+                "evidence_review.json",
+                "evidence_review_check.md",
+            }
         ]
     evidence_bearing = str(config.get("scene") or "").strip().lower() in {
         "journal", "conference", "competition"
@@ -399,6 +421,14 @@ def required_artifacts(
     else:
         items.extend(REWRITE)
     items.extend(FINAL_LATEX)
+
+    if config_requests_author_voice(config):
+        items.extend([
+            "author_voice_profile.json",
+            "author_voice_revision.json",
+            "author_voice_receipt.json",
+            "author_voice_report.md",
+        ])
 
     if pdf_policy == "always" or (pdf_policy == "auto" and tex_engine):
         items.extend(FINAL_PDF)
@@ -1060,7 +1090,7 @@ def validate_downstream_before_upstream(
         pairs = tuple(
             (downstream, upstream)
             for downstream, upstream in pairs
-            if upstream != "writing_rationale_matrix.md"
+            if upstream not in {"writing_rationale_matrix.md", "evidence_review.json"}
         )
     for downstream, upstream in pairs:
         if (output_dir / downstream).exists() and not (output_dir / upstream).exists():
@@ -1118,6 +1148,19 @@ def validate_content(output_dir: Path, required: list[str], translation_required
     issues.extend(mojibake_issues)
     warnings.extend(mojibake_warnings)
     issues.extend(validate_writing_rationale_matrix(output_dir))
+    if review_policy(config) == "strict":
+        manuscript = output_dir / "final_paper" / "main.tex"
+        evidence_result = validate_evidence_review_file(
+            output_dir / "evidence_review.json",
+            manuscript if manuscript.is_file() else None,
+        )
+        issues.extend(f"evidence_review.json: {item}" for item in evidence_result.errors)
+    if config_requests_author_voice(config):
+        voice_result = validate_author_voice(output_dir)
+        issues.extend(
+            f"author_voice_revision.json: {item.code}: {item.message}"
+            for item in voice_result.hard_findings
+        )
     citation_issues, citation_warnings = validate_citation_support_bank(output_dir, config)
     issues.extend(citation_issues)
     warnings.extend(citation_warnings)

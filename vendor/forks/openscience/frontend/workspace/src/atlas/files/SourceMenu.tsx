@@ -1,4 +1,4 @@
-import { For, Show, createSignal, type JSX } from "solid-js"
+import { For, Show, createEffect, createSignal, onCleanup, type JSX } from "solid-js"
 import { groupSources, type PaneSource } from "@/atlas/files/sources"
 import {
   IconArchive,
@@ -26,11 +26,37 @@ const glyph = (kind: PaneSource["kind"]) => {
   return IconFolder
 }
 
+/**
+ * Which edge of the trigger the menu hangs from. It opens rightwards by
+ * default, which is what a menu at the left of a toolbar wants; the source
+ * trigger sits at the right end of one, inside a pane that is a column of a
+ * much wider window, so "still inside the window" is not the test. When the
+ * menu would cross the pane's right edge it hangs from the trigger's right
+ * edge instead, and every path and badge stays readable.
+ *
+ * In the Files toolbar the menu is nearly as wide as the pane, so the
+ * stylesheet places it against the toolbar rather than the trigger; the answer
+ * there names the toolbar edge the trigger is nearer.
+ */
+export function menuAlignment(input: {
+  trigger: { left: number; right: number }
+  bounds: { left: number; right: number }
+  width: number
+}): "start" | "end" {
+  const past = input.trigger.left + input.width - input.bounds.right
+  if (past <= 0) return "start"
+  // Neither edge fits when the pane is narrower than the menu. Keep whichever
+  // leaves less of it outside rather than always flipping into the opposite
+  // overflow.
+  return input.bounds.left - (input.trigger.right - input.width) < past ? "end" : "start"
+}
+
 export function SourceMenu(props: {
   sources: PaneSource[]
   active: PaneSource
   onPick: (source: PaneSource) => void
   onAdd?: () => void
+  onManage?: () => void
   onRevoke?: (source: PaneSource) => void
   /** Use a stable label such as “More” when primary locations are separate tabs. */
   triggerLabel?: string
@@ -42,7 +68,38 @@ export function SourceMenu(props: {
   onOpen?: () => void
 }): JSX.Element {
   const [open, setOpen] = createSignal(false)
+  const [align, setAlign] = createSignal<"start" | "end">("start")
   const refs: { trigger?: HTMLButtonElement; menu?: HTMLDivElement } = {}
+  // Measured rather than declared: the pane is resizable and the menu's own
+  // width is capped against the container, so only the live geometry knows
+  // whether the default alignment fits.
+  const pane = () => refs.trigger?.closest(".files-pane") ?? undefined
+  const measure = () => {
+    const trigger = refs.trigger?.getBoundingClientRect()
+    const menu = refs.menu?.getBoundingClientRect()
+    if (!trigger || !menu) return
+    const box = pane()?.getBoundingClientRect()
+    const viewport = globalThis.innerWidth || box?.right || trigger.right
+    setAlign(
+      menuAlignment({
+        trigger,
+        width: menu.width,
+        bounds: { left: Math.max(box?.left ?? 0, 0), right: Math.min(box?.right ?? viewport, viewport) },
+      }),
+    )
+  }
+  // The pane is a draggable column and the menu can outlive several of its
+  // widths: an alignment measured once at open hangs the menu outside the pane
+  // for the rest of a drag that narrows it. Observing the pane rather than the
+  // window also catches the divider moving while the window stands still.
+  createEffect(() => {
+    if (!open() || typeof ResizeObserver === "undefined") return
+    const target = pane()
+    if (!target) return
+    const observer = new ResizeObserver(() => measure())
+    observer.observe(target)
+    onCleanup(() => observer.disconnect())
+  })
   const items = () => Array.from(refs.menu?.querySelectorAll<HTMLElement>('[role^="menuitem"]') ?? [])
   const focusItem = (item: HTMLElement | undefined) => {
     if (!item) return
@@ -81,7 +138,10 @@ export function SourceMenu(props: {
     }
     props.onOpen?.()
     setOpen(true)
-    queueMicrotask(() => focusItem(items()[0]))
+    queueMicrotask(() => {
+      measure()
+      focusItem(items()[0])
+    })
   }
   const pick = (source: PaneSource) => {
     close(true)
@@ -118,7 +178,7 @@ export function SourceMenu(props: {
       >
         <span class="files-source__glyph" aria-hidden="true">
           {props.triggerLabel ? (
-            <IconMoreH size={15} strokeWidth={1.5} />
+            <IconMoreH size={16} strokeWidth={1.5} />
           ) : (
             glyph(props.active.kind)({ size: 15, strokeWidth: 1.5 })
           )}
@@ -138,6 +198,7 @@ export function SourceMenu(props: {
             }}
             class="files-menu"
             data-source-menu
+            data-align={align()}
             role="menu"
             onKeyDown={(event) => {
               if (event.key === "Escape" || event.key === "Tab") {
@@ -214,8 +275,9 @@ export function SourceMenu(props: {
                             <Show when={source.sub}>
                               <span class="files-menu__sub">{source.sub}</span>
                             </Show>
-                          </span>
-                          <span class="files-menu__tail">
+                            {/* Under the name, not in the tail: beside the path
+                                the badge took the width the path needed, and the
+                                path is what tells two folders apart. */}
                             <Show when={source.readonly}>
                               <span class="files-menu__badge">Read only</span>
                             </Show>
@@ -227,6 +289,8 @@ export function SourceMenu(props: {
                                 Read & write
                               </span>
                             </Show>
+                          </span>
+                          <span class="files-menu__tail">
                             <Show when={source.live}>
                               <span class="files-menu__dot" aria-label="Reachable" />
                             </Show>
@@ -236,8 +300,12 @@ export function SourceMenu(props: {
                           </span>
                         </button>
                         {/* A connected folder is a durable grant, so the way out
-                            sits on the row that shows it. */}
-                        <Show when={source.kind === "connected" && props.onRevoke}>
+                            sits on the row that shows it. A folder inherited
+                            from the session that delegated this one is not this
+                            conversation's to end: the lead granted it, and the
+                            control would revoke authority the reader never
+                            connected. */}
+                        <Show when={source.kind === "connected" && !source.inherited && props.onRevoke}>
                           <button
                             type="button"
                             class="files-menu__revoke"
@@ -270,12 +338,29 @@ export function SourceMenu(props: {
                 }}
               >
                 <span class="files-menu__glyph" aria-hidden="true">
-                  <IconFolderAdd size={15} strokeWidth={1.5} />
+                  <IconFolderAdd size={16} strokeWidth={1.5} />
                 </span>
                 <span>
                   <span class="files-menu__label">Add folder…</span>
                 </span>
                 <span class="files-menu__tail" />
+              </button>
+            </Show>
+            <Show when={props.onManage}>
+              <button
+                type="button"
+                class="files-menu__item"
+                role="menuitem"
+                tabindex="-1"
+                onClick={() => {
+                  close(true)
+                  props.onManage?.()
+                }}
+              >
+                <span class="files-menu__glyph" aria-hidden="true">
+                  <IconFolderAdd size={16} strokeWidth={1.5} />
+                </span>
+                <span class="files-menu__label">Manage workspace folders…</span>
               </button>
             </Show>
           </div>

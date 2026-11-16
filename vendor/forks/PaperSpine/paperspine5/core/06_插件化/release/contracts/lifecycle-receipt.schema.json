@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/release/lifecycle-receipt.schema.json",
+  "title": "PaperSpine5 local lifecycle receipt",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "contract",
+    "schema_version",
+    "operation",
+    "operation_id",
+    "request_sha256",
+    "status",
+    "pre_snapshot",
+    "rollback_performed",
+    "data_retained",
+    "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.lifecycle-receipt"},
+    "schema_version": {"const": "1.0"},
+    "operation": {"enum": ["install", "update", "reload", "rollback", "uninstall"]},
+    "operation_id": {"type": "string", "minLength": 1},
+    "request_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"enum": ["committed", "committed_with_residue", "blocked", "rolled_back", "rollback_failed", "noop"]},
+    "pre_snapshot": {"type": "object"},
+    "rollback_performed": {"type": "boolean"},
+    "data_retained": {"const": true},
+    "external_action_authorized": {"const": false}
+  }
+}

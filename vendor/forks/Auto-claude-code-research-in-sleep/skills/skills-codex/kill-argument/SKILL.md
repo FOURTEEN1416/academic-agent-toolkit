@@ -2,15 +2,27 @@
 name: kill-argument
 description: "Two-thread adversarial review: a fresh reviewer constructs the strongest 200-word rejection memo, then a second fresh reviewer defends the paper point-by-point and surfaces still-unresolved critical issues. Use when user says \"kill argument\", \"adversarial review\", \"hostile review\", \"rebuttal preparation\", \"reviewer-2 simulation\", or before submitting a theory paper that has already passed standard review rounds."
 argument-hint: "[paper-directory]"
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, spawn_agent
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, spawn_agent, mcp__antigravity__antigravity, mcp__antigravity__antigravity-reply, mcp__grok__grok, mcp__grok__grok-reply, mcp__claude-review__review, mcp__claude-review__review_reply, mcp__claude-review__review_start, mcp__claude-review__review_reply_start, mcp__claude-review__review_status
 ---
 
 # Kill Argument Exercise: Adversarial Attack-Defense Review
 
-> **Codex assurance:** both fresh agents are OpenAI-family, so the base JSON
-> records `review_independence: same-family` and
-> `acceptance_status: provisional`. The mechanical count mapping may drive the
-> next step, but it is not cross-family acceptance. Call failure emits ERROR.
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
+
+> **Review assurance:** with the default native Codex reviewers, record
+> `review_independence: same-family` and `acceptance_status: provisional`.
+> With another selected route, derive these fields from actual identities and
+> completed scope. Keep Attack and Defense in separate fresh sessions; the
+> mechanical count mapping grants no independent acceptance. Call failure emits ERROR.
 
 Stress-test the headline claims of a paper against the strongest possible rejection argument: **$ARGUMENTS**
 
@@ -48,7 +60,7 @@ This skill is most valuable for **theory papers** with ≥5 theorem-class enviro
 
 ## Constants
 
-- **REVIEWER_MODEL** = `gpt-5.6-sol` (default; specify `gpt-5.4` if you want to fall back to the legacy default). Reviewer reasoning effort = `ultra` for the deep-audit core threads (capability fallback never below `xhigh`).
+- **REVIEWER_MODEL** = `gpt-6-astra` (default; specify `gpt-5.4` if you want to fall back to the legacy default). Reviewer reasoning effort = `ultra` for the deep-audit core threads (capability fallback never below `xhigh`).
 - **CONTEXT_POLICY** = `fresh` (REVIEWER_BIAS_GUARD).  Each thread is a fresh `spawn_agent` call.  **Never** use `send_input`.  No prior review summary, fix list, or executor explanation enters either prompt.
 - **ATTACK_LENGTH** = approximately 200 words (do not exceed 250).  Single coherent argument, not a list.
 - **DEFENSE_DECOMPOSITION** = 3-7 atomic rejection points extracted from the attack memo.  Each gets its own classification.
@@ -60,8 +72,8 @@ This skill is most valuable for **theory papers** with ≥5 theorem-class enviro
 
 The attack and adjudication calls are fresh, read-only Codex shards. They return
 structured per-point records with stable `dedup_key` identifiers; neither call
-writes the paper or emits cross-family acceptance. The parent computes the
-top-level mapping mechanically and records a same-family provisional verdict.
+writes the paper or decides acceptance. The parent computes the top-level
+mapping mechanically and records the review class from actual model identities.
 If `spawn_agent` is unavailable, use fresh sequential contexts where supported;
 otherwise emit `BLOCKED` rather than inventing a verdict. See
 [`fan-out-pattern.md`](../shared-references/fan-out-pattern.md).
@@ -91,9 +103,11 @@ If a compiled PDF is missing, the skill should still run on .tex source alone, b
 
 Invoke `spawn_agent` (NOT `send_input`) with the following prompt structure. Use absolute or paper-directory-relative paths inside the prompt; do not rely on a `cwd` parameter.
 
+> Resolve this reviewer slot first; the following is the `backend=codex` example.
+
 ```
 spawn_agent:
-  model: gpt-5.6-sol
+  model: gpt-6-astra
   reasoning_effort: ultra
   message: |
     You are simulating a hostile NeurIPS / ICLR / ICML reviewer for a paper.
@@ -149,9 +163,11 @@ Save the returned `agent_id` for the trace; do NOT pass it to Thread 2.  Save th
 
 Invoke a second `spawn_agent` call (still NOT `send_input` — Thread 2 is independent of Thread 1's Codex agent history):
 
+> Resolve this reviewer slot first; the following is the `backend=codex` example.
+
 ```
 spawn_agent:
-  model: gpt-5.6-sol
+  model: gpt-6-astra
   reasoning_effort: ultra
   message: |
     You are an independent area-chair adjudicator examining whether the
@@ -233,7 +249,7 @@ Compose the human-readable report `<paper-dir>/KILL_ARGUMENT.md`:
 # Kill Argument Report — <paper title>
 
 **Date**: <YYYY-MM-DD>
-**Reviewer model**: gpt-5.6-sol ultra, fresh agents (no send_input)
+**Reviewer model**: gpt-6-astra ultra, fresh agents (no send_input)
 **Attack agent**: <agent_id 1>
 **Adjudicator agent**: <agent_id 2>
 **Verdict**: <PASS / WARN / FAIL / NOT_APPLICABLE / BLOCKED / ERROR> (`reason_code: <...>`)
@@ -279,12 +295,12 @@ ARIS Audit Artifact Schema (`shared-references/assurance-contract.md`):
   },
   "trace_path": ".aris/traces/kill-argument/<date>_run<NN>/",
   "agent_id": "<defense agent_id — primary; attack agent_id in details>",
-  "executor_model": "codex-gpt-5.6-sol",
+  "executor_model": "codex-gpt-6-astra",
   "executor_family": "openai",
-  "reviewer_model": "gpt-5.6-sol",
+  "reviewer_model": "gpt-6-astra",
   "reviewer_family": "openai",
-  "review_independence": "same-family",
-  "acceptance_status": "provisional",
+  "review_independence": "<actual family comparison>",
+  "acceptance_status": "<actual acceptance status>",
   "reviewer_reasoning": "ultra",
   "generated_at": "<UTC ISO-8601>",
   "details": {

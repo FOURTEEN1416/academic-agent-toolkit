@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/figure-candidate-registration.schema.json",
+  "title": "PaperSpine5 staged figure candidate registration",
+  "description": "Public input for registering one current-J7 image candidate. The caller stages bytes only under runner/.staging/figure-candidates; ProductRunner derives the canonical artifact identity, destination, receipt, authority and metadata.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "figure_id",
+    "candidate_id",
+    "reference_plan",
+    "staged_relative_path",
+    "sha256",
+    "size_bytes",
+    "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.figure-candidate-registration"},
+    "schema_version": {"const": "1.0"},
+    "figure_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "candidate_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "reference_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "sha256", "revision_id"],
+      "properties": {
+        "artifact_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "revision_id": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "string", "pattern": "^[0-9]+$"}]}
+      }
+    },
+    "staged_relative_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^runner/\\.staging/figure-candidates/.+\\.(?:png|jpg|jpeg|svg)$"
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "size_bytes": {"type": "integer", "minimum": 1, "maximum": 67108864},
+    "external_action_authorized": {"const": false}
+  }
+}

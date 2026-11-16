@@ -7,6 +7,8 @@ description: "创建新技能、改进既有技能、度量技能表现（含 ev
 
 A skill for creating new skills and iteratively improving them.
 
+> **本仓分工（2026-11-16）：** `meta-skill-development` 负责技能写作规范与完整性检查；`meta-skill-creator`（本技能）负责评测闭环（eval → 人工评审 → 改稿迭代）。四件套（creator/development/improve/review）合并属结构性决策，另立 DEF-17 暂缓。
+
 At a high level, the process of creating a skill goes like this:
 
 - Decide what you want the skill to do and roughly how it should do it
@@ -161,6 +163,8 @@ Save test cases to `evals/evals.json`. Don't write assertions yet — just the p
 See `references/schemas.md` for the full schema (including the `assertions` field, which you'll add later).
 
 ## Running and evaluating test cases
+
+> **本仓运行条件（2026-11-16）：** 本节评测流水线依赖 `eval-viewer/`、`scripts/`（aggregate_benchmark / run_loop / package_skill）、`agents/*.md` 等支撑资产，当前均未随本仓集成（登记见 [ASSET-GAP.md](ASSET-GAP.md)）。资产缺席时降级执行：**写 `evals.json` → 人工评审输出 → 按反馈改稿**；不要尝试执行下列脚本命令。
 
 This section is one continuous sequence — don't stop partway through. Do NOT use `/skill-test` or any other testing skill.
 
@@ -419,6 +423,8 @@ After packaging, direct the user to the resulting `.skill` file path so they can
 
 ## Claude.ai-specific instructions
 
+> **宿主历史章节（2026-11-16）：** 本仓是宿主无关工具箱；本节为上游宿主（Claude.ai）历史口径，仅作参考。在本仓执行时以文末「运行时组件指引（2026-10-27 自退役技能并入）」一节为准。
+
 In Claude.ai, the core workflow is the same (draft → test → review → improve → repeat), but because Claude.ai doesn't have subagents, some mechanics change. Here's what to adapt:
 
 **Running test cases**: No subagents means no parallel execution. For each test case, read the skill's SKILL.md, then follow its instructions to accomplish the test prompt yourself. Do them one at a time. This is less rigorous than independent subagents (you wrote the skill and you're also running it, so you have full context), but it's a useful sanity check — and the human review step compensates. Skip the baseline runs — just use the skill to complete the task as requested.
@@ -443,6 +449,8 @@ In Claude.ai, the core workflow is the same (draft → test → review → impro
 ---
 
 ## Cowork-Specific Instructions
+
+> **宿主历史章节（2026-11-16）：** 本仓是宿主无关工具箱；本节为上游宿主（Cowork）历史口径，仅作参考。在本仓执行时以文末「运行时组件指引（2026-10-27 自退役技能并入）」一节为准。
 
 If you're in Cowork, the main things to know are:
 

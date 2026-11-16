@@ -1,4 +1,3 @@
-sst-env.d.ts
 .claude/
 .openscience/
 # generated output
@@ -12,7 +11,11 @@ dist/
 *.mdx
 # curated skill content consumed verbatim by agents
 backend/cli/skills/
-.astro/
+
+# the atom loader web component, kept byte-identical to its handoff; the shared
+# UI copy is the source and frontend/ui's atom-loader test pins the desktop copy to it
+frontend/ui/src/components/synsci-loader.js
+frontend/desktop/src/splash/synsci-loader.js
 
 # recorded live-API responses, replayed verbatim by the connector conformance
 # suite (regenerate with: bun run script/record-fetch-fixtures.ts)
@@ -21,6 +24,15 @@ backend/cli/test/science/fixtures/
 # local Playwright output
 frontend/workspace/e2e/playwright-report/
 frontend/workspace/e2e/test-results/
+frontend/docs/test-results/
+frontend/docs/playwright-report/
 
-# built docs, embedded so openscience.sh/docs serves them (regenerate with: bun run --cwd frontend/landing sync:docs)
-frontend/landing/public/docs/
+tooling/harbor/.venv/
+
+# downloaded benchmark datasets and run output of the science-harness campaigns
+evals/science-harness/datasets/
+evals/science-harness/jobs/
+evals/science-harness/workspaces/
+
+# Upstream distribution files retain their published bytes.
+frontend/landing/public/growth/vendor/

@@ -1,0 +1,65 @@
+---
+title: "Account and workspaces"
+description: "Complete sign-in, distinguish project folders from funding workspaces, and manage device access."
+---
+
+First-run setup requires a Synthetic Sciences account. Ace is optional: after setup you can use your own provider keys, supported subscriptions, or local models. Those model requests use their own connection and do not become Wallet charges because you signed in.
+
+## Sign in on a new device
+
+Choose **Continue with Synthetic Sciences** during setup, or run:
+
+```bash
+openscience login
+openscience status
+```
+
+Approve the request in your browser and choose a workspace you belong to. Return to OpenScience to finish setup. On a machine without a browser, use `openscience login --no-browser` and follow the printed instructions in a browser on another device.
+
+An existing installation can continue to use configured direct provider or local routes when account services are temporarily unavailable. Managed services and shared credentials still need valid account access. This does not bypass the account step on a fresh installation.
+
+## Know which workspace you are changing
+
+| Name | What it controls |
+| --- | --- |
+| Research project | Conversations, working folders, code, inputs, and results in OpenScience. |
+| Funding workspace | The Personal or team Wallet, shared connections, and permissions used for managed requests. |
+| Dashboard workspace | The account workspace currently selected on the Synthetic Sciences website. |
+
+Open **Customize → General → Funding workspace** to check the app's selection. **Switch workspace** requires browser approval. Changing the dashboard selection alone does not move an existing app connection. A request in progress keeps its original funding workspace; later requests use the newly approved selection.
+
+A shared funding workspace does not automatically share local project files, conversations, or Results. Use [Share and hand off research](/openscience/team-workflows) to prepare a research handoff.
+
+## Connect with a workspace API key
+
+In the [dashboard](https://app.syntheticsciences.ai/workspaces), choose the intended workspace, open **API Keys**, and select **New key**. Give it a device-specific name and copy the secret while it is displayed. In OpenScience, use **Customize → Models → Ace → Use an API key**.
+
+The key selects its own funding workspace. It does not inherit a different workspace from a browser login. Current keys use the `osk_` prefix; an existing legacy key may be displayed separately. Treat either as a secret. A key shown in **Provider API keys** belongs in the Ace connection if it was issued by Synthetic Sciences.
+
+For automated setup, `openscience login --key <workspace-key>` is available. Prefer the app's secret input for interactive use so a real key is not retained in shell history. Store automation credentials in the runner's secret store.
+
+## Refresh shared access
+
+Use **Customize → General → Sync now** or:
+
+```bash
+openscience sync
+```
+
+Your own saved provider key, explicit environment key, or provider sign-in takes precedence over a shared connection. A personal key is not published to your team when you connect it locally. If a shared connection stops working, verify membership and have the workspace administrator check that connection.
+
+## Sign out or revoke a device
+
+```bash
+openscience logout
+```
+
+Browser-created device credentials are revoked when sign-out can reach the service. A pasted workspace API key is only forgotten on this device; revoke it in dashboard **API Keys** to stop other clients using it. If remote revocation fails, follow the warning and remove the device through account settings.
+
+Signing out preserves local research and your separately configured provider access. It does not disable Wallet auto reload, revoke a provider's key, or erase previously shared traces. Manage those independently in [Ace](/openscience/ace), [Models](/openscience/models), and [Privacy and data](/openscience/privacy).
+
+## Recover access
+
+If browser approval succeeds but the app stays disconnected, refresh `openscience status` and check that you approved the correct request and workspace. For a missing workspace, check the account you used and the invitation status. A revoked key must be replaced; repeatedly retrying it will not restore access.
+
+See the [Synthetic Sciences account guides](https://docs.syntheticsciences.ai/#/account/index) for members, billing, Graphs, and Ascent access.

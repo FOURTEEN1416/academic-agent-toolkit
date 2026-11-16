@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/host-independent-review.schema.json",
+  "title": "PaperSpine5 host independent review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "task_id",
+    "revision",
+    "issue_id",
+    "stage",
+    "decision",
+    "summary",
+    "objections",
+    "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {
+      "type": "string",
+      "const": "paperspine5.web-agent-independent-review"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "issue_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "awaiting_canonical",
+        "awaiting_review"
+      ]
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "block"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "objections": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "target_rule_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "authority_rule_id",
+          "status",
+          "evidence_locator"
+        ],
+        "properties": {
+          "authority_rule_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "satisfied",
+              "unsatisfied"
+            ]
+          },
+          "evidence_locator": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "external_action_authorized": {
+      "type": "boolean",
+      "const": false
+    }
+  }
+}

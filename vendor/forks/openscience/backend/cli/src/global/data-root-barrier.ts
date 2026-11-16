@@ -3,6 +3,7 @@ import path from "node:path"
 import { randomUUID } from "node:crypto"
 import { AsyncLocalStorage } from "node:async_hooks"
 import { ProcessIdentity } from "../process/process-identity"
+import { AtomicRename } from "../util/atomic-rename"
 
 /**
  * Cross-process drain barrier used only for data-root relocation.
@@ -56,12 +57,20 @@ export namespace DataRootBarrier {
 
   const pause = 20
   const wait = 30_000
-  const replaceWait = 2_000
-  const replacePause = 10
-  const replaceMaxPause = 100
 
-  export function configure(value: Configuration) {
+  /** Point the barrier at a data root. Boot configures the process once;
+   * callers that swap the root temporarily (a relocation rehearsal, a test
+   * against a throwaway root) must dispose the returned scope, because an
+   * anchor matches its configuration by identity and every operation on the
+   * real root silently becomes a no-op while a foreign root is installed. */
+  export function configure(value: Configuration): Disposable {
+    const previous = configuration
     configuration = value
+    return {
+      [Symbol.dispose]() {
+        configuration = previous
+      },
+    }
   }
 
   function paths(config: string) {
@@ -175,24 +184,6 @@ export namespace DataRootBarrier {
       .catch(() => undefined)
   }
 
-  function replaceable(error: NodeJS.ErrnoException, windows: boolean) {
-    return windows && (error.code === "EPERM" || error.code === "EACCES" || error.code === "EBUSY")
-  }
-
-  async function replace(
-    source: string,
-    destination: string,
-    windows: boolean,
-    deadline = Date.now() + replaceWait,
-    delay = replacePause,
-  ): Promise<void> {
-    return fs.rename(source, destination).catch(async (error: NodeJS.ErrnoException) => {
-      if (!replaceable(error, windows) || Date.now() >= deadline) throw error
-      await Bun.sleep(Math.min(delay, Math.max(0, deadline - Date.now())))
-      return replace(source, destination, windows, deadline, Math.min(delay * 2, replaceMaxPause))
-    })
-  }
-
   async function exactOwner(value?: Owner): Promise<Owner> {
     if (value) {
       if (!Number.isSafeInteger(value.pid) || value.pid <= 0 || !/^[a-f0-9]{64}$/.test(value.identity)) {
@@ -263,10 +254,14 @@ export namespace DataRootBarrier {
       )
       const handle = await fs.open(temporary, "wx", 0o600)
       try {
+        // No fsync: other processes see the renamed marker through the page
+        // cache, which is all coordination needs. A sync only survives power
+        // loss or a kernel crash, after which every owner is dead and its
+        // marker (complete, empty or missing) is reclaimed as stale. Syncing
+        // here cost ~5 ms on every database access, ~0.6 s per chat turn.
         await handle.writeFile(JSON.stringify({ ...operationOwner, token, created: Date.now() }))
-        await handle.sync()
         await handle.close()
-        await fs.rename(temporary, marker)
+        await AtomicRename.replace(temporary, marker)
       } catch (error) {
         await handle.close().catch(() => undefined)
         await fs.rm(temporary, { force: true }).catch(() => undefined)
@@ -292,13 +287,13 @@ export namespace DataRootBarrier {
               const temporary = path.join(current.config, `.data-root-operation-${token}.${randomUUID()}.next`)
               const replacement = await fs.open(temporary, "wx", 0o600)
               try {
+                // No fsync, as for the initial marker (see createOperation).
                 await replacement.writeFile(JSON.stringify({ ...nextOwner, token, created: Date.now() }))
-                await replacement.sync()
                 await replacement.close()
                 // Windows can reject replacement while a scanner holds a
                 // conflicting destination handle. Retrying the same atomic
                 // update keeps the old complete marker authoritative.
-                await replace(temporary, marker, windows)
+                await AtomicRename.replace(temporary, marker, windows)
               } catch (error) {
                 await replacement.close().catch(() => undefined)
                 await fs.rm(temporary, { force: true }).catch(() => undefined)
@@ -404,6 +399,21 @@ export namespace DataRootBarrier {
         return disposal
       },
     }
+  }
+
+  /** The barrier configuration a long-lived holder was opened under. */
+  export function generation(): unknown {
+    return configuration
+  }
+
+  /** Whether a holder opened under `opened` must let go: the barrier was
+   * reconfigured, or a relocation has published its intent and is waiting
+   * for live operation markers to clear. One lstat; never throws. */
+  export async function superseded(filepath: string, opened: unknown): Promise<boolean> {
+    if (configuration !== opened) return true
+    const current = configured(filepath)
+    if (!current) return false
+    return !!(await fs.lstat(paths(current.config).intent).catch(() => undefined))
   }
 
   /** Mark one durable operation. Paths outside the managed root are no-ops.

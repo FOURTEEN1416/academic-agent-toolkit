@@ -1,15 +1,26 @@
 import type { Argv } from "yargs"
+import type z from "zod"
+import { writeSync } from "node:fs"
 import path from "path"
+import fs from "node:fs/promises"
+import { isUtf8 } from "node:buffer"
+import { pathToFileURL } from "node:url"
 import { UI } from "../ui"
 import { cmd } from "./cmd"
 import { bootstrap } from "../bootstrap"
 import { Command } from "../../command"
 import { EOL } from "os"
 import { select } from "@clack/prompts"
-import { createOpenScienceClient, type OpenScienceClient } from "@synsci/sdk/v2"
+import { createOpenScienceClient, type OpenScienceClient, type PermissionRequest } from "@synsci/sdk/v2"
+import { NamedError } from "@synsci/util/error"
 import { Server } from "../../server/server"
 import { Provider } from "../../provider/provider"
-import { Agent } from "../../agent/agent"
+import { Harness } from "@/harness"
+import { RunEvents } from "../run-events"
+import { SafeFileIO } from "../../file/safe-io"
+import { SubtaskAttachments } from "../../session/subtask-attachments"
+import { detectImageMime } from "../../util/image"
+import type { MessageV2 } from "@/session/message-v2"
 
 const TOOL: Record<string, [string, string]> = {
   todowrite: ["Todo", UI.Style.TEXT_WARNING_BOLD],
@@ -23,15 +34,646 @@ const TOOL: Record<string, [string, string]> = {
   write: ["Write", UI.Style.TEXT_SUCCESS_BOLD],
   websearch: ["Search", UI.Style.TEXT_DIM_BOLD],
   research_search: ["Search", UI.Style.TEXT_DIM_BOLD],
+  literature: ["Literature", UI.Style.TEXT_DIM_BOLD],
+  recall: ["Recall", UI.Style.TEXT_DIM_BOLD],
+  task: ["Task", UI.Style.TEXT_INFO_BOLD],
+  apply_patch: ["Patch", UI.Style.TEXT_SUCCESS_BOLD],
+  python: ["Python", UI.Style.TEXT_DANGER_BOLD],
+  compute_job: ["Job", UI.Style.TEXT_DANGER_BOLD],
 }
+
+/** Without --auto-approve, `run` has no way to answer a question, so the
+ * sessions it creates deny the question tool; auto-approve answers them. */
+const QUESTION_DENY = [{ permission: "question", pattern: "*", action: "deny" as const }]
+
+// After the prompt request settles, wait this long for the event stream to
+// deliver `session.idle`. A prompt that fails before the loop starts publishes
+// `session.error` only, so the failure path needs a short grace period.
+const IDLE_GRACE_MS = { settled: 10_000, failed: 2_000 }
 
 export function runMessage(parts: string[]) {
   return parts.join(" ")
 }
 
+/** How `run` answers permission and question requests during the turn. */
+export type RunPolicy = "allow" | "deny" | "interactive"
+
+export type RunFile = Extract<z.infer<typeof RunEvents.UserPart>, { type: "file" }>
+
+export type RunInput = {
+  sdk: OpenScienceClient
+  sessionID: string
+  message: string
+  files: RunFile[]
+  command?: string
+  model?: string
+  agent?: string
+  variant?: string
+  effort: "normal" | "ultra"
+  bare: boolean
+  format: "default" | "json"
+  policy: RunPolicy
+  /** Delegation level for the lead; omitted keeps the user's default. */
+  delegation?: "off" | "light" | "standard" | "high"
+  /** Model workers run on, provider/model. */
+  workerModel?: string
+  /** How the lead treats decision points; auto-approve defaults to autonomous. */
+  autonomy?: "interactive" | "balanced" | "autonomous"
+  /** Wall-clock budget for the work, in seconds. */
+  deadline?: number
+  /** Stream child-session events and roll their usage into done (default true). */
+  workers?: boolean
+  /** Sink for JSON events; defaults to the process stdout. */
+  stdout?: { write(text: string): unknown }
+}
+
+type Payload<T> = T extends unknown ? Omit<T, "timestamp" | "sessionID"> & { sessionID?: string } : never
+
+/** Find or create the session `run` drives; both the local and `--attach` paths share it. */
+export async function session(
+  sdk: OpenScienceClient,
+  input: {
+    continue?: boolean
+    session?: string
+    title?: string
+    message: string
+    workspace?: "isolated" | "project"
+    /** The run answers questions itself, so the question tool may be offered. */
+    answersQuestions?: boolean
+  },
+) {
+  const verify = async (sessionID: string) => {
+    if (!input.workspace) return
+    const result = await sdk.session.filesystem.list({ sessionID }, { throwOnError: true })
+    const workspace = result.data.workspace.mode === "legacy" ? "project" : "isolated"
+    if (input.workspace !== workspace) {
+      throw new Error(`Session ${sessionID} uses workspace ${workspace}; cannot use ${input.workspace}.`)
+    }
+  }
+  const resumed = input.continue
+    ? (await sdk.session.list(undefined, { throwOnError: true })).data?.find((s) => !s.parentID)?.id
+    : input.session
+  if (resumed) {
+    await verify(resumed)
+    return resumed
+  }
+  if (input.continue) return
+  const title =
+    input.title === undefined
+      ? undefined
+      : input.title === ""
+        ? input.message.slice(0, 50) + (input.message.length > 50 ? "..." : "")
+        : input.title
+  const result = await sdk.session.create(
+    {
+      ...(title ? { title } : {}),
+      ...(input.answersQuestions ? {} : { permission: QUESTION_DENY }),
+      workspace: input.workspace,
+    },
+    { throwOnError: true },
+  )
+  // An older attached server can accept the request while stripping an
+  // unknown workspace field. Never start tools unless it honored the mode.
+  await verify(result.data.id).catch(async (error) => {
+    await sdk.session.delete({ sessionID: result.data.id }).catch(() => undefined)
+    throw error
+  })
+  return result.data?.id
+}
+
+async function settle(promise: Promise<unknown>, ms: number) {
+  const timeout = Promise.withResolvers<false>()
+  const timer = setTimeout(() => timeout.resolve(false), ms)
+  return Promise.race([promise.then(() => true), timeout.promise]).finally(() => clearTimeout(timer))
+}
+
+function describe(error: unknown) {
+  if (error instanceof Error) return error.message
+  if (error && typeof error === "object" && "data" in error) {
+    const data = error.data
+    if (data && typeof data === "object" && "message" in data) return String(data.message)
+  }
+  if (error && typeof error === "object" && "name" in error) return String(error.name)
+  return String(error)
+}
+
+/**
+ * Claim the single `tool_use` emission for a terminal tool part. Context
+ * pruning marks completed parts compacted and republishes them, and a resumed
+ * session replays earlier parts; neither is a new tool call, and a Harbor
+ * trajectory rejects a duplicated event part.
+ */
+export function claimToolPartEmission(emitted: Set<string>, part: MessageV2.ToolPart): boolean {
+  if (part.state.status === "completed" && part.state.time.compacted) return false
+  if (emitted.has(part.id)) return false
+  emitted.add(part.id)
+  return true
+}
+
+/** Run one prompt (or command) to completion and return the process exit code. */
+export async function execute(input: RunInput): Promise<number> {
+  const sdk = input.sdk
+  const sessionID = input.sessionID
+  const out = input.stdout ?? stdout
+  const json = input.format === "json"
+
+  const printEvent = (color: string, type: string, title: string) => {
+    UI.println(
+      color + `|`,
+      UI.Style.TEXT_NORMAL + UI.Style.TEXT_DIM + ` ${type.padEnd(7, " ")}`,
+      "",
+      UI.Style.TEXT_NORMAL + title,
+    )
+  }
+
+  const emit = (event: Payload<RunEvents.Event>) => {
+    if (!json) return false
+    const { type, ...data } = event
+    out.write(JSON.stringify({ type, timestamp: Date.now(), sessionID, ...data }) + EOL)
+    return true
+  }
+  // Child sessions created by delegation: their events carry their own id and
+  // their parent's, and their usage rolls into the final `done`.
+  const children = new Map<
+    string,
+    { parentID: string; agent?: string; model?: string; tokens: RunEvents.Tokens; cost: number }
+  >()
+  const parentOf = new Map<string, string>()
+  const child = (id: string) => {
+    const parentID = parentOf.get(id)
+    if (!parentID) return
+    const current = children.get(id) ?? { parentID, tokens: RunEvents.tokens(), cost: 0 }
+    children.set(id, current)
+    return current
+  }
+
+  const usage = (message: string) => {
+    if (!emit({ type: "error", error: new NamedError.Unknown({ message }).toObject() })) UI.error(message)
+    emit({
+      type: "done",
+      status: "error",
+      exitCode: RunEvents.ExitCode.usage,
+      tokens: RunEvents.tokens(),
+      cost: 0,
+      children: [],
+    })
+    return RunEvents.ExitCode.usage
+  }
+  const rollup = () =>
+    [...children.entries()].map(([id, record]) => ({
+      sessionID: id,
+      parentID: record.parentID,
+      agent: record.agent,
+      model: record.model,
+      tokens: record.tokens,
+      cost: record.cost,
+    }))
+
+  // Preflight the model so an unknown or disconnected one is a usage error
+  // instead of a silent fallback to whichever provider has a key.
+  const model = input.model ? Provider.parseModel(input.model) : undefined
+  if (model) {
+    const providers = await sdk.provider.list()
+    const provider = providers.data?.all.find((item) => item.id === model.providerID)
+    const connected = providers.data?.connected.includes(model.providerID) ?? false
+    if (!provider?.models[model.modelID] || !connected) {
+      return usage(
+        `Model ${input.model} is not available. Add your own API key (\`openscience keys add\`) or connect a provider, then pass --model provider/model.`,
+      )
+    }
+  }
+
+  const agent = await (async () => {
+    if (!input.agent) return "research"
+    const found = (await sdk.app.agents(undefined, { throwOnError: true })).data.find(
+      (agent) => agent.name === input.agent,
+    )
+    if (!found) {
+      UI.println(
+        UI.Style.TEXT_WARNING_BOLD + "!",
+        UI.Style.TEXT_NORMAL,
+        `agent "${input.agent}" not found. Falling back to default agent`,
+      )
+      return "research"
+    }
+    if (found.mode === "subagent") {
+      UI.println(
+        UI.Style.TEXT_WARNING_BOLD + "!",
+        UI.Style.TEXT_NORMAL,
+        `agent "${input.agent}" is a subagent, not a primary agent. Falling back to default agent`,
+      )
+      return "research"
+    }
+    return input.agent
+  })()
+
+  const controller = new AbortController()
+  const events = await sdk.event.subscribe(undefined, { signal: controller.signal })
+  let errorMsg: string | undefined
+  let rejected = false
+  let finished = false
+  // Whether the turn produced any assistant output. A prompt rejected before
+  // the loop starts now also ends idle, so idle alone no longer separates a
+  // usage failure from a turn that ran and then errored.
+  let started = false
+  let tokens = RunEvents.tokens()
+  let cost = 0
+  const errored = Promise.withResolvers<void>()
+
+  // The root session plus every descendant created by delegation; requests
+  // from unrelated sessions on a shared server are left alone.
+  const family = new Set([sessionID])
+  const foreign = new Set<string>()
+  const related = async (id: string): Promise<boolean> => {
+    if (family.has(id)) return true
+    if (foreign.has(id)) return false
+    const info = await sdk.session.get({ sessionID: id }).then((result) => result.data)
+    const ok = !!info?.parentID && (await related(info.parentID))
+    ;(ok ? family : foreign).add(id)
+    if (ok && info?.parentID) parentOf.set(id, info.parentID)
+    return ok
+  }
+
+  const reply = async (permission: PermissionRequest, reply: RunEvents.Permission["reply"], message?: string) => {
+    await sdk.permission.reply({ requestID: permission.id, reply, message })
+    const request = {
+      id: permission.id,
+      sessionID: permission.sessionID,
+      permission: permission.permission,
+      patterns: permission.patterns,
+    }
+    if (emit({ type: "permission", request, reply })) return
+    const verdict = reply === "reject" ? "rejected" : "allowed"
+    printEvent(
+      UI.Style.TEXT_WARNING_BOLD,
+      "Permit",
+      `${verdict} ${permission.permission} ${permission.patterns.join(", ")}`,
+    )
+  }
+
+  const interactive = async (permission: PermissionRequest) => {
+    const result = await select({
+      message: `Permission required: ${permission.permission} (${permission.patterns.join(", ")})`,
+      options: [
+        { value: "once", label: "Allow once" },
+        { value: "session", label: "This conversation" },
+        { value: "project", label: "This project" },
+        { value: "always", label: "Global" },
+        { value: "reject-continue", label: "Reject and continue" },
+        { value: "reject", label: "Reject and stop" },
+      ],
+      initialValue: "once",
+    }).catch(() => "reject")
+    if (result === "reject-continue") {
+      await reply(
+        permission,
+        "reject",
+        "Continue without this action. Stay within the existing permissions and use the session workspace.",
+      )
+      return
+    }
+    const response = RunEvents.Permission.shape.reply.catch("reject").parse(result)
+    if (response === "reject") rejected = true
+    await reply(permission, response)
+  }
+
+  // Track per-part text already written so we can stream append-only
+  // deltas to stdout instead of waiting for part.time.end.
+  const textBuffers = new Map<string, string>()
+
+  // A tool part reaches a terminal state once, but context pruning later marks
+  // it compacted and republishes it (and a resumed session replays prior tool
+  // parts). Emit exactly one `tool_use` per part id: a Harbor trial rejects a
+  // duplicated event part, and a compacted republish is not a new tool call.
+  const emittedToolParts = new Set<string>()
+  // Background workers outlive the turn that started them: the root goes idle,
+  // the worker finishes, and its result wakes the root for another turn. The
+  // run ends only once no started worker is still pending.
+  const pendingBackground = new Set<string>()
+  // Compute jobs the lead started and has not yet seen settle.
+  const pendingCompute = new Set<string>()
+
+  const deadline = input.deadline ? Date.now() + input.deadline * 1000 : undefined
+  const rootBusy = () =>
+    sdk.session
+      .status()
+      .then((result) => result.data?.[sessionID]?.type === "busy")
+      .catch(() => false)
+  // The newest root message the stream has delivered, or a part of.
+  let seen = ""
+  // A detached result is written to the root as a user message at once, even
+  // mid-turn, and a loop then answers it. So the root owes a turn while it is
+  // busy or while any of its user messages has no reply: a worker quicker than
+  // the turn that started it has already left the pending set when that turn
+  // goes idle, with its report still to be read. An idle read late can also
+  // describe a root that has since run and finished that turn; while the
+  // stream has not reached the root's newest message, its events are still
+  // queued behind the idle, and the turn's own idle ends the run.
+  const turnOwed = async () => {
+    if (await rootBusy()) return true
+    const messages = (await sdk.session.messages({ sessionID }).catch(() => undefined))?.data ?? []
+    if ((messages.at(-1)?.info.id ?? "") > seen) return true
+    const answered = new Set(messages.flatMap((item) => (item.info.role === "assistant" ? [item.info.parentID] : [])))
+    return messages.some((item) => item.info.role === "user" && !answered.has(item.info.id))
+  }
+  // Ends the run once the root has neither a turn running nor one starting;
+  // a turn that started meanwhile ends the run at its own idle.
+  const guard = () =>
+    setTimeout(async () => {
+      if (finished || (await rootBusy())) return
+      finished = true
+      controller.abort()
+    }, IDLE_GRACE_MS.settled)
+  const processor = (async () => {
+    for await (const event of events.stream) {
+      if (finished) break
+      if (event.type === "message.part.updated") {
+        const part = event.properties.part
+        if (part.sessionID !== sessionID) {
+          if (input.workers === false || !(await related(part.sessionID))) continue
+          const record = child(part.sessionID)
+          if (!record) continue
+          const tag = { sessionID: part.sessionID, parentID: record.parentID }
+          if (part.type === "step-finish") {
+            record.tokens = RunEvents.add(record.tokens, part.tokens)
+            record.cost += part.cost
+            emit({ type: "step_finish", part, ...tag })
+          }
+          if (part.type === "step-start") emit({ type: "step_start", part, ...tag })
+          if (part.type === "text" && part.time?.end) emit({ type: "text", part, ...tag })
+          if (part.type === "reasoning" && part.time.end) emit({ type: "reasoning", part, ...tag })
+          if (part.type === "tool" && (part.state.status === "completed" || part.state.status === "error")) {
+            if (claimToolPartEmission(emittedToolParts, part)) emit({ type: "tool_use", part, ...tag })
+          }
+          continue
+        }
+        started = true
+        if (part.messageID > seen) seen = part.messageID
+
+        // The wake for a compute job arrives in this session as a synthetic
+        // text part naming the job: it is the signal that the job is no longer
+        // pending, whether it ended or could not be watched.
+        if (part.type === "text" && part.synthetic && pendingCompute.size > 0)
+          for (const id of [...pendingCompute]) if (part.text.includes(id)) pendingCompute.delete(id)
+
+        if (part.type === "tool" && (part.state.status === "completed" || part.state.status === "error")) {
+          if (!claimToolPartEmission(emittedToolParts, part)) continue
+          if (part.tool === "task" && part.state.status === "completed") {
+            const job = part.state.metadata?.jobId
+            if (part.state.metadata?.background === true && typeof job === "string") pendingBackground.add(job)
+          }
+          // A compute job outlives the turn that waited on it and wakes the
+          // lead when it settles, so a run that ended at the lead's idle would
+          // stop with the work still computing and the wake unheard. Only a
+          // wait that armed a wake is tracked, and the wake itself clears it.
+          if (part.tool === "compute_job" && part.state.status === "completed") {
+            const job = (part.state.metadata as { compute_job?: { job?: { id?: unknown } } })?.compute_job?.job
+            if (typeof job?.id === "string" && part.state.output.includes('"will_wake": true'))
+              pendingCompute.add(job.id)
+          }
+          if (emit({ type: "tool_use", part })) continue
+          const [tool, color] = TOOL[part.tool] ?? [part.tool, UI.Style.TEXT_INFO_BOLD]
+          const title =
+            (part.state.status === "completed" && part.state.title) ||
+            (Object.keys(part.state.input).length > 0 ? JSON.stringify(part.state.input) : "Unknown")
+          printEvent(color, tool, title)
+          if (part.state.status === "error") {
+            UI.println(UI.Style.TEXT_DANGER + part.state.error + UI.Style.TEXT_NORMAL)
+            continue
+          }
+          if (part.tool === "bash" && part.state.output?.trim()) {
+            UI.println()
+            UI.println(part.state.output)
+          }
+        }
+
+        if (part.type === "step-start") {
+          if (emit({ type: "step_start", part })) continue
+        }
+
+        if (part.type === "step-finish") {
+          tokens = RunEvents.add(tokens, part.tokens)
+          cost += part.cost
+          if (emit({ type: "step_finish", part })) continue
+        }
+
+        if (part.type === "reasoning") {
+          if (part.time.end) emit({ type: "reasoning", part })
+          continue
+        }
+
+        if (part.type === "text") {
+          // JSON mode keeps "one event per finished part" so downstream
+          // consumers don't get N partial updates per part.
+          if (json) {
+            if (part.time?.end) emit({ type: "text", part })
+            continue
+          }
+
+          const isPiped = !process.stdout.isTTY
+          const prev = textBuffers.get(part.id) ?? ""
+
+          if (part.text.length > prev.length && part.text.startsWith(prev)) {
+            if (prev.length === 0 && !isPiped) UI.println()
+            stdout.write(part.text.slice(prev.length))
+            textBuffers.set(part.id, part.text)
+          } else if (part.text !== prev) {
+            stdout.write(EOL + part.text)
+            textBuffers.set(part.id, part.text)
+          }
+
+          if (part.time?.end) {
+            stdout.write(EOL)
+            if (!isPiped) UI.println()
+            textBuffers.delete(part.id)
+          }
+        }
+      }
+
+      if (event.type === "session.error") {
+        const props = event.properties
+        if (props.sessionID !== sessionID || !props.error) continue
+        const err = describe(props.error)
+        errorMsg = errorMsg ? errorMsg + EOL + err : err
+        errored.resolve()
+        if (emit({ type: "error", error: props.error })) continue
+        UI.error(err)
+      }
+
+      if (event.type === "session.idle" && event.properties.sessionID === sessionID) {
+        if (pendingBackground.size === 0 && pendingCompute.size === 0) {
+          if (!(await turnOwed())) break
+          guard()
+          continue
+        }
+        // A job that outlives the run's own budget is not worth waiting for.
+        if (pendingBackground.size === 0 && deadline && Date.now() > deadline) break
+        continue
+      }
+
+      if (event.type === "session.idle" && pendingBackground.has(event.properties.sessionID)) {
+        pendingBackground.delete(event.properties.sessionID)
+        if (pendingBackground.size > 0) continue
+        // The worker's completion is being injected into the root as a new
+        // turn. Keep reading events while that turn runs (its idle ends the
+        // run above); end here only if no wake-up ever reached the root.
+        await Bun.sleep(1_000)
+        const status = await sdk.session.status().then((result) => result.data ?? {})
+        if (status[sessionID]?.type === "busy") continue
+        const messages = (await sdk.session.messages({ sessionID })).data ?? []
+        const woke = messages.some(
+          (message) =>
+            message.info.role === "user" &&
+            message.parts.some((part) => part.type === "text" && part.synthetic && part.text.includes("<task id=")),
+        )
+        if (woke) continue
+        // The root is idle and no wake-up arrived: either it ran to its end
+        // while this slept (its last events, the answer among them, are still
+        // in the stream and its idle will end the run), or the wake never
+        // reached it and nothing more will come. Read on; a short timer
+        // settles the second case, unless a late wake has started a turn by
+        // then: that turn's idle ends the run above.
+        guard()
+        continue
+      }
+
+      if (event.type === "permission.asked") {
+        const permission = event.properties
+        if (!(await related(permission.sessionID))) continue
+        if (input.policy === "interactive") {
+          await interactive(permission)
+          continue
+        }
+        // Policy replies are per request and never persisted.
+        if (input.policy === "deny") rejected = true
+        await reply(permission, input.policy === "allow" ? "once" : "reject")
+      }
+
+      if (event.type === "message.updated") {
+        const info = event.properties.info
+        if (info.sessionID === sessionID && info.id > seen) seen = info.id
+        if (info.role !== "assistant" || info.sessionID === sessionID) continue
+        if (input.workers === false || !(await related(info.sessionID))) continue
+        const record = child(info.sessionID)
+        if (!record) continue
+        record.agent = info.agent
+        record.model = `${info.providerID}/${info.modelID}`
+      }
+
+      if (event.type === "question.asked") {
+        const question = event.properties
+        if (!(await related(question.sessionID))) continue
+        if (input.policy === "allow") {
+          // Headless policy: take the recommended (first) option of every
+          // question so a question can never end the run.
+          const answers = question.questions.map((item) => [item.options[0]?.label ?? ""])
+          await sdk.question.reply({ requestID: question.id, answers })
+          if (emit({ type: "question", request: { id: question.id, sessionID: question.sessionID }, answers })) continue
+          printEvent(UI.Style.TEXT_WARNING_BOLD, "Question", `answered with the recommended option`)
+          continue
+        }
+        await sdk.question.reject({ requestID: question.id })
+        rejected = true
+        if (!json)
+          printEvent(UI.Style.TEXT_WARNING_BOLD, "Question", "rejected (openscience run cannot answer questions)")
+      }
+    }
+  })()
+
+  const parts: RunEvents.User["parts"] = [...input.files, { type: "text", text: input.message }]
+  emit({ type: "user", parts, command: input.command })
+
+  // Headless runs keep delegation: child sessions stream into this run with
+  // their parent ids and their usage rolls into `done`. A denied tool call
+  // continues the loop instead of ending it.
+  if (input.policy === "allow") Harness.headless(sessionID, { continueOnDeny: true })
+  const autonomy = input.autonomy ?? (input.policy === "allow" ? "autonomous" : undefined)
+  const level = input.delegation
+  const delegationSettings =
+    level || autonomy || input.workerModel
+      ? {
+          ...(level ? { level } : {}),
+          ...(autonomy ? { autonomy } : {}),
+          ...(input.workerModel
+            ? { workerModel: Provider.parseModel(input.workerModel), workerModelOverride: true }
+            : {}),
+        }
+      : undefined
+  const controls = {
+    effort: input.effort,
+    variant: input.variant,
+    ...(input.delegation === "off" ? { delegation: false } : {}),
+    ...(delegationSettings ? { delegationSettings } : {}),
+    ...(deadline ? { deadline } : {}),
+  }
+  const result = input.command
+    ? await sdk.session.command({
+        sessionID,
+        agent,
+        model: input.model,
+        command: input.command,
+        arguments: input.message,
+        parts: input.files,
+        ...controls,
+      })
+    : await sdk.session.prompt({
+        sessionID,
+        agent,
+        model,
+        parts,
+        ...controls,
+        ...(input.bare ? { tools: { "*": false } } : {}),
+      })
+
+  // A prompt that fails before the loop starts publishes `session.error` with
+  // an empty HTTP body and no assistant output. A turn that ran still ends
+  // with `session.idle`, so give the stream a moment to settle first.
+  const failed = !!result.error || !result.data?.info
+  let settled = await settle(processor, failed ? IDLE_GRACE_MS.failed : IDLE_GRACE_MS.settled)
+  // The grace above is for the stream to deliver an idle, not for a worker.
+  // A background worker outlives the turn that started it and may run for
+  // an hour; aborting here would lose its work with its cost already paid.
+  // While one is pending, keep reading until the processor ends on its own:
+  // the last worker's completion wakes the root, and that turn's idle ends
+  // the run. Waiting only while workers are pending would abort the wake
+  // turn the moment the last worker finished, before the root could take
+  // its report. A worker quicker than the grace has already left the pending
+  // set by now while the root is still busy on its report, so a busy root is
+  // waited for too. Bounded by the run's deadline when it has one.
+  if (!settled && (pendingBackground.size > 0 || pendingCompute.size > 0 || (await turnOwed()))) {
+    while (!settled) {
+      if (deadline && Date.now() > deadline + IDLE_GRACE_MS.settled) break
+      settled = await settle(processor, 5_000)
+    }
+  }
+  finished = true
+  controller.abort()
+
+  if (failed && (!settled || !started)) {
+    await settle(errored.promise, 250)
+    if (errorMsg) {
+      emit({
+        type: "done",
+        status: "error",
+        exitCode: RunEvents.ExitCode.usage,
+        tokens,
+        cost,
+        children: rollup(),
+      })
+      return RunEvents.ExitCode.usage
+    }
+    return usage(result.error ? describe(result.error) : "The prompt failed before the session started.")
+  }
+
+  const status: RunEvents.Status = errorMsg ? "error" : rejected ? "rejected" : "completed"
+  const code = RunEvents.ExitCode[status]
+  emit({ type: "done", status, exitCode: code, tokens, cost, children: rollup() })
+  return code
+}
+
 export const RunCommand = cmd({
   command: "run [message..]",
-  describe: false as any,
+  describe: "send one prompt from the terminal, stream the result, and exit",
   builder: (yargs: Argv) => {
     return yargs
       .positional("message", {
@@ -54,6 +696,11 @@ export const RunCommand = cmd({
         describe: "session id to continue",
         type: "string",
       })
+      .option("workspace", {
+        type: "string",
+        choices: ["isolated", "project"] as const,
+        describe: "default tool directory for new sessions (default: isolated); resumed sessions keep their mode",
+      })
       .option("model", {
         type: "string",
         alias: ["m"],
@@ -61,8 +708,7 @@ export const RunCommand = cmd({
       })
       .option("agent", {
         type: "string",
-        describe: "legacy primary agent override",
-        hidden: true,
+        describe: "primary agent to run (default: research)",
       })
       .option("format", {
         type: "string",
@@ -84,9 +730,15 @@ export const RunCommand = cmd({
         type: "string",
         describe: "attach to a running openscience server (e.g., http://localhost:4096)",
       })
-      .option("port", {
-        type: "number",
-        describe: "port for the local server (defaults to random port if no value provided)",
+      .option("auto-approve", {
+        type: "boolean",
+        alias: ["dangerously-skip-permissions"],
+        describe:
+          "approve every permission request, answer questions with their recommended option, and continue past denied tool calls; nothing is persisted",
+      })
+      .option("deny-prompts", {
+        type: "boolean",
+        describe: "reject every permission request for this run (the default when stdin is not a terminal)",
       })
       .option("variant", {
         type: "string",
@@ -98,6 +750,24 @@ export const RunCommand = cmd({
         default: "normal" as const,
         describe: "research effort: normal or ultra",
       })
+      .option("delegation", {
+        type: "string",
+        choices: ["off", "light", "standard", "high"] as const,
+        describe: "how freely the lead dispatches workers (default: the saved preference)",
+      })
+      .option("worker-model", {
+        type: "string",
+        describe: "explicit worker model for this run, provider/model (default: Settings → Subagents)",
+      })
+      .option("autonomy", {
+        type: "string",
+        choices: ["interactive", "balanced", "autonomous"] as const,
+        describe: "how the lead treats decision points (default: autonomous with --auto-approve)",
+      })
+      .option("deadline", {
+        type: "number",
+        describe: "wall-clock budget in seconds; shown to the agent as its time budget",
+      })
       .option("bare", {
         type: "boolean",
         describe: "disable all tools (fast one-shot reply, useful for smoke testing)",
@@ -106,315 +776,181 @@ export const RunCommand = cmd({
       })
   },
   handler: async (args) => {
-    let message = runMessage([...args.message, ...(args["--"] || [])])
-
-    const fileParts: any[] = []
-    if (args.file) {
-      const files = Array.isArray(args.file) ? args.file : [args.file]
-
-      for (const filePath of files) {
-        const resolvedPath = path.resolve(process.cwd(), filePath)
-        const file = Bun.file(resolvedPath)
-        const stats = await file.stat().catch(() => {})
-        if (!stats) {
-          UI.error(`File not found: ${filePath}`)
-          process.exit(1)
-        }
-        if (!(await file.exists())) {
-          UI.error(`File not found: ${filePath}`)
-          process.exit(1)
-        }
-
-        const stat = await file.stat()
-        const mime = stat.isDirectory() ? "application/x-directory" : "text/plain"
-
-        fileParts.push({
-          type: "file",
-          url: `file://${resolvedPath}`,
-          filename: path.basename(resolvedPath),
-          mime,
-        })
-      }
+    if (args.autoApprove && args.denyPrompts) {
+      UI.error("--auto-approve and --deny-prompts are mutually exclusive")
+      process.exit(RunEvents.ExitCode.usage)
     }
 
-    if (!process.stdin.isTTY) message += "\n" + (await Bun.stdin.text())
+    const files: RunFile[] = []
+    let uploadBytes = 0
+    for (const filePath of args.file ?? []) {
+      const resolvedPath = path.resolve(process.cwd(), filePath)
+      const file = Bun.file(resolvedPath)
+      const stat = await file.stat().catch(() => undefined)
+      if (!stat) {
+        UI.error(`File not found: ${filePath}`)
+        process.exit(RunEvents.ExitCode.usage)
+      }
+      if (!args.attach) {
+        files.push({
+          type: "file",
+          url: pathToFileURL(resolvedPath).href,
+          filename: path.basename(resolvedPath),
+          mime: stat.isDirectory() ? "application/x-directory" : "text/plain",
+        })
+        continue
+      }
+      if (!stat.isFile()) {
+        UI.error("--attach --file accepts regular files only. Upload individual files instead of a directory.")
+        process.exit(RunEvents.ExitCode.usage)
+      }
+      // The explicit CLI argument authorizes reading this client's file. A
+      // remote server cannot resolve the client's path or grant access to it.
+      const snapshot = await SafeFileIO.read(await fs.realpath(resolvedPath), {
+        maxBytes: SubtaskAttachments.LIMIT - uploadBytes,
+      }).catch((error: unknown) => {
+        if (error instanceof SafeFileIO.LimitError) {
+          UI.error("Attached files exceed the 32 MiB byte limit. Split or reduce the uploaded files.")
+          process.exit(RunEvents.ExitCode.usage)
+        }
+        throw error
+      })
+      uploadBytes += snapshot.bytes.byteLength
+      // Text uploads use the API's inline-text representation; binary media
+      // keep their media type, corrected from magic bytes when possible.
+      const mime =
+        detectImageMime(snapshot.bytes) ??
+        (snapshot.bytes.subarray(0, 5).toString("ascii") === "%PDF-"
+          ? "application/pdf"
+          : !snapshot.bytes.includes(0) && isUtf8(snapshot.bytes)
+            ? "text/plain"
+            : file.type.split(";")[0] || "application/octet-stream")
+      files.push({
+        type: "file",
+        url: `data:${mime};base64,${snapshot.bytes.toString("base64")}`,
+        filename: path.basename(resolvedPath),
+        mime,
+      })
+    }
+
+    const typed = runMessage([...args.message, ...(args["--"] || [])])
+    const piped = await pipedInput(typed.trim().length > 0)
+    const message = piped === undefined ? typed : typed + "\n" + piped
 
     if (message.trim().length === 0 && !args.command) {
       UI.error("You must provide a message or a command")
-      process.exit(1)
+      process.exit(RunEvents.ExitCode.usage)
     }
 
-    const execute = async (sdk: OpenScienceClient, sessionID: string) => {
-      const printEvent = (color: string, type: string, title: string) => {
-        UI.println(
-          color + `|`,
-          UI.Style.TEXT_NORMAL + UI.Style.TEXT_DIM + ` ${type.padEnd(7, " ")}`,
-          "",
-          UI.Style.TEXT_NORMAL + title,
-        )
+    const policy: RunPolicy = args.autoApprove
+      ? "allow"
+      : args.denyPrompts || !process.stdin.isTTY
+        ? "deny"
+        : "interactive"
+
+    const run = async (sdk: OpenScienceClient) => {
+      const sessionID = await session(sdk, {
+        continue: args.continue,
+        session: args.session,
+        title: args.title,
+        workspace: args.workspace,
+        message,
+        answersQuestions: policy === "allow",
+      })
+      if (!sessionID) {
+        UI.error("Session not found")
+        return RunEvents.ExitCode.usage
       }
-
-      const outputJsonEvent = (type: string, data: any) => {
-        if (args.format === "json") {
-          process.stdout.write(JSON.stringify({ type, timestamp: Date.now(), sessionID, ...data }) + EOL)
-          return true
-        }
-        return false
-      }
-
-      const events = await sdk.event.subscribe()
-      let errorMsg: string | undefined
-      let rejected = false
-
-      // Track per-part text already written so we can stream append-only
-      // deltas to stdout instead of waiting for part.time.end.
-      const textBuffers = new Map<string, string>()
-
-      const eventProcessor = (async () => {
-        for await (const event of events.stream) {
-          if (event.type === "message.part.updated") {
-            const part = event.properties.part
-            if (part.sessionID !== sessionID) continue
-
-            if (part.type === "tool" && part.state.status === "completed") {
-              if (outputJsonEvent("tool_use", { part })) continue
-              const [tool, color] = TOOL[part.tool] ?? [part.tool, UI.Style.TEXT_INFO_BOLD]
-              const title =
-                part.state.title ||
-                (Object.keys(part.state.input).length > 0 ? JSON.stringify(part.state.input) : "Unknown")
-              printEvent(color, tool, title)
-              if (part.tool === "bash" && part.state.output?.trim()) {
-                UI.println()
-                UI.println(part.state.output)
-              }
-            }
-
-            if (part.type === "step-start") {
-              if (outputJsonEvent("step_start", { part })) continue
-            }
-
-            if (part.type === "step-finish") {
-              if (outputJsonEvent("step_finish", { part })) continue
-            }
-
-            if (part.type === "text") {
-              // JSON mode keeps "one event per finished part" so downstream
-              // consumers don't get N partial updates per part.
-              if (args.format === "json") {
-                if (part.time?.end) outputJsonEvent("text", { part })
-                continue
-              }
-
-              const isPiped = !process.stdout.isTTY
-              const prev = textBuffers.get(part.id) ?? ""
-
-              if (part.text.length > prev.length && part.text.startsWith(prev)) {
-                if (prev.length === 0 && !isPiped) UI.println()
-                process.stdout.write(part.text.slice(prev.length))
-                textBuffers.set(part.id, part.text)
-              } else if (part.text !== prev) {
-                process.stdout.write(EOL + part.text)
-                textBuffers.set(part.id, part.text)
-              }
-
-              if (part.time?.end) {
-                process.stdout.write(EOL)
-                if (!isPiped) UI.println()
-                textBuffers.delete(part.id)
-              }
-            }
-          }
-
-          if (event.type === "session.error") {
-            const props = event.properties
-            if (props.sessionID !== sessionID || !props.error) continue
-            let err = String(props.error.name)
-            if ("data" in props.error && props.error.data && "message" in props.error.data) {
-              err = String(props.error.data.message)
-            }
-            errorMsg = errorMsg ? errorMsg + EOL + err : err
-            if (outputJsonEvent("error", { error: props.error })) continue
-            UI.error(err)
-          }
-
-          if (event.type === "session.idle" && event.properties.sessionID === sessionID) {
-            break
-          }
-
-          if (event.type === "permission.asked") {
-            const permission = event.properties
-            if (permission.sessionID !== sessionID) continue
-            const result = await select({
-              message: `Permission required: ${permission.permission} (${permission.patterns.join(", ")})`,
-              options: [
-                { value: "once", label: "Allow once" },
-                { value: "session", label: "This conversation" },
-                { value: "project", label: "This project" },
-                { value: "always", label: "Global" },
-                { value: "reject-continue", label: "Reject and continue" },
-                { value: "reject", label: "Reject and stop" },
-              ],
-              initialValue: "once",
-            }).catch(() => "reject")
-            if (result === "reject-continue") {
-              await sdk.permission.reply({
-                requestID: permission.id,
-                reply: "reject",
-                message:
-                  "Continue without this action. Stay within the existing permissions and use the session workspace.",
-              })
-              continue
-            }
-            const response = (result.toString().includes("cancel") ? "reject" : result) as
-              | "once"
-              | "session"
-              | "project"
-              | "always"
-              | "reject"
-            if (response === "reject") rejected = true
-            await sdk.permission.reply({
-              requestID: permission.id,
-              reply: response,
-            })
-          }
-        }
-      })()
-
-      // Validate agent if specified
-      const resolvedAgent = await (async () => {
-        if (!args.agent) return "research"
-        const agent = await Agent.get(args.agent)
-        if (!agent) {
-          UI.println(
-            UI.Style.TEXT_WARNING_BOLD + "!",
-            UI.Style.TEXT_NORMAL,
-            `agent "${args.agent}" not found. Falling back to default agent`,
-          )
-          return "research"
-        }
-        if (agent.mode === "subagent") {
-          UI.println(
-            UI.Style.TEXT_WARNING_BOLD + "!",
-            UI.Style.TEXT_NORMAL,
-            `agent "${args.agent}" is a subagent, not a primary agent. Falling back to default agent`,
-          )
-          return "research"
-        }
-        return args.agent
-      })()
-
-      const toolsOverride = args.bare ? { "*": false } : undefined
-      if (args.command) {
-        await sdk.session.command({
-          sessionID,
-          agent: resolvedAgent,
-          model: args.model,
-          command: args.command,
-          arguments: message,
-          variant: args.variant,
-        })
-      } else {
-        const modelParam = args.model ? Provider.parseModel(args.model) : undefined
-        await sdk.session.prompt({
-          sessionID,
-          agent: resolvedAgent,
-          model: modelParam,
-          variant: args.variant,
-          effort: args.effort,
-          parts: [...fileParts, { type: "text", text: message }],
-          ...(toolsOverride ? { tools: toolsOverride } : {}),
-        })
-      }
-
-      await eventProcessor
-      if (errorMsg || rejected) process.exit(1)
+      return execute({
+        sdk,
+        sessionID,
+        message,
+        files,
+        command: args.command,
+        model: args.model,
+        agent: args.agent,
+        variant: args.variant,
+        effort: args.effort,
+        bare: args.bare,
+        format: args.format === "json" ? "json" : "default",
+        policy,
+        delegation: args.delegation,
+        workerModel: args.workerModel,
+        autonomy: args.autonomy,
+        deadline: args.deadline,
+      })
     }
 
     if (args.attach) {
-      const sdk = createOpenScienceClient({ baseUrl: args.attach })
-
-      const sessionID = await (async () => {
-        if (args.continue) {
-          const result = await sdk.session.list()
-          return result.data?.find((s) => !s.parentID)?.id
+      const token = process.env.OPENSCIENCE_AUTH_TOKEN
+      const client = createOpenScienceClient({
+        baseUrl: args.attach,
+        ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+      })
+      const code = await run(client).catch((error: unknown) => {
+        if (error && typeof error === "object" && "error" in error && error.error === "Unauthorized") {
+          throw new Error("The server rejected authentication. Set OPENSCIENCE_AUTH_TOKEN to the server's token.")
         }
-        if (args.session) return args.session
-
-        const title =
-          args.title !== undefined
-            ? args.title === ""
-              ? message.slice(0, 50) + (message.length > 50 ? "..." : "")
-              : args.title
-            : undefined
-
-        const result = await sdk.session.create(
-          title
-            ? {
-                title,
-                permission: [
-                  {
-                    permission: "question",
-                    action: "deny",
-                    pattern: "*",
-                  },
-                ],
-              }
-            : {
-                permission: [
-                  {
-                    permission: "question",
-                    action: "deny",
-                    pattern: "*",
-                  },
-                ],
-              },
-        )
-        return result.data?.id
-      })()
-
-      if (!sessionID) {
-        UI.error("Session not found")
-        process.exit(1)
-      }
-
-      return await execute(sdk, sessionID)
+        throw error
+      })
+      process.exit(code)
     }
 
-    await bootstrap(process.cwd(), async () => {
-      const sdk = createOpenScienceClient({ baseUrl: "http://openscience.internal", fetch: Server.internalFetch() })
-
-      if (args.command) {
-        const exists = await Command.get(args.command)
-        if (!exists) {
-          UI.error(`Command "${args.command}" not found`)
-          process.exit(1)
-        }
+    const code = await bootstrap(process.cwd(), async () => {
+      if (args.command && !(await Command.get(args.command))) {
+        UI.error(`Command "${args.command}" not found`)
+        return RunEvents.ExitCode.usage
       }
-
-      const sessionID = await (async () => {
-        if (args.continue) {
-          const result = await sdk.session.list()
-          return result.data?.find((s) => !s.parentID)?.id
-        }
-        if (args.session) return args.session
-
-        const title =
-          args.title !== undefined
-            ? args.title === ""
-              ? message.slice(0, 50) + (message.length > 50 ? "..." : "")
-              : args.title
-            : undefined
-
-        const result = await sdk.session.create(title ? { title } : {})
-        return result.data?.id
-      })()
-
-      if (!sessionID) {
-        UI.error("Session not found")
-        process.exit(1)
-      }
-
-      await execute(sdk, sessionID)
+      return run(createOpenScienceClient({ baseUrl: "http://openscience.internal", fetch: Server.internalFetch() }))
     })
+    process.exit(code)
   },
 })
+
+/**
+ * Output for a run goes through blocking writes to fd 1. process.exit discards
+ * whatever the async stdout stream has not yet handed to the pipe, and Bun
+ * reports that stream as drained while megabytes are still pending; the final
+ * burst of a JSON run (tool receipts, then `done`) regularly exceeds the pipe
+ * buffer, and a run whose `done` line never arrives reads as a failure to
+ * every parser. A blocking write returns only once the pipe has the bytes.
+ * Exported for tests.
+ */
+export const stdout = {
+  write(text: string): void {
+    const bytes = Buffer.from(text)
+    let offset = 0
+    while (offset < bytes.length) {
+      try {
+        offset += writeSync(1, bytes, offset, bytes.length - offset)
+      } catch (error) {
+        // A non-blocking pipe reports EAGAIN when the consumer lags; wait for it.
+        if ((error as NodeJS.ErrnoException).code !== "EAGAIN") throw error
+        Bun.sleepSync(2)
+      }
+    }
+  },
+}
+
+/**
+ * Piped input is appended to the message. A pipe that nobody closes would
+ * make that wait forever with no explanation, so a caller who already gave a
+ * message is told what the process is waiting for. Exported for tests.
+ */
+export async function pipedInput(
+  hasMessage: boolean,
+  input: { isTTY: boolean; text: () => Promise<string>; warn: (message: string) => void; graceMs?: number } = {
+    isTTY: !!process.stdin.isTTY,
+    text: () => Bun.stdin.text(),
+    warn: UI.error,
+  },
+): Promise<string | undefined> {
+  if (input.isTTY) return undefined
+  const text = input.text()
+  if (!hasMessage) return text
+  const hint = setTimeout(
+    () => input.warn("Waiting for piped input on stdin to end; redirect from /dev/null when there is none."),
+    input.graceMs ?? 750,
+  )
+  return text.finally(() => clearTimeout(hint))
+}

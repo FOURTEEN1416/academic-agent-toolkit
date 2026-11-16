@@ -155,12 +155,89 @@ describe("ModalVolume", () => {
     expect((await fs.stat(paths[0]!)).isFile()).toBe(true)
   })
 
-  test("accepts a system Python only when the pinned SDK is available in isolated mode", async () => {
+  test("finds an existing uv installation outside a desktop launch PATH without running it", async () => {
+    if (process.platform === "win32") return
+    const root = await fs.mkdtemp(path.join(process.env.TMPDIR ?? "/tmp", "openscience-modal-runtime-"))
+    roots.push(root)
+    const installed = path.join(root, "installed")
+    const missing = path.join(root, "desktop-path")
+    await fs.mkdir(installed)
+    const binary = path.join(installed, "uv")
+    await fs.writeFile(binary, "#!/bin/sh\nexit 99\n", { mode: 0o700 })
+    await using _testing = ModalVolume.testing({ directories: [installed] })
+
+    const selected = await ModalVolume.command({
+      tokenId: "ak-test",
+      tokenSecret: "as-test",
+      env: { PATH: missing },
+    })
+
+    expect(selected).toEqual([
+      await fs.realpath(binary),
+      "run",
+      "--no-project",
+      "--python",
+      "3.12",
+      "--with",
+      `modal==${ModalVolume.VERSION}`,
+      "python",
+      "-I",
+      await ModalVolume.driverPath(),
+    ])
+  })
+
+  test("preserves uv on an explicit runtime PATH before checking fallback installations", async () => {
+    if (process.platform === "win32") return
+    const root = await fs.mkdtemp(path.join(process.env.TMPDIR ?? "/tmp", "openscience-modal-path-"))
+    roots.push(root)
+    const binary = path.join(root, "uv")
+    await fs.writeFile(binary, "#!/bin/sh\nexit 99\n", { mode: 0o700 })
+    await using _testing = ModalVolume.testing({ directories: [] })
+
+    const selected = await ModalVolume.command({
+      tokenId: "ak-test",
+      tokenSecret: "as-test",
+      env: { PATH: root },
+    })
+
+    expect(selected[0]).toBe(binary)
+  })
+
+  test("rejects a non-executable fallback and explains how to supply the pinned runtime", async () => {
+    if (process.platform === "win32") return
+    const root = await fs.mkdtemp(path.join(process.env.TMPDIR ?? "/tmp", "openscience-modal-missing-"))
+    roots.push(root)
+    await fs.writeFile(path.join(root, "uv"), "not an executable", { mode: 0o600 })
+    await using _testing = ModalVolume.testing({ directories: [root] })
+
+    await expect(
+      ModalVolume.command({ tokenId: "ak-test", tokenSecret: "as-test", env: { PATH: root } }),
+    ).rejects.toThrow(
+      `OpenScience could not find uv or an isolated Python installation with Modal SDK ${ModalVolume.MINIMUM} or newer`,
+    )
+  })
+
+  test("uses a system Python in isolated mode when its Modal SDK meets the minimum, ignoring ambient modules", async () => {
     const python = Bun.which("python3") ?? Bun.which("python")
     if (!python) throw new Error("Python is required for the Modal Volume driver test")
     const root = await fs.mkdtemp(path.join(process.env.TMPDIR ?? "/tmp", "openscience-modal-poison-"))
     roots.push(root)
+    // An ambient modal.py on PYTHONPATH must never be what the probe imports.
     await Bun.write(path.join(root, "modal.py"), "raise RuntimeError('ambient modal module loaded')\n")
+    // The same deep import the driver probes: an ambient modal whose
+    // certifi/aiohttp live only in the user site (invisible under -I) is not
+    // usable for downloads and must fall back to uv.
+    const installed = Bun.spawnSync(
+      [python, "-I", "-c", "import modal, certifi, aiohttp, grpclib, google.protobuf; print(modal.__version__)"],
+      { stdout: "pipe", stderr: "ignore" },
+    )
+    const version = installed.exitCode === 0 ? installed.stdout.toString().trim() : undefined
+    const atLeast = (a: string, b: string) => {
+      const pa = a.split(".").map(Number)
+      const pb = b.split(".").map(Number)
+      for (let i = 0; i < 3; i++) if ((pa[i] ?? 0) !== (pb[i] ?? 0)) return (pa[i] ?? 0) > (pb[i] ?? 0)
+      return true
+    }
 
     const selected = await ModalVolume.command({
       tokenId: "ak-test",
@@ -170,6 +247,37 @@ describe("ModalVolume", () => {
       uv: "/test/uv",
     })
 
+    const uvFallback = [
+      "/test/uv",
+      "run",
+      "--no-project",
+      "--python",
+      "3.12",
+      "--with",
+      `modal==${ModalVolume.VERSION}`,
+      "python",
+      "-I",
+      await ModalVolume.driverPath(),
+    ]
+    if (version && atLeast(version, ModalVolume.MINIMUM)) {
+      expect(selected).toEqual([python, "-I", await ModalVolume.driverPath()])
+    } else {
+      expect(selected).toEqual(uvFallback)
+    }
+  })
+
+  test("falls back to the pinned uv runtime when the system SDK is missing or too old", async () => {
+    const python = Bun.which("python3") ?? Bun.which("python")
+    if (!python) throw new Error("Python is required for the Modal Volume driver test")
+    await using _testing = ModalVolume.testing({
+      probe: { argv: [python, "-I", "-c", "raise SystemExit(1)"], timeout: 5_000 },
+    })
+    const selected = await ModalVolume.command({
+      tokenId: "ak-test",
+      tokenSecret: "as-test",
+      python,
+      uv: "/test/uv",
+    })
     expect(selected).toEqual([
       "/test/uv",
       "run",
@@ -183,6 +291,115 @@ describe("ModalVolume", () => {
       await ModalVolume.driverPath(),
     ])
   })
+
+  test("reaps a timed-out ambient SDK probe before selecting the pinned uv runtime", async () => {
+    const python = Bun.which("python3") ?? Bun.which("python")
+    if (!python) throw new Error("Python is required for the Modal Volume driver test")
+    const previous = new Set((await ledger()).map((entry) => entry.id))
+    let active: LedgerEntry | undefined
+    await using _testing = ModalVolume.testing({
+      probe: { argv: [python, "-I", "-c", "import time; time.sleep(600)"], timeout: 1_000 },
+      beforeUv: async () => {
+        expect(active).toBeDefined()
+        expect(await CredentialProcessLedger.owns(active!.pid, active!.identity)).toBe(false)
+        expect((await ledger()).some((entry) => entry.id === active!.id)).toBe(false)
+      },
+    })
+    const started = Date.now()
+    const running = ModalVolume.command({
+      tokenId: "ak-test",
+      tokenSecret: "as-test",
+      python,
+      uv: "/test/uv",
+    })
+    active = await waitEntry(previous)
+
+    const selected = await running
+
+    expect(Date.now() - started).toBeLessThan(4_000)
+    expect(selected).toEqual([
+      "/test/uv",
+      "run",
+      "--no-project",
+      "--python",
+      "3.12",
+      "--with",
+      `modal==${ModalVolume.VERSION}`,
+      "python",
+      "-I",
+      await ModalVolume.driverPath(),
+    ])
+  }, 30_000)
+
+  test("does not turn an in-flight caller abort into a uv fallback", async () => {
+    const python = Bun.which("python3") ?? Bun.which("python")
+    if (!python) throw new Error("Python is required for the Modal Volume driver test")
+    const previous = new Set((await ledger()).map((entry) => entry.id))
+    const controller = new AbortController()
+    const reason = new DOMException("release cancelled", "AbortError")
+    let selected = false
+    await using _testing = ModalVolume.testing({
+      probe: { argv: [python, "-I", "-c", "import time; time.sleep(600)"], timeout: 5_000 },
+      beforeUv: () => {
+        selected = true
+      },
+    })
+    const running = ModalVolume.command(
+      { tokenId: "ak-test", tokenSecret: "as-test", python, uv: "/test/uv" },
+      controller.signal,
+    ).then(
+      (value) => ({ ok: true as const, value }),
+      (error: unknown) => ({ ok: false as const, error }),
+    )
+    const active = await waitEntry(previous)
+
+    controller.abort(reason)
+    const result = await running
+
+    expect(result.ok).toBe(false)
+    if (result.ok) throw new Error("The aborted SDK probe unexpectedly selected a runtime")
+    expect(result.error).toBe(reason)
+    expect(selected).toBe(false)
+    expect(await CredentialProcessLedger.owns(active.pid, active.identity)).toBe(false)
+    expect((await ledger()).some((entry) => entry.id === active.id)).toBe(false)
+  }, 30_000)
+
+  test("does not select uv when timed-out probe ownership cleanup fails", async () => {
+    const python = Bun.which("python3") ?? Bun.which("python")
+    if (!python) throw new Error("Python is required for the Modal Volume driver test")
+    const previous = new Set((await ledger()).map((entry) => entry.id))
+    let selected = false
+    await using _testing = ModalVolume.testing({
+      probe: { argv: [python, "-I", "-c", "import time; time.sleep(600)"], timeout: 1_000 },
+      beforeUv: () => {
+        selected = true
+      },
+    })
+    const running = ModalVolume.command({
+      tokenId: "ak-test",
+      tokenSecret: "as-test",
+      python,
+      uv: "/test/uv",
+    }).then(
+      (value) => ({ ok: true as const, value }),
+      (error: unknown) => ({ ok: false as const, error }),
+    )
+    const active = await waitEntry(previous)
+    const failure = new Error("synthetic ownership cleanup failure")
+    const revoke = spyOn(CredentialProcessLedger, "revoke").mockRejectedValue(failure)
+
+    try {
+      const result = await running
+      expect(result.ok).toBe(false)
+      if (result.ok) throw new Error("The unsafe SDK probe unexpectedly selected a runtime")
+      expect(result.error).toBeInstanceOf(AggregateError)
+      expect((result.error as AggregateError).errors).toContain(failure)
+      expect(selected).toBe(false)
+    } finally {
+      revoke.mockRestore()
+      await CredentialProcessLedger.revoke({ id: active.id, kind: "modal-volume" }).catch(() => undefined)
+    }
+  }, 30_000)
 
   // This is four independent control-plane calls. Each call deliberately
   // completes durable helper ownership and descendant reaping before the next

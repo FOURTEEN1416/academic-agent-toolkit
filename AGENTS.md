@@ -56,8 +56,8 @@
 
 | 运行位置 | 收集范围 | 基线 | 用途 |
 |----------|---------|------|------|
-| 仓库根 `pytest -q` | `academic-toolkit/tests` | **1355 collected**（W-SLIM 瘦身批 +9 自测；验收批 +1；复核批 +1；对抗扫描批 +3；合同判据收紧批 +11；仿真建模赛补齐批 +17；W1/W2/W5 测试批 +19；W6 基线单源批 +4；2026-10-27 宿主清洗批（退役宿主测试、以 `test_agent_audit_hook.py` 14 例接替）净减 9 例；同日收尾批 host_dep_scan 扩容钉测试 +2 后）；最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言 | 仓库级回归 |
-| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **1355 collected**（相同 tests 收集范围；实跑结果见唯一真源 `pytest.ini`） | 技能验收基线（硬规则 3 口径） |
+| 仓库根 `pytest -q` | `academic-toolkit/tests` | **1356 collected**（W-SLIM 瘦身批 +9 自测；验收批 +1；复核批 +1；对抗扫描批 +3；合同判据收紧批 +11；仿真建模赛补齐批 +17；W1/W2/W5 测试批 +19；W6 基线单源批 +4；2026-10-27 宿主清洗批（退役宿主测试、以 `test_agent_audit_hook.py` 14 例接替）净减 9 例；同日收尾批 host_dep_scan 扩容钉测试 +2 后）；最近实跑记录见 `pytest.ini`；保留临时目录入口，不改生产断言 | 仓库级回归 |
+| `academic-toolkit/` 内 `pytest -q` | 工具箱自有 tests | **1356 collected**（相同 tests 收集范围；实跑结果见唯一真源 `pytest.ini`） | 技能验收基线（硬规则 3 口径） |
 | **公开 clone / CI** | 已提交内容 | 以 CI 实测为准 | 门禁 |
 
 - catalog 一致性由工具箱 asset 系测试 + `check_asset_utilization --strict` 守护。

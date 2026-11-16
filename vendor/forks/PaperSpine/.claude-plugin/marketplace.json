@@ -11,7 +11,7 @@
       "name": "paper-spine",
       "description": "Contribution-first, reviewer-aware academic paper and report writing system.",
       "source": "./",
-      "version": "4.0.0",
+      "version": "4.0.1",
       "category": "writing",
       "homepage": "https://github.com/WUBING2023/PaperSpine",
       "skills": [

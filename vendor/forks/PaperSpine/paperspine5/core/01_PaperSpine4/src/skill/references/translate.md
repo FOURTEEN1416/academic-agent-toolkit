@@ -1,5 +1,13 @@
 # Translate Stage
 
+For the current public host workflow, apply `configuration.output_language` and
+the user's actual language choices through
+[manuscript-format.md](manuscript-format.md). That method produces complete
+language-specific manuscripts and validates their semantic correspondence and
+rendering. The historical English-to-Chinese Runner inventory below is not the
+current multilingual contract; its internal audit files and completion gates
+are not prerequisites for delivering a requested translation.
+
 This file is the canonical stage playbook for the paper-spine orchestrator.
 
 ## Purpose
@@ -22,9 +30,7 @@ Chinese doc deliverable. The user-facing result is `paper.zh.docx`.
 
 ### Phase 1 - Inventory
 
-List every file to translate. Write `translation_zh/manifest.md`. `translate_guard.py`
-demands the exact set below (every file lives under `translation_zh/`); a missing
-file is a BLOCKER.
+Inventory the text and files the user actually requested to translate. Check their full coverage using the current language-specific semantic manuscripts and notes. The historical translate_guard inventory below applies only when that complete internal working package was requested; missing unrelated Runner files do not block a complete translated paper.
 
 Common files (required for both workflows):
 
@@ -89,8 +95,7 @@ python scripts/word_guard.py paper_rewriting_output/final_paper/paper.zh.docx \
   --markdown --output paper_rewriting_output/word_report.zh.md
 ```
 
-If pandoc is unavailable while Word output is required, write BLOCKED/FAIL in
-the relevant report and do not claim the Chinese deliverable is complete.
+If the selected conversion backend is unavailable, use another available faithful Word pipeline. While the requested final Word document remains missing or invalid, report that output as incomplete; do not treat Pandoc alone as the only possible backend.
 
 ### Phase 4 - Verify
 

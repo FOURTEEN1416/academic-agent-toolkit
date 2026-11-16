@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/contribution-candidate-preparation.schema.json",
+  "title": "Evidence-bound contribution candidates prepared by the current host",
+  "description": "J5 phase 1 only. This contract cannot carry a user decision, user identity, confirmation time, or blocker override.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "authority_bindings", "candidates", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.contribution-candidate-preparation"},
+    "schema_version": {"const": "1.0"},
+    "authority_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["direction_authority", "target_authority", "materials.source-ledger"],
+      "properties": {
+        "direction_authority": {"$ref": "#/$defs/sha256"},
+        "target_authority": {"$ref": "#/$defs/sha256"},
+        "materials.source-ledger": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "candidates": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/candidate"}},
+    "input_artifacts": {"type": "object", "propertyNames": {"pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"}, "additionalProperties": {"type": "object"}},
+    "external_action_authorized": {"const": false}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_id", "kind", "statement", "author_authority", "supporting_artifact_ids", "direct_competitor_source_ids", "counterevidence_artifact_ids", "limitation_ids", "boundary_statement"],
+      "properties": {
+        "candidate_id": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["contribution", "motivation", "boundary", "limitation"]},
+        "statement": {"type": "string", "minLength": 1},
+        "comparative_claim": {"type": "boolean"},
+        "author_authority": {"enum": ["project_fact", "author_intent", "external_fact", "target_policy", "scientific_truth"]},
+        "supporting_artifact_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "direct_competitor_source_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "counterevidence_artifact_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "limitation_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "boundary_statement": {"type": "string"}
+      }
+    }
+  }
+}

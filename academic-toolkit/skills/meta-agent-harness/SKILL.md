@@ -113,6 +113,8 @@ python3 scripts/harness_manifest_builder.py --domain engineering-team \
 
 ## Related skills
 
+> **本仓未集成（2026-11-16）：** 下列均为上游生态技能名，本仓盘上不存在；命中对应场景时按描述自行实现或改用本仓在册技能，不要尝试加载这些名字。
+
 - **workflow-builder**：（非本仓内置的可选件）为其 Workflow 编写确定性 `.js` 脚本；不可用时以本地脚本替代
   tool. NOT for goal-to-close loop state (this skill).
 - **agenthub**: N parallel agents competing on ONE task in git worktrees. Use it *inside* a

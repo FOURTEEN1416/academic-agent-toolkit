@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "paperspine5.web-agent-runtime-blocker.schema.json",
+  "title": "PaperSpine5 Web Agent runtime boundary blocker receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "code",
+    "task_id",
+    "revision",
+    "issue_id",
+    "stage",
+    "detail",
+    "safe_profile_mode",
+    "parent_profile_fallback_performed",
+    "retry_performed",
+    "runner_revision_unchanged",
+    "runner_submission_performed",
+    "evidence",
+    "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {
+      "const": "paperspine5.web-agent-runtime-blocker"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "code": {
+      "const": "AGENT_PROFILE_ISOLATION_UNAVAILABLE"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "issue_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stage": {
+      "type": "string",
+      "minLength": 1
+    },
+    "detail": {
+      "type": "string",
+      "minLength": 1
+    },
+    "safe_profile_mode": {
+      "enum": [
+        "empty_task_codex_home",
+        "empty_task_codex_home_os_keyring"
+      ]
+    },
+    "parent_profile_fallback_performed": {
+      "const": false
+    },
+    "retry_performed": {
+      "const": false
+    },
+    "runner_revision_unchanged": {
+      "const": true
+    },
+    "runner_submission_performed": {
+      "const": false
+    },
+    "evidence": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["path", "sha256", "size_bytes"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "external_action_authorized": {
+      "const": false
+    }
+  }
+}

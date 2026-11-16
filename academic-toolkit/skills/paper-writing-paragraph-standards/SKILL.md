@@ -5,6 +5,9 @@ description: "按 UCSB 学术写作规范写论文：段落中心句先行、证
 
 # Paper Writing Skill
 
+> **本仓资产缺口降级执行（总说明）**：正文多处 MUST read 指向的上游资产未随本仓库集成（完整清单见 `ASSET-GAP.md`，共 19 项）：`author_profile/` 全部 5 个规则文件、`brainstorming_guide.md`、`writing_checklists/` 全部 4 个清单、`section_rhetorical_moves/` 全部 4 个章法文件、`examples/project_context.md`、`examples/netburst_project_context.md`、`figure_synthesis_guide.md`、`figure_templates/`、`references/appendices`。
+> **降级执行口径**：凡 MUST read 指向上述资产而文件缺失时，**不阻断流程、不伪造已读**——按本页已内联的对应要点执行（Quick Reference 声音规则、审计 7 项、各 Checklist 维度、Rhetorical Moves 序列名、压缩 7 操作），并把"读取 X 文件"理解为"按本页对应要点自查"。各引用处的 `<!--ACAT-GOVERNANCE-->` 标记均回指本说明。
+
 ## How This Skill Works
 
 This skill encodes the writing methodology of the [Systems and Networking Lab (SNL)](https://github.com/SNL-UCSB) at UC Santa Barbara, derived from forensic analysis of 6 papers (8 submissions), 7,600+ Overleaf edits, 100+ tex file versions, and 5 peer review processes. See [*The Paper Behind the Paper*](https://sites.cs.ucsb.edu/~arpitgupta/blog/the-paper-behind-the-paper.html) for the full analysis. It works out of the box — the default rules are calibrated and battle-tested.
@@ -13,7 +16,7 @@ This skill encodes the writing methodology of the [Systems and Networking Lab (S
 
 1. **The pipeline (fixed)**: A five-stage writing workflow. Does not change between users or papers.
 
-2. **The voice and editorial rules (defaults provided, customizable)**: Sentence-level style, structural rules, compression patterns, section checklists. These ship with the SNL lab's rules as defaults. Students may customize by editing files in `author_profile/` — see the README for what to change.
+2. **The voice and editorial rules (defaults provided, customizable)**: Sentence-level style, structural rules, compression patterns, section checklists. These ship with the SNL lab's rules as defaults. Students may customize by editing files in `author_profile/` — see the README for what to change. <!--ACAT-GOVERNANCE: author_profile/ 未随仓集成（见 ASSET-GAP.md 与文首降级总说明），目录缺失时按文首降级口径执行-->
 
 3. **The project context (per paper)**: Identity sentence, venue, contribution claims, locked decisions. Lives in a `project_context.md` in the paper's working directory.
 
@@ -37,7 +40,7 @@ The three skills create a closed loop: the literature survey reveals the gap and
 ### When This Skill Triggers, 执行 Agent MUST:
 
 1. Read this SKILL.md (already loaded)
-2. Read ALL files in `author_profile/` — these are the source of truth for editorial rules
+2. Read ALL files in `author_profile/` — these are the source of truth for editorial rules <!--ACAT-GOVERNANCE: author_profile/ 未随仓集成（见 ASSET-GAP.md 与文首降级总说明），文件缺失时按文首降级口径执行-->
 3. Ask which paper the user is working on
 4. Look for a `project_context.md` in the paper's working directory
 5. If found, read it and treat it as binding constraints
@@ -52,7 +55,7 @@ The three skills create a closed loop: the literature survey reveals the gap and
 
 ### How It Works
 
-执行 Agent MUST read `brainstorming_guide.md` and walk the student through its 6 phases interactively. The phases are:
+执行 Agent MUST read `brainstorming_guide.md` and walk the student through its 6 phases interactively. <!--ACAT-GOVERNANCE: brainstorming_guide.md 未随仓集成（见 ASSET-GAP.md 与文首降级总说明），文件缺失时按文首降级口径执行-->The phases are:
 
 | Phase | Focus | Key outcome |
 |-------|-------|-------------|
@@ -69,7 +72,7 @@ The three skills create a closed loop: the literature survey reveals the gap and
 - **"I don't know" is a valid answer.** Flag it as an open question and move on. Gaps discovered now are cheap to fix; gaps discovered during review are expensive.
 - **Push back on vague answers.** "It's faster" → "Faster for whom? By how much? On what workload?" Every answer should be specific enough to appear in the paper.
 - **Distinguish structural from quantitative.** "Existing tools aren't accurate enough" is quantitative — it motivates more experiments. "Existing tools assume stationarity, which fails on bursty data" is structural — it motivates a new approach. Papers need structural gaps.
-- **After all phases, generate `project_context.md`** using the template in `examples/project_context.md`. See `examples/netburst_project_context.md` for a real example of what a complete project context looks like.
+- **After all phases, generate `project_context.md`** using the template in `examples/project_context.md`. See `examples/netburst_project_context.md` for a real example of what a complete project context looks like. <!--ACAT-GOVERNANCE: examples/ 两个模板未随仓集成（见 ASSET-GAP.md 与文首降级总说明），文件缺失时按文首降级口径执行-->
 
 ---
 
@@ -77,7 +80,7 @@ The three skills create a closed loop: the literature survey reveals the gap and
 
 ## Voice and Editorial Rules
 
-执行 Agent MUST read these files from this skill's directory. They contain the detailed rules with examples.
+执行 Agent MUST read these files from this skill's directory. They contain the detailed rules with examples. <!--ACAT-GOVERNANCE: author_profile/ 5 个文件均未随仓集成（见 ASSET-GAP.md 与文首降级总说明），文件缺失时按文首降级口径与下方 Quick Reference 要点执行-->
 
 | File | What it controls |
 |---|---|
@@ -86,6 +89,8 @@ The three skills create a closed loop: the literature survey reveals the gap and
 | `author_profile/compression_patterns.md` | 7 compression operations with before/after examples and quantitative benchmarks |
 | `author_profile/rhetorical_moves.md` | Cross-section move sequences for introduction (6 moves), design (5 moves), evaluation (6 moves), related work (3 moves) |
 | `author_profile/intervention_types.md` | 7 types of advisor interventions — use this to simulate advisor feedback on drafts |
+
+<!--ACAT-GOVERNANCE: 上表 author_profile/ 5 个文件均未随仓集成（见 ASSET-GAP.md 与文首降级总说明），缺失时按文首降级口径与本页 Quick Reference 要点执行-->
 
 ### Quick Reference: Non-Negotiable Voice Rules
 
@@ -117,7 +122,7 @@ These are extracted from the detailed files above. In case of conflict, the file
 
 **Before presenting or committing ANY new or modified tex content, 执行 Agent MUST run a sentence-level style audit.** This is not optional, not triggered by the user, and not limited to full section drafts — it applies to every edit, including paragraph-level changes, subsection additions, and overview rewrites.
 
-The audit checks every changed sentence against `author_profile/voice_profile.md` and `author_profile/compression_patterns.md`. Specifically, scan for and fix:
+The audit checks every changed sentence against `author_profile/voice_profile.md` and `author_profile/compression_patterns.md`. <!--ACAT-GOVERNANCE: 两文件未随仓集成（见 ASSET-GAP.md 与文首降级总说明），文件缺失时按文首降级口径与下方 7 项审计清单执行-->Specifically, scan for and fix:
 
 1. **Negation-first constructions**: "not X" or "rather than X" where the sentence should assert what something IS. Reframe positively.
 2. **Throat-clearing**: "We address this problem by", "To address this issue", "In order to", "It should be noted that", "Note that". Delete and lead with the action.
@@ -135,7 +140,7 @@ This gate is SEPARATE from and IN ADDITION TO the structural section checklists 
 
 ## Section Checklists
 
-After generating ANY section draft, 执行 Agent MUST also read the corresponding structural checklist and run it:
+After generating ANY section draft, 执行 Agent MUST also read the corresponding structural checklist and run it: <!--ACAT-GOVERNANCE: writing_checklists/ 4 个清单未随仓集成（见 ASSET-GAP.md 与文首降级总说明），文件缺失时按文首降级口径执行-->
 
 | Section | Checklist file |
 |---|---|
@@ -144,11 +149,13 @@ After generating ANY section draft, 执行 Agent MUST also read the correspondin
 | Design / Method | `writing_checklists/design_questions.md` |
 | Related Work | `writing_checklists/related_work_questions.md` |
 
+<!--ACAT-GOVERNANCE: 上表 writing_checklists/ 4 个清单均未随仓集成（见 ASSET-GAP.md 与文首降级总说明），缺失时按文首降级口径执行-->
+
 Flag every violation before presenting the draft. Severity levels: CRITICAL (structural — will cause rejection), MAJOR (visible to reviewers), MINOR (polish-level).
 
 ## Section Rhetorical Moves
 
-For detailed guidance on move sequences within each section type, read from `section_rhetorical_moves/`:
+For detailed guidance on move sequences within each section type, read from `section_rhetorical_moves/`: <!--ACAT-GOVERNANCE: section_rhetorical_moves/ 4 个文件未随仓集成（见 ASSET-GAP.md 与文首降级总说明），文件缺失时按文首降级口径与下表 Move 序列名执行-->
 
 | Section | File | Key moves |
 |---|---|---|
@@ -156,6 +163,8 @@ For detailed guidance on move sequences within each section type, read from `sec
 | Evaluation | `section_rhetorical_moves/evaluation.md` | Setup Anchoring → Head-to-Head → Deep Dive → Takeaway Synthesis → Ablation → Robustness |
 | Design | `section_rhetorical_moves/design.md` | Abstraction Introduction → Design Justification → Component Architecture → Key Design Decision → Robustness |
 | Related Work | `section_rhetorical_moves/related_work.md` | Category Clustering → Per-Category Limitation → Positioning Sentence |
+
+<!--ACAT-GOVERNANCE: 上表 section_rhetorical_moves/ 4 个文件均未随仓集成（见 ASSET-GAP.md 与文首降级总说明），缺失时按文首降级口径与表中 Move 序列执行-->
 
 These contain actionable guidance with concrete examples showing what works and what doesn't, drawn from accepted and rejected systems and ML papers.
 
@@ -167,9 +176,9 @@ Every paper goes through these stages in order. 执行 Agent identifies which st
 
 ### Stage 1: Structured Brainstorming → Project Context Creation
 
-**Gate**: The user must have a one-sentence identity statement and contribution claims written as results. If they don't, read `brainstorming_guide.md` and walk them through all 6 phases interactively. Don't rush — this is the most important stage. A vague project context produces a vague paper.
+**Gate**: The user must have a one-sentence identity statement and contribution claims written as results. If they don't, read `brainstorming_guide.md` and walk them through all 6 phases interactively. <!--ACAT-GOVERNANCE: brainstorming_guide.md 未随仓集成，文件缺失时按文首降级口径执行-->Don't rush — this is the most important stage. A vague project context produces a vague paper.
 
-After brainstorming, generate a `project_context.md` file using the template in `examples/project_context.md` and save it in the paper's working directory. See `examples/netburst_project_context.md` for a real example.
+After brainstorming, generate a `project_context.md` file using the template in `examples/project_context.md` and save it in the paper's working directory. See `examples/netburst_project_context.md` for a real example. <!--ACAT-GOVERNANCE: examples/ 两个模板未随仓集成，文件缺失时按文首降级口径执行-->
 
 **Important:** After creating `project_context.md`, add it to the project's `.gitignore` (create the file if it doesn't exist). This file contains strategic framing notes and advisor commentary that should not be committed to shared repositories by default.
 
@@ -187,7 +196,7 @@ Output a structured table:
 |---------|-------|-----------|----------------|
 | ... | ... | ... | ... |
 
-**Non-data figure specs**: For each figure in the plan that is NOT a data figure (architecture diagrams, pipeline illustrations, concept diagrams, comparison schematics), read `figure_synthesis_guide.md` and run spec mode to produce a `figure_spec.md`. Data figures (CDFs, bar charts, heatmaps, scatter plots) should be routed to the [data-visualization-skill](https://github.com/SNL-UCSB/data-visualization-skill). The boundary is clear: if the figure requires experimental data to render, it goes through `/viz`; if it illustrates structure, flow, or concepts, it goes through figure synthesis.
+**Non-data figure specs**: For each figure in the plan that is NOT a data figure (architecture diagrams, pipeline illustrations, concept diagrams, comparison schematics), read `figure_synthesis_guide.md` and run spec mode to produce a `figure_spec.md`. <!--ACAT-GOVERNANCE: figure_synthesis_guide.md 未随仓集成（见 ASSET-GAP.md 与文首降级总说明），文件缺失时按文首降级口径执行--> Data figures (CDFs, bar charts, heatmaps, scatter plots) should be routed to the [data-visualization-skill](https://github.com/SNL-UCSB/data-visualization-skill). The boundary is clear: if the figure requires experimental data to render, it goes through `/viz`; if it illustrates structure, flow, or concepts, it goes through figure synthesis.
 
 ### Stage 3: Section Drafts
 
@@ -233,7 +242,7 @@ Cross-section consistency pass:
 
 ### Stage 5: Compression
 
-Read `author_profile/compression_patterns.md` for the 7 specific operations. Apply in order:
+Read `author_profile/compression_patterns.md` for the 7 specific operations. <!--ACAT-GOVERNANCE: compression_patterns.md 未随仓集成，文件缺失时按文首降级口径与下方 7 操作清单执行-->Apply in order:
 1. Sentence shortening (remove subordinate clauses, qualifiers, throat-clearing)
 2. Paragraph merging (multiple examples of same point → one best example)
 3. Generic adjective removal ("significant" → specific number or delete)
@@ -312,8 +321,8 @@ Fix what can be fixed automatically (e.g., adding `~` before `\cite`). Flag what
 
 ### "Help me write section X of paper Y"
 1. Load the paper's `project_context.md`
-2. Read all `author_profile/` files
-3. Read the section's rhetorical moves from `section_rhetorical_moves/`
+2. Read all `author_profile/` files <!--ACAT-GOVERNANCE: 未随仓集成，文件缺失时按文首降级口径执行-->
+3. Read the section's rhetorical moves from `section_rhetorical_moves/` <!--ACAT-GOVERNANCE: 未随仓集成，文件缺失时按文首降级口径执行-->
 4. Identify which stage the paper is in — enforce introduction-twice ordering (Draft 0 intro → Evaluation → Design → Background → Related Work → Final intro → Abstract)
 5. Write topic sentences first; verify they form a coherent argument before filling paragraphs
 6. Generate the draft following the move sequence
@@ -321,12 +330,12 @@ Fix what can be fixed automatically (e.g., adding `~` before `\cite`). Flag what
 
 ### "Review / critique this draft"
 1. Load `project_context.md`
-2. Read `author_profile/intervention_types.md` for the 7 intervention types
+2. Read `author_profile/intervention_types.md` for the 7 intervention types <!--ACAT-GOVERNANCE: 未随仓集成，文件缺失时按文首降级口径执行-->
 3. Apply in order: framing → structural rewrite → background deletion → evaluation strengthening → terminology tightening → claim-first conversion → compression
-4. Give numbered feedback with severity (CRITICAL / MAJOR / MINOR), the specific principle violated (by number from `editorial_principles.md`), and a concrete rewrite
+4. Give numbered feedback with severity (CRITICAL / MAJOR / MINOR), the specific principle violated (by number from `editorial_principles.md`), and a concrete rewrite <!--ACAT-GOVERNANCE: 未随仓集成，文件缺失时按文首降级口径执行-->
 
 ### "Compress / tighten this section"
-1. Read `author_profile/compression_patterns.md`
+1. Read `author_profile/compression_patterns.md` <!--ACAT-GOVERNANCE: 未随仓集成，文件缺失时按文首降级口径执行-->
 2. Apply the 7 operations in order
 3. Show before/after with character counts
 4. Normal compression: 30-50%. Over 50% signals a framing problem, not a wordiness problem.
@@ -335,7 +344,7 @@ Fix what can be fixed automatically (e.g., adding `~` before `\cite`). Flag what
 1. **First readings are precious.** Someone can read your work for the first time only once. Don't send your first draft to everyone simultaneously — chain your feedback. Send to one reader, incorporate their feedback, then send the revised version to the next reader. Each iteration strengthens the draft before it reaches the next pair of fresh eyes.
 2. Help the student plan their feedback chain: who reads first (someone outside the subfield for framing clarity), who reads second (a domain expert for technical correctness), who reads last (the advisor, who sees the strongest version).
 3. When asking a reader for feedback, tell them what to focus on: "Is the narrative in the introduction clear?" is more useful than "any thoughts?" Unfocused feedback wastes a first reading.
-4. Use 执行 Agent's review mode (`author_profile/intervention_types.md`) to simulate a round of feedback *before* spending a human reader's first reading on an early draft.
+4. Use 执行 Agent's review mode (`author_profile/intervention_types.md`) to simulate a round of feedback *before* spending a human reader's first reading on an early draft. <!--ACAT-GOVERNANCE: 未随仓集成，文件缺失时按文首降级口径执行-->
 
 ### "Help me respond to reviewers"
 1. Load `project_context.md` and the reviews
@@ -345,14 +354,14 @@ Fix what can be fixed automatically (e.g., adding `~` before `\cite`). Flag what
 
 ### "I'm starting a new paper — where do I begin?"
 1. Welcome them. Explain the five-stage pipeline — especially the introduction-twice principle.
-2. Read `brainstorming_guide.md` and walk through all 6 phases to create their first `project_context.md`.
+2. Read `brainstorming_guide.md` and walk through all 6 phases to create their first `project_context.md`. <!--ACAT-GOVERNANCE: 未随仓集成，文件缺失时按文首降级口径执行-->
 3. Emphasize: the brainstorming phase is the most important. A precise project context saves weeks of revision later.
-4. After brainstorming: write a **Draft 0 introduction** — a disposable framing scaffold (stakes, problem gap, rough contributions) that sets guardrails for the evaluation. Then point them to `section_rhetorical_moves/evaluation.md` — they'll write the evaluation next, constrained by Draft 0.
+4. After brainstorming: write a **Draft 0 introduction** — a disposable framing scaffold (stakes, problem gap, rough contributions) that sets guardrails for the evaluation. Then point them to `section_rhetorical_moves/evaluation.md` — they'll write the evaluation next, constrained by Draft 0. <!--ACAT-GOVERNANCE: 未随仓集成，文件缺失时按文首降级口径执行-->
 5. Remind them: "Your first draft should be comprehensive — include everything. Compression comes later. The goal is to get material on paper, not to be concise. Draft 0 of the introduction will probably not survive — that's the point. It clarifies your thinking."
 
 ### "I need a non-data figure (architecture diagram, pipeline illustration, etc.)"
 1. Load the paper's `project_context.md`
-2. Read `figure_synthesis_guide.md` and the relevant files in `figure_templates/`
+2. Read `figure_synthesis_guide.md` and the relevant files in `figure_templates/` <!--ACAT-GOVERNANCE: 两者均未随仓集成，文件缺失时按文首降级口径执行-->
 3. Classify the figure by archetype (architecture overview, pipeline flow, component detail, concept illustration, comparison schematic, taxonomy, deployment diagram)
 4. Select the generation backend: AI image generation (for visually rich figures like architecture overviews and concept illustrations) or TikZ (for precise structural figures like pipeline flows and taxonomy matrices). The guide has defaults per archetype, but the student can override.
 5. Run spec mode — walk through archetype-specific questions to produce a `figure_spec.md`

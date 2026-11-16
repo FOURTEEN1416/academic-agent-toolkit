@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/interaction-state.schema.json",
+  "title": "PaperSpine interaction projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["mode", "requested_scope", "grant_status", "grant_id", "grant_sha256", "decision_classes", "decision_receipts", "external_action_authorized"],
+  "properties": {
+    "mode": {"enum": ["guided", "delegated_local_test"]},
+    "requested_scope": {"enum": ["manuscript", "local_delivery", "submission_package"]},
+    "grant_status": {"enum": ["not_applicable", "valid", "expired", "stale", "invalid"]},
+    "grant_id": {"type": ["string", "null"]},
+    "grant_sha256": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[0-9a-f]{64}$"}]},
+    "decision_classes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "decision_receipts": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^delegated-decision\\."}},
+    "external_action_authorized": {"const": false}
+  }
+}

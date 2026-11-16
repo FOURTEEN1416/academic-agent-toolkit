@@ -1,6 +1,6 @@
 # General signal processing
 
-Checked **2026-07-23** against NeuroKit2 0.2.13, its stable wheel, tagged
+Checked **2026-10-01** against NeuroKit2 0.2.13, its stable wheel, tagged
 source, and the live signal API page (`0.2.13.dev214`).
 
 ## Start with a signal contract
@@ -98,7 +98,11 @@ resampled = nk.signal_resample(
 )
 ```
 
-Downsampling requires anti-alias filtering. Resampling cannot recover timing precision or
+Downsampling requires anti-alias filtering. In 0.2.13 the default `interpolation`
+method uses spline interpolation (`scipy.ndimage.zoom`), not an anti-alias low-pass
+filter. Use a suitable explicit filter before decimation or a validated filtered
+resampler such as `poly`; check attenuation above the new Nyquist frequency.
+Resampling cannot recover timing precision or
 bandwidth absent from the acquisition. For multimodal data, preserve native processing
 and timestamps first; choose a common grid only after clock alignment.
 
@@ -152,7 +156,7 @@ python skills/neurokit2/scripts/inspect_signal.py \
   --columns ECG --time-column time_s --units ECG=mV
 ```
 
-## Sources checked 2026-07-23
+## Sources checked 2026-10-01
 
 - [Official signal API](https://neuropsychology.github.io/NeuroKit/functions/signal.html)
 - [Stable v0.2.13 source tag](https://github.com/neuropsychology/NeuroKit/tree/v0.2.13/neurokit2/signal)

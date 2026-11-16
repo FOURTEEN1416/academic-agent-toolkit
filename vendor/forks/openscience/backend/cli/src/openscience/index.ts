@@ -1,56 +1,109 @@
-import path from "path"
-import os from "os"
-import fs from "fs/promises"
-import { existsSync, readFileSync } from "fs"
-import { randomUUID, createHash } from "crypto"
-import { Global } from "../global"
-import { DataRootBarrier } from "../global/data-root-barrier"
-import { Log } from "../util/log"
-import { Lock } from "../util/lock"
-import { Env } from "../env"
-import { Auth } from "../auth"
+import os from "node:os"
+import path from "node:path"
+import fs from "node:fs/promises"
+import { existsSync } from "node:fs"
+import { createHash, randomUUID } from "node:crypto"
+import z from "zod"
+import { Auth } from "@/auth"
+import { BusEvent } from "@/bus/bus-event"
+import { GlobalBus } from "@/bus/global"
+import { CredentialLifecycle } from "@/credentials/lifecycle"
+import { isAtlasManagedKey, isWorkspaceKey } from "@/credentials/managed-key"
+import { CredentialOverlay } from "@/credentials/overlay"
+import { Global } from "@/global"
+import { DataRootBarrier } from "@/global/data-root-barrier"
+import { ToolOutputPath } from "@/tool/tool-output-path"
+import { Lock } from "@/util/lock"
+import { Log } from "@/util/log"
+import { fetchWithFreshConnection } from "@/util/fetch"
+import { managedApiBase } from "@/endpoints"
 import {
-  isSyncedEnvAllowed,
+  BYOK_LLM_BASE_URL_KEYS,
   BYOK_LLM_ENV_KEYS,
+  LOCAL_COMPUTE_CLI_ENV_KEYS,
   SYNCED_SERVICE_ENV_KEYS,
-  managedOpenRouterBaseURL,
 } from "./synced-env-policy"
-import { isAtlasManagedKey } from "../credentials/managed-key"
-import { BILLING_URL, DEFAULT_MANAGED_API_BASE, MANAGED_API_BASE } from "../endpoints"
-import { CredentialLifecycle } from "../credentials/lifecycle"
-import { ToolOutputPath } from "../tool/tool-output-path"
-import { GlobalBus } from "../bus/global"
-import { Event as ServerEvent } from "../server/event"
+import { WorkspaceCredentials } from "./workspace-credentials"
 
 const log = Log.create({ service: "openscience" })
 
-// Synthetic Sciences is the unified backend for OpenScience auth, BYOK, and
-// billing. The base URL resolves through the shared endpoints module (neutral public
-// default + SYNSC_API_BASE / MANAGED_API_BASE / ATLAS_BASE_URL override), so
-// self-hosters and dev stacks can repoint the client without code changes.
-const DEFAULT_API_BASE = DEFAULT_MANAGED_API_BASE
-export const API_BASE = MANAGED_API_BASE
+function apiBase(): string {
+  return managedApiBase()
+}
 
-// Make it loud when the CLI is talking to a non-prod backend so we
-// don't accidentally test against prod or vice versa. The visible hint
-// uses UI.Style so it (a) inherits the project-wide ANSI color gate
-// (NO_COLOR / TERM=dumb / piped output → plain text) and (b) only
-// renders when both stdout AND stderr are TTYs. Piping to a log file
-// no longer drops a one-line dev banner into structured output.
-// User-facing URL the CLI prints during `openscience login`. Defaults
-// to the Synthetic Sciences dashboard's /cli route — wallet, key management,
-// and account controls live there. SYNSC_AUTH_URL overrides (e.g. point at a
-// staging frontend or the old auth.syntheticsciences.ai surface).
-const VERIFICATION_PAGE = process.env.SYNSC_AUTH_URL?.replace(/\/+$/, "") || "https://app.syntheticsciences.ai/cli"
+export interface OpenScienceSession {
+  api_key: string
+  user_id: string
+  device_name?: string
+  organization_id?: string
+  workspace_locked?: boolean
+  /** How the credential arrived. A browser sign-in mints a device key that
+   * this client owns and may revoke; a pasted API key belongs to the account
+   * that created it (and possibly to other machines), so leaving or replacing
+   * it here never revokes it there. */
+  origin?: "browser" | "key"
+}
 
-const syncedSecretValues = new Map<string, string>()
+export interface FundingOrganization {
+  organization_id: string
+  name: string
+  slug: string
+  is_personal: boolean
+  status: string
+  role: string
+  membership_status: string
+  funding_available: boolean
+  effective_permissions: string[]
+}
 
-// User-owned (BYOK) secret values — api keys from auth.json and provider env
-// vars the user set in their own shell. Cached synchronously so redactSecrets()
-// (a hot path in bash output streaming) can mask them without an async read.
-const byokSecretValues = new Set<string>()
+export interface FundingSnapshot {
+  readonly api_key: string
+  readonly user_id: string
+  readonly account: string
+  readonly organization_id?: string
+  readonly workspace_locked?: boolean
+}
+
+export interface FundingContext {
+  type: "personal" | "organization"
+  organization_id?: string
+  available: boolean
+  locked: boolean
+  organizations: FundingOrganization[]
+}
+
+export interface AccountProfile {
+  user_id?: string
+  email?: string | null
+  display_name?: string | null
+  github_username?: string | null
+  [key: string]: unknown
+}
+
+export interface ResearchSearchInput {
+  query: string
+  source: "web" | "research" | "news" | "developer"
+  mode: "fast" | "balanced" | "deep"
+  limit: number
+  content: "snippets" | "top"
+  include_domains?: string[]
+  exclude_domains?: string[]
+  published_after?: string
+  published_before?: string
+}
+
+export class FundingContextError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "FundingContextError"
+  }
+}
+
+const knownSecrets = new Set<string>()
+
 const TOKEN_SECRET_PATTERNS = [
-  /\b(?:thk[_-]|sk-|sk_|gsk_|hf_|nvapi-|ghp_|gho_|ghu_|ghs_|github_pat_|xox[baprs]-)[A-Za-z0-9._-]{8,}\b/g,
+  /odp_v2\.[a-f0-9]{10,138}\.[a-f0-9]{32}\.[a-f0-9]{32}\.[a-f0-9]{64}/gi,
+  /\b(?:thk[_-]|osk_|sk-|sk_|gsk_|hf_|nvapi-|ghp_|gho_|ghu_|ghs_|github_pat_|xox[baprs]-)[A-Za-z0-9._-]{8,}\b/g,
   /\bAKIA[0-9A-Z]{16}\b/g,
 ]
 const QUOTED_SECRET =
@@ -63,56 +116,20 @@ const PRIVATE_KEY_SECRET = /-----BEGIN(?: [A-Z0-9]+)? PRIVATE KEY-----[\s\S]*?--
 const SECRET_FIELD =
   /(^|[_-])(api[_-]?key|private[_-]?key|signing[_-]?key|access[_-]?token|refresh[_-]?token|token|secret|password|passphrase|credential|authorization|cookie|deletion[_-]?proof)($|[_-])|^(apiKey|privateKey|signingKey|accessToken|refreshToken|authToken|clientSecret|secretKey|deletionProof|access|refresh|key)$/i
 
-function isManagedAtlasKey(value: string): boolean {
-  return isAtlasManagedKey(value)
-}
-
-function isManagedOpenRouterProxy(value: string | undefined): boolean {
-  if (!value) return false
-  try {
-    const url = new URL(value)
-    const route = "/api/llm/proxy/openrouter"
-    return url.pathname === route || url.pathname.endsWith(route) || url.pathname.includes(`${route}/`)
-  } catch {
-    return false
-  }
-}
-
-function getSyncedConfigDir(): string {
-  const config = process.env.OPENSCIENCE_CONFIG_DIR?.trim()
-  if (config) return path.resolve(config)
-  // Use XDG config dir (user-writable) for synced config from dashboard
-  // This avoids needing root/admin permissions unlike /Library/Application Support
-  const xdg = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config")
-  return path.join(xdg, "openscience")
-}
-
-const syncedGcpFilename = "atlas-gcp-service-account.json"
-
-// Seed the synced-secret set from the on-disk snapshot at import. preload-env.ts
-// replays synced-env.json into process.env at boot but never seeded this set, so
-// on a fresh process where no in-process sync runs (the common steady state, when
-// the dashboard version is unchanged) the set stayed empty — and a disk-replayed
-// synced secret that isn't a thk_ value was neither stripped from subprocess env
-// nor masked by redactSecrets(). Synchronous + best-effort so the hot sync paths
-// (redactSecrets) have the values available without an async read.
-;(() => {
-  try {
-    const raw = readFileSync(path.join(getSyncedConfigDir(), "synced-env.json"), "utf-8")
-    const parsed: unknown = JSON.parse(raw)
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      for (const [key, value] of Object.entries(parsed)) {
-        if (typeof value === "string" && value) syncedSecretValues.set(key, value)
-      }
-    }
-  } catch {
-    /* no snapshot on disk — nothing to seed */
-  }
-})()
-
-/** Env vars that are safe to pass to subprocesses */
+/** Where OpenSSL, curl and Python HTTP clients find their CA bundle. Managed
+ * environments set these to their own bundle; a person's corporate CA passes
+ * through unchanged. */
+const TLS_TRUST_ENV_KEYS = ["SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE"]
+const SAFE_ENV_KEYS = new Set([
+  ...BYOK_LLM_ENV_KEYS,
+  ...BYOK_LLM_BASE_URL_KEYS,
+  ...SYNCED_SERVICE_ENV_KEYS,
+  ...TLS_TRUST_ENV_KEYS,
+  "OPENSCIENCE_RUNTIME",
+])
 const SAFE_ENV_PREFIXES = ["PATH", "HOME", "USER", "SHELL", "TERM", "LANG", "LC_", "TMPDIR", "XDG_", "EDITOR", "VISUAL"]
 const KERNEL_RUNTIME_KEYS = new Set([
+  ...TLS_TRUST_ENV_KEYS,
   "TMP",
   "TEMP",
   "PYTHONPATH",
@@ -130,738 +147,941 @@ const KERNEL_RUNTIME_KEYS = new Set([
   "PATHEXT",
   "COMSPEC",
 ])
-const SAFE_SYNCED_KEYS = new Set([
-  ...BYOK_LLM_ENV_KEYS,
-  ...SYNCED_SERVICE_ENV_KEYS,
-  // Misc CLI runtime markers
-  "OPENSCIENCE_RUNTIME",
-])
+const CONTROL_PLANE_ENV_KEYS = new Set(["MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET", ...LOCAL_COMPUTE_CLI_ENV_KEYS])
+const CONTROL_PLANE_ENV_PREFIXES = ["OPENSCIENCE_DESKTOP_UPDATE_", "OPENSCIENCE_DESKTOP_PARENT_"]
 
-// Modal credentials belong to its trusted adapter and never enter
-// agent-controlled shells, including when supplied by an explicit export.
-const CONTROL_PLANE_ENV_KEYS = new Set(["MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET"])
-
-/**
- * Persistent CLI auth session.
- *
- * Holds the long-lived ``thk_*`` API key issued by the Atlas device-code
- * flow. Atlas API keys carry a 1-year TTL and are revoked by deletion
- * rather than expiry, so we don't track refresh tokens or expiry locally
- * — a 401 on any request signals "key revoked or expired, re-auth".
- */
-interface OpenScienceSession {
-  /** Atlas-issued ``thk_<uuid>.<secret>`` Bearer token. */
-  api_key: string
-  /** Atlas user_id (UUID). Stored for diagnostics; not used for auth. */
-  user_id: string
-  /** Friendly device label this session was registered under. */
-  device_name?: string
-  /** Last-seen ``/api/cli/sync/version`` value. Background refresh fires
-   *  when the server returns a higher value. */
-  cached_v?: number
-  /** Epoch-ms timestamp of the last version probe. Used to gate rapid-
-   *  fire probes to at most once per VERSION_PROBE_TTL_MS. */
-  last_check_ts?: number
-}
-
-type SyncedServiceReason =
-  | "missing_key"
-  | "no_credits"
-  | "ineligible_plan"
-  | "proxy_disabled"
-  | "managed_key_unconfigured"
-  | "managed_via_openrouter"
-
-interface SyncedService {
-  connected: boolean
-  /** Present only when `connected` is false. Explains why the provider
-   *  could not be connected so the CLI can print an actionable message. */
-  reason?: SyncedServiceReason
-  env?: Record<string, string>
-  metadata?: Record<string, string>
-}
-
-interface SyncResponse {
-  user: {
-    user_id?: string
-    email?: string | null
-    display_name?: string | null
-    github_username?: string | null
-    subscription_status?: string | null
-    subscription_plan?: string | null
-  }
-  services: Record<string, SyncedService>
-  portable_credentials?: Record<
-    string,
-    {
-      fields: Record<string, string>
-      updated_at?: string | null
+const managedProxyPath = (value: unknown) => {
+  if (typeof value !== "string") return false
+  try {
+    let pathname = new URL(value).pathname
+    for (let pass = 0; pass < 3 && pathname.includes("%"); pass++) {
+      const next = decodeURIComponent(pathname)
+      if (next === pathname) break
+      pathname = next
     }
-  >
-  config?: {
-    enabled_providers?: string[]
-    provider?: Record<string, { whitelist?: string[] }>
-    model?: string
+    return /\/api\/llm\/proxy(?:\/|$)/.test(pathname.replace(/\/+/g, "/"))
+  } catch {
+    return false
   }
 }
 
-export type AccountProfile = SyncResponse["user"]
+const BYOK_SUBPROCESS_PROVIDERS: Record<string, { keys: string[]; baseUrl?: string; publicBaseUrl?: string }> = {
+  openai: { keys: ["OPENAI_API_KEY"], baseUrl: "OPENAI_BASE_URL", publicBaseUrl: "https://api.openai.com/v1" },
+  anthropic: {
+    keys: ["ANTHROPIC_API_KEY"],
+    baseUrl: "ANTHROPIC_BASE_URL",
+    publicBaseUrl: "https://api.anthropic.com/v1",
+  },
+  google: {
+    keys: ["GOOGLE_GENERATIVE_AI_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY"],
+    baseUrl: "GOOGLE_GENERATIVE_AI_BASE_URL",
+    publicBaseUrl: "https://generativelanguage.googleapis.com/v1beta",
+  },
+  xai: { keys: ["XAI_API_KEY"], baseUrl: "XAI_BASE_URL", publicBaseUrl: "https://api.x.ai/v1" },
+  meta: { keys: ["META_MODEL_API_KEY"] },
+  openrouter: {
+    keys: ["OPENROUTER_API_KEY"],
+    baseUrl: "OPENROUTER_BASE_URL",
+    publicBaseUrl: "https://openrouter.ai/api/v1",
+  },
+  togetherai: {
+    keys: ["TOGETHER_API_KEY"],
+    baseUrl: "TOGETHER_BASE_URL",
+    publicBaseUrl: "https://api.together.xyz/v1",
+  },
+  together: {
+    keys: ["TOGETHER_API_KEY"],
+    baseUrl: "TOGETHER_BASE_URL",
+    publicBaseUrl: "https://api.together.xyz/v1",
+  },
+  groq: { keys: ["GROQ_API_KEY"], baseUrl: "GROQ_BASE_URL", publicBaseUrl: "https://api.groq.com/openai/v1" },
+  "fireworks-ai": {
+    keys: ["FIREWORKS_API_KEY"],
+    baseUrl: "FIREWORKS_BASE_URL",
+    publicBaseUrl: "https://api.fireworks.ai/inference/v1",
+  },
+  fireworks: {
+    keys: ["FIREWORKS_API_KEY"],
+    baseUrl: "FIREWORKS_BASE_URL",
+    publicBaseUrl: "https://api.fireworks.ai/inference/v1",
+  },
+  mistral: { keys: ["MISTRAL_API_KEY"], baseUrl: "MISTRAL_BASE_URL", publicBaseUrl: "https://api.mistral.ai/v1" },
+  deepseek: { keys: ["DEEPSEEK_API_KEY"], baseUrl: "DEEPSEEK_BASE_URL", publicBaseUrl: "https://api.deepseek.com" },
+  cerebras: {
+    keys: ["CEREBRAS_API_KEY"],
+    baseUrl: "CEREBRAS_BASE_URL",
+    publicBaseUrl: "https://api.cerebras.ai/v1",
+  },
+  perplexity: {
+    keys: ["PERPLEXITY_API_KEY"],
+    baseUrl: "PERPLEXITY_BASE_URL",
+    publicBaseUrl: "https://api.perplexity.ai",
+  },
+}
 
-export interface ResearchEntitlements {
-  plan?: string | null
-  catalog_version?: string | null
-  status?: string | null
-  hosted_research?: { enabled?: boolean; concurrency?: number }
-  managed_search?: {
-    enabled?: boolean
-    available?: boolean
-    limit?: number
-    used?: number
-    reserved?: number
-    remaining?: number
-    reset_at?: string | null
-    allowance?: {
-      limit?: number
-      used?: number
-      reserved?: number
-      remaining?: number
-      reset_at?: string | null
+const SESSION_PATH = path.join(Global.Path.data, "openscience-session.json")
+const SCOPE_PATH = path.join(Global.Path.data, "openscience-workspace-scope.json")
+const SNAPSHOT_PATH = path.join(Global.Path.data, "openscience-account-snapshot.json")
+// A persisted account summary younger than this is served as current; an
+// older one is served at once and refreshed in the background.
+const ACCOUNT_SNAPSHOT_TTL_MS = 30_000
+// After a failed refresh the stored summary is served without a new attempt
+// for this long, so a down account service is not hammered by every open panel.
+const ACCOUNT_RETRY_MS = 5_000
+// A stale summary younger than this is served as it is instead of starting
+// another refresh. A spend marks the summary stale, and with a settings panel
+// open every managed response would otherwise become three account reads
+// (status, entitlement, wallet); the next read after the interval refreshes it.
+const ACCOUNT_REFRESH_MIN_MS = 5_000
+const FUNDING_PROTOCOL = "1"
+const FUNDING_PROTOCOL_HEADER = "OpenScience-Funding-Protocol"
+const FUNDING_CONTEXT_HEADER = "OpenScience-Funding-Context"
+const ATLAS_FETCH_TIMEOUT_MS = Number(process.env.OPENSCIENCE_ATLAS_TIMEOUT_MS) || 60_000
+const DEVICE_REVOKE_TIMEOUT_MS = 5_000
+// Resolved per call so `SYNSC_AUTH_URL` and the managed-base overrides apply as
+// the process environment stands, not as it stood at import.
+function verificationPage(): string {
+  return process.env.SYNSC_AUTH_URL?.replace(/\/+$/, "") || `${apiBase()}/cli`
+}
+
+interface WorkspaceScope {
+  protocol: 1
+  key_fingerprint: string
+  organization_id?: string
+  workspace_locked: true
+}
+
+interface AuthStatusResponse {
+  user?: AccountProfile
+  organizations?: unknown
+  available_organizations?: unknown
+  api_key?: { organization_id?: unknown; workspace_locked?: unknown }
+  funding_context?: { type?: "personal" | "organization"; organization_id?: string; locked?: boolean }
+}
+
+interface AuthStatus {
+  organizations: FundingOrganization[]
+  pinned?: string
+  locked: boolean
+  context?: AuthStatusResponse["funding_context"]
+  user?: AccountProfile
+}
+
+function isAccountKey(value: unknown): value is string {
+  return typeof value === "string" && (value.startsWith("thk_") || value.startsWith("osk_"))
+}
+
+function isLegacyUnscoped(session: Pick<OpenScienceSession, "api_key" | "organization_id" | "workspace_locked">) {
+  return session.api_key.startsWith("thk_") && !session.organization_id && session.workspace_locked !== true
+}
+
+function validOrganizationID(value: unknown): value is string {
+  return typeof value === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(value)
+}
+
+function loginOrganizationID(value: unknown): string | undefined {
+  if (value === undefined || value === null || value === "") return undefined
+  if (validOrganizationID(value)) return value
+  throw new Error("Login returned an invalid organization id.")
+}
+
+function keyFingerprint(key: string): string {
+  return createHash("sha256").update(key).digest("hex")
+}
+
+function accountTag(session: Pick<OpenScienceSession, "api_key" | "user_id">): string {
+  return session.user_id || `k:${keyFingerprint(session.api_key).slice(0, 16)}`
+}
+
+function contextTag(session: Pick<OpenScienceSession, "api_key" | "user_id" | "organization_id">): string {
+  return `${accountTag(session)}\0${session.organization_id ? `organization:${session.organization_id}` : "personal"}`
+}
+
+// One outbound account read per (kind, key, funding context) at a time. A
+// managed turn, the settings panels and credential sync all check the same
+// account; while one read is in flight the others join it instead of
+// repeating the request.
+interface Flight<T> {
+  promise: Promise<T>
+  controller: AbortController
+  waiting: number
+  settled: boolean
+}
+const flights = new Map<string, Flight<unknown>>()
+
+function flightKey(
+  kind: string,
+  session: Pick<OpenScienceSession, "api_key" | "user_id" | "organization_id" | "workspace_locked">,
+): string {
+  return [
+    kind,
+    keyFingerprint(session.api_key),
+    session.user_id,
+    session.organization_id ?? "personal",
+    session.workspace_locked ? "locked" : "open",
+  ].join("\0")
+}
+
+/** Join the in-flight read for `key`, starting it when there is none. The
+ * read runs under its own signal; a caller's signal only detaches that
+ * caller, and the read is cancelled once every caller has detached, so an
+ * abandoned panel never leaves account requests running. */
+function share<T>(key: string, start: (signal: AbortSignal) => Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (signal?.aborted) return Promise.reject(signal.reason)
+  const flight = (flights.get(key) as Flight<T> | undefined) ?? launch(key, start)
+  flight.waiting++
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => {
+      flight.waiting--
+      if (flight.waiting === 0 && !flight.settled) {
+        flight.controller.abort(signal?.reason)
+        // A caller arriving before the cancelled read settles starts its
+        // own instead of inheriting this cancellation.
+        if (flights.get(key) === flight) flights.delete(key)
+      }
+      reject(signal?.reason)
     }
-  }
-  capabilities?: {
-    proxy_settlement_authoritative?: boolean
-    cli_usage_financial?: boolean
-    telemetry_schema_version?: number
-  }
+    signal?.addEventListener("abort", abort, { once: true })
+    flight.promise.then(resolve, reject).finally(() => {
+      if (signal?.aborted) return
+      signal?.removeEventListener("abort", abort)
+      flight.waiting--
+    })
+  })
 }
 
-/** Accept both the initial Synthetic Sciences entitlement shape (`available` plus a
- * nested `allowance`) and the rollout aliases (`enabled` plus flat counts).
- * Consumers see one flat contract while mixed-version clients and servers
- * coexist. */
-export function normalizeResearchEntitlements(value: ResearchEntitlements): ResearchEntitlements {
-  const search = value.managed_search
-  if (!search) return value
-  return {
-    ...value,
-    managed_search: {
-      ...(search.allowance ?? {}),
-      ...search,
-      // During rollout some backend builds used `enabled` for provider
-      // readiness, even on Free. `available` is the account-level decision
-      // whenever present; only older responses fall back to `enabled`.
-      enabled: search.available ?? search.enabled ?? false,
-    },
-  }
+function launch<T>(key: string, start: (signal: AbortSignal) => Promise<T>): Flight<T> {
+  const controller = new AbortController()
+  const flight: Flight<T> = { controller, waiting: 0, settled: false, promise: start(controller.signal) }
+  flight.promise
+    .finally(() => {
+      flight.settled = true
+      if (flights.get(key) === flight) flights.delete(key)
+    })
+    .catch(() => undefined)
+  flights.set(key, flight)
+  return flight
 }
 
-export interface ResearchSearchInput {
-  query: string
-  source: "web" | "research" | "news" | "developer"
-  mode: "fast" | "balanced" | "deep"
-  limit: number
-  content: "snippets" | "top"
-  include_domains?: string[]
-  exclude_domains?: string[]
-  published_after?: string
-  published_before?: string
-}
-
-/**
- * Returns an actionable one-liner for a disconnected provider based on the
- * reason code returned by the backend sync endpoint.
- */
-function describeReason(provider: string, reason: SyncedServiceReason | undefined): string {
-  switch (reason) {
-    case "missing_key":
-      return `${provider}: no account is connected — add one in Settings → Models or choose Credits.`
-    case "no_credits":
-      return `${provider}: Credits are empty - top up at https://app.syntheticsciences.ai/billing.`
-    case "ineligible_plan":
-      return `${provider}: refresh your account and reconnect the key — provider accounts never require Ace.`
-    case "proxy_disabled":
-      return `${provider}: Ace is disabled on this deployment — connect a provider account instead.`
-    case "managed_key_unconfigured":
-      return `${provider}: Ace is unavailable on this deployment — connect a provider account instead.`
-    case "managed_via_openrouter":
-      return `${provider}: wallet access to ${provider} models routes through the openrouter provider — pick them there, or add your own ${provider} key for direct access.`
-    default:
-      return `${provider}: not connected.`
+async function atomicWrite(filepath: string, content: string, mode = 0o600): Promise<void> {
+  await using operation = await DataRootBarrier.enter(filepath)
+  const temp = `${filepath}.${process.pid}.${randomUUID()}.tmp`
+  await fs.mkdir(path.dirname(filepath), { recursive: true })
+  try {
+    const handle = await fs.open(temp, "wx", mode)
+    await handle
+      .writeFile(content, "utf8")
+      .then(() => (process.platform === "win32" ? undefined : handle.chmod(mode)))
+      .then(() => handle.sync())
+      .finally(() => handle.close())
+    await fs.rename(temp, filepath)
+    const directory = await fs.open(path.dirname(filepath), "r").catch(() => undefined)
+    await directory?.sync().catch(() => undefined)
+    await directory?.close().catch(() => undefined)
+  } catch (error) {
+    await fs.rm(temp, { force: true }).catch(() => undefined)
+    throw error
   }
 }
 
-/**
- * Thrown when the backend rejects a usage report because the user is
- * out of wallet credits. Halts
- * the session so the agent loop doesn't keep racking up calls the
- * user can't pay for. Caught at the session boundary; surfaced to the
- * user as "Insufficient credits - top up at app.syntheticsciences.ai/billing".
- */
-export class InsufficientCreditsError extends Error {
-  constructor(message: string = `Credits are empty. Add credits at ${BILLING_URL} or switch back to your own keys.`) {
-    super(message)
-    this.name = "InsufficientCreditsError"
+function atlasFetch(input: string, init: RequestInit = {}, timeoutMs = ATLAS_FETCH_TIMEOUT_MS): Promise<Response> {
+  const timeout = AbortSignal.timeout(timeoutMs)
+  const signal = init.signal ? AbortSignal.any([init.signal, timeout]) : timeout
+  return fetchWithFreshConnection(input, { ...init, signal })
+}
+
+async function readWorkspaceScope(key: string): Promise<WorkspaceScope | null | undefined> {
+  if (!existsSync(SCOPE_PATH)) return undefined
+  try {
+    const value = (await Bun.file(SCOPE_PATH).json()) as Partial<WorkspaceScope>
+    if (value.protocol !== 1 || value.workspace_locked !== true) return null
+    if (value.key_fingerprint !== keyFingerprint(key)) return undefined
+    if (value.organization_id !== undefined && !validOrganizationID(value.organization_id)) return null
+    return {
+      protocol: 1,
+      key_fingerprint: value.key_fingerprint,
+      ...(value.organization_id ? { organization_id: value.organization_id } : {}),
+      workspace_locked: true,
+    }
+  } catch {
+    return null
+  }
+}
+
+async function writeWorkspaceScope(session: OpenScienceSession): Promise<void> {
+  if (!session.workspace_locked) {
+    if (isWorkspaceKey(session.api_key))
+      throw new FundingContextError("Workspace credentials require an immutable workspace.")
+    await fs.rm(SCOPE_PATH, { force: true }).catch(() => undefined)
+    return
+  }
+  if (isWorkspaceKey(session.api_key) && !session.organization_id) {
+    throw new FundingContextError("A workspace credential is missing its workspace id.")
+  }
+  await atomicWrite(
+    SCOPE_PATH,
+    JSON.stringify(
+      {
+        protocol: 1,
+        key_fingerprint: keyFingerprint(session.api_key),
+        ...(session.organization_id ? { organization_id: session.organization_id } : {}),
+        workspace_locked: true,
+      } satisfies WorkspaceScope,
+      null,
+      2,
+    ),
+  )
+}
+
+function organizations(value: unknown): FundingOrganization[] {
+  if (!Array.isArray(value)) return []
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return []
+    const row = item as Record<string, unknown>
+    const id = typeof row.organization_id === "string" ? row.organization_id : row.id
+    if (!validOrganizationID(id) || typeof row.name !== "string" || !row.name.trim()) return []
+    return [
+      {
+        organization_id: id,
+        name: row.name,
+        slug: typeof row.slug === "string" ? row.slug : "",
+        is_personal: row.is_personal === true,
+        status: typeof row.status === "string" ? row.status : "active",
+        role: typeof row.role === "string" ? row.role : "member",
+        membership_status: typeof row.membership_status === "string" ? row.membership_status : "active",
+        funding_available: row.funding_available === true,
+        effective_permissions: Array.isArray(row.effective_permissions)
+          ? row.effective_permissions.filter((value): value is string => typeof value === "string")
+          : row.effective_permissions && typeof row.effective_permissions === "object"
+            ? Object.entries(row.effective_permissions).flatMap(([name, allowed]) => (allowed === true ? [name] : []))
+            : [],
+      },
+    ]
+  })
+}
+
+function organizationAvailable(row: FundingOrganization | undefined): boolean {
+  return (
+    !!row &&
+    row.status === "active" &&
+    row.membership_status === "active" &&
+    row.funding_available &&
+    row.effective_permissions.includes("use_shared_wallet")
+  )
+}
+
+async function accountAtlasFetch(
+  session: Pick<OpenScienceSession, "api_key" | "organization_id">,
+  input: string,
+  init: RequestInit = {},
+  funding = false,
+  timeoutMs = ATLAS_FETCH_TIMEOUT_MS,
+): Promise<Response> {
+  const headers = new Headers(init.headers)
+  headers.set("Authorization", `Bearer ${session.api_key}`)
+  headers.delete("X-Organization-ID")
+  headers.delete(FUNDING_PROTOCOL_HEADER)
+  if (funding) {
+    headers.set(FUNDING_PROTOCOL_HEADER, FUNDING_PROTOCOL)
+    if (session.organization_id) headers.set("X-Organization-ID", session.organization_id)
+  }
+  const response = await atlasFetch(input, { ...init, headers }, timeoutMs)
+  if (response.status === 401) void OpenScience.clearSession(session.api_key).catch(() => undefined)
+  return response
+}
+
+async function authenticatedAtlasFetch(
+  session: OpenScienceSession,
+  input: string,
+  init: RequestInit = {},
+  timeoutMs = ATLAS_FETCH_TIMEOUT_MS,
+): Promise<Response> {
+  return accountAtlasFetch(session, input, init, false, timeoutMs)
+}
+
+async function fundedAtlasFetch(
+  session: FundingSnapshot | OpenScienceSession,
+  input: string,
+  init: RequestInit = {},
+  timeoutMs = ATLAS_FETCH_TIMEOUT_MS,
+): Promise<Response> {
+  const response = await accountAtlasFetch(session, input, init, true, timeoutMs)
+  return OpenScience.validateFundingResponse(response, session)
+}
+
+async function revokeSessionDevice(
+  session: OpenScienceSession,
+  timeoutMs = DEVICE_REVOKE_TIMEOUT_MS,
+): Promise<boolean> {
+  try {
+    const response = await authenticatedAtlasFetch(
+      session,
+      `${apiBase()}/api/cli/devices/current`,
+      { method: "DELETE" },
+      timeoutMs,
+    )
+    return response.status === 204
+  } catch {
+    return false
   }
 }
 
 export namespace OpenScience {
-  let cachedProfile: AccountProfile | null | undefined
-  let cachedEntitlements: ResearchEntitlements | undefined
-  let cachedEntitlementsAt = 0
-  let cachedEntitlementsAccount: string | undefined
-  let cachedEntitlementsFailureAt = 0
-  let cachedEntitlementsFailureAccount: string | undefined
-  let entitlementsGeneration = 0
-  let entitlementsRequest: { account: string; promise: Promise<ResearchEntitlements | null> } | undefined
-  const ENTITLEMENTS_CACHE_TTL_MS = 30_000
-  const ENTITLEMENTS_FAILURE_TTL_MS = 30_000
-  const ENTITLEMENTS_FETCH_TIMEOUT_MS = 1_500
-  /** Report a non-production API override after the CLI has initialized its
-   * log sink. Keeping this out of module initialization is important: runtime
-   * launchers and library consumers import OpenScience inside child processes,
-   * and import-time diagnostics would become command stderr or provenance. */
-  export function reportApiBaseOverride(): void {
-    if (API_BASE === DEFAULT_API_BASE) return
-    log.info("openscience.api_base.override", { api_base: API_BASE })
-    if (!process.stderr.isTTY) return
-    const { UI } = require("../cli/ui") as typeof import("../cli/ui")
-    process.stderr.write(
-      `${UI.Style.TEXT_DIM}[openscience] API base: ${API_BASE} (override via SYNSC_API_BASE)${UI.Style.TEXT_NORMAL}\n`,
-    )
-  }
+  let loginWarning: string | undefined
 
-  const filepath = path.join(Global.Path.data, "openscience-session.json")
-
-  /** Friendly device label sent to the backend. Surfaced in the
-   *  user's Devices list so they can identify which machine each row
-   *  belongs to. */
-  export function deviceName(): string {
-    const host = (() => {
-      try {
-        return os.hostname().split(".")[0]
-      } catch {
-        return "device"
-      }
-    })()
-    return `openscience · ${process.platform} · ${host}`
-  }
-
-  // Bound every Atlas client call. A slow/unresponsive backend must never hang
-  // the caller: the per-command sync-version probe and `openscience project init`
-  // both go through Atlas fetches, and with the agent's bash tool also unbounded a
-  // hang wedged whole sessions for >60 min. Overridable via OPENSCIENCE_ATLAS_TIMEOUT_MS.
-  const ATLAS_FETCH_TIMEOUT_MS = Number(process.env["OPENSCIENCE_ATLAS_TIMEOUT_MS"]) || 60_000
-  // Skill index/content fetches run on the GET /skill request path, and each only
-  // *enriches* a list that also comes from disk cache + bundled skills. A slow or
-  // unreachable backend must degrade fast (fall back to cached/empty) instead of
-  // wedging the request for the full Atlas timeout — the reporter in #138 saw a
-  // single /skill take 62s because these inherited the 60s default. Bound tighter.
-  const SKILL_FETCH_TIMEOUT_MS = Number(process.env["OPENSCIENCE_SKILL_TIMEOUT_MS"]) || 8_000
-  function atlasFetch(input: string, init: RequestInit = {}, timeoutMs = ATLAS_FETCH_TIMEOUT_MS): Promise<Response> {
-    // Combine (don't replace) a caller's signal with the timeout, so passing an
-    // abort signal never silently drops the hang guard this function exists for.
-    const timeout = AbortSignal.timeout(timeoutMs)
-    const signal = init.signal ? AbortSignal.any([init.signal, timeout]) : timeout
-    return fetch(input, { ...init, signal })
-  }
-
-  let rejectedSessionClear: { apiKey: string; promise: Promise<void> } | undefined
-
-  /** Clear a revoked account exactly once, but only if the rejected request
-   * still belongs to the active local session. A late 401 from account A must
-   * never sign out a newly authenticated account B. */
-  async function clearRejectedSession(apiKey: string): Promise<void> {
-    if (rejectedSessionClear?.apiKey === apiKey) return rejectedSessionClear.promise
-    const promise = (async () => {
-      // The match is checked inside the credential mutation lease. Checking it
-      // here and calling an unconditional clear created a TOCTOU window where
-      // a newly saved account could be deleted by an old request's late 401.
-      const cleared = await clearSession(apiKey)
-      if (!cleared) return
-      log.info("authenticated control-plane request rejected the local session; clearing")
-      // clearSession invalidates account/search state and publishes the
-      // cross-process credential revision. Provider state is process-local, so
-      // drop it explicitly before telling the workspace to remount its gate.
-      const { Provider } = await import("../provider/provider")
-      Provider.invalidate()
-      GlobalBus.emit("event", {
-        directory: "global",
-        payload: { type: ServerEvent.Disposed.type, properties: {} },
-      })
-    })()
-    rejectedSessionClear = { apiKey, promise }
-    try {
-      await promise
-    } finally {
-      if (rejectedSessionClear?.promise === promise) rejectedSessionClear = undefined
-    }
-  }
-
-  /** Authenticated Atlas control-plane request. A definitive 401 means this
-   * device key was revoked or expired, so clear only that matching session.
-   * Network failures, 5xx responses, and 403 policy/consent responses remain
-   * fail-open and leave the local session usable offline. */
-  async function authenticatedAtlasFetch(
-    session: OpenScienceSession,
-    input: string,
-    init: RequestInit = {},
-    timeoutMs = ATLAS_FETCH_TIMEOUT_MS,
-  ): Promise<Response> {
-    const headers = new Headers(init.headers)
-    headers.set("Authorization", `Bearer ${session.api_key}`)
-    const response = await atlasFetch(input, { ...init, headers }, timeoutMs)
-    if (response.status === 401) await clearRejectedSession(session.api_key)
-    else await retryPendingTelemetryConsent().catch(() => false)
-    return response
+  export function getLoginWarning(): string | undefined {
+    return loginWarning
   }
 
   export async function getSession(): Promise<OpenScienceSession | null> {
-    // A missing file is a genuine logout → null, silently. Distinguish it from a
-    // read/parse error below so a torn file / EMFILE / permission blip isn't
-    // silently mis-read as "signed out" (which flips the billing gate to BYOK
-    // and diverts usage to the unauthenticated queue for an authed user).
-    if (!existsSync(filepath)) return null
+    if (!existsSync(SESSION_PATH)) return null
     try {
-      const file = Bun.file(filepath)
-      const data = (await file.json()) as Partial<OpenScienceSession> & { access_token?: string }
-      // Forward-compat: pre-atlas sessions stored the token under
-      // ``access_token``. Those tokens are no longer valid against the
-      // new backend — drop them so the next request triggers re-auth.
-      if (!data.api_key) {
-        if (data.access_token) {
-          log.info("dropping legacy session (pre-atlas token)")
-        }
-        return null
-      }
+      const data = (await Bun.file(SESSION_PATH).json()) as Partial<OpenScienceSession>
+      if (!isAccountKey(data.api_key)) return null
+      const persistedOrganizationID = loginOrganizationID(data.organization_id)
+      const scope = await readWorkspaceScope(data.api_key)
+      if (scope === null) throw new FundingContextError("The saved workspace scope is invalid. Sign in again.")
+      const organizationID = scope ? scope.organization_id : persistedOrganizationID
+      const locked = scope?.workspace_locked === true || data.workspace_locked === true
       return {
         api_key: data.api_key,
-        user_id: data.user_id || "",
-        device_name: data.device_name,
-        // Sync bookkeeping. Dropping these made refreshIfStale's TTL and
-        // version dedupe dead code: every message fired a version probe
-        // plus a full background sync, and updateSession (getSession +
-        // spread + save) erased whichever field it wasn't patching.
-        cached_v: data.cached_v,
-        last_check_ts: data.last_check_ts,
+        user_id: typeof data.user_id === "string" ? data.user_id : "",
+        device_name: typeof data.device_name === "string" ? data.device_name : undefined,
+        ...(organizationID ? { organization_id: organizationID } : {}),
+        ...(locked ? { workspace_locked: true } : {}),
+        ...(data.origin === "key" || data.origin === "browser" ? { origin: data.origin } : {}),
       }
-    } catch (e) {
-      // The file exists but couldn't be read/parsed — NOT a logout. Return null
-      // so callers stay simple, but surface it so the transient failure is
-      // diagnosable rather than a silent, mis-billed "signed out".
-      log.warn("could not read session file (treating as signed out)", {
-        error: e instanceof Error ? e.message : String(e),
-      })
+    } catch (error) {
+      log.warn("could not read account session", { error: error instanceof Error ? error.message : String(error) })
       return null
     }
   }
 
-  /**
-   * Read the account summary without applying the credential payload returned
-   * by Atlas. Settings uses this for display only. Calling syncServices() from
-   * a GET handler published a credential revision and disposed every active
-   * project instance merely because General was opened.
-   */
-  export async function getProfile(): Promise<AccountProfile | null> {
-    const session = await getSession()
-    if (!session) return null
-    return authenticatedAtlasFetch(session, `${API_BASE}/api/cli/sync`, {
-      headers: { Authorization: `Bearer ${session.api_key}` },
-    })
-      .then(async (response) => {
-        if (!response.ok) return null
-        const data = (await response.json()) as SyncResponse
-        cachedProfile = data.user
-        return data.user
-      })
-      .catch((error) => {
-        log.warn("account profile read failed", { error: error instanceof Error ? error.message : String(error) })
-        return null
-      })
-  }
-
-  /** Save a compute credential to the authenticated account so the same
-   * provider appears on the dashboard and the user's other OpenScience
-   * devices. The provider is still contacted directly; Atlas only holds the
-   * encrypted portability copy. Local settings remain usable while offline. */
-  export async function savePortableCredential(
-    provider: string,
-    fields: Record<string, string>,
-    label?: string,
-  ): Promise<boolean> {
-    const session = await getSession()
-    if (!session) return false
-    const response = await authenticatedAtlasFetch(session, `${API_BASE}/api/keys/${encodeURIComponent(provider)}`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${session.api_key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ name: label, credentials: fields }),
-    }).catch(() => undefined)
-    if (!response?.ok) return false
-    await updateSession({ last_check_ts: 0 }).catch(() => undefined)
-    return true
-  }
-
-  export async function deletePortableCredential(provider: string): Promise<boolean> {
-    const session = await getSession()
-    if (!session) return false
-    const response = await authenticatedAtlasFetch(
-      session,
-      `${API_BASE}/api/keys/provider/${encodeURIComponent(provider)}`,
-      {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${session.api_key}` },
-      },
-    ).catch(() => undefined)
-    if (!response?.ok) return false
-    await updateSession({ last_check_ts: 0 }).catch(() => undefined)
-    return true
-  }
-
-  async function writeSession(session: OpenScienceSession) {
-    // Atomic temp+rename so a crash or a concurrent reader never sees a torn
-    // session file (which getSession would mis-read as a logout).
-    await atomicWrite(filepath, JSON.stringify(session, null, 2), { mode: 0o600 })
-  }
-
-  export async function saveSession(session: OpenScienceSession) {
-    cachedProfile = undefined
-    invalidateResearchEntitlements()
-    await CredentialLifecycle.mutate("managed-session.set", async () => {
-      const previous = await getSession()
-      const replacingCredential = previous?.api_key !== session.api_key
-      const changingSubject = previous?.user_id !== session.user_id
-      if (previous && (replacingCredential || changingSubject)) {
-        // Give account A's still-present credential the first chance to finish
-        // its opt-out. If it is offline or revoked, the telemetry state already
-        // holds a fixed-target deletion capability, so replacing the account
-        // cannot orphan the purge or replay it against account B.
-        await retryPendingTelemetryConsent().catch(() => false)
-      }
-      if (replacingCredential) {
-        // A pasted key can replace an account without an explicit logout. Tear
-        // down account A's complete credential snapshot before publishing B's
-        // session, so a failed B sync can never fall back to A's keys/files/env.
-        await clearSyncedCredentialArtifacts()
-        await dropUsageQueue()
-        await resetTelemetryAccountSession()
-      } else if (previous && changingSubject && !(await preserveTelemetryConsentForSession(session))) {
-        // A legacy key-only session and its canonical user-id session are the
-        // same account. Copy the privacy setting before changing the durable
-        // identity so a crash cannot silently restore the default-on state.
-        throw new Error("OpenScience could not safely preserve the current data-use setting. Try again.")
-      }
-      await writeSession(session)
-    })
-    // Authentication is the first point at which cloud trace sharing can be
-    // attributed safely. Initialize the default-on account setting after the
-    // durable device credential is present; backend availability never blocks
-    // login and the trace client will sync when connectivity returns.
-    await import("@/telemetry/outbound")
-      .then(({ OutboundTelemetry }) => OutboundTelemetry.initializeAccount())
-      .catch((error) => log.warn("could not initialize account trace state", { error: String(error) }))
-  }
-
-  /** Merge-update the persisted session. Fetches current session, spreads
-   *  the patch on top, and writes back. No-ops when unauthenticated. Serialized
-   *  under a lock so two concurrent patches (e.g. an interactive last_check_ts
-   *  update racing a background cached_v update) can't lose each other's field
-   *  in the read-modify-write. */
-  async function updateSession(patch: Partial<OpenScienceSession>): Promise<void> {
-    await CredentialLifecycle.serialized(async () => {
-      using _ = await Lock.write(filepath)
-      const session = await getSession()
-      if (!session) return
-      // Sync bookkeeping is not credential material; publishing a credential
-      // revision for every TTL timestamp would unnecessarily stop live children.
-      await atomicWrite(filepath, JSON.stringify({ ...session, ...patch }, null, 2), { mode: 0o600 })
-    })
-  }
-
-  /** TTL gate for the cheap version probe. */
-  const VERSION_PROBE_TTL_MS = 10_000
-  let pendingRefresh: Promise<void> | undefined
-
-  /**
-   * Fire-and-forget BYOK refresh triggered at most once per
-   * VERSION_PROBE_TTL_MS per process. When the server-side sync version
-   * has changed since the last probe, runs `syncServices()` in the
-   * background so the new env vars land for the NEXT user message while
-   * the current one continues with the existing provider config.
-   */
-  export async function refreshIfStale(): Promise<void> {
-    const session = await getSession()
-    if (!session) return
-
-    const now = Date.now()
-    const last = session.last_check_ts ?? 0
-    if (now - last < VERSION_PROBE_TTL_MS) return
-
-    let v: number | null = null
-    try {
-      const res = await authenticatedAtlasFetch(session, `${API_BASE}/api/cli/sync/version`, {
-        headers: { Authorization: `Bearer ${session.api_key}` },
-      })
-      if (!res.ok) return // fail open — keep current env
-      const body = await res.json()
-      // Coerce numeric strings too: a backend/proxy that returns {"v":"5"} would
-      // otherwise leave v=null forever, so cached_v never updates and the CLI
-      // keeps deferring the background sync for the TTL — dashboard changes never
-      // land, with no error surfaced.
-      const raw = body?.v
-      const num = typeof raw === "number" ? raw : typeof raw === "string" ? Number(raw) : NaN
-      v = Number.isFinite(num) ? num : null
-    } catch {
-      return // network failure → use current env, retry next message
+  export async function saveSession(session: OpenScienceSession): Promise<void> {
+    if (!isAccountKey(session.api_key)) throw new Error("Invalid OpenScience account key.")
+    if (session.organization_id !== undefined && !validOrganizationID(session.organization_id)) {
+      throw new Error("Invalid organization id.")
     }
-
-    // Always stamp the probe time so we don't hammer the server.
-    await updateSession({ last_check_ts: now })
-    if (v === null) return
-    if (v === session.cached_v) return
-
-    // Version changed — fire full sync in background. Current message
-    // continues with the existing env; new env applies to the NEXT message.
-    void (async () => {
-      try {
-        // The current turn has already constructed its provider SDK from the
-        // previous snapshot. Publishing the cross-process revision is still
-        // required, but reconciling it locally would run the instance revoker,
-        // dispose SessionPrompt state, and abort the turn that scheduled this
-        // refresh. Apply the new snapshot for the next turn without revoking
-        // this process's in-flight work.
-        await syncServices({ reconcileLocal: false })
-        await updateSession({ cached_v: v as number })
-        // Force provider SDK to rebuild from the new env on the next call.
-        const provider = await import("../provider/provider")
-        provider.Provider.invalidate?.()
-      } catch (e) {
-        log.warn("background BYOK refresh failed", { error: e instanceof Error ? e.message : String(e) })
-      }
-    })()
+    await CredentialLifecycle.mutate("managed-session.set", async () => {
+      using _ = await Lock.write(SESSION_PATH)
+      await writeWorkspaceScope(session)
+      await atomicWrite(SESSION_PATH, JSON.stringify(session, null, 2))
+      invalidateCredentialSync()
+      // A summary belongs to one account and funding context; never let a
+      // newly connected account inherit the previous one's stored profile.
+      await fs.rm(SNAPSHOT_PATH, { force: true }).catch(() => undefined)
+    })
+    invalidateBalance()
+    const { Provider } = await import("@/provider/provider")
+    Provider.invalidate()
   }
 
-  /** Start the best-effort version probe without putting its network and disk
-   *  latency on the provider request's critical path. Concurrent sessions share
-   *  the same probe; refreshIfStale's persisted TTL handles later calls. */
-  export function scheduleRefresh(): Promise<void> {
-    if (pendingRefresh) return pendingRefresh
-    const refresh = refreshIfStale().catch((error) => {
-      log.warn("scheduled BYOK refresh failed", { error: error instanceof Error ? error.message : String(error) })
+  /** Activate a newly proved device before retiring the previous one. A failed
+   * first sync may leave the new credential usable offline, but an auth failure
+   * that cleared it must never be reported as a successful login. */
+  async function activateSession(session: OpenScienceSession): Promise<OpenScienceSession> {
+    return CredentialLifecycle.serialized(async () => {
+      loginWarning = undefined
+      const previous = await getSession()
+      await saveSession(session)
+      await syncCredentials({ force: true })
+      const current = await getSession()
+      if (!current || current.api_key !== session.api_key) {
+        if (session.origin !== "key") await revokeSessionDevice(session)
+        throw new Error("This device could not verify the new login. Sign in again.")
+      }
+      // Only a device key this client minted is retired; a pasted key stays
+      // valid for whoever else holds it.
+      if (
+        previous &&
+        previous.api_key !== current.api_key &&
+        previous.origin !== "key" &&
+        !(await revokeSessionDevice(previous))
+      ) {
+        loginWarning =
+          "Signed in, but the previous device could not be revoked remotely. You can remove it from account settings."
+      }
+      return current
     })
-    const request = refresh.then(() => {
-      if (pendingRefresh === request) pendingRefresh = undefined
-    })
-    pendingRefresh = request
-    return request
   }
 
-  /** Read the on-disk synced-env snapshot (what preload-env.ts replayed into
-   *  process.env at boot). Returns an empty map when missing or corrupt. */
-  async function readSyncedSnapshot(): Promise<Map<string, string>> {
-    const result = new Map<string, string>()
-    try {
-      const raw = await fs.readFile(path.join(getSyncedConfigDir(), "synced-env.json"), "utf-8")
-      const parsed: unknown = JSON.parse(raw)
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return result
-      for (const [key, value] of Object.entries(parsed)) {
-        if (typeof value === "string") result.set(key, value)
-      }
-    } catch {}
+  /** Persist the immutable workspace proved by Atlas for sessions written by
+   * an older client that discarded it. The comparison is repeated under both
+   * credential and file locks so a slow response for account A cannot relabel
+   * a newly connected account B. */
+  async function reconcileSession(
+    expected: OpenScienceSession,
+    organizationID: string | undefined,
+    userID: string,
+    generation = syncGeneration,
+  ): Promise<OpenScienceSession | null> {
+    const matches = (current: OpenScienceSession | null) =>
+      generation === syncGeneration &&
+      !!current &&
+      current.api_key === expected.api_key &&
+      current.user_id === expected.user_id &&
+      current.organization_id === expected.organization_id &&
+      current.workspace_locked === expected.workspace_locked
+    const next = {
+      ...expected,
+      user_id: userID || expected.user_id,
+      ...(organizationID ? { organization_id: organizationID } : {}),
+      workspace_locked: true,
+    }
+    if (!organizationID) delete next.organization_id
+    if (
+      next.user_id === expected.user_id &&
+      next.organization_id === expected.organization_id &&
+      expected.workspace_locked === true
+    ) {
+      return expected
+    }
+    const result = await CredentialLifecycle.mutateIf(
+      "managed-session.reconcile",
+      async () => matches(await getSession()),
+      async () => {
+        using _ = await Lock.write(SESSION_PATH)
+        const current = await getSession()
+        if (!matches(current)) return null
+        await writeWorkspaceScope(next)
+        await atomicWrite(SESSION_PATH, JSON.stringify(next, null, 2))
+        // The stored summary is bound to the funding context this rewrite
+        // changes; drop it like saveSession does.
+        await fs.rm(SNAPSHOT_PATH, { force: true }).catch(() => undefined)
+        return next
+      },
+    )
+    if (!result.applied || !result.value) return null
+    invalidateBalance()
+    const { Provider } = await import("@/provider/provider")
+    Provider.invalidate()
+    return result.value
+  }
+
+  export async function clearSession(expectedApiKey?: string, expectedGeneration?: number): Promise<boolean> {
+    const action = async () => {
+      using _ = await Lock.write(SESSION_PATH)
+      await fs.rm(SESSION_PATH, { force: true })
+      invalidateCredentialSync()
+      await fs.rm(SCOPE_PATH, { force: true })
+      await fs.rm(SNAPSHOT_PATH, { force: true })
+      await WorkspaceCredentials.clear()
+      return true
+    }
+    const applied = await CredentialLifecycle.mutateIf(
+      "managed-session.clear",
+      async () => {
+        if (expectedGeneration !== undefined && expectedGeneration !== syncGeneration) return false
+        return !expectedApiKey || (await getSession())?.api_key === expectedApiKey
+      },
+      action,
+    )
+    const result = applied.applied && applied.value
+    if (result) {
+      invalidateBalance()
+      const { Provider } = await import("@/provider/provider")
+      Provider.invalidate()
+    }
     return result
   }
 
-  /** Drop a synced env var from the live process, but only when its current
-   *  value is still the one sync injected — an explicit shell export wins. */
-  function unsetSyncedVar(key: string, value: string) {
-    if (process.env[key] !== value) return
-    delete process.env[key]
-    try {
-      Env.remove(key)
-    } catch {
-      /* Instance not initialized — process.env delete is enough */
-    }
-  }
-
-  /** Reconcile this process with the credential snapshot another server wrote. */
-  export async function reloadSyncedEnv(): Promise<void> {
-    const fresh = await readSyncedSnapshot()
-    const previous = new Map(syncedSecretValues)
-    for (const [key, value] of previous.entries()) {
-      if (fresh.has(key)) continue
-      unsetSyncedVar(key, value)
-    }
-    syncedSecretValues.clear()
-    for (const [key, value] of fresh.entries()) {
-      if (!isSyncedEnvAllowed(key, value)) continue
-      const current = process.env[key]
-      const ownsSlot = !current || previous.get(key) === current || current === value
-      if (ownsSlot) {
-        process.env[key] = value
-        try {
-          Env.set(key, value)
-        } catch {
-          /* Instance not initialized */
-        }
-      }
-      syncedSecretValues.set(key, value)
-    }
-  }
-
-  /** Whether one live environment slot came from the latest account sync.
-   * Provider discovery uses this to keep dashboard credentials distinct from
-   * unrelated variables inherited from the launching shell. */
-  export function isSyncedEnv(key: string, value: string): boolean {
-    return syncedSecretValues.get(key) === value
-  }
-
-  /** Delete queued usage rows. They were produced under the signed-out
-   *  account's key; flushing them after a different account logs in would
-   *  bill that account for someone else's usage. */
-  async function dropUsageQueue(): Promise<void> {
-    try {
-      const raw = await fs.readFile(pendingQueuePath, "utf-8")
-      const rows = raw.split("\n").filter(Boolean).length
-      await fs.unlink(pendingQueuePath)
-      if (rows) log.info("dropped queued usage on sign-out so it cannot bill a different account", { rows })
-    } catch {
-      /* no queue — nothing to drop */
-    }
-  }
-
-  /** Purge account-scoped traces and rotate their local installation identity.
-   * This is deliberately dynamic to keep the OpenScience <-> telemetry module
-   * cycle lazy at startup. */
-  async function resetTelemetryAccountSession(): Promise<void> {
-    await import("@/telemetry/outbound").then(({ OutboundTelemetry }) => OutboundTelemetry.resetAccountSession())
-  }
-
-  /** Retry a pending account-bound consent write while the matching session
-   * credential is still active. The telemetry module verifies the subject and
-   * token again under its cross-process lease. */
-  async function retryPendingTelemetryConsent(): Promise<boolean> {
-    return import("@/telemetry/outbound").then(({ OutboundTelemetry }) => OutboundTelemetry.retryPendingConsent())
-  }
-
-  /** Carry consent across a key-only -> canonical account-id migration while
-   * the old session is still active and verifiable. */
-  async function preserveTelemetryConsentForSession(session: OpenScienceSession): Promise<boolean> {
-    return import("@/telemetry/outbound").then(({ OutboundTelemetry }) =>
-      OutboundTelemetry.preserveConsentForSession(session),
-    )
-  }
-
-  /** Remove every credential artifact owned by the last dashboard sync while
-   * preserving unrelated shell exports. The caller holds CredentialLifecycle's
-   * cross-process mutation lease. */
-  async function clearSyncedCredentialArtifacts(): Promise<void> {
-    const synced = await readSyncedSnapshot()
-    for (const [key, value] of syncedSecretValues.entries()) synced.set(key, value)
-    for (const name of ["synced-env.json", "openscience-synced.json", syncedGcpFilename]) {
-      await fs.unlink(path.join(getSyncedConfigDir(), name)).catch(() => undefined)
-    }
-    for (const [key, value] of synced.entries()) unsetSyncedVar(key, value)
-    syncedSecretValues.clear()
-  }
-
-  /**
-   * Sign out locally: remove the session file and every credential artifact
-   * the sync path created. Without this, `synced-env.json` is replayed into
-   * process.env on every boot (preload-env.ts) and the still-valid managed
-   * key keeps debiting the signed-out account's wallet. Covers both explicit
-   * logout and the 401-triggered clear. Best-effort; never throws.
-   */
-  export async function clearSession(expectedApiKey?: string): Promise<boolean> {
-    const clear = async () => {
-      // Remove the synced credential artifacts FIRST, then delete the session file
-      // LAST. A crash after unlinking the session but before removing
-      // synced-env.json would otherwise leave preload-env.ts replaying the managed
-      // key into process.env on the next boot — the signed-out account's wallet
-      // kept being debited, the exact thing this function exists to prevent.
-      await clearSyncedCredentialArtifacts()
-      await dropUsageQueue()
-      await resetTelemetryAccountSession()
-      cachedProfile = undefined
-      invalidateResearchEntitlements()
-      invalidateBalance()
-      // Session file last, once the managed-key-replaying artifacts are gone.
-      try {
-        await fs.unlink(filepath)
-      } catch {}
-      return true
-    }
-    const cleared =
-      expectedApiKey === undefined
-        ? await CredentialLifecycle.mutate("managed-session.clear", clear)
-        : (
-            await CredentialLifecycle.mutateIf(
-              "managed-session.clear",
-              async () => (await getSession())?.api_key === expectedApiKey,
-              clear,
-            )
-          ).applied
-    // The raw account credential is gone before this request runs. A pending
-    // opt-out can therefore carry only its fixed-target deletion capability,
-    // including after a server 401 revoked the original key.
-    if (cleared) await retryPendingTelemetryConsent().catch(() => false)
-    return cleared
-  }
-
-  /**
-   * Best-effort server-side revocation of THIS device's key, for logout paths.
-   * The session stores only the raw api_key (never its key_id), so the device
-   * is identified by a unique `key_prefix` match against the devices list —
-   * when zero or several devices match, we skip rather than guess. Call
-   * BEFORE clearSession(); returns whether the key was revoked.
-   */
-  export async function revokeCurrentDevice(): Promise<boolean> {
-    try {
-      const session = await getSession()
-      if (!session) return false
-      const devices = await listDevices()
-      if (!devices) return false
-      const matches = devices.filter(
-        (d) => d.key_prefix.length > "thk_".length && session.api_key.startsWith(d.key_prefix),
-      )
-      if (matches.length !== 1) return false
-      return await revokeDevice(matches[0].key_id)
-    } catch {
-      return false
-    }
-  }
-
   export async function isAuthenticated(): Promise<boolean> {
-    const session = await getSession()
-    return session !== null
+    return (await getSession()) !== null
   }
 
-  /** User-facing dashboard page where keys + billing live. Printed as the
-   *  fallback when a browser/loopback login can't be used (headless/CI). */
+  export function deviceName(): string {
+    let host = "device"
+    try {
+      host = os.hostname().split(".")[0] || host
+    } catch {}
+    return `openscience · ${process.platform} · ${host}`
+  }
+
   export function authPageUrl(): string {
-    return VERIFICATION_PAGE
+    return verificationPage()
   }
 
-  /** Minimal pages shown in the browser after it redirects back to our
-   *  loopback callback. Inlined so login carries no asset dependencies. */
+  export async function getFundingSnapshot(): Promise<FundingSnapshot | null> {
+    const session = await getSession()
+    if (!session) return null
+    return Object.freeze({
+      api_key: session.api_key,
+      user_id: session.user_id,
+      account: accountTag(session),
+      ...(session.organization_id ? { organization_id: session.organization_id } : {}),
+      ...(session.workspace_locked ? { workspace_locked: true } : {}),
+    })
+  }
+
+  /** The funding snapshot a managed request charges against. A scoped session
+   * is served from the local session file with no account read; only a legacy
+   * unscoped session still needs the status read to learn its workspace before
+   * dispatch. Authorization is proved per request instead: the balance check
+   * and every spend-capable response must echo this exact funding context. */
+  export async function getRequestSnapshot(options: { signal?: AbortSignal } = {}): Promise<FundingSnapshot | null> {
+    const snapshot = await getFundingSnapshot()
+    if (!snapshot) return null
+    if (!isLegacyUnscoped(snapshot)) return snapshot
+    return (await getReconciledFundingState(options))?.snapshot ?? null
+  }
+
+  export async function managedRequestSnapshot(
+    apiKey?: string,
+    snapshot?: FundingSnapshot | null,
+  ): Promise<FundingSnapshot> {
+    if (!apiKey || !isAtlasManagedKey(apiKey)) throw new FundingContextError("Expected an Atlas managed API key.")
+    const selected = await (async () => {
+      // Without a caller snapshot, resolve it the way getRequestSnapshot does:
+      // a scoped session comes from the local session file, and only a legacy
+      // unscoped one needs the status read. Reconciling every managed request
+      // put an Ace round trip in front of each model call for no added check;
+      // the gateway still proves the funding context on the response.
+      if (!snapshot) return (await getRequestSnapshot()) ?? undefined
+      if (!isLegacyUnscoped(snapshot)) return snapshot
+      const state = await getReconciledFundingState()
+      if (state?.snapshot.api_key !== snapshot.api_key) return
+      return state.snapshot
+    })()
+    if (selected) {
+      if (selected.api_key !== apiKey) {
+        throw new FundingContextError("The connected account changed during managed inference. Retry it.")
+      }
+      const current = await getFundingSnapshot()
+      if (!current && existsSync(SESSION_PATH)) {
+        throw new FundingContextError("OpenScience could not safely read the selected funding account. Sign in again.")
+      }
+      if (
+        current &&
+        (current.api_key !== selected.api_key ||
+          current.user_id !== selected.user_id ||
+          current.organization_id !== selected.organization_id ||
+          current.workspace_locked !== selected.workspace_locked)
+      ) {
+        throw new FundingContextError("The connected account changed during managed inference. Retry it.")
+      }
+      return selected
+    }
+    throw new FundingContextError("OpenScience could not safely read the selected funding account. Sign in again.")
+  }
+
+  export function fundingHeaders(snapshot: Pick<FundingSnapshot, "organization_id">): Record<string, string> {
+    return {
+      [FUNDING_PROTOCOL_HEADER]: FUNDING_PROTOCOL,
+      ...(snapshot.organization_id ? { "X-Organization-ID": snapshot.organization_id } : {}),
+    }
+  }
+
+  export async function validateFundingResponse(
+    response: Response,
+    snapshot?: Pick<FundingSnapshot, "api_key" | "organization_id">,
+  ): Promise<Response> {
+    if (!snapshot || !response.ok) return response
+    const protocol = response.headers.get(FUNDING_PROTOCOL_HEADER)
+    const context = response.headers.get(FUNDING_CONTEXT_HEADER)
+    if (!snapshot.organization_id && protocol === FUNDING_PROTOCOL && context === "personal") return response
+    if (
+      snapshot.organization_id &&
+      isAtlasManagedKey(snapshot.api_key) &&
+      protocol === FUNDING_PROTOCOL &&
+      context === `organization:${snapshot.organization_id}`
+    ) {
+      return response
+    }
+    await response.body?.cancel().catch(() => undefined)
+    throw new FundingContextError("OpenScience could not verify the selected workspace with the gateway.")
+  }
+
+  export type SyncStatus = {
+    state: "disconnected" | "syncing" | "ready" | "error"
+    organization_id?: string
+    synced_at?: number
+    error?: string
+  }
+  const syncs = new Map<string, Promise<SyncStatus>>()
+  const attempts = new Map<string, number>()
+  let syncGeneration = 0
+  let synced: SyncStatus = { state: "disconnected" }
+  let syncTimer: ReturnType<typeof setInterval> | undefined
+  /** Renewal cadence for the synced overlay. The grant lives
+   * WorkspaceCredentials.TTL (5 min); a refresh every 4 min meant one failed
+   * attempt (a saturated link during a large download, a transient 5xx) let
+   * the grant lapse before the next tick. Refresh at under a third of the TTL
+   * and retry a failure with short backoff, all inside one TTL. */
+  export const SYNC_INTERVAL = 90_000
+  export const SYNC_BACKOFF: readonly number[] = [5_000, 15_000, 30_000]
+  /** A tick reads only the server's digest of the payload and renews the
+   * cached grant when it is unchanged; the full payload is fetched when the
+   * digest moved, when it is unknown, or at least this often regardless. */
+  export const SYNC_FULL_INTERVAL = 5 * 60_000
+  const digests = new Map<string, { version: number; at: number }>()
+
+  function invalidateCredentialSync(): void {
+    // A reconnect may reuse the same key. Its retries, pending requests and
+    // dedupe state still belong to a different sign-in lifetime.
+    syncGeneration++
+    syncs.clear()
+    attempts.clear()
+    digests.clear()
+    synced = { state: "disconnected" }
+  }
+
+  export function credentialSyncStatus(): SyncStatus {
+    return synced
+  }
+
+  /** The server's digest of this workspace's credential payload, or undefined
+   * when it could not be read; the full sync then decides what happened. */
+  async function probeSyncVersion(
+    session: OpenScienceSession,
+    headers: Record<string, string>,
+    signal: AbortSignal,
+  ): Promise<number | undefined> {
+    const response = await fetchWithFreshConnection(`${apiBase()}/api/cli/sync/version`, { headers, signal }).catch(
+      () => undefined,
+    )
+    if (!response) return
+    if (!response.ok) {
+      await response.body?.cancel().catch(() => undefined)
+      return
+    }
+    const context = response.headers.get(FUNDING_CONTEXT_HEADER)
+    if (context && session.organization_id && context !== `organization:${session.organization_id}`) return
+    const body: unknown = await response.json().catch(() => undefined)
+    const value =
+      typeof body === "number"
+        ? body
+        : body && typeof body === "object"
+          ? ((body as Record<string, unknown>).v ??
+            (body as Record<string, unknown>).version ??
+            (body as Record<string, unknown>).digest ??
+            (body as Record<string, unknown>).sync_version)
+          : undefined
+    if (typeof value === "number" && Number.isInteger(value)) return value
+    if (typeof value === "string" && /^-?\d{1,10}$/.test(value)) return Number(value)
+  }
+
+  /** Extend the cached grant after the server confirmed its payload is
+   * unchanged. False when no live grant is stored, so a full sync follows. */
+  async function renewGrant(identity: string, generation: number): Promise<boolean> {
+    const result = await CredentialLifecycle.update(async () => {
+      const current = await getSession()
+      if (generation !== syncGeneration || !current || WorkspaceCredentials.identity(current) !== identity) return
+      return { action: () => WorkspaceCredentials.renew(current) }
+    })
+    return result.applied && result.value
+  }
+
+  export async function syncCredentials(options: { force?: boolean; timeoutMs?: number } = {}): Promise<SyncStatus> {
+    const generation = syncGeneration
+    const session = await getSession()
+    if (generation !== syncGeneration) return synced
+    if (!session) return (synced = { state: "disconnected" })
+    const identity = WorkspaceCredentials.identity(session)
+    const identities = new Set([identity])
+    const pending = syncs.get(identity)
+    if (pending) return pending
+    if (!options.force && Date.now() - (attempts.get(identity) ?? 0) < 60_000) return synced
+    attempts.set(identity, Date.now())
+    const task = (async (): Promise<SyncStatus> => {
+      synced = { state: "syncing" }
+      const controller = new AbortController()
+      let timer: ReturnType<typeof setTimeout> | undefined
+      const seen: { status?: number } = {}
+      const headers = { Authorization: `Bearer ${session.api_key}`, ...fundingHeaders(session) }
+      const deadline = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          controller.abort()
+          reject(new Error("Credential sync timed out. Retry when connected."))
+          // Background work on a 90 s tick: the account service has taken
+          // 8–12 s on slow afternoons, and a cap below that flapped the
+          // Settings indicator to "error" every minute. Match the wallet read.
+        }, options.timeoutMs ?? 15_000)
+      })
+      try {
+        const version = options.force
+          ? undefined
+          : await Promise.race([probeSyncVersion(session, headers, controller.signal), deadline])
+        if (generation !== syncGeneration) return synced
+        const known = digests.get(identity)
+        if (
+          !options.force &&
+          version !== undefined &&
+          known?.version === version &&
+          Date.now() - known.at < SYNC_FULL_INTERVAL &&
+          (await renewGrant(identity, generation))
+        )
+          return generation !== syncGeneration
+            ? synced
+            : (synced = { state: "ready", organization_id: session.organization_id, synced_at: Date.now() })
+        if (generation !== syncGeneration) return synced
+        const result = await Promise.race([
+          (async () => {
+            const response = await fetchWithFreshConnection(`${apiBase()}/api/cli/sync`, {
+              headers,
+              signal: controller.signal,
+            })
+            if (!response.ok) return { response }
+            return { response, body: await response.json() }
+          })(),
+          deadline,
+        ])
+        if (generation !== syncGeneration) return synced
+        seen.status = result.response.status
+        if (result.response.status === 401) {
+          if (!(await clearSession(session.api_key, generation))) return synced
+          const failure: SyncStatus = { state: "error", error: "This device was disconnected. Sign in again." }
+          if (syncGeneration === generation + 1) synced = failure
+          return failure
+        }
+        if (result.response.status === 403) {
+          await CredentialLifecycle.mutateIf(
+            "workspace-sync.denied",
+            async () => {
+              const current = await getSession()
+              return generation === syncGeneration && !!current && WorkspaceCredentials.identity(current) === identity
+            },
+            () => WorkspaceCredentials.clear(),
+          )
+          throw new Error("Workspace credential access changed. Reconnect or choose an available workspace.")
+        }
+        if (!result.response.ok) throw new Error(`Credential sync unavailable (${result.response.status}). Try again.`)
+        const data = WorkspaceCredentials.parse(result.body)
+        if (
+          result.response.headers.get(FUNDING_PROTOCOL_HEADER) !== FUNDING_PROTOCOL ||
+          result.response.headers.get(FUNDING_CONTEXT_HEADER) !== `organization:${data.snapshot.organization_id}` ||
+          (session.organization_id && session.organization_id !== data.snapshot.organization_id) ||
+          (session.user_id && session.user_id !== data.user_id)
+        ) {
+          throw new FundingContextError("Credential sync could not verify the selected workspace. Sign in again.")
+        }
+        const scoped = await reconcileSession(session, data.snapshot.organization_id, data.user_id, generation)
+        if (!scoped || generation !== syncGeneration) return synced
+        const target = WorkspaceCredentials.identity(scoped)
+        identities.add(target)
+        attempts.set(target, attempts.get(identity) ?? Date.now())
+        const matches = async () => {
+          const current = await getSession()
+          return generation === syncGeneration && !!current && WorkspaceCredentials.identity(current) === target
+        }
+        const applied = await CredentialLifecycle.update(async () => {
+          if (!(await matches())) return
+          const change = WorkspaceCredentials.change(await WorkspaceCredentials.read(), data.snapshot)
+          return {
+            reason:
+              change === "unchanged"
+                ? undefined
+                : change === "renew"
+                  ? "workspace-sync.renew"
+                  : "workspace-sync.update",
+            action: async () => {
+              await WorkspaceCredentials.write(scoped, data.snapshot)
+              return change
+            },
+          }
+        })
+        if (!applied.applied) return synced
+        if (applied.value !== "unchanged") {
+          await reloadSyncedEnv()
+          const { Provider } = await import("@/provider/provider")
+          Provider.invalidate()
+        }
+        if (!(await matches()) || generation !== syncGeneration) return synced
+        // The digest read before this payload names it closely enough: a
+        // change in between shows up as a moved digest on the next tick.
+        if (version !== undefined) digests.set(target, { version, at: Date.now() })
+        // A forced or unversioned read cannot validate the previous digest.
+        else digests.delete(target)
+        return (synced = { state: "ready", organization_id: data.snapshot.organization_id, synced_at: Date.now() })
+      } catch (error) {
+        // A silent failure here is how a grant lapses unnoticed: name the
+        // status and error class so the next expiry is diagnosable.
+        log.warn("workspace credential sync failed", {
+          status: seen.status,
+          error: error instanceof Error ? error.name : typeof error,
+          code: (error as { code?: unknown } | undefined)?.code,
+          message: error instanceof Error ? error.message : String(error),
+          expires_at: WorkspaceCredentials.expiresAt(),
+        })
+        const current = await getSession()
+        if (generation !== syncGeneration) return synced
+        if (current && !identities.has(WorkspaceCredentials.identity(current))) return synced
+        return (synced = {
+          state: "error",
+          error: error instanceof Error ? error.message : "Credential sync failed. Try again.",
+        })
+      } finally {
+        if (timer) clearTimeout(timer)
+        if (generation === syncGeneration) syncs.delete(identity)
+      }
+    })()
+    syncs.set(identity, task)
+    return task
+  }
+
+  function pause(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms).unref())
+  }
+
+  /** Refresh the synced overlay, retrying a failed attempt with short backoff
+   * so one transient failure is retried well before the grant's TTL elapses.
+   * An unforced first attempt inside syncCredentials' one-minute dedupe
+   * window does not request anything and returns the current status; when
+   * that status is a prior error, the forced retry chain starts from it.
+   * Retries are always forced. */
+  export async function scheduleRefresh(
+    options: { backoff?: readonly number[]; force?: boolean } = {},
+  ): Promise<SyncStatus> {
+    const generation = syncGeneration
+    const backoff = options.backoff ?? SYNC_BACKOFF
+    const attempt = async (index: number, force: boolean): Promise<SyncStatus> => {
+      if (generation !== syncGeneration) return synced
+      const result = await syncCredentials({ force })
+      if (generation !== syncGeneration) return synced
+      if (result.state !== "error") return result
+      const delay = backoff[index]
+      const expires = WorkspaceCredentials.expiresAt()
+      if (delay === undefined) {
+        log.error("workspace credential refresh exhausted its retries", {
+          error: result.error,
+          attempts: index + 1,
+          expires_at: expires,
+        })
+        return result
+      }
+      log.warn("workspace credential refresh failed; retrying", {
+        error: result.error,
+        retry_ms: delay,
+        remaining: backoff.length - index - 1,
+        expires_at: expires,
+      })
+      await pause(delay)
+      return attempt(index + 1, true)
+    }
+    return attempt(0, options.force ?? false)
+  }
+
+  export function startCredentialSync(): void {
+    if (syncTimer) return
+    void scheduleRefresh()
+    syncTimer = setInterval(() => void scheduleRefresh(), SYNC_INTERVAL)
+    syncTimer.unref()
+  }
+
+  export async function reloadSyncedEnv(): Promise<void> {
+    const { applyCredentialEnv } = await import("../server/routes/settings/credentials")
+    await applyCredentialEnv({ strict: true })
+  }
+
   const CALLBACK_SUCCESS_HTML =
     "<!doctype html><meta charset=utf-8><title>OpenScience</title>" +
     '<body style="font-family:system-ui,sans-serif;background:#0b0b12;color:#eee;display:grid;place-items:center;height:100vh;margin:0">' +
-    "<div style=text-align:center><h1 style=color:#4ade80>Login complete</h1>" +
-    "<p style=color:#9aa>You're signed in to the OpenScience CLI. You can close this tab.</p></div>" +
-    "<script>setTimeout(()=>window.close(),1500)</script>"
-
+    '<div style="text-align:center"><h1>Device approved</h1><p>Return to OpenScience to finish connecting your workspace.</p></div>'
   const CALLBACK_ERROR_HTML =
     "<!doctype html><meta charset=utf-8><title>OpenScience</title>" +
     '<body style="font-family:system-ui,sans-serif;background:#0b0b12;color:#eee;display:grid;place-items:center;height:100vh;margin:0">' +
-    "<div style=text-align:center><h1 style=color:#f87171>Login failed</h1>" +
-    "<p style=color:#9aa>The callback could not be verified. Return to your terminal and try again.</p></div>"
+    '<div style="text-align:center"><h1>Login failed</h1><p>Return to OpenScience and try again.</p></div>'
 
-  /** Spin up an ephemeral loopback server that waits for the browser to
-   *  redirect back with the approved exchange token. Uses a random port, a
-   *  ``/callback`` path, and a strict ``state`` check to defeat CSRF. */
-  function startCallbackServer(expectedState: string): {
-    port: number
-    done: Promise<{ exchange_token: string }>
-    stop: () => void
-  } {
+  function startCallbackServer(expectedState: string) {
     let resolve!: (value: { exchange_token: string }) => void
     let reject!: (error: Error) => void
     const done = new Promise<{ exchange_token: string }>((res, rej) => {
@@ -871,439 +1091,450 @@ export namespace OpenScience {
     const server = Bun.serve({
       port: 0,
       hostname: "127.0.0.1",
-      fetch(req) {
-        const url = new URL(req.url)
+      fetch(request) {
+        const url = new URL(request.url)
         if (url.pathname !== "/callback") return new Response("Not found", { status: 404 })
         const state = url.searchParams.get("state") ?? ""
         const token = url.searchParams.get("exchange_token") ?? ""
         if (state !== expectedState || !token) {
           reject(new Error("Browser login failed: callback state mismatch."))
-          return new Response(CALLBACK_ERROR_HTML, {
-            status: 400,
-            headers: { "Content-Type": "text/html" },
-          })
+          return new Response(CALLBACK_ERROR_HTML, { status: 400, headers: { "Content-Type": "text/html" } })
         }
         resolve({ exchange_token: token })
-        return new Response(CALLBACK_SUCCESS_HTML, {
-          headers: { "Content-Type": "text/html" },
-        })
+        return new Response(CALLBACK_SUCCESS_HTML, { headers: { "Content-Type": "text/html" } })
       },
     })
     return { port: server.port!, done, stop: () => server.stop(true) }
   }
 
-  /** Build a readable error from a failed login HTTP call. The retired
-   *  endpoints answer 426 — translate that into an upgrade nudge. */
-  async function loginError(res: Response, phase: string): Promise<string> {
-    if (res.status === 426) {
-      return "This OpenScience version is out of date. Run `openscience upgrade` (or `npm i -g @synsci/openscience@latest`) and try again."
-    }
-    const detail = await res.text().catch(() => "")
-    const trimmed = detail.trim().slice(0, 200)
-    return `Login ${phase} failed: HTTP ${res.status}${trimmed ? ` — ${trimmed}` : ""}`
+  async function loginError(response: Response, phase: string): Promise<string> {
+    if (response.status === 426) return "This OpenScience version is out of date. Update it and try again."
+    const detail = (await response.text().catch(() => "")).trim().slice(0, 200)
+    return `Login ${phase} failed: HTTP ${response.status}${detail ? ` — ${detail}` : ""}`
   }
 
-  /** Browser login: open the approval URL, capture the redirect on a
-   *  loopback server, then exchange it for a long-lived ``thk_`` key.
-   *  Endpoints: ``POST /api/v1/auth/cli/browser/{start,redeem}``. */
   export async function browserLogin(opts?: {
     onApprovalUrl?: (url: string) => void
     timeoutMs?: number
+    organizationID?: string
   }): Promise<OpenScienceSession> {
     const state = randomUUID()
     const name = deviceName()
     const callback = startCallbackServer(state)
     const redirectUri = `http://127.0.0.1:${callback.port}/callback`
-
     let timer: ReturnType<typeof setTimeout> | undefined
     try {
-      const startRes = await atlasFetch(`${API_BASE}/api/v1/auth/cli/browser/start`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ state, redirect_uri: redirectUri, name }),
-      })
-      if (!startRes.ok) throw new Error(await loginError(startRes, "start"))
-      const started = await startRes.json()
-      const approvalUrl: string | undefined = started.approval_url
-      if (!approvalUrl) throw new Error("Login start did not return an approval URL.")
-
-      opts?.onApprovalUrl?.(approvalUrl)
-
-      const timeoutMs = opts?.timeoutMs ?? 300_000
-      const result = await Promise.race([
-        callback.done,
-        new Promise<never>((_, rej) => {
-          timer = setTimeout(() => rej(new Error("Timed out waiting for browser authorization.")), timeoutMs)
-        }),
-      ])
-
-      const redeemRes = await atlasFetch(`${API_BASE}/api/v1/auth/cli/browser/redeem`, {
+      const start = await atlasFetch(`${apiBase()}/api/v1/auth/cli/browser/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           state,
-          exchange_token: result.exchange_token,
           redirect_uri: redirectUri,
+          name,
+          ...(opts?.organizationID ? { organization_id: opts.organizationID } : {}),
         }),
       })
-      if (!redeemRes.ok) throw new Error(await loginError(redeemRes, "redeem"))
-      const redeemed = await redeemRes.json()
-      const key = redeemed.api_key || redeemed.key
-      if (!key) throw new Error("Login did not return an API key.")
-
+      if (!start.ok) throw new Error(await loginError(start, "start"))
+      const started = (await start.json()) as { approval_url?: unknown }
+      if (typeof started.approval_url !== "string" || !started.approval_url) {
+        throw new Error("Login start did not return an approval URL.")
+      }
+      opts?.onApprovalUrl?.(started.approval_url)
+      const result = await Promise.race([
+        callback.done,
+        new Promise<never>((_, rejectTimeout) => {
+          timer = setTimeout(
+            () => rejectTimeout(new Error("Timed out waiting for browser authorization.")),
+            opts?.timeoutMs ?? 300_000,
+          )
+        }),
+      ])
+      const redeem = await atlasFetch(`${apiBase()}/api/v1/auth/cli/browser/redeem`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ state, exchange_token: result.exchange_token, redirect_uri: redirectUri }),
+      })
+      if (!redeem.ok) throw new Error(await loginError(redeem, "redeem"))
+      const body = (await redeem.json()) as {
+        api_key?: unknown
+        key?: unknown
+        organization_id?: unknown
+        workspace_locked?: unknown
+        user_id?: unknown
+        user?: AccountProfile & { id?: unknown }
+      }
+      const key = body.api_key ?? body.key
+      if (!isAccountKey(key)) throw new Error("Login did not return a valid OpenScience API key.")
+      const organizationID = loginOrganizationID(body.organization_id)
+      const identity = body.user?.user_id ?? body.user?.id ?? body.user_id
       const session: OpenScienceSession = {
         api_key: key,
-        user_id: redeemed.user?.id || redeemed.user_id || "",
+        user_id: typeof identity === "string" ? identity : "",
         device_name: name,
+        ...(organizationID ? { organization_id: organizationID } : {}),
+        ...(body.workspace_locked === true || organizationID ? { workspace_locked: true } : {}),
       }
-      await saveSession(session)
-      return session
+      return activateSession(session)
     } finally {
       if (timer) clearTimeout(timer)
       callback.stop()
     }
   }
 
-  /** Headless / CI login: validate a pasted ``thk_`` key and persist it.
-   *  Used when no local browser + loopback callback is available. */
-  export async function loginWithKey(rawKey: string): Promise<OpenScienceSession> {
-    const key = rawKey.trim()
-    if (!key.startsWith("thk_")) {
-      throw new Error("Expected an API key starting with `thk_`.")
-    }
-    const res = await atlasFetch(`${API_BASE}/api/cli/balance`, {
-      headers: { Authorization: `Bearer ${key}` },
-    })
-    if (res.status === 401 || res.status === 403) {
-      throw new Error("That key was rejected. Double-check it and try again.")
-    }
-    if (!res.ok) {
-      throw new Error(`Could not validate key: HTTP ${res.status}`)
-    }
-    // Balance is the compatibility validation endpoint. A best-effort sync
-    // read additionally gives modern Gateway deployments' canonical user id,
-    // avoiding legacy empty-id sessions while preserving older deployments.
-    const profile = await atlasFetch(`${API_BASE}/api/cli/sync`, {
-      headers: { Authorization: `Bearer ${key}` },
-    })
-      .then(async (response) => (response.ok ? ((await response.json()) as SyncResponse) : undefined))
-      .catch(() => undefined)
-    const session: OpenScienceSession = {
-      api_key: key,
-      user_id: profile?.user?.user_id || "",
-      device_name: deviceName(),
-    }
-    await saveSession(session)
-    return session
+  function readAuthStatus(
+    session: FundingSnapshot | OpenScienceSession,
+    signal?: AbortSignal,
+  ): Promise<AuthStatus | null> {
+    return share(flightKey("status", session), (flight) => fetchAuthStatus(session, flight), signal)
   }
 
-  /** Write a file atomically (temp + rename) so a crash mid-write can never
-   *  leave a torn file — a torn synced-env.json silently drops managed keys, and
-   *  a torn openscience-synced.json throws during config load and bricks the CLI
-   *  until it's removed by hand. */
-  async function atomicWrite(filepath: string, content: string, options?: { mode?: number }): Promise<void> {
-    await using operation = await DataRootBarrier.enter(filepath)
-    // Unique per call (not just per PID): two concurrent syncs in the SAME
-    // process (e.g. a per-request /sync and the processor's background sync)
-    // would otherwise write the identical temp path, interleave, and publish a
-    // torn file or fail the rename.
-    const tmp = `${filepath}.${process.pid}.${randomUUID()}.tmp`
-    await fs.mkdir(path.dirname(filepath), { recursive: true })
+  async function fetchAuthStatus(
+    session: FundingSnapshot | OpenScienceSession,
+    signal: AbortSignal,
+  ): Promise<AuthStatus | null> {
     try {
-      const handle = await fs.open(tmp, "wx", options?.mode ?? 0o600)
-      await handle
-        .writeFile(content, "utf8")
-        .then(() =>
-          options?.mode !== undefined && process.platform !== "win32" ? handle.chmod(options.mode) : undefined,
-        )
-        .then(() => handle.sync())
-        .finally(() => handle.close())
-      await fs.rename(tmp, filepath)
-      const directory = await fs.open(path.dirname(filepath), "r").catch(() => undefined)
-      await directory?.sync().catch(() => undefined)
-      await directory?.close().catch(() => undefined)
-    } catch (error) {
-      await fs.rm(tmp, { force: true }).catch(() => undefined)
-      throw error
-    }
-  }
-
-  /** Fetch all connected service credentials and inject as env vars. */
-  export async function syncServices(options: { reconcileLocal?: boolean } = {}): Promise<{
-    user: SyncResponse["user"]
-    credentials: number
-  } | null> {
-    const session = await getSession()
-    if (!session) return null
-
-    try {
-      const res = await authenticatedAtlasFetch(session, `${API_BASE}/api/cli/sync`, {
-        headers: { Authorization: `Bearer ${session.api_key}` },
-      })
-
-      if (!res.ok) {
-        if (res.status === 401) return null
-        if (res.status === 403) {
-          // 403s also come from WAFs and rate limiters, not just key
-          // revocation. Destroying the session on one silently signed the
-          // user out; keep it and let the next sync retry. A genuinely
-          // revoked key comes back as 401.
-          log.warn("sync got 403, keeping session")
-          return null
-        }
-        if (res.status === 402) {
-          // Legacy Atlas deployments can report wallet eligibility here. Keep
-          // the valid session: local and dashboard-saved BYOK remain free.
-          log.warn("Synthetic Sciences wallet unavailable - BYOK remains available without wallet billing")
-          return null
-        }
-        log.warn("sync failed", { status: res.status })
+      // Auth status is the sole legacy reconciliation read allowed to accept an
+      // organization echo before the old unscoped session has been repaired.
+      // Every spend-capable request uses validateFundingResponse's exact scope.
+      const response = await accountAtlasFetch(
+        session,
+        `${apiBase()}/api/v1/auth/status`,
+        { headers: { Accept: "application/json" }, signal },
+        true,
+      )
+      if (!response.ok) return null
+      const body = (await response.json()) as AuthStatusResponse
+      const selected = body.funding_context?.type === "organization" ? body.funding_context.organization_id : undefined
+      const pinned = loginOrganizationID(body.api_key?.organization_id ?? selected)
+      if (body.api_key?.organization_id && selected && body.api_key.organization_id !== selected) return null
+      if (body.funding_context?.type === "personal" && pinned) return null
+      const legacy = isLegacyUnscoped(session)
+      const user = typeof body.user?.user_id === "string" && body.user.user_id ? body.user.user_id : undefined
+      if (session.user_id && user !== session.user_id) return null
+      if (!legacy && (!session.user_id || !user || user !== session.user_id)) return null
+      if (!legacy && pinned !== session.organization_id) return null
+      if (!legacy && session.organization_id && selected !== session.organization_id) return null
+      if (!legacy && !session.organization_id && body.funding_context?.type !== "personal") return null
+      const expected = legacy
+        ? pinned
+          ? `organization:${pinned}`
+          : "personal"
+        : session.organization_id
+          ? `organization:${session.organization_id}`
+          : "personal"
+      if (
+        response.headers.get(FUNDING_PROTOCOL_HEADER) !== FUNDING_PROTOCOL ||
+        response.headers.get(FUNDING_CONTEXT_HEADER) !== expected
+      ) {
         return null
       }
-
-      const data: SyncResponse = await res.json()
-      cachedProfile = data.user
-      // Count distinct credential VALUES, ignoring *_BASE_URL routing config.
-      // Many providers broadcast the same managed thk_* under several env-var
-      // names (ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY / ...) —
-      // those are one credential, not four.
-
-      // Rebuild the synced snapshot from THIS response only. Accumulating
-      // across syncs meant a provider disconnected (or a key rotated) on the
-      // dashboard stayed live in the CLI forever.
-      const fresh = new Map<string, string>()
-      for (const [, svc] of Object.entries(data.services)) {
-        if (svc.connected && svc.env) {
-          for (const [key, value] of Object.entries(svc.env)) {
-            if (value) fresh.set(key, value)
-          }
-        }
+      return {
+        organizations: organizations(body.organizations ?? body.available_organizations),
+        pinned,
+        locked: body.api_key?.workspace_locked === true || body.funding_context?.locked === true || !!pinned,
+        context: body.funding_context,
+        user: body.user,
       }
-
-      return await CredentialLifecycle.mutate(
-        "managed-services.sync",
-        async () => {
-          const current = await getSession()
-          if (!current || current.api_key !== session.api_key) {
-            throw new Error("Managed session changed while services were syncing; discarded the stale response")
-          }
-          // Retired releases materialized an Atlas-delivered GCP service account.
-          // Account sync no longer distributes any compute credential, so remove
-          // that legacy artifact and filter the response before applying it.
-          const gcpFile = path.join(getSyncedConfigDir(), syncedGcpFilename)
-          await fs.unlink(gcpFile).catch(() => {})
-
-          // Keep user-owned provider keys and the narrow OpenRouter managed route.
-          // The policy rejects account-synced compute credentials, direct-provider
-          // proxy tokens, and untrusted provider base URLs before anything is
-          // applied or persisted.
-          for (const [key, value] of [...fresh.entries()]) {
-            if (!isSyncedEnvAllowed(key, value)) fresh.delete(key)
-          }
-
-          // Older Atlas sync responses can carry only OPENROUTER_API_KEY=thk_*.
-          // Managed OpenRouter must also carry the Atlas proxy baseURL; otherwise
-          // provider init correctly refuses to send a wallet token to public
-          // openrouter.ai and the UI shows ProviderInitError.
-          const openrouterKey = fresh.get("OPENROUTER_API_KEY")
-          if (isManagedAtlasKey(openrouterKey ?? "") && !fresh.has("OPENROUTER_BASE_URL")) {
-            fresh.set("OPENROUTER_BASE_URL", managedOpenRouterBaseURL())
-          }
-
-          // Count distinct APPLIED credential values (post-filter, ignoring routing
-          // *_BASE_URL vars) so the returned total reflects what the CLI honours —
-          // never the credentials that were dropped above.
-          const credentials = new Set(
-            [...fresh.entries()].filter(([key]) => !key.endsWith("_BASE_URL")).map(([, value]) => value),
-          ).size
-
-          // Portable compute connections are structured account data, not
-          // ambient subprocess variables. Reconcile them into the same local
-          // encrypted stores used by Settings so dashboard and Customize stay
-          // truthful without ever exposing Modal control-plane tokens to an
-          // agent shell.
-          const portable = data.portable_credentials ?? {}
-          await Promise.all([
-            import("../server/routes/settings/credentials").then((module) =>
-              module.reconcileAccountCredentialFields(portable),
-            ),
-            import("../server/routes/settings/compute").then((module) =>
-              module.ComputeSettings.reconcileAccountProviders(portable),
-            ),
-          ])
-
-          // Unset previously-synced vars that are absent from the new response —
-          // mirrors the ownedKeys cleanup in server/routes/settings/credentials.ts.
-          // "Previously synced" is the union of this process's map and the on-disk
-          // snapshot preload-env.ts replayed at boot; a var is only removed when
-          // its live value still matches, so shell exports survive.
-          const previous = await readSyncedSnapshot()
-          for (const [key, value] of syncedSecretValues.entries()) previous.set(key, value)
-          for (const [key, value] of previous.entries()) {
-            if (fresh.has(key)) continue
-            unsetSyncedVar(key, value)
-          }
-          syncedSecretValues.clear()
-          for (const [key, value] of fresh.entries()) {
-            // Respect precedence: never clobber a user's own shell export or BYOK
-            // value. Only write the synced value when the slot is empty or already
-            // holds a previously-synced value — mirroring preload-env.ts's "shell
-            // exports win". Without this, a background sync could overwrite an
-            // exported ANTHROPIC_API_KEY with a managed thk_ key mid-session,
-            // silently turning a free BYOK call into a billed managed one.
-            const current = process.env[key]
-            const ownsSlot = !current || previous.get(key) === current || current === value
-            if (ownsSlot) {
-              try {
-                Env.set(key, value)
-              } catch {
-                /* Instance not initialized */
-              }
-              process.env[key] = value
-            }
-            // Track the synced value regardless (for redaction + later cleanup). A
-            // shadowing shell export is left untouched by the unset pass above, which
-            // only removes a var whose live value still equals the synced one.
-            syncedSecretValues.set(key, value)
-          }
-
-          // Write model lockdown config to managed config dir (highest priority config layer)
-          if (data.config) {
-            try {
-              const managedDir = getSyncedConfigDir()
-              await fs.mkdir(managedDir, { recursive: true })
-              await atomicWrite(
-                path.join(managedDir, "openscience-synced.json"),
-                JSON.stringify({ $schema: "https://syntheticsciences.ai/config.json", ...data.config }, null, 2),
-                { mode: 0o600 },
-              )
-              log.info("wrote managed config", { dir: managedDir })
-            } catch (e) {
-              log.warn("failed to write managed config", { error: e instanceof Error ? e.message : String(e) })
-            }
-          }
-
-          // Persist the synced env to disk so the NEXT CLI invocation can
-          // load it synchronously at module init (./preload-env.ts) — before
-          // any provider SDK reads process.env. Without this, the first call
-          // in a fresh process races: SDKs initialize empty, sync populates
-          // process.env too late.
-          try {
-            const managedDir = getSyncedConfigDir()
-            await fs.mkdir(managedDir, { recursive: true })
-            const envSnapshot: Record<string, string> = {}
-            for (const [k, v] of fresh.entries()) {
-              envSnapshot[k] = v
-            }
-            await atomicWrite(path.join(managedDir, "synced-env.json"), JSON.stringify(envSnapshot, null, 2), {
-              mode: 0o600,
-            })
-          } catch (e) {
-            log.warn("failed to persist synced env", { error: e instanceof Error ? e.message : String(e) })
-          }
-
-          log.info("synced services", {
-            services: Object.entries(data.services)
-              .filter(([, s]) => s.connected)
-              .map(([id]) => id),
-            credentials,
-          })
-
-          // Log disconnected providers that have a reason so users can diagnose
-          // BYOK/managed issues without opening the dashboard.
-          for (const [id, svc] of Object.entries(data.services)) {
-            if (!svc.connected && svc.reason) {
-              log.warn(describeReason(id, svc.reason))
-            }
-          }
-
-          // Compatibility only: older releases stored the third-party install
-          // ledger in Atlas. Import those records once after a successful login,
-          // then keep all skill state local forever.
-          void import("../skill/migrate")
-            .then((module) => module.SkillMigration.run())
-            .catch((error) => log.warn("legacy skill migration failed", { error: String(error) }))
-
-          return { user: data.user, credentials }
-        },
-        options,
-      )
-    } catch (e) {
-      log.warn("sync error", { error: e instanceof Error ? e.message : String(e) })
+    } catch {
       return null
     }
   }
 
-  /** Provider env var names whose values are user-owned secrets worth masking
-   *  when they leak into command output. Shares the single BYOK-provider source
-   *  of truth with the sync blocklist (synced-env-policy.ts) so a key the user
-   *  exported in their shell is redacted the same as a synced one. */
-  const BYOK_ENV_KEYS = BYOK_LLM_ENV_KEYS
+  export async function loginWithKey(rawKey: string): Promise<OpenScienceSession> {
+    const key = rawKey.trim()
+    if (!isAccountKey(key)) throw new Error("Expected an OpenScience API key starting with `thk_` or `osk_`.")
+    // Both reads need only the key, so they run together: one round trip to
+    // Ace instead of two. The probe's verdict is still checked first, so a
+    // rejected key reports as rejected whatever the status read returned.
+    const [probe, response] = await Promise.all([
+      atlasFetch(`${apiBase()}/api/cli/balance`, {
+        headers: { Authorization: `Bearer ${key}`, [FUNDING_PROTOCOL_HEADER]: FUNDING_PROTOCOL },
+      }),
+      atlasFetch(`${apiBase()}/api/v1/auth/status`, {
+        headers: {
+          Authorization: `Bearer ${key}`,
+          Accept: "application/json",
+          [FUNDING_PROTOCOL_HEADER]: FUNDING_PROTOCOL,
+        },
+      }).catch(() => undefined),
+    ])
+    const discard = () => response?.body?.cancel().catch(() => undefined)
+    await probe.body?.cancel().catch(() => undefined)
+    if (probe.status === 401 || probe.status === 403) {
+      await discard()
+      throw new Error("That key was rejected. Double-check it and try again.")
+    }
+    if (!probe.ok) {
+      await discard()
+      throw new Error(`Could not validate key: HTTP ${probe.status}`)
+    }
 
-  /** Populate the BYOK secret cache from auth.json (api-type keys) and the
-   *  user's provider env vars. Best-effort + idempotent; safe to call often.
-   *  Managed thk_* values are excluded (they are already redacted via the
-   *  synced set and are never the user's own credential). */
-  export async function refreshByokSecrets(env: NodeJS.ProcessEnv = process.env): Promise<void> {
-    try {
-      const auth = await Auth.all().catch(() => ({}) as Record<string, Auth.Info>)
-      for (const info of Object.values(auth)) {
-        const values =
-          info.type === "api"
-            ? [info.key]
-            : info.type === "oauth"
-              ? [info.access, info.refresh]
-              : [info.key, info.token]
-        for (const value of values) {
-          if (!value || isManagedAtlasKey(value)) continue
-          byokSecretValues.add(value)
+    // The status read is what tells this client which workspace the key is
+    // billed to; a session written without it would carry no user and never
+    // verify, so the login fails here instead of half-succeeding.
+    if (!response?.ok) {
+      throw new Error(
+        `Could not read the key's account (HTTP ${response?.status ?? "unreachable"}). Check your connection and try again.`,
+      )
+    }
+    const status = (await response.json()) as AuthStatusResponse
+    const selected =
+      status.funding_context?.type === "organization" ? status.funding_context.organization_id : undefined
+    const organizationID = loginOrganizationID(status.api_key?.organization_id ?? selected)
+    const locked =
+      status.api_key?.workspace_locked === true || status.funding_context?.locked === true || !!organizationID
+    if (isWorkspaceKey(key) && (!locked || !organizationID)) {
+      throw new Error("Couldn't verify this workspace key's organization. Check your connection and try again.")
+    }
+    const session: OpenScienceSession = {
+      api_key: key,
+      user_id: typeof status.user?.user_id === "string" ? status.user.user_id : "",
+      device_name: deviceName(),
+      origin: "key",
+      ...(organizationID ? { organization_id: organizationID } : {}),
+      ...(locked ? { workspace_locked: true } : {}),
+    }
+    return activateSession(session)
+  }
+
+  export async function getProfile(
+    snapshot?: FundingSnapshot,
+    options: { signal?: AbortSignal } = {},
+  ): Promise<AccountProfile | null> {
+    const session = snapshot ?? (await getFundingSnapshot())
+    if (!session) return null
+    return (
+      (await readAuthStatus(session, options.signal))?.user ?? (session.user_id ? { user_id: session.user_id } : null)
+    )
+  }
+
+  async function fundingContext(snapshot: FundingSnapshot, status: AuthStatus | null): Promise<FundingContext> {
+    if (status?.locked) {
+      const current = await getSession()
+      if (
+        isLegacyUnscoped(snapshot) &&
+        current?.api_key === snapshot.api_key &&
+        current.user_id === snapshot.user_id &&
+        current.organization_id === snapshot.organization_id &&
+        current.workspace_locked === snapshot.workspace_locked
+      ) {
+        await reconcileSession(
+          current,
+          status.pinned,
+          typeof status.user?.user_id === "string" ? status.user.user_id : "",
+        )
+      }
+      if (!status.pinned) {
+        return {
+          type: "personal",
+          available: !status.context || status.context.type === "personal",
+          locked: true,
+          organizations: status.organizations,
         }
       }
+      const row = status.organizations.find((item) => item.organization_id === status.pinned)
+      return {
+        type: "organization",
+        organization_id: status.pinned,
+        available:
+          organizationAvailable(row) &&
+          status.context?.type === "organization" &&
+          status.context.organization_id === status.pinned,
+        locked: true,
+        organizations: status.organizations,
+      }
+    }
+    if (snapshot.organization_id) {
+      const row = status?.organizations.find((item) => item.organization_id === snapshot.organization_id)
+      const echoed = status?.context
+      return {
+        type: "organization",
+        organization_id: snapshot.organization_id,
+        available:
+          organizationAvailable(row) &&
+          echoed?.type === "organization" &&
+          echoed.organization_id === snapshot.organization_id,
+        locked: snapshot.workspace_locked === true || status?.locked === true,
+        organizations: status?.organizations ?? [],
+      }
+    }
+    return {
+      type: "personal",
+      available: !status?.context || status.context.type === "personal",
+      locked: snapshot.workspace_locked === true || status?.locked === true,
+      organizations: status?.organizations ?? [],
+    }
+  }
+
+  export async function getFundingContext(
+    operation?: FundingSnapshot,
+    options: { signal?: AbortSignal } = {},
+  ): Promise<FundingContext> {
+    const snapshot = operation ?? (await getFundingSnapshot())
+    if (!snapshot) return { type: "personal", available: true, locked: false, organizations: [] }
+    return fundingContext(snapshot, await readAuthStatus(snapshot, options.signal))
+  }
+
+  export interface FundingState {
+    snapshot: FundingSnapshot
+    context: FundingContext
+    /** The profile the status read returned, so summaries do not read it twice. */
+    user?: AccountProfile
+    /** Whether the status read succeeded and matched this session. */
+    verified: boolean
+  }
+
+  export async function getReconciledFundingState(
+    options: { signal?: AbortSignal } = {},
+  ): Promise<FundingState | null> {
+    const read = async (snapshot: FundingSnapshot, retries: number): Promise<FundingState | null> => {
+      const status = await readAuthStatus(snapshot, options.signal)
+      if (isLegacyUnscoped(snapshot) && !status) return null
+      const context = await fundingContext(snapshot, status)
+      const current = await getFundingSnapshot()
+      if (!current) return null
+      if (
+        current.api_key === snapshot.api_key &&
+        current.user_id === snapshot.user_id &&
+        current.organization_id === snapshot.organization_id &&
+        current.workspace_locked === snapshot.workspace_locked
+      ) {
+        return {
+          snapshot: current,
+          context,
+          verified: status !== null,
+          ...(status?.user ? { user: status.user } : {}),
+        }
+      }
+      if (!retries) return null
+      return read(current, retries - 1)
+    }
+    const snapshot = await getFundingSnapshot()
+    if (!snapshot) return null
+    return read(snapshot, 2)
+  }
+
+  export async function setFundingContext(organizationID: string | null): Promise<FundingContext> {
+    const session = await getSession()
+    if (!session) throw new FundingContextError("Sign in before choosing a funding account.")
+    if (organizationID !== null && !validOrganizationID(organizationID))
+      throw new FundingContextError("Invalid organization id.")
+    const requested = organizationID ?? undefined
+    if (session.workspace_locked && requested !== session.organization_id) {
+      throw new FundingContextError("This sign-in is tied to one workspace. Sign in again to choose another account.")
+    }
+    if (requested && !isWorkspaceKey(session.api_key)) {
+      throw new FundingContextError("Sign in again to create a workspace-scoped organization credential.")
+    }
+    if (session.workspace_locked) return getFundingContext()
+    const status = requested ? await readAuthStatus((await getFundingSnapshot()) as FundingSnapshot) : null
+    if (requested && !organizationAvailable(status?.organizations.find((item) => item.organization_id === requested))) {
+      throw new FundingContextError("That organization is not available to the connected account.")
+    }
+    await saveSession({ ...session, organization_id: requested })
+    await syncCredentials({ force: true })
+    return getFundingContext()
+  }
+
+  export interface DeviceInfo {
+    key_id: string
+    name: string
+    key_prefix: string
+    created_at: string
+    last_used_at: string | null
+    expires_at: string | null
+  }
+
+  function deviceInfo(body: unknown): DeviceInfo | null {
+    if (!body || typeof body !== "object" || Array.isArray(body)) return null
+    const row = body as Record<string, unknown>
+    if (
+      typeof row.key_id !== "string" ||
+      typeof row.name !== "string" ||
+      typeof row.key_prefix !== "string" ||
+      typeof row.created_at !== "string" ||
+      (row.last_used_at !== null && typeof row.last_used_at !== "string") ||
+      (row.expires_at !== null && typeof row.expires_at !== "string")
+    ) {
+      return null
+    }
+    return {
+      key_id: row.key_id,
+      name: row.name,
+      key_prefix: row.key_prefix,
+      created_at: row.created_at,
+      last_used_at: row.last_used_at,
+      expires_at: row.expires_at,
+    }
+  }
+
+  export async function listDevices(): Promise<DeviceInfo[] | null> {
+    const session = await getSession()
+    if (!session) return null
+    try {
+      const response = await authenticatedAtlasFetch(session, `${apiBase()}/api/cli/devices/current`)
+      if (!response.ok) return null
+      const device = deviceInfo(await response.json())
+      return device ? [device] : null
     } catch {
-      /* ignore */
+      return null
     }
-    for (const key of BYOK_ENV_KEYS) {
+  }
+
+  export async function revokeDevice(keyID: string): Promise<boolean> {
+    const session = await getSession()
+    if (!session) return false
+    try {
+      const response = await authenticatedAtlasFetch(session, `${apiBase()}/api/cli/devices/current`)
+      if (!response.ok) return false
+      const device = deviceInfo(await response.json())
+      if (!device || device.key_id !== keyID) return false
+      if (!(await revokeSessionDevice(session))) return false
+      return clearSession(session.api_key)
+    } catch {
+      return false
+    }
+  }
+
+  /** Retire this device's key on the server. A pasted API key is not a
+   * device: signing out forgets it here and leaves it valid for the account
+   * and any other machine using it, so this reports true without a call. */
+  export async function revokeCurrentDevice(timeoutMs = DEVICE_REVOKE_TIMEOUT_MS): Promise<boolean> {
+    const session = await getSession()
+    if (!session) return false
+    if (session.origin === "key") return true
+    return revokeSessionDevice(session, timeoutMs)
+  }
+
+  export async function refreshByokSecrets(env: NodeJS.ProcessEnv = process.env): Promise<void> {
+    const auth = await Auth.all().catch(() => ({}) as Record<string, Auth.Info>)
+    for (const info of Object.values(auth)) {
+      const values =
+        info.type === "api" ? [info.key] : info.type === "oauth" ? [info.access, info.refresh] : [info.key, info.token]
+      for (const value of values) if (value && !isAtlasManagedKey(value)) knownSecrets.add(value)
+    }
+    for (const key of BYOK_LLM_ENV_KEYS) {
       const value = env[key]
-      if (!value || isManagedAtlasKey(value)) continue
-      byokSecretValues.add(value)
+      if (value && !isAtlasManagedKey(value)) knownSecrets.add(value)
     }
   }
 
-  /** Register externally-sourced secret values (e.g. the decrypted service
-   *  credentials from settings ▸ Credentials) so they are masked in subprocess
-   *  output exactly like BYOK/managed keys. Short and managed (thk_*) values are
-   *  ignored. Idempotent — safe to call on every credential save. */
   export function registerSecretValues(values: Iterable<string>): void {
-    for (const value of values) {
-      if (!value || value.length < 4 || isManagedAtlasKey(value)) continue
-      byokSecretValues.add(value)
-    }
+    for (const value of values) if (value && value.length >= 4) knownSecrets.add(value)
   }
 
-  /** Mask every known managed + BYOK secret value in arbitrary text. Sync so it
-   *  can run inline on streamed subprocess output. Call refreshByokSecrets()
-   *  ahead of a subprocess run to seed the BYOK cache. */
   export function redactSecrets(text: string): string {
     let result = text
-    for (const value of syncedSecretValues.values()) {
-      if (value.length < 4) continue
-      result = result.replaceAll(value, "[REDACTED]")
-    }
-    for (const value of byokSecretValues) {
-      if (value.length < 4) continue
-      result = result.replaceAll(value, "[REDACTED]")
-    }
     for (const pattern of TOKEN_SECRET_PATTERNS) result = result.replace(pattern, "[REDACTED]")
     result = result.replace(PRIVATE_KEY_SECRET, "[REDACTED]")
     result = result.replace(JWT_SECRET, "[REDACTED]")
     result = result.replace(BEARER_SECRET, "$1[REDACTED]")
     result = result.replace(QUOTED_SECRET, "$1$2[REDACTED]$2")
     result = result.replace(BARE_SECRET, "$1[REDACTED]")
+    for (const value of knownSecrets) if (value.length >= 4) result = result.replaceAll(value, "[REDACTED]")
     return result
   }
 
-  /** Redact a JSON-shaped value, including plain values stored under credential-
-   *  shaped keys, using the currently seeded secret cache. */
   export function redactSensitive<T>(value: T): T {
     const visit = (item: unknown, key?: string): unknown => {
       if (typeof item === "string") return key && SECRET_FIELD.test(key) ? "[REDACTED]" : redactSecrets(item)
@@ -1316,73 +1547,73 @@ export namespace OpenScience {
     return visit(value) as T
   }
 
-  /** Refresh known BYOK values, then redact a JSON-shaped value. Persistence
-   *  boundaries should use this entry point before serializing. */
   export async function scrubSecrets<T>(value: T): Promise<T> {
     await refreshByokSecrets()
     return redactSensitive(value)
   }
 
-  /** Whether a value is a managed Atlas proxy token (thk_*). Managed calls are
-   *  the only ones that debit Credits. */
   export function isManagedKeyValue(value: string | undefined): boolean {
-    return typeof value === "string" && isManagedAtlasKey(value)
+    return typeof value === "string" && isAtlasManagedKey(value)
   }
 
-  /** Whether an env var name was populated by the dashboard sync (managed). */
-  export function isSyncedSecretKey(key: string): boolean {
-    return syncedSecretValues.has(key)
-  }
-
-  /** Whether a value matches a dashboard-synced (managed) secret. */
-  export function isSyncedSecretValue(value: string | undefined): boolean {
-    if (!value) return false
-    for (const v of syncedSecretValues.values()) if (v === value) return true
+  export function isSyncedSecretKey(): boolean {
     return false
   }
 
-  /** Filter env vars for subprocesses — exclude managed Atlas proxy tokens. */
+  export function isSyncedSecretValue(): boolean {
+    return false
+  }
+
   export function normalizeByokRouting(env: Record<string, string>): Record<string, string> {
     const result = { ...env }
-    if (
-      result.OPENROUTER_API_KEY &&
-      !isManagedAtlasKey(result.OPENROUTER_API_KEY) &&
-      isManagedOpenRouterProxy(result.OPENROUTER_BASE_URL)
-    ) {
+    for (const [key, value] of Object.entries(result)) {
+      if (key.endsWith("_BASE_URL") && managedProxyPath(value)) delete result[key]
+    }
+    if (result.OPENROUTER_API_KEY && !isAtlasManagedKey(result.OPENROUTER_API_KEY) && !result.OPENROUTER_BASE_URL) {
       result.OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
     }
     return result
   }
 
-  export function filterEnvForSubprocess(env: NodeJS.ProcessEnv): Record<string, string> {
-    const result: Record<string, string> = {}
+  export function filterControlPlaneEnv(
+    env: NodeJS.ProcessEnv,
+    platform: NodeJS.Platform = process.platform,
+  ): Record<string, string> {
+    // Windows names are case-insensitive, but Object.entries preserves their
+    // spelling. Normalize before both denial and allowlisting, including empty
+    // overrides, so PATH/Path cannot produce ambiguous spawn environments.
+    const normalized: NodeJS.ProcessEnv = {}
     for (const [key, value] of Object.entries(env)) {
-      if (!value) continue
-      if (CONTROL_PLANE_ENV_KEYS.has(key)) continue
-      if (isManagedAtlasKey(value)) continue
-      // Entries ending in `_` (LC_, XDG_) are true prefixes; the rest are exact
-      // names. Treating all as prefixes let HOME match HOMEBREW_GITHUB_API_TOKEN,
-      // USER match USERPROFILE, etc. — over-broad passthrough.
-      const isSafe =
-        SAFE_ENV_PREFIXES.some((p) => (p.endsWith("_") ? key.startsWith(p) : key === p)) || SAFE_SYNCED_KEYS.has(key)
-      if (isSafe || !syncedSecretValues.has(key)) {
-        result[key] = value
-      }
+      normalized[platform === "win32" ? key.toUpperCase() : key] = value
     }
-    // A user-owned key may already be present in the process while an earlier
-    // managed sync left the Atlas proxy base URL beside it. Never send BYOK to
-    // that Credits-backed route. Preserve explicit non-Atlas gateways.
+    const result: Record<string, string> = {}
+    for (const [key, value] of Object.entries(normalized)) {
+      if (!value || CONTROL_PLANE_ENV_KEYS.has(key)) continue
+      if (CONTROL_PLANE_ENV_PREFIXES.some((prefix) => key.startsWith(prefix))) continue
+      result[key] = value
+    }
+    return result
+  }
+
+  export function filterEnvForSubprocess(
+    env: NodeJS.ProcessEnv,
+    platform: NodeJS.Platform = process.platform,
+  ): Record<string, string> {
+    const result: Record<string, string> = {}
+    for (const [key, value] of Object.entries(filterControlPlaneEnv(env, platform))) {
+      if (isAtlasManagedKey(value) || managedProxyPath(value)) continue
+      const safe = SAFE_ENV_PREFIXES.some((prefix) => (prefix.endsWith("_") ? key.startsWith(prefix) : key === prefix))
+      if (safe || SAFE_ENV_KEYS.has(key)) result[key] = value
+    }
     return normalizeByokRouting(result)
   }
 
-  /** Minimal environment for arbitrary notebook/R code. Kernels need language
-   * runtime discovery and locale/temp configuration, not the user's shell
-   * credentials. Provider, Atlas, cloud, and ad-hoc secret vars stay on the
-   * OpenScience host and can only enter a kernel through an explicit start env. */
-  export function filterEnvForKernel(env: NodeJS.ProcessEnv): Record<string, string> {
+  export function filterEnvForKernel(
+    env: NodeJS.ProcessEnv,
+    platform: NodeJS.Platform = process.platform,
+  ): Record<string, string> {
     const result: Record<string, string> = {}
-    for (const [key, value] of Object.entries(env)) {
-      if (!value) continue
+    for (const [key, value] of Object.entries(filterControlPlaneEnv(env, platform))) {
       const runtime =
         SAFE_ENV_PREFIXES.some((prefix) => (prefix.endsWith("_") ? key.startsWith(prefix) : key === prefix)) ||
         KERNEL_RUNTIME_KEYS.has(key)
@@ -1391,38 +1622,44 @@ export namespace OpenScience {
     return result
   }
 
-  export function kernelEnv(env: NodeJS.ProcessEnv = process.env) {
-    return {
-      ...filterEnvForKernel(env),
-      // A denied ~/.gitconfig is a hard error in Git (unlike a missing file).
-      // Arbitrary kernels must not read host Git credentials/config, so point
-      // Git at an inert explicit config instead of widening the read policy.
-      GIT_CONFIG_NOSYSTEM: "1",
-      GIT_CONFIG_GLOBAL: os.devNull,
-      GIT_TERMINAL_PROMPT: "0",
-    }
+  /** Runtime-only environment for kernels, language servers, formatters, and
+   * git helpers. filterEnvForKernel admits no provider or service credential
+   * key, so a kernelEnv child never inherits the synchronized workspace
+   * overlay and is registered in the credential process ledger without an
+   * overlay stamp. Callers that need the overlay use withSubprocessEnv, which
+   * reports it. */
+  export function kernelEnv(
+    env: NodeJS.ProcessEnv = process.env,
+    overlay: NodeJS.ProcessEnv = {},
+    platform: NodeJS.Platform = process.platform,
+  ) {
+    return filterControlPlaneEnv(
+      {
+        ...filterEnvForKernel(env, platform),
+        GIT_CONFIG_NOSYSTEM: "1",
+        GIT_CONFIG_GLOBAL: os.devNull,
+        GIT_TERMINAL_PROMPT: "0",
+        ...overlay,
+      },
+      platform,
+    )
   }
 
-  /** Host credential files that an OS-sandboxed kernel must not read. Atlas
-   * access is intentionally provided by the native host broker instead. */
   export function kernelSensitivePaths() {
     const home = os.homedir()
     return [
-      filepath,
+      path.join(Global.Path.data, "openscience-session.json"),
+      path.join(Global.Path.data, "openscience-workspace-scope.json"),
+      SNAPSHOT_PATH,
       path.join(Global.Path.data, "auth.json"),
       path.join(Global.Path.data, "credentials.json"),
       path.join(Global.Path.data, "credentials.key"),
+      WorkspaceCredentials.filepath,
       path.join(Global.Path.data, "gcp-service-account.json"),
       CredentialLifecycle.revisionPath(),
       path.join(Global.Path.data, "mcp-auth.json"),
       path.join(Global.Path.data, "file-trash"),
-      // Exact truncated outputs are broker capabilities. Mask the entire
-      // enclave inside arbitrary subprocesses so a historical broad parent
-      // grant cannot expose or mutate another session's files.
       ToolOutputPath.root,
-      path.join(getSyncedConfigDir(), "synced-env.json"),
-      path.join(getSyncedConfigDir(), syncedGcpFilename),
-      process.env.ATLAS_CLI_CONFIG_PATH || path.join(home, ".config", "atlas-cli", "config.json"),
       path.join(home, ".ssh"),
       path.join(home, ".aws"),
       path.join(home, ".azure"),
@@ -1431,6 +1668,7 @@ export namespace OpenScience {
       path.join(home, ".config", "gcloud"),
       path.join(home, ".config", "gh"),
       path.join(home, ".config", "huggingface"),
+      process.env.ATLAS_CLI_CONFIG_PATH || path.join(home, ".config", "atlas-cli", "config.json"),
       path.join(home, ".config", "pip", "pip.conf"),
       path.join(home, ".config", "rclone", "rclone.conf"),
       path.join(home, ".netrc"),
@@ -1440,143 +1678,78 @@ export namespace OpenScience {
     ]
   }
 
-  /** Provider IDs (as stored in auth.json) whose user-owned BYOK keys are safe
-   *  to expose to skill subprocesses, mapped to the env var(s) the scripts
-   *  read. These are keys the user explicitly added with `openscience login` —
-   *  unlike the shared managed keys, which stay stripped. */
-  const BYOK_SUBPROCESS_PROVIDERS: Record<string, { keys: string[]; baseUrl?: string; publicBaseUrl?: string }> = {
-    openai: {
-      keys: ["OPENAI_API_KEY"],
-      baseUrl: "OPENAI_BASE_URL",
-      publicBaseUrl: "https://api.openai.com/v1",
-    },
-    anthropic: {
-      keys: ["ANTHROPIC_API_KEY"],
-      baseUrl: "ANTHROPIC_BASE_URL",
-      publicBaseUrl: "https://api.anthropic.com/v1",
-    },
-    google: {
-      keys: ["GOOGLE_GENERATIVE_AI_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY"],
-      baseUrl: "GOOGLE_GENERATIVE_AI_BASE_URL",
-      publicBaseUrl: "https://generativelanguage.googleapis.com/v1beta",
-    },
-    xai: {
-      keys: ["XAI_API_KEY"],
-      baseUrl: "XAI_BASE_URL",
-      publicBaseUrl: "https://api.x.ai/v1",
-    },
-    meta: { keys: ["META_MODEL_API_KEY"] },
-    openrouter: {
-      keys: ["OPENROUTER_API_KEY"],
-      baseUrl: "OPENROUTER_BASE_URL",
-      publicBaseUrl: "https://openrouter.ai/api/v1",
-    },
-    togetherai: {
-      keys: ["TOGETHER_API_KEY"],
-      baseUrl: "TOGETHER_BASE_URL",
-      publicBaseUrl: "https://api.together.xyz/v1",
-    },
-    together: {
-      keys: ["TOGETHER_API_KEY"],
-      baseUrl: "TOGETHER_BASE_URL",
-      publicBaseUrl: "https://api.together.xyz/v1",
-    },
-    groq: {
-      keys: ["GROQ_API_KEY"],
-      baseUrl: "GROQ_BASE_URL",
-      publicBaseUrl: "https://api.groq.com/openai/v1",
-    },
-    "fireworks-ai": {
-      keys: ["FIREWORKS_API_KEY"],
-      baseUrl: "FIREWORKS_BASE_URL",
-      publicBaseUrl: "https://api.fireworks.ai/inference/v1",
-    },
-    fireworks: {
-      keys: ["FIREWORKS_API_KEY"],
-      baseUrl: "FIREWORKS_BASE_URL",
-      publicBaseUrl: "https://api.fireworks.ai/inference/v1",
-    },
-    mistral: {
-      keys: ["MISTRAL_API_KEY"],
-      baseUrl: "MISTRAL_BASE_URL",
-      publicBaseUrl: "https://api.mistral.ai/v1",
-    },
-    deepseek: {
-      keys: ["DEEPSEEK_API_KEY"],
-      baseUrl: "DEEPSEEK_BASE_URL",
-      publicBaseUrl: "https://api.deepseek.com",
-    },
-    cerebras: {
-      keys: ["CEREBRAS_API_KEY"],
-      baseUrl: "CEREBRAS_BASE_URL",
-      publicBaseUrl: "https://api.cerebras.ai/v1",
-    },
-    perplexity: {
-      keys: ["PERPLEXITY_API_KEY"],
-      baseUrl: "PERPLEXITY_BASE_URL",
-      publicBaseUrl: "https://api.perplexity.ai",
-    },
-  }
-
-  /** Merge user-owned (BYOK) provider keys from auth.json into a subprocess env.
-   *  Pure + synchronous so it stays unit-testable. Skips managed `thk_*` keys
-   *  and never overrides a value already present (shell export or synced var).
-   *  When a BYOK key is injected for a provider with a base-url var, the base
-   *  url is pinned to the public endpoint so the key authenticates against the
-   *  right host rather than a managed proxy. */
   export function mergeByokEnv(base: Record<string, string>, auth: Record<string, Auth.Info>): Record<string, string> {
     const result = { ...base }
     for (const [providerID, info] of Object.entries(auth)) {
-      if (info.type !== "api") continue
-      if (isManagedAtlasKey(info.key)) continue
+      if (info.type !== "api" || isAtlasManagedKey(info.key)) continue
       const spec = BYOK_SUBPROCESS_PROVIDERS[providerID]
-      if (!spec) continue
-      if (spec.keys.some((key) => result[key])) continue
+      if (!spec || spec.keys.some((key) => result[key])) continue
       for (const key of spec.keys) result[key] = info.key
-      if (spec.baseUrl && spec.publicBaseUrl) result[spec.baseUrl] = spec.publicBaseUrl
+      if (spec.baseUrl && spec.publicBaseUrl && !result[spec.baseUrl]) result[spec.baseUrl] = spec.publicBaseUrl
     }
     return normalizeByokRouting(result)
   }
 
-  /** Subprocess env = sanitized base env + any user-owned BYOK provider keys
-   *  from auth.json. Lets skill scripts (e.g. nano-banana image generation)
-   *  use a key the user connected with `openscience login`, without leaking the
-   *  shared managed keys. */
-  export async function subprocessEnv(env: NodeJS.ProcessEnv = process.env): Promise<Record<string, string>> {
-    // This is the credential-bearing child-process choke point. It blocks while
-    // another server is rotating a store and reconciles a committed revision
-    // before taking the environment snapshot below.
+  export interface SubprocessSnapshot {
+    env: Record<string, string>
+    /** Workspace whose synchronized credential overlay contributed at least
+     * one value to `env`: a synced provider key merged from Auth, or a synced
+     * service value that applyCredentialEnv injected into process.env. A
+     * child spawned with this env inherits that overlay and must be stamped
+     * with it in the credential process ledger. */
+    overlay?: string
+  }
+
+  export async function subprocessSnapshot(env: NodeJS.ProcessEnv = process.env): Promise<SubprocessSnapshot> {
     await CredentialLifecycle.ensureFresh()
-    const base = filterEnvForSubprocess(env)
-    const auth = await Auth.all().catch(() => ({}) as Record<string, Auth.Info>)
-    return {
-      ...mergeByokEnv(base, auth),
+    const resolved = await Auth.resolve().catch((): Auth.Resolved => ({ auth: {} }))
+    const merged = {
+      ...mergeByokEnv(filterEnvForSubprocess(env), resolved.auth),
       GIT_CONFIG_NOSYSTEM: "1",
       GIT_CONFIG_GLOBAL: os.devNull,
       GIT_TERMINAL_PROMPT: "0",
     }
+    return { env: merged, overlay: inheritedOverlay(merged, resolved) }
   }
 
-  /** Build and consume a credential-bearing child environment while the
-   * durable credential mutation lease is held. The callback must spawn and
-   * durably register its child before returning. */
+  /** Provenance, not value matching: a provider key counts only when Auth
+   * resolved it from the workspace overlay and mergeByokEnv placed that exact
+   * entry; a service value only when applyCredentialEnv recorded it as
+   * account-sourced and it is still present verbatim. */
+  function inheritedOverlay(env: Record<string, string>, resolved: Auth.Resolved): string | undefined {
+    const service = CredentialOverlay.inherited(env)
+    if (service) return service
+    const synced = resolved.overlay
+    if (!synced) return undefined
+    const provider = [...synced.providers].some((id) => {
+      const info = resolved.auth[id]
+      const spec = BYOK_SUBPROCESS_PROVIDERS[id]
+      return info?.type === "api" && !!spec && spec.keys.some((key) => env[key] === info.key)
+    })
+    return provider ? synced.organization : undefined
+  }
+
+  export async function subprocessEnv(env: NodeJS.ProcessEnv = process.env): Promise<Record<string, string>> {
+    return (await subprocessSnapshot(env)).env
+  }
+
+  /** Build the admitted subprocess environment and hand it to `action`
+   * together with the overlay it carries. Every spawn site passes that
+   * overlay explicitly to its ledger registration; nothing infers it from
+   * process-wide state. */
   export function withSubprocessEnv<T>(
     env: NodeJS.ProcessEnv,
-    action: (snapshot: Record<string, string>) => T | Promise<T>,
+    action: (snapshot: Record<string, string>, overlay: string | undefined) => T | Promise<T>,
   ): Promise<T> {
-    return CredentialLifecycle.admit(async () => action(await subprocessEnv(env)))
+    return CredentialLifecycle.admit(async () => {
+      const snapshot = await subprocessSnapshot(env)
+      return action(snapshot.env, snapshot.overlay)
+    })
   }
 
-  // Default thread/worker caps for scientific Python kernels. Without these,
-  // BLAS (OpenBLAS/MKL/Accelerate), numba, and joblib/loky each fan out to one
-  // worker PER CORE by default. On a large dataset a single densifying op (e.g.
-  // scanpy regress_out with n_jobs=-1) then spawns N full-dataset copies at once,
-  // each tens of GB — the machine swaps to death (#102). Cap each to a small,
-  // safe default and only fill a var the user/agent hasn't already set, so an
-  // explicit override still wins.
   export function pythonThreadCapEnv(env: NodeJS.ProcessEnv = process.env): Record<string, string> {
     const cap = String(Math.max(1, Math.min(4, os.cpus().length)))
-    const vars = [
+    const names = [
       "OMP_NUM_THREADS",
       "OPENBLAS_NUM_THREADS",
       "MKL_NUM_THREADS",
@@ -1585,646 +1758,220 @@ export namespace OpenScience {
       "NUMBA_NUM_THREADS",
       "LOKY_MAX_CPU_COUNT",
     ]
-    return Object.fromEntries(vars.filter((v) => !env[v]).map((v) => [v, cap]))
+    return Object.fromEntries(names.filter((name) => !env[name]).map((name) => [name, cap]))
   }
 
-  /** Credit balance cache */
-  let cachedBalance: { value: number; at: number } | null = null
-  let pendingBalance: Promise<number | null> | undefined
+  let cachedBalance: { context: string; value: number; at: number } | null = null
+  let pendingBalance: { context: string; promise: Promise<number | null> } | undefined
   let balanceRevision = 0
-  const BALANCE_CACHE_TTL = 30 * 1000
+  const BALANCE_CACHE_TTL_MS = 30_000
+  // A positive balance past the TTL is still served while a refresh runs in
+  // the background, up to this age. A missing, non-positive or older value
+  // blocks on the fetch so an empty wallet is noticed promptly. The client
+  // check is a fast fail, not the guard: Ace reserves a hold against the real
+  // Wallet before every managed call and answers 402 when it cannot fund it
+  // (then forgetBalance drops this value). An hour keeps the first message
+  // after a pause from waiting on a balance round trip.
+  const BALANCE_STALE_MAX_MS = 60 * 60_000
 
-  function publishBalance(value: number) {
+  /** Expire the cached balance after a spend or credential change. A positive
+   * value is kept past its TTL so the next check serves it while a refresh runs
+   * in the background (see getBalance); a non-positive value is dropped so the
+   * next check blocks. The revision bump discards any in-flight result that
+   * predates the spend. */
+  export function invalidateBalance(): void {
     balanceRevision++
     pendingBalance = undefined
-    cachedBalance = { value, at: Date.now() }
+    // The stored account summary carries the same balance, so it is served
+    // as stale (and refreshed in the background) from here on.
+    accountStale = Date.now()
+    if (!cachedBalance) return
+    if (cachedBalance.value <= 0) {
+      cachedBalance = null
+      return
+    }
+    // Anchor to the original fetch so BALANCE_STALE_MAX_MS still bounds the
+    // age of a served value when background refreshes keep failing.
+    cachedBalance = { ...cachedBalance, at: Math.min(cachedBalance.at, Date.now() - BALANCE_CACHE_TTL_MS) }
   }
 
-  /** Drop the cached balance so the next getBalance() refetches. Called when
-   *  the wallet gate blocks, so a top-up is visible on the next attempt
-   *  instead of after the cache TTL. */
-  export function invalidateBalance() {
-    balanceRevision++
-    pendingBalance = undefined
+  export function invalidateBalanceCache(): void {
+    invalidateBalance()
+  }
+
+  /** Drop the cached balance outright: Ace refused a managed request for its
+   * funding, so the next check must read the balance fresh rather than serve
+   * the stale positive value again. */
+  export function forgetBalance(): void {
+    invalidateBalance()
     cachedBalance = null
   }
 
-  /** Get current credit balance (cached for 30s).
-   *  Returns the balance in USD, or null when it can't be determined (no
-   *  session, API failure). null is distinct from a real negative balance —
-   *  the old -1 sentinel collided with an overdraft of exactly -$1. */
-  export async function getBalance(): Promise<number | null> {
-    if (cachedBalance && Date.now() - cachedBalance.at < BALANCE_CACHE_TTL) {
-      return cachedBalance.value
-    }
-    if (pendingBalance) return pendingBalance
+  /** Start a balance read in the background so the next managed turn finds it
+   * cached instead of waiting on an Ace round trip before the model call. The
+   * usual cache rules apply afterwards (30 s fresh, positive values served
+   * stale for up to an hour while a refresh runs). Never throws. */
+  export function warmBalance(): void {
+    void getRequestSnapshot()
+      .then((snapshot) => (snapshot ? getBalance(snapshot) : null))
+      .catch(() => undefined)
+  }
+
+  export async function getBalance(snapshot?: FundingSnapshot): Promise<number | null> {
+    const session = snapshot ?? (await getReconciledFundingState())?.snapshot
+    if (!session) return null
+    const context = contextTag(session)
+    const cached = cachedBalance?.context === context ? cachedBalance : null
+    const age = cached ? Date.now() - cached.at : Infinity
+    if (cached && age < BALANCE_CACHE_TTL_MS) return cached.value
+    const stale = cached && cached.value > 0 && age < BALANCE_STALE_MAX_MS ? cached.value : undefined
+    const request = pendingBalance?.context === context ? pendingBalance.promise : refreshBalance(session, context)
+    if (stale !== undefined) return stale
+    return request
+  }
+
+  function refreshBalance(session: FundingSnapshot, context: string) {
     const revision = balanceRevision
+    const started = Date.now()
     const request = (async () => {
-      const session = await getSession()
-      if (!session) return null
       try {
-        const res = await authenticatedAtlasFetch(session, `${API_BASE}/api/cli/balance`, {
-          headers: { Authorization: `Bearer ${session.api_key}` },
+        const response = await fundedAtlasFetch(session, `${apiBase()}/api/cli/balance`, {}, accountDeadlineMs())
+        if (!response.ok) {
+          log.warn("balance check failed", { status: response.status, elapsed_ms: Date.now() - started })
+          return null
+        }
+        const body = (await response.json()) as Record<string, unknown>
+        const value =
+          typeof body.effective_balance_usd === "number"
+            ? body.effective_balance_usd
+            : typeof body.effective_balance_cents === "number"
+              ? body.effective_balance_cents / 100
+              : typeof body.balance_usd === "number"
+                ? body.balance_usd
+                : typeof body.balance_cents === "number"
+                  ? body.balance_cents / 100
+                  : null
+        if (revision !== balanceRevision) {
+          return cachedBalance?.context === context ? cachedBalance.value : null
+        }
+        if (value !== null) cachedBalance = { context, value, at: Date.now() }
+        else log.warn("balance check failed", { error: "the response named no balance", fields: Object.keys(body) })
+        return value
+      } catch (error) {
+        log.warn("balance check failed", {
+          error: error instanceof Error ? error.name : typeof error,
+          code: (error as { code?: unknown } | undefined)?.code,
+          message: error instanceof Error ? error.message : String(error),
+          elapsed_ms: Date.now() - started,
         })
-        if (!res.ok) return null
-        const data = await res.json()
-        const usd =
-          typeof data.balance_usd === "number"
-            ? data.balance_usd
-            : typeof data.balance_cents === "number"
-              ? data.balance_cents / 100
-              : null
-        if (usd === null) return null
-        if (revision !== balanceRevision) return cachedBalance?.value ?? null
-        cachedBalance = { value: usd, at: Date.now() }
-        return usd
-      } catch {
         return null
       }
     })()
-    pendingBalance = request
+    pendingBalance = { context, promise: request }
     void request.finally(() => {
-      if (pendingBalance === request) pendingBalance = undefined
+      if (pendingBalance?.promise === request) pendingBalance = undefined
     })
     return request
   }
 
-  /** Drop managed-search capability state after an account transition or a
-   * backend rejection. The next execution performs a bounded entitlement read;
-   * it never touches the wallet or dispatches a search. */
-  export function invalidateResearchEntitlements() {
-    cachedEntitlements = undefined
-    cachedEntitlementsAt = 0
-    cachedEntitlementsAccount = undefined
-    cachedEntitlementsFailureAt = 0
-    cachedEntitlementsFailureAccount = undefined
-    entitlementsRequest = undefined
-    entitlementsGeneration++
-  }
-
-  /** Authenticated users may attempt enhanced search. The server is the sole
-   * settlement authority: it charges wallet Credits or rejects the request,
-   * after which the tool falls back to basic search when available. */
-  export async function resolveManagedSearchEntitlement(): Promise<boolean> {
-    return !!(await getSession())
-  }
-
-  /** Read the legacy search capability payload for compatibility diagnostics.
-   * Local routing never treats its plan ids or counters as billing authority. */
-  export async function getResearchEntitlements(): Promise<ResearchEntitlements | null> {
-    const session = await getSession()
-    if (!session) return null
-    return readResearchEntitlements(session)
-  }
-
-  async function readResearchEntitlements(session: OpenScienceSession): Promise<ResearchEntitlements | null> {
-    const account = accountTag(session)
-    if (
-      cachedEntitlementsFailureAccount === account &&
-      Date.now() - cachedEntitlementsFailureAt < ENTITLEMENTS_FAILURE_TTL_MS
-    ) {
-      return null
-    }
-    if (entitlementsRequest?.account === account) return entitlementsRequest.promise
-    const generation = entitlementsGeneration
-    const pending = (async () => {
-      try {
-        const res = await authenticatedAtlasFetch(
-          session,
-          `${API_BASE}/api/v1/entitlements`,
-          { headers: { Authorization: `Bearer ${session.api_key}`, Accept: "application/json" } },
-          ENTITLEMENTS_FETCH_TIMEOUT_MS,
-        )
-        if (!res.ok) {
-          if (generation === entitlementsGeneration) {
-            cachedEntitlementsFailureAt = Date.now()
-            cachedEntitlementsFailureAccount = account
-          }
-          return null
-        }
-        const value = normalizeResearchEntitlements((await res.json()) as ResearchEntitlements)
-        if (generation === entitlementsGeneration) {
-          cachedEntitlements = value
-          cachedEntitlementsAt = Date.now()
-          cachedEntitlementsAccount = account
-          cachedEntitlementsFailureAt = 0
-          cachedEntitlementsFailureAccount = undefined
-        }
-        if (
-          generation === entitlementsGeneration &&
-          value.capabilities?.proxy_settlement_authoritative === true &&
-          value.capabilities.cli_usage_financial === false
-        ) {
-          await rememberUsageCutover(session)
-        }
-        return value
-      } catch (error) {
-        if (generation === entitlementsGeneration) {
-          cachedEntitlementsFailureAt = Date.now()
-          cachedEntitlementsFailureAccount = account
-        }
-        log.warn("research entitlement read failed", {
-          error: error instanceof Error ? error.message : String(error),
-        })
-        return null
-      }
-    })()
-    entitlementsRequest = { account, promise: pending }
-    try {
-      return await pending
-    } finally {
-      if (entitlementsRequest?.promise === pending) entitlementsRequest = undefined
-    }
-  }
-
-  /** One top-level Synthetic Sciences search dispatch. The service atomically
-   * prices and debits the same Ace wallet used by credit-backed model calls. */
-  const RESEARCH_SEARCH_REQUEST_TIMEOUT_MS = 60_000
-  const RESEARCH_SEARCH_TOTAL_TIMEOUT_MS = 90_000
-
-  export async function dispatchResearchSearch(
-    input: ResearchSearchInput,
-    operationID: string,
-    signal: AbortSignal,
-  ): Promise<{ status: number; body: unknown } | null> {
-    const session = await getSession()
-    if (!session) return null
-    const bodyText = JSON.stringify({ ...input, operation_id: operationID })
-    // A transport failure can happen after Atlas has already settled Wallet
-    // usage but before the response reaches this process. Replay once with the
-    // exact durable operation key so Atlas returns the authoritative result
-    // instead of silently charging for an abandoned enhanced-search response.
-    //
-    // Atlas can also acknowledge that exact replay with operation_in_progress
-    // while the original request is still finishing. Poll that same durable
-    // operation briefly instead of treating the acknowledgement as a failed
-    // search and making the agent fall back to a second provider.
-    const deadline = Date.now() + RESEARCH_SEARCH_TOTAL_TIMEOUT_MS
-    let replayAttempts = 0
-    let inProgressPolls = 0
-    while (true) {
-      const remaining = deadline - Date.now()
-      if (remaining <= 0) return null
-      try {
-        const res = await authenticatedAtlasFetch(
-          session,
-          `${API_BASE}/api/v1/research/search`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${session.api_key}`,
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              "Idempotency-Key": operationID,
-            },
-            body: bodyText,
-            signal,
-          },
-          Math.min(RESEARCH_SEARCH_REQUEST_TIMEOUT_MS, remaining),
-        )
-        const text = await res.text()
-        const body = text
-          ? (() => {
-              try {
-                return JSON.parse(text) as unknown
-              } catch {
-                return {
-                  detail: {
-                    code: "search_unavailable",
-                    message: `Synthetic Sciences search returned HTTP ${res.status}`,
-                  },
-                }
-              }
-            })()
-          : {}
-        const detail =
-          body && typeof body === "object" && "detail" in body && body.detail && typeof body.detail === "object"
-            ? body.detail
-            : undefined
-        const code = detail && "code" in detail && typeof detail.code === "string" ? detail.code : undefined
-        if (
-          res.status === 409 &&
-          code === "operation_in_progress" &&
-          inProgressPolls < 60 &&
-          Date.now() + 1_500 < deadline
-        ) {
-          inProgressPolls++
-          await Bun.sleep(1_500)
-          continue
-        }
-        if (res.status >= 500 && replayAttempts < 1) {
-          replayAttempts++
-          log.warn("Synthetic Sciences research search returned a retryable server response", {
-            status: res.status,
-            operationID,
-          })
-          continue
-        }
-        return { status: res.status, body }
-      } catch (error) {
-        if (signal.aborted) throw error
-        const retrying = replayAttempts < 1
-        log.warn("Synthetic Sciences research search transport failed", {
-          attempt: replayAttempts + 1,
-          retrying,
-          operationID,
-          error: error instanceof Error ? error.message : String(error),
-        })
-        if (!retrying) return null
-        replayAttempts++
-      }
-    }
-  }
-
-  /** Invalidate balance cache (call after usage report) */
-  export function invalidateBalanceCache() {
-    invalidateBalance()
-  }
-
-  type UsageParams = {
-    service: string
-    event_type: string
-    model?: string
-    tokens_used: number
-    metadata?: Record<string, unknown>
-  }
-
-  const pendingQueuePath = path.join(Global.Path.data, "usage-queue.jsonl")
-  const usageCapabilityPath = path.join(Global.Path.data, "usage-capabilities.json")
-
-  /** Stable per-account tag stored with a queued usage row so a later flush can't
-   *  bill a DIFFERENT account for it. user_id when known, else a short hash of the
-   *  api_key (never the raw key, which must not sit in the queue file). */
-  function accountTag(session: OpenScienceSession): string {
-    if (session.user_id) return session.user_id
-    return "k:" + createHash("sha256").update(session.api_key).digest("hex").slice(0, 16)
-  }
-
-  type UsageCapabilities = {
-    schema_version: 1
-    accounts: Record<string, { nonfinancial: true; observed_at: string }>
-  }
-
-  function isNonfinancialAcknowledgement(data: unknown): boolean {
-    if (!data || typeof data !== "object" || Array.isArray(data)) return false
-    const value = data as Record<string, unknown>
-    return value.financial === false && value.billing_authority === "gateway_proxy"
-  }
-
-  async function readUsageCapabilities(): Promise<UsageCapabilities> {
-    try {
-      const value = (await Bun.file(usageCapabilityPath).json()) as Partial<UsageCapabilities>
-      if (value.schema_version !== 1 || !value.accounts || typeof value.accounts !== "object") {
-        return { schema_version: 1, accounts: {} }
-      }
-      return { schema_version: 1, accounts: value.accounts }
-    } catch {
-      return { schema_version: 1, accounts: {} }
-    }
-  }
-
-  async function rememberUsageCutover(session: OpenScienceSession): Promise<void> {
-    const current = await readUsageCapabilities()
-    current.accounts[accountTag(session)] = { nonfinancial: true, observed_at: new Date().toISOString() }
-    await atomicWrite(usageCapabilityPath, JSON.stringify(current, null, 2), { mode: 0o600 }).catch((error) =>
-      log.warn("could not persist usage cutover capability", {
-        error: error instanceof Error ? error.message : String(error),
-      }),
-    )
-  }
-
-  async function usageCutoverReady(session: OpenScienceSession): Promise<boolean> {
-    if (
-      cachedEntitlements?.capabilities?.proxy_settlement_authoritative === true &&
-      cachedEntitlements.capabilities.cli_usage_financial === false
-    ) {
-      return true
-    }
-    const value = await readUsageCapabilities()
-    return value.accounts[accountTag(session)]?.nonfinancial === true
-  }
-
-  /** Whether a queued row tagged `rowAccount` may be flushed under `currentAccount`.
-   *  A row with no tag is legacy/accountless → best-effort send under the current
-   *  account; a row tagged for a DIFFERENT account is never sent (kept until that
-   *  account is active). Pure + exported for tests. */
-  export function shouldFlushForAccount(rowAccount: string | undefined, currentAccount: string): boolean {
-    return !rowAccount || rowAccount === currentAccount
-  }
-
-  async function persistToQueue(params: UsageParams, account?: string) {
-    try {
-      await using operation = await DataRootBarrier.enter(pendingQueuePath)
-      // Serialize against flushPendingUsage so an append can't land between
-      // the flusher's read and its final rewrite (which would delete it).
-      using _ = await Lock.write(pendingQueuePath)
-      const row = account ? { ...params, __account: account } : params
-      await fs.appendFile(pendingQueuePath, JSON.stringify(row) + "\n")
-      log.info("usage queued for retry", { service: params.service })
-    } catch (e) {
-      log.warn("failed to persist usage to queue", { error: e instanceof Error ? e.message : String(e) })
-    }
-  }
-
-  async function sendReport(
-    params: UsageParams,
-    session: OpenScienceSession,
-  ): Promise<{ ok: boolean; permanent: boolean; data?: any; modelBlocked?: boolean }> {
-    try {
-      const res = await authenticatedAtlasFetch(session, `${API_BASE}/api/cli/usage`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.api_key}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(params),
-      })
-      if (res.ok) {
-        const data = await res.json()
-        log.info("usage reported", {
-          service: params.service,
-          model: params.model,
-          tokens: params.tokens_used,
-          cost: data.estimated_cost_usd,
-        })
-        if (data.model_blocked && !isNonfinancialAcknowledgement(data)) {
-          return { ok: false, permanent: true, modelBlocked: true, data }
-        }
-        return { ok: true, permanent: false, data }
-      }
-      // 402 = insufficient wallet balance. Halt the session and surface it as
-      // modelBlocked
-      // so the processor throws InsufficientCreditsError.
-      if (res.status === 402) {
-        let body: any = {}
-        try {
-          body = await res.json()
-        } catch {
-          /* keep {} */
-        }
-        if (body?.error === "insufficient_balance") {
-          const need = ((body.required_cents ?? 0) as number) / 100
-          const have = ((body.available_cents ?? 0) as number) / 100
-          log.warn(
-            `Insufficient balance for this call — need $${need.toFixed(2)}, ` +
-              `have $${have.toFixed(2)} available. Top up at ` +
-              `${BILLING_URL} or switch to a provider account.`,
-          )
-        } else {
-          log.warn("usage report 402 — wallet credits unavailable")
-        }
-        return { ok: false, permanent: true, modelBlocked: true }
-      }
-      const permanent = res.status >= 400 && res.status < 500
-      log.warn("usage report failed", { status: res.status, permanent })
-      return { ok: false, permanent }
-    } catch (e) {
-      log.warn("usage report error", { error: e instanceof Error ? e.message : String(e) })
-      return { ok: false, permanent: false }
-    }
-  }
-
-  /** Report service usage for billing (called after training jobs complete).
-   *  On transient failure, persists to a local queue for retry on next startup. */
-  export async function reportUsage(
-    params: UsageParams,
-  ): Promise<{ recorded: boolean; event_id?: string; estimated_cost_usd?: number; modelBlocked?: boolean } | null> {
-    const session = await getSession()
-    if (!session) {
-      log.warn("cannot report usage: not authenticated")
-      await persistToQueue(params)
-      return null
-    }
-    const cutover = await usageCutoverReady(session)
-    const result = await sendReport(params, session)
-    const acknowledged = result.ok && isNonfinancialAcknowledgement(result.data)
-    if (acknowledged) await rememberUsageCutover(session)
-    // Once the server explicitly names the managed proxy as billing authority,
-    // this compatibility acknowledgement can neither halt a completed model
-    // step nor enter a billing retry loop. Until then, preserve the legacy
-    // queue/modelBlocked behavior exactly.
-    if (cutover || acknowledged) {
-      if (!result.ok) return null
-      return { ...result.data, modelBlocked: false }
-    }
-    // Update balance cache from server response, or invalidate so next check is fresh
-    if (result.ok && result.data?.remaining_balance_cents !== undefined) {
-      publishBalance(result.data.remaining_balance_cents / 100)
-    } else {
-      invalidateBalanceCache()
-    }
-    if (result.ok) {
-      return result.data
-    }
-    if ("modelBlocked" in result && result.modelBlocked) {
-      return { recorded: false, modelBlocked: true }
-    }
-    if (!result.permanent) {
-      await persistToQueue(params, accountTag(session))
-    }
-    return null
-  }
-
-  /** Retry any queued usage reports from previous failures (called at startup).
-   *  Holds the queue lock across the whole read → send → rewrite cycle so a
-   *  concurrent flush in this process can't double-send, and the rewrite
-   *  drops only the lines actually read so an append landing mid-flush
-   *  survives. Best-effort: never throws. */
-  export async function flushPendingUsage(): Promise<void> {
-    try {
-      await using operation = await DataRootBarrier.enter(pendingQueuePath)
-      using _ = await Lock.write(pendingQueuePath)
-      const raw = await fs.readFile(pendingQueuePath, "utf-8").catch(() => "")
-      const lines = raw.split("\n").filter(Boolean)
-      if (!lines.length) return
-
-      const session = await getSession()
-      if (!session) return
-      const currentAccount = accountTag(session)
-      const cutover = await usageCutoverReady(session)
-
-      const retry: string[] = []
-      for (const line of lines) {
-        try {
-          const { __account, ...params } = JSON.parse(line) as UsageParams & { __account?: string }
-          // Never bill the active account for usage another account generated —
-          // keep it queued until that account is the one flushing.
-          if (!shouldFlushForAccount(__account, currentAccount)) {
-            retry.push(line)
-            continue
-          }
-          // Historical rows were billing retries. They must never be replayed
-          // after this account's server has advertised the nonfinancial cutover.
-          if (cutover || (await usageCutoverReady(session))) continue
-          const result = await sendReport(params, session)
-          if (result.ok && isNonfinancialAcknowledgement(result.data)) {
-            await rememberUsageCutover(session)
-            continue
-          }
-          if (!result.ok && !result.permanent) {
-            retry.push(line)
-          }
-        } catch {
-          // malformed line, drop it
-        }
-      }
-
-      // Re-read before rewriting: another process may have appended while
-      // reports were sending. Remove only the lines read above (counted, so
-      // a report queued twice is removed exactly twice) and keep the rest.
-      const consumed = new Map<string, number>()
-      for (const line of lines) consumed.set(line, (consumed.get(line) ?? 0) + 1)
-      const current = await fs.readFile(pendingQueuePath, "utf-8").catch(() => "")
-      const appended = current
-        .split("\n")
-        .filter(Boolean)
-        .filter((line) => {
-          const count = consumed.get(line) ?? 0
-          if (!count) return true
-          consumed.set(line, count - 1)
-          return false
-        })
-
-      const remaining = [...retry, ...appended]
-      if (remaining.length) {
-        await fs.writeFile(pendingQueuePath, remaining.join("\n") + "\n")
-        return
-      }
-      await fs.unlink(pendingQueuePath).catch(() => {})
-    } catch (e) {
-      log.warn("usage queue flush failed", { error: e instanceof Error ? e.message : String(e) })
-    }
-  }
-
-  // === Devices ===
-
-  export interface DeviceInfo {
-    key_id: string
-    name: string
-    key_prefix: string
-    created_at: string
-    last_used_at: string | null
-    expires_at: string | null
-  }
-
-  /** List authenticated devices for the current user. */
-  export async function listDevices(): Promise<DeviceInfo[] | null> {
-    const session = await getSession()
-    if (!session) return null
-    try {
-      const res = await authenticatedAtlasFetch(session, `${API_BASE}/api/cli/devices`, {
-        headers: { Authorization: `Bearer ${session.api_key}` },
-      })
-      if (!res.ok) {
-        log.warn("failed to list devices", { status: res.status })
-        return null
-      }
-      return (await res.json()) as DeviceInfo[]
-    } catch (e) {
-      log.warn("list devices error", { error: e instanceof Error ? e.message : String(e) })
-      return null
-    }
-  }
-
-  /** Revoke a device (its api_key is revoked server-side). */
-  export async function revokeDevice(keyId: string): Promise<boolean> {
-    const session = await getSession()
-    if (!session) return false
-    try {
-      const res = await authenticatedAtlasFetch(session, `${API_BASE}/api/cli/devices/${encodeURIComponent(keyId)}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${session.api_key}` },
-      })
-      return res.ok || res.status === 204
-    } catch (e) {
-      log.warn("revoke device error", { error: e instanceof Error ? e.message : String(e) })
-      return false
-    }
-  }
-
-  // === Wallet / credits ===
-
   export interface Credits {
-    /** Purchased Wallet balance. Promotional credits are reported separately. */
     balanceUsd: number
+    /** Actual workspace access, independent of automatic card charges. */
+    aceEnabled?: boolean
+    balanceRedacted?: boolean
     balanceCents: number
-    /** @deprecated Use balanceCents. */
+    /** The settled balance minus the gateway's holds for turns in flight; null when the service omits it. */
+    availableCents?: number | null
     cliBalanceCents: number
-    /** Total amount currently available for server-side spend, including promotions. */
     spendableBalanceCents: number
     promotionalBalanceCents: number
     cycleCreditsRemainingCents: number
-    /** Null when lifetime-spend metadata is unavailable. */
     lifetimeSpentCents: number | null
+    /** The workspace's own auto-reload rule, as the gateway states it; absent when the service omits it. */
+    autoReload?: { thresholdCents: number; amountCents: number } | null
   }
 
-  /** Resolve the canonical wallet while accepting older Atlas responses. */
-  export function walletCents(d: {
+  export function walletCents(value: {
     cli_balance_cents?: number
     unified_balance_cents?: number
     balance_cents?: number
   }): number {
-    return d.balance_cents ?? d.cli_balance_cents ?? d.unified_balance_cents ?? 0
+    return value.balance_cents ?? value.cli_balance_cents ?? value.unified_balance_cents ?? 0
   }
 
-  export async function getCredits(): Promise<Credits | null> {
-    const session = await getSession()
+  export async function getCredits(
+    snapshot?: FundingSnapshot,
+    options: { timeoutMs?: number; lifetimeSpent?: boolean; signal?: AbortSignal } = {},
+  ): Promise<Credits | null> {
+    const session = snapshot ?? (await getReconciledFundingState({ signal: options.signal }))?.snapshot
     if (!session) return null
+    // The ledger metadata follow-up is part of the read's shape, so a summary
+    // read and a full read are separate flights.
+    return share(
+      flightKey(`wallet:${options.lifetimeSpent === false ? "summary" : "full"}`, session),
+      (flight) => fetchCredits(session, { ...options, signal: flight }),
+      options.signal,
+    )
+  }
+
+  async function fetchCredits(
+    session: FundingSnapshot,
+    options: { timeoutMs?: number; lifetimeSpent?: boolean; signal: AbortSignal },
+  ): Promise<Credits | null> {
+    const timeoutMs = options.timeoutMs ?? ATLAS_FETCH_TIMEOUT_MS
+    const init = { signal: options.signal }
     try {
       let currentWallet = true
-      let res = await authenticatedAtlasFetch(session, `${API_BASE}/api/v1/wallet`, {
-        headers: { Authorization: `Bearer ${session.api_key}` },
-      })
-      if (res.status === 404 || res.status === 405) {
+      let response = await fundedAtlasFetch(session, `${apiBase()}/api/v1/wallet`, init, timeoutMs)
+      if (response.status === 404 || response.status === 405) {
         currentWallet = false
-        res = await authenticatedAtlasFetch(session, `${API_BASE}/api/credits`, {
-          headers: { Authorization: `Bearer ${session.api_key}` },
-        })
+        response = await fundedAtlasFetch(session, `${apiBase()}/api/credits`, init, timeoutMs)
       }
-      if (!res.ok) return null
-      const d = (await res.json()) as {
+      if (!response.ok) return null
+      const body = (await response.json()) as {
         unified_balance_cents?: number
         balance_cents?: number
+        available_cents?: number
         cli_balance_cents?: number
         purchased_cents?: number
         purchased_credits_cents?: number
         promotional_cents?: number
         cycle_credits_remaining_cents?: number
         lifetime_spent_cents?: number
+        redacted?: boolean
+        ace?: { enabled?: boolean; threshold_cents?: number; target_cents?: number }
       }
-      // Current Wallet funding buckets are authoritative. During a rolling
-      // deploy, lifetime spend may still live only on the preserved credits
-      // endpoint; merge that display-only field without overriding balances.
-      let lifetimeSpent = d.lifetime_spent_cents ?? null
-      if (currentWallet && lifetimeSpent === null) {
-        try {
-          const metadata = await authenticatedAtlasFetch(session, `${API_BASE}/api/credits`, {
-            headers: { Authorization: `Bearer ${session.api_key}` },
-          })
-          if (metadata.ok) {
-            const legacy = (await metadata.json()) as { lifetime_spent_cents?: number }
-            lifetimeSpent = legacy.lifetime_spent_cents ?? null
-          }
-        } catch (error) {
-          log.warn("Wallet lifetime-spend metadata read failed", {
-            error: error instanceof Error ? error.message : String(error),
-          })
+      let lifetimeSpent = body.lifetime_spent_cents ?? null
+      if (currentWallet && lifetimeSpent === null && options.lifetimeSpent !== false) {
+        const metadata = await fundedAtlasFetch(session, `${apiBase()}/api/credits`, init, timeoutMs).catch(
+          () => undefined,
+        )
+        if (metadata?.ok) {
+          const legacy = (await metadata.json()) as { lifetime_spent_cents?: number }
+          lifetimeSpent = legacy.lifetime_spent_cents ?? null
         }
       }
-      const spendable = walletCents(d)
-      const promotional = d.promotional_cents ?? d.cycle_credits_remaining_cents ?? 0
-      const purchased = d.purchased_cents ?? d.purchased_credits_cents ?? spendable - promotional
+      const spendable = walletCents(body)
+      const promotional = body.promotional_cents ?? body.cycle_credits_remaining_cents ?? 0
+      const purchased = body.purchased_cents ?? body.purchased_credits_cents ?? spendable - promotional
       return {
         balanceUsd: purchased / 100,
+        aceEnabled: typeof body.ace?.enabled === "boolean" ? body.ace.enabled : undefined,
+        balanceRedacted: body.redacted === true,
         balanceCents: purchased,
+        availableCents: typeof body.available_cents === "number" ? body.available_cents : null,
         cliBalanceCents: purchased,
         spendableBalanceCents: spendable,
         promotionalBalanceCents: promotional,
         cycleCreditsRemainingCents: promotional,
         lifetimeSpentCents: lifetimeSpent,
+        autoReload:
+          typeof body.ace?.threshold_cents === "number" && typeof body.ace?.target_cents === "number"
+            ? { thresholdCents: body.ace.threshold_cents, amountCents: body.ace.target_cents }
+            : null,
       }
-    } catch (e) {
-      log.warn("getCredits error", { error: e instanceof Error ? e.message : String(e) })
+    } catch (error) {
+      log.warn("wallet read failed", { error: error instanceof Error ? error.message : String(error) })
       return null
     }
   }
@@ -2237,32 +1984,97 @@ export namespace OpenScience {
     createdAt: string
   }
 
-  export async function getTransactions(limit = 20): Promise<Transaction[] | null> {
-    const session = await getSession()
+  export async function getUsage(start: string, end: string, signal?: AbortSignal): Promise<unknown | null> {
+    const session = await getRequestSnapshot({ signal })
+    signal?.throwIfAborted()
     if (!session) return null
+    const query = new URLSearchParams({ since: start, until: end })
+    const response = await fundedAtlasFetch(session, `${apiBase()}/api/credits/usage?${query}`, { signal })
+    if (!response.ok) throw new Error(`Managed usage could not be loaded (${response.status}). Please retry.`)
+    return response.json()
+  }
+
+  export async function getTransactions(
+    limit = 20,
+    snapshot?: FundingSnapshot,
+    signal?: AbortSignal,
+  ): Promise<Transaction[] | null> {
+    // A legacy unscoped session learns its workspace from the status read
+    // (joining one already in flight) before any wallet endpoint sees it.
+    const session =
+      snapshot && !isLegacyUnscoped(snapshot) ? snapshot : (await getReconciledFundingState({ signal }))?.snapshot
+    if (!session || (snapshot && session.api_key !== snapshot.api_key)) return null
     try {
-      const res = await authenticatedAtlasFetch(session, `${API_BASE}/api/credits/transactions`, {
-        headers: { Authorization: `Bearer ${session.api_key}` },
-      })
-      if (!res.ok) return null
-      const body = (await res.json()) as
-        | Array<Record<string, unknown>>
-        | { transactions?: Array<Record<string, unknown>> }
+      const response = await fundedAtlasFetch(session, `${apiBase()}/api/credits/transactions`, { signal })
+      // The ledger is a browser-session read: a device credential is refused
+      // by design, which is an empty history here rather than an outage.
+      if (response.status === 403) return []
+      if (!response.ok) return null
+      const body = (await response.json()) as
+        Array<Record<string, unknown>> | { transactions?: Array<Record<string, unknown>> }
       const rows = Array.isArray(body) ? body : (body.transactions ?? [])
-      return rows.slice(0, limit).map((r) => ({
-        id: String(r["id"] ?? ""),
-        amountCents: Number(r["amount_cents"] ?? 0),
-        source: String(r["source"] ?? ""),
-        description: String(r["description"] ?? ""),
-        createdAt: String(r["created_at"] ?? ""),
+      return rows.slice(0, Math.max(0, limit)).map((row) => ({
+        id: String(row.id ?? ""),
+        amountCents: Number(row.amount_cents ?? 0),
+        source: String(row.source ?? ""),
+        description: String(row.description ?? ""),
+        createdAt: String(row.created_at ?? ""),
       }))
-    } catch (e) {
-      log.warn("getTransactions error", { error: e instanceof Error ? e.message : String(e) })
+    } catch {
       return null
     }
   }
 
-  // === Local model-access mode + server capability compatibility ===
+  interface AccessRead {
+    ok: boolean
+    status?: number
+    body?: {
+      cli_balance_cents?: number
+      managed_supported?: boolean
+      managed_unlocked?: boolean
+      ace_enabled?: boolean
+      ace_access_enabled?: boolean
+      auto_reload_enabled?: boolean
+      balance_redacted?: boolean
+    }
+  }
+
+  /** The routing preference is local (config, stored keys, env), so it is
+   * computed at read time and never taken from a stored account summary. */
+  async function localBillingMode(
+    config: Pick<typeof import("@/config/config").Config, "getGlobal">,
+  ): Promise<BillingMode["mode"]> {
+    const configured = (await config.getGlobal()).billing?.llm
+    if (configured === "managed") return "managed"
+    if (configured === "byok") return "byok"
+    const openrouterAuth = await Auth.get("openrouter").catch(() => undefined)
+    const storedOwnKey = openrouterAuth?.type === "api" && !isAtlasManagedKey(openrouterAuth.key)
+    const envOpenRouterKey = process.env.OPENROUTER_API_KEY
+    const envOwnKey = !!envOpenRouterKey && !isAtlasManagedKey(envOpenRouterKey)
+    return storedOwnKey || envOwnKey ? "byok" : "managed"
+  }
+
+  /** The entitlement check, shared by every concurrent caller in one context. */
+  function readAccess(session: FundingSnapshot, timeoutMs: number, signal?: AbortSignal): Promise<AccessRead> {
+    return share(
+      flightKey("access", session),
+      async (flight) => {
+        const response = await fundedAtlasFetch(
+          session,
+          `${apiBase()}/api/cli/access`,
+          { signal: flight },
+          timeoutMs,
+        ).catch(() => undefined)
+        if (!response) return { ok: false }
+        if (!response.ok) {
+          await response.body?.cancel().catch(() => undefined)
+          return { ok: false, status: response.status }
+        }
+        return { ok: true, status: response.status, body: (await response.json()) as AccessRead["body"] }
+      },
+      signal,
+    )
+  }
 
   export interface BillingMode {
     mode: "byok" | "managed"
@@ -2271,189 +2083,468 @@ export namespace OpenScience {
     managed_supported: boolean
     managed_unlocked: boolean
     ace_enabled?: boolean
+    ace_access_enabled?: boolean
+    auto_reload_enabled?: boolean
+    balance_redacted?: boolean
+    balance_verified?: boolean
+    access_verified?: boolean
   }
 
-  interface CliAccess {
-    cli_balance_cents?: number
-    managed_supported?: boolean
-    managed_unlocked?: boolean
-    ace_enabled?: boolean
+  /** An explicit entitlement verdict: the gateway answered and refused. */
+  function accessDenied(read: AccessRead): boolean {
+    return read.status === 401 || read.status === 403
   }
 
-  interface BillingCompatibility {
-    access?: CliAccess
-    legacy?: BillingMode
-    legacyEndpoint: "available" | "retired" | "unavailable"
-  }
-
-  // Legacy account-mode mirroring is deliberately serialized. Settings writes
-  // are acknowledged from local Config immediately, while this tail preserves
-  // click order across slow old Atlas deployments. The generation check also
-  // coalesces work that has not reached its POST yet, so an older Credits click
-  // can never finish after a newer Accounts/Automatic click and become the
-  // server's final mode.
-  let billingMirrorGeneration = 0
-  let billingMirrorTail: Promise<void> = Promise.resolve()
-
-  async function readBillingCompatibility(session: OpenScienceSession): Promise<BillingCompatibility> {
-    const headers = { Authorization: `Bearer ${session.api_key}` }
-    const [accessResult, legacyResult] = await Promise.allSettled([
-      authenticatedAtlasFetch(session, `${API_BASE}/api/cli/access`, { headers }),
-      authenticatedAtlasFetch(session, `${API_BASE}/api/cli/billing-mode`, { headers }),
-    ])
-    const accessResponse = accessResult.status === "fulfilled" ? accessResult.value : undefined
-    const legacyResponse = legacyResult.status === "fulfilled" ? legacyResult.value : undefined
-    const access = accessResponse?.ok ? ((await accessResponse.json()) as CliAccess) : undefined
-    const legacy = legacyResponse?.ok ? ((await legacyResponse.json()) as BillingMode) : undefined
-    const legacyEndpoint = legacy
-      ? "available"
-      : legacyResponse && (legacyResponse.status === 404 || legacyResponse.status === 405)
-        ? "retired"
-        : "unavailable"
-    if (!access && accessResult.status === "rejected") {
-      log.warn("model access capability read failed", {
-        error: accessResult.reason instanceof Error ? accessResult.reason.message : String(accessResult.reason),
-      })
-    }
-    return { access, legacy, legacyEndpoint }
-  }
-
-  function scheduleLegacyBillingMirror(
-    session: OpenScienceSession,
-    mode: "byok" | "managed",
-    generation: number,
-  ): void {
-    billingMirrorTail = billingMirrorTail.then(async () => {
-      if (generation !== billingMirrorGeneration) return
-      try {
-        const compatibility = await readBillingCompatibility(session)
-        if (generation !== billingMirrorGeneration) return
-        if (compatibility.legacyEndpoint === "available") {
-          const res = await authenticatedAtlasFetch(session, `${API_BASE}/api/cli/billing-mode`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${session.api_key}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ mode }),
-          })
-          if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text().catch(() => "")).slice(0, 200)}`)
-          // A newer local choice is already queued. Let that choice become the
-          // final legacy POST before refreshing synced account material.
-          if (generation !== billingMirrorGeneration) return
-          await syncServices().catch((error) =>
-            log.warn("legacy model-access sync deferred", {
-              error: error instanceof Error ? error.message : String(error),
-            }),
-          )
-        } else if (compatibility.legacyEndpoint === "unavailable") {
-          log.warn("legacy model-access mirror unavailable; local setting saved", { mode })
-        }
-      } catch (error) {
-        log.warn("legacy model-access mirror deferred; local setting saved", {
-          mode,
-          error: error instanceof Error ? error.message : String(error),
-        })
-      }
-    })
-  }
-
-  /** Wait for already-scheduled compatibility mirroring. Local callers do not
-   * need this; it exists for deterministic shutdown and regression tests. */
-  export async function waitForBillingModeMirror(): Promise<void> {
-    await billingMirrorTail
-  }
-
-  export async function getBillingMode(): Promise<BillingMode | null> {
-    const session = await getSession()
-    if (!session) return null
-    const [{ Config }, access, credits] = await Promise.all([
-      import("../config/config"),
-      readBillingCompatibility(session),
-      getCredits().catch(() => null),
-    ])
-    const configured = (await Config.getGlobal()).billing?.llm
-    const fallback = access.legacy
-    const balanceCents = credits?.balanceCents ?? fallback?.balance_cents ?? 0
-    const managedSupported = access.access?.managed_supported ?? fallback?.managed_supported ?? true
+  /** The billing mode one entitlement read and one wallet read describe. */
+  async function billingFromReads(read: AccessRead, credits: Credits | null): Promise<BillingMode> {
+    const { Config } = await import("@/config/config")
+    const access = read.body
+    const balance = credits?.balanceCents ?? access?.cli_balance_cents ?? 0
+    const denied = accessDenied(read)
+    const verified =
+      denied ||
+      (read.ok && typeof access?.managed_unlocked === "boolean" && typeof access.managed_supported === "boolean")
+    const supported = !denied && access?.managed_supported === true
     return {
-      mode: configured === "managed" ? "managed" : configured === "byok" ? "byok" : (fallback?.mode ?? "byok"),
-      balance_cents: balanceCents,
-      balance_usd: balanceCents / 100,
-      // Current Atlas publishes this on /access. A temporary capability-read
-      // outage must not disable the local Credits choice; dispatch remains the
-      // authoritative fail-closed boundary.
-      managed_supported: managedSupported,
-      // New Atlas reports the account decision directly. Older deployments
-      // unlocked managed calls whenever the purchased Wallet had value.
-      managed_unlocked:
-        access.access?.managed_unlocked ?? fallback?.managed_unlocked ?? (managedSupported && balanceCents > 0),
-      ace_enabled: access.access?.ace_enabled ?? fallback?.ace_enabled ?? false,
+      mode: await localBillingMode(Config),
+      balance_cents: balance,
+      balance_usd: balance / 100,
+      managed_supported: supported,
+      managed_unlocked: verified && supported && access?.managed_unlocked === true,
+      access_verified: verified,
+      ace_enabled: access?.ace_enabled ?? false,
+      // Older gateways expose access in the Wallet and use ace_enabled only
+      // for reload consent. Never turn an access grant into payment consent.
+      ace_access_enabled:
+        !denied && (access?.ace_access_enabled ?? credits?.aceEnabled ?? access?.managed_unlocked ?? false),
+      auto_reload_enabled: !denied && (access?.auto_reload_enabled ?? access?.ace_enabled ?? false),
+      balance_redacted: access?.balance_redacted ?? credits?.balanceRedacted ?? false,
+      balance_verified: typeof access?.cli_balance_cents === "number" && access.balance_redacted !== true,
     }
+  }
+
+  export async function getBillingMode(
+    snapshot?: FundingSnapshot,
+    knownCredits?: Credits | null | Promise<Credits | null>,
+    options: { timeoutMs?: number; signal?: AbortSignal } = {},
+  ): Promise<BillingMode | null> {
+    const session = snapshot ?? (await getReconciledFundingState({ signal: options.signal }))?.snapshot
+    if (!session) return null
+    const [accessRead, credits] = await Promise.all([
+      readAccess(session, options.timeoutMs ?? ATLAS_FETCH_TIMEOUT_MS, options.signal),
+      knownCredits === undefined
+        ? getCredits(session, { signal: options.signal }).catch(() => null)
+        : Promise.resolve(knownCredits),
+    ])
+    return billingFromReads(accessRead, credits)
   }
 
   export async function setBillingMode(
     mode: "byok" | "managed",
     localMode: "byok" | "managed" | null = mode,
   ): Promise<BillingMode | null> {
-    // The setting controls this local runtime first. Persist and invalidate
-    // before any network work so Accounts remains usable during an outage and
-    // Credits never silently retains a stale own-key provider map.
-    const { Config } = await import("../config/config")
-    // A billing toggle changes provider selection, not the project runtime.
-    // Refresh config/provider caches without closing active turns or rejecting
-    // their pending approvals.
+    const { Config } = await import("@/config/config")
     await Config.updateGlobal({ billing: { llm: localMode } }, { preserveInstances: true })
-    const { Provider } = await import("../provider/provider")
+    const { Provider } = await import("@/provider/provider")
     Provider.invalidate()
-
-    // Invalidate any older in-flight mirror even when this write happens while
-    // signed out. Local Config remains the routing authority in every case.
-    const mirrorGeneration = ++billingMirrorGeneration
-
-    const session = await getSession()
-    if (!session) return null
-
-    // Compatibility mirroring is deliberately off the UI acknowledgement
-    // path. A hanging retired endpoint must never keep Accounts unusable or a
-    // saved local mode looking unsaved. The process-wide account refresh will
-    // retry service synchronization later if this best-effort pass stalls.
-    scheduleLegacyBillingMirror(session, mode, mirrorGeneration)
     return null
   }
 
-  export interface LegacyInstalledSkillEntry {
-    id: string
-    namespace: string
-    name: string
-    description: string
-    repo_url: string
-    pinned_sha: string
-    review_verdict: string
-    review_meta: string | null
-    installed_at: string
+  export async function waitForBillingModeMirror(): Promise<void> {}
+
+  // ---- Stored account summary ----------------------------------------------
+  // The last good account summary is persisted (data dir, mode 0600) so the UI
+  // can show it at once and refresh it in the background. It holds the
+  // profile, funding context, wallet and entitlement the account service
+  // returned; never the API key, which is bound by fingerprint only.
+
+  export interface AccountSnapshot {
+    /** When the summary was read from the account service (ms since epoch). */
+    at: number
+    user?: AccountProfile
+    context: FundingContext
+    credits: Credits | null
+    billing: BillingMode | null
   }
 
-  export async function fetchLegacyInstalledSkills(): Promise<LegacyInstalledSkillEntry[] | null> {
-    const session = await getSession()
-    if (!session) return null
-    try {
-      const res = await authenticatedAtlasFetch(
-        session,
-        `${API_BASE}/api/cli/installed-skills`,
-        { headers: { Authorization: `Bearer ${session.api_key}` } },
-        SKILL_FETCH_TIMEOUT_MS,
-      )
-      if (!res.ok) {
-        log.warn("failed to export legacy installed skills", { status: res.status })
-        return null
-      }
-      return await res.json()
-    } catch (e) {
-      log.warn("legacy installed skills export error", { error: e instanceof Error ? e.message : String(e) })
-      return null
+  export interface AccountSummary extends AccountSnapshot {
+    /** True while a newer summary is being read in the background. */
+    refreshing: boolean
+    /** Why the latest refresh failed, when the stored summary is served instead. */
+    error?: string
+  }
+
+  /** Published when the stored summary should be read again: a refresh stored
+   * a newer one or dropped it after a refusal, a managed spend made it stale,
+   * or a background refresh failed (with `error`) while it was being served. */
+  export const AccountUpdatedEvent = BusEvent.define(
+    "account.updated",
+    z.object({ refreshed_at: z.number(), error: z.string().optional() }),
+  )
+
+  function announceAccount(properties: { refreshed_at: number; error?: string }): void {
+    GlobalBus.emit("event", { directory: "global", payload: { type: AccountUpdatedEvent.type, properties } })
+  }
+
+  /** Published when a browser sign-in has an approval page to open. The
+   * workspace shows the link itself, so a host that cannot launch a browser
+   * (SSH, a container, a desktop without a default handler) still has a way
+   * to finish signing in instead of waiting out the five-minute timeout. */
+  export const AccountLoginEvent = BusEvent.define("account.login", z.object({ approval_url: z.string() }))
+
+  export function announceLogin(url: string): void {
+    GlobalBus.emit("event", {
+      directory: "global",
+      payload: { type: AccountLoginEvent.type, properties: { approval_url: url } },
+    })
+  }
+
+  // The gateway settles a managed charge server-side shortly after the
+  // response stream ends, so the summary is read again after this delay
+  // rather than at the response headers, which predate the charge.
+  const SETTLEMENT_DELAY_MS = 3_000
+  let settlement: ReturnType<typeof setTimeout> | undefined
+
+  /** A managed response finished streaming. Surfaces re-read the stored
+   * summary as stale at once, and one refresh runs after the settlement
+   * delay; the steps of one turn collapse into a single refresh. */
+  export function noteManagedSpend(): void {
+    invalidateBalance()
+    announceAccount({ refreshed_at: Date.now() })
+    if (settlement) clearTimeout(settlement)
+    settlement = setTimeout(() => {
+      settlement = undefined
+      void settleSpend()
+    }, SETTLEMENT_DELAY_MS)
+    settlement.unref()
+  }
+
+  async function settleSpend(): Promise<void> {
+    // A balance read between the spend and now predates settlement.
+    invalidateBalance()
+    const session = await getFundingSnapshot().catch(() => null)
+    if (!session) return
+    await refreshAccount(session, { signal: accountDeadline() }).catch((error) => {
+      announceAccount({ refreshed_at: Date.now(), error: refreshFailure(error) })
+    })
+  }
+
+  /** The one bound on account reads the UI waits for. It replaces the old
+   * pair of a short UI timeout racing a long server timeout: the route's
+   * request signal (aborted when the client leaves) and this budget are
+   * combined once and propagated to every outbound fetch, so abandoned work
+   * is cancelled and the UI's answer is the server's. */
+  // Resolved per call, like the managed base, so the override applies as the
+  // process environment stands rather than as it stood at import.
+  export function accountDeadlineMs(): number {
+    return Number(process.env.OPENSCIENCE_ACCOUNT_DEADLINE_MS) || 15_000
+  }
+
+  function accountDeadlineMessage(): string {
+    return `The Ace account service did not answer within ${Math.round(accountDeadlineMs() / 1000)} seconds.`
+  }
+
+  /** The deadline's own reason says what happened, so a caller it cuts off,
+   * the failure it records and the UI all report the same thing. */
+  export function accountDeadline(signal?: AbortSignal): AbortSignal {
+    const controller = new AbortController()
+    const timer = setTimeout(
+      () => controller.abort(new DOMException(accountDeadlineMessage(), "TimeoutError")),
+      accountDeadlineMs(),
+    )
+    timer.unref()
+    const deadline = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal
+    if (deadline.aborted) clearTimeout(timer)
+    else deadline.addEventListener("abort", () => clearTimeout(timer), { once: true })
+    return deadline
+  }
+
+  const StoredOrganization = z.object({
+    organization_id: z.string(),
+    name: z.string(),
+    slug: z.string(),
+    is_personal: z.boolean(),
+    status: z.string(),
+    role: z.string(),
+    membership_status: z.string(),
+    funding_available: z.boolean(),
+    effective_permissions: z.array(z.string()),
+  })
+  const StoredContext = z.object({
+    type: z.enum(["personal", "organization"]),
+    organization_id: z.string().optional(),
+    available: z.boolean(),
+    locked: z.boolean(),
+    organizations: z.array(StoredOrganization),
+  })
+  const StoredCredits = z.object({
+    balanceUsd: z.number(),
+    aceEnabled: z.boolean().optional(),
+    balanceRedacted: z.boolean().optional(),
+    balanceCents: z.number(),
+    availableCents: z.number().nullable().optional(),
+    cliBalanceCents: z.number(),
+    spendableBalanceCents: z.number(),
+    promotionalBalanceCents: z.number(),
+    cycleCreditsRemainingCents: z.number(),
+    lifetimeSpentCents: z.number().nullable(),
+    autoReload: z.object({ thresholdCents: z.number(), amountCents: z.number() }).nullable().optional(),
+  })
+  const StoredBilling = z.object({
+    mode: z.enum(["byok", "managed"]),
+    balance_cents: z.number(),
+    balance_usd: z.number(),
+    managed_supported: z.boolean(),
+    managed_unlocked: z.boolean(),
+    ace_enabled: z.boolean().optional(),
+    ace_access_enabled: z.boolean().optional(),
+    auto_reload_enabled: z.boolean().optional(),
+    balance_redacted: z.boolean().optional(),
+    balance_verified: z.boolean().optional(),
+    access_verified: z.boolean().optional(),
+  })
+  // Only the profile fields the UI shows are stored. Whatever else the
+  // account service returns with the profile is never written to disk.
+  const StoredProfile = z.object({
+    user_id: z.string().optional(),
+    email: z.string().nullable().optional(),
+    display_name: z.string().nullable().optional(),
+    github_username: z.string().nullable().optional(),
+  })
+  const StoredSnapshot = z.object({
+    protocol: z.literal(1),
+    key_fingerprint: z.string(),
+    user_id: z.string(),
+    organization_id: z.string().optional(),
+    workspace_locked: z.boolean().optional(),
+    at: z.number(),
+    user: StoredProfile.optional(),
+    context: StoredContext,
+    credits: StoredCredits.nullable(),
+    billing: StoredBilling.nullable(),
+  })
+
+  // Summaries read before this instant are served as stale (a spend or a
+  // credential change happened since).
+  let accountStale = 0
+  let accountFailure: { context: string; at: number; error: string } | undefined
+
+  /** The profile a summary carries: the stored fields, picked from what the
+   * account service returned, so memory and disk hold the same shape. */
+  function storedProfile(user: AccountProfile): z.infer<typeof StoredProfile> {
+    const text = (value: unknown) => (typeof value === "string" || value === null ? value : undefined)
+    const picked = {
+      user_id: typeof user.user_id === "string" ? user.user_id : undefined,
+      email: text(user.email),
+      display_name: text(user.display_name),
+      github_username: text(user.github_username),
+    }
+    return Object.fromEntries(Object.entries(picked).filter(([, value]) => value !== undefined))
+  }
+
+  function sameSnapshot(a: FundingSnapshot, b: FundingSnapshot): boolean {
+    return (
+      a.api_key === b.api_key &&
+      a.user_id === b.user_id &&
+      a.organization_id === b.organization_id &&
+      a.workspace_locked === b.workspace_locked
+    )
+  }
+
+  /** The stored summary, only when it belongs to this exact account, funding
+   * context and lock state (what flightKey and sameSnapshot bind on). */
+  export async function readAccountSnapshot(session: FundingSnapshot): Promise<AccountSnapshot | null> {
+    if (!existsSync(SNAPSHOT_PATH)) return null
+    const parsed = StoredSnapshot.safeParse(
+      await Bun.file(SNAPSHOT_PATH)
+        .json()
+        .catch(() => undefined),
+    )
+    if (!parsed.success) return null
+    const stored = parsed.data
+    if (stored.key_fingerprint !== keyFingerprint(session.api_key)) return null
+    if (stored.user_id !== session.user_id || stored.organization_id !== session.organization_id) return null
+    if ((stored.workspace_locked === true) !== (session.workspace_locked === true)) return null
+    // A clock that moved backwards after the write leaves `at` in the future,
+    // where it would pass every freshness check; such a summary is stale.
+    const now = Date.now()
+    return {
+      at: stored.at > now ? now - ACCOUNT_SNAPSHOT_TTL_MS : stored.at,
+      ...(stored.user ? { user: stored.user } : {}),
+      context: stored.context,
+      credits: stored.credits,
+      billing: stored.billing,
     }
   }
-}
 
-CredentialLifecycle.onRefresh(() => OpenScience.reloadSyncedEnv())
+  async function writeAccountSnapshot(session: FundingSnapshot, snapshot: AccountSnapshot): Promise<void> {
+    await atomicWrite(
+      SNAPSHOT_PATH,
+      JSON.stringify({
+        protocol: 1,
+        key_fingerprint: keyFingerprint(session.api_key),
+        user_id: session.user_id,
+        ...(session.organization_id ? { organization_id: session.organization_id } : {}),
+        ...(session.workspace_locked ? { workspace_locked: true } : {}),
+        at: snapshot.at,
+        ...(snapshot.user ? { user: storedProfile(snapshot.user) } : {}),
+        context: snapshot.context,
+        credits: snapshot.credits,
+        billing: snapshot.billing,
+      } satisfies z.input<typeof StoredSnapshot>),
+    )
+  }
+
+  /** Read a fresh summary from the account service, store it and announce it.
+   * Shared by every concurrent caller in one funding context. Throws when the
+   * account status is unavailable or the selected account changed meanwhile,
+   * so a stored summary is never overwritten by an incomplete read. */
+  export function refreshAccount(
+    session: FundingSnapshot,
+    options: { signal?: AbortSignal } = {},
+  ): Promise<AccountSnapshot> {
+    return share(flightKey("account", session), (flight) => fetchAccount(session, flight), options.signal)
+  }
+
+  function refreshFailure(error: unknown): string {
+    if (error instanceof DOMException && error.name === "TimeoutError") return accountDeadlineMessage()
+    if (error instanceof DOMException && error.name === "AbortError") return "The account refresh was cancelled."
+    return error instanceof Error ? error.message : "Account refresh failed. Try again."
+  }
+
+  /** Store `snapshot` for `expected`'s account, or with `null` drop whatever
+   * is stored. The re-check and the write hold the session file's lock like
+   * the session mutators do, so nothing lands after a sign-out or a new
+   * sign-in removed the file. Returns whether the next summary read now
+   * serves something different. */
+  async function commitSummary(expected: FundingSnapshot, snapshot: AccountSnapshot | null): Promise<boolean> {
+    using _ = await Lock.write(SESSION_PATH)
+    const current = await getFundingSnapshot()
+    if (!current || !sameSnapshot(current, expected)) {
+      throw new Error("The selected account changed while refreshing. Retry.")
+    }
+    if (snapshot) {
+      await writeAccountSnapshot(current, snapshot)
+      return true
+    }
+    const stored = existsSync(SNAPSHOT_PATH)
+    await fs.rm(SNAPSHOT_PATH, { force: true })
+    return stored
+  }
+
+  async function fetchAccount(session: FundingSnapshot, signal: AbortSignal): Promise<AccountSnapshot> {
+    const context = contextTag(session)
+    const unavailable = () => new Error("The Ace account service is unavailable. Retry when connected.")
+    try {
+      // Reads only (status, entitlement, wallet): a refresh, in the
+      // background or not, never calls anything that spends.
+      const state = await getReconciledFundingState({ signal })
+      if (!state) throw new Error("Sign in again to refresh the Ace account.")
+      if (!state.verified) throw unavailable()
+      const [credits, access] = await Promise.all([
+        getCredits(state.snapshot, { signal }),
+        readAccess(state.snapshot, ATLAS_FETCH_TIMEOUT_MS, signal),
+      ])
+      if (access.status === 401) {
+        // The gateway rejected the key. accountAtlasFetch has begun clearing
+        // the session; finish that here so a caller that waited finds
+        // neither a session nor a stored summary.
+        await clearSession(state.snapshot.api_key)
+        throw new Error("This device was disconnected. Sign in again.")
+      }
+      const billing = await billingFromReads(access, credits)
+      const denied = accessDenied(access)
+      // A wallet or entitlement read that did not answer (a timeout, a 5xx)
+      // is not a summary: the last good one stays stored and is served with
+      // the failure.
+      if (!denied && (credits === null || billing.access_verified !== true)) throw unavailable()
+      const snapshot: AccountSnapshot = {
+        at: Date.now(),
+        ...(state.user ? { user: storedProfile(state.user) } : {}),
+        context: state.context,
+        credits,
+        billing,
+      }
+      // A refusal is answered to whoever asked but never stored: the next
+      // read asks the gateway again instead of trusting a refusal for a
+      // summary's lifetime, and the last good summary is dropped so it
+      // cannot outrank the refusal.
+      const changed = await commitSummary(state.snapshot, denied ? null : snapshot)
+      if (accountFailure?.context === context) accountFailure = undefined
+      if (changed) announceAccount({ refreshed_at: snapshot.at })
+      return snapshot
+    } catch (error) {
+      // The read is cancelled once its last caller left; that caller's own
+      // cancellation is not an account failure, while the deadline is.
+      const reason = signal.aborted ? signal.reason : error
+      if (!(reason instanceof DOMException && reason.name === "AbortError")) {
+        accountFailure = { context, at: Date.now(), error: refreshFailure(reason) }
+      }
+      throw error
+    }
+  }
+
+  async function accountSummary(
+    snapshot: AccountSnapshot,
+    refreshing: boolean,
+    error?: string,
+  ): Promise<AccountSummary> {
+    const { Config } = await import("@/config/config")
+    const mode = await localBillingMode(Config)
+    return {
+      ...snapshot,
+      billing: snapshot.billing ? { ...snapshot.billing, mode } : null,
+      refreshing,
+      ...(error ? { error } : {}),
+    }
+  }
+
+  /** The account summary the UI shows. Null when signed out. A stored summary
+   * is returned at once: as current while it is recent, otherwise marked
+   * `refreshing` while a background read replaces it. Only the first read of
+   * an account, with nothing stored yet, waits for the account service. */
+  export async function getAccountSummary(options: { signal?: AbortSignal } = {}): Promise<AccountSummary | null> {
+    const session = await getFundingSnapshot()
+    if (!session) return null
+    const cached = await readAccountSnapshot(session)
+    const now = Date.now()
+    // A recent summary is current. Strict: one stored in the same millisecond
+    // as a spend is stale, which costs one background read instead of a wrong
+    // verdict. A stale one younger than the refresh interval is served as it
+    // is: the refresh that stored it just ran, and the next read after the
+    // interval starts another. Nothing here asks the account service.
+    const lifetime = cached && cached.at > accountStale ? ACCOUNT_SNAPSHOT_TTL_MS : ACCOUNT_REFRESH_MIN_MS
+    const failure = accountFailure?.context === contextTag(session) ? accountFailure : undefined
+    // A refresh that failed after the stored summary was written (a spend's
+    // settlement read, say) is reported with the summary it could not
+    // replace, however young that summary is: the announcement of the failure
+    // is what makes a surface re-read, and the re-read must say why.
+    const recent = cached && failure && failure.at > cached.at ? failure : undefined
+    if (cached && now - cached.at < lifetime) return accountSummary(cached, false, recent?.error)
+    if (cached && recent && now - recent.at < ACCOUNT_RETRY_MS) return accountSummary(cached, false, recent.error)
+    // The only read that waits: the caller's own signal (a route's request,
+    // aborted when the client leaves) bounds it together with the deadline.
+    if (!cached)
+      return accountSummary(await refreshAccount(session, { signal: accountDeadline(options.signal) }), false)
+    // Nobody waits on the background read here, so it runs under the
+    // deadline alone; the result is announced on the global bus and the next
+    // summary read serves it. Nobody waits on a failure either, so it is
+    // announced too: a surface showing the stored summary as refreshing
+    // learns that the refresh stopped, and why.
+    refreshAccount(session, { signal: accountDeadline() }).catch((error) => {
+      announceAccount({ refreshed_at: Date.now(), error: refreshFailure(error) })
+    })
+    return accountSummary(cached, true, failure?.error)
+  }
+
+  export async function reportUsage(
+    _params: Record<string, unknown>,
+    _snapshot?: FundingSnapshot,
+  ): Promise<{ recorded: boolean; modelBlocked?: boolean } | null> {
+    return null
+  }
+
+  export async function fetchLegacyInstalledSkills(): Promise<null> {
+    return null
+  }
+}

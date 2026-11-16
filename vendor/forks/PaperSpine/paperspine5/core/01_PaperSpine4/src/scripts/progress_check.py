@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Scan paper_rewriting_output/ and report the first incomplete stage.
 
 Self-contained, standard library only. It does not modify files except when
@@ -8,16 +8,20 @@ Self-contained, standard library only. It does not modify files except when
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
 import sys
+import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _paper_spine_utils import figure_work_required, literature_scope, review_policy
+from author_voice_check import validate_author_voice
+from evidence_grounded_review import validate_file as validate_evidence_review_file
 from structured_review import validate_review
 
 
@@ -39,6 +43,7 @@ STAGE_PLAYBOOK: dict[str, str | None] = {
     "build_from_materials": "build",
     "rewrite_existing": "rewrite",
     "drafting": "rewrite",
+    "author_voice_restoration": "humanize",
     "integrity_audit": "audit",
     "latex": "latex",
     "word": "latex",
@@ -98,10 +103,18 @@ STAGES: list[StageDef] = [
     StageDef("drafting", "Drafting / Writing", [
         "final_paper/main.tex",
     ]),
+    StageDef("author_voice_restoration", "Authorial Voice Restoration", [
+        "author_voice_profile.json",
+        "author_voice_revision.json",
+        "author_voice_receipt.json",
+        "author_voice_report.md",
+    ], config_dependent=True),
     StageDef("integrity_audit", "Integrity Audit", [
         "artifact_check.md",
         "integrity_audit.md",
         "structured_review.md",
+        "evidence_review.json",
+        "evidence_review_check.md",
         "reviewer_audit.md",
     ]),
     StageDef("latex", "LaTeX / PDF", [
@@ -139,6 +152,19 @@ STAGES: list[StageDef] = [
 ]
 
 
+WEB_RUNNER_STAGES: list[tuple[str, str]] = [
+    ("web_intake", "J1-J3 / Web Intake and Configuration"),
+    ("awaiting_research", "J4 / Direction and Target Research"),
+    ("awaiting_contribution", "J5 / Contribution Boundary"),
+    ("awaiting_claim_graph", "J6 / Claim-Evidence Graph"),
+    ("awaiting_figure_intent", "J7 / Figure Intent"),
+    ("awaiting_canonical", "J8 / Canonical Manuscript"),
+    ("awaiting_review", "J9 / Independent Review"),
+    ("awaiting_package", "J10 / Target Adaptation and Author Close"),
+    ("target_package_ready", "J11 / Local Delivery"),
+]
+
+
 MISPLACED_RELATIVE_PATHS = (
     "final_paper",
     "writing_rationale_matrix.md",
@@ -173,6 +199,8 @@ class ProgressResult:
     findings: list[str] = field(default_factory=list)
     misplaced_artifacts: list[str] = field(default_factory=list)
     readiness: dict[str, bool] = field(default_factory=dict)
+    interaction: dict[str, object] = field(default_factory=dict)
+    figure_quality: dict[str, object] = field(default_factory=dict)
 
 
 def parse_args() -> argparse.Namespace:
@@ -185,7 +213,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--write", action="store_true", help="Write progress.md to the output directory")
     parser.add_argument(
         "--gate",
-        choices=[s.key for s in STAGES] + list(STAGE_ALIASES),
+        choices=[s.key for s in STAGES] + list(STAGE_ALIASES) + [
+            "web_runner_validation", "product_web", "local_delivery"
+        ],
         help="Check only a specific stage: exit 0 if complete, 1 otherwise.",
     )
     parser.add_argument(
@@ -343,6 +373,18 @@ def _run_final_audit_gate(output_dir: Path, config: dict) -> tuple[bool, str, li
         if rc != 0:
             failures.append(f"section_economy_check.py exit {rc}")
 
+    # Authorial Voice Restoration runs after the claim/evidence snapshot and
+    # reader-facing draft are frozen, but before independent editorial review.
+    # Pattern diagnostics are advisory; stale hashes or semantic drift block.
+    if author_voice_requested(config):
+        rc, _stdout, _stderr = _run_script(
+            scripts_dir,
+            "author_voice_check.py",
+            [str(output_dir), "--markdown", "--write"],
+        )
+        if rc != 0:
+            failures.append(f"author_voice_check.py exit {rc}")
+
     # 7. Contribution-first / reviewer-aware methodology gates (V4).
     methodology_scripts = ["contribution_check.py"]
     if review_policy(config) == "strict":
@@ -351,6 +393,18 @@ def _run_final_audit_gate(output_dir: Path, config: dict) -> tuple[bool, str, li
         rc, _stdout, _stderr = _run_script(scripts_dir, script, [str(output_dir), "--markdown", "--write"])
         if rc != 0:
             failures.append(f"{script} exit {rc}")
+    if review_policy(config) == "strict":
+        evidence_contract = output_dir / "evidence_review.json"
+        evidence_args = ["validate", str(evidence_contract)]
+        manuscript = output_dir / "final_paper" / "main.tex"
+        if manuscript.is_file():
+            evidence_args.extend(["--manuscript", str(manuscript)])
+        evidence_args.extend(["--markdown", "--write"])
+        rc, _stdout, _stderr = _run_script(
+            scripts_dir, "evidence_grounded_review.py", evidence_args
+        )
+        if rc != 0:
+            failures.append(f"evidence_grounded_review.py exit {rc}")
     # Results-as-Validation applies only to evidence-bearing scenes.
     if str(config.get("scene") or "").lower() in ("journal", "conference", "competition"):
         rc, _stdout, _stderr = _run_script(
@@ -372,6 +426,24 @@ def _run_final_audit_gate(output_dir: Path, config: dict) -> tuple[bool, str, li
         )
         if rc != 0:
             failures.append(f"figure_story_check.py exit {rc}")
+
+    # Existing-asset selection is a hash-bound decision, not a one-time note.
+    # If either side exists, require the request/receipt pair and recompute it
+    # against current files so an older figure or mutated data file cannot keep
+    # a stale PASS through final audit.
+    asset_request = output_dir / "asset_selection_request.json"
+    asset_receipt = output_dir / "asset_selection_receipt.json"
+    if asset_request.exists() or asset_receipt.exists():
+        if not asset_request.is_file() or not asset_receipt.is_file():
+            failures.append("asset selection request/receipt pair incomplete")
+        else:
+            rc, _stdout, _stderr = _run_script(
+                scripts_dir,
+                "asset_selection.py",
+                [str(asset_request), "--verify-receipt", str(asset_receipt), "--json"],
+            )
+            if rc != 0:
+                failures.append(f"asset_selection.py receipt verification exit {rc}")
 
     # 8. Reader-visible and delivery-state gates. Visual review is deliberately
     #    separate from TeX source checks: it binds receipts to rendered pages
@@ -414,6 +486,23 @@ def evidence_bearing_scene(config: dict) -> bool:
     }
 
 
+def author_voice_requested(config: dict) -> bool:
+    """Return whether the evidence-bound voice-restoration lane is enabled.
+
+    ``humanize_tier`` remains a compatibility input, but no longer selects an
+    AI-detector optimization target.
+    """
+    explicit = config.get("author_voice_restoration")
+    if isinstance(explicit, dict):
+        explicit = explicit.get("enabled", True)
+    if explicit is not None:
+        if explicit is False:
+            return False
+        return str(explicit).strip().lower() not in {"none", "off", "false", "no", "0", "disabled"}
+    legacy = str(config.get("humanize_tier") or "none").strip().lower()
+    return legacy in {"light", "medium", "heavy"}
+
+
 def word_requested(config: dict) -> bool:
     if "word_output" not in config:
         return True
@@ -449,7 +538,14 @@ def required_artifacts_for_stage(
         if stage.key == "planning":
             required = [item for item in required if item != "writing_rationale_matrix.md"]
         if stage.key == "integrity_audit":
-            required = [item for item in required if item != "reviewer_audit.md"]
+            required = [
+                item for item in required
+                if item not in {
+                    "reviewer_audit.md",
+                    "evidence_review.json",
+                    "evidence_review_check.md",
+                }
+            ]
     if stage.key == "planning" and not evidence_bearing_scene(config):
         required = [item for item in required if item != "scientific_evidence_ledger.json"]
     if stage.key == "final_audit" and not evidence_bearing_scene(config):
@@ -461,6 +557,13 @@ def required_artifacts_for_stage(
         required.append("figure_requests.json")
     if stage.key == "final_audit" and figure_active:
         required.append("figure_story_check.md")
+    if stage.key == "final_audit" and author_voice_requested(config):
+        required.extend([
+            "author_voice_profile.json",
+            "author_voice_revision.json",
+            "author_voice_receipt.json",
+            "author_voice_report.md",
+        ])
     if stage.key == "word":
         if require:
             # --require forces the Word gate even when word_output is none:
@@ -514,6 +617,8 @@ def stage_applies(stage: StageDef, output_dir: Path, config: dict, require: bool
         return translation_requested(config)
     if stage.key == "submission":
         return submission_requested(output_dir, config)
+    if stage.key == "author_voice_restoration":
+        return author_voice_requested(config)
     return True
 
 
@@ -526,10 +631,292 @@ def stage_skip_message(stage: StageDef) -> str:
         return "Translation not requested; gate passes (opt-out)."
     if stage.key == "submission":
         return "Submission not requested; gate passes (opt-out)."
+    if stage.key == "author_voice_restoration":
+        return "Authorial Voice Restoration explicitly disabled; gate passes (opt-out)."
     return "Stage not applicable."
 
 
+def _product_web_progress(output_dir: Path) -> ProgressResult | None:
+    """Verify a Product Web task instead of misreading it as legacy output.
+
+    Product Web stores its authority in ``task_record.json`` plus hash-bound
+    Runner artifacts, not in the V4 flat-file names.  This projection does not
+    manufacture compatibility files.  It verifies the actual task record,
+    readiness verdict, package manifest, source snapshot, and deterministic ZIP
+    before reporting J11 complete.
+    """
+
+    record_path = output_dir / "task_record.json"
+    if not record_path.is_file():
+        return None
+    result = ProgressResult(str(output_dir))
+
+    def fail(message: str) -> ProgressResult:
+        result.next_stage = "web_runner_validation"
+        result.next_action = "Repair or resume the Product Web task; do not create legacy placeholder artifacts."
+        result.is_complete = False
+        result.readiness = {
+            "scientific_content_ready": False,
+            "visual_ready": False,
+            "citation_verified": False,
+            "metadata_ready": False,
+            "artifact_portable": False,
+        }
+        result.findings.append(message)
+        return result
+
+    try:
+        task = json.loads(record_path.read_text(encoding="utf-8"))
+        if not isinstance(task, dict) or task.get("contract") != "paperspine5.task-record":
+            return fail("Product Web task_record.json contract is invalid.")
+        state = task.get("state")
+        runner = state.get("runner") if isinstance(state, dict) else None
+        if not isinstance(runner, dict) or runner.get("contract") != "paperspine5.runner-state":
+            return fail("Product Web Runner state is missing or invalid.")
+        interaction = runner.get("interaction")
+        if isinstance(interaction, dict):
+            result.interaction = {
+                "mode": interaction.get("mode"),
+                "requested_scope": interaction.get("requested_scope"),
+                "grant_status": interaction.get("grant_status"),
+                "grant_id": interaction.get("grant_id"),
+                "grant_sha256": interaction.get("grant_sha256"),
+                "decision_classes": list(interaction.get("decision_classes", [])),
+                "decision_receipts": list(interaction.get("decision_receipts", [])),
+                "external_action_authorized": False,
+            }
+        academic_base = runner.get("academic_base_artifacts")
+        if isinstance(academic_base, dict):
+            corrections = sorted(
+                artifact_id
+                for artifact_id in academic_base
+                if str(artifact_id).startswith("figure-correction.")
+            )
+            legibility = sorted(
+                artifact_id
+                for artifact_id in academic_base
+                if str(artifact_id).startswith("target-size-legibility.")
+            )
+            result.figure_quality = {
+                "contract": "paperspine5.figure-quality-projection",
+                "contract_version": "1.0",
+                "correction_receipts": corrections,
+                "target_size_legibility_receipts": legibility,
+                "status": "PASS" if legibility else "not_evaluated",
+                "external_action_authorized": False,
+            }
+        current = str(runner.get("stage") or "web_intake")
+        stage_keys = [key for key, _label in WEB_RUNNER_STAGES]
+        current_index = stage_keys.index(current) if current in stage_keys else 0
+        ready_stage = current == "target_package_ready"
+        for index, (key, label) in enumerate(WEB_RUNNER_STAGES):
+            stage = StageStatus(key=key, label=label)
+            if ready_stage or index < current_index:
+                stage.status = "DONE"
+            else:
+                stage.status = "PENDING"
+                if index == current_index:
+                    stage.missing_artifacts = [f"Runner stage is {current}"]
+            result.stages.append(stage)
+
+        if not ready_stage:
+            result.next_stage = current
+            next_actions = runner.get("next_actions")
+            result.next_action = (
+                str(next_actions[0])
+                if isinstance(next_actions, list) and next_actions
+                else f"Resume the Product Web task from Runner stage '{current}'."
+            )
+            result.readiness = {
+                "scientific_content_ready": False,
+                "visual_ready": False,
+                "citation_verified": False,
+                "metadata_ready": False,
+                "artifact_portable": False,
+            }
+            result.findings.append(
+                f"Product Web task is active at {current}; legacy flat-file intake is not required."
+            )
+            return result
+
+        run_root = Path(str(task.get("run_root") or "")).resolve()
+        workspace_root = Path(str(task.get("workspace_root") or "")).resolve()
+        if not run_root.is_dir() or not workspace_root.is_dir():
+            return fail("Product Web run/workspace root is missing.")
+
+        def load_pointer(pointer: object, label: str) -> dict:
+            if not isinstance(pointer, dict):
+                raise ValueError(f"{label} pointer is missing")
+            raw_path = pointer.get("path")
+            if not isinstance(raw_path, str) or not raw_path:
+                raise ValueError(f"{label} pointer path is missing")
+            path = (run_root / raw_path).resolve()
+            try:
+                path.relative_to(run_root)
+            except ValueError as exc:
+                raise ValueError(f"{label} pointer escapes the run root") from exc
+            encoded = path.read_bytes()
+            if (
+                hashlib.sha256(encoded).hexdigest() != pointer.get("sha256")
+                or len(encoded) != pointer.get("size_bytes")
+            ):
+                raise ValueError(f"{label} pointer bytes changed")
+            value = json.loads(encoded.decode("utf-8"))
+            if not isinstance(value, dict):
+                raise ValueError(f"{label} pointer is not an object")
+            return value
+
+        artifacts = runner.get("academic_artifacts")
+        bases = runner.get("academic_base_artifacts")
+        if not isinstance(artifacts, dict) or not isinstance(bases, dict):
+            return fail("Product Web academic artifact ledgers are missing.")
+        required_artifacts = {
+            "claim_evidence",
+            "publication.manuscript-head",
+            "publication.readiness",
+            "publication.review-closure",
+            "publication.target-package",
+            "surface_pdf",
+            "surface_word",
+            "target_authority",
+        }
+        missing_artifacts = sorted(required_artifacts - set(artifacts))
+        if missing_artifacts:
+            return fail(
+                "Product Web completion is missing Runner artifacts: "
+                + ", ".join(missing_artifacts)
+            )
+
+        readiness = load_pointer(artifacts["publication.readiness"], "readiness")
+        requested_scope = str(readiness.get("requested_scope") or "")
+        if requested_scope == "submission_package":
+            submission_artifacts = {"author_close", "target_obligations"}
+            missing_submission = sorted(submission_artifacts - set(artifacts))
+            if missing_submission:
+                return fail(
+                    "Product Web submission scope is missing Runner artifacts: "
+                    + ", ".join(missing_submission)
+                )
+        package = load_pointer(artifacts["publication.target-package"], "target package")
+        descriptor = load_pointer(bases.get("bundle_archive"), "bundle archive")
+        material_ledger = load_pointer(runner.get("material_inventory"), "material ledger")
+        run_contract = load_pointer(runner.get("run_contract"), "run contract")
+        if (
+            readiness.get("contract") != "paperspine5.readiness-verdict"
+            or requested_scope not in {"manuscript", "local_delivery", "submission_package"}
+            or readiness.get("is_complete_for_requested_scope") is not True
+            or readiness.get("manuscript_ready") is not True
+            or readiness.get("delivery_ready") is not True
+            or readiness.get("external_action_authorized") is not False
+        ):
+            return fail("Product Web readiness verdict is not complete for the requested local scope.")
+        layer_blockers = readiness.get("blockers_by_layer")
+        if (
+            not isinstance(layer_blockers, dict)
+            or layer_blockers.get(requested_scope) != []
+        ):
+            return fail("Product Web requested-scope blocker register is not empty.")
+        if (
+            package.get("contract") != "paperspine5.target-package-manifest"
+            or package.get("status") != "PASS"
+            or package.get("external_action_authorized") is not False
+        ):
+            return fail("Product Web target package manifest is not PASS.")
+        if (
+            descriptor.get("contract") != "paperspine5.local-package-archive"
+            or descriptor.get("local_only") is not True
+            or descriptor.get("external_action_authorized") is not False
+        ):
+            return fail("Product Web bundle descriptor is not a local-only archive.")
+        archive_path = (workspace_root / str(descriptor.get("path") or "")).resolve()
+        try:
+            archive_path.relative_to(workspace_root)
+        except ValueError as exc:
+            raise ValueError("bundle archive escapes the task workspace") from exc
+        archive_bytes = archive_path.read_bytes()
+        if (
+            hashlib.sha256(archive_bytes).hexdigest() != descriptor.get("sha256")
+            or len(archive_bytes) != descriptor.get("size_bytes")
+        ):
+            return fail("Product Web bundle archive bytes changed.")
+        entries = descriptor.get("entries")
+        if not isinstance(entries, list) or not entries:
+            return fail("Product Web bundle descriptor entries are missing.")
+        entry_map = {
+            str(entry.get("archive_path")): entry
+            for entry in entries
+            if isinstance(entry, dict) and entry.get("archive_path")
+        }
+        if len(entry_map) != len(entries):
+            return fail("Product Web bundle descriptor contains duplicate/invalid entries.")
+        with zipfile.ZipFile(archive_path, "r") as bundle:
+            if bundle.testzip() is not None or set(bundle.namelist()) != set(entry_map):
+                return fail("Product Web bundle archive failed CRC or member verification.")
+            for name, entry in entry_map.items():
+                encoded = bundle.read(name)
+                if (
+                    hashlib.sha256(encoded).hexdigest() != entry.get("sha256")
+                    or len(encoded) != entry.get("size_bytes")
+                ):
+                    return fail(f"Product Web bundle member changed: {name}")
+        if material_ledger.get("snapshot_sha256") != run_contract.get("material_snapshot_sha256"):
+            return fail("Product Web material ledger and run contract snapshots differ.")
+        unresolved = [
+            issue
+            for issue in runner.get("issues", [])
+            if isinstance(issue, dict) and issue.get("status") != "resolved"
+        ]
+        if (
+            task.get("status") != "completed"
+            or runner.get("external_action_authorized") is not False
+            or unresolved
+            or runner.get("next_actions") not in ([], None)
+        ):
+            return fail("Product Web task has unresolved work or external authorization.")
+
+        result.next_stage = "complete"
+        result.next_action = (
+            "Product Web J11 local delivery is complete and hash-verified; "
+            "external upload/submission remains unauthorized."
+        )
+        result.is_complete = True
+        result.readiness = {
+            "manuscript_ready": True,
+            "delivery_ready": True,
+            "submission_ready": readiness.get("submission_ready") is True,
+            "external_action_authorized": False,
+        }
+        result.findings.append(
+            "Product Web authority verified at target_package_ready: requested scope complete, deterministic local ZIP valid, "
+            f"submission_ready={readiness.get('submission_ready') is True}, external action locked."
+        )
+        return result
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError, zipfile.BadZipFile) as exc:
+        return fail(f"Product Web verification failed: {exc}")
+
+
 def gate_check(output_dir: Path, stage_key: str, require: bool = False) -> tuple[bool, str, list[str]]:
+    web_result = _product_web_progress(output_dir)
+    if web_result is not None:
+        # Product Web has its own J1-J11 state machine. A completed local
+        # delivery is not evidence that an arbitrary legacy stage gate passed;
+        # only the explicit Web validation gate may consume this projection.
+        web_gates = {"web_runner_validation", "product_web", "local_delivery"}
+        if stage_key not in web_gates:
+            return False, (
+                f"GATE NOT APPLICABLE: Product Web task is governed by its Runner stages; "
+                f"legacy stage '{stage_key}' cannot be satisfied by J11 delivery. "
+                "Use --gate web_runner_validation or resume the Web task."
+            ), ["product_web_legacy_stage_not_substituted"]
+        if web_result.is_complete:
+            return True, (
+                "GATE PASSED: Product Web Runner verified J11 local delivery; "
+                "the explicit Web validation gate is covered by the current READY verdict."
+            ), []
+        return False, (
+            f"GATE FAILED: Product Web task is at {web_result.next_stage}. "
+            "Resume it in the Web workspace; do not create legacy placeholder files."
+        ), list(web_result.findings)
     config = _read_config(output_dir)
     stage_key = STAGE_ALIASES.get(stage_key, stage_key)
     stage_def = next((s for s in STAGES if s.key == stage_key), None)
@@ -595,6 +982,14 @@ def gate_check(output_dir: Path, stage_key: str, require: bool = False) -> tuple
                 "claim boundary, and Results unit before drafting."
             ), ["figure_story_check.py"]
 
+    if stage_key == "author_voice_restoration":
+        result = validate_author_voice(output_dir)
+        if not result.ok:
+            return False, (
+                "GATE FAILED: Authorial Voice Restoration - semantic invariants, "
+                "provenance, independent audit, or author confirmation are incomplete."
+            ), [f"{item.code}: {item.message}" for item in result.hard_findings]
+
     # FAIL/BLOCKED content checks (mirrors check_progress post-processing)
     if stage_key == "integrity_audit" and _report_contains_fail_blocked(output_dir, "integrity_audit.md"):
         return False, (
@@ -609,6 +1004,13 @@ def gate_check(output_dir: Path, stage_key: str, require: bool = False) -> tuple
         ), ["artifact_check.md: FAIL/BLOCKED"]
 
     if stage_key == "integrity_audit":
+        if author_voice_requested(config):
+            voice_result = validate_author_voice(output_dir)
+            if not voice_result.ok:
+                return False, (
+                    "GATE FAILED: Integrity Audit - Authorial Voice Restoration receipt "
+                    "is missing, stale, or blocked."
+                ), [f"{item.code}: {item.message}" for item in voice_result.hard_findings]
         review_result = validate_review(output_dir / "structured_review.md")
         if not review_result["ok"]:
             return False, (
@@ -618,6 +1020,17 @@ def gate_check(output_dir: Path, stage_key: str, require: bool = False) -> tuple
             ), review_result["findings"]
 
     if stage_key == "integrity_audit" and review_policy(config) == "strict":
+        evidence_contract = output_dir / "evidence_review.json"
+        manuscript = output_dir / "final_paper" / "main.tex"
+        evidence_result = validate_evidence_review_file(
+            evidence_contract,
+            manuscript if manuscript.is_file() else None,
+        )
+        if not evidence_result.ok:
+            return False, (
+                f"GATE FAILED: {stage_def.label} - evidence_review.json is not "
+                "grounded in the current manuscript or has invalid tool/literature receipts."
+            ), evidence_result.errors
         rc, _stdout, _stderr = _run_script(
             scripts_dir, "reviewer_audit_check.py", [str(output_dir), "--markdown", "--write"]
         )
@@ -709,6 +1122,9 @@ def _next_action_for_stage(stage: StageStatus, config: dict, misplaced: list[str
 
 
 def check_progress(output_dir: Path) -> ProgressResult:
+    web_result = _product_web_progress(output_dir)
+    if web_result is not None:
+        return web_result
     result = ProgressResult(str(output_dir))
 
     if not output_dir.exists():
@@ -759,12 +1175,25 @@ def check_progress(output_dir: Path) -> ProgressResult:
     contribution_check_fail = _report_contains_fail_blocked(output_dir, "contribution_check.md")
     results_validation_check_fail = _report_contains_fail_blocked(output_dir, "results_validation_check.md")
     reviewer_audit_check_fail = _report_contains_fail_blocked(output_dir, "reviewer_audit_check.md")
+    evidence_review_check_fail = _report_contains_fail_blocked(output_dir, "evidence_review_check.md")
+    author_voice_report_fail = _report_contains_fail_blocked(output_dir, "author_voice_report.md")
     scientific_evidence_check_fail = _report_contains_fail_blocked(output_dir, "scientific_evidence_check.md")
     visual_readiness_check_fail = _report_contains_fail_blocked(output_dir, "visual_readiness_check.md")
     publication_surface_check_fail = _report_contains_fail_blocked(output_dir, "publication_surface_check.md")
     metadata_readiness_check_fail = _report_contains_fail_blocked(output_dir, "metadata_readiness_check.md")
     structured_review_result = validate_review(output_dir / "structured_review.md")
     structured_review_fail = not structured_review_result["ok"]
+
+    if author_voice_report_fail and author_voice_requested(config):
+        for stage in result.stages:
+            if stage.key in ("author_voice_restoration", "integrity_audit", "final_audit") and stage.status == "DONE":
+                stage.status = "PENDING"
+                stage.missing_artifacts = [
+                    "author_voice_report.md reports BLOCKED - restore semantic invariants and re-confirm the current revision"
+                ]
+        result.findings.append(
+            "author_voice_report.md reports BLOCKED - independent review cannot begin on this revision"
+        )
 
     if structured_review_fail:
         for stage in result.stages:
@@ -806,6 +1235,17 @@ def check_progress(output_dir: Path) -> ProgressResult:
                 ]
         result.findings.append(
             "reviewer_audit_check.md reports FAIL/BLOCKED - integrity audit must be re-run"
+        )
+
+    if evidence_review_check_fail and review_policy(config) == "strict":
+        for stage in result.stages:
+            if stage.key in ("integrity_audit", "final_audit") and stage.status == "DONE":
+                stage.status = "PENDING"
+                stage.missing_artifacts = [
+                    "evidence_review_check.md reports FAIL/BLOCKED - grounded review must be repaired"
+                ]
+        result.findings.append(
+            "evidence_review_check.md reports FAIL/BLOCKED - integrity audit must be re-run"
         )
 
     if artifact_check_fail:
@@ -903,7 +1343,10 @@ def check_progress(output_dir: Path) -> ProgressResult:
             and not structured_review_fail
             and (
                 review_policy(config) == "balanced"
-                or report_passes("reviewer_audit_check.md")
+                or (
+                    report_passes("evidence_review_check.md")
+                    and report_passes("reviewer_audit_check.md")
+                )
             )
             and report_passes("contribution_check.md")
             and (not evidence_bearing_scene(config) or (
@@ -984,6 +1427,52 @@ def to_markdown(result: ProgressResult) -> str:
         lines.append(f"| {stage.label} | {_status_icon(stage.status)} | {missing} |")
     lines.append("")
 
+    if result.interaction:
+        interaction = result.interaction
+        lines.extend(
+            [
+                "## Interaction Authority",
+                "",
+                f"- Mode: {interaction.get('mode') or 'unknown'}",
+                f"- Requested scope: {interaction.get('requested_scope') or 'unknown'}",
+                f"- Grant status: {interaction.get('grant_status') or 'unknown'}",
+                f"- Grant ID: {interaction.get('grant_id') or '-'}",
+                f"- Grant SHA-256: {interaction.get('grant_sha256') or '-'}",
+                "- Decision classes: "
+                + (", ".join(interaction.get("decision_classes", [])) or "-"),
+                "- Decision receipts: "
+                + (", ".join(interaction.get("decision_receipts", [])) or "-"),
+                "- External action authorized: false",
+                "",
+            ]
+        )
+
+    if result.figure_quality:
+        figure_quality = result.figure_quality
+        lines.extend(
+            [
+                "## Figure Quality Evidence",
+                "",
+                f"- Status: {figure_quality.get('status') or 'unknown'}",
+                "- Correction receipts: "
+                + (
+                    ", ".join(figure_quality.get("correction_receipts", []))
+                    or "-"
+                ),
+                "- Target-size legibility receipts: "
+                + (
+                    ", ".join(
+                        figure_quality.get(
+                            "target_size_legibility_receipts", []
+                        )
+                    )
+                    or "-"
+                ),
+                "- External action authorized: false",
+                "",
+            ]
+        )
+
     if result.misplaced_artifacts:
         lines.extend(["## Misplaced Artifacts", ""])
         lines.extend(f"- `{rel}`" for rel in result.misplaced_artifacts)
@@ -1010,6 +1499,8 @@ def to_json_dict(result: ProgressResult) -> dict:
         "is_complete": result.is_complete,
         "misplaced_artifacts": result.misplaced_artifacts,
         "readiness": result.readiness,
+        "interaction": result.interaction,
+        "figure_quality": result.figure_quality,
         "stages": [
             {
                 "key": stage.key,

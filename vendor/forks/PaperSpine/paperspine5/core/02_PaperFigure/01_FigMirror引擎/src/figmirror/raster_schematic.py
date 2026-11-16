@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Iterable
@@ -265,10 +266,12 @@ def _stitch_tiles(candidate: Path, plan: dict[str, Any]) -> tuple[Image.Image, l
 
 
 def _font(size: int, bold: bool = False, explicit: str | None = None) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    windows_dir = os.environ.get("WINDIR")
+    windows_fonts = Path(windows_dir) / "Fonts" if windows_dir else None
     candidates = [
         explicit,
-        "C:/Windows/Fonts/msyhbd.ttc" if bold else "C:/Windows/Fonts/msyh.ttc",
-        "C:/Windows/Fonts/arialbd.ttf" if bold else "C:/Windows/Fonts/arial.ttf",
+        str(windows_fonts / ("msyhbd.ttc" if bold else "msyh.ttc")) if windows_fonts else None,
+        str(windows_fonts / ("arialbd.ttf" if bold else "arial.ttf")) if windows_fonts else None,
         "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf",
     ]
     for raw in candidates:

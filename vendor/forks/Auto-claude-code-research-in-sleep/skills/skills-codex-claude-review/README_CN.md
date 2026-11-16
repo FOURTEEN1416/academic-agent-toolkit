@@ -1,5 +1,7 @@
 # skills-codex-claude-review 说明
 
+> **已冻结的旧 partial overlay。** 保留目录和已有安装链接，不再同步完整包的新功能，也不再从基座重新生成。新安装和迁移请使用完整 `skills-codex` 包及 reviewer 选择；[安全迁移说明](../skills-codex/README_CN.md#迁移已冻结的-partial-overlay)。下文保留旧安装与协议资料；其中通道名称或旧 assurance 声明不能替代实际模型身份、完成状态和验收证据。
+
 这是一个**薄覆盖层**，适用于想采用以下组合的用户：
 
 - **Codex** 作为主执行者

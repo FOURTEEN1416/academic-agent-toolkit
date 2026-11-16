@@ -1,0 +1,368 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "paperspine.adaptive-shadow.request/0.1-shadow",
+  "title": "PaperSpine adaptive claim-surface shadow request",
+  "type": "object",
+  "required": [
+    "contract",
+    "interface_version",
+    "mode",
+    "revision_id",
+    "context",
+    "source_receipts",
+    "coverage_receipt",
+    "obligations",
+    "claim_surface",
+    "independent_review_receipt",
+    "retention_receipt",
+    "asset_inventory",
+    "quality_revision_receipt",
+    "legacy_receipt"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine.adaptive-shadow.request"},
+    "interface_version": {"const": "0.1-shadow"},
+    "mode": {"const": "shadow"},
+    "revision_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "context": {
+      "type": "object",
+      "required": ["context_id", "object_kind", "destination_channel", "as_of"],
+      "properties": {
+        "context_id": {"type": "string", "minLength": 1},
+        "object_kind": {"type": "string", "minLength": 1},
+        "destination_channel": {"type": "string", "minLength": 1},
+        "as_of": {"type": "string", "minLength": 10},
+        "venue": {"type": "string"},
+        "year": {"type": ["integer", "string"]},
+        "track": {"type": "string"},
+        "article_type": {"type": "string"},
+        "stage_id": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "source_receipts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/sourceReceipt"}
+    },
+    "coverage_receipt": {
+      "type": "object",
+      "required": ["target_policy", "direction_search"],
+      "properties": {
+        "target_policy": {"$ref": "#/$defs/coverageLane"},
+        "direction_search": {"allOf": [{"$ref": "#/$defs/coverageLane"}, {"required": ["direct_competitors_considered", "omission_challenge"]}]}
+      },
+      "additionalProperties": false
+    },
+    "obligations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/obligation"}
+    },
+    "claim_surface": {"$ref": "#/$defs/claimSurface"},
+    "independent_review_receipt": {"$ref": "#/$defs/reviewReceipt"},
+    "retention_receipt": {"$ref": "#/$defs/retentionReceipt"},
+    "asset_inventory": {"$ref": "#/$defs/assetInventory"},
+    "quality_revision_receipt": {"$ref": "#/$defs/qualityRevisionReceipt"},
+    "legacy_receipt": {"$ref": "#/$defs/legacyReceipt"},
+    "figures": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/figureDecision"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "hashArtifact": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "sourceReceipt": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "authority_class",
+        "canonical_identity",
+        "locator",
+        "retrieved_at",
+        "as_of",
+        "content_sha256",
+        "extraction_verification"
+      ],
+      "properties": {
+        "source_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+        "authority_class": {
+          "enum": [
+            "official",
+            "qualified_human_or_institution",
+            "user_authority",
+            "peer_reviewed_primary",
+            "scholarly_exemplar"
+          ]
+        },
+        "canonical_identity": {"type": "string", "minLength": 1},
+        "locator": {"type": "string", "minLength": 1},
+        "retrieved_at": {"type": "string", "format": "date-time"},
+        "as_of": {"type": "string", "minLength": 10},
+        "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "extraction_verification": {
+          "type": "object",
+          "required": ["kind", "producer_id", "verifier_id"],
+          "properties": {
+            "kind": {
+              "enum": [
+                "machine_parsed_official_structure",
+                "independent_verifier_receipt",
+                "same_model_context_separation"
+              ]
+            },
+            "producer_id": {"type": "string", "minLength": 1},
+            "verifier_id": {"type": "string", "minLength": 1},
+            "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "coverageLane": {
+      "type": "object",
+      "required": [
+        "queries",
+        "source_classes",
+        "included_source_ids",
+        "stopping_reason",
+        "residual_risk",
+        "coverage_challenger"
+      ],
+      "properties": {
+        "queries": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "source_classes": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "included_source_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "stopping_reason": {
+          "enum": [
+            "frontier_saturated",
+            "authoritative_sources_exhausted",
+            "budget_exhausted",
+            "user_bounded"
+          ]
+        },
+        "residual_risk": {"type": "string", "minLength": 1},
+        "coverage_challenger": {
+          "type": "object",
+          "required": [
+            "independence_kind",
+            "producer_id",
+            "challenger_id",
+            "outcome",
+            "unresolved_gaps"
+          ],
+          "properties": {
+            "independence_kind": {
+              "enum": [
+                "independent_model_or_provider",
+                "qualified_human",
+                "deterministic_frontier_check"
+              ]
+            },
+            "producer_id": {"type": "string", "minLength": 1},
+            "challenger_id": {"type": "string", "minLength": 1},
+            "outcome": {"enum": ["PASS", "BLOCKED"]},
+            "unresolved_gaps": {"type": "array", "items": {"type": "string"}}
+          },
+          "additionalProperties": false
+        },
+        "direct_competitors_considered": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "omission_challenge": {
+          "type": "object",
+          "required": [
+            "independence_kind",
+            "producer_id",
+            "challenger_id",
+            "outcome",
+            "unresolved_omissions"
+          ],
+          "properties": {
+            "independence_kind": {
+              "enum": ["independent_model_or_provider", "qualified_human"]
+            },
+            "producer_id": {"type": "string", "minLength": 1},
+            "challenger_id": {"type": "string", "minLength": 1},
+            "outcome": {"enum": ["PASS", "BLOCKED"]},
+            "unresolved_omissions": {"type": "array", "items": {"type": "string"}}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "obligation": {
+      "type": "object",
+      "required": ["obligation_id", "source_id", "normative_force", "predicate"],
+      "properties": {
+        "obligation_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+        "source_id": {"type": "string", "minLength": 1},
+        "normative_force": {
+          "enum": ["mandatory", "prohibited", "advisory", "quality_hypothesis"]
+        },
+        "predicate": {
+          "type": "object",
+          "required": ["operator", "path"],
+          "properties": {
+            "operator": {"enum": ["exists", "absent", "truthy", "equals", "in_set"]},
+            "path": {"type": "string", "minLength": 1},
+            "value": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "claimSurface": {
+      "type": "object",
+      "required": ["claim_id", "surface_id", "artifact", "support_source_ids", "facts"],
+      "properties": {
+        "claim_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+        "surface_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+        "artifact": {"$ref": "#/$defs/hashArtifact"},
+        "support_source_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "facts": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "reviewReceipt": {
+      "type": "object",
+      "required": [
+        "review_mode",
+        "independence_kind",
+        "producer_id",
+        "reviewer_id",
+        "input_sha256",
+        "outcome",
+        "major_restructure_required",
+        "unresolved_blockers"
+      ],
+      "properties": {
+        "review_mode": {"const": "zero_context_primary_surface"},
+        "independence_kind": {"enum": ["independent_model_or_provider", "qualified_human"]},
+        "producer_id": {"type": "string", "minLength": 1},
+        "reviewer_id": {"type": "string", "minLength": 1},
+        "input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "outcome": {"enum": ["PASS", "BLOCKED"]},
+        "major_restructure_required": {"type": "boolean"},
+        "unresolved_blockers": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "retentionReceipt": {
+      "type": "object",
+      "required": ["expected_atom_ids", "retained_atom_ids", "omitted_atoms"],
+      "properties": {
+        "expected_atom_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "retained_atom_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "omitted_atoms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["atom_id", "reason", "decision_owner"],
+            "properties": {
+              "atom_id": {"type": "string", "minLength": 1},
+              "reason": {"type": "string", "minLength": 1},
+              "decision_owner": {"type": "string", "minLength": 1}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "assetInventory": {
+      "type": "object",
+      "required": ["applicable"],
+      "properties": {
+        "applicable": {"type": "boolean"},
+        "not_applicable_reason": {"type": "string", "minLength": 1},
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["asset_id", "path", "sha256", "mtime_ns", "identity_match"],
+            "properties": {
+              "asset_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+              "path": {"type": "string", "minLength": 1},
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "mtime_ns": {"type": "integer", "minimum": 0},
+              "identity_match": {"type": "boolean"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "selected_asset_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "explicit_user_selection_id": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "qualityRevisionReceipt": {
+      "type": "object",
+      "required": ["automatic_rounds", "stop_reason", "changes"],
+      "properties": {
+        "automatic_rounds": {"type": "integer", "minimum": 0, "maximum": 1},
+        "stop_reason": {"type": "string", "minLength": 1},
+        "changes": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "legacyReceipt": {
+      "type": "object",
+      "required": ["interface", "status"],
+      "properties": {
+        "interface": {"const": "v1"},
+        "status": {"enum": ["PASS", "FAIL", "BLOCKED", "UNKNOWN", "NOT_RUN"]},
+        "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "figureDecision": {
+      "type": "object",
+      "required": ["figure_id", "role", "decision", "artifact"],
+      "properties": {
+        "figure_id": {"type": "string", "minLength": 1},
+        "role": {"type": "string", "minLength": 1},
+        "decision": {"enum": ["keep", "redesign", "replace", "demote"]},
+        "artifact": {"$ref": "#/$defs/hashArtifact"},
+        "competitive_delta": {
+          "type": "object",
+          "required": ["baseline", "delta", "evidence_source_ids"],
+          "properties": {
+            "baseline": {"type": "string", "minLength": 1},
+            "delta": {"type": "string", "minLength": 1},
+            "evidence_source_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

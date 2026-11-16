@@ -1,5 +1,7 @@
 # Codex + Gemini 审稿人指南
 
+> 本页记录已冻结的旧 partial overlay 安装。新安装使用完整 Codex 包和 reviewer 选择；[迁移与保留定制](../skills/skills-codex/README_CN.md#迁移已冻结的-partial-overlay)。旧目录与已有链接继续保留，不再同步新功能。
+
 使用：
 
 - **Codex** 作为主执行者

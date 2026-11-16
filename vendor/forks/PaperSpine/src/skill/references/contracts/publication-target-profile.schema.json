@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/publication-target-profile.schema.json",
+  "title": "PaperSpine publication target profile",
+  "type": "object",
+  "required": ["schema_version", "target", "sources", "format", "five_part_preferences", "package_requirements", "compliance"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "target": {
+      "type": "object",
+      "required": ["name", "article_type", "researched_at"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "article_type": {"type": "string", "minLength": 1},
+        "researched_at": {"type": "string", "format": "date"}
+      }
+    },
+    "sources": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "format": {"type": "object"},
+    "five_part_preferences": {"type": "object"},
+    "package_requirements": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "compliance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coverage", "rules"],
+      "properties": {
+        "coverage": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "allOf": [{"contains":{"properties":{"area":{"const":"title"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"abstract"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"body"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"figures"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"tables"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"references"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"attachments"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"required_sections"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"required_materials"}},"required":["area"]},"minContains":1,"maxContains":1}],
+          "allOf": [{"contains":{"properties":{"area":{"const":"title"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"abstract"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"body"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"figures"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"tables"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"references"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"attachments"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"required_sections"}},"required":["area"]},"minContains":1,"maxContains":1},{"contains":{"properties":{"area":{"const":"required_materials"}},"required":["area"]},"minContains":1,"maxContains":1}],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["area", "status", "source_ids", "source_locator", "note"],
+            "properties": {
+              "area": {"enum": ["title", "abstract", "body", "figures", "tables", "references", "attachments", "required_sections", "required_materials"]},
+              "status": {"enum": ["known", "not_applicable", "pending"]},
+              "source_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+              "source_locator": {"type": "string", "minLength": 1},
+              "note": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "area", "verification", "metric", "operator", "limit", "unit", "source_ids", "source_locator", "remediation"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "area": {"enum": ["title", "abstract", "body", "figures", "tables", "references", "attachments", "required_sections", "required_materials"]},
+              "verification": {"enum": ["machine_verifiable", "needs_author_confirmation", "advisory"]},
+              "metric": {"enum": ["word_count", "character_count", "page_count", "count", "required_sections", "required_material", "confirmation"]},
+              "scope": {"type": "string"},
+              "operator": {"enum": ["max", "required"]},
+              "limit": {"oneOf": [{"type": "number", "minimum": 0}, {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}]},
+              "unit": {"type": "string", "minLength": 1},
+              "confirmation_id": {"type": "string", "minLength": 1},
+              "source_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+              "source_locator": {"type": "string", "minLength": 1},
+              "remediation": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    }
+  }
+}

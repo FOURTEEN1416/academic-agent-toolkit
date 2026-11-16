@@ -7,6 +7,8 @@ version: 0.1.0
 
 This skill guides creation of distinctive, production-grade frontend interfaces that avoid generic "AI slop" aesthetics. Implement real working code with exceptional attention to aesthetic details and creative choices.
 
+> **Division of labor / 分工与规范衔接**：本技能负责**审美方向与创意执行**（风格定调、排版/配色/动效决策）。交互与可用性审查用 `dev-ui-ux`。在本仓生成的项目中，组件实现遵循 daisyUI 规范——组件 class 速查文件 `daisyui_ref.md` 随 `dev-code` 与 `dev-code-frontend` 技能自带（位于各自技能目录的 references/ 内）；本技能的美学原则与其组件规范互补（审美方向由本技能定，组件落地按 daisyUI）。
+
 The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints.
 
 ## Design Thinking

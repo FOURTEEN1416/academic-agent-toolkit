@@ -9,19 +9,11 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 ---
 
-
-
 # 课程论文撰写（基于已规划大纲 + 图表）
-
-
 
 为以下主题撰写课程论文正文：**$ARGUMENTS**
 
-
-
 ## 常量
-
-
 
 - **SUBJECT_DOMAIN** — 学科领域
 
@@ -29,11 +21,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 - **CUSTOM_REQUIREMENTS** — 用户自定义要求
 
-
-
 ## 输入（前置步骤产出）
-
-
 
 1. `OUTLINE.md` — 论文大纲 + Claims-Evidence Matrix + 文献关键词（**必须存在**）
 
@@ -47,11 +35,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 6. `user_data/` — 用户上传资料
 
-
-
 ## 硬约束
-
-
 
 1. **必须基于已存在的 OUTLINE.md 与 Claims-Evidence Matrix，不要重新生成大纲。**
 
@@ -77,19 +61,11 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 7. 输出文件：**`COURSE_PAPER.md`**。
 
-
-
 ## ⛔⛔⛔ 完成铁律（最高优先级，违反则本步骤失败）
-
-
 
 **本步骤必须产出 `COURSE_PAPER.md`（≥ 5KB，完整的课程论文内容）**。
 
-
-
 ⛔ **MANDATORY: 用 `Write` 工具直接写出 `COURSE_PAPER.md`。不要只调 Read/Bash 工具就 end_turn — 这是本步骤失败的 #1 原因。产出必须是真实落盘的文件。**
-
-
 
 ⛔ **读用户上传的文献/数据时**：
 
@@ -99,26 +75,13 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agen
 
 - AGENTS.md 已列出所有上传文件清单 + 字数，**优先用清单 + Read 局部，不要全量 cat**。
 
-
-
-
 产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
-
-
-
-
 
 ## 工作流程
 
-
-
 ### Step 0: 恢复检查（断线重跑必读）
 
-
-
 ⛔ **本步骤可能因为断线/手动重跑被多次启动**。每次启动前**必须**先扫描已有产物：
-
-
 
 ```bash
 
@@ -128,11 +91,7 @@ echo "COURSE_PAPER.md: $SIZE 字节"
 
 ```
 
-
-
 **根据扫描结果决定行动**：
-
-
 
 | 状态 | 行动 |
 
@@ -144,15 +103,9 @@ echo "COURSE_PAPER.md: $SIZE 字节"
 
 | 不存在 | 从 Step 1 开始 |
 
-
-
 ⛔ **铁律**：已有 COURSE_PAPER.md 内容不要丢弃；用 Read + Edit 续写。
 
-
-
 ### Step 1: 读取所有规划文件
-
-
 
 ```bash
 
@@ -162,23 +115,17 @@ echo "=== 读取大纲 ==="
 
 cat OUTLINE.md
 
-
-
 echo "=== 读取图表规划 ==="
 
 [ -f PAPER_PLAN.md ] || { echo "❌ PAPER_PLAN.md 不存在"; exit 1; }
 
 cat PAPER_PLAN.md
 
-
-
 echo "=== 检查图表分支 ==="
 
 NO_FIG=$(grep -ciE '^\*\*本论文不规划任何' PAPER_PLAN.md)
 
 echo "无图表分支: $NO_FIG"
-
-
 
 echo "=== 列出已生成的图表 ==="
 
@@ -188,8 +135,6 @@ ls -la figures/*.png figures/*.pdf 2>/dev/null
 
 ls -la figures/TABLE_*.md 2>/dev/null || echo "（暂无 TABLE_*.md）"
 
-
-
 echo "=== 读取数据分析结果（如有） ==="
 
 [ -f RESULTS.md ] && head -200 RESULTS.md
@@ -198,11 +143,7 @@ echo "=== 读取数据分析结果（如有） ==="
 
 ```
 
-
-
 ### Step 2: 提取 Claims-Evidence Matrix
-
-
 
 ```bash
 
@@ -228,15 +169,9 @@ else:
 
 ```
 
-
-
 如果没找到 Matrix，必须先回头补到 OUTLINE.md（这是后续自检的基础）。
 
-
-
 ### Step 3: 文献调研
-
-
 
 基于 `OUTLINE.md` 末尾的"文献调研关键词"清单，使用 WebSearch 搜索：
 
@@ -245,8 +180,6 @@ else:
 - 每个核心论点至少有 1-2 篇支撑文献
 
 - 整理成 `references_pool.md`
-
-
 
 **⛔ 必须使用 `$SCHOLAR_SCRIPT` 搜索文献，禁止凭记忆编造：**
 
@@ -268,8 +201,6 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "你的研究主题关键词" --max 10
 
 - 目标 10-15 篇，搜索结果不足就用搜到的数量
 
-
-
 ```markdown
 
 ## 文献候选池
@@ -280,19 +211,11 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "你的研究主题关键词" --max 10
 
 ```
 
-
-
 ### Step 4: 分章撰写（嵌入图表）
-
-
 
 按 OUTLINE.md 章节顺序写入 `COURSE_PAPER.md`。
 
-
-
 **写作铁律：**
-
-
 
 1. **图表嵌入**：在每个需要图的位置写 Markdown 图片语法
 
@@ -308,8 +231,6 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "你的研究主题关键词" --max 10
 
    - **PNG 优先**；如果只有 PDF，写成 `figures/fig_xxx.pdf`（docx 导出会兜底转换）
 
-
-
 1b. **表格嵌入（⛔ 必须用预生成的 .md 表格，禁止手抄）**：
 
    - paper-figure 步骤已把所有结果表格生成为 `figures/TABLE_*.md`（Markdown 三线表，数值来自 JSON，最可靠）
@@ -320,127 +241,38 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "你的研究主题关键词" --max 10
 
    - 每个 `figures/TABLE_*.md` 都必须在正文中嵌入，一张都不能漏
 
-
-
 2. **数值引用**：如果正文出现数字（精度、误差等），必须在末尾备注其来源章节，便于后续核查
 
    - 例：「准确率达到 94.7%（详见 §4.2 实验结果）」
 
    - 数字来源必须可追溯到 `RESULTS.md` 或 `figures/all_results.json`
 
-
-
 3. **上标引用**：`[1]`、`[2,3]`、`[4-6]`，每个引用号必须对应参考文献列表中的条目
-
-
 
 4. **章节字数比例**：按 OUTLINE.md 中的占比分配（默认）：
 
    - 引言 15% / 文献综述 20% / 方法 30% / 实验 25% / 结论 10%
 
-
-
 5. **语言风格**：学术正式；避免空话；每论点有支撑
-
-
 
 6. **段落组织**：每个二级标题下 ≥2 段；用过渡词连接
 
-
-
 ---
-
-
 
 ## ⛔⛔⛔ 反 AI 痕迹写作铁律（Word 模式必须遵守，违反等同失败）
 
+**单源共享契约，本地不复制正文**：执行写稿前按 tag 加载 `course_writing_contract.md`（`skills/_utils/` 与 `skills/shared-scripts/` 双副本一致）的 `<anti_ai_trace_rules>` 节，逐条遵守 6+1 条铁律（禁 bullet 叙述 / 加粗格式 / 段长 / 句式多样 / 图号引用 / 去口头禅 / 人文引文纪律）与无图表分支规则：
 
-
-Word 输出最常被识别为「AI 写的」就是因为下面这 6 条没遵守。优先级凌驾于章节模板和字数要求。
-
-
-
-1. **禁止 markdown bullet/编号列表（`-`、`*`、`1.`、`2.`）作为正文叙述。** 含「问题一/二/三」「研究目标」「创新点」「贡献点」「拟解决问题」「关键问题」「子任务」等场景必须用连贯段落，不许分点罗列。
-
-   - ❌ 错（最典型 AI 痕迹）：
-
-     ```
-
-     本文需依次解决三个递进的子问题：
-
-     - 问题一：针对 AI 生成图像，建立...
-
-     - 问题二：利用问题一的模型...
-
-     - 问题三：将模型拓展到视频...
-
-     ```
-
-   - ✅ 对（连贯段落 + 过渡词）：`本文需依次解决三个递进的子问题。**首先**，针对 AI 生成图像，建立无参考综合质量评估指标体系……；**其次**，利用第一问的模型对 8 张真实图像进行完整评估与分级……；**最后**，将模型拓展到视频时序维度，量化帧间运动连续性、内容一致性与闪烁稳定性。`
-
-   - ✅ 替代（行内括号编号）：`本文需依次解决三个递进的子问题：（1）针对…；（2）利用…；（3）将模型拓展到…。`
-
-   - bullet **唯一允许场景**：输入清单 / 软件依赖 / 评价指标定义 / 模型假设条目 / 参考文献列表 / 作者贡献声明，正文叙述一律禁止。
-
-
-
-2. **加粗写作 `**标签**：内容`，不要 `**标签：**内容`。** 把冒号包进 `**` 里 docx 引擎正则匹配不到，会留下孤立 `**` 残留。
-
-   - ❌ `**关键词：** AI 生成图像质量评价；...`
-
-   - ✅ `**关键词**：AI 生成图像质量评价；...`
-
-
-
-3. **每段至少 3-5 句话。** 1-2 句的短段落是 AI 痕迹；要么扩写到 3 句以上，要么并入相邻段落。
-
-
-
-4. **连续段落不能以相同句式开头。** 三段都「本文…」开头必须改，交替用「首先」「为此」「在此基础上」「针对…」「不同于…」「另一方面」等多样化连接词。
-
-
-
-5. **图号必须显式引用，但句式换着来（标准优秀论文口径）。** 每张图/表都要在正文里被点名（「图 N」／「表 N」），让读者对上号——这是硬规范，别为避免套路就删图号。要禁的是**"图 X 展示了……从图中可以看出……"这种图作主语 + 后半句空话的单调流水账**，不是禁止一切图作主语的句子。相邻两图的引用句式必须不同，在下面几种间轮换：括号旁注（首选）／句首带出／动词引导／图作主语（**带实质结论时允许**）／后置印证。
-
-   - ❌ `图 3 展示了三种算法的收敛曲线。从图中可以看出，遗传算法收敛最快。`（图作主语 + 空话）
-
-   - ✅ 括号旁注：`遗传算法在前 50 代即接近全局最优（图 3），收敛速度显著优于粒子群与模拟退火。`
-
-   - ✅ 图作主语（带实质结论）：`图 3 对比了三种算法的收敛轨迹，遗传算法在第 50 代即逼近全局最优，较粒子群提前约 30 代。`
-
-
-
-6. **去掉 AI 写作口头禅。** 少用「值得注意的是」「综上所述」「这一发现表明」「随着…的发展」「在…的背景下」「具有重要意义」。「研究表明」「多项研究证实」必须紧跟具体引用号 [N]，不能空喊。
-
-
-
----
-
-
-
-⛔ **无图表分支**特别规则：
-
-- 如果 PAPER_PLAN.md 是「无图表分支」，**禁止写任何 `![](figures/...)` 标记**
-
-- **禁止写「如图 X 所示」**
-
-- 所有论点用文献引用支撑
-
-
-
+```bash
+RULES="skills/_utils/course_writing_contract.md"; [ -f "$RULES" ] || RULES="academic-toolkit/skills/_utils/course_writing_contract.md"; [ -f "$RULES" ] || RULES="../../skills/_utils/course_writing_contract.md"; sed -n "/<anti_ai_trace_rules>/,/<\/anti_ai_trace_rules>/p" "$RULES"
+```
 ### Step 5: 写参考文献
 
-
-
 把 references_pool.md 中实际被引用的文献整理成正式参考文献列表：
-
-
 
 ```markdown
 
 ## 参考文献
-
-
 
 [1] 张三, 李四. 论文标题[J]. 期刊名, 2024, 12(3): 45-67.
 
@@ -448,19 +280,11 @@ Word 输出最常被识别为「AI 写的」就是因为下面这 6 条没遵守
 
 ```
 
-
-
 格式 GB/T 7714-2015。
-
-
 
 ### Step 6: 完整自检 ⛔（不能跳过）
 
-
-
 写完后必须运行 6 项自检，**任何一项失败必须回去修复后重新自检**。
-
-
 
 ```bash
 
@@ -469,8 +293,6 @@ echo "================================================="
 echo "课程论文写作完成自检（6 项必查）"
 
 echo "================================================="
-
-
 
 # ============================
 
@@ -508,8 +330,6 @@ else
 
 fi
 
-
-
 # ============================
 
 # 自检 2：章节字数分配
@@ -545,8 +365,6 @@ for i, ch in enumerate(chs[1:], 1):
     print(f'  §{i} [{title}] — 字符数 {len(body)}')
 
 PY
-
-
 
 # ============================
 
@@ -590,8 +408,6 @@ for e in embedded:
 
     embedded_basenames.add(bn)
 
-
-
 # A. figures/ 有但正文未嵌入
 
 missed_in_text = existing - embedded_basenames
@@ -607,8 +423,6 @@ if missed_in_text:
 else:
 
     print('✅ figures/ 中所有图都已被嵌入')
-
-
 
 # B. 正文嵌入但 figures/ 没有
 
@@ -626,8 +440,6 @@ else:
 
     print('✅ 正文嵌入的所有图都真实存在')
 
-
-
 # C. 正文中有"如图 X 所示"但没有对应嵌入
 
 ref_without_embed = re.findall(r'如图\s*[\d\-\.]+', text)
@@ -637,8 +449,6 @@ if ref_without_embed and not embedded_basenames:
     print('❌ 正文出现"如图 X 所示"但没有任何图片嵌入语法')
 
 PY
-
-
 
 # ============================
 
@@ -720,8 +530,6 @@ else:
 
 PY
 
-
-
 # ============================
 
 # 自检 5：引用闭环（上标 ↔ 参考文献）
@@ -768,8 +576,6 @@ for cm in re.finditer(r'\[(\d+(?:[,\-]\d+)*)\]', body):
 
             cite_nums.add(int(token))
 
-
-
 dangling = cite_nums - ref_nums
 
 unused = ref_nums - cite_nums
@@ -802,8 +608,6 @@ else:
 
 PY
 
-
-
 # ============================
 
 # 自检 6：数值一致性（正文 ↔ RESULTS.md）
@@ -833,8 +637,6 @@ if os.path.exists('figures/all_results.json'):
         results_text += json.dumps(json.load(open('figures/all_results.json', 'r', encoding='utf-8')), ensure_ascii=False)
 
     except: pass
-
-
 
 if not results_text:
 
@@ -878,8 +680,6 @@ else:
 
 PY
 
-
-
 echo ""
 
 echo "================================================="
@@ -890,11 +690,7 @@ echo "================================================="
 
 ```
 
-
-
 ### Step 7: 残留 Markdown 标记清理
-
-
 
 ```bash
 
@@ -904,15 +700,9 @@ grep -nE '\*\*[^*]+\*\*|^___' COURSE_PAPER.md | head -10
 
 ```
 
-
-
 清理 `**bold**` 形式的残留（除非确实需要加粗，但课程论文很少用）。
 
-
-
 ## 输出文件
-
-
 
 ## 执行与产出
 
@@ -923,11 +713,7 @@ grep -nE '\*\*[^*]+\*\*|^___' COURSE_PAPER.md | head -10
 
 - `COURSE_PAPER.md` — 最终课程论文（**主产出**，含图片嵌入和参考文献）
 
-
-
 ## 关键规则
-
-
 
 1. **必须基于已存在的 OUTLINE.md 与 figures/，不要重新规划。**
 
@@ -945,101 +731,15 @@ grep -nE '\*\*[^*]+\*\*|^___' COURSE_PAPER.md | head -10
 
 ## ⛔ FIGURE_MANIFEST 对账（写完正文必跑，规划了几张就必须嵌入几张）
 
-
+**单源共享契约**：对账脚本按 tag 加载 `course_writing_contract.md` 的 `<figure_manifest_reconcile>` 节（`PROD_DOC` 按本技能产物填写：course-paper=COURSE_PAPER.md / course-report=COURSE_REPORT.md）：
 
 ```bash
-
-echo "=== FIGURE_MANIFEST 对账 ==="
-
-PLAN_FILE=""
-
-for f in PROBLEM_ANALYSIS.md PAPER_PLAN.md MODELING_REPORT.md TOPIC_PLAN.md; do
-
-  [ -f "$f" ] && grep -q "<!-- BEGIN FIGURE_MANIFEST -->" "$f" && { PLAN_FILE="$f"; break; }
-
-done
-
-if [ -n "$PLAN_FILE" ]; then
-
-    START=$(grep -n "<!-- BEGIN FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
-
-    END=$(grep -n "<!-- END FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
-
-    EXPECTED_FIGS=$(sed -n "${START},${END}p" "$PLAN_FILE" | grep -oE "^[[:space:]]*-[[:space:]]+(fig_[a-zA-Z0-9_]+|tikz_[a-zA-Z0-9_]+)" | sed "s/^[[:space:]]*-[[:space:]]*//")
-
-    manifest_missing=0
-
-    for name in $EXPECTED_FIGS; do
-
-        if ! ls figures/${name}.png figures/${name}.pdf figures/${name}.drawio 2>/dev/null | head -1 | grep -q .; then
-
-            echo "❌ MANIFEST: $name 文件不存在"
-
-            manifest_missing=$((manifest_missing + 1))
-
-        elif ! grep -qE "${name}\.(png|pdf)" COURSE_PAPER.md 2>/dev/null; then
-
-            echo "❌ MANIFEST: $name 文件存在但 COURSE_PAPER.md 未引用"
-
-            manifest_missing=$((manifest_missing + 1))
-
-        fi
-
-    done
-
-    if [ "$manifest_missing" -gt 0 ]; then
-
-        echo "⛔ FIGURE_MANIFEST 对账失败 ($manifest_missing 张): 必须把这些图都画出来 + 嵌入正文后再结束"
-
-    else
-
-        echo "✅ FIGURE_MANIFEST 全部嵌入"
-
-    fi
-
-else
-
-    echo "(规划文档无 FIGURE_MANIFEST, 跳过对账)"
-
-fi
-
+RULES="skills/_utils/course_writing_contract.md"; [ -f "$RULES" ] || RULES="academic-toolkit/skills/_utils/course_writing_contract.md"; [ -f "$RULES" ] || RULES="../../skills/_utils/course_writing_contract.md"; sed -n "/<figure_manifest_reconcile>/,/<\/figure_manifest_reconcile>/p" "$RULES"
 ```
-
-
-
 ## ⛔ 通用 paper-stage 审计（所有写稿步骤共用，跨工作流）
 
-
-
-写完正文 / 编译前必须跑一次通用审计，独立于 PROBLEM_FACTS.json 是否存在：
-
-
+**单源共享契约**：审计脚本按 tag 加载 `course_writing_contract.md` 的 `<paper_stage_audit>` 节；审计未通过必须按提示修正正文 / results.json 后重跑：
 
 ```bash
-
-# 通用 paper 审计：
-
-#   [13] 正文结论与 results.json 一致（防"最优解 X 但正文写 Y"）
-
-#   [14] 事件源归属（防"凭变量名脑补撞击 / 命中 / 拦截"）
-
-# 即使没 PROBLEM_FACTS.json（普通学术 / 课程论文 / 人文社科），也会以"简化模式"跑独立审计。
-
-if [ -f _utils/facts_audit.py ]; then
-
-    python3 _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
-
-    PRC=${PIPESTATUS[0]}
-
-    if [ "$PRC" = "1" ]; then
-
-        echo "❌ 通用 paper-stage 审计未通过 — 必须按上面提示修正正文 / results.json 后重新跑"
-
-    fi
-
-fi
-
+RULES="skills/_utils/course_writing_contract.md"; [ -f "$RULES" ] || RULES="academic-toolkit/skills/_utils/course_writing_contract.md"; [ -f "$RULES" ] || RULES="../../skills/_utils/course_writing_contract.md"; sed -n "/<paper_stage_audit>/,/<\/paper_stage_audit>/p" "$RULES"
 ```
-
-
-

@@ -34,9 +34,9 @@ Use this skill for:
 - Significance level (alpha) and power
 
 Use:
-```bash
-python3 scripts/sample_size_calculator.py --baseline-rate 0.12 --mde 0.02 --mde-type absolute
-```
+脚本 `scripts/sample_size_calculator.py` 未随本仓集成（已入 asset_gap_register.json），按公式手工估算：
+两比例检验每变体样本量 **n ≈ (z_{α/2}+z_β)² · [p₁(1−p₁)+p₂(1−p₂)] / (p₂−p₁)²**。
+例（--baseline-rate 0.12 --mde 0.02 --mde-type absolute，即 p₁=0.12、p₂=0.14，α=0.05、power=0.8）：(1.96+0.84)²=7.84，n ≈ 7.84 × (0.1056+0.1204) / 0.02² ≈ **4430/变体**。
 
 4. Prioritize experiments with ICE
 - Impact: potential upside
@@ -87,18 +87,13 @@ See:
 
 ### `scripts/sample_size_calculator.py`
 
+> **脚本未随本仓集成**（已入 asset_gap_register.json）；需要时按下列公式手工计算。
+
 Computes required sample size (per variant and total) from:
 - baseline rate
 - MDE (absolute or relative)
 - significance level (alpha)
 - statistical power
 
-Example:
-```bash
-python3 scripts/sample_size_calculator.py \
-  --baseline-rate 0.10 \
-  --mde 0.015 \
-  --mde-type absolute \
-  --alpha 0.05 \
-  --power 0.8
-```
+Example（p₁=0.10、绝对 MDE 0.015 即 p₂=0.115、α=0.05、power=0.8，(1.96+0.84)²=7.84）：
+n ≈ 7.84 × (0.10×0.90 + 0.115×0.885) / 0.015² ≈ 7.84 × 0.1918 / 0.000225 ≈ **6680/变体**（双变体合计约 13360）。

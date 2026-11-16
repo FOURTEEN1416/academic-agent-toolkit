@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import re
 import time
-import xml.etree.ElementTree as ET
 from typing import Any
+
+import defusedxml.ElementTree as ET
+from xml.etree.ElementTree import Element
 
 import requests
 
@@ -64,7 +67,7 @@ def _get(endpoint: str, params: dict[str, Any], timeout: int = 30) -> requests.R
     return resp
 
 
-def _parse_article(article: ET.Element) -> dict[str, Any]:
+def _parse_article(article: Element) -> dict[str, Any]:
     """Parse a single PubmedArticle XML element into the unified result dict."""
     citation = article.find("MedlineCitation")
     if citation is None:
@@ -79,7 +82,8 @@ def _parse_article(article: ET.Element) -> dict[str, Any]:
 
     # Title
     title_el = art.find("ArticleTitle")
-    title = title_el.text.strip() if title_el is not None and title_el.text else ""
+    # itertext() keeps text after inline markup such as <i>...</i>; .text stops at the first child.
+    title = " ".join("".join(title_el.itertext()).split()) if title_el is not None else ""
 
     # Authors
     authors: list[str] = []
@@ -303,7 +307,14 @@ class PubMedSource:
             "retmode": "xml",
         }
         resp = _get("esearch.fcgi", search_params)
-        root = ET.fromstring(resp.content)
+        try:
+            root = ET.fromstring(resp.content)
+        except ET.ParseError as exc:
+            raise DataSourceError(
+                SOURCE_NAME,
+                "Invalid XML response from NCBI MeSH ESearch",
+                exc,
+            ) from exc
 
         id_list = root.find("IdList")
         if id_list is None or len(id_list) == 0:
@@ -314,22 +325,74 @@ class PubMedSource:
         if not ids:
             return {"term": term, "results": []}
 
-        # efetch from mesh db to get descriptor details
-        fetch_params: dict[str, Any] = {
+        # MeSH full-record EFetch is text-only, even when retmode=xml is
+        # requested. ESummary v2 provides structured descriptor metadata,
+        # including the canonical MeSH UI, without parsing the text view.
+        summary_params: dict[str, Any] = {
             "db": "mesh",
             "id": ",".join(ids),
-            "retmode": "xml",
+            "retmode": "json",
+            "version": "2.0",
         }
-        resp = _get("efetch.fcgi", fetch_params)
-        fetch_root = ET.fromstring(resp.content)
+        resp = _get("esummary.fcgi", summary_params)
+        try:
+            payload = resp.json()
+        except (ValueError, requests.JSONDecodeError) as exc:
+            raise DataSourceError(
+                SOURCE_NAME,
+                "Invalid JSON response from NCBI MeSH ESummary",
+                exc,
+            ) from exc
+
+        summary = payload.get("result") if isinstance(payload, dict) else None
+        if not isinstance(summary, dict):
+            raise DataSourceError(
+                SOURCE_NAME,
+                "Malformed NCBI MeSH ESummary response: missing result object",
+            )
 
         results: list[dict[str, str]] = []
-        for descriptor in fetch_root.findall(".//DescriptorRecord"):
-            name_el = descriptor.find("DescriptorName/String")
-            ui_el = descriptor.find("DescriptorUI")
-            name = name_el.text.strip() if name_el is not None and name_el.text else ""
-            ui = ui_el.text.strip() if ui_el is not None and ui_el.text else ""
-            if name:
-                results.append({"name": name, "mesh_id": ui, "ui": ui})
+        for entrez_uid in ids:
+            record = summary.get(entrez_uid)
+            if not isinstance(record, dict):
+                raise DataSourceError(
+                    SOURCE_NAME,
+                    f"Malformed NCBI MeSH ESummary response: missing UID {entrez_uid}",
+                )
+
+            mesh_terms = record.get("ds_meshterms")
+            name = ""
+            if isinstance(mesh_terms, list):
+                name = next(
+                    (
+                        value.strip()
+                        for value in mesh_terms
+                        if isinstance(value, str) and value.strip()
+                    ),
+                    "",
+                )
+
+            ui_value = record.get("ds_meshui")
+            ui = ui_value.strip() if isinstance(ui_value, str) else ""
+
+            if not name:
+                raise DataSourceError(
+                    SOURCE_NAME,
+                    f"Malformed NCBI MeSH ESummary response: missing descriptor name for UID {entrez_uid}",
+                )
+            if not re.fullmatch(r"[A-Z]\d{6,}", ui):
+                raise DataSourceError(
+                    SOURCE_NAME,
+                    f"Malformed NCBI MeSH ESummary response: invalid MeSH UI for UID {entrez_uid}",
+                )
+
+            results.append(
+                {
+                    "name": name,
+                    "mesh_id": ui,
+                    "ui": ui,
+                    "entrez_uid": entrez_uid,
+                }
+            )
 
         return {"term": term, "results": results}

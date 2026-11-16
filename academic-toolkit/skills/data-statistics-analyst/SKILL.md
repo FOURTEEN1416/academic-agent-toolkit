@@ -16,7 +16,7 @@ Use when an experiment has already run and you have result data.
 
 1. **Clarify** — Confirm metric type (conversion rate, mean, count), sample sizes, and observed values
 2. **Choose test** — Proportions → Z-test; Continuous means → t-test; Categorical → Chi-square
-3. **Run** — Execute `hypothesis_tester.py` with appropriate method
+3. **Run** — Execute `hypothesis_tester.py` with appropriate method. *Fallback if scripts are missing (current repo state): implement the equivalent test directly with `scipy.stats` / `statsmodels` — see the degradation note at the top of the Tools section.*
 4. **Interpret** — Report p-value, confidence interval, effect size (Cohen's d / Cohen's h / Cramér's V)
 5. **Decide** — Ship / hold / extend using the decision framework below
 
@@ -24,7 +24,7 @@ Use when an experiment has already run and you have result data.
 Use before launching a test to ensure it will be conclusive.
 
 1. **Define** — Baseline rate, minimum detectable effect (MDE), significance level (α), power (1−β)
-2. **Calculate** — Run `sample_size_calculator.py` to get required N per variant
+2. **Calculate** — Run `sample_size_calculator.py` to get required N per variant. *Fallback if scripts are missing (current repo state): solve for n with `statsmodels.stats.power` (`NormalIndPower` / `TTestIndPower`) from MDE, α, and power — see the degradation note at the top of the Tools section.*
 3. **Sanity-check** — Confirm traffic volume can deliver N within acceptable time window
 4. **Document** — Lock the stopping rule before launch to prevent p-hacking
 
@@ -32,13 +32,22 @@ Use before launching a test to ensure it will be conclusive.
 Use when someone shares a result and asks "is this significant?" or "what does this mean?"
 
 1. Ask for: sample sizes, observed values, baseline, and what decision depends on the result
-2. Run the appropriate test
+2. Run the appropriate test. *Fallback if scripts are missing (current repo state): run the equivalent test manually with `scipy.stats` — see the degradation note at the top of the Tools section.*
 3. Report using the Bottom Line → What → Why → How to Act structure
 4. Flag any validity threats (peeking, multiple comparisons, SUTVA violations)
 
 ---
 
 ## Tools
+
+> **⚠️ 脚本缺失降级说明（本仓现状）**：本节三个脚本（`scripts/hypothesis_tester.py`、`scripts/sample_size_calculator.py`、`scripts/confidence_interval.py`）当前未随仓集成（见本目录 ASSET-GAP.md）。**脚本缺席时不要执行下方命令示例**，改用 `scipy.stats` / `statsmodels` 手工等价实现：
+> - **Z 检验（两比例）**：`statsmodels.stats.proportion.proportions_ztest([x_t, x_c], [n_t, n_c])`，或按合并比例手工计算 z 统计量后用 `scipy.stats.norm.sf` 求单侧 p 值
+> - **两样本 t 检验（均值）**：`scipy.stats.ttest_ind(a, b, equal_var=False)`（Welch）
+> - **卡方检验（分类）**：`scipy.stats.chisquare(f_obs, f_exp)`
+> - **样本量计算**：`statsmodels.stats.power.NormalIndPower().solve_power(effect_size, alpha=α, power=1−β)`（均值用 `TTestIndPower`，效应量用 Cohen's d = MDE/σ；比例可先做 arcsine 变换）
+> - **置信区间**：均值用 `scipy.stats.t.interval(confidence, df=n−1, loc=mean, scale=sem)`；比例用 Wald 区间 `p ± z*sqrt(p(1−p)/n)`（小样本改 Wilson 区间）
+>
+> 下方命令示例保留为「资产回填后的目标接口」，便于未来脚本回填后直接使用。
 
 ### `scripts/hypothesis_tester.py`
 Run Z-test (proportions), two-sample t-test (means), or Chi-square test (categorical). Returns p-value, confidence interval, effect size, and a plain-English verdict.
@@ -225,25 +234,27 @@ Structure all results as:
 
 ## Related Skills
 
+> **分工说明**：本技能 = 商业 A/B 实验快判（检验选择、样本量、显著性决策，面向产品/增长决策）；学术论文级统计分析与 APA 格式报告走 `data-statistics-report`。两者在检验选择/效应量/功效上互补但不互相替代。
+
 | Skill | Use When |
 |---|---|
-| `marketing-skill/ab-test-setup` | Designing the experiment before it runs — randomization, instrumentation, holdout |
-| `engineering/data-quality-auditor` | Verifying input data integrity before running any statistical test |
-| `product-team/experiment-designer` | Structuring the hypothesis, success metrics, and guardrail metrics |
-| `product-team/product-analytics` | Analyzing product funnel and retention metrics |
-| `finance/saas-metrics-coach` | Interpreting SaaS KPIs that may feed into experiments (ARR, churn, LTV) |
-| `marketing-skill/campaign-analytics` | Statistical analysis of marketing campaign performance |
+| `data-statistics-report` | 学术论文级统计分析与 APA 报告（假设检查、效应量、功效、报告模板）——论文场景优先用它，本技能用于商业实验快速决策 |
+| `experimental-design` | 实验设计阶段：随机化、区组、因子/响应面设计与事前样本量-功效规划 |
+| `analyze-results` | 实验结束后的快速数值口径核对与表格化（轻量，无严格统计保证） |
+| `results-analysis` | 需要严格统计证据包（显著性/CI/效应量/图目录）的完整分析 |
+| `data-exploratory-analysis` | 动手检验前先做数据概览、质量与分布检查（科学格式数据） |
+| `meta-experiment-design` | 产品实验的前置设计（假设/ICE 评分/守卫指标），与本技能的统计判定衔接 |
 
 **When NOT to use this skill:**
-- You need to design or instrument the experiment — use `marketing-skill/ab-test-setup` or `product-team/experiment-designer`
-- You need to clean or validate the input data — use `engineering/data-quality-auditor` first
+- You need to design or instrument the experiment — use `experimental-design` (statistical design) or `meta-experiment-design` (product experiment framing) first
+- You need to clean, profile, or validate the input data — use `data-exploratory-analysis` first
 - You need Bayesian inference or multi-armed bandit analysis — flag that frequentist tests may not be appropriate
 
 ---
 
 ## References
 
-- `references/statistical-testing-concepts.md` — t-test, Z-test, chi-square theory; p-value interpretation; Type I/II errors; power analysis math
+- `references/statistical-testing-concepts.md` — t-test, Z-test, chi-square theory; p-value interpretation; Type I/II errors; power analysis math **（未随仓集成，见 ASSET-GAP.md；缺件时以 scipy/statsmodels 官方文档对应章节替代）**
 
 ## 补充参考（v2.0 全部吸收批）
 

@@ -1,10 +1,11 @@
+import { ResearchDatabase } from "./database"
 import { Log } from "../util/log"
 import path from "path"
 import fs from "fs/promises"
 import { randomUUID } from "crypto"
 import { Global } from "../global"
 import { Filesystem } from "../util/filesystem"
-import { lazy } from "../util/lazy"
+import { lazy } from "@synsci/util/lazy"
 import { Lock } from "../util/lock"
 import { $ } from "bun"
 import { NamedError } from "@synsci/util/error"
@@ -15,6 +16,7 @@ import { LockCoordination } from "@/util/lock-coordination"
 export namespace Storage {
   const log = Log.create({ service: "storage" })
   const timeout = 10_000
+  const database = ResearchDatabase.create(Global.Path.data)
   const grace = 5_000
 
   type Migration = (dir: string) => Promise<void>
@@ -26,7 +28,10 @@ export namespace Storage {
     }),
   )
 
-  const MIGRATIONS: Migration[] = [
+  /** Exported so a test can run the chain against a throwaway directory: the
+   *  marker is process-global state, so the only way to prove a damaged record
+   *  does not wedge the chain is to run the migration itself. */
+  export const MIGRATIONS: Migration[] = [
     async (dir) => {
       const project = path.resolve(dir, "../project")
       if (!(await Filesystem.isDir(project))) return
@@ -44,7 +49,14 @@ export namespace Storage {
             cwd: path.join(project, projectDir),
             absolute: true,
           })) {
-            const json = await Bun.file(msgFile).json()
+            const json = await Bun.file(msgFile)
+              .json()
+              // One damaged record must cost that record. A throw here fails the
+              // migration, and the marker only advances past a migration that
+              // completes, so every migration appended after this one would
+              // silently never run again.
+              .catch(() => undefined)
+            if (!json) continue
             worktree = json.path?.root
             if (worktree) break
           }
@@ -88,7 +100,10 @@ export namespace Storage {
               sessionFile,
               dest,
             })
-            const session = await Bun.file(sessionFile).json()
+            const session = await Bun.file(sessionFile)
+              .json()
+              .catch(() => undefined)
+            if (!session) continue
             await Bun.write(dest, JSON.stringify(session))
             log.info(`migrating messages for session ${session.id}`)
             for await (const msgFile of new Bun.Glob(`storage/session/message/${session.id}/*.json`).scan({
@@ -100,7 +115,10 @@ export namespace Storage {
                 msgFile,
                 dest,
               })
-              const message = await Bun.file(msgFile).json()
+              const message = await Bun.file(msgFile)
+                .json()
+                .catch(() => undefined)
+              if (!message) continue
               await Bun.write(dest, JSON.stringify(message))
 
               log.info(`migrating parts for message ${message.id}`)
@@ -111,7 +129,10 @@ export namespace Storage {
                 },
               )) {
                 const dest = path.join(dir, "part", message.id, path.basename(partFile))
-                const part = await Bun.file(partFile).json()
+                const part = await Bun.file(partFile)
+                  .json()
+                  .catch(() => undefined)
+                if (!part) continue
                 log.info("copying", {
                   partFile,
                   dest,
@@ -128,8 +149,10 @@ export namespace Storage {
         cwd: dir,
         absolute: true,
       })) {
-        const session = await Bun.file(item).json()
-        if (!session.projectID) continue
+        const session = await Bun.file(item)
+          .json()
+          .catch(() => undefined)
+        if (!session?.projectID) continue
         if (!session.summary?.diffs) continue
         const { diffs } = session.summary
         await Bun.file(path.join(dir, "session_diff", session.id + ".json")).write(JSON.stringify(diffs))
@@ -155,7 +178,16 @@ export namespace Storage {
     for (let index = migration; index < MIGRATIONS.length; index++) {
       log.info("running migration", { index })
       const migration = MIGRATIONS[index]
-      await migration(dir).catch(() => log.error("failed to run migration", { index }))
+      // Only a completed migration advances the marker; a failed one is
+      // retried on the next start instead of being silently skipped forever.
+      const ok = await migration(dir).then(
+        () => true,
+        (error) => {
+          log.error("failed to run migration", { index, error })
+          return false
+        },
+      )
+      if (!ok) break
       await Bun.write(path.join(dir, "migration"), (index + 1).toString())
     }
     return {
@@ -163,7 +195,23 @@ export namespace Storage {
     }
   })
 
+  /** Initialize legacy storage before any shared research-database access. */
+  export async function research() {
+    await state()
+    return database
+  }
+
   export async function remove(key: string[]) {
+    if (ResearchDatabase.handles(key)) {
+      const dir = await state().then((value) => value.dir)
+      return withErrorHandling(async () => {
+        await using operation = await DataRootBarrier.enter(database.filepath)
+        await database.remove(key)
+        await fs.unlink(path.join(dir, ...key) + ".json").catch((error: NodeJS.ErrnoException) => {
+          if (error.code !== "ENOENT") throw error
+        })
+      })
+    }
     const dir = await state().then((x) => x.dir)
     const target = path.join(dir, ...key) + ".json"
     return withErrorHandling(async () => {
@@ -178,6 +226,10 @@ export namespace Storage {
   }
 
   export async function read<T>(key: string[]) {
+    if (ResearchDatabase.handles(key)) {
+      await state()
+      return withErrorHandling(() => database.read<T>(key))
+    }
     const dir = await state().then((x) => x.dir)
     const target = path.join(dir, ...key) + ".json"
     return withErrorHandling(async () => {
@@ -198,7 +250,14 @@ export namespace Storage {
    */
   async function publish(target: string, content: string) {
     const tmp = `${target}.${process.pid}.${randomUUID()}.tmp`
-    await Bun.write(tmp, content)
+    // Bun.write has failed on Windows with an error that carries no code, path
+    // or message ("Error at write (unknown)"), which stopped every prompt and
+    // told nobody why. The libuv path writes the same bytes and reports a real
+    // errno, so it is both the second attempt and, if it fails too, the reason.
+    await Bun.write(tmp, content).catch(async () => {
+      await fs.mkdir(path.dirname(tmp), { recursive: true })
+      await fs.writeFile(tmp, content)
+    })
     await fs.rename(tmp, target).catch(async (error) => {
       await fs.unlink(tmp).catch(() => {})
       throw error
@@ -271,9 +330,10 @@ export namespace Storage {
       if (attempt.status === "acquired") {
         const handle = attempt.handle
         const token = randomUUID()
+        // The lock JSON is only an ownership hint read back on dispose; the
+        // O_EXCL create is what excludes other writers, so no fsync is needed.
         await handle
           .writeFile(JSON.stringify({ pid: process.pid, token, created: Date.now() }))
-          .then(() => handle.sync())
           .catch(async (error) => {
             await handle.close().catch(() => undefined)
             await fs.unlink(lockfile).catch(() => undefined)
@@ -299,6 +359,10 @@ export namespace Storage {
   }
 
   export async function update<T>(key: string[], fn: (draft: T) => void) {
+    if (ResearchDatabase.handles(key)) {
+      await state()
+      return withErrorHandling(() => database.update(key, fn))
+    }
     const dir = await state().then((x) => x.dir)
     const target = path.join(dir, ...key) + ".json"
     return withErrorHandling(async () => {
@@ -313,6 +377,10 @@ export namespace Storage {
   }
 
   export async function write<T>(key: string[], content: T) {
+    if (ResearchDatabase.handles(key)) {
+      await state()
+      return withErrorHandling(() => database.write(key, content))
+    }
     const dir = await state().then((x) => x.dir)
     const target = path.join(dir, ...key) + ".json"
     return withErrorHandling(async () => {
@@ -327,6 +395,10 @@ export namespace Storage {
    * interprocess lock. Callers use this when computing a revision from the
    * previous value; splitting read() + write() would lose concurrent changes. */
   export async function upsert<T>(key: string[], fn: (current: T | undefined) => T): Promise<T> {
+    if (ResearchDatabase.handles(key)) {
+      await state()
+      return withErrorHandling(() => database.upsert(key, fn))
+    }
     const dir = await state().then((x) => x.dir)
     const target = path.join(dir, ...key) + ".json"
     return withErrorHandling(async () => {
@@ -367,19 +439,38 @@ export namespace Storage {
   // makes that assumption true by construction, and unlike relocating temp
   // files it also hides debris already left on disk by earlier runs.
   const glob = new Bun.Glob("**/*.json")
-  export async function list(prefix: string[]) {
+  export async function list(prefix: string[], attempt = 0): Promise<string[][]> {
     const dir = await state().then((x) => x.dir)
+    if (ResearchDatabase.handles(prefix)) return database.list(prefix)
+    const root = path.join(dir, ...prefix)
     try {
       const result = await Array.fromAsync(
         glob.scan({
-          cwd: path.join(dir, ...prefix),
+          cwd: root,
           onlyFiles: true,
         }),
       ).then((results) => results.map((x) => [...prefix, ...x.slice(0, -5).split(path.sep)]))
-      result.sort()
-      return result
-    } catch {
-      return []
+      const keys = prefix.length
+        ? result
+        : [...result.filter((key) => !ResearchDatabase.handles(key)), ...(await database.list([]))]
+      keys.sort()
+      return keys
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code
+      if (code === "ENOENT" || code === "ENOTDIR") {
+        // A missing prefix is an empty listing. A sibling record being
+        // replaced under the scan is not: its temp file can vanish between the
+        // directory read and its stat, and reporting that as "no keys" would
+        // hide every session in the project for one caller. Look again.
+        const exists = await fs
+          .stat(root)
+          .then((info) => info.isDirectory())
+          .catch(() => false)
+        if (exists && attempt < 3) return list(prefix, attempt + 1)
+        return []
+      }
+      log.error("failed to list storage keys", { prefix, error })
+      throw error
     }
   }
 }

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import {
   canonicalKey,
+  chosenModelRoute,
   COMPOSER_MODEL_ROSTER,
   displayProviderForModel,
   foldedRouteMode,
@@ -11,6 +12,7 @@ import {
   isUserProviderConnection,
   modelDisplayName,
   modelContext,
+  modelFunding,
   modelRouteValue,
   modelSummary,
   logicalModelKey,
@@ -22,6 +24,69 @@ import {
 } from "./model-catalog"
 
 describe("frontier model canonicalization", () => {
+  test("Sol 6.1 is visible without replacing the earlier Sol or inventing an access route", () => {
+    const sol = { id: "gpt-6.1-sol", provider: { id: "openai" } }
+    const previous = { id: "gpt-6-sol", provider: { id: "openai" } }
+    expect(isFrontier({ providerID: "openai", modelID: sol.id })).toBe(true)
+    expect(modelDisplayName(sol.id, "openai", sol.id)).toBe("6.1 Sol")
+    expect(groupModelRoutes({ models: [sol, previous] })).toHaveLength(2)
+    expect(routableModelKey({ providerID: "openai", modelID: sol.id }, () => false)).toEqual({
+      providerID: "openai",
+      modelID: sol.id,
+    })
+  })
+
+  test.each(["gpt-6-sol", "gpt-6.1-sol"])(
+    "%s keeps ChatGPT subscription access selected alongside its API route",
+    (id) => {
+      const api = { id, provider: { id: "openai" } }
+      const subscription = { id: api.id, provider: { id: "openai-codex" } }
+      const current = { providerID: subscription.provider.id, modelID: subscription.id }
+      const grouped = groupModelRoutes({ models: [api, subscription], current })
+      expect(isFrontier(current)).toBe(true)
+      expect(modelDisplayName(subscription.id, subscription.provider.id, subscription.id)).toBe(
+        id === "gpt-6-sol" ? "6 Sol" : "6.1 Sol",
+      )
+      expect(grouped).toHaveLength(1)
+      expect(grouped[0]?.model).toBe(subscription)
+      expect(grouped[0]?.routes).toEqual([subscription, api])
+      expect(modelFunding({ providerID: current.providerID, credential: "api" })).toBe("Subscription")
+      expect(routableModelKey(current, () => true)).toEqual(current)
+    },
+  )
+
+  test("Astra groups native, subscription, and managed identities without changing the selected route", () => {
+    const models = [
+      { id: "gpt-6-astra", provider: { id: "openai" } },
+      { id: "gpt-6-astra", provider: { id: "openai-codex" } },
+      { id: "openai/gpt-6-astra", provider: { id: "openrouter" } },
+    ]
+    for (const model of models) {
+      expect(isFrontier({ providerID: model.provider.id, modelID: model.id })).toBe(true)
+      expect(modelDisplayName(model.id, model.provider.id, model.id)).toBe("6 Astra")
+    }
+    const grouped = groupModelRoutes({ models, current: { providerID: "openai-codex", modelID: "gpt-6-astra" } })
+    expect(grouped).toHaveLength(1)
+    expect(grouped[0]?.model).toBe(models[1]!)
+    expect(grouped[0]?.routes).toHaveLength(3)
+  })
+
+  test("Fable 5.1 native ids resolve to the dotted OpenRouter slug only when that route exists", () => {
+    const direct = { providerID: "anthropic", modelID: "claude-fable-5-1" }
+    const managed = { providerID: "openrouter", modelID: "anthropic/claude-fable-5.1" }
+    for (const model of [direct, managed]) {
+      expect(isFrontier(model)).toBe(true)
+      expect(modelDisplayName(model.modelID, model.providerID, model.modelID)).toBe("Fable 5.1")
+    }
+    expect(logicalModelKey(direct.providerID, direct.modelID)).toBe(
+      logicalModelKey(managed.providerID, managed.modelID),
+    )
+    expect(routableModelKey(direct, (model) => model.modelID === managed.modelID)).toEqual(managed)
+    expect(routableModelKey(direct, () => true)).toEqual(direct)
+    expect(routableModelKey(direct, () => false)).toEqual(direct)
+    expect(isFrontier({ providerID: "anthropic", modelID: "claude-fable-5" })).toBe(true)
+  })
+
   test("the generic GPT-5.6 API route stays exact while presentation groups it with Sol", () => {
     for (const id of ["gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]) {
       expect(canonicalKey("openai", id)).toBe(canonicalKey("openrouter", `openai/${id}`))
@@ -104,11 +169,34 @@ describe("frontier model canonicalization", () => {
   })
 
   test("model metadata stays factual and formats advertised windows calmly", () => {
-    expect(modelContext(1_050_000)).toBe("1m")
-    expect(modelContext(400_000)).toBe("400k")
+    expect(modelContext(1_050_000)).toBe("1.05M")
+    expect(modelContext(1_310_720)).toBe("1.31M")
+    expect(modelContext(400_000)).toBe("400K")
     expect(modelSummary({ reasoning: true, context: 1_050_000, provider: "OpenAI" })).toBe(
-      "Reasoning · 1m context · OpenAI",
+      "Reasoning · 1.05M context · OpenAI",
     )
+  })
+
+  test("the current Ace families have provider identities and visible frontier defaults", () => {
+    const ids = [
+      "google/gemini-3.8-flash",
+      "meta/muse-spark-1.3",
+      "qwen/qwen3.8-max",
+      "qwen/qwen3.8-flash",
+      "minimax/minimax-m3",
+      "nvidia/nemotron-3-ultra-550b-a55b",
+      "z-ai/glm-5.3-flash",
+      "anthropic/claude-haiku-4.5",
+    ]
+    for (const modelID of ids) expect(isFrontier({ providerID: "openrouter", modelID })).toBe(true)
+    expect(displayProviderForModel({ id: "openrouter", name: "OpenRouter" }, ids[4]!)).toEqual({
+      id: "minimax",
+      name: "MiniMax",
+    })
+    expect(displayProviderForModel({ id: "openrouter", name: "OpenRouter" }, ids[5]!)).toEqual({
+      id: "nvidia",
+      name: "NVIDIA",
+    })
   })
 
   test("exact access routes survive before logical presentation grouping", () => {
@@ -195,14 +283,16 @@ describe("frontier model canonicalization", () => {
 
   test("uses the requested composer roster and normalizes GLM provider aliases", () => {
     expect(COMPOSER_MODEL_ROSTER.map((model) => model.label)).toEqual([
-      "5.6 Sol",
-      "5.6 Terra",
-      "Opus 5",
+      "6.1 Sol",
+      "6 Sol",
+      "6 Astra",
+      "6 Luna",
+      "Opus 5.5",
+      "Fable 5.1",
       "Kimi K3",
       "GLM 5.3",
-      "DeepSeek V4 Flash",
-      "Fable 5",
-      "Grok 4.6",
+      "DeepSeek V4.1 Flash",
+      "Grok 4.7",
     ])
     for (const providerID of ["zai", "opencode-go", "zai-coding-plan", "zhipuai-coding-plan"]) {
       expect(canonicalKey(providerID, "glm-5.3")).toBe("zai/glm-5-3")
@@ -267,23 +357,11 @@ describe("frontier model canonicalization", () => {
     expect(isChatModel({ id: "nomic-embed-text", provider: { id: "openrouter" } })).toBe(false)
   })
 
-  test("only saved or dashboard-synced credentials are presented as connections", () => {
-    expect(isUserProviderConnection({ providerID: "openrouter", source: "config", billing: "managed" })).toBe(false)
-    expect(isUserProviderConnection({ providerID: "openrouter", source: "env", billing: null })).toBe(false)
-    expect(isUserProviderConnection({ providerID: "openrouter", source: "api", billing: "managed" })).toBe(true)
-    expect(isUserProviderConnection({ providerID: "openrouter", source: "synced", billing: "byok" })).toBe(true)
-    expect(isUserProviderConnection({ providerID: "openrouter", source: "config", billing: "byok" })).toBe(false)
-    expect(isUserProviderConnection({ providerID: "anthropic", source: "env", billing: "managed" })).toBe(false)
-  })
-
-  // The backend now reports the Atlas-proxied route as source "managed", which
-  // the old four-value union could not express. It is still not the reader's own
-  // connection, so it stays out of the panel — including on auto-detect, where a
-  // wallet route resolves without the toggle ever being set to "managed".
-  test("a route the Atlas proxy carries is not the reader's own connection", () => {
-    expect(isUserProviderConnection({ providerID: "openrouter", source: "managed", billing: "managed" })).toBe(false)
-    expect(isUserProviderConnection({ providerID: "openrouter", source: "managed", billing: null })).toBe(false)
-    expect(isUserProviderConnection({ providerID: "openrouter", source: "managed", billing: "byok" })).toBe(false)
+  test("only credentials saved in the app are presented as connections", () => {
+    expect(isUserProviderConnection({ providerID: "openrouter", source: "config" })).toBe(false)
+    expect(isUserProviderConnection({ providerID: "openrouter", source: "env" })).toBe(false)
+    expect(isUserProviderConnection({ providerID: "openrouter", source: "api" })).toBe(true)
+    expect(isUserProviderConnection({ providerID: "anthropic", source: "env" })).toBe(false)
   })
 
   test("stable Anthropic aliases win over dated duplicates", () => {
@@ -378,5 +456,62 @@ describe("frontier model canonicalization", () => {
     const pro = { id: "openai/gpt-5.6-sol-pro", provider }
     expect(preferredModels([base, pro])).toEqual([base, pro])
     expect(foldedRouteMode({ providerID: "openrouter", modelID: pro.id }, base)).toBeUndefined()
+  })
+})
+
+describe("what a model choice is charged to", () => {
+  const key = { id: "gemini-3.7-flash", provider: { id: "google" } }
+  const wallet = { id: "google/gemini-3.7-flash", provider: { id: "openrouter" } }
+  const choice = groupModelRoutes({ models: [key, wallet] })[0]!
+
+  test("one logical model keeps both its key route and its Wallet route", () => {
+    expect(choice.routes).toEqual([key, wallet])
+  })
+
+  test("the route in use keeps its credential when another model is chosen", () => {
+    const onKey = { providerID: "google", modelID: "gemini-3.1-pro-preview" }
+    const onWallet = { providerID: "openrouter", modelID: "anthropic/claude-opus-5" }
+    expect(chosenModelRoute({ choice, current: onKey, billing: "managed" })).toBe(key)
+    expect(chosenModelRoute({ choice, current: onWallet, billing: "byok" })).toBe(wallet)
+  })
+
+  test("the configured default decides before the Model access mode does", () => {
+    const current = { providerID: "anthropic", modelID: "claude-opus-5" }
+    const configured = { providerID: "openrouter", modelID: "openai/gpt-5.6-sol" }
+    expect(chosenModelRoute({ choice, current, configured, billing: "byok" })).toBe(wallet)
+  })
+
+  test("the Model access mode picks a side when nothing else does", () => {
+    const current = { providerID: "anthropic", modelID: "claude-opus-5" }
+    expect(chosenModelRoute({ choice, current, billing: "managed" })).toBe(wallet)
+    expect(chosenModelRoute({ choice, current, billing: "byok" })).toBe(key)
+    expect(chosenModelRoute({ choice, current, billing: null })).toBe(choice.model)
+  })
+
+  test("without a mode, a ChatGPT subscription comes before the first route", () => {
+    const api = { id: "gpt-5.6-sol", provider: { id: "openai" } }
+    const chatgpt = { id: "gpt-5.6-sol", provider: { id: "openai-codex" } }
+    const sol = groupModelRoutes({ models: [api, chatgpt] })[0]!
+    expect(sol.model).toBe(api)
+    expect(chosenModelRoute({ choice: sol })).toBe(chatgpt)
+    expect(chosenModelRoute({ choice: sol, billing: "byok" })).toBe(api)
+  })
+
+  test("names the Wallet, a key, a subscription and a local runtime", () => {
+    expect(modelFunding({ providerID: "openrouter", credential: "managed" })).toBe("Wallet")
+    expect(modelFunding({ providerID: "google", credential: "api" })).toBe("Your key")
+    expect(modelFunding({ providerID: "google", credential: "env" })).toBe("Your key")
+    expect(modelFunding({ providerID: "anthropic", credential: "workspace" })).toBe("Your key")
+    expect(modelFunding({ providerID: "openrouter", credential: "api" })).toBe("Your key")
+    expect(modelFunding({ providerID: "openai-codex", credential: "custom" })).toBe("Subscription")
+    expect(modelFunding({ providerID: "github-copilot", credential: "custom" })).toBe("Subscription")
+    expect(modelFunding({ providerID: "ollama", credential: "config" })).toBe("Local")
+    expect(modelFunding({ providerID: "ssh-gpu-box", credential: "config" })).toBe("Local")
+  })
+
+  test("leaves a route unlabeled when its credential cannot be told from here", () => {
+    expect(modelFunding({ providerID: "amazon-bedrock", credential: "custom" })).toBeUndefined()
+    expect(modelFunding({ providerID: "openrouter", credential: "env" })).toBeUndefined()
+    expect(modelFunding({ providerID: "openrouter", credential: "env", billing: "byok" })).toBe("Your key")
   })
 })

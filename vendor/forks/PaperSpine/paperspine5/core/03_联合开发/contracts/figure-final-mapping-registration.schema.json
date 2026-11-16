@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/figure-final-mapping-registration.schema.json",
+  "title": "Typed final figure mapping registration transport",
+  "type": "object", "additionalProperties": false,
+  "required": ["contract", "schema_version", "mapping", "auxiliaries", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.figure-final-mapping-registration"},
+    "schema_version": {"const": "1.0"},
+    "mapping": {"type": "object", "description": "Exact figure-reference-mapping.schema.json object. New registration requires J8. At J9/J10 only a sealed same-task successor may revalidate an unchanged mapping already consumed by the current canonical head; the Runner derives the new outer proof. No first registration or changed science/auxiliary bytes is permitted downstream. Never rebind the frozen approved subject."},
+    "auxiliaries": {"type": "array", "maxItems": 8, "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["artifact_id", "role", "staged_relative_path", "sha256", "size_bytes"],
+      "properties": {
+        "artifact_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+        "role": {"enum": ["editable_source", "comparison_surface", "preview"]},
+        "staged_relative_path": {"type": "string", "maxLength": 512, "pattern": "^runner/\\.staging/figure-final-mappings/"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "size_bytes": {"type": "integer", "minimum": 1, "maximum": 67108864}
+      }}},
+    "external_action_authorized": {"const": false}
+  }
+}

@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="PaperSpine is an open-source AI for Science Skill for research agents. Call it in chat to review literature, design experiments, analyze data, and write an editable paper.">
+  <meta name="theme-color" content="#131d1a">
+  <meta property="og:title" content="PaperSpine V6 · AI for Science Skill">
+  <meta property="og:description" content="An open-source research Skill. Review literature, analyze data, make scientific figures, and write an editable paper with your agent.">
+  <meta property="og:image" content="https://wubing2023.github.io/PaperSpine/v6/science/press-cover.png">
+  <link rel="canonical" href="https://wubing2023.github.io/PaperSpine/v6/">
+  <link rel="alternate" hreflang="en" href="https://wubing2023.github.io/PaperSpine/v6/">
+  <link rel="alternate" hreflang="zh-CN" href="https://wubing2023.github.io/PaperSpine/v6/zh/">
+  <link rel="alternate" hreflang="x-default" href="https://wubing2023.github.io/PaperSpine/v6/">
+  <link rel="icon" href="../v5/assets/brand/paperspine-mark.svg" type="image/svg+xml">
+  <link rel="describedby" href="llms.txt">
+  <link rel="stylesheet" href="v6.css?v=research-gallery">
+  <script src="science.js?v=agent-install" defer></script>
+  <script src="study-deck.js?v=product-overview" defer></script>
+  <script src="download-stats.js" defer></script>
+  <script type="module" src="research-preview.js?v=research-gallery"></script>
+  <title>PaperSpine V6 · AI for Science Skill</title>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="masthead dark-surface">
+    <header class="site-header">
+      <div class="shell navbar">
+        <a class="wordmark" href="./"><img src="../v5/assets/brand/paperspine-mark.svg" width="38" height="38" alt="">PaperSpine</a>
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href="#download">Get started</a><a href="#research">Research</a><a href="#examples">Demos</a><a href="#community">Community</a>
+        </nav>
+        <div class="header-links"><a class="repo-link" href="https://github.com/WUBING2023/PaperSpine">GitHub <span aria-hidden="true">↗</span></a><a class="language" href="zh/" hreflang="zh-CN" lang="zh-CN">中文</a></div>
+      </div>
+    </header>
+  </div>
+  <main id="main" tabindex="-1">
+    <section class="hero-section dark-surface" aria-labelledby="hero-title">
+      <div class="shell hero">
+        <div class="hero-copy">
+          <p class="hero-kicker">Open source <span aria-hidden="true">·</span> <a href="https://github.com/WUBING2023/PaperSpine/releases/tag/@TAG@">V6 beta <span aria-hidden="true">↗</span></a></p>
+          <h1 id="hero-title"><span class="visually-hidden">PaperSpine · </span>An AI for Science<br> <em>Skill for your agent</em></h1>
+          <p class="hero-description">Call <code>$paper-spine</code> in chat. Start with a question, data, or a draft and build an editable paper whose key claims can be checked against the evidence.</p>
+          <div class="hero-actions">
+            <a href="#install-with-ai" class="button">Install the Skill <span aria-hidden="true">↓</span></a>
+            <a href="#showcase" class="text-link">Browse the outputs <span aria-hidden="true">↘</span></a>
+          </div>
+        </div>
+        <aside class="research-viewer" id="showcase" aria-labelledby="preview-title" data-research-viewer data-topic="atlantic-ri" data-catalog="science/research/showcase.json?v=research-gallery">
+          <div class="viewer-heading">
+            <h2 id="preview-title">Research gallery</h2>
+            <a href="#research-files">All studies &amp; files <span aria-hidden="true">↓</span></a>
+          </div>
+          <div class="viewer-picker" data-proof="picker" hidden>
+            <button class="viewer-step" type="button" data-proof="previous" aria-controls="proof-output" aria-label="Previous study"><span aria-hidden="true">←</span></button>
+            <div class="viewer-study" data-preview-group="study" role="group" aria-label="Choose a study">
+              <button type="button" value="atlantic-ri" aria-controls="proof-output" aria-pressed="true" aria-label="Atlantic storms"><span class="viewer-domain">Atmosphere</span><span class="viewer-study-name">Atlantic storms</span><span class="viewer-study-short" aria-hidden="true">Atlantic</span></button>
+              <button type="button" value="ridgecrest" aria-controls="proof-output" aria-pressed="false" aria-label="Ridgecrest"><span class="viewer-domain">Seismology</span><span class="viewer-study-name">Ridgecrest</span><span class="viewer-study-short" aria-hidden="true">Quakes</span></button>
+              <button type="button" value="gravitational-waves" aria-controls="proof-output" aria-pressed="false" aria-label="LIGO strain"><span class="viewer-domain">Astrophysics</span><span class="viewer-study-name">LIGO strain</span><span class="viewer-study-short" aria-hidden="true">LIGO</span></button>
+              <button type="button" value="smoke" aria-controls="proof-output" aria-pressed="false" aria-label="Wildfire smoke"><span class="viewer-domain">Air quality</span><span class="viewer-study-name">Wildfire smoke</span><span class="viewer-study-short" aria-hidden="true">Smoke</span></button>
+            </div>
+            <button class="viewer-step" type="button" data-proof="next" aria-controls="proof-output" aria-label="Next study"><span aria-hidden="true">→</span></button>
+          </div>
+          <div class="viewer-mode" data-preview-group="mode" role="group" aria-label="Choose an output" hidden>
+            <button type="button" value="paper" aria-controls="proof-output" aria-pressed="false">Title page</button>
+            <button type="button" value="results" aria-controls="proof-output" aria-pressed="false">Results</button>
+            <button type="button" value="figure" aria-controls="proof-output" aria-pressed="true">Main figure</button>
+            <button type="button" value="checks" aria-controls="proof-output" aria-pressed="false">Sensitivity</button>
+          </div>
+          <figure class="viewer-proof">
+            <div class="viewer-spread" aria-hidden="true"><span></span><span></span></div>
+            <div class="viewer-stage" id="proof-output" data-proof="stage" data-kind="figure">
+              <div class="viewer-media" data-proof="media"><img src="science/research/atlantic-ri/figure.webp?v=research-gallery" width="2400" height="1889" alt="Six-panel Atlantic cyclone figure with 484 recorded 24-hour tracks, disjoint gain bands, a threshold profile with uncertainty, and starting-context and seasonal comparisons." fetchpriority="high"></div>
+              <div class="viewer-note">
+                <p class="viewer-kind" data-proof="kind">Main figure</p>
+                <h3 data-proof="title">The threshold changes the estimate</h3>
+                <p class="viewer-description" data-proof="note">The estimated difference is −0.93 percentage points at 25 knots and +1.36 at 35 knots. Both 95% intervals include zero.</p>
+                <p class="viewer-metric" data-proof="metric" hidden><strong data-proof="value"></strong><span data-proof="unit"></span></p>
+              </div>
+            </div>
+            <figcaption class="viewer-source"><span data-proof="source">NOAA NHC · Atlantic HURDAT2</span><a data-proof="original" href="science/research/atlantic-ri/figure.svg?v=research-gallery">Open vector SVG ↗</a></figcaption>
+          </figure>
+          <p class="visually-hidden" role="status" data-proof="status"></p>
+          <p class="viewer-error" role="status" data-proof="error" hidden>The preview did not load. Select it again to retry.</p>
+        </aside>
+      </div>
+      <nav class="shell milestones" aria-label="Project milestones">
+        <a href="../"><strong>6,000+</strong><span>GitHub stars</span><span class="milestone-arrow" aria-hidden="true">↗</span></a>
+        <a href="#research"><strong>4</strong><span>Studies using public data</span><span class="milestone-arrow" aria-hidden="true">↗</span></a>
+        <a href="https://github.com/WUBING2023/PaperSpine/blob/main/paperspine5/core/07_发布页/v6/science/research/README.md#how-the-runs-were-conducted"><strong>9</strong><span>Documented edition runs</span><span class="milestone-arrow" aria-hidden="true">↗</span></a>
+      </nav>
+    </section>
+    <section class="edition-section section" id="download" aria-labelledby="edition-title">
+      <div class="shell">
+        <div class="section-heading"><h2 id="edition-title">Install PaperSpine</h2><p>Start with one Skill in chat. Choose the Skills Pack to call stages separately, or add the optional local review interface on Windows.</p></div>
+        <section class="agent-install" id="install-with-ai" aria-labelledby="agent-install-title">
+          <div class="agent-install-intro">
+            <h3 id="agent-install-title">Install with your AI</h3>
+            <p>Paste this request into the AI agent you use for research.</p>
+            <div class="links"><a href="llms.txt">Agent guide (.txt) <span aria-hidden="true">↗</span></a><a href="#edition-skill">Choose a ZIP <span aria-hidden="true">↓</span></a></div>
+          </div>
+          <div class="agent-install-request">
+            <blockquote id="agent-install-prompt">Install PaperSpine for this host. Read the official guide first.
+@SITE@llms.txt
+
+Choose the edition that fits my task and environment.
+Verify the ZIP with SHA-256. After installing, confirm the version and tell me how to invoke the Skill.</blockquote>
+            <div class="agent-install-actions">
+              <button type="button" class="button compact outline copy-install" data-copy-source="agent-install-prompt" data-copy-feedback="agent-copy-status" hidden>Copy install request</button>
+              <p class="copy-status" id="agent-copy-status" data-done="Copied" data-hint="Select the request text to copy it." role="status"></p>
+            </div>
+          </div>
+        </section>
+        <div class="editions">
+        <article class="edition" id="edition-skill">
+          <div class="edition-main">
+            <p class="eyeline">Quick Start</p>
+            <h3>Full Workflow Skill</h3>
+            <p>Give your host a research question, a results folder, or a draft. Call $paper-spine and agree on the next research or writing step.</p>
+          </div>
+          <div class="edition-output">
+            <h4>What you get</h4><p>Research notes, analyses or documented evidence, figures, and an editable manuscript for the scope you set.</p>
+            <p class="command"><code>$paper-spine</code></p>
+          </div>
+          <div class="edition-download">
+            <p>Skill-capable host<br><span>@SKILL_SIZE@</span><small data-download-count="{count} downloads" hidden></small></p>
+            <a class="button compact" href="@SKILL_URL@" aria-label="Download ZIP · Full Workflow Skill" data-release-download>Download ZIP <span aria-hidden="true">↓</span></a>
+          </div>
+        </article>
+        <article class="edition" id="edition-pack">
+          <div class="edition-main">
+            <p class="eyeline">For Research Experts</p>
+            <h3>Skills Pack</h3>
+            <p>Install the full workflow and five skills you can invoke individually. Start with existing evidence when you only need to revise a section or check a figure.</p>
+          </div>
+          <div class="edition-output">
+            <h4>What you get</h4><p>A focused output such as a reference-guided rewrite, an editable figure, a review report, or a paper archive.</p>
+            <p class="command"><code>$paper-spine-followwriting</code></p>
+          </div>
+          <div class="edition-download">
+            <p>Skill-capable host<br><span>@PACK_SIZE@</span><small data-download-count="{count} downloads" hidden></small></p>
+            <a class="button compact outline" href="@PACK_URL@" aria-label="Download ZIP · Skills Pack" data-release-download>Download ZIP <span aria-hidden="true">↓</span></a>
+          </div>
+        </article>
+        <article class="edition" id="edition-web">
+          <div class="edition-main">
+            <p class="eyeline">Full Workbench</p>
+            <h3>Web Plugin</h3>
+            <p>Open a paper with the host, then use the workbench to save settings, compare figures, preview files, and respond with revision notes.</p>
+          </div>
+          <div class="edition-output">
+            <h4>What you get</h4><p>A local record of selections, feedback, previews, and the same paper’s downloadable files.</p>
+            <p class="command"><code>$paper-spine-web:paper-spine-web</code></p>
+          </div>
+          <div class="edition-download">
+            <p>Windows x64 · Codex<br><span>@WEB_SIZE@</span><small data-download-count="{count} downloads" hidden></small></p>
+            <a class="button compact outline" href="@WEB_URL@" aria-label="Download ZIP · Web Plugin" data-release-download>Download ZIP <span aria-hidden="true">↓</span></a>
+          </div>
+        </article>
+        </div>
+        <div class="download-attribution">
+          <a href="https://api.github.com/repos/WUBING2023/PaperSpine/releases/tags/@TAG@" data-release-stats-source="download-stats.json">GitHub Release download counts ↗</a>
+          <span data-download-stamp hidden>As of <time></time> UTC</span>
+        </div>
+        <div class="edition-usage">
+          <details>
+            <summary>What can I ask PaperSpine to do?</summary>
+            <ul>
+              <li><strong>Full Workflow Skill.</strong> “Use these measurements to design a paired analysis. Save the code and figures, then write an editable manuscript.”</li>
+              <li><strong>Skills Pack.</strong> “Use my results and the two attached reference papers to revise the Results section. Keep the estimates and claim scope.”</li>
+              <li><strong>Web Plugin.</strong> “Open this study in the workbench so I can inspect the figure, preview the draft, and send a revision note.”</li>
+            </ul>
+          </details>
+          <p>Use the install manager to update or roll back the installed edition. Uninstalling keeps your research files and local tasks.</p>
+        </div>
+        <div class="links release-links">
+          <a href="https://github.com/WUBING2023/PaperSpine/blob/@TAG@/INSTALL-V6.en.md">Installation guide <span aria-hidden="true">↗</span></a><a href="checksums.sha256" download>SHA-256 checksums</a><a href="channel.json">Update channel</a><a href="https://github.com/WUBING2023/PaperSpine/releases/tag/@TAG@">Release notes · @VERSION@</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell research section" id="research" aria-labelledby="research-title">
+      <div class="research-showcase">
+        <div class="research-lead">
+          <h2 id="research-title">Research you can inspect.</h2>
+          <p>From Atlantic cyclone tracks to LIGO strain, earthquake catalogs, and wildfire smoke. Each paper links to its data, editable manuscript, vector figures, and analysis code.</p>
+          <div class="links"><a href="#research-files">Browse the papers and source files <span aria-hidden="true">↓</span></a><a href="https://github.com/WUBING2023/PaperSpine/blob/main/paperspine5/core/07_发布页/v6/science/research/README.md#how-the-runs-were-conducted">See the three-edition run notes <span aria-hidden="true">↗</span></a></div>
+        </div>
+      <aside class="study-deck" aria-label="Featured research">
+        <div class="deck-stack">
+          <article class="study-card" data-domain="cyclones">
+            <div class="study-top"><span>Atmospheric science · NOAA NHC</span><a href="science/research/atlantic-ri/paper.pdf">Paper PDF ↗</a></div>
+            <h3>How fast did Atlantic storms intensify?</h3>
+            <a class="study-figure" href="science/research/atlantic-ri/figure.svg?v=research-gallery"><img src="science/research/atlantic-ri/figure.webp?v=research-gallery" alt="Atlantic cyclone main figure with six panels comparing rapid intensification across two periods." loading="lazy" width="2400" height="1889"></a>
+            <p class="study-finding">A 30-knot threshold gives a +0.81 percentage point difference across comparable starts. At 25 knots the point estimate is −0.93 points.</p>
+            <div class="study-bottom"><a href="https://www.nhc.noaa.gov/data/#hurdat">Data source ↗</a><a href="science/research/atlantic-ri/figure.svg?v=research-gallery">Editable figure ↗</a></div>
+          </article>
+          <article class="study-card" data-domain="astrophysics">
+            <div class="study-top"><span>Astrophysics · LIGO / GWOSC</span><a href="science/research/gravitational-waves/paper.pdf">Paper PDF ↗</a></div>
+            <h3>Two black-hole mergers, millisecond timing</h3>
+            <a class="study-figure" href="science/research/gravitational-waves/figure.svg"><img src="science/research/gravitational-waves/figure.webp" alt="Six panels showing measured time–frequency structure, both detectors’ aligned strain, and off-source lag comparisons." loading="lazy"></a>
+            <p class="study-finding">Hanford lagged Livingston by 7.36 and 7.75 ms in two public LIGO events. Both lag signs held across nine preprocessing choices.</p>
+            <div class="study-bottom"><a href="https://doi.org/10.7935/82H3-HH23">Data source ↗</a><a href="science/research/gravitational-waves/figure.svg">Editable figure ↗</a></div>
+          </article>
+          <article class="study-card" data-domain="seismology">
+            <div class="study-top"><span>Seismology · USGS Ridgecrest</span><a href="science/research/ridgecrest/paper.pdf">Paper PDF ↗</a></div>
+            <h3>Aftershock decay depends on the catalog</h3>
+            <a class="study-figure" href="science/research/ridgecrest/figure.svg"><img src="science/research/ridgecrest/hero.webp" alt="Matched epicenter density maps, a fitted rate comparison with a held-out interval, and sensitivity to magnitude and start time." loading="lazy"></a>
+            <p class="study-finding">At reported M ≥ 1.5 and 1–72 hours after the Mw 7.1 event, fitted decay exponents were 0.55 in ComCat and 0.48 in the relocated Shelly catalog.</p>
+            <div class="study-bottom"><a href="https://doi.org/10.5066/P9JN6H0N">Data source ↗</a><a href="science/research/ridgecrest/figure.svg">Editable figure ↗</a></div>
+          </article>
+          <article class="study-card" data-domain="air-quality">
+            <div class="study-top"><span>Atmospheric science · EPA AirData</span><a href="science/research/smoke/paper.pdf">Paper PDF ↗</a></div>
+            <h3>June smoke, two different footprints</h3>
+            <a class="study-figure" href="science/research/smoke/figure.svg"><img src="science/research/smoke/figure.webp" alt="A map of EPA monitors, paired corridor contrasts and a June calendar of PM₂.₅ departures above and below each site’s reference." loading="lazy"></a>
+            <p class="study-finding">The Atlantic–Great Lakes PM₂.₅ departure reversed from +74.1 µg/m³ on June 6–8 to −69.1 µg/m³ on June 27–29.</p>
+            <div class="study-bottom"><a href="https://aqs.epa.gov/aqsweb/airdata/download_files.html">Data source ↗</a><a href="science/research/smoke/figure.svg">Editable figure ↗</a></div>
+          </article>
+        </div>
+        <div class="deck-controls" hidden>
+          <div class="deck-pages"><button type="button" data-deck-target>Atlantic storms</button> <button type="button" data-deck-target>LIGO strain</button> <button type="button" data-deck-target>Aftershocks</button> <button type="button" data-deck-target>Wildfire smoke</button></div>
+          <div class="deck-actions"><button type="button" data-deck-toggle data-play="Play" data-pause="Pause">Pause</button><button type="button" data-deck-next>Next ↷</button></div>
+        </div>
+        <p class="deck-status" role="status"></p>
+      </aside>
+      </div>
+      <div id="research-files">
+        <article class="research-entry" id="atlantic-ri">
+          <div class="research-entry-text">
+            <p class="eyeline">Atmospheric science · NOAA NHC</p>
+            <h3>Rapid intensification across comparable starts</h3>
+            <p>42 seasons, 6,017 eligible windows in shared starting contexts, and 2,400 whole-season bootstrap draws. Follow the 484 recorded rapid-intensification tracks, the three disjoint gain bands, and the contrast across nine thresholds.</p>
+            <p class="research-entry-finding">The 30-knot estimate is +0.81 percentage points (95% interval −1.69 to +3.43). The sensitivity figure shows how the comparison changes with threshold and cohort.</p>
+            <div class="links"><a href="science/research/atlantic-ri/paper.pdf">Read paper ↗</a><a href="science/research/atlantic-ri/source.zip" download>Paper source and code ↓</a><a href="https://www.nhc.noaa.gov/data/#hurdat">Data source ↗</a></div>
+          </div>
+          <figure class="research-entry-figure">
+            <a href="science/research/atlantic-ri/figure.svg?v=research-gallery"><img src="science/research/atlantic-ri/figure.webp?v=research-gallery" alt="Six-panel Atlantic cyclone figure with 484 recorded 24-hour tracks, disjoint gain bands, a threshold profile with uncertainty, and starting-context and seasonal comparisons." loading="lazy" width="2400" height="1889"></a>
+            <figcaption class="links"><a href="science/research/atlantic-ri/figure.svg?v=research-gallery">Main figure SVG ↗</a><a href="science/research/atlantic-ri/checks.svg">Sensitivity figure SVG ↗</a></figcaption>
+          </figure>
+        </article>
+      <article class="research-entry" id="gravitational-waves">
+          <div class="research-entry-text">
+            <p class="eyeline">Astrophysics · LIGO / GWOSC</p>
+            <h3>Two black-hole mergers, millisecond timing</h3>
+            <p>GW150914 and GW170814 public H1/L1 strain. Common lag-search range, off-source controls and a preprocessing sensitivity grid.</p>
+            <p class="research-entry-finding">Hanford lagged Livingston by 7.36 and 7.75 ms in two public LIGO events. Both lag signs held across nine preprocessing choices.</p>
+            <div class="links"><a href="science/research/gravitational-waves/paper.pdf">Read paper ↗</a><a href="science/research/gravitational-waves/source.zip" download>Paper source and code ↓</a><a href="https://doi.org/10.7935/82H3-HH23">Data source ↗</a></div>
+          </div>
+          <figure class="research-entry-figure">
+            <a href="science/research/gravitational-waves/figure.svg"><img src="science/research/gravitational-waves/figure.webp" alt="Six panels showing measured time–frequency structure, both detectors’ aligned strain, and off-source lag comparisons." loading="lazy"></a>
+            <figcaption><a href="science/research/gravitational-waves/figure.svg">Vector figure ↗</a></figcaption>
+          </figure>
+        </article><article class="research-entry" id="ridgecrest">
+          <div class="research-entry-text">
+            <p class="eyeline">Seismology · USGS Ridgecrest</p>
+            <h3>Aftershock decay depends on the catalog</h3>
+            <p>Two event catalogs on a shared space and time grid. Compare the fitted decay before testing a held-out interval and 25 pairs of thresholds and start times.</p>
+            <p class="research-entry-finding">At reported M ≥ 1.5 and 1–72 hours after the Mw 7.1 event, fitted decay exponents were 0.55 in ComCat and 0.48 in the relocated Shelly catalog.</p>
+            <div class="links"><a href="science/research/ridgecrest/paper.pdf">Read paper ↗</a><a href="science/research/ridgecrest/source.zip" download>Paper source and code ↓</a><a href="https://doi.org/10.5066/P9JN6H0N">Data source ↗</a></div>
+          </div>
+          <figure class="research-entry-figure">
+            <a href="science/research/ridgecrest/figure.svg"><img src="science/research/ridgecrest/figure.webp" alt="Matched epicenter density maps, a fitted rate comparison with a held-out interval, and sensitivity to magnitude and start time." loading="lazy"></a>
+            <figcaption><a href="science/research/ridgecrest/figure.svg">Vector figure ↗</a></figcaption>
+          </figure>
+        </article><article class="research-entry" id="smoke">
+          <div class="research-entry-text">
+            <p class="eyeline">Atmospheric science · EPA AirData</p>
+            <h3>June smoke, two different footprints</h3>
+            <p>27 monitors, eight county groups, and 810 site-days. A fixed monitor panel compares two June 2023 episodes with alternate reference and leave-one-group checks.</p>
+            <p class="research-entry-finding">The Atlantic–Great Lakes PM₂.₅ departure reversed from +74.1 µg/m³ on June 6–8 to −69.1 µg/m³ on June 27–29.</p>
+            <div class="links"><a href="science/research/smoke/paper.pdf">Read paper ↗</a><a href="science/research/smoke/source.zip" download>Paper source and code ↓</a><a href="https://aqs.epa.gov/aqsweb/airdata/download_files.html">Data source ↗</a></div>
+          </div>
+          <figure class="research-entry-figure">
+            <a href="science/research/smoke/figure.svg"><img src="science/research/smoke/figure.webp" alt="A map of EPA monitors, paired corridor contrasts and a June calendar of PM₂.₅ departures above and below each site’s reference." loading="lazy"></a>
+            <figcaption><a href="science/research/smoke/figure.svg">Vector figure ↗</a></figcaption>
+          </figure>
+        </article>
+      </div>
+      <div class="links research-archive"><a href="#older-research">Earlier cases and edition smoke test ↗</a></div>
+    </section>
+
+    <section class="shell research section" id="older-research" aria-labelledby="older-research-title">
+      <details class="archive-disclosure"><summary>Open earlier studies and figures</summary>
+      <div class="section-heading">
+        <h2 id="older-research-title">Earlier studies and figure examples</h2>
+        <p>Two documented research runs, with their manuscripts and original figures. A separate figure gallery shows examples from materials science and catalysis.</p>
+      </div>
+      <article class="case" id="dry-bean">
+        <div class="case-copy">
+          <p class="eyeline">Controlled stress test · Public measurements</p>
+          <h3>When missingness becomes a shortcut</h3>
+          <p>Given a research question and a public data source, the agent used UCI Dry Bean measurements to design a controlled missingness shift, compare two classifiers, and deliver the study with figures and an editable manuscript.</p>
+          <p class="case-stat">13,543 records after deduplication · 2,160 scored conditions</p>
+          <p class="case-result">At 30% imposed missingness, adding missingness indicators changed logistic-regression balanced accuracy by +3.14 percentage points under a matched mask and −20.75 under a reversed mask. The shifts were imposed in the experiment.</p>
+          <div class="links">
+            <a href="science/dry-bean-paper.pdf">Read the manuscript <span aria-hidden="true">↗</span></a>
+            <a href="https://doi.org/10.24432/C50S4B">Data source <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+        <figure class="case-visual">
+          <a href="science/dry-bean-figure.svg" aria-label="Open vector figure"><img src="science/dry-bean.webp" alt="Six panels showing the paired effects of missingness indicators for two classifiers at three imposed missingness rates." loading="lazy" width="1480" height="960"></a>
+          <figcaption><a href="science/dry-bean-figure.svg">Open vector figure <span aria-hidden="true">↗</span></a></figcaption>
+        </figure>
+      </article>
+      <article class="case" id="feature-aggregation">
+        <div class="case-copy">
+          <p class="eyeline">Implementation study · Three public datasets and one synthetic condition</p>
+          <h3>When the same features give different predictions</h3>
+          <p>The agent traced feature selection through repeated nested evaluation and documented how a tie at the tuning boundary affected predictions.</p>
+          <p class="case-stat">10 outer splits per condition · A full saved tuning trace</p>
+          <p class="case-result">In one Digits split, column order changed the tuned regularization from C = 10 to C = 1. The final selected feature IDs were identical, yet eight predicted labels changed.</p>
+          <div class="links">
+            <a href="science/feature-aggregation-paper.pdf">Read the manuscript <span aria-hidden="true">↗</span></a>
+            <a href="science/case-notes.md">Methods and sources <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+        <figure class="case-visual">
+          <a href="science/feature-aggregation-figure.svg" aria-label="Open vector figure"><img src="science/feature-aggregation.webp" alt="Native three-panel figure showing ambiguous cutoffs, the Digits tuning trace, and group coverage." loading="lazy" width="1600" height="1600"></a>
+          <figcaption><a href="science/feature-aggregation-figure.svg">Open vector figure <span aria-hidden="true">↗</span></a></figcaption>
+        </figure>
+      </article>
+      <div class="gallery" id="figures">
+        <div class="section-heading">
+          <div><h3>Scientific figure gallery</h3><p>Editable visuals for explaining study designs, mechanisms, and complex results.</p></div>
+          <a href="../v5/en/figure-studies/">View all eight figures <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="gallery-grid">
+        <figure>
+          <a href="../v5/assets/figure-showcase/02_images/png/303.png"><img src="science/solid-state-interface.webp" alt="Scientific schematic of a sulfide solid electrolyte and lithium-metal interface during cycling." loading="lazy"></a>
+          <figcaption><h4>Solid-state battery interface</h4><p>Illustrative mechanism</p><div class="links"><a href="../v5/assets/figure-showcase/02_images/png/303.png" download>Full-resolution PNG</a><a href="../v5/assets/figure-showcase/02_images/svg/303.svg" download>Editable SVG</a></div></figcaption>
+        </figure>
+        <figure>
+          <a href="../v5/assets/figure-showcase/02_images/png/307.png"><img src="science/catalyst-workflow.webp" alt="Multi-panel visualization of a catalyst-screening workflow with synthetic data." loading="lazy"></a>
+          <figcaption><h4>Closed-loop catalyst discovery</h4><p>Synthetic data visualization</p><div class="links"><a href="../v5/assets/figure-showcase/02_images/png/307.png" download>Full-resolution PNG</a><a href="../v5/assets/figure-showcase/02_images/svg/307.svg" download>Editable SVG</a></div></figcaption>
+        </figure>
+        </div>
+      </div>
+      </details>
+    </section>
+
+    <aside class="shell links research-archive" id="field-test"><a href="science/edition-field-test.md">Read the earlier edition smoke test ↗</a></aside>
+
+    <section class="shell demos section" id="examples" aria-labelledby="demo-title">
+      <div class="section-heading"><h2 id="demo-title">A paper you can audit</h2><p>Check a claim, trace a plotted number, or pick up a revision from the files the agent has already saved.</p></div>
+      <ul class="workflow-principles">
+        <li><h3>Agree on the research scope</h3><p>Start with a question and agree on the evidence to collect. Start with results and go straight to the analysis, figure, or revision you need.</p></li>
+        <li><h3>Make claims traceable</h3><p>Keep analysis and figure sources with the paper. Followwriting shows where a writing decision came from. The study’s own evidence determines what it can claim.</p></li>
+        <li><h3>Keep review tied to the paper</h3><p>Choose a figure and respond to the critique in the same task. Revisit the editable manuscript and the files affected by the revision.</p></li>
+      </ul>
+      <div class="workflow-gallery" id="draft">
+        <article class="clip clip-featured" id="revision">
+          <div class="clip-preview"><img src="science/revision-hd-still.webp" alt="" loading="lazy" width="1280" height="720"><a class="play" href="science/revision-hd.gif" data-demo aria-label="Play the demonstration · Revision"><span aria-hidden="true">▶</span></a></div>
+          <h3>Review and revise</h3><p>Workbench capture · Save a revision request and open the revised PDF in the same task.</p>
+        </article>
+      <div class="clip-grid">
+        <article class="clip" id="writing">
+          <div class="clip-preview"><img src="science/followwriting-hd-still.webp" alt="" loading="lazy" width="1280" height="720"><a class="play" href="science/followwriting-hd.gif" data-demo aria-label="Play the demonstration · Followwriting"><span aria-hidden="true">▶</span></a></div>
+          <h3>Followwriting</h3><p>Workflow illustration · Build the argument with reference passages and your own results.</p>
+        </article>
+        <article class="clip" id="figure-preview">
+          <div class="clip-preview"><img src="science/figures-hd-still.webp" alt="" loading="lazy" width="1280" height="720"><a class="play" href="science/figures-hd.gif" data-demo aria-label="Play the demonstration · Figure review"><span aria-hidden="true">▶</span></a></div>
+          <h3>Figure review</h3><p>Workbench capture · Inspect the original figure at full size.</p>
+        </article>
+        <article class="clip" id="workbench">
+          <div class="clip-preview"><img src="science/workbench-hd-still.webp" alt="" loading="lazy" width="1280" height="720"><a class="play" href="science/workbench-hd.gif" data-demo aria-label="Play the demonstration · Manuscript preview"><span aria-hidden="true">▶</span></a></div>
+          <h3>Manuscript preview</h3><p>Workbench capture · Read the same task’s manuscript in the PDF viewer.</p>
+        </article>
+        </div>
+      </div>
+      <dialog class="demo-dialog" aria-label="Play the demonstration"><button type="button" class="close-demo">Close <span aria-hidden="true">×</span></button><img alt=""></dialog>
+    </section>
+
+    <section class="shell community-feature section" id="community" aria-labelledby="community-title">
+      <div class="section-heading">
+        <div><h2 id="community-title">Community</h2><p>See who shipped each V6 update and what they changed, or explore the stargazer atlas.</p></div>
+        <div class="links"><a href="../">Open the stargazer atlas ↗</a><a href="../contributors/#v6-contributions">View V6 contributions ↗</a></div>
+      </div>
+      <a class="community-preview" href="../"><img src="../atlas-preview.svg" width="1230" height="475" loading="lazy" alt="World map of GitHub stargazer locations aggregated by city."></a>
+    </section>
+
+  </main>
+  <footer class="site-footer"><div class="shell footer-inner"><span>PaperSpine V6 · MIT</span><div class="links"><a href="../">Stargazer atlas</a><a href="../contributors/">Contributors</a><a href="https://github.com/WUBING2023/PaperSpine">GitHub</a><a href="../v5/en/?legacy=1">V5 archive</a><a href="../v5/en/?support=1">Support the project</a><a id="press" href="science/paperspine-v6-press-kit.zip" download>Project assets</a><a href="https://github.com/WUBING2023/PaperSpine/issues">Report an issue</a></div></div></footer>
+</body>
+</html>

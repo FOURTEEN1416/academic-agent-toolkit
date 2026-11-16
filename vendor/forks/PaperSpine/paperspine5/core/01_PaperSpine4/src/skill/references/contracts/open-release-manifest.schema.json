@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:paperspine:open-release:manifest:1.0",
+  "title": "PaperSpine Open Release Prepared Manifest",
+  "type": "object",
+  "required": ["contract", "schema_version", "interface_version", "release_id", "status", "source_plan", "artifacts", "eligible_platforms", "blocked_platforms", "release_policy", "confirmation_id", "platform_snapshots"],
+  "properties": {
+    "contract": {"const": "paperspine.open-release.manifest"},
+    "schema_version": {"const": "1.0"},
+    "interface_version": {"const": "0.1-beta"},
+    "release_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string"},
+    "status": {"enum": ["READY_FOR_CONFIRMATION", "PARTIAL_READY_FOR_CONFIRMATION"]},
+    "source_plan": {"$ref": "#/$defs/fileRef"},
+    "artifacts": {"type": "array", "items": {"type": "object"}},
+    "eligible_platforms": {"type": "array", "items": {"type": "string"}},
+    "blocked_platforms": {"type": "array", "items": {"type": "string"}},
+    "release_policy": {"type": "object"},
+    "confirmation_id": {"type": "string", "minLength": 1},
+    "platform_snapshots": {"type": "array", "items": {"type": "object"}}
+  },
+  "$defs": {
+    "fileRef": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {"path": {"type": "string"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+    }
+  }
+}

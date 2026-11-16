@@ -89,6 +89,8 @@ import json
 import os
 import random
 import re
+import shutil
+import subprocess
 import sys
 import time
 import unicodedata
@@ -106,6 +108,13 @@ from typing import Any
 ARXIV_API = "https://export.arxiv.org/api/query"
 CROSSREF_API = "https://api.crossref.org/works"
 S2_API = "https://api.semanticscholar.org/graph/v1/paper/search"
+# Semantic Scholar's documented limit for an issued key is 1 request/second,
+# cumulative across all endpoints; unauthenticated callers share one pool and get
+# 429 under any load. Pace ourselves and send the key when the env var is set.
+S2_MIN_INTERVAL_SEC = 1.05
+# 429 is the expected answer under that ceiling, not a terminal failure.
+S2_ATTEMPTS = 3
+_s2_last_call = 0.0
 
 DEFAULT_BATCH_SIZE = 40
 DEFAULT_FUZZY_THRESHOLD = 0.6
@@ -224,20 +233,58 @@ def save_cache(path: Path, cache: dict[str, dict[str, Any]]) -> None:
 # Retry helpers
 # ──────────────────────────────────────────────────────────────────────────
 
+def _curl_get(url: str, headers: dict, timeout: float) -> bytes | None:
+    """Re-issue a GET through ``curl`` after urllib was answered HTTP 406.
+
+    export.arxiv.org refuses urllib from some networks for minutes at a time
+    while curl gets 200 on the same URL, so retrying urllib cannot recover.
+    Returns the body, or None when curl is missing or the request fails.
+    """
+    curl = shutil.which("curl")
+    if curl is None:
+        return None
+    cmd = [curl, "-sf", "--max-time", str(int(timeout))]
+    for key, value in headers.items():
+        cmd += ["-H", f"{key}: {value}"]
+    proc = subprocess.run(cmd + [url], capture_output=True)
+    return proc.stdout if proc.returncode == 0 else None
+
+
 def http_get(url: str, headers: dict[str, str] | None = None, timeout: int = 30) -> tuple[int, str | None]:
-    """Return (status_code, body) or (status_code, None) on error. Status -1 = network error."""
+    """Return (status_code, body) or (status_code, None) on error. Status -1 = network error.
+
+    An HTTP 406 is re-issued once through curl before it is reported.
+    """
     req = urllib.request.Request(url, headers=headers or {})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return resp.status, resp.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as e:
+        if e.code == 406:
+            rescued = _curl_get(url, headers or {}, timeout)
+            if rescued is not None:
+                return 200, rescued.decode("utf-8", errors="replace")
         return e.code, None
     except (urllib.error.URLError, TimeoutError, ConnectionError):
         return -1, None
 
 
 def is_transient(status: int) -> bool:
-    return status == -1 or status == 429 or 500 <= status < 600
+    # export.arxiv.org returns 406 Not Acceptable intermittently: the same URL
+    # alternates between 200 and 406 seconds apart, for IDs that exist and IDs
+    # that do not alike (a missing ID is 200 + 0 results, never 406). Whatever
+    # the cause, it is not a permanent client error — treating it as one marks a
+    # whole batch of real papers "unverified", a false fabrication signal.
+    return status == -1 or status in (406, 408, 429) or 500 <= status < 600
+
+
+def is_refusal(status: int) -> bool:
+    """The service declined to answer (bad or missing key, access denied).
+
+    That says nothing about whether the paper exists, so it is never
+    ``unverified`` — only ``verify_pending``.
+    """
+    return status in (401, 403)
 
 
 def backoff(attempt: int) -> float:
@@ -274,10 +321,16 @@ def _verify_arxiv_batch_with_retry(batch: list[str]) -> dict[str, str]:
                 orig: "verified" if normalize_arxiv_id(orig)[0] in found else "unverified"
                 for orig in batch
             }
+        if is_refusal(status):
+            return {orig: "verify_pending" for orig in batch}
         if not is_transient(status):
             # 4xx (non-transient) — likely malformed query; mark whole batch unverified
             return {orig: "unverified" for orig in batch}
         time.sleep(backoff(attempt))
+    if status == 406:
+        # arXiv is refusing this client, not this batch: smaller batches get the
+        # same answer, so splitting only multiplies the requests.
+        return {orig: "verify_pending" for orig in batch}
     # Persistent failure — split & retry
     if len(batch) > 1:
         mid = len(batch) // 2
@@ -302,6 +355,8 @@ def verify_doi(doi: str, user_email: str) -> str:
             return "verified"
         if status == 404:
             return "unverified"
+        if is_refusal(status):
+            return "verify_pending"
         if not is_transient(status):
             return "unverified"
         time.sleep(backoff(attempt))
@@ -312,6 +367,21 @@ def verify_doi(doi: str, user_email: str) -> str:
 # Layer 3: Semantic Scholar fuzzy title match
 # ──────────────────────────────────────────────────────────────────────────
 
+def _s2_headers() -> dict[str, str]:
+    """Send the API key when SEMANTIC_SCHOLAR_API_KEY is set; anonymous otherwise."""
+    key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY", "").strip()
+    return {"x-api-key": key} if key else {}
+
+
+def _s2_throttle() -> None:
+    """Keep successive S2 calls at least S2_MIN_INTERVAL_SEC apart."""
+    global _s2_last_call
+    wait = S2_MIN_INTERVAL_SEC - (time.monotonic() - _s2_last_call)
+    if wait > 0:
+        time.sleep(wait)
+    _s2_last_call = time.monotonic()
+
+
 def verify_title_s2(title: str, fuzzy_threshold: float) -> tuple[str, dict[str, str] | None]:
     """Return (status, identifiers_dict_or_None)."""
     normalized = normalize_title(title)
@@ -319,8 +389,9 @@ def verify_title_s2(title: str, fuzzy_threshold: float) -> tuple[str, dict[str, 
         return "unverified", None
     q = urllib.parse.quote(normalized[:200])
     url = f"{S2_API}?query={q}&limit=3&fields=title,year,externalIds"
-    for attempt in range(2):
-        status, body = http_get(url, timeout=15)
+    for attempt in range(S2_ATTEMPTS):
+        _s2_throttle()
+        status, body = http_get(url, headers=_s2_headers(), timeout=15)
         if status == 200 and body is not None:
             try:
                 data = json.loads(body)
@@ -343,11 +414,16 @@ def verify_title_s2(title: str, fuzzy_threshold: float) -> tuple[str, dict[str, 
                         "doi": ext.get("DOI", ""),
                     }
             return "unverified", None
-        if status == 429:
+        if is_refusal(status):
             return "verify_pending", None
-        if not is_transient(status):
+        if status != 429 and not is_transient(status):
             return "unverified", None
-        time.sleep(backoff(attempt))
+        # 429 included: the 1 req/s ceiling is shared across every endpoint, so a
+        # single nearby call earns one. Observed empirically: 429, then 200 on the
+        # next try. Giving up on the first 429 turns "rate limited" into "cannot
+        # tell" for a paper S2 knows, so retry within the attempt budget.
+        if attempt < S2_ATTEMPTS - 1:
+            time.sleep(max(backoff(attempt), S2_MIN_INTERVAL_SEC))
     return "verify_pending", None
 
 
@@ -374,7 +450,8 @@ def verify_papers(
 
     for p in papers:
         key = cache_key_for(p)
-        if cache is not None and key and key in cache:
+        # a cached verify_pending is a past outage, not an answer — ask again
+        if cache is not None and key and key in cache and cache[key].get("status") != "verify_pending":
             cached = cache[key]
             results[p.id] = PaperResult(
                 id=p.id,

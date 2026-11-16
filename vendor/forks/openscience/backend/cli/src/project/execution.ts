@@ -51,6 +51,11 @@ export namespace ExecutionAuthority {
      * omitted this and recover through their historical workspace value. */
     directory: z.string().optional(),
     workspace: z.string(),
+    /** The session's owned scratch directory; caches and staged files go here,
+     * never into a working folder. Optional because decisions are persisted in
+     * compute job histories written before the field existed; those records
+     * are read for display and teardown, never to launch new work. */
+    scratch: z.string().optional(),
     readable: z.array(z.string()),
     writable: z.array(z.string()),
     sandbox: z.object({
@@ -126,19 +131,33 @@ export namespace ExecutionAuthority {
       Vcs.metadataRoot(),
     ])
     const backend = Sandbox.describe()
-    const sandbox = {
-      enabled: access.sandbox.enabled,
-      network: access.sandbox.network,
-      allowWrite: access.sandbox.allowWrite,
-      onUnavailable: access.sandbox.onUnavailable,
-      requireProjectTrust: access.sandbox.requireProjectTrust,
-      backend: backend.backend,
-      available: backend.available,
-      enforced: access.sandbox.enabled && backend.available,
-    }
+    // PTYs are opened and operated by the user. Agent shell commands and
+    // kernels have distinct capabilities and retain their execution policy.
+    const terminal = input.capability === "terminal"
+    const sandbox = terminal
+      ? {
+          enabled: false,
+          network: "allow" as const,
+          allowWrite: [],
+          onUnavailable: "allow" as const,
+          requireProjectTrust: false,
+          backend: "none" as const,
+          available: backend.available,
+          enforced: false,
+        }
+      : {
+          enabled: access.sandbox.enabled,
+          network: access.sandbox.network,
+          allowWrite: access.sandbox.allowWrite,
+          onUnavailable: access.sandbox.onUnavailable,
+          requireProjectTrust: access.sandbox.requireProjectTrust,
+          backend: backend.backend,
+          available: backend.available,
+          enforced: access.sandbox.enabled && backend.available,
+        }
     const unavailable = sandbox.enabled && !sandbox.available && sandbox.onUnavailable === "error"
     const untrusted = !trust.canExecuteProjectCode
-    const needsTrust = sandbox.requireProjectTrust || !routine.has(input.capability) || !sandbox.enforced
+    const needsTrust = !terminal && (sandbox.requireProjectTrust || !routine.has(input.capability) || !sandbox.enforced)
     const reason = unavailable ? "sandbox_unavailable" : untrusted && needsTrust ? "project_untrusted" : "allowed"
     const mode = reason !== "allowed" ? "read_only" : sandbox.enforced ? "sandboxed" : "host"
     const message =
@@ -151,9 +170,10 @@ export namespace ExecutionAuthority {
               ? `Trust this project to ${action(input.capability)}. This operation is not eligible for trust-free sandboxed execution.`
               : `Trust this project to ${action(input.capability)} without an enforced OS sandbox, or enable a working sandbox backend first.`
           : undefined
-    const [readable, writable, workspace] = await Promise.all([
+    const [readable, writable, workspace, scratch] = await Promise.all([
       SessionFilesystem.processReadRoots(input.sessionID),
       SessionFilesystem.processWriteRoots(input.sessionID),
+      SessionFilesystem.toolDirectory(input.sessionID),
       SessionFilesystem.workspace(input.sessionID),
     ])
     // Project files are the durable, first-party workspace advertised to the
@@ -195,11 +215,36 @@ export namespace ExecutionAuthority {
       generation,
       directory: Instance.directory,
       workspace,
+      scratch,
       readable: processReadable,
       writable: processWritable,
       sandbox,
       remediation: reason === "project_untrusted" ? trust.remediation : undefined,
     }
+  }
+
+  /**
+   * Whether a decision taken while a launch was being prepared no longer
+   * holds. Trust, access mode, sandbox policy and any root the launch was
+   * going to rely on count; a grant added in the meantime (a parallel read of
+   * a new folder, a brokered download) widens authority and does not. The
+   * generation hash alone made every such grant fail a concurrent shell
+   * command with a retry message, which is exactly when models run tools in
+   * parallel.
+   */
+  export function narrowed(prepared: Decision, current: Decision): boolean {
+    if (current.allowed !== prepared.allowed) return true
+    if (current.trustRevision !== prepared.trustRevision) return true
+    if (current.accessRevision !== prepared.accessRevision) return true
+    if (current.accessMode !== prepared.accessMode) return true
+    if (current.mode !== prepared.mode) return true
+    if (JSON.stringify(current.sandbox) !== JSON.stringify(prepared.sandbox)) return true
+    if (current.workspace !== prepared.workspace || current.scratch !== prepared.scratch) return true
+    const readable = new Set(current.readable)
+    const writable = new Set(current.writable)
+    return (
+      prepared.readable.some((root) => !readable.has(root)) || prepared.writable.some((root) => !writable.has(root))
+    )
   }
 
   export async function require(input: {

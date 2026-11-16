@@ -12,6 +12,7 @@ from pathlib import Path
 TOKEN_FIELDS = ("input_tokens", "cached_input_tokens", "reasoning_tokens", "output_tokens")
 REQUIRED_FIELDS = ("timestamp", "stage", "role", "model", "reasoning_effort", "usage_source", "gate_result", "retry")
 USAGE_SOURCES = {"api", "host", "telemetry_unavailable"}
+EXECUTION_REUSE_VALUES = {"hit", "miss", "not_applicable"}
 
 
 @dataclass
@@ -76,6 +77,18 @@ def validate(path: Path) -> UsageResult:
             findings.append(f"line {line_number}: input_hashes must be a list or object")
         if not isinstance(event.get("output_artifacts", []), list):
             findings.append(f"line {line_number}: output_artifacts must be a list")
+        if "elapsed_ms" in event and (
+            not isinstance(event.get("elapsed_ms"), int) or event["elapsed_ms"] < 0
+        ):
+            findings.append(f"line {line_number}: elapsed_ms must be a non-negative integer")
+        if "execution_reuse" in event:
+            reuse = str(event.get("execution_reuse") or "").strip().lower()
+            if reuse not in EXECUTION_REUSE_VALUES:
+                findings.append(f"line {line_number}: invalid execution_reuse '{reuse}'")
+            if reuse in {"hit", "miss"} and not str(event.get("execution_receipt") or "").strip():
+                findings.append(f"line {line_number}: execution_reuse {reuse} requires execution_receipt")
+        if "failure_category" in event and not str(event.get("failure_category") or "").strip():
+            findings.append(f"line {line_number}: failure_category must be non-empty when present")
     if not events:
         findings.append("usage ledger contains no events")
     unavailable_count = sum(1 for event in events if str(event.get("usage_source") or "").lower() == "telemetry_unavailable")

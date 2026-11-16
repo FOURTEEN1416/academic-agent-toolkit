@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/release/plugin-cache-reconciliation-receipt.schema.json",
+  "title": "PaperSpine5 controlled runtime bytecode reconciliation receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "operation_id",
+    "request_sha256",
+    "status",
+    "created_at",
+    "source_root",
+    "cache_root",
+    "source_build_id",
+    "source_content_index_sha256",
+    "source_validation",
+    "files",
+    "post_cache_classification",
+    "external_action_authorized",
+    "self_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.plugin-cache-reconciliation-receipt"},
+    "schema_version": {"const": "1.0"},
+    "operation_id": {"type": "string", "minLength": 1},
+    "request_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"const": "committed"},
+    "created_at": {"type": "string", "minLength": 1},
+    "source_root": {"type": "string", "minLength": 1},
+    "cache_root": {"type": "string", "minLength": 1},
+    "source_build_id": {"type": "string", "minLength": 1},
+    "source_content_index_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_validation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["contract", "schema_version", "mode", "build_id", "content_index_sha256", "manifest_version", "target_root", "source_tree", "candidate_verified", "candidate_eligible", "external_action_authorized", "self_sha256"],
+          "properties": {
+            "contract": {"const": "paperspine5.plugin-installed-prestate-validation"},
+            "schema_version": {"const": "1.0"},
+            "mode": {"const": "strict-candidate"},
+            "build_id": {"type": "string", "minLength": 1},
+            "content_index_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "manifest_version": {"type": "string", "minLength": 1},
+            "target_root": {"type": "string", "minLength": 1},
+            "source_tree": {"type": "object"},
+            "candidate_verified": {"const": true},
+            "candidate_eligible": {"const": true},
+            "external_action_authorized": {"const": false},
+            "self_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["contract", "schema_version", "mode", "build_id", "content_index_sha256", "manifest_version", "target_root", "cache_root", "source_tree", "initial_cache_tree", "initial_cache_classification", "runtime_residue", "state_binding", "cli_binding", "legacy_recognition", "candidate_verified", "candidate_eligible", "external_action_authorized", "self_sha256"],
+          "properties": {
+            "contract": {"const": "paperspine5.plugin-installed-prestate-validation"},
+            "schema_version": {"const": "1.0"},
+            "mode": {"const": "recorded-legacy-installed"},
+            "build_id": {"type": "string", "minLength": 1},
+            "content_index_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "manifest_version": {"type": "string", "minLength": 1},
+            "target_root": {"type": "string", "minLength": 1},
+            "cache_root": {"type": "string", "minLength": 1},
+            "source_tree": {"type": "object"},
+            "initial_cache_tree": {"type": "object"},
+            "initial_cache_classification": {"enum": ["clean", "runtime-residue"]},
+            "runtime_residue": {"type": "array"},
+            "state_binding": {"type": "object"},
+            "cli_binding": {"type": "object"},
+            "legacy_recognition": {"type": "object"},
+            "candidate_verified": {"const": false},
+            "candidate_eligible": {"const": false},
+            "external_action_authorized": {"const": false},
+            "self_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
+        }
+      ]
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "size_bytes", "sha256", "source_path", "source_sha256"],
+        "properties": {
+          "path": {"type": "string", "pattern": "(^|/)__pycache__/[^/]+\\.pyc$"},
+          "size_bytes": {"type": "integer", "minimum": 16},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "source_path": {"type": "string", "pattern": "\\.py$"},
+          "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "file_count": {"type": "integer", "minimum": 1},
+    "total_bytes": {"type": "integer", "minimum": 16},
+    "path_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "post_cache_classification": {"const": "clean"},
+    "external_action_authorized": {"const": false},
+    "self_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

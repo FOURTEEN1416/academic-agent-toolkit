@@ -1,24 +1,38 @@
 // @refresh reload
 import { render } from "solid-js/web"
 import { AppBaseProviders, AppInterface } from "@/app"
-import { Platform, PlatformProvider } from "@/context/platform"
+import { Platform, PlatformProvider, type DesktopUpdateState } from "@/context/platform"
 import { dict as en } from "@/i18n/en"
 import { dict as zh } from "@/i18n/zh"
 import { openscienceFetch } from "@/utils/openscience-fetch"
 import { URLS } from "@/config/urls"
 import { openNativeDirectoryPicker } from "@/utils/native-picker"
 import { normalizeServerUrl } from "@/context/server"
-import { resolveDefaultServerUrl, resolveDesktopServerUrl, resolveServerRoute } from "@/config/server-url"
+import {
+  hasDesktopUpdateCapability,
+  remoteWorkspace,
+  resolveDefaultServerUrl,
+  resolveDesktopServerUrl,
+  resolveServerRoute,
+} from "@/config/server-url"
 import pkg from "../package.json"
 import { waitForUpdatedServer, type UpdateHealth } from "@/utils/update-restart"
+import { updateError, UpdateRefused } from "@/utils/update-error"
 
 const DEFAULT_SERVER_URL_KEY = "openscience.settings.dat:defaultServerUrl"
-const desktopUrl = resolveDesktopServerUrl(location.search, window.location.origin)
+const remote = remoteWorkspace(location.search, {
+  getItem: (key) => sessionStorage.getItem(key),
+  setItem: (key, value) => sessionStorage.setItem(key, value),
+})
+const desktopUrl = remote ? window.location.origin : resolveDesktopServerUrl(location.search, window.location.origin)
+const desktopUpdateAvailable = Boolean(desktopUrl && hasDesktopUpdateCapability(location.search))
 
 const stored = () => {
   if (desktopUrl) return
-  if (typeof localStorage === "undefined") return
+  // Reading `localStorage` itself can throw (storage access denied), so the
+  // existence check has to sit inside the guard too.
   try {
+    if (typeof localStorage === "undefined") return
     return normalizeServerUrl(localStorage.getItem(DEFAULT_SERVER_URL_KEY) ?? "")
   } catch {
     return
@@ -41,9 +55,20 @@ const server = () =>
     configured: configured(),
     hostname: location.hostname,
     origin: window.location.origin,
-    hostedDomain: URLS.host,
     dev: import.meta.env.DEV,
   })
+
+async function desktopUpdateRequest(pathname: string, method: "GET" | "POST" | "DELETE", json?: unknown) {
+  const url = resolveServerRoute(pathname, server(), window.location.origin)
+  const response = await openscienceFetch(url, {
+    method,
+    headers: { Accept: "application/json", ...(json === undefined ? {} : { "content-type": "application/json" }) },
+    ...(json === undefined ? {} : { body: JSON.stringify(json) }),
+  })
+  const body = await response.json().catch(() => undefined)
+  if (!response.ok) throw new UpdateRefused(updateError(body, response.status), body)
+  return body as DesktopUpdateState
+}
 
 const root = document.getElementById("root")
 if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
@@ -63,9 +88,10 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
 
 const platform: Platform = {
   platform: desktopUrl ? "desktop" : "web",
+  openWorkspace: window.openscienceDesktop?.openWorkspace,
   version: import.meta.env.VITE_OPENSCIENCE_VERSION || pkg.version,
   openLink(url: string) {
-    window.open(url, "_blank")
+    window.open(url, "_blank", "noopener,noreferrer")
   },
   back() {
     window.history.back()
@@ -87,10 +113,7 @@ const platform: Platform = {
     if (inView) return
     await Promise.resolve()
       .then(() => {
-        const notification = new Notification(title, {
-          body: description ?? "",
-          icon: URLS.favicon,
-        })
+        const notification = new Notification(title, { body: description ?? "" })
         notification.onclick = () => {
           window.focus()
           if (href) {
@@ -102,7 +125,7 @@ const platform: Platform = {
       })
       .catch(() => undefined)
   },
-  openDirectoryPickerDialog: (options) => openNativeDirectoryPicker(options, openscienceFetch),
+  openDirectoryPickerDialog: remote ? undefined : (options) => openNativeDirectoryPicker(options, openscienceFetch),
   checkUpdate: async (options) => {
     const query = options?.refresh ? "?refresh=1" : ""
     const url = resolveServerRoute(`/settings/updates${query}`, server(), window.location.origin)
@@ -111,6 +134,13 @@ const platform: Platform = {
     const result = (await response.json()) as { updateAvailable: boolean; latest?: string }
     return { updateAvailable: result.updateAvailable, version: result.latest }
   },
+  updateState: desktopUpdateAvailable ? () => desktopUpdateRequest("/settings/updates/state", "GET") : undefined,
+  stageUpdate: desktopUpdateAvailable ? () => desktopUpdateRequest("/settings/updates/stage", "POST") : undefined,
+  applyUpdate: desktopUpdateAvailable
+    ? (options?: { mode?: "now" }) =>
+        desktopUpdateRequest("/settings/updates/apply", "POST", options?.mode ? { mode: options.mode } : undefined)
+    : undefined,
+  cancelUpdate: desktopUpdateAvailable ? () => desktopUpdateRequest("/settings/updates/stage", "DELETE") : undefined,
   update: async () => {
     const healthUrl = resolveServerRoute("/global/health", server(), window.location.origin)
     const before = await openscienceFetch(healthUrl, { headers: { Accept: "application/json" } })
@@ -122,8 +152,8 @@ const platform: Platform = {
       headers: { Accept: "application/json" },
     })
     if (!response.ok) {
-      const detail = (await response.json().catch(() => undefined)) as { error?: string } | undefined
-      throw new Error(detail?.error ?? `Update install failed (${response.status})`)
+      const detail = await response.json().catch(() => undefined)
+      throw new Error(updateError(detail, response.status))
     }
     const result = (await response.json()) as {
       installed: boolean
@@ -172,8 +202,8 @@ const platform: Platform = {
   getDefaultServerUrl: () => stored() ?? null,
   setDefaultServerUrl: (url) => {
     if (desktopUrl) return
-    if (typeof localStorage === "undefined") return
     try {
+      if (typeof localStorage === "undefined") return
       if (url) {
         localStorage.setItem(DEFAULT_SERVER_URL_KEY, url)
         return

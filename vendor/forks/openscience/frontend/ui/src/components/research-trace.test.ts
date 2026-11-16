@@ -1,222 +1,239 @@
 import { describe, expect, test } from "bun:test"
 import {
+  collapsibleTracePart,
+  settledCollapsible,
+  elapsedLabel,
   formatTaskDuration,
+  parseTaskHandoff,
+  pluralize,
   stripTaskMetadata,
   summarizeTaskActivity,
   type ResearchTraceEntry,
   visibleResearchTrace,
 } from "./research-trace"
 
-const entry = (id: string, tool: string, title: string, status = "completed", message = "msg") =>
-  ({
-    message: { id: message, role: "assistant" },
+const tokens = { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
+const assistant = (id: string): ResearchTraceEntry["message"] => ({
+  id,
+  sessionID: "session",
+  role: "assistant",
+  time: { created: 1, completed: 2 },
+  parentID: "user",
+  modelID: "model",
+  providerID: "provider",
+  mode: "research",
+  agent: "research",
+  path: { cwd: "/project", root: "/project" },
+  cost: 0,
+  tokens,
+})
+
+const entry = (
+  id: string,
+  tool: string,
+  title: string,
+  status: "completed" | "error" | "running" = "completed",
+  message = "msg",
+): ResearchTraceEntry => {
+  const state = { input: { value: id }, time: { start: 1, end: 2 } }
+  return {
+    message: assistant(message),
     part: {
       id,
+      sessionID: "session",
+      messageID: message,
       type: "tool",
       tool,
-      state: { status, input: {}, title, output: "" },
+      callID: id,
+      state:
+        status === "completed"
+          ? { ...state, status, title, output: `Original output for ${id}`, metadata: {} }
+          : status === "error"
+            ? { ...state, status, error: title }
+            : { ...state, status, title },
     },
-  }) as ResearchTraceEntry
+  }
+}
 
-const narrative = (id: string, type: "reasoning" | "text", text: string, message: string) =>
-  ({
-    message: { id: message, role: "assistant" },
-    part: { id, type, text },
-  }) as ResearchTraceEntry
+const narrative = (id: string, type: "reasoning" | "text", text: string, message = "msg"): ResearchTraceEntry => ({
+  message: assistant(message),
+  part: { id, type, text, sessionID: "session", messageID: message, time: { start: 1 } },
+})
 
-const lifecycle = (id: string, type: "step-start" | "step-finish", message: string) =>
-  ({
-    message: { id: message, role: "assistant" },
-    part: type === "step-finish" ? { id, type, reason: "tool-calls", cost: 0, tokens: {} } : { id, type },
-  }) as ResearchTraceEntry
+const lifecycle = (id: string, type: "step-start" | "step-finish", message = "msg"): ResearchTraceEntry => {
+  const part = { id, sessionID: "session", messageID: message }
+  return {
+    message: assistant(message),
+    part: type === "step-finish" ? { ...part, type, reason: "tool-calls", cost: 0, tokens } : { ...part, type },
+  }
+}
 
-describe("research trace presentation", () => {
-  test("keeps substantive reasoning chronological and tools readable", () => {
-    const trace = visibleResearchTrace([
-      lifecycle("start", "step-start", "msg"),
-      narrative("reason", "reasoning", "provider-visible reasoning bytes", "msg"),
-      entry("read", "read", "Read paper.tex"),
-      narrative("progress", "text", "intermediate assistant text", "msg"),
-      entry("search", "websearch", "Find source"),
-      lifecycle("finish", "step-finish", "msg"),
-    ])
-
-    expect(trace.map((item) => item.part.id)).toEqual(["reason", "read", "progress", "search"])
-    expect(trace[0]?.part.type === "reasoning" && trace[0].part.text).toBe("provider-visible reasoning bytes")
+describe("literal research trace", () => {
+  test("collapses routine activity but retains answers, requests, failures, and scientific results", () => {
+    expect(collapsibleTracePart(narrative("reason", "reasoning", "Full reasoning").part)).toBe(true)
+    expect(collapsibleTracePart(narrative("answer", "text", "Final response").part)).toBe(false)
+    expect(collapsibleTracePart(entry("read", "read", "Read source").part)).toBe(true)
+    expect(collapsibleTracePart(entry("pending", "question", "Approval", "running").part, "pending")).toBe(false)
+    expect(collapsibleTracePart(entry("error", "read", "Missing file", "error").part)).toBe(false)
+    const command = entry("command", "bash", "Run calculation").part
+    if (command.type !== "tool" || command.state.status !== "completed") throw new Error("Invalid fixture")
+    command.state.metadata = { exit: 2 }
+    expect(collapsibleTracePart(command)).toBe(false)
+    command.state.metadata = { exit: 0 }
+    expect(collapsibleTracePart(command)).toBe(true)
+    command.state.metadata = { artifact: { kind: "sequence", data: { sequence: "ACGT" } } }
+    expect(collapsibleTracePart(command)).toBe(false)
   })
 
-  test("deduplicates a streaming text update by part ID without moving its chronological position", () => {
-    const trace = visibleResearchTrace([
-      narrative("reason-1", "reasoning", "First thought", "msg"),
-      narrative("response", "text", "Draft response", "msg"),
-      narrative("reason-2", "reasoning", "Refining the answer", "msg"),
-      narrative("response", "text", "Final response", "msg"),
-    ])
-
-    expect(trace.map((item) => item.part.id)).toEqual(["reason-1", "response", "reason-2"])
-    expect(trace[1]?.part.type === "text" && trace[1].part.text).toBe("Final response")
+  test("keeps only tasks with a pending request in their bound child session outside collapse", () => {
+    const task = entry("task", "task", "Review protocol", "running").part
+    if (task.type !== "tool" || task.state.status !== "running") throw new Error("Invalid fixture")
+    task.state.metadata = { sessionId: "child" }
+    expect(collapsibleTracePart(task)).toBe(true)
+    expect(collapsibleTracePart(task, undefined, (id) => id === "unrelated")).toBe(true)
+    expect(collapsibleTracePart(task, undefined, (id) => id === "child")).toBe(false)
+    task.state.metadata = { sessionId: 12 }
+    expect(collapsibleTracePart(task, undefined, () => true)).toBe(true)
+    task.state.metadata = {}
+    expect(collapsibleTracePart(task, undefined, () => true)).toBe(true)
   })
 
-  test("does not hide reasoning between otherwise related tool families", () => {
-    const trace = visibleResearchTrace([
-      narrative("reason-1", "reasoning", "First thought", "msg-1"),
-      entry("read", "read", "Read paper.tex", "completed", "msg-1"),
-      lifecycle("finish", "step-finish", "msg-1"),
-      lifecycle("start", "step-start", "msg-2"),
-      narrative("reason-2", "reasoning", "Second thought", "msg-2"),
-      entry("grep", "grep", "Find citations", "completed", "msg-2"),
-    ])
-
-    expect(trace.map((item) => item.part.id)).toEqual(["reason-1", "read", "reason-2", "grep"])
+  test("does not bury an explicitly failed kernel behind a completed tool transport", () => {
+    const kernel = entry("kernel", "python", "Evaluate control").part
+    if (kernel.type !== "tool" || kernel.state.status !== "completed") throw new Error("Invalid fixture")
+    kernel.state.metadata = { ok: false }
+    expect(collapsibleTracePart(kernel)).toBe(false)
+    kernel.state.metadata = { ok: true }
+    expect(collapsibleTracePart(kernel)).toBe(true)
+    kernel.state.metadata = { ok: "false" }
+    expect(collapsibleTracePart(kernel)).toBe(true)
   })
 
-  test("keeps adjacent completed tools as literal stable rows", () => {
-    const trace = visibleResearchTrace([
-      entry("read", "read", "Read paper.tex"),
-      entry("grep", "grep", "Find citations"),
-      entry("list", "list", "List references"),
-    ])
-
-    expect(trace.map((item) => item.part.id)).toEqual(["read", "grep", "list"])
+  test.each(["error", "timed_out", "partial"])("keeps a completed delegated %s outcome visible", (outcome) => {
+    const task = entry("task", "task", "Review protocol").part
+    if (task.type !== "tool" || task.state.status !== "completed") throw new Error("Invalid fixture")
+    task.state.metadata = { outcome }
+    expect(collapsibleTracePart(task)).toBe(false)
+    task.state.metadata = { outcome: "completed" }
+    expect(collapsibleTracePart(task)).toBe(true)
+    task.state.metadata = { outcome: "unknown" }
+    expect(collapsibleTracePart(task)).toBe(true)
   })
 
-  test("groups only adjacent successful shell preflights and retains their original calls", () => {
-    const first = entry("shell-1", "bash", "Check Python runtime")
-    const second = entry("shell-2", "bash", "Inspect workspace status")
-    if (first.part.type === "tool") first.part.state.input = { command: "python --version" }
-    if (second.part.type === "tool") second.part.state.input = { command: "git status --short" }
-    const trace = visibleResearchTrace([first, second, entry("patch", "apply_patch", "Update report")])
-
-    expect(trace.map((item) => item.part.id)).toEqual(["shell-1", "patch"])
-    expect(trace[0]?.group?.map((item) => item.part.id)).toEqual(["shell-1", "shell-2"])
+  test("preserves prose and tool calls in their recorded order across assistant steps", () => {
+    const first = narrative("reason-1", "reasoning", "First provider explanation", "msg-1")
+    const read = entry("read", "read", "Read paper.tex", "completed", "msg-1")
+    const text = narrative("progress", "text", "Intermediate response", "msg-1")
+    const second = narrative("reason-2", "reasoning", "Second provider explanation", "msg-2")
+    const search = entry("search", "websearch", "Find source", "completed", "msg-2")
+    expect(
+      visibleResearchTrace([
+        lifecycle("start", "step-start", "msg-1"),
+        first,
+        read,
+        text,
+        lifecycle("finish", "step-finish", "msg-1"),
+        second,
+        search,
+      ]),
+    ).toEqual([first, read, text, second, search])
   })
 
-  test("never groups failed or substantive shell work", () => {
-    const check = entry("shell-1", "bash", "Check and train model")
-    if (check.part.type === "tool") check.part.state.input = { command: "pwd && python train.py" }
-    const trace = visibleResearchTrace([
-      check,
-      entry("shell-2", "bash", "Check dependency", "error"),
-      entry("shell-3", "bash", "Train full model"),
-    ])
-
-    expect(trace.map((item) => item.part.id)).toEqual(["shell-1", "shell-2", "shell-3"])
-    expect(trace.some((item) => item.group)).toBe(false)
+  test.each([
+    ["short", "Okay"],
+    ["status-shaped", "Planning source retrieval"],
+    ["headed", "**Thinking**\n\nI should compare both controls before changing the design."],
+    ["whitespace", "  Original whitespace\n\nand headings remain unchanged.  "],
+    ["long", "Full provider prose. ".repeat(2000)],
+  ])("retains nonempty %s reasoning unchanged", (_label, text) => {
+    const item = narrative("reason", "reasoning", text)
+    expect(visibleResearchTrace([item])).toEqual([item])
+    expect(visibleResearchTrace([item])[0]).toBe(item)
   })
 
-  test("collapses adjacent completed skill loads into one truthful disclosure", () => {
-    const trace = visibleResearchTrace([
-      {
-        ...entry("skill-1", "skill", "Loaded skill: scientific-schematics"),
-        part: {
-          ...entry("skill-1", "skill", "Loaded skill: scientific-schematics").part,
-          state: {
-            status: "completed",
-            input: { name: "scientific-schematics" },
-            metadata: { name: "scientific-schematics" },
-            output: "instructions",
-          },
-        },
-      } as unknown as ResearchTraceEntry,
-      {
-        ...entry("skill-2", "skill", "Loaded skill: ml-paper-writing"),
-        part: {
-          ...entry("skill-2", "skill", "Loaded skill: ml-paper-writing").part,
-          state: {
-            status: "completed",
-            input: { name: "ml-paper-writing" },
-            metadata: { name: "ml-paper-writing" },
-            output: "instructions",
-          },
-        },
-      } as unknown as ResearchTraceEntry,
-    ])
-
-    expect(trace).toHaveLength(1)
-    const aggregated = trace[0]?.part
-    expect(aggregated?.type === "tool" && aggregated.state.status === "completed" && aggregated.state.metadata).toEqual(
-      {
-        names: ["scientific-schematics", "ml-paper-writing"],
-      },
-    )
+  test("omits standalone generic status labels without deleting their saved source", () => {
+    const item = narrative("status", "reasoning", "Considering next steps")
+    expect(visibleResearchTrace([item])).toEqual([])
+    expect(item.part).toMatchObject({ text: "Considering next steps" })
   })
 
-  test("does not group skill search results as skills that were used", () => {
-    const searched = entry("skill-search", "skill", "Skill matches: figures")
-    const trace = visibleResearchTrace([
-      {
-        ...searched,
-        part: {
-          ...searched.part,
-          state: {
-            status: "completed",
-            input: { query: "figures" },
-            metadata: { matches: ["scientific-schematics"] },
-            output: "matches",
-          },
-        },
-      } as unknown as ResearchTraceEntry,
-      entry("read", "read", "Read paper.tex"),
-    ])
+  test.each(["read", "bash", "websearch", "edit", "skill"])(
+    "never aggregates repeated %s calls or replaces their input/output",
+    (tool) => {
+      const calls = [
+        entry("one", tool, "First call"),
+        entry("two", tool, "Second call"),
+        entry("three", tool, "Third call"),
+      ]
+      expect(visibleResearchTrace(calls)).toEqual(calls)
+      for (const [index, item] of visibleResearchTrace(calls).entries()) expect(item).toBe(calls[index])
+    },
+  )
 
-    expect(trace.map((item) => item.part.id)).toEqual(["skill-search", "read"])
+  test("keeps skill discovery and loaded skills as separate original receipts", () => {
+    const searched = entry("search", "skill", "Skill matches: figures")
+    const loaded = entry("load", "skill", "Loaded skill: figures")
+    if (searched.part.type === "tool") searched.part.state.input = { query: "figures" }
+    if (loaded.part.type === "tool") loaded.part.state.input = { name: "figures" }
+    const calls = [searched, loaded]
+    expect(visibleResearchTrace(calls)).toEqual(calls)
+    // A finished load folds with the rest of the activity; only a load that
+    // failed, or one still running, needs the reader while the trace is folded.
+    expect(collapsibleTracePart(loaded.part)).toBe(true)
+    expect(collapsibleTracePart(searched.part)).toBe(true)
+    expect(collapsibleTracePart(entry("loading", "skill", "Loaded skill: figures", "running").part)).toBe(true)
+    expect(collapsibleTracePart(entry("failed", "skill", "Permission denied", "error").part)).toBe(false)
   })
 
-  test("collapses adjacent skill discovery calls without claiming the matches were loaded", () => {
-    const searched = (id: string, query: string, matches: string[]) => {
-      const item = entry(id, "skill", `Skill matches: ${query}`)
-      return {
-        ...item,
-        part: {
-          ...item.part,
-          state: {
-            status: "completed",
-            input: { query },
-            metadata: { matches },
-            output: "matches",
-          },
-        },
-      } as unknown as ResearchTraceEntry
-    }
-    const trace = visibleResearchTrace([
-      searched("search-1", "writing figures", ["scientific-writing", "scientific-schematics"]),
-      searched("search-2", "vector diagrams", ["scientific-schematics", "scientific-visualization"]),
-      entry("read", "read", "Read report.md"),
-    ])
-
-    expect(trace.map((item) => item.part.id)).toEqual(["search-1", "read"])
-    const search = trace[0]?.part
-    expect(search?.type === "tool" && search.state.status === "completed" && search.state.metadata).toEqual({
-      matches: ["scientific-writing", "scientific-schematics", "scientific-visualization"],
-    })
+  test("running, failed, and completed tools all keep individual chronological rows", () => {
+    const calls = [
+      entry("one", "bash", "First", "completed"),
+      entry("two", "bash", "Failed", "error"),
+      entry("three", "bash", "Running", "running"),
+    ]
+    expect(visibleResearchTrace(calls)).toEqual(calls)
+    const complete = entry("three", "bash", "Completed", "completed")
+    expect(visibleResearchTrace([...calls, complete])).toEqual([calls[0], calls[1], complete])
   })
 
-  test("keeps repeated failed source attempts individually inspectable", () => {
-    const trace = visibleResearchTrace([
-      entry("fetch-1", "webfetch", "Download returned HTML", "error"),
-      entry("fetch-2", "webfetch", "Download returned HTML", "error"),
-      entry("fetch-3", "webfetch", "Endpoint returned 404", "error"),
-    ])
-
-    expect(trace.map((item) => item.part.id)).toEqual(["fetch-1", "fetch-2", "fetch-3"])
+  test("replaces a streaming part by stable ID without moving it or rewriting the latest payload", () => {
+    const first = narrative("reason-1", "reasoning", "First thought")
+    const partial = narrative("response", "text", "Draft response")
+    const second = narrative("reason-2", "reasoning", "Refining the answer")
+    const final = narrative("response", "text", "Full final response")
+    expect(visibleResearchTrace([first, partial, second, final])).toEqual([first, final, second])
   })
 
-  test("keeps provider status-only reasoning chronological instead of leaving a tool-only gap", () => {
-    const trace = visibleResearchTrace([
-      narrative("status-1", "reasoning", "Planning source retrieval", "msg-1"),
-      entry("search", "websearch", "Find assay data", "completed", "msg-1"),
-      narrative("status-2", "reasoning", "Inspecting assay metadata", "msg-2"),
-      entry("fetch", "webfetch", "Fetch assay data", "completed", "msg-2"),
-    ])
-
-    expect(trace.map((item) => item.part.id)).toEqual(["status-1", "search", "status-2", "fetch"])
+  test("retains private-only steps for an honest availability notice", () => {
+    const unavailable = narrative("reason", "reasoning", "[REDACTED]")
+    expect(visibleResearchTrace([unavailable])).toEqual([unavailable])
+    const mixed = narrative("mixed", "reasoning", "Readable prose. [REDACTED]")
+    expect(visibleResearchTrace([mixed])).toEqual([mixed])
+    expect(visibleResearchTrace([mixed])[0]).toBe(mixed)
   })
 
-  test("omits deliberately hidden tools from the inline activity list", () => {
-    const hidden = entry("artifact", "artifact", "Save result")
-    hidden.hidden = true
-    const trace = visibleResearchTrace([entry("read", "read", "Read data"), hidden])
-    expect(trace.map((item) => item.part.id)).toEqual(["read"])
+  test("omits only empty reasoning, lifecycle markers, and explicitly separate presentation", () => {
+    const hidden = { ...entry("artifact", "artifact", "Gallery result"), hidden: true }
+    const visible = narrative("text", "text", "Visible answer")
+    expect(
+      visibleResearchTrace([
+        lifecycle("start", "step-start"),
+        narrative("empty", "reasoning", " \n"),
+        hidden,
+        visible,
+        lifecycle("finish", "step-finish"),
+      ]),
+    ).toEqual([visible])
+  })
+})
+
+describe("elapsedLabel", () => {
+  test("counts whole seconds and never goes negative", () => {
+    expect(elapsedLabel(0)).toBe("0s")
+    expect(elapsedLabel(999)).toBe("0s")
+    expect(elapsedLabel(12_400)).toBe("12s")
+    expect(elapsedLabel(65_000)).toBe("1m 5s")
+    expect(elapsedLabel(-3_000)).toBe("0s")
   })
 })
 
@@ -240,7 +257,24 @@ describe("delegation summaries", () => {
     ])
 
     expect(groups).toEqual([
-      { family: "skills", count: 1, failed: 0, label: "Using 1 skill", detail: "scientific-schematics" },
+      { family: "skills", count: 1, failed: 0, label: "Loaded 1 skill", detail: "scientific-schematics" },
+    ])
+  })
+
+  test("labels change calls as operations when child summaries contain no file receipts", () => {
+    const groups = summarizeTaskActivity([
+      { id: "1", tool: "apply_patch", state: { status: "completed", title: "Update two files" } },
+      { id: "2", tool: "apply_patch", state: { status: "completed", title: "Update two more files" } },
+    ])
+
+    expect(groups).toEqual([
+      {
+        family: "changes",
+        count: 2,
+        failed: 0,
+        label: "Edited 2 files",
+        detail: "Update two files · Update two more files",
+      },
     ])
   })
 
@@ -255,4 +289,122 @@ describe("delegation summaries", () => {
     expect(formatTaskDuration(7_800)).toBe("7.8s")
     expect(formatTaskDuration(125_000)).toBe("2m 5s")
   })
+
+  test("never prints a 60 in the smaller unit", () => {
+    // The remainder was rounded while the larger unit was floored, so a value
+    // within half a second of the next minute printed an impossible "1m 60s".
+    expect(formatTaskDuration(119_999)).toBe("1m 59s")
+    expect(formatTaskDuration(3_599_999)).toBe("59m 59s")
+    expect(formatTaskDuration(7_199_999)).toBe("1h 59m")
+    // The same input through the ticking counter, which floors throughout.
+    expect(elapsedLabel(119_999)).toBe("1m 59s")
+  })
+})
+
+describe("parseTaskHandoff", () => {
+  test("separates the lead-facing preamble and evidence from the worker's findings", () => {
+    const output = [
+      "Task session ses_abc123: partial (max_steps). Reuse this sessionId to continue the same worker.",
+      "[Child reached its bounded step limit; partial result follows.]",
+      "## Findings",
+      "",
+      "Two assays disagree on the IC50.",
+      "",
+      "Saved outputs (immutable versions; use artifact read_file with these exact IDs):",
+      '- "assays.csv": artifact_id=art_1, version_id=ver_1, bytes=120, sha256=abc',
+      '- "note \\"quoted\\".md": artifact_id=art_2, version_id=ver_2, bytes=12, sha256=def',
+      "Execution receipts: 3 shell calls, 2 with outer exit 0, 1 failed. Full receipts remain in the child trace.",
+      "<task_metadata>",
+      "sessionId: ses_abc123",
+      "</task_metadata>",
+    ].join("\n")
+    expect(parseTaskHandoff(output)).toEqual({
+      notes: ["Child reached its bounded step limit; partial result follows."],
+      text: "## Findings\n\nTwo assays disagree on the IC50.",
+      outputs: [
+        { filename: "assays.csv", artifactID: "art_1" },
+        { filename: 'note "quoted".md', artifactID: "art_2" },
+      ],
+      headed: true,
+    })
+  })
+
+  test("reads the task envelope: summary note, findings, receipts and task_id stripped", () => {
+    const output = [
+      '<task id="ses_child" state="completed">',
+      "<summary>Completed with 1 failed tool attempt; review its limitations.</summary>",
+      "<task_result>",
+      "## Outcome",
+      "",
+      "Sources agree on the slope.",
+      "",
+      "Execution receipts: 1 shell calls, 1 with outer exit 0, 0 failed. Full receipts remain in the child trace.",
+      "",
+      "task_id: ses_child",
+      "</task_result>",
+      "</task>",
+    ].join("\n")
+    expect(parseTaskHandoff(output)).toEqual({
+      notes: ["Completed with 1 failed tool attempt; review its limitations."],
+      text: "## Outcome\n\nSources agree on the slope.",
+      outputs: [],
+      headed: true,
+    })
+    const failed = [
+      '<task id="ses_x" state="error">',
+      "<task_error>",
+      "Provider disconnected",
+      "</task_error>",
+      "</task>",
+    ]
+    expect(parseTaskHandoff(failed.join("\n")).text).toBe("Provider disconnected")
+  })
+
+  test("keeps plain findings untouched and reports that they need a label", () => {
+    expect(parseTaskHandoff("The comparison is ready; one source could not be retrieved.")).toEqual({
+      notes: [],
+      text: "The comparison is ready; one source could not be retrieved.",
+      outputs: [],
+      headed: false,
+    })
+    expect(parseTaskHandoff(undefined).text).toBe("")
+  })
+
+  test("keeps malformed output filenames readable instead of crashing the transcript", () => {
+    const line = String.raw`- "report\q.csv": artifact_id=art_1, version_id=ver_1`
+    const result = parseTaskHandoff(
+      `Saved outputs (immutable versions; use artifact read_file with these exact IDs):\n${line}`,
+    )
+    expect(result.outputs).toEqual([])
+    expect(result.text).toBe(line)
+  })
+
+  test("pluralizes operation counts", () => {
+    expect(pluralize(1, "op")).toBe("1 op")
+    expect(pluralize(3, "op")).toBe("3 ops")
+    expect(pluralize(2, "source", "sources")).toBe("2 sources")
+  })
+})
+
+test("a worker stopped at its limit or deadline stays visible in a folded, answered turn", () => {
+  const task = (stopReason?: string) =>
+    ({
+      id: "part",
+      sessionID: "session",
+      messageID: "message",
+      type: "tool",
+      tool: "task",
+      callID: "call",
+      state: {
+        status: "completed",
+        input: {},
+        output: "",
+        title: "",
+        time: { start: 1, end: 2 },
+        metadata: { sessionId: "child", outcome: "partial", budget: { stopReason } },
+      },
+    }) as never
+  for (const reason of ["budget_limit", "token_limit", "deadline"]) expect(settledCollapsible(task(reason))).toBe(false)
+  expect(settledCollapsible(task("cancelled"))).toBe(true)
+  expect(settledCollapsible(task())).toBe(true)
 })

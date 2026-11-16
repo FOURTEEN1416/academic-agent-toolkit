@@ -6,10 +6,15 @@ import { File } from "@/file"
 import { ArtifactFile } from "@/file/artifacts"
 import { Instance } from "@/project/instance"
 import { Provenance } from "@/science/provenance/store"
+import { Experiments } from "@/experiments"
+import { JobBroker } from "@/compute/job-broker"
 import type { Node, Run } from "@/science/provenance/store"
 import { Log } from "@/util/log"
 
 const log = Log.create({ service: "tool.artifact" })
+// A text window verifies the whole immutable blob. Keep repeated reads bounded;
+// larger datasets belong in the download/analysis path, not model context.
+const MAX_INLINE_BYTES = 8 * 1024 * 1024
 
 function result(title: string, output: string, metadata: Record<string, unknown> = {}) {
   return { title, output, metadata }
@@ -100,29 +105,156 @@ async function traceSavedArtifact(saved: ArtifactStore.Artifact, run?: Run) {
   if (run) await Provenance.linkOwned(scope, { from: run.id, to: id, relation: "produced" })
 }
 
+/**
+ * The runs a model actually names when it saves a Result are its study runs
+ * and compute jobs, which live in their own stores rather than the
+ * provenance graph. Bring the named one into the graph, so the Result's
+ * lineage points at the run that produced it, provided the run belongs to
+ * this session and project.
+ */
+async function recordedRun(
+  scope: { projectID: string; directory: string },
+  id: string,
+  sessionID: string,
+): Promise<Node | undefined> {
+  const run = await Experiments.getRun(id).catch(() => undefined)
+  if (run) {
+    const study = run.studyID ? await Experiments.getStudy(run.studyID).catch(() => undefined) : undefined
+    if ((run.sessionID ?? study?.sessionID) !== sessionID) return
+    return Provenance.recordOwned(scope, {
+      id,
+      kind: "run",
+      label: `Study run: ${run.name}`,
+      tool: "study",
+      sessionID,
+      inputs: {
+        config: run.config,
+        ...(run.jobID ? { jobID: run.jobID } : {}),
+        ...(run.studyID ? { studyID: run.studyID } : {}),
+      },
+      status: run.status === "finished" ? "ok" : "error",
+      meta: {
+        projectID: scope.projectID,
+        sessionID,
+        runID: run.id,
+        runStatus: run.status,
+        ...(run.jobID ? { jobID: run.jobID } : {}),
+        ...(run.headline !== null ? { headline: run.headline } : {}),
+        ...(study ? { studyID: study.id, metric: study.metric } : {}),
+      },
+    } as Parameters<typeof Provenance.record>[0])
+  }
+  const { computeOptions } = await import("./compute-job")
+  const job = await computeOptions(sessionID)
+    .then((options) => JobBroker.get(id, options))
+    .catch(() => undefined)
+  if (!job || job.session_id !== sessionID) return
+  return Provenance.recordOwned(scope, {
+    id,
+    kind: "run",
+    label: `Compute job: ${job.name}`,
+    tool: "compute_job",
+    sessionID,
+    inputs: { command: job.command, ...(job.cwd ? { cwd: job.cwd } : {}), target: job.target },
+    status: job.status === "succeeded" ? "ok" : "error",
+    meta: { projectID: scope.projectID, sessionID, jobID: job.id, jobStatus: job.status, target: job.target_label },
+  } as Parameters<typeof Provenance.record>[0])
+}
+
 export const ArtifactTool = Tool.define("artifact", {
   description:
-    "Save an important workspace file as a durable Result with a stable identity, immutable versions, and optional execution provenance. Empirical contract Results need provenance_id to pass completion. Keep drafts and large mutable working data in the workspace instead.",
-  parameters: z.object({
-    action: z.literal("save_file").describe("Save a workspace file as a durable Result"),
-    path: z.string().trim().min(1).max(10_000).describe("Workspace file path"),
-    summary: z.string().optional().describe("Concise user-facing Result title"),
-    provenance_id: z
-      .string()
-      .optional()
-      .describe(
-        "Producing run provenance ID from this project and session. Required for empirical contract Results to pass completion; may reference a manually recorded run.",
-      ),
-  }),
+    "Save an important workspace file as a durable Result, or read an exact immutable Result version by artifact_id and version_id (including outputs handed back by a worker). read_file returns bounded text or binary metadata; it does not grant access to another session's scratch. Empirical contract Results need provenance_id to pass completion. Keep drafts and large mutable working data in the workspace instead.",
+  parameters: z
+    .object({
+      action: z.enum(["save_file", "read_file"]),
+      path: z.string().trim().min(1).max(10_000).optional().describe("Required for save_file: workspace file path"),
+      summary: z.string().optional().describe("Concise user-facing Result title"),
+      provenance_id: z
+        .string()
+        .optional()
+        .describe(
+          "The producing run from this session: a study run id (exp_…), a compute job id, or a recorded provenance id. Required for empirical contract Results to pass completion.",
+        ),
+      artifact_id: z.string().min(1).optional().describe("Required for read_file: exact saved artifact ID"),
+      version_id: z.string().min(1).optional().describe("Required for read_file: exact immutable version ID"),
+      offset: z.number().int().nonnegative().optional().describe("Byte offset for the next bounded text window"),
+    })
+    .superRefine((input, ctx) => {
+      for (const field of input.action === "save_file"
+        ? (["path"] as const)
+        : (["artifact_id", "version_id"] as const)) {
+        if (!input[field])
+          ctx.addIssue({ code: "custom", path: [field], message: `${field} is required for ${input.action}` })
+      }
+    }),
   async execute(params, ctx) {
-    const node = params.provenance_id
-      ? await Provenance.find(
+    if (params.action === "read_file") {
+      ctx.abort.throwIfAborted()
+      const detail = await ArtifactStore.get(Instance.project.id, params.artifact_id!)
+      const version = detail?.versions.find((item) => item.id === params.version_id)
+      if (version && version.size > MAX_INLINE_BYTES) {
+        return result(
+          `Saved Result: ${version.filename}`,
+          "This Result exceeds the 8 MiB inline-text limit. Retrieve this exact version through Files > Results or the artifact API and analyze it as a file. This response contains stored metadata only; it has not verified or read the blob bytes.",
           {
-            projectID: Instance.project.id,
-            directory: Instance.directory,
+            artifactID: version.artifactID,
+            versionID: version.id,
+            size: version.size,
+            sha256: version.sha256,
+            readStatus: "metadata_only",
           },
-          params.provenance_id,
         )
+      }
+      const stored = await ArtifactStore.read(Instance.project.id, params.artifact_id!, params.version_id!)
+      if (!stored)
+        throw new Error("This artifact version is unavailable or failed integrity verification in the current project.")
+      const info = stored.info
+      const offset = params.offset ?? 0
+      if (offset > info.size) throw new Error(`Byte offset ${offset} exceeds artifact size ${info.size}.`)
+      const bytes = new Uint8Array(await stored.content.slice(offset, offset + 50 * 1024).arrayBuffer())
+      ctx.abort.throwIfAborted()
+      const metadata = {
+        artifactID: info.artifactID,
+        versionID: info.id,
+        filename: info.filename,
+        size: info.size,
+        sha256: info.sha256,
+        mimeType: info.mimeType,
+        offset,
+        readStatus: "verified",
+      }
+      const textual = info.mimeType.startsWith("text/") || /(?:json|xml|yaml|javascript)/i.test(info.mimeType)
+      if (!textual || bytes.includes(0)) {
+        return result(
+          `Saved Result: ${info.filename}`,
+          "This is a binary Result. Open it from Files > Results or retrieve the exact version through the artifact API; it is not a text document.",
+          metadata,
+        )
+      }
+      // Streaming decode leaves an incomplete trailing UTF-8 sequence for the
+      // next window instead of corrupting it at the byte boundary.
+      const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true })
+      const text = (() => {
+        try {
+          return decoder.decode(bytes, { stream: offset + bytes.length < info.size })
+        } catch {
+          throw new Error(
+            "This window is not valid UTF-8 text. Use the returned byte offset from the preceding window, or retrieve the Result as a file to decode its original encoding.",
+          )
+        }
+      })()
+      const end = offset + new TextEncoder().encode(text).length
+      const more = end < info.size
+      return result(
+        `Saved Result: ${info.filename}`,
+        text + (more ? `\n\n[More content: call artifact read_file with the same IDs and offset=${end}.]` : ""),
+        { ...metadata, nextOffset: more ? end : undefined, truncated: more },
+      )
+    }
+    const scope = { projectID: Instance.project.id, directory: Instance.directory }
+    const node = params.provenance_id
+      ? ((await Provenance.find(scope, params.provenance_id)) ??
+        (await recordedRun(scope, params.provenance_id, ctx.sessionID)))
       : undefined
     const entry = runnable(node) ? node : undefined
     const sessionID =
@@ -137,17 +269,17 @@ export const ArtifactTool = Tool.define("artifact", {
       return result("Invalid provenance", "The producing run was not found in this project and session.")
     }
     {
-      const file = await File.rawSource(params.path, {
+      const file = await File.rawSource(params.path!, {
         sessionID: ctx.sessionID,
         maxBytes: ArtifactStore.MAX_VERSION_BYTES,
       })
-      const name = path.basename(params.path)
+      const name = path.basename(params.path!)
       const classified = ArtifactFile.classify(name)
       const title = params.summary?.trim() || name
       const saved = await ArtifactStore.save({
         projectID: Instance.project.id,
         sessionID: ctx.sessionID,
-        sourcePath: params.path,
+        sourcePath: params.path!,
         filename: name,
         kind: classified?.kind ?? "file",
         content: file,

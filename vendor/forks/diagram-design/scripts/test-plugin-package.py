@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -16,6 +18,10 @@ from typing import Iterator, Optional
 ROOT = Path(__file__).resolve().parent.parent
 VERIFY_SCRIPT = ROOT / "scripts/verify-plugin-package.py"
 BUMP_SCRIPT = ROOT / "scripts/bump-plugin-version.py"
+VERSION_HISTORY_SCRIPT = ROOT / "scripts/plugin_version_history.py"
+AUTO_BUMP_WORKFLOW = ROOT / ".github/workflows/auto-bump.yml"
+CI_WORKFLOW = ROOT / ".github/workflows/ci.yml"
+VERSION_GATE_STEP = "Forbid manifest version changes in pull requests"
 PLUGIN_NAME = "diagram-design"
 
 
@@ -31,6 +37,7 @@ def load_module(name: str, path: Path) -> ModuleType:
 
 VERIFY = load_module("verify_plugin_package", VERIFY_SCRIPT)
 BUMP = load_module("bump_plugin_version", BUMP_SCRIPT)
+VERSION_HISTORY = load_module("plugin_version_history", VERSION_HISTORY_SCRIPT)
 
 
 def write_json(path: Path, payload: dict) -> None:
@@ -38,14 +45,14 @@ def write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def manifest(version: str, codex: bool = False) -> dict:
+def manifest(version: str, native_skills: bool = False) -> dict:
     payload = {
         "name": PLUGIN_NAME,
         "description": "Create editorial diagrams.",
         "version": version,
         "author": {"name": "Cathryn Lavery"},
     }
-    if codex:
+    if native_skills:
         payload["skills"] = "./skills/"
     return payload
 
@@ -65,7 +72,13 @@ def seed_package(
     root: Path, version: str = "1.2.3", include_factory: bool = True
 ) -> None:
     write_json(root / ".claude-plugin/plugin.json", manifest(version))
-    write_json(root / ".codex-plugin/plugin.json", manifest(version, codex=True))
+    write_json(
+        root / ".codex-plugin/plugin.json",
+        manifest(version, native_skills=True),
+    )
+    qoder = manifest(version, native_skills=True)
+    qoder["commands"] = "./commands/"
+    write_json(root / ".qoder-plugin/plugin.json", qoder)
     if include_factory:
         seed_factory(root, version)
     write_json(
@@ -132,14 +145,21 @@ def package_repo(include_factory: bool = True) -> Iterator[Path]:
 
 
 def set_versions(
-    root: Path, claude: str, codex: str, factory: Optional[str] = None
+    root: Path,
+    claude: str,
+    codex: str,
+    factory: Optional[str] = None,
+    qoder: Optional[str] = None,
 ) -> None:
     if factory is None:
         factory = codex
+    if qoder is None:
+        qoder = codex
     for relative, version in (
         (Path(".claude-plugin/plugin.json"), claude),
         (Path(".codex-plugin/plugin.json"), codex),
         (Path(".factory-plugin/plugin.json"), factory),
+        (Path(".qoder-plugin/plugin.json"), qoder),
     ):
         payload = json.loads((root / relative).read_text(encoding="utf-8"))
         payload["version"] = version
@@ -182,6 +202,50 @@ def test_verifier() -> None:
         )
 
     with package_repo() as root:
+        errors = VERIFY.verify_package(root, "HEAD", mode="no-bump")
+        if errors:
+            raise AssertionError(f"unchanged versions failed no-bump mode: {errors}")
+        print("OK: no-bump mode accepts unchanged versions")
+
+    with package_repo() as root:
+        set_versions(root, "1.2.4", "1.2.4")
+        expect_failure(
+            "version bump inside a pull request",
+            VERIFY.verify_package(root, "HEAD", mode="no-bump"),
+            "must not change in a pull request",
+        )
+
+    with package_repo() as root:
+        set_versions(root, "1.2.2", "1.2.2")
+        expect_failure(
+            "version rollback inside a pull request",
+            VERIFY.verify_package(root, "HEAD", mode="no-bump"),
+            "must not change in a pull request",
+        )
+
+    with package_repo() as root:
+        errors = VERIFY.verify_package(root, None, mode="current-only")
+        if errors:
+            raise AssertionError(f"current-only mode failed a valid tree: {errors}")
+        print("OK: current-only mode accepts a valid tree")
+
+    with package_repo() as root:
+        set_versions(root, "1.2.4", "1.2.5")
+        expect_failure(
+            "current-only mode with desynchronized manifests",
+            VERIFY.verify_package(root, None, mode="current-only"),
+            "versions must match",
+        )
+
+    with package_repo() as root:
+        set_versions(root, "1.2", "1.2")
+        expect_failure(
+            "current-only mode with malformed versions",
+            VERIFY.verify_package(root, None, mode="current-only"),
+            "strict MAJOR.MINOR.PATCH",
+        )
+
+    with package_repo() as root:
         set_versions(root, "1.2.4", "1.2.5")
         expect_failure(
             "mismatched manifests",
@@ -193,6 +257,14 @@ def test_verifier() -> None:
         set_versions(root, "1.2.4", "1.2.4", "1.2.5")
         expect_failure(
             "Factory version drift",
+            VERIFY.verify_package(root, "HEAD"),
+            "versions must match",
+        )
+
+    with package_repo() as root:
+        set_versions(root, "1.2.4", "1.2.4", qoder="1.2.5")
+        expect_failure(
+            "Qoder version drift",
             VERIFY.verify_package(root, "HEAD"),
             "versions must match",
         )
@@ -277,6 +349,57 @@ def test_verifier() -> None:
             "Factory manifest deletion",
             VERIFY.verify_package(root, "HEAD"),
             "could not read",
+        )
+
+    with package_repo() as root:
+        set_versions(root, "1.2.4", "1.2.4")
+        (root / ".qoder-plugin/plugin.json").unlink()
+        expect_failure(
+            "Qoder manifest deletion",
+            VERIFY.verify_package(root, "HEAD"),
+            "could not read",
+        )
+
+    with package_repo() as root:
+        set_versions(root, "1.2.4", "1.2.4")
+        qoder_path = root / ".qoder-plugin/plugin.json"
+        qoder = json.loads(qoder_path.read_text(encoding="utf-8"))
+        qoder["commands"] = "./missing-commands/"
+        write_json(qoder_path, qoder)
+        expect_failure(
+            "missing Qoder command surface",
+            VERIFY.verify_package(root, "HEAD"),
+            "Qoder manifest commands",
+        )
+
+    with package_repo() as root:
+        set_versions(root, "1.2.4", "1.2.4")
+        alternate = root / "alternate-skills" / PLUGIN_NAME
+        alternate.mkdir(parents=True)
+        (alternate / "SKILL.md").write_text("---\nname: diagram-design\n---\n")
+        qoder_path = root / ".qoder-plugin/plugin.json"
+        qoder = json.loads(qoder_path.read_text(encoding="utf-8"))
+        qoder["skills"] = "./alternate-skills/"
+        write_json(qoder_path, qoder)
+        expect_failure(
+            "non-canonical Qoder skill surface",
+            VERIFY.verify_package(root, "HEAD"),
+            "Qoder manifest skills must resolve to skills/",
+        )
+
+    with package_repo() as root:
+        set_versions(root, "1.2.4", "1.2.4")
+        alternate = root / "alternate-commands"
+        alternate.mkdir()
+        (alternate / "doctor.md").write_text("Run diagnostics.\n", encoding="utf-8")
+        qoder_path = root / ".qoder-plugin/plugin.json"
+        qoder = json.loads(qoder_path.read_text(encoding="utf-8"))
+        qoder["commands"] = "./alternate-commands/"
+        write_json(qoder_path, qoder)
+        expect_failure(
+            "non-canonical Qoder command surface",
+            VERIFY.verify_package(root, "HEAD"),
+            "Qoder manifest commands must resolve to commands/",
         )
 
     with package_repo() as root:
@@ -435,6 +558,11 @@ def test_bumper() -> None:
         with tempfile.TemporaryDirectory() as scratch:
             root = Path(scratch)
             seed_package(root)
+            version_paths = (*BUMP.MANIFEST_PATHS, BUMP.SKILL_PATH)
+            before = {
+                relative: (root / relative).read_text(encoding="utf-8")
+                for relative in version_paths
+            }
             actual = BUMP.bump(root, part)
             versions = {
                 json.loads((root / relative).read_text(encoding="utf-8"))["version"]
@@ -444,7 +572,27 @@ def test_bumper() -> None:
                 raise AssertionError(
                     f"{part} bump: expected {expected}, got {actual} and {versions}"
                 )
-            print(f"OK: {part} bump produced {expected}")
+            skill_text = (root / BUMP.SKILL_PATH).read_text(encoding="utf-8")
+            expected_minor = ".".join(expected.split(".")[:2])
+            if f'version: "{expected_minor}"' not in skill_text:
+                raise AssertionError(
+                    f"{part} bump left SKILL.md metadata.version off "
+                    f"{expected_minor!r}: {skill_text!r}"
+                )
+            changed = {
+                relative
+                for relative in version_paths
+                if (root / relative).read_text(encoding="utf-8") != before[relative]
+            }
+            expected_changed = set(BUMP.MANIFEST_PATHS)
+            if part != "patch":
+                expected_changed.add(BUMP.SKILL_PATH)
+            if changed != expected_changed:
+                raise AssertionError(
+                    f"{part} bump changed {sorted(map(str, changed))}; expected "
+                    f"{sorted(map(str, expected_changed))}"
+                )
+            print(f"OK: {part} bump produced {expected} and synced SKILL.md")
 
     with tempfile.TemporaryDirectory() as scratch:
         root = Path(scratch)
@@ -459,10 +607,334 @@ def test_bumper() -> None:
             raise AssertionError("version bumper accepted mismatched manifests")
         print("OK: version bumper rejects mismatched manifests")
 
+    with tempfile.TemporaryDirectory() as scratch:
+        root = Path(scratch)
+        seed_package(root)
+        skill = root / BUMP.SKILL_PATH
+        skill.write_text(f"---\nname: {PLUGIN_NAME}\n---\n", encoding="utf-8")
+        before = {
+            relative: (root / relative).read_text(encoding="utf-8")
+            for relative in BUMP.MANIFEST_PATHS
+        }
+        try:
+            BUMP.bump(root)
+        except BUMP.PackageVersionError as exc:
+            if "metadata.version" not in str(exc):
+                raise AssertionError(f"unexpected SKILL.md error: {exc}") from exc
+        else:
+            raise AssertionError("version bumper accepted SKILL.md without metadata.version")
+        after = {
+            relative: (root / relative).read_text(encoding="utf-8")
+            for relative in BUMP.MANIFEST_PATHS
+        }
+        if before != after:
+            raise AssertionError("failed bump must leave every manifest untouched")
+        print("OK: version bumper fails closed on SKILL.md drift, manifests untouched")
+
+
+def test_auto_bump_workflow_allowlists() -> None:
+    workflow = AUTO_BUMP_WORKFLOW.read_text(encoding="utf-8")
+    expected = {
+        "expected_without_skill": tuple(
+            sorted(relative.as_posix() for relative in BUMP.MANIFEST_PATHS)
+        ),
+        "expected_with_skill": tuple(
+            sorted(
+                relative.as_posix()
+                for relative in (*BUMP.MANIFEST_PATHS, BUMP.SKILL_PATH)
+            )
+        ),
+    }
+
+    for variable, expected_paths in expected.items():
+        marker = f"{variable}=$(printf '%s" + "\\n' \\" + "\n"
+        chunks = workflow.split(marker)
+        if len(chunks) != 3:
+            raise AssertionError(
+                f"expected prepare and publish assignments for {variable}; "
+                f"found {len(chunks) - 1}"
+            )
+        for job, chunk in zip(("prepare", "publish"), chunks[1:]):
+            body, separator, _ = chunk.partition("| LC_ALL=C sort)")
+            if not separator:
+                raise AssertionError(f"could not parse {job} {variable} allowlist")
+            actual_paths = tuple(
+                sorted(
+                    line.strip().removesuffix("\\").strip()
+                    for line in body.splitlines()
+                    if line.strip()
+                )
+            )
+            if actual_paths != expected_paths:
+                raise AssertionError(
+                    f"{job} {variable} allowlist is {actual_paths}; "
+                    f"expected {expected_paths}"
+                )
+    print("OK: prepare and publish workflow allowlists match bumper paths")
+
+
+def commit_all(root: Path, message: str) -> str:
+    subprocess.run(["git", "add", "."], cwd=root, check=True)
+    subprocess.run(["git", "commit", "-qm", message], cwd=root, check=True)
+    return subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=root, text=True
+    ).strip()
+
+
+def git(root: Path, *args: str) -> str:
+    return subprocess.check_output(["git", *args], cwd=root, text=True).strip()
+
+
+def test_pull_request_merge_base() -> None:
+    # GitHub checks out refs/pull/N/merge: the PR head merged into the base
+    # tip as it is now. Main keeps moving after a PR opens because every merge
+    # triggers an auto-bump, so the PR's recorded base can be several versions
+    # behind that merge.
+    with package_repo() as root:
+        recorded_base = git(root, "rev-parse", "HEAD")
+        main_branch = git(root, "symbolic-ref", "--short", "HEAD")
+        git(root, "checkout", "-q", "-b", "contributor")
+        (root / "notes.md").write_text("contributor change\n", encoding="utf-8")
+        commit_all(root, "contributor change")
+        git(root, "checkout", "-q", main_branch)
+        set_versions(root, "1.2.4", "1.2.4")
+        commit_all(root, "auto-bump on main")
+        git(root, "merge", "-q", "--no-ff", "--no-edit", "contributor")
+
+        expect_failure(
+            "untouched PR judged against its recorded base after a main bump",
+            VERIFY.verify_package(root, recorded_base, mode="no-bump"),
+            "must not change in a pull request",
+        )
+        errors = VERIFY.verify_package(root, "HEAD^1", mode="no-bump")
+        if errors:
+            raise AssertionError(
+                f"untouched PR failed against the merge commit's first parent: {errors}"
+            )
+        print("OK: merge first parent accepts a PR opened before a main bump")
+
+    with package_repo() as root:
+        main_branch = git(root, "symbolic-ref", "--short", "HEAD")
+        git(root, "checkout", "-q", "-b", "contributor")
+        set_versions(root, "1.2.5", "1.2.5")
+        commit_all(root, "contributor bumps the manifests")
+        git(root, "checkout", "-q", main_branch)
+        (root / "notes.md").write_text("unrelated main change\n", encoding="utf-8")
+        commit_all(root, "unrelated main change")
+        git(root, "merge", "-q", "--no-ff", "--no-edit", "contributor")
+        expect_failure(
+            "PR version bump judged against the merge commit's first parent",
+            VERIFY.verify_package(root, "HEAD^1", mode="no-bump"),
+            "must not change in a pull request",
+        )
+
+
+def test_ci_version_gate_wiring() -> None:
+    workflow = CI_WORKFLOW.read_text(encoding="utf-8")
+    _, found, rest = workflow.partition(f"- name: {VERSION_GATE_STEP}\n")
+    if not found:
+        raise AssertionError(f"ci.yml has no {VERSION_GATE_STEP!r} step")
+    step = rest.split("\n      - name:", 1)[0]
+    if "pull_request.base.sha" in step:
+        raise AssertionError(
+            "the pull-request version gate compares against "
+            "github.event.pull_request.base.sha, which can predate later bumps on "
+            "main; compare against the checked-out merge commit's first parent"
+        )
+    if "--require-no-bump HEAD^1" not in step:
+        raise AssertionError(
+            "the pull-request version gate must run "
+            "verify-plugin-package.py --require-no-bump HEAD^1"
+        )
+    if "HEAD^2" not in step:
+        raise AssertionError(
+            "the pull-request version gate must fail closed unless HEAD is the "
+            "two-parent merge commit GitHub checks out for a pull request"
+        )
+    print("OK: CI version gate compares the PR merge against its first parent")
+
+
+def ci_version_gate_script() -> str:
+    workflow = CI_WORKFLOW.read_text(encoding="utf-8")
+    _, _, rest = workflow.partition(f"- name: {VERSION_GATE_STEP}\n")
+    step = rest.split("\n      - name:", 1)[0]
+    _, found, body = step.partition("run: |\n")
+    if not found:
+        raise AssertionError(f"ci.yml {VERSION_GATE_STEP!r} step has no run block")
+    lines = body.splitlines()
+    indent = len(lines[0]) - len(lines[0].lstrip())
+    script = "\n".join(line[indent:] for line in lines) + "\n"
+    return script.replace("${{ github.event_name }}", "pull_request")
+
+
+def test_ci_version_gate_executes() -> None:
+    # Run the workflow step itself, the way Actions does, against a merge
+    # HEAD and a plain HEAD. CI runs this test on ubuntu, where bash exists.
+    bash = shutil.which("bash")
+    if bash is None:
+        print("SKIP: bash not found; the CI version gate step was not executed")
+        return
+    with package_repo() as root:
+        step = root / "version-gate-step.sh"
+        step.write_text(ci_version_gate_script(), encoding="utf-8")
+        (root / "scripts").mkdir()
+        shutil.copy2(VERIFY_SCRIPT, root / "scripts" / VERIFY_SCRIPT.name)
+        commit_all(root, "add the verifier")
+        main_branch = git(root, "symbolic-ref", "--short", "HEAD")
+        git(root, "checkout", "-q", "-b", "contributor")
+        (root / "notes.md").write_text("contributor change\n", encoding="utf-8")
+        commit_all(root, "contributor change")
+        git(root, "checkout", "-q", main_branch)
+        set_versions(root, "1.2.4", "1.2.4")
+        commit_all(root, "auto-bump on main")
+
+        def run_step() -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
+                [bash, "--noprofile", "--norc", "-eo", "pipefail", str(step)],
+                cwd=root,
+                capture_output=True,
+                env={**os.environ, "EVENT_NAME": "pull_request"},
+                text=True,
+            )
+
+        plain = run_step()
+        if plain.returncode == 0 or "expected the pull request merge commit" not in plain.stderr:
+            raise AssertionError(
+                f"version gate step accepted a non-merge HEAD: {plain.returncode} {plain.stderr}"
+            )
+        git(root, "merge", "-q", "--no-ff", "--no-edit", "contributor")
+        merged = run_step()
+        if merged.returncode != 0:
+            raise AssertionError(
+                "version gate step rejected an untouched PR merged after a main bump: "
+                f"{merged.stdout}{merged.stderr}"
+            )
+    print("OK: CI version gate step fails a non-merge HEAD and passes the PR merge")
+
+
+def test_version_history() -> None:
+    with package_repo() as root:
+        base = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=root, text=True
+        ).strip()
+        BUMP.bump(root)
+        release = commit_all(root, "release 1.2.4")
+
+        for relative in BUMP.MANIFEST_PATHS:
+            path = root / relative
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["description"] = "Create editorial diagrams from imported sources."
+            write_json(path, payload)
+        metadata_only = commit_all(root, "update manifest descriptions")
+
+        if not VERSION_HISTORY.versions_changed(root, base, release):
+            raise AssertionError("release version change was not detected")
+        if VERSION_HISTORY.versions_changed(root, release, metadata_only):
+            raise AssertionError("description-only manifest change was treated as a release")
+        if VERSION_HISTORY.last_version_bump(root, metadata_only) != release:
+            raise AssertionError("description-only commit hid the previous real release")
+
+        BUMP.bump(root)
+        next_release = commit_all(root, "release 1.2.5")
+        if VERSION_HISTORY.last_version_bump(root, next_release) != next_release:
+            raise AssertionError("newest real release was not selected")
+
+        path = root / BUMP.MANIFEST_PATHS[0]
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["version"] = "not-semver"
+        write_json(path, payload)
+        malformed = commit_all(root, "break one manifest version")
+        try:
+            VERSION_HISTORY.versions_changed(root, next_release, malformed)
+        except VERSION_HISTORY.VersionHistoryError:
+            pass
+        else:
+            raise AssertionError("malformed history was treated as a normal comparison")
+
+        payload["version"] = "1.2.4"
+        write_json(path, payload)
+        desynchronized = commit_all(root, "desynchronize valid manifest versions")
+        try:
+            VERSION_HISTORY.versions_changed(root, next_release, desynchronized)
+        except VERSION_HISTORY.VersionHistoryError:
+            pass
+        else:
+            raise AssertionError("valid but unequal versions were treated as synchronized")
+        print("OK: version history ignores manifest metadata-only commits")
+
+    with package_repo() as root:
+        base = git(root, "rev-parse", "HEAD")
+        missing_path = root / ".codex-plugin/plugin.json"
+        missing_path.unlink()
+        deleted = commit_all(root, "delete an established Codex manifest")
+        try:
+            VERSION_HISTORY.versions_changed(root, base, deleted)
+        except VERSION_HISTORY.VersionHistoryError as exc:
+            if ".codex-plugin/plugin.json is missing" not in str(exc):
+                raise AssertionError(f"wrong established-manifest error: {exc}") from exc
+        else:
+            raise AssertionError("an established Codex manifest deletion was ignored")
+        print("OK: version history rejects deletion of an established manifest")
+
+    with tempfile.TemporaryDirectory() as scratch:
+        root = Path(scratch)
+        seed_package(root)
+        qoder_path = root / ".qoder-plugin/plugin.json"
+        qoder_payload = json.loads(qoder_path.read_text(encoding="utf-8"))
+        qoder_path.unlink()
+        subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+        subprocess.run(["git", "config", "user.name", "Package Test"], cwd=root, check=True)
+        subprocess.run(
+            ["git", "config", "user.email", "package-test@example.invalid"],
+            cwd=root,
+            check=True,
+        )
+        pre_qoder = commit_all(root, "package before Qoder support")
+        main_branch = git(root, "symbolic-ref", "--short", "HEAD")
+        write_json(qoder_path, qoder_payload)
+        introduction = commit_all(root, "add Qoder manifest")
+
+        if VERSION_HISTORY.versions_changed(root, pre_qoder, introduction):
+            raise AssertionError("adding a synchronized Qoder manifest looked like a release")
+
+        git(root, "checkout", "-q", "-b", "pre-qoder-drift", pre_qoder)
+        codex_path = root / ".codex-plugin/plugin.json"
+        codex_payload = json.loads(codex_path.read_text(encoding="utf-8"))
+        codex_payload["version"] = "1.2.4"
+        write_json(codex_path, codex_payload)
+        drifted = commit_all(root, "desynchronize Codex before Qoder support")
+        try:
+            VERSION_HISTORY.versions_at(root, drifted)
+        except VERSION_HISTORY.VersionHistoryError as exc:
+            message = str(exc)
+            expected = ".codex-plugin/plugin.json=1.2.4"
+            if expected not in message:
+                raise AssertionError(f"drift error lost its path/version pairing: {message}") from exc
+        else:
+            raise AssertionError("pre-Qoder manifest drift was accepted")
+
+        git(root, "checkout", "-q", main_branch)
+
+        qoder_path.unlink()
+        deleted = commit_all(root, "delete the established Qoder manifest")
+        try:
+            VERSION_HISTORY.versions_changed(root, introduction, deleted)
+        except VERSION_HISTORY.VersionHistoryError as exc:
+            if ".qoder-plugin/plugin.json is missing" not in str(exc):
+                raise AssertionError(f"wrong Qoder deletion error: {exc}") from exc
+        else:
+            raise AssertionError("an established Qoder manifest deletion was ignored")
+        print("OK: only pre-introduction Qoder absence is accepted")
+
 
 def main() -> int:
     test_verifier()
     test_bumper()
+    test_auto_bump_workflow_allowlists()
+    test_pull_request_merge_base()
+    test_ci_version_gate_wiring()
+    test_ci_version_gate_executes()
+    test_version_history()
     print("All plugin package tests passed")
     return 0
 

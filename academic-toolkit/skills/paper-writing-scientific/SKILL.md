@@ -17,6 +17,8 @@ Scientific writing is a process for communicating research with precision and cl
 
 For revision-heavy journal manuscripts, do not jump from stale prose directly to polishing. First stabilize the section with a reverse outline and a claim-evidence map, then rewrite the paragraphs.
 
+> **与 `paper-manuscript-optimize` 的分工**：本技能管**起草期/常规写作**（含 7A 逆向大纲与主张-证据核对、7B 定稿前怀疑式自审）；整篇稿件在评审/返修期需要 top-down 五级审计（claim → evidence → figures → terminology → prose）时用 `paper-manuscript-optimize`。
+
 ## When to Use This Skill
 
 This skill should be used when:

@@ -60,12 +60,22 @@ The execution session context carries a `contest_profile` JSON (issued by the en
 
 ## Load shared rules
 
+`writing_rules.md` 是共享写作规则的唯一真源（`skills/_utils/writing_rules.md`，与 `skills/shared-scripts/writing_rules.md` 同源），**不在这里复制正文**。先取 tag 目录，再只读本章实际需要的节：
+
 ```bash
-
-cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rules.md
-
+RULES=_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=../_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=skills/_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=academic-toolkit/skills/_utils/writing_rules.md
+awk '/^<[a-z_]+>$/ {print NR": "$0}' "$RULES"   # tag 目录；行号随改版漂移，以实跑输出为准
 ```
 
+| tag | 何时读 |
+|---|---|
+| `<comp_figure_narrative>` | Step 2 建图表嵌入计划后、写任何图前后文字前 |
+| `<comp_abstract_discipline>` | Step 4.6 写 Summary Sheet（分段/加粗/数字回验判据） |
+| `<comp_optimization_writing>` | Step 3 写优化/规划类模型与求解章节 |
+| `<figure_text_interleaving>` / `<figure_embedding>` / `<latex_constraints>` / `<references_workflow>` / `<output_conventions>` 等 | 按需（以 tag 目录实跑输出为准） |
 ## MCM/ICM Paper Structure
 
 Competition papers do **not** generate a Table of Contents in this product. Build an adaptive
@@ -377,39 +387,17 @@ comm -23 _tmp/all_fig_labels.txt _tmp/embedded_labels.txt  # should be empty
 
 Follow interleaving and embedding rules from `_utils/writing_rules.md`.
 
-**⛔ Figure-text interleaving hard rules (every section must follow):**
+**⛔ Figure-text interleaving hard rules (every section must follow):** load and follow the `<comp_figure_narrative>` tag in `_utils/writing_rules.md` — the shared contract across comp-paper-en / comp-paper-en-docx / comp-paper-zh-docx (argument-led figures, three-goal depth floor, no formulaic openers, explicit figure numbers, no boilerplate, short captions, no adjacent figures). This skill is the LaTeX variant: captions via `\caption{}` (body ≤14 words), `[H]` floats, `width=0.85\textwidth,keepaspectratio`, no small height caps, logic diagrams in their own figure.
 
-- **Float specifiers (pin figures in place)**: figures use `\begin{figure}[H]`; tables use `\begin{table}[H]` (both in place). `[H]` pins each figure directly under the paragraph that introduces it, so figures never float away and — crucially — **multiple figures can never stack together on one page** (the stacking problem `[htbp]` used to cause). The template still loads `\usepackage[section]{placeins}` (`\FloatBarrier` at each section end) as a safety net for any residual floating body. Trade-off: on the rare occasion a figure is nearly full-page-tall and lands near the page bottom, `[H]` leaves whitespace above it — but figures are already height-capped at `0.9\textheight` and the writing rules force text before and after every figure, so this is rare and far less harmful than illegible stacked figures. ⛔ Do NOT give tables `[htbp]`: floating pushes them to the section end, leaving half a blank page above the table (symbol/notation tables are the usual victims); short tables use `[H]`, long tables use `\begin{longtable}`. Pseudocode keeps `\begin{algorithm}[H]`.
-
-- **⛔⛔ Figures must be drawn out by the argument, not stamped with a template sentence (hard rule)**: embed every figure in the prose so the argument itself leads into it — the reader reaches this point and naturally needs to see this figure. The one test that matters: **it reads as a smooth narrative, not as one label slapped on each figure in turn.**
-
-  - **✅ Three goals to reach (goals, NOT a sentence template, and NOT a fixed structure to copy for every figure)**: make the reader understand (1) what this figure shows, (2) what earlier point it follows from, (3) what conclusion it supports. How you weave these into the paragraph — in what order, in what sentence structure — is up to you as the prose dictates: state the conclusion then show the figure as evidence, or describe the phenomenon then bring in the figure to explain it. **What varies is HOW you write (structure, entry angle, order); what does NOT vary is HOW DEEP you go.**
-
-  - **⛔⛔ Depth floor for post-figure analysis (hard rule, the second core problem being fixed here)**: the discussion around each figure must **never be dispatched in a single sentence** (e.g. "See Fig. 24: the inbound spiral, two arcs, and outbound spiral join smoothly at the tangent points" — a lone sentence like this is a failure). Each figure's prose (lead-in + follow-up combined) **must land all three of the following, none omissible**: (1) **concrete numbers** — the key figures read off the plot (max radius 4.229 m, 7.59% shorter, peak 1.72 m/s), not a vague "clear trend"; (2) **comparison or trend** — against a baseline / other scheme / the previous sub-problem, or how a quantity varies along some axis; (3) **inference or linkage** — what this figure proves, what bottleneck it exposes, which next step it leads into. If you cannot do all three, the figure adds nothing to the argument and should not be included.
-
-    - **❌ Perfunctory anti-example (the current failure mode, forbidden)**: "The arc-length optimization and comparison are shown in Fig. 25: multiple starts converge to the same optimal neighborhood, and the optimum stays below the baseline." — one sentence, no numbers, no quantified comparison, cut off abruptly.
-
-    - **✅ Benchmark example (the fullness to emulate)**: "Fig. 15 shows the collision radius decreasing strictly monotonically as the pitch grows: as the pitch rises from 0.4 m to 0.55 m, the collision radius falls from 7.04 m to 2.289 m; the intersection of the data points with the R_t = 4.5 m threshold line lands exactly at the critical pitch p_min = 0.448 m, with the left side unable to spiral in and the right side able to. The moderate slope near the intersection indicates that the critical-pitch inversion is stable and the bisection is well-conditioned." — numbers, monotonic trend, threshold crossing, and a stability inference all present, in natural non-formulaic prose.
-
-  - **⛔⛔ No formulaic sentence patterns (the core problem being fixed here)**: never write every figure with the same skeleton, especially the "[figure type] (Fig. N) + verb + one-line conclusion" opener (e.g. "The waterfall chart (Fig. 33) decomposes…", "The radar chart (Fig. 34) compares…", "The heatmap (Fig. 35) shows…" — several figures in a row opening this way is a failure). **For adjacent figures and figures in the same section, vary the entry angle and sentence structure**: lead from the prior conclusion, from the question being answered, from an anomaly visible in the figure, or fold the figure into an argument already in flow without a dedicated opening sentence. Write like a good paper, not like issuing an identically-formatted caption card for each figure.
-
-  - **✅ Figure numbers MUST be cited explicitly (academic norm, fully compatible with "no formulaic patterns")**: every figure must be named in the prose ("Fig. N") so the reader can map the paragraph to the exact figure — this is a hard requirement; do not drop figure numbers just to avoid templating. **What varies is the citation's sentence structure and position, not whether you cite.** Rotate among these entry styles, and don't use the same one for two adjacent figures: sentence-start ("In the pipeline of Fig. 3, the third stage…"), mid-sentence parenthetical ("…this premise holds (see Fig. 2): propagation and text intensity…"), verb-led ("Observing the three curves in Fig. 4, the difference concentrates in…"), figure-as-subject ("Fig. 5 compares the proposed method against the baseline…", **used at most once per section, never as the default opener; two adjacent figures both opening with "Fig. N…" is an outright violation**), or post-hoc confirmation ("…this conclusion is confirmed in Fig. 6."). The number must always appear — just don't open every figure with the one "Fig. N + verb + one-line conclusion" pattern.
-
-  - **⛔ No boilerplate placeholders**: sentences like "as shown in Fig. X", "the figure below shows the results", "Fig. X is the flowchart" carry no real information and would hold true for any figure — they count as nothing. If you cannot say what is unique about this figure and why it matters to the argument, the figure adds nothing and should not be included ("if it's not useful, better not to include it").
-
-  - **⛔ Define jargon and internal codes in plain words at first use**: any specialized term, pipeline code, or variable shorthand (e.g. C4, blend, ridge distribution, weakly-supervised self-consistency upper bound) must first be explained in one plain sentence — what it is / what it measures — before being used. Never drop raw internal pipeline codes or working names into the prose; the paper is written for reviewers, not for the pipeline.
-
-  - **⛔ Keep captions SHORT — a label (body ≤14 words, excluding the "Figure N" number)**: `\caption{}` holds only a short noun phrase naming what the figure is; criteria, parameters, axis meanings, and conclusions go into the prose, not the caption (long ones wrap to ugly multi-line blocks). Anti-example `\caption{Coverage-radius geometry: station as center, R=3km coverage circle, dispatch distance and response-time criterion}` → short form `\caption{Station coverage-radius geometry}`. See the caption-length rule in `_utils/writing_rules.md`; the compile step scans caption length and flags overruns.
-
-- Every figure/table must also be followed by ≥5 lines of analysis text (data interpretation + comparison + conclusion) before the next figure
-
-- Absolutely no consecutive `\begin{figure}...\end{figure}` environments with no prose paragraph between them; if two figures must appear back-to-back, write a transition paragraph explaining their logical relationship
-
-- **⛔ Logic diagrams (flowchart / architecture / roadmap / pipeline / framework / TikZ geometry·algorithm·architecture sketches) must occupy their own `figure` — never place two side-by-side.** They rely on legible node text and connectors; shrinking to half text-width makes them illegible, and they are not same-axes trend comparisons so side-by-side yields no information gain. Even two related flowcharts go in separate figures with a transition paragraph between. (Data-result figures may still be combined via a single matplotlib-composed PDF, per the width rule below.)
-
-- **🟡 Not every data figure should be paired — single-column by default, whitespace is the trigger**: data-result figures default to one-per-row; only pair two into a 2-panel when they are **same-kind/comparable** (e.g. two variables' distributions, same-kind curves for two scenarios) **and** each alone would fill only half a page, leaving over half a page of whitespace after its text. Unrelated figures stay single-column even if sparse — never pair just to fill the page (see `_utils/writing_rules.md` rule 4, decision step 3.5).
-
-- Use `\includegraphics[width=0.85\textwidth,keepaspectratio]` (width-driven, let height auto-scale). ⛔ Do NOT add a small `height=0.38\textheight` cap — with `keepaspectratio`, a height cap can only **shrink** the figure: near-square or tall figures (heatmaps, radar charts, forest plots, confusion matrices, stacked subplots, flowcharts) get clamped to ~half text-width and look tiny. Only add `height=0.9\textheight` as an overflow guard when a single figure is genuinely near a full page tall
+```bash
+RULES=_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=../_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=skills/_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=academic-toolkit/skills/_utils/writing_rules.md
+for t in comp_figure_narrative; do
+  awk -v s="<$t>" -v e="</$t>" '$0==s{f=1} $0==e{f=0} f' "$RULES"
+done
+```
 
 ### Step 2.5: Pre-fetch verified reference pool
 
@@ -535,180 +523,21 @@ echo "Current chapter: $chars chars"
 
 #### ⛔⛔ Optimization / programming models: state decision variables, objective, and constraints in separate blocks
 
-**When this applies**: the model contains `\min` / `\max`, or the problem asks for something optimal
-(minimum cost, maximum coverage, siting, assignment, scheduling, routing, blending). **Does not apply**
-to statistical modeling (index systems / DEA / PCA / regression / forecasting) — those follow the
-"theoretical basis → formulas → parameters" order above.
+**When this applies**: the model contains `\min` / `\max`, or the problem asks for something optimal (minimum cost, maximum coverage, siting, assignment, scheduling, routing, blending). **Does not apply** to statistical modeling (index systems / DEA / PCA / regression / forecasting) — those follow the "theoretical basis → formulas → parameters" order.
 
-> The three elements of an optimization problem are **decision variables, objective function, and
-> constraints**. Strong papers usually expose them in that recognition order; the hard requirement is
-> that each element is clearly distinguishable. Melting them into one blob of formulas is the fastest
-> way for a judge to conclude you never worked out what you were deciding.
+⛔⛔ The full writing contract for optimization models — three-element blocks, decision-variable five factors, objective traceability, constraint numbering with real-world meaning, linearization justification, model class/size, the anti-pattern, the solution-credibility hard ratio, and the required Innovations items — is the shared `<comp_optimization_writing>` tag in `_utils/writing_rules.md` (single source for comp-paper-en / comp-paper-en-docx / comp-paper-zh-docx). Load it before writing any model/solution section:
 
-**Decision variables → objective → constraints → domains is the preferred reading order, not a mandatory set of subsections.** Complex models need separate blocks; a small model may use one paragraph and one aligned display.
-
-**⛔ Subsection titles inside a sub-problem chapter must name the model.** Optimization chapters
-slide into placeholder titles that tell a judge nothing while skimming:
-
-| ❌ Placeholder | ✅ Informative |
-|---|---|
-| Model Formulation | A 0-1 Integer Programming Model for Service-Station Siting |
-| Model Solution | Branch-and-Cut Solution and the Optimal Siting Plan |
-| Sensitivity Analysis (as a subsection inside a sub-problem) | Effect of the Budget Cap on the Number of Stations Opened |
-
-⛔ The table only says that titles must carry information; it does not prescribe chapter numbers.
-Restatement, sensitivity, and evaluation are available semantic roles, not mandatory verbatim chapter
-names. Keep them separate only when the content and dependency chain justify a separate chapter.
-
-**① Decision variables** — state five things: **symbol, meaning, type, index range, and why that type**.
-Binary variables must be written as a piecewise definition spelling out what each value means in the
-real problem; never just `$y_j \in \{0,1\}$`:
-
-```latex
-Let $x_{ij}$ indicate whether demand point $i$ is assigned to station $j$. Assignment either holds
-or it does not — there is no partial assignment — so $x_{ij}$ is binary:
-\begin{equation}
-x_{ij}=\begin{cases}
-1, & \text{demand point } i \text{ is served by station } j,\\
-0, & \text{otherwise},
-\end{cases}\qquad i=1,\dots,m;\ j=1,\dots,n
-\end{equation}
+```bash
+RULES=_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=../_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=skills/_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=academic-toolkit/skills/_utils/writing_rules.md
+for t in comp_optimization_writing; do
+  awk -v s="<$t>" -v e="</$t>" '$0==s{f=1} $0==e{f=0} f' "$RULES"
+done
 ```
 
-⛔ **Never skip the type justification**: why integer (people/vehicles are indivisible), why binary
-(open or not, no middle state), why continuous (an arbitrarily divisible flow or ratio). Writing
-"$x_j$ is an integer" with no reason reads as not having thought it through.
-
-**② Objective function** — its own display equation, immediately followed by one sentence on where
-the objective comes from (quote the problem statement; keep it consistent with the objective-traceability
-table in `MODELING_REPORT.md`):
-
-```latex
-The problem requires "minimizing total construction and operating cost while covering every demand
-point", so total cost is minimized:
-\begin{equation}
-\min\ Z=\sum_{j=1}^{n} f_j y_j+\sum_{i=1}^{m}\sum_{j=1}^{n} c_{ij} d_i x_{ij}
-\end{equation}
-where the first term is the fixed construction cost of the stations and the second is transport cost.
-```
-
-For multi-objective models, state how the objectives are combined (weighting / lexicographic / Pareto),
-how the weights were set, and how units were normalized.
-
-**③ Constraints** — introduce with `s.t.`, list them vertically, **number each one, and give every
-constraint its real-world meaning**:
-
-```latex
-\begin{equation}
-\begin{aligned}
-\text{s.t.}\quad
-& \sum_{j=1}^{n} x_{ij}=1, && i=1,\dots,m\\
-& \sum_{i=1}^{m} d_i x_{ij}\le Q_j y_j, && j=1,\dots,n\\
-& x_{ij}\le y_j, && \forall i,j
-\end{aligned}
-\end{equation}
-```
-
-Then explain: the first line forces every demand point to be served by exactly one station
-(the problem forbids split deliveries); the second caps the demand assigned to station $j$ at its
-capacity $Q_j$; the third prevents assigning demand to a station that was never opened.
-
-⛔ Formulas with no accompanying meaning leave the judge unable to tell whether you missed a
-constraint — this is the single most common deduction.
-
-**Constraint-type checklist (for finding gaps, not a requirement to have all of them)**: demand
-coverage / budget or resource cap / per-site capacity / fixed total / at-most-or-at-least-k /
-mutual exclusion / logical linking (big-M) / time windows / flow balance / degree constraints and
-subtour elimination.
-
-⛔ **Linearization tricks must be explained.** For big-M, piecewise linearization, absolute-value
-conversion, or turning a `max` into constraints, say what the nonlinear form was and why the
-rewrite is equivalent. Example: $x_j\le My_j$ forces $y_j=1$ whenever $x_j>0$, which turns the
-fixed cost $f_jy_j$ — incurred only when the station opens — into a linear term. Justify the
-magnitude of $M$ (derive it from a data upper bound; do not write 99999).
-
-**④ Variable domains + model classification** — list non-negativity / integrality / bounds on their
-own line, then add a paragraph stating the problem class (LP / ILP / MILP / NLP / multi-objective /
-dynamic programming), **the size** (number of variables and constraints, computed from the index
-ranges), and **why this solution method** (exact solver vs. heuristic; if heuristic, why an exact
-solve is not viable — NP-hardness, size blow-up).
-
-**⛔ Anti-pattern** (the judge cannot tell what you are deciding):
-
-```latex
-We build the optimization model $\min\sum c_{ij}x_{ij}+\sum f_jy_j$ subject to
-$\sum_j x_{ij}=1$, $\sum_i d_ix_{ij}\le Q_j$, $x_{ij},y_j\in\{0,1\}$, and solve it with Gurobi.
-```
-
-Problems: none of $x_{ij}$, $y_j$, $c_{ij}$, $f_j$, $Q_j$ is defined; no reason given for binary;
-neither constraint is tied to a sentence in the problem statement; no model class or size;
-"solve it with Gurobi" never says why an exact solve is possible.
-
-**⛔ Consistency with upstream**: the three elements must match `MODELING_REPORT.md` — the objective
-must appear in its objective/constraint traceability table, and the number of constraints must not
-fall below the key constraints registered during modeling. Do not invent a constraint that modeling
-never had, and do not quietly drop one that it did.
-
-#### ⛔⛔ Solution section: argue why the solution is credible, do not recount how the algorithm works
-
-A modeling-contest paper is judged on the **model** and the **solution**, not on algorithm exposition.
-Judges care whether the model is right and whether the solution can be trusted — not whether you can
-explain how a genetic algorithm works. **Keep algorithm description short: name, one clause on its
-role, citation.**
-
-| Write this (the bulk of the section) | Not this (textbook material, one clause at most) |
-|---|---|
-| Why this solution method (size / NP-hardness / whether an exact solve is viable) | How GA selection, crossover, and mutation operate |
-| Evidence the solution is credible: cross-validation across methods, comparison against a bound, constraint checks | Derivation of the Metropolis criterion in SA |
-| Key implementation choices and their rationale (decomposition, linearization, seeding) | Line-by-line pseudocode, $O(n^2)$ derivations |
-| How tight the constraints are at the solution (which is near-active, how much slack) | History and literature of the algorithm family |
-
-**What must come across — how you arrange it, and whether it needs a section of its own, is
-determined by the problem:**
-
-- why this solution method (size, NP-hardness, whether an exact solve is viable)
-- key implementation choices and their basis (decomposition, linearization, multi-start seeding)
-- **evidence the solution is credible**: whether independently-motivated methods agree (and the
-  relative spread), comparison against a bound or a no-action baseline, constraint-by-constraint
-  verification, which constraint is nearest to active and how much slack remains
-
-⛔ **Do not impose a fixed section name or a fixed number of points.** Some problems need a single
-paragraph (small model, stock solver returns the answer); others warrant a section of their own.
-The only test is whether a reader ends up convinced the solution is right. An empty section
-heading is worse than no heading.
-
-⛔ The one hard ratio: **words spent on "why the solution is credible" must not fall below words
-spent on "how the algorithm works".** The former is what judges read; the latter is textbook material.
-
-⛔ **Do not add pseudocode or complexity analysis to pad length** — that is a CS-paper convention.
-In a modeling paper they belong in the appendix: put algorithm parameters (initial temperature,
-cooling rate, iteration count, solver time limit, random seed) in an appendix table, and keep one
-sentence in the body: "the full pipeline runs under a fixed random seed and is reproducible;
-parameters are listed in Appendix X."
-
-⛔ **Honesty boundary**: an analytic or relaxation bound **is not a feasible solution**. The gap
-between it and the optimum only confirms the optimum is not anomalously low — it **must not** be
-presented as remaining room for improvement.
-
-⛔ **Expand toward modeling depth and result credibility, never toward algorithm exposition.**
-When a section is thin, add: justification of each assumption, refinement of definitions, comparison
-against baselines and expectations, sensitivity and robustness, constraint-tightness analysis, and
-the operational meaning of the conclusions. Test: if the body spends more words on "how the algorithm
-works" than on "why the solution is credible", the emphasis is inverted.
-
-**⛔⛔ The Innovations subsection is required, not optional.** Real runs routinely ship only strengths
-and weaknesses, leaving judges to hunt for what was actually new. Write 2-4 items, each as
-"conventional approach → what this paper does → what difference it makes", kept at the **modeling**
-level (not the tooling level).
-
-- ✅ Real: redefining the satisfaction rate against a stock-out floor, avoiding the degenerate case
-  where the naive definition makes every station fully satisfied; injecting the Sub-problem 1 score
-  into the Sub-problem 2 objective so the two sub-problems are genuinely coupled rather than adjacent
-- ❌ Filler: implemented in Python; compared three algorithms; clean figures; "the model accounts for
-  many factors"
-- ⛔ Test: if the claim would hold for any other problem ("we used machine learning", "we ran a
-  sensitivity analysis"), it is not an innovation for this problem — cut it. Two substantive items
-  beat five hollow ones.
+⛔ **Consistency with upstream**: the three elements must match `MODELING_REPORT.md` — the objective must appear in its objective/constraint traceability table, and the number of constraints must not fall below the key constraints registered during modeling. Do not invent a constraint that modeling never had, and do not quietly drop one that it did.
 
 ### Step 4: Build bibliography
 
@@ -784,44 +613,17 @@ Structure: problem statement (1-2 sentences) → method (2-3 sentences) → key 
 
 3. **The single most critical noun** in a conclusion sentence
 
-⛔ **Bold discipline (avoid over-bolding — less is more):** 1~3 bolds per paragraph, ≤ 12 total; never bold whole sentences / background / connectives / a repeated method name; use `\textbf{}` only (NOT markdown `**`); do not touch the `\textbf{Keywords:}` label; `\textbf{}` only wraps text — numbers must still be pulled truthfully from the body, never invented for emphasis. Example: `We build an \textbf{NSGA-II} model, achieving optimal cost \textbf{2376.8}, a \textbf{12.3\%} reduction.`
+⛔ Summary Sheet paragraphing & bold discipline: load and follow the `<comp_abstract_discipline>` tag in `_utils/writing_rules.md` — the shared contract across comp-paper-en / comp-paper-en-docx / comp-paper-zh-docx (bold only the three conclusion anchors, 1~3 bolds per paragraph / ≤12 total, per-problem paragraph split with blank lines, per-paragraph content criteria, number fidelity). This skill is the LaTeX variant: bold with `\textbf{}` only (never markdown `**`), openers "For Problem X". Load before writing the Summary Sheet:
 
-⛔⛔ **Break the Summary Sheet into per-problem paragraphs — never cram every problem into one block.** Paragraph skeleton:
-
-- Paragraph 1: background + overall modeling approach
-
-- Then one paragraph per problem, **each starting with "For Problem 1 / For Problem 2 / ..." and standing alone** (method + specific numbers)
-
-- Final paragraph: model evaluation / strengths / outlook
-
-- **Separate paragraphs with a blank line.** A judge must be able to locate each problem's answer at a glance.
-
-⛔ **Hard rule: a single paragraph must NOT contain two or more "For Problem" openers.** Examples:
-
-```text
-
-(correct ✅ — each "For Problem X" is its own paragraph, blank line between)
-
-This paper addresses ... by building ... models.
-
-For Problem 1, we first ... and adopt ...; the optimal solution is ..., with fitness 0.917.
-
-For Problem 2, we construct ...; MAPE drops from 29.48% to 14.93%.
-
-For Problem 3, ...; predicted values are 952.8, 1570.5, 11030.9.
-
-Sensitivity analysis shows ...; the model evaluation indicates ....
-
+```bash
+RULES=_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=../_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=skills/_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=academic-toolkit/skills/_utils/writing_rules.md
+for t in comp_abstract_discipline; do
+  awk -v s="<$t>" -v e="</$t>" '$0==s{f=1} $0==e{f=0} f' "$RULES"
+done
 ```
-
-```text
-
-(wrong ❌ — Problems 2 and 3 crammed into one paragraph)
-
-For Problem 2, MAPE 14.93%. For Problem 3, predicted values are 952.8, 1570.5.
-
-```
-
 After writing, grep the body chapters for every number you used to verify it actually appears:
 
 ```bash
@@ -877,44 +679,7 @@ PY
 ```
 
 ⛔ **Loop rule: if the check exits 1, go back to `paper/sections/0_summary.tex`, insert a blank line before each "For Problem X" so it becomes its own paragraph, then rerun the check until it prints "✓ Summary Sheet is split per problem" before moving on.**
-
-**What goes in each paragraph — hard criteria below. This is what separates an award-level summary
-from a generic one.**
-
-| Sentence | Content | Optional? |
-|---|---|---|
-| 1st | The problem's background, in one sentence — do not elaborate | Required |
-| **2nd** | **What this paper did** — what process was analyzed, which factors were jointly considered, what model was built | **Most important; never omit** |
-| 3rd | Real-world significance / where the model is applied | Optional |
-
-⛔ The 2nd sentence is the face of the whole summary — a judge reads it to decide whether the team
-actually thought the problem through. It must convey the **analysis and the scope considered**, not
-just a model name. Pattern: `This paper studies …, analyzes the … process, jointly considers …,
-builds a … model, and applies it to …`
-
-**[Middle paragraphs] one per sub-problem, each carrying all three elements:**
-
-1. **Which problem** — open by naming the sub-problem this paragraph handles
-2. **What method** — the governing law/principle relied on, how the data was processed, how it was
-   discretized, how it was solved. Chain it with *first … then … finally …* so the judge sees the path
-3. **What result** — specific numbers, plus what analysis was run on them (error, verification, comparison)
-
-⛔ **Name the methods down to the level of theorems and conditions** — not "a model was built".
-What should appear: the governing laws (Fourier's law, conservation of energy, Newton's law of
-cooling), the boundary-condition types (Dirichlet / Robin, coupling conditions), the discretization
-and solver (implicit backward difference, Thomas algorithm, enumeration to fix a coefficient), and
-parameter values (initial temperature 37 °C). These specifics are the evidence that the work was
-actually done; "built a model and solved it" is something any team can write.
-⛔ **Point at the output file when there is one** (`see problem1.xlsx`) — that is how a judge
-confirms you actually computed it.
-
-⛔ **Be economical** — carrying all three elements is not licence to ramble. A model paragraph covers
-the problem, the full method chain, and the result with its error analysis in roughly 150 words;
-deleting any clause loses information. That is the standard.
-
-**[Final paragraph] optional, but write it whenever there is sensitivity analysis, verification,
-or a generalization worth stating** — say what the model is sensitive to, what it is not, and why
-that matters. ❌ Filler: "The model has good practical value and generalizability."
+Per-paragraph content criteria — 1st sentence background / **2nd sentence what this paper did (most important, never omit)** / 3rd significance; middle paragraphs one per sub-problem carrying which-problem + what-method + what-result, with methods named down to theorems-and-conditions level and pointers to output files; final paragraph sensitivity/verification/generalization when present — are all in the shared `<comp_abstract_discipline>` tag. **Be economical**: a model paragraph covers the problem, the full method chain, and the result with its error analysis in roughly 150 words; deleting any clause loses information. ❌ Filler: "The model has good practical value and generalizability."
 
 ### Step 4.7: AI tool usage statement (resolved from the contest profile; never silently skipped)
 
@@ -939,7 +704,20 @@ The CUMCM statement format (Chinese "AI工具使用声明" + `_utils/build_ai_di
 
 ```bash
 
-bash _utils/writing_check.sh paper/ || { echo "⛔ 模板复制失败（见 paper/ 权限与 $TMPL_BASE）"; exit 1; } || bash skills/shared-scripts/writing_check.sh paper/
+# writing_check 回退链：先跑 _utils 主副本，非零（脚本缺失或查出问题）再跑 shared-scripts 兜底副本；
+# 两者都非零才判失败。注意不能写成 `cmd1 || { ...; exit 1; } || cmd2`——那会让兜底永不执行。
+
+bash _utils/writing_check.sh paper/
+WC_RC=$?
+if [ "$WC_RC" -ne 0 ]; then
+  echo "⚠️ _utils/writing_check.sh 返回 $WC_RC，回退执行 skills/shared-scripts/writing_check.sh"
+  bash skills/shared-scripts/writing_check.sh paper/
+  WC_RC=$?
+fi
+if [ "$WC_RC" -ne 0 ]; then
+  echo "⛔ writing_check 未通过（rc=$WC_RC）：按上方输出逐项修复后重跑本检查（与模板复制无关）"
+  exit 1
+fi
 
 ```
 

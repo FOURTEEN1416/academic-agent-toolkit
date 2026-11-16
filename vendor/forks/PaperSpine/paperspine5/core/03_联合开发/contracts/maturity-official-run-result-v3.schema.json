@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/maturity-official-run-result-v3.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": [
+    "contract", "contract_version", "execution_class", "run_id", "sample_id", "entry_mode", "attempt",
+    "protocol_file_sha256", "protocol_sha256", "fixture_index_file_sha256", "fixture_index_sha256",
+    "fixture_receipt_file_sha256", "fixture_receipt_sha256", "plan_file_sha256",
+    "candidate_lock_file_sha256", "candidate_lock_sha256", "controller_sha256",
+    "profile_adapter_sha256", "host_adapter_sha256", "evaluator_adapter_sha256",
+    "evaluator_code_sha256", "evaluator_schema_sha256", "profile_schema_sha256",
+    "recovery_install_schema_sha256", "result_schema_sha256", "index_schema_sha256",
+    "aggregate_schema_sha256", "profile_receipt", "entry_request", "host_receipt",
+    "product_journey", "subject", "surfaces", "evidence", "producer_identity",
+    "evaluator_identity", "evaluator_receipt", "hard_checks", "started_at", "completed_at",
+    "status", "external_action_authorized", "receipt_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.maturity-official-run-result-v3"},
+    "contract_version": {"const": "3.0"},
+    "execution_class": {"enum": ["official", "test_only"]},
+    "run_id": {"type": "string", "pattern": "^psgap014-v3\\.[a-z0-9_-]+\\.(natural_language|explicit_paper_spine)\\.a(01|02)$"},
+    "sample_id": {"type": "string", "minLength": 1},
+    "entry_mode": {"enum": ["natural_language", "explicit_paper_spine"]},
+    "attempt": {"enum": [1, 2]},
+    "protocol_file_sha256": {"$ref": "#/$defs/sha"}, "protocol_sha256": {"$ref": "#/$defs/sha"},
+    "fixture_index_file_sha256": {"$ref": "#/$defs/sha"}, "fixture_index_sha256": {"$ref": "#/$defs/sha"},
+    "fixture_receipt_file_sha256": {"$ref": "#/$defs/sha"}, "fixture_receipt_sha256": {"$ref": "#/$defs/sha"},
+    "plan_file_sha256": {"$ref": "#/$defs/sha"}, "candidate_lock_file_sha256": {"$ref": "#/$defs/sha"}, "candidate_lock_sha256": {"$ref": "#/$defs/sha"},
+    "controller_sha256": {"$ref": "#/$defs/sha"}, "profile_adapter_sha256": {"$ref": "#/$defs/sha"}, "host_adapter_sha256": {"$ref": "#/$defs/sha"},
+    "evaluator_adapter_sha256": {"$ref": "#/$defs/sha"}, "evaluator_code_sha256": {"$ref": "#/$defs/sha"}, "evaluator_schema_sha256": {"$ref": "#/$defs/sha"},
+    "profile_schema_sha256": {"$ref": "#/$defs/sha"}, "recovery_install_schema_sha256": {"$ref": "#/$defs/sha"},
+    "result_schema_sha256": {"$ref": "#/$defs/sha"}, "index_schema_sha256": {"$ref": "#/$defs/sha"}, "aggregate_schema_sha256": {"$ref": "#/$defs/sha"},
+    "profile_receipt": {"$ref": "#/$defs/fileRef"}, "entry_request": {"$ref": "#/$defs/fileRef"}, "host_receipt": {"$ref": "#/$defs/fileRef"}, "product_journey": {"$ref": "#/$defs/fileRef"},
+    "subject": {"$ref": "#/$defs/subject"},
+    "surfaces": {"type": "object", "additionalProperties": false, "required": ["task_record", "runner", "web", "flat_json", "flat_markdown"], "properties": {"task_record": {"$ref": "#/$defs/fileRef"}, "runner": {"$ref": "#/$defs/fileRef"}, "web": {"$ref": "#/$defs/fileRef"}, "flat_json": {"$ref": "#/$defs/fileRef"}, "flat_markdown": {"$ref": "#/$defs/fileRef"}}},
+    "evidence": {"type": "object", "minProperties": 13, "maxProperties": 14, "additionalProperties": {"$ref": "#/$defs/evidenceRef"}},
+    "producer_identity": {"type": "string", "minLength": 1},
+    "evaluator_identity": {"const": "paperspine5-independent-maturity-evaluator-v3"},
+    "evaluator_receipt": {"$ref": "#/$defs/fileRef"},
+    "hard_checks": {"type": "object", "minProperties": 1, "additionalProperties": {"enum": ["PASS", "FAIL"]}},
+    "started_at": {"type": "string", "format": "date-time"}, "completed_at": {"type": "string", "format": "date-time"},
+    "status": {"enum": ["PASS", "FAIL"]}, "external_action_authorized": {"const": false}, "receipt_sha256": {"$ref": "#/$defs/sha"}
+  },
+  "$defs": {
+    "sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "fileRef": {"type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha"}}},
+    "subject": {"type": "object", "additionalProperties": false, "required": ["task_id", "revision_id", "build_id", "material_snapshot_sha256"], "properties": {"task_id": {"type": "string", "minLength": 1}, "revision_id": {"type": "string", "pattern": "^[0-9]+$"}, "build_id": {"type": "string", "minLength": 1}, "material_snapshot_sha256": {"$ref": "#/$defs/sha"}}},
+    "evidenceRef": {"type": "object", "additionalProperties": false, "required": ["artifact_id", "artifact_type", "path", "sha256", "subject"], "properties": {"artifact_id": {"type": "string", "minLength": 1}, "artifact_type": {"type": "string", "minLength": 1}, "path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha"}, "subject": {"$ref": "#/$defs/subject"}}}
+  }
+}

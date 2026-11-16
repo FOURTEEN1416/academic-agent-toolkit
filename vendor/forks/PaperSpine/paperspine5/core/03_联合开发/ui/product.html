@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PaperSpine5 论文工作台</title>
+    <link rel="stylesheet" href="/product.css?v=20260921-host-continuation" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="PaperSpine5 论文工作台首页">
+          <img class="brand-logo" src="/assets/brand/paperspine-mark.svg" alt="" aria-hidden="true" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
+          <span class="brand-logo-fallback" aria-hidden="true" hidden>PS</span>
+          <span><strong>PaperSpine</strong><small>论文工作台</small></span>
+        </a>
+        <div class="topbar-meta">
+          <span class="privacy-badge"><span aria-hidden="true">●</span> 本地工作台 · 私有材料保留本地</span>
+          <nav class="topbar-links" aria-label="PaperSpine 外部资源">
+            <a class="topbar-link" href="https://github.com/WUBING2023/PaperSpine" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+            <a class="topbar-link" href="https://github.com/WUBING2023/PaperSpine/releases" target="_blank" rel="noopener noreferrer">发布页 <span aria-hidden="true">↗</span></a>
+            <a class="topbar-link topbar-docs" href="/help">使用文档</a>
+          </nav>
+          <div class="health" aria-live="polite">
+            <span id="health-dot" class="dot"></span>
+            <div><strong id="health-label">正在连接</strong><small id="build-label">正在读取本机服务…</small></div>
+          </div>
+        </div>
+      </header>
+
+      <nav id="global-stage-strip" class="global-stage-strip hidden" aria-label="论文阶段导航">
+        <div class="global-stage-inner">
+          <span class="global-stage-caption">论文流程</span>
+          <strong><span id="global-stage-number">—</span> <span id="global-stage-label">等待任务</span></strong>
+          <ol id="global-workflow-progress" class="workflow-progress" aria-label="宿主工作阶段，只读回看"></ol>
+        </div>
+      </nav>
+
+      <main class="page-shell">
+        <section class="welcome" aria-labelledby="welcome-title">
+          <div>
+            <p class="eyebrow">PAPERSPINE · 论文工作台</p>
+            <h1 id="welcome-title">把材料整理成一篇<br />可以交付的论文。</h1>
+            <p class="lede">研究、写作、图件和下载都在这里完成。需要你决定时，页面会明确提示。</p>
+          </div>
+          <div class="trust-strip" aria-label="工作区承诺">
+            <span><b>01</b> 私有材料保留本地</span>
+            <span><b>02</b> 过程持续可回溯</span>
+            <span><b>03</b> 投稿由作者确认</span>
+          </div>
+        </section>
+
+        <section id="task-load-state" class="task-load-state hidden" role="status"><span class="loading-orbit" aria-hidden="true"></span><p id="task-load-message">正在打开论文…</p><button id="retry-task-load" type="button" class="button" hidden>重试打开</button></section>
+        <section id="security-error" class="alert hidden" role="alert"></section>
+
+        <div class="workspace-layout">
+          <aside class="sidebar" aria-label="论文任务">
+            <section id="active-context-card" class="side-card active-context-card hidden" aria-live="polite">
+              <div class="section-label"><span>当前论文</span><em>当前任务</em></div>
+              <h2 id="sidebar-active-title">正在载入任务…</h2>
+              <p id="sidebar-active-description" class="side-copy"></p>
+              <p id="sidebar-active-id" class="task-identity"></p>
+              <p id="sidebar-active-status" class="side-copy">正在读取任务状态。</p>
+              <div class="active-context-field">
+                <strong>论文任务名称</strong>
+                <p id="sidebar-task-name">正在载入…</p>
+              </div>
+              <div class="active-context-field">
+                <strong>材料文件夹路径</strong>
+                <div id="sidebar-material-roots" class="material-root-list"></div>
+              </div>
+            </section>
+
+            <section id="start-card" class="side-card start-card">
+              <div class="section-label"><span>论文任务入口</span><em>等待打开</em></div>
+              <h2>等待打开任务</h2>
+              <p class="side-copy">打开论文任务后，你可以在这里查看进度、选择图件、提出修改意见并下载文件。</p>
+            </section>
+
+            <section class="side-card recent-card">
+              <div class="section-heading compact">
+                <div><p class="card-kicker">历史论文任务</p><h2>打开已有任务</h2></div>
+                <button id="refresh" class="icon-button" type="button" aria-label="刷新任务列表" title="刷新任务列表">↻</button>
+              </div>
+              <p class="muted">这里只打开已保存记录，不会启动 AI。接续工作请复制接手指令给当前宿主。</p><div id="task-list" class="task-list" aria-live="polite"></div>
+            </section>
+          </aside>
+
+          <section class="workbench" aria-label="当前论文工作区">
+            <div id="workspace-empty" class="workspace-empty">
+              <div class="empty-illustration" aria-hidden="true">
+                <span class="paper-sheet sheet-back"></span>
+                <span class="paper-sheet sheet-front"><i></i><i></i><i></i></span>
+                <span class="spark">✦</span>
+              </div>
+              <p class="card-kicker">当前没有打开的任务</p>
+               <h2>打开一个论文任务</h2>
+               <p>这里是未绑定任务的首页。请打开宿主给出的任务链接，或从左侧查看已有记录；打开页面不会启动 AI。</p>
+              <div class="empty-capabilities">
+                <span>设置任务</span><span>查看图件</span><span>提出意见</span><span>下载文件</span>
+              </div>
+            </div>
+
+<article id="task-workspace" class="task-workspace hidden">
+  <header class="task-header"><div><p class="card-kicker">当前论文任务</p><h2 id="active-task-title">正在载入任务…</h2><p id="active-task-subtitle" class="task-subtitle"></p><p id="active-task-id" class="task-identity"></p><p id="workspace-binding" class="task-identity"></p></div><div id="active-task-state" class="status-pill"></div></header>
+  <div id="stage-view-banner" class="stage-view-banner hidden"><strong id="stage-view-title"></strong><span id="stage-view-copy"></span><button id="stage-return-current" class="button" type="button">返回当前工作</button></div>
+  <section class="focus-card"><div class="focus-heading"><div><p class="card-kicker">当前工作</p><h3 id="focus-title"></h3></div><span class="focus-icon" aria-hidden="true">✦</span></div><p id="focus-copy"></p><div id="other-decisions"></div><div id="pending-submissions"></div></section>
+  <section class="task-data-panel" data-phase-panel="intake" hidden>
+    <h3>配置与材料</h3><p class="muted">设置保存为本地文件，宿主读取后继续。研究步骤由宿主根据材料判断。</p>
+    <form id="configuration-form" class="config-panel"><fieldset id="configuration-fields"><legend>论文设置</legend><div class="form-grid two"><label>本次工作<select id="workflow" data-field="workflow" required><option value="">请选择</option><option value="build_from_materials">由材料形成论文</option><option value="rewrite_existing">改写已有稿件</option><option value="audit">核查已有论文</option><option value="review">独立审阅</option><option value="revise">按意见返修</option><option value="transfer">适配其他目标</option></select></label><label>使用场景<select id="scene" data-field="scene" required><option value="">请选择</option><option value="journal">期刊</option><option value="conference">会议</option><option value="report">研究报告</option><option value="review">综述</option><option value="competition">竞赛</option><option value="other">其他</option></select></label><label>投稿目标<select id="target-status" data-field="target"><option value="unknown">暂未确定</option><option value="known">已确定</option></select></label><label>目标名称<input id="target-name" data-field="target" placeholder="期刊、会议或其他目标" /></label><label>输出语言<select id="output-language" data-field="output_language" required><option value="">请选择</option><option value="en">英文</option><option value="zh">中文</option><option value="multilingual">多语言</option><option value="other">其他（请在意见中说明）</option></select></label><label>是否需要新增研究分析<select id="research-mode" data-field="research_mode" required><option value="">请选择</option><option value="agent_decide">由宿主结合材料判断</option><option value="required">需要研究分析</option><option value="materials_only">仅使用已有材料与结果，不新增分析</option></select></label><label>交付内容<select id="requested-scope" data-field="requested_scope" required><option value="">请选择</option><option value="manuscript">论文稿件</option><option value="local_delivery">完整本地稿包</option><option value="submission_package">投稿材料包（由作者投稿）</option></select></label><label>保留作者表达<select id="author-voice-restoration" data-field="author_voice_restoration" required><option value="">请选择</option><option value="off">不特别要求</option><option value="standard">适度保留</option><option value="strict">严格保留</option></select></label></div>
+      <fieldset><legend>期刊与文献学习</legend>
+        <div class="form-grid two">
+          <label>学习篇数<select id="literature-preset" data-field="literature"><option value="3">同方向 3 篇 + 目标期刊 3 篇（默认）</option><option value="6">同方向 6 篇 + 目标期刊 6 篇</option><option value="custom">自定义篇数</option></select></label>
+          <p class="muted">宿主学习相关研究及目标期刊同类型论文，记录实际样本与适用限制。</p>
+          <label>同方向论文篇数<input id="same-field-papers" data-field="literature" type="number" min="1" step="1" required /></label>
+          <label>目标期刊论文篇数<input id="target-venue-papers" data-field="literature" type="number" min="1" step="1" required /></label>
+          <label>参考文献目标<select id="reference-count-mode" data-field="literature"><option value="venue_average">高于目标期刊同类型论文样本平均（默认）</option><option value="custom">自定参考文献数量</option></select></label>
+          <label>自定参考文献数量<input id="reference-count" data-field="literature" type="number" min="1" step="1" /></label>
+          <label>机制、框架或方法架构图<select id="mechanism-figure" data-field="literature"><option value="prefer">优先考虑（有科学依据时，默认）</option><option value="auto">由宿主判断</option><option value="omit">不采用此类图</option></select></label>
+        </div>
+        <p class="muted">学习结果用于正文、图件和期刊格式。</p>
+      </fieldset>
+      <fieldset><legend>交付格式</legend><label class="check"><input type="checkbox" name="formats" value="pdf" data-field="formats" />PDF</label><label class="check"><input type="checkbox" name="formats" value="docx" data-field="formats" />Word</label><label class="check"><input type="checkbox" name="formats" value="tex" data-field="formats" />LaTeX 源文件</label></fieldset>
+      <p class="muted">仅使用已有材料与结果时，不新增分析、实验或模型运行；仍可学习公开文献、核对引用和读取参考图。私有材料保留在本地，明确的离线要求仍有效。</p>
+    </fieldset><button id="reload-saved-configuration" type="button" class="button" hidden>重新载入已保存配置（放弃本页未保存修改）</button><p id="configuration-status" class="muted" role="status"></p><button id="configuration-submit" class="button strong" type="submit">保存设置</button></form>
+    <h4>宿主提供的材料</h4><div id="task-material-roots"></div><p id="task-materials-summary" class="muted"></p><ul id="task-material-issues" class="muted" aria-label="未读取材料与原因" hidden></ul><nav id="material-pagination" class="material-pagination" aria-label="材料列表分页" hidden>
+      <button id="material-previous" class="button" type="button" aria-controls="task-material-table">上一页</button>
+      <label>材料页码 <select id="material-page" aria-controls="task-material-table"></select></label>
+      <button id="material-next" class="button" type="button" aria-controls="task-material-table">下一页</button>
+    </nav><div class="task-table-scroll" tabindex="0" role="region" aria-label="材料文件列表"><table id="task-material-table" class="task-data-table"><thead><tr><th>材料</th><th>大小</th></tr></thead><tbody></tbody></table></div><div id="intake-records"></div>
+  </section>
+  <section class="task-data-panel" data-phase-panel="research" hidden><h3>研究进展</h3><p class="muted">宿主依据材料和设置开展必要研究；已有研究结果可直接使用。</p><div id="research-records"></div></section>
+  <section class="task-data-panel" data-phase-panel="contribution" hidden><h3>动机与贡献</h3><p class="muted">请核对宿主提供的候选并保存你的选择与意见。</p><div id="motivation-decisions"></div><div id="contribution-records"></div></section>
+  <section class="task-data-panel" data-phase-panel="evidence" hidden><h3>论证与证据</h3><p class="muted">宿主保存的证据和论证记录，仅供查看。</p><div id="evidence-records"></div></section>
+  <section class="task-data-panel" data-phase-panel="draft" hidden><h3>论文主稿</h3><p class="muted">查看已登记的论文正文、PDF、Word或TeX源文件。</p><div id="task-artifact-list" class="task-file-list"></div><div id="draft-records"></div></section>
+  <section class="task-data-panel" data-phase-panel="figure" hidden><h3>图件工作台</h3><p class="muted">左列是我们的图，右列是对应参考图；按图号和子图逐行排列。参考旁可查看原文，保留／修改意见仍分别保存。</p><div id="figure-decisions"></div><div id="figure-records"></div><details class="figure-file-catalog"><summary>浏览全部目录文件（含历史文件和可编辑源）</summary><p id="task-figures-summary" class="muted"></p><div id="task-figure-records"></div></details></section>
+  <section class="task-data-panel" data-phase-panel="review" hidden><h3>审阅记录</h3><p class="muted">显示宿主提供的真实审阅记录。</p><div id="review-records"></div></section>
+  <section class="task-data-panel" data-phase-panel="delivery" hidden><h3>完成稿与论文包</h3><p id="task-delivery-summary"></p><ul id="task-delivery-blockers" class="task-check-list"></ul><div id="delivery-files" class="task-file-list"></div></section>
+  <section id="feedback-panel" class="task-data-panel"><h3>意见与返修</h3><p class="muted">描述希望修改的内容，保留当前版本后继续返修。</p>
+    <form id="feedback-form"><fieldset id="feedback-fields"><legend>本次意见</legend><label>意见范围<select id="feedback-scope"><option value="manuscript">稿件</option><option value="all">整项工作</option><option value="figures">图件</option></select></label><label>意见<textarea id="feedback-text" rows="5" maxlength="32000" placeholder="描述希望调整的内容，也可以上传意见文件。"></textarea></label><label>上传意见文件（.md 或 .txt）<input id="feedback-file" type="file" accept=".md,.txt,text/plain,text/markdown" /></label><p id="feedback-file-name" class="muted"></p></fieldset><button id="feedback-submit" class="button strong" type="submit">保存意见</button></form><p id="feedback-status" role="status"></p><div id="feedback-history"></div>
+  </section>
+  <section id="host-handoff-panel" class="task-data-panel host-recovery-panel"><details><summary>交给当前 AI 接手</summary><p>可发回原对话，也可交给有权访问本地文件的新宿主。接手靠任务与成果文件，不是共享原 Agent 的记忆；请勿让两个宿主同时修改同一成果。复制或打开页面都不会启动 AI。</p><pre id="host-handoff-text"></pre><button id="copy-handoff" type="button" class="button">复制接手指令</button><p id="handoff-status" role="status"></p></details></section>
+  <section class="task-data-panel"><h3>本地目录与历史</h3><p id="package-directory" class="muted"></p><button id="open-package" class="button" type="button">打开任务目录</button><details><summary>交接文件</summary><p id="task-skill-bridge-summary" class="muted"></p><div id="task-skill-bridge-files" class="task-file-list"></div></details><details id="unassigned-artifact-records" hidden><summary>归属未明的文件</summary></details><details><summary>任务历史（只读）</summary><div id="task-history-records"></div></details></section>
+</article></section></div></main><footer class="footer">PaperSpine · 宿主科研，本地协作</footer></div><dialog id="save-toast" class="save-toast" aria-modal="true" aria-labelledby="save-toast-title" aria-describedby="save-toast-description" hidden>
+  <span class="save-toast-icon" aria-hidden="true">✓</span>
+  <div class="save-toast-content">
+    <h2 id="save-toast-title" tabindex="-1"></h2>
+    <p id="save-toast-description"></p>
+    <p class="save-toast-hint">网页保存不会自动启动已停止的 AI。宿主正在执行时，无需重复发送。</p>
+    <p id="save-toast-binding" class="save-toast-hint"></p>
+    <details id="save-toast-instruction-details"><summary>查看接手指令</summary><textarea id="save-toast-handoff" rows="5" readonly aria-label="发给宿主的同任务接手指令"></textarea></details>
+    <p id="save-toast-copy-status" role="status" aria-live="polite"></p>
+  </div>
+  <div class="save-toast-actions"><button id="copy-save-handoff" class="button strong" type="button" disabled>复制继续指令</button><button id="dismiss-save-toast" class="button" type="button">知道了，关闭</button></div>
+</dialog><aside id="support-milestone" class="support-milestone" hidden aria-labelledby="support-milestone-title">
+  <button id="support-milestone-dismiss" class="support-milestone-close" type="button" aria-label="关闭支持提示">×</button>
+  <p class="support-milestone-kicker">THANK YOU · LOCAL ONLY</p>
+  <h2 id="support-milestone-title">你已经使用 PaperSpine <span id="support-milestone-count"></span> 次</h2>
+  <p>如果它确实帮到了你，可以自愿支持持续维护。计数只保存在本机浏览器，不上传，也不影响任何功能。</p>
+  <a class="button strong" href="https://wubing2023.github.io/PaperSpine/v5/?support=1" target="_blank" rel="noopener noreferrer">支持 PaperSpine</a>
+</aside><script src="/product.js?v=20260921-host-continuation" defer></script></body></html>

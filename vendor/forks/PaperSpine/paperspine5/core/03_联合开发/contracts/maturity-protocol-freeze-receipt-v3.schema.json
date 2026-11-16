@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/maturity-protocol-freeze-receipt-v3.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["contract", "contract_version", "operation_id", "approval_token_sha256", "status", "protocol_path", "journal_path", "before_file_sha256", "after_file_sha256", "protocol_sha256", "frozen_at", "semantic_diff_receipt_sha256", "semantic_pins", "external_action_authorized", "receipt_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.maturity-protocol-freeze-receipt-v3"}, "contract_version": {"const": "3.0"}, "operation_id": {"type": "string", "minLength": 1}, "approval_token_sha256": {"$ref": "#/$defs/sha256"}, "status": {"const": "committed"}, "protocol_path": {"type": "string", "minLength": 1}, "journal_path": {"type": "string", "minLength": 1}, "before_file_sha256": {"$ref": "#/$defs/sha256"}, "after_file_sha256": {"$ref": "#/$defs/sha256"}, "protocol_sha256": {"$ref": "#/$defs/sha256"}, "frozen_at": {"type": "string", "format": "date-time"}, "semantic_diff_receipt_sha256": {"$ref": "#/$defs/sha256"}, "semantic_pins": {"type": "object", "additionalProperties": {"$ref": "#/$defs/sha256"}, "minProperties": 1}, "external_action_authorized": {"const": false}, "receipt_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

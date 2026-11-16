@@ -5,11 +5,23 @@ description: "Generate a structured paper outline from review conclusions and ex
 
 # Paper Plan: From Review Conclusions to Paper Outline
 
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Writer selection is separate; follow the
+> writing-worker guidance below when drafting or revising prose.
+
+
 Generate a structured, section-by-section paper outline from: **$ARGUMENTS**
 
 ## Constants
 
-- **REVIEWER_MODEL = `gpt-5.6-sol`** — Model used via a secondary Codex agent for outline review. Must be an OpenAI model.
+- **REVIEWER_MODEL = `gpt-6-astra`** — Model used via a secondary Codex agent for outline review. For `backend=codex`, use an OpenAI model.
 - **TARGET_VENUE = `ICLR`** — Default venue. User can override (e.g., `/paper-plan "topic" — venue: NeurIPS`). Supported: `ICLR`, `NeurIPS`, `ICML`, `CVPR`, `ACL`, `AAAI`, `ACM`, `IEEE_JOURNAL` (IEEE Transactions / Letters), `IEEE_CONF` (IEEE conferences).
 - **MAX_PAGES** — Page limit. For ML conferences: main body to Conclusion end (excluding references, appendix). ICLR=9, NeurIPS=9, ICML=8, AAAI=7 technical-content pages plus references unless the current AAAI CFP says otherwise. **For IEEE venues: references ARE included in page count.** IEEE journal Transactions ≈ 12-14 pages total, Letters ≈ 4-5 pages total; IEEE conference ≈ 5-8 pages total (including references).
 
@@ -29,7 +41,7 @@ If none exist, ask the user to describe the paper's contribution in 3-5 sentence
 
 Keep the existing workflow and outputs, but use the shared references below to improve the quality of the story and outline:
 
-- Read `../shared-references/writing-principles.md` when framing the Abstract, Introduction, Related Work, or hero figure
+- Read `../shared-references/writing-principles.md` when framing the Abstract, Introduction, Related Work, or hero figure. Plan the claims-evidence matrix under its Launch Mindset: lead with the strongest supported contribution, give each experiment an argumentative role, and bind assumptions to claims rather than building a disclaimer list.
 - Read `../shared-references/venue-checklists.md` before freezing the outline for a specific venue
 - Load these references only when they help; they are support material, not a new workflow phase
 
@@ -195,11 +207,13 @@ For each section, list required citations:
 
 ### Step 6: Cross-Review with REVIEWER_MODEL
 
-Send the complete outline to GPT-5.6-Sol xhigh for feedback:
+Send the complete outline to GPT-6-Astra xhigh for feedback:
+
+> Resolve this reviewer slot first; the following is the `backend=codex` example.
 
 ```
 spawn_agent:
-  model: gpt-5.6-sol
+  model: gpt-6-astra
   reasoning_effort: xhigh
   message: |
     Review this paper outline for a [VENUE] submission.

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/command-envelope.schema.json",
+  "title": "PaperSpine5 idempotent command envelope",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["contract", "schema_version", "command_id", "task_id", "expected_revision", "writer_id", "command_type", "payload", "actor"],
+  "properties": {
+    "contract": {"const": "paperspine5.command-envelope"},
+    "schema_version": {"const": "1.0"},
+    "command_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "task_id": {"type": "string", "minLength": 1},
+    "expected_revision": {"type": "integer", "minimum": 0},
+    "writer_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "command_type": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"},
+    "payload": {"type": "object"},
+    "actor": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["actor_id", "surface"],
+      "properties": {
+        "actor_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+        "surface": {"enum": ["codex", "claude-code", "dsh", "standalone-skill", "web", "mcp", "cli", "system"]},
+        "authority_kind": {
+          "enum": ["authenticated_local_user_session", "host_user_message"],
+          "description": "Required for delegated_local_test grants and for host-bound figure Master authority at J6/J7."
+        },
+        "session_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+        "run_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+        "attestation_input_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+        "provenance_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "Required with the full host-bound actor identity at figure Master J6/J7 authority boundaries."}
+      }
+    }
+  }
+}

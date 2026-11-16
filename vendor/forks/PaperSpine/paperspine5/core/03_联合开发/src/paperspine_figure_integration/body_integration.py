@@ -9,7 +9,7 @@ from typing import Any
 from .contracts import ContractError, write_json_atomic
 
 
-BODY_CONTRACT_VERSION = "1.0"
+BODY_CONTRACT_VERSION = "1.1"
 BODY_CONTRACT_NAME = "paperspine.figure.body"
 BODY_MAP_START = "<!-- PAPERFIGURE-BODY-MAP:START -->"
 BODY_MAP_END = "<!-- PAPERFIGURE-BODY-MAP:END -->"
@@ -61,8 +61,12 @@ def _body_markdown(contract: dict[str, Any]) -> str:
                 "",
                 f"- LaTeX label: `{figure['label']}`",
                 f"- Body reference: `{figure['latex']['display_reference']}`",
+                f"- Publication role: `{figure['publication_role']}`",
+                f"- Display number: `{figure.get('display_number') or 'assigned by main-text LaTeX'}`",
+                f"- Editorial rationale: {_markdown_text(figure['editorial_rationale'])}",
                 f"- Results units: `{'; '.join(figure['results_units'])}`",
                 f"- Publication asset: `{figure['publication_asset']['path']}`",
+                f"- Selection authority: `{figure['selection_evidence']['authority']}`",
                 f"- Editable source: `{(figure.get('editable_source') or {}).get('path', 'not separately available')}`",
                 f"- Allowed claim: {_markdown_text(figure['claim'])}",
                 f"- Intended conclusion: {_markdown_text(figure['intended_conclusion'])}",
@@ -93,13 +97,14 @@ def _asset_map_block(contract: dict[str, Any]) -> str:
         "",
         "This generated block is authoritative for selected figure files, labels, Results mappings, and claim boundaries.",
         "",
-        "| Figure | Asset | Editable source | LaTeX label | Results unit(s) | Allowed claim | Boundary |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| Figure | Role | Asset | Editable source | LaTeX label | Results unit(s) | Allowed claim | Boundary |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for figure in contract["figures"]:
         lines.append(
-            "| {figure_id} | `{asset}` | `{editable}` | `{label}` | {results} | {claim} | {boundary} |".format(
+            "| {figure_id} | {role} | `{asset}` | `{editable}` | `{label}` | {results} | {claim} | {boundary} |".format(
                 figure_id=_markdown_text(figure["figure_id"]),
+                role=_markdown_text(figure["publication_role"]),
                 asset=figure["publication_asset"]["path"],
                 editable=(figure.get("editable_source") or {}).get("path", "—"),
                 label=figure["label"],
@@ -148,7 +153,17 @@ def validate_figure_body_contract(
         figure_id = figure["figure_id"]
         if figure_id in by_id:
             raise ContractError(f"duplicate figure body contract figure_id: {figure_id}")
-        for field in ("label", "caption", "claim", "intended_conclusion", "claim_boundary", *STORY_FIELDS):
+        for field in (
+            "label",
+            "caption",
+            "claim",
+            "intended_conclusion",
+            "claim_boundary",
+            "publication_role",
+            "editorial_rationale",
+            "claim_coverage",
+            *STORY_FIELDS,
+        ):
             if field not in figure or figure[field] in (None, "", []):
                 raise ContractError(f"figure body contract {figure_id}.{field} is required")
         asset = figure.get("publication_asset")
@@ -156,6 +171,35 @@ def validate_figure_body_contract(
             raise ContractError(f"figure body contract {figure_id}.publication_asset is invalid")
         if not isinstance(asset.get("sha256"), str) or len(asset["sha256"]) != 64:
             raise ContractError(f"figure body contract {figure_id}.publication_asset.sha256 is invalid")
+        selection = figure.get("selection_evidence")
+        if not isinstance(selection, dict) or not isinstance(selection.get("authority"), str):
+            raise ContractError(f"figure body contract {figure_id}.selection_evidence is invalid")
+        if selection.get("selected_candidate") != asset.get("candidate_id"):
+            raise ContractError(
+                f"figure body contract {figure_id} selection does not match publication asset"
+            )
+        source_sha = selection.get("source_sha256")
+        if not isinstance(source_sha, str) or source_sha.lower() != asset["sha256"]:
+            raise ContractError(
+                f"figure body contract {figure_id} selected source hash does not match final pixels"
+            )
+        if asset.get("candidate_id") == "existing":
+            current_sha = selection.get("current_figure_sha256")
+            if not isinstance(current_sha, str) or current_sha.lower() != asset["sha256"]:
+                raise ContractError(
+                    f"figure body contract {figure_id} original hash does not match final pixels"
+                )
+        if selection.get("authority") == "independent_strict_superiority":
+            comparison = selection.get("comparison_validation")
+            if (
+                not isinstance(comparison, dict)
+                or comparison.get("valid") is not True
+                or comparison.get("winner_candidate") != asset.get("candidate_id")
+                or str(comparison.get("winner_sha256") or "").lower() != asset["sha256"]
+            ):
+                raise ContractError(
+                    f"figure body contract {figure_id} strict comparison evidence is invalid"
+                )
         by_id[figure_id] = figure
 
         if output_dir is not None:
@@ -179,14 +223,57 @@ def validate_figure_body_contract(
                     raise ContractError(f"figure editable source is missing or changed: {editable_path}")
 
     if requests is not None:
-        expected = {item["figure_id"]: item for item in requests["figures"]}
+        expected = {
+            item["figure_id"]: item
+            for item in requests["figures"]
+            if item.get("publication_role", "main") != "omit"
+        }
         if set(expected) != set(by_id):
             raise ContractError("figure body contract does not cover every requested figure")
         for figure_id, request in expected.items():
             figure = by_id[figure_id]
-            for field in ("label", "caption", "claim", *STORY_FIELDS):
+            for field in (
+                "label",
+                "caption",
+                "claim",
+                "publication_role",
+                "editorial_rationale",
+                "claim_coverage",
+                *STORY_FIELDS,
+            ):
                 if figure.get(field) != request.get(field):
                     raise ContractError(f"figure body contract changed {figure_id}.{field}")
+            expected_identity = request.get("scientific_identity")
+            if figure.get("scientific_identity") != expected_identity:
+                raise ContractError(
+                    f"figure body contract changed {figure_id}.scientific_identity"
+                )
+            for field in ("placement", "final_size_context"):
+                if figure.get(field) != request.get(field):
+                    raise ContractError(f"figure body contract changed {figure_id}.{field}")
+            if expected_identity is not None:
+                identity_audit = figure.get("identity_audit")
+                if not isinstance(identity_audit, dict) or identity_audit.get("status") != "PASS":
+                    raise ContractError(
+                        f"figure body contract {figure_id}.identity_audit must be PASS"
+                    )
+                surfaces = identity_audit.get("surfaces") or {}
+                final_surface = surfaces.get("final_pixels") or {}
+                if final_surface.get("sha256") != figure["publication_asset"]["sha256"]:
+                    raise ContractError(
+                        f"figure body contract {figure_id} identity audit changed final pixels"
+                    )
+                caption_sha = hashlib.sha256(request["caption"].encode("utf-8")).hexdigest()
+                if (surfaces.get("caption") or {}).get("sha256") != caption_sha:
+                    raise ContractError(
+                        f"figure body contract {figure_id} identity audit changed the caption"
+                    )
+                editable = figure.get("editable_source")
+                editable_surface = surfaces.get("editable_source") or {}
+                if editable is None or editable_surface.get("sha256") != editable.get("sha256"):
+                    raise ContractError(
+                        f"figure body contract {figure_id} identity audit changed the editable source"
+                    )
     return raw
 
 
@@ -202,6 +289,8 @@ def build_figure_body_contract(
     body_figures: list[dict[str, Any]] = []
     for request in requests["figures"]:
         figure_id = request["figure_id"]
+        if request.get("publication_role", "main") == "omit":
+            continue
         missing_story = [field for field in STORY_FIELDS if request.get(field) in (None, "", [])]
         if missing_story:
             raise ContractError(
@@ -230,11 +319,14 @@ def build_figure_body_contract(
         evidence_anchors = list(
             dict.fromkeys(panel["evidence_anchor"] for panel in request["panels"])
         )
-        body_figures.append(
-            {
+        body_figure = {
                 "figure_id": figure_id,
                 "figure_kind": request["figure_kind"],
                 "figure_role": request["figure_role"],
+                "publication_role": request["publication_role"],
+                "editorial_rationale": request["editorial_rationale"],
+                "claim_coverage": request["claim_coverage"],
+                "display_number": record.get("display_number"),
                 "label": request["label"],
                 "caption": request["caption"],
                 "scientific_question": request["scientific_question"],
@@ -246,13 +338,22 @@ def build_figure_body_contract(
                 "panels": request["panels"],
                 "publication_asset": publication_asset,
                 "editable_source": editable_source,
+                "selection_evidence": record["selection_evidence"],
                 "latex": {
                     "insertion_marker": f"% PAPERSFIGURE:{figure_id}",
                     "reference": rf"\ref{{{request['label']}}}",
                     "display_reference": rf"Fig.~\ref{{{request['label']}}}",
                     "includes_file": _portable_path(
-                        final_dir / "figure_includes.tex", output_dir, "figure_includes"
+                        (
+                            final_dir / "supplementary" / "supplementary_figures.tex"
+                            if request["publication_role"] == "supplementary"
+                            else final_dir / "figure_includes.tex"
+                        ),
+                        output_dir,
+                        "figure_includes",
                     ),
+                    "environment": record.get("latex_environment", "figure"),
+                    "width": record.get("latex_width", r"\linewidth"),
                 },
                 "prose_contract": {
                     "results_units": request["results_units"],
@@ -263,7 +364,16 @@ def build_figure_body_contract(
                     "evidence_anchors": evidence_anchors,
                 },
             }
-        )
+        if request.get("scientific_identity") is not None:
+            identity_audit = record.get("identity_audit")
+            if not isinstance(identity_audit, dict) or identity_audit.get("status") != "PASS":
+                raise ContractError(f"{figure_id} cannot enter the body without identity_audit=PASS")
+            body_figure["scientific_identity"] = request["scientific_identity"]
+            body_figure["identity_audit"] = identity_audit
+        for field in ("placement", "final_size_context"):
+            if request.get(field) is not None:
+                body_figure[field] = request[field]
+        body_figures.append(body_figure)
 
     contract_path = output_dir / "figure_body_contract.json"
     markdown_path = output_dir / "figure_body_contract.md"
@@ -289,6 +399,28 @@ def build_figure_body_contract(
             ),
             "figure_includes": _portable_path(
                 final_dir / "figure_includes.tex", output_dir, "figure_includes"
+            ),
+            "supplementary_figure_includes": (
+                _portable_path(
+                    final_dir / "supplementary" / "supplementary_figures.tex",
+                    output_dir,
+                    "supplementary_figure_includes",
+                )
+                if any(
+                    item.get("publication_role", "main") == "supplementary"
+                    for item in requests["figures"]
+                )
+                else None
+            ),
+            "figure_disposition_manifest": _portable_path(
+                final_dir / "figure_disposition_manifest.json",
+                output_dir,
+                "figure_disposition_manifest",
+            ),
+            "identity_completion_receipt": (
+                "figure_identity_completion_receipt.json"
+                if any(item.get("scientific_identity") is not None for item in requests["figures"])
+                else None
             ),
         },
     }

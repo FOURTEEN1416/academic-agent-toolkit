@@ -8,6 +8,8 @@ version: 0.1.0
 
 This skill enables visual inspection and validation of website design quality, identifying and fixing issues at the source code level.
 
+> **Division of labor / 分工**：本技能聚焦**设计质量审查与修复**（视觉走查、样式问题定位与修复建议）。需要**端到端功能与交互测试**（Playwright 自动化、服务生命周期管理）时用 `dev-webapp-testing`；两者可串联：先功能测试后设计走查。
+
 ## Scope of Application
 
 - Static sites (HTML/CSS/JS)
@@ -190,7 +192,7 @@ Identify source files from problematic elements:
 
 #### Framework-specific Fix Guidelines
 
-See [references/framework-fixes.md](references/framework-fixes.md) for details.
+`references/framework-fixes.md` 当前**未随仓集成**（缺口见 [ASSET-GAP.md](ASSET-GAP.md)）；框架专属修复按下方 Fix Principles 与对应框架官方文档执行。
 
 #### Fix Principles
 

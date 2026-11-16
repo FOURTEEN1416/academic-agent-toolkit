@@ -1,32 +1,148 @@
 import z from "zod"
 import { Tool } from "./tool"
 import { Question } from "../question"
+import { Session } from "../session"
+import { MessageV2 } from "../session/message-v2"
+import { HarnessState } from "../harness/state"
+import { Unattended } from "../harness/unattended"
 import DESCRIPTION from "./question.txt"
+
+const QuestionReason = z.enum(["planning", "consequential", "missing_authority"])
+
+type QuestionDecisionMetadata = {
+  answers: string[][]
+  assumptions: Array<{ question: string; selection: string; description: string }>
+  autonomy: MessageV2.DelegationSettings["autonomy"]
+  reason: z.infer<typeof QuestionReason>
+  resolution: "recommended" | "user" | "policy"
+}
+
+/** Whether the run this session belongs to answers questions itself: a
+ * headless `run --auto-approve` registers its root session, and its policy
+ * takes the first option of every question. The lead and its workers share
+ * that root. */
+export async function headless(sessionID: string) {
+  // A caller outside a real session (a test's context) is not headless.
+  const lookup = (id: string) =>
+    Promise.resolve()
+      .then(() => Session.get(id))
+      .catch(() => undefined)
+  let current = await lookup(sessionID)
+  for (let depth = 0; current && depth < 8; depth++) {
+    if (HarnessState.get(current.id).continueOnDeny === true) return true
+    if (!current.parentID) return false
+    current = await lookup(current.parentID)
+  }
+  return false
+}
+type QuestionDecisionResult = { title: string; output: string; metadata: QuestionDecisionMetadata }
+
+function recommendedResolution(input: {
+  autonomy: MessageV2.DelegationSettings["autonomy"]
+  reason: z.infer<typeof QuestionReason>
+  questions: Question.Info[]
+}): QuestionDecisionResult {
+  const assumptions = input.questions.map((question) => ({
+    question: question.question,
+    selection: question.options[0]!.label,
+    description: question.options[0]!.description,
+  }))
+  const answers = assumptions.map((assumption) => [assumption.selection])
+  const formatted = assumptions
+    .map((assumption) => `${JSON.stringify(assumption.question)}=${JSON.stringify(assumption.selection)}`)
+    .join(", ")
+
+  return {
+    title: `Continued with ${assumptions.length} recommended choice${assumptions.length > 1 ? "s" : ""}`,
+    output: `OpenScience continued without pausing. Assumption recorded: ${formatted}.`,
+    metadata: {
+      answers,
+      assumptions,
+      autonomy: input.autonomy,
+      reason: input.reason,
+      resolution: "recommended",
+    },
+  }
+}
 
 export const QuestionTool = Tool.define("question", {
   description: DESCRIPTION,
   parameters: z.object({
+    reason: QuestionReason.default("consequential").describe(
+      "Why user input is required: collaborative planning, a consequential decision, or missing authority/input that blocks progress",
+    ),
     questions: z.array(Question.Info.omit({ custom: true })).describe("Questions to ask"),
   }),
-  async execute(params, ctx) {
-    const answers = await Question.ask({
-      sessionID: ctx.sessionID,
-      questions: params.questions,
-      tool: ctx.callID ? { messageID: ctx.messageID, callID: ctx.callID } : undefined,
-    })
+  async execute(params, ctx): Promise<QuestionDecisionResult> {
+    if (!params.questions.length) {
+      throw new Error(
+        "The question list was empty, so nothing was asked and nothing was decided. Retry with at least one question and the options to choose from.",
+      )
+    }
+    const autonomy = MessageV2.resolveDelegationSettings(ctx.extra?.delegationSettings).autonomy
+    if (params.reason !== "missing_authority") {
+      const invalid = params.questions.find(
+        (question) => question.options.length < 2 || !question.options[0]?.label.endsWith("(Recommended)"),
+      )
+      if (invalid) {
+        throw new Error(
+          "Planning and consequential questions need at least two concrete choices, with the recommended choice first and its label ending in '(Recommended)'.",
+        )
+      }
+    }
+    if (
+      params.reason !== "missing_authority" &&
+      (autonomy === "autonomous" || (autonomy === "balanced" && params.reason === "planning"))
+    ) {
+      return recommendedResolution({ autonomy, reason: params.reason, questions: params.questions })
+    }
+
+    const answers = await Question.ask(
+      {
+        sessionID: ctx.sessionID,
+        questions: params.questions,
+        tool: ctx.callID ? { messageID: ctx.messageID, callID: ctx.callID } : undefined,
+      },
+      ctx.abort,
+    )
 
     function format(answer: Question.Answer | undefined) {
       if (!answer?.length) return "Unanswered"
       return answer.join(", ")
     }
 
-    const formatted = params.questions.map((q, i) => `"${q.question}"="${format(answers[i])}"`).join(", ")
+    const formatted = params.questions
+      .map((q, i) => `${JSON.stringify(q.question)}=${JSON.stringify(format(answers[i]))}`)
+      .join(", ")
+
+    // A headless run's policy answered, not a person. Saying "the user has
+    // answered" here had leads treat their own first option as confirmed
+    // ("the user explicitly confirmed…") and ask again for files no one
+    // would send. The answer is the one the unattended unit gives at the end
+    // of a turn: nobody is there, proceed on the inputs as supplied.
+    if (await headless(ctx.sessionID)) {
+      return {
+        title: `Answered by the run: ${params.questions.length} question${params.questions.length > 1 ? "s" : ""}`,
+        output: `${Unattended.render()} The run took the first option where one was offered: ${formatted}. That is your own assumption, not a confirmation.`,
+        metadata: {
+          answers,
+          assumptions: [],
+          autonomy,
+          reason: params.reason,
+          resolution: "policy",
+        },
+      }
+    }
 
     return {
       title: `Asked ${params.questions.length} question${params.questions.length > 1 ? "s" : ""}`,
       output: `User has answered your questions: ${formatted}. You can now continue with the user's answers in mind.`,
       metadata: {
         answers,
+        assumptions: [],
+        autonomy,
+        reason: params.reason,
+        resolution: "user",
       },
     }
   },

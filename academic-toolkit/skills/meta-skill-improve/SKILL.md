@@ -111,8 +111,8 @@ Order changes by priority within each file.
 **Backup location:** `_backup/{skill-name}-{timestamp}/` inside the repo (gitignored temp area; never write outside the checkout)
 
 ```bash
-# Use backup script
-skills/meta-skill-improve/scripts/backup-skill.sh <skill-path>（ACAT-GOVERNANCE：上游脚本未随本仓库集成，不可直接调用；改用本仓技能目录内路径）
+# 备份（上游 backup-skill.sh 未随本仓集成，用 cp -r 等价替代）
+cp -r <skill-path> _backup/{skill-name}-{timestamp}/
 ```
 
 **Apply changes:**
@@ -129,8 +129,8 @@ skills/meta-skill-improve/scripts/backup-skill.sh <skill-path>（ACAT-GOVERNANCE
 4. No unintended changes occurred
 
 ```bash
-# Use verify script
-skills/meta-skill-improve/scripts/verify-update.sh <skill-path>（ACAT-GOVERNANCE：上游脚本未随本仓库集成，不可直接调用；改用本仓技能目录内路径）
+# 自查（上游 verify-update.sh 未随本仓集成，用本仓门禁工具等价替代）
+python tools/check_asset_utilization.py --strict
 ```
 
 **Generate update-report-{skill-name}-{timestamp}.md** documenting:
@@ -195,8 +195,10 @@ Quality Report (validation)
 
 ### Scripts
 
-- **`scripts/backup-skill.sh`** - Create backup of skill before updates
-- **`scripts/verify-update.sh`** - Verify skill integrity after updates
+> **均未随本仓集成（2026-11-16）：** 下列两个上游脚本盘上不存在（已入 asset_gap_register.json）；备份用 `cp -r <skill-path> _backup/{skill-name}-{timestamp}/`，验证用 `python tools/check_asset_utilization.py --strict`。
+
+- **`scripts/backup-skill.sh`** - Create backup of skill before updates（上游原件，未随仓）
+- **`scripts/verify-update.sh`** - Verify skill integrity after updates（上游原件，未随仓）
 
 ## Best Practices
 

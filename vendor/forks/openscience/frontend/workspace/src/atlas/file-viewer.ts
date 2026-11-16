@@ -1,5 +1,9 @@
+import { projectContains } from "@/utils/project-file"
+import { resolveArtifactPath } from "@/artifacts/context"
+
 export type FileKind =
   | "markdown"
+  | "notebook"
   | "html"
   | "table"
   | "scientific-data"
@@ -11,11 +15,13 @@ export type FileKind =
   | "binary"
 
 export interface FileData {
+  writable?: boolean
   content?: string
   encoding?: string
   mimeType?: string
   size?: number
   truncated?: boolean
+  revision?: string
 }
 
 export interface FileDescription {
@@ -26,10 +32,12 @@ export interface FileDescription {
 }
 
 export interface FileRequestIdentity {
+  server?: string
   projectID?: string
   directory: string
   sessionID?: string
   path: string
+  projectPreview?: boolean
 }
 
 export interface FileRequestTicket {
@@ -45,8 +53,42 @@ export type ResolvedFileScope = Exclude<FileOpenScope, "auto">
  * durable project file. Try the active session first, then fall back only for
  * a genuine missing-file response. Permission and transport failures must
  * remain visible rather than silently changing authority. */
-export function initialFileScope(scope: FileOpenScope = "project"): ResolvedFileScope {
-  return scope === "project" ? "project" : "session"
+export function initialFileScope(
+  scope: FileOpenScope = "project",
+  location?: { directory: string; path: string; sessionID?: string },
+): ResolvedFileScope {
+  if (scope !== "auto") return scope
+  if (!location) return "session"
+  // This chooses path resolution, not permission authority. Auto reads retain
+  // the originating session even when the absolute path is inside the project.
+  const absolute = /^(?:\/|[A-Za-z]:[\\/])/.test(location.path)
+  if (!location.sessionID || (absolute && projectContains(location.directory, location.path))) return "project"
+  return "session"
+}
+
+export function fileReadSession(input: {
+  scope?: FileOpenScope
+  resolved: ResolvedFileScope
+  directory: string
+  path: string
+  sessionID?: string
+}) {
+  if (input.scope === "auto" || input.resolved === "session" || !projectContains(input.directory, input.path))
+    return input.sessionID
+}
+
+export function linkedFileTarget(input: {
+  scope?: FileOpenScope
+  resolved: ResolvedFileScope
+  directory: string
+  path: string
+  sessionID?: string
+}) {
+  return {
+    path: input.resolved === "project" ? resolveArtifactPath(input.directory, input.path) : input.path,
+    scope: input.scope === "auto" ? ("auto" as const) : input.resolved,
+    sessionID: input.sessionID,
+  }
 }
 
 export function isMissingFileError(error: unknown) {
@@ -69,7 +111,14 @@ export function missingFileFallback(input: {
  * that component after navigation.
  */
 export function fileRequestKey(input: FileRequestIdentity) {
-  return [input.projectID ?? "", input.directory, input.sessionID ?? "", input.path].join("\n")
+  return [
+    input.server ?? "",
+    input.projectID ?? "",
+    input.directory,
+    input.sessionID ?? "",
+    input.path,
+    ...(input.projectPreview ? ["project-preview"] : []),
+  ].join("\n")
 }
 
 /** Browser and transport implementations use several spellings for the same
@@ -79,7 +128,7 @@ export function isFileRequestCancellation(error: unknown) {
   const value = error as { name?: unknown; message?: unknown } | undefined
   const name = typeof value?.name === "string" ? value.name : ""
   if (name === "AbortError" || name === "TimeoutError") return true
-  const message = String(value?.message ?? error ?? "")
+  const message = fileErrorMessage(error)
   return /\bab(?:ort|orted)\b|cancell?ed|the user aborted|signal is aborted/i.test(message)
 }
 
@@ -137,7 +186,7 @@ export function createFileRequestOwner() {
   }
 }
 
-const sources = new Set<FileKind>(["markdown", "html", "table", "scientific-data", "science", "code"])
+const sources = new Set<FileKind>(["markdown", "notebook", "html", "table", "scientific-data", "science", "code"])
 
 /** Raw PDF previews remain bounded even though the download endpoint itself supports larger files. */
 export const PDF_PREVIEW_LIMIT = 64 * 1024 * 1024
@@ -155,6 +204,8 @@ function format(value?: string) {
 function label(kind: FileKind, value?: string) {
   const type = format(value)
   if (kind === "markdown") return "Markdown"
+  if (kind === "notebook")
+    return type === "rmd" ? "R Markdown document" : type === "qmd" ? "Quarto document" : "Jupyter notebook"
   if (kind === "html") return "HTML document"
   if (kind === "pdf") return "PDF document"
   if (kind === "image") return type ? `${type.toUpperCase()} image` : "Image"
@@ -246,12 +297,25 @@ export function reconcileSavedDraft(current: string, submitted: string, saved: s
 
 export async function readFile(
   reader: () => Promise<FileData>,
-): Promise<{ data?: FileData; error?: Error; cancelled?: true }> {
+): Promise<{ data?: FileData; error?: Error; cancelled?: true; denied?: true }> {
   return reader().then(
     (data) => ({ data }),
     (error: unknown) =>
       isFileRequestCancellation(error)
         ? { cancelled: true as const }
-        : { error: error instanceof Error ? error : new Error(fileErrorMessage(error)) },
+        : {
+            error: error instanceof Error ? error : new Error(fileErrorMessage(error)),
+            ...(fileAuthorityDenied(error) ? { denied: true as const } : {}),
+          },
   )
+}
+
+/** Only a typed filesystem denial may ask the broker to resolve project UI
+ * authority. A generic HTTP 403, permission message or transport error cannot. */
+function fileAuthorityDenied(error: unknown): boolean {
+  if (!error || typeof error !== "object" || Array.isArray(error)) return false
+  const value = error as Record<string, unknown>
+  if (value.name === "SessionFilesystemDeniedError") return true
+  if (typeof value.path === "string" && typeof value.sessionID === "string" && value.access === "read") return true
+  return [value.data, value.error, value.cause].some(fileAuthorityDenied)
 }

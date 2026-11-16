@@ -32,14 +32,14 @@ The skill **never silently runs its fallback** when a specialist would have done
 
 ## Specialist Registry
 
-| Specialist | Routing signals | Domain |
-|---|---|---|
-| `pulse` | reddit / hn / x / buzz / sentiment / trending / "what's people saying" / "pulse on" / "take the pulse" / "current conversation" | Multi-source recency research |
-| `grants` | NIH / grant / R01 / K-award / RePORTER / NOSI / "grants for" / FDA / "study section" / "principal investigator" | NIH grant-funding intelligence |
-| `litreview` | literature review / PICO / SPIDER / systematic review / "review papers on" / meta-analysis | Academic literature orientation |
-| `syllabus` | syllabus / course outline / curriculum / "reading list" / "for my class" / "for my students" | Course supplementary reading |
-| `patent` | prior art / FTO / freedom to operate / patent / "patent landscape" / invention / novelty search / "ip landscape" | Patent prior-art + landscape |
-| `dossier` | "dossier on" / "due diligence" / "background check" / "prep me for" / "competitor research" / "investor diligence" / "interview prep" / "background on" | Decision-grade entity research |
+| Specialist | Routing signals | Domain | In-repo skill |
+|---|---|---|---|
+| `pulse` | reddit / hn / x / buzz / sentiment / trending / "what's people saying" / "pulse on" / "take the pulse" / "current conversation" | Multi-source recency research | `meta-topic-pulse` |
+| `grants` | NIH / grant / R01 / K-award / RePORTER / NOSI / "grants for" / FDA / "study section" / "principal investigator" | NIH grant-funding intelligence | `grant-proposal` |
+| `litreview` | literature review / PICO / SPIDER / systematic review / "review papers on" / meta-analysis | Academic literature orientation | `literature-review` / `lit-review-systematic` |
+| `syllabus` | syllabus / course outline / curriculum / "reading list" / "for my class" / "for my students" | Course supplementary reading | `course-syllabus-reading-list` |
+| `patent` | prior art / FTO / freedom to operate / patent / "patent landscape" / invention / novelty search / "ip landscape" | Patent prior-art + landscape | `ip-patent-search` |
+| `dossier` | "dossier on" / "due diligence" / "background check" / "prep me for" / "competitor research" / "investor diligence" / "interview prep" / "background on" | Decision-grade entity research | `meta-entity-dossier` |
 
 **Escalation → `comp-contest-research`:** when a wrong answer is expensive (strategy, comparing N options, hypothesis validation, mapping a field) and rigor matters more than speed, escalate to the `comp-contest-research` skill instead of the fast fallback workflow — it runs a triangulated, multi-round, adversarial investigation and persists an auditable, reusable research folder. This router is the fast path; `comp-contest-research` is the heavyweight one.
 
@@ -115,6 +115,18 @@ SIGNALS = {
   dossier:  ["dossier on", "due diligence", "background check",
              "prep me for", "competitor research", "investor diligence",
              "interview prep", "research my competitor", "background on"]
+}
+
+# In-repo skill-name mapping: specialist key -> this repository's disk skill(s).
+# Delegation targets the mapped name; if the mapped skill is absent from disk,
+# treat it as "no match" and fall back (see Dependencies).
+IN_REPO_SKILL = {
+  pulse:     "meta-topic-pulse",
+  grants:    "grant-proposal",
+  litreview: "literature-review / lit-review-systematic",
+  syllabus:  "course-syllabus-reading-list",
+  patent:    "ip-patent-search",
+  dossier:   "meta-entity-dossier",
 }
 
 # Signals are case-insensitive literal phrases (multi-word substring match).
@@ -238,7 +250,7 @@ All routing decisions + overrides also logged to `~/.research_sessions/<session>
 ## Dependencies
 
 - **`WebSearch`** + **`WebFetch`** — Required for fallback workflow
-- **Specialist skills** — Required for delegation: `pulse`, `grants`, `litreview`, `syllabus`, `patent`, `dossier`. If a specialist is missing, the router skips it and routes to fallback instead.
+- **Specialist skills** — Required for delegation: `pulse`, `grants`, `litreview`, `syllabus`, `patent`, `dossier`, resolved to disk skills via the in-repo mapping table above. When the mapping table yields no match (or the mapped skill is missing from disk), the router falls back to its own general-research workflow instead of delegating.
 - **Node.js `docx` library** — Required if user picks document output (Q2 = standalone)
 - **Consensus MCP** — Optional; used in fallback if academic sub-questions surface
 

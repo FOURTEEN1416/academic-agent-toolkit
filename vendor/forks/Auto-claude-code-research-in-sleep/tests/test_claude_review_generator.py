@@ -1,4 +1,4 @@
-"""Regression tests for Claude-review overlay frontmatter generation."""
+"""Regression tests for historical overlay frontmatter parsers and snapshot."""
 
 from __future__ import annotations
 
@@ -15,7 +15,6 @@ from tools.generate_codex_claude_review_overrides import (
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CODEX_SKILLS = REPO_ROOT / "skills" / "skills-codex"
 CLAUDE_OVERLAY = REPO_ROOT / "skills" / "skills-codex-claude-review"
 
 
@@ -30,18 +29,19 @@ def _frontmatter_value(text: str, field: str) -> str:
 
 
 def test_generator_emits_parseable_string_frontmatter() -> None:
-    """Legacy double-escaped descriptions must not return on regeneration."""
-    for skill in TARGET_SKILLS:
-        source = (CODEX_SKILLS / skill / "SKILL.md").read_text(encoding="utf-8")
-        source_match = FRONTMATTER_RE.match(source)
-        assert source_match is not None
+    """Historical parser behavior stays testable without reading the base pack."""
+    samples = [
+        ("example", '"Plain description"'),
+        ("example", "'Description with: punctuation'"),
+        ("example", r'"Legacy \"quoted\" text"'),
+    ]
+    for skill, raw_description in samples:
         description = normalize_description(
-            extract_field(source_match.group(1), "description")
+            extract_field(f"description: {raw_description}", "description")
         )
         generated = build_frontmatter(skill, description)
-
-        assert isinstance(json.loads(_frontmatter_value(generated, "name")), str)
-        assert isinstance(json.loads(_frontmatter_value(generated, "description")), str)
+        assert json.loads(_frontmatter_value(generated, "name")) == skill
+        assert json.loads(_frontmatter_value(generated, "description")) == description
 
 
 def test_checked_in_claude_overlay_frontmatter_is_parseable() -> None:

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/figure-disposition-manifest.schema.json",
+  "title": "PaperSpine figure publication-disposition manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "contract_type", "status", "job_id", "paper_id", "figures", "supplementary_figure_includes"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "contract_type": {"const": "paperspine.figure.disposition"},
+    "status": {"const": "PASS"},
+    "job_id": {"type": "string", "minLength": 1},
+    "paper_id": {"type": "string", "minLength": 1},
+    "supplementary_figure_includes": {"type": ["string", "null"]},
+    "figures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["figure_id", "publication_role", "editorial_rationale", "claim_coverage", "assembly_status", "display_number", "selected_candidate", "publication_asset", "editable_source"],
+        "properties": {
+          "figure_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+          "publication_role": {"enum": ["main", "supplementary", "omit"]},
+          "editorial_rationale": {"type": "string", "minLength": 8},
+          "claim_coverage": {"type": "object"},
+          "assembly_status": {"enum": ["included_main", "included_supplementary", "omitted"]},
+          "display_number": {"type": ["string", "null"]},
+          "selected_candidate": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+          "publication_asset": {
+            "oneOf": [
+              {"type": "null"},
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["path", "source_sha256", "assembled_sha256"],
+                "properties": {
+                  "path": {"type": "string", "minLength": 1},
+                  "source_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+                  "assembled_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+                }
+              }
+            ]
+          },
+          "editable_source": {"type": ["object", "null"]}
+        }
+      }
+    }
+  }
+}

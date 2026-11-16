@@ -2,26 +2,32 @@
   "name": "@synsci/docs",
   "private": true,
   "type": "module",
-  "version": "2.0.51",
+  "version": "2.0.153",
   "license": "Apache-2.0",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "bun run export && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && bun script/prerender.ts && rm -rf dist-ssr",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "catalog": "bun --no-env-file script/catalog.ts",
+    "check": "bun --no-env-file script/catalog.ts --check && bun --no-env-file script/check.ts && bun --no-env-file script/examples.ts",
+    "export": "bun script/export.ts",
+    "test": "bun test ./test",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
-    "lucide-react": "^0.453.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "lucide-react": "^0.577.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "react-markdown": "^9.0.1",
     "remark-gfm": "^4.0.0"
   },
   "devDependencies": {
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "typescript": "^5.6.3",
-    "vite": "^6.0.5"
+    "typescript": "^5.9.3",
+    "vite": "^6.4.5",
+    "@playwright/test": "1.64.1"
   }
 }

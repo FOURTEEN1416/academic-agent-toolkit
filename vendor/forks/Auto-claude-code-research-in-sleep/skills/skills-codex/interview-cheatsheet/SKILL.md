@@ -2,12 +2,23 @@
 name: interview-cheatsheet
 description: "Generate a long-form Chinese interview-prep cheat sheet on a specific ML/LLM topic — formulas with derivations, from-scratch PyTorch code, comparison tables, and 25 高频面试题 (L1 必会 / L2 进阶 / L3 顶级 lab). Use when the user says '写面试 cheat sheet', '写一份 X 教程', '帮我准备 Y 面试题', '出一份 X 速查', or wants a 600-1000 line Chinese tutorial on a specific ML topic."
 argument-hint: '<topic> [--effort balanced|max] [--byline "Name (姓名), Affiliation"] [--commit false]'
-allowed-tools: Bash(*), Read, Write, Edit, spawn_agent
+allowed-tools: Bash(*), Read, Write, Edit, spawn_agent, mcp__antigravity__antigravity, mcp__antigravity__antigravity-reply, mcp__grok__grok, mcp__grok__grok-reply, mcp__claude-review__review, mcp__claude-review__review_reply, mcp__claude-review__review_start, mcp__claude-review__review_reply_start, mcp__claude-review__review_status
 ---
 
 # /interview-cheatsheet — long-form Chinese ML/LLM interview prep
 
-Generate one comprehensive Chinese cheat sheet per invocation: formulas + derivations + from-scratch code + 25 高频题. Output receives fresh-agent same-family provisional math/code review before rendering. **Detect-only by default: never auto-commits.**
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
+
+Generate one comprehensive Chinese cheat sheet per invocation: formulas + derivations + from-scratch code + 25 高频题. Output receives a fresh selected math/code review before rendering; same-family positives remain provisional. **Detect-only by default: never auto-commits.**
 
 ## Inputs
 
@@ -74,9 +85,9 @@ If the topic is too broad to fit in one cheat sheet, **stop and ask the user to 
 
 Write directly to `docs/tutorials/<slug>_tutorial.md`. Follow the style guide. Length target: 600 lines (balanced) or 1000 lines (max), ±20%.
 
-### Step 3 — Fresh-agent math/code review (Codex GPT-5.6-Sol xhigh, same-family provisional)
+### Step 3 — Fresh selected math/code review (Codex default xhigh; same-family stays provisional)
 
-Invoke `spawn_agent` with `model: gpt-5.6-sol`, `reasoning_effort: xhigh`, and a fresh thread. Do not reuse prior reviewer context.
+Invoke `spawn_agent` with `model: gpt-6-astra`, `reasoning_effort: xhigh`, and a fresh thread. Do not reuse prior reviewer context.
 
 Reviewer prompt:
 
@@ -209,7 +220,7 @@ Suggest the row to the user but let them edit it in themselves if they want to c
 
 | Invariant | How it's enforced |
 |---|---|
-| Executor/reviewer family | Codex drafts; fresh gpt-5.6-sol reviews (math/code stage and render stage), same-family provisional |
+| Executor/reviewer family | Record actual executor/reviewer identities at both stages; same-family positives remain provisional |
 | Fresh agent per reviewer call | Step 3 + render's own gate both use fresh `spawn_agent` calls, not `send_input` |
 | Codex reasoning = xhigh | Hardcoded in Step 3 reviewer config |
 | Personal info redaction | Both math/code reviewer and render reviewer check; banlist in style guide |

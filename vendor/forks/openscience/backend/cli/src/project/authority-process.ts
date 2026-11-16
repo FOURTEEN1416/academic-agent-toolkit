@@ -7,6 +7,7 @@ import { DarwinResponsibility } from "@/process/darwin-responsibility"
 import { DARWIN_RESPONSIBILITY_ACTIVATION_SUFFIX } from "@/process/darwin-responsibility-launcher"
 import { WindowsJob } from "@/process/windows-job"
 import { FileLease } from "@/util/file-lease"
+import { lazy } from "@synsci/util/lazy"
 
 /**
  * Durable ownership for project-authorized processes that otherwise exist only
@@ -91,10 +92,16 @@ export namespace AuthorityProcessLedger {
       throw error
     })
     if (text === undefined) return []
-    const parsed: unknown = JSON.parse(text)
-    if (!Array.isArray(parsed) || !parsed.every(valid)) {
-      throw new Error(`Authority process ledger ${filepath} is corrupt; refusing unsafe process revocation`)
+    // Syntax and schema corruption both refuse revocation with the ledger path.
+    const corrupt = (cause?: unknown) =>
+      new Error(`Authority process ledger ${filepath} is corrupt; refusing unsafe process revocation`, { cause })
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(text)
+    } catch (error) {
+      throw corrupt(error)
     }
+    if (!Array.isArray(parsed) || !parsed.every(valid)) throw corrupt()
     return parsed
   }
 
@@ -193,31 +200,40 @@ export namespace AuthorityProcessLedger {
     return result
   }
 
-  async function darwinProcess(pid: number) {
-    if (process.platform !== "darwin") return
-    const { dlopen, FFIType, ptr } = await import("bun:ffi")
-    const lib = dlopen("/usr/lib/libproc.dylib", {
+  // Opened once for the process lifetime: identity()/owns() back every
+  // ownership poll, and a dlopen/dlclose pair per call is measurable.
+  const libproc = lazy(async () => {
+    const ffi = await import("bun:ffi")
+    const lib = ffi.dlopen("/usr/lib/libproc.dylib", {
       proc_pidinfo: {
-        args: [FFIType.i32, FFIType.i32, FFIType.u64, FFIType.ptr, FFIType.i32],
-        returns: FFIType.i32,
+        args: [ffi.FFIType.i32, ffi.FFIType.i32, ffi.FFIType.u64, ffi.FFIType.ptr, ffi.FFIType.i32],
+        returns: ffi.FFIType.i32,
       },
     })
-    try {
-      // PROC_PIDTBSDINFO. The public proc_bsdinfo ABI is 136 bytes on all
-      // supported 64-bit macOS architectures; its final two uint64 fields are
-      // start time with microsecond precision. This avoids ps(1)'s one-second
-      // start-time granularity, which is insufficient for PID-reuse safety.
-      const info = Buffer.alloc(136)
-      const size = lib.symbols.proc_pidinfo(pid, 3, 0n, ptr(info), info.length)
-      if (size !== info.length || info.readUInt32LE(12) !== pid) return
-      return {
-        ppid: info.readUInt32LE(16),
-        pgid: info.readUInt32LE(100),
-        startedSeconds: info.readBigUInt64LE(120),
-        startedMicroseconds: info.readBigUInt64LE(128),
-      }
-    } finally {
-      lib.close()
+    // Keep the Library itself reachable: Bun closes the dlopen handle when the
+    // Library object is collected, which would leave the memoized symbol
+    // pointing into an unloaded image and crash the next call.
+    return { library: lib, ptr: ffi.ptr }
+  })
+
+  async function darwinProcess(pid: number) {
+    if (process.platform !== "darwin") return
+    const lib = await libproc().catch((error) => {
+      libproc.reset()
+      throw error
+    })
+    // PROC_PIDTBSDINFO. The public proc_bsdinfo ABI is 136 bytes on all
+    // supported 64-bit macOS architectures; its final two uint64 fields are
+    // start time with microsecond precision. This avoids ps(1)'s one-second
+    // start-time granularity, which is insufficient for PID-reuse safety.
+    const info = Buffer.alloc(136)
+    const size = lib.library.symbols.proc_pidinfo(pid, 3, 0n, lib.ptr(info), info.length)
+    if (size !== info.length || info.readUInt32LE(12) !== pid) return
+    return {
+      ppid: info.readUInt32LE(16),
+      pgid: info.readUInt32LE(100),
+      startedSeconds: info.readBigUInt64LE(120),
+      startedMicroseconds: info.readBigUInt64LE(128),
     }
   }
 
@@ -439,7 +455,7 @@ export namespace AuthorityProcessLedger {
     }
 
     if (
-      entry.kind === "kernel" &&
+      (entry.kind === "kernel" || (entry.kind === "pty" && entry.containment === "linux_subreaper_v1")) &&
       (entry.containment === "linux_subreaper_v1" || entry.containment === "darwin_responsibility_v1")
     ) {
       const live = await owns(entry.pid, entry.identity)

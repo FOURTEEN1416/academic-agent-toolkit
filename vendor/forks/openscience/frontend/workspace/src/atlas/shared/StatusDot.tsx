@@ -1,6 +1,6 @@
 import { type JSX } from "solid-js"
 
-export type StatusKind = "active" | "pending" | "error" | "done" | "muted"
+type StatusKind = "active" | "pending" | "error" | "done" | "muted"
 
 interface StatusDotProps {
   status: StatusKind

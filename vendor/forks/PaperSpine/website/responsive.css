@@ -15,7 +15,8 @@
   .site-header nav { display: none; }
   .release-chip { grid-column: 2; }
 
-  .hero { grid-template-columns: 1fr; min-height: 100svh; padding-top: calc(var(--header-h) + 58px); }
+  .hero { grid-template-columns: 1fr; min-height: 100svh; padding-top: calc(var(--header-h) + 42px); }
+  .hero-banner { grid-column: 1; }
   .hero-copy { grid-column: 1; padding: 20px 0 14px; }
   .hero-index { grid-column: 1; max-width: 620px; }
   .hero-grid { background-size: calc((100vw - 2 * var(--page-pad)) / 6) 82px; }
@@ -24,8 +25,9 @@
   .install-section-copy { position: static; grid-column: 1; min-width: 0; max-width: 720px; }
   .install-card { grid-column: 1; min-width: 0; }
 
-  .premise, .release, .github, .community, .faq-section { grid-template-columns: 1fr; }
+  .premise, .release, .github, .community, .faq-section, .promo { grid-template-columns: 1fr; }
   .premise { gap: 42px; }
+  .promo { gap: 42px; }
   .section-label { margin-bottom: 20px; }
   .premise-note { max-width: 620px; }
   .workspace-preview { grid-column: 1; margin-top: 18px; }
@@ -61,13 +63,14 @@
   .site-header { padding: 0 var(--page-pad); }
   .wordmark { gap: 7px; font-size: 17px; }
   .wordmark img { width: 24px; height: 24px; }
-  .release-chip { font-size: 8px; }
+  .release-chip { display: none; }
   .paper-section, .install-section, .why-section, .workflow, .evidence, .github, .closing, .faq-section { padding: 84px var(--page-pad); }
 
   .hero { gap: 26px; padding-bottom: 92px; }
+  .hero-banner { margin-inline: calc(var(--page-pad) * -1); border-inline: 0; }
   .hero-copy { padding-top: 12px; }
-  .hero-copy h1 { font-size: clamp(52px, 15vw, 76px); line-height: .98; }
-  .hero-lede { font-size: 17px; line-height: 1.78; }
+  .hero-copy h1 { font-size: clamp(38px, 11vw, 54px); line-height: 1.02; }
+  .hero-lede { font-size: 16px; line-height: 1.8; }
   .hero-proof { display: grid; grid-template-columns: 1fr; }
   .hero-proof span { width: max-content; }
   .hero-actions { align-items: flex-start; flex-direction: column; }
@@ -94,6 +97,9 @@
   .workspace-preview figcaption { display: block; min-height: auto; padding: 11px 12px; line-height: 1.6; }
   .workspace-preview figcaption span { display: block; }
   .workspace-preview figcaption span + span { margin-top: 4px; }
+  .promo-player figcaption { display: block; min-height: auto; padding: 11px 12px; line-height: 1.6; }
+  .promo-player figcaption span { display: block; }
+  .promo-player figcaption span + span { margin-top: 4px; }
   .workspace-placeholder { min-height: 360px; }
   .media-placeholder::before { inset: 16px; }
   .placeholder-copy b { font-size: clamp(28px, 9vw, 42px); }

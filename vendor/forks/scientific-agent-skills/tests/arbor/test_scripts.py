@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -202,6 +203,30 @@ class EvidenceTests(ArborRunTestCase):
         )
         self.assertEqual(self.tree["nodes"]["n2"]["status"], "pruned")
 
+    def test_invalid_evidence_status_leaves_all_persisted_state_unchanged(self) -> None:
+        self.run_command("set-evidence", "--node", "n2", "--dev-score", "0.4",
+                         "--result", "original result")
+        state_path = self.run_dir / ".arbor" / "tree.json"
+        before = state_path.read_bytes()
+        for status in ("inprogress", ""):
+            with self.subTest(status=status):
+                with self.assertRaisesRegex(SystemExit, "status must be one of"):
+                    self.run_command(
+                        "set-evidence", "--node", "n2", "--dev-score", "0.9",
+                        "--result", "replacement", "--insight", "new lesson",
+                        "--branch-ref", "new-branch", "--status", status,
+                    )
+                self.assertEqual(state_path.read_bytes(), before)
+        out, _ = self.run_command("observe")
+        self.assertIn("n2 [executed]", out)
+        self.run_command("validate")
+
+    def test_set_evidence_accepts_every_supported_status(self) -> None:
+        for status in sorted(arbor_tree.VALID_STATUS):
+            with self.subTest(status=status):
+                self.run_command("set-evidence", "--node", "n2", "--status", status)
+                self.assertEqual(self.tree["nodes"]["n2"]["status"], status)
+
     def test_a_partial_update_leaves_untouched_fields_alone(self) -> None:
         self.run_command(
             "set-evidence",
@@ -305,12 +330,15 @@ class PruneTests(ArborRunTestCase):
 
 
 class MergeGateTests(ArborRunTestCase):
-    def _prepare(self, direction: str = "max") -> None:
+    def _prepare(self, direction: str = "max", baseline: float | None = None) -> None:
         self.init(metric_direction=direction)
+        if baseline is None:
+            baseline = 0.5 if direction == "max" else 1.0
+        self.run_command("baseline", "--test-score", str(baseline), "--branch-ref", "baseline-commit")
         self.run_command("add-node", "--parent", "n0", "--hypothesis", "direction")
         self.run_command("add-node", "--parent", "n0", "--hypothesis", "rival")
 
-    def test_the_first_candidate_always_passes(self) -> None:
+    def test_the_first_candidate_passes_when_it_beats_the_baseline(self) -> None:
         self._prepare()
         out, _ = self.run_command(
             "merge", "--node", "n1", "--test-score", "0.7", "--branch-ref", "wt/n1"
@@ -320,6 +348,7 @@ class MergeGateTests(ArborRunTestCase):
         self.assertEqual(self.run_config["best_test_score"], 0.7)
         self.assertEqual(self.run_config["best_branch_ref"], "wt/n1")
         self.assertEqual(self.tree["nodes"]["n1"]["status"], "merged")
+        self.assertEqual(self.tree["nodes"]["n1"]["metadata"]["branch_ref"], "wt/n1")
 
     def test_a_worse_candidate_is_rejected_and_leaves_m_best_alone(self) -> None:
         self._prepare()
@@ -355,10 +384,57 @@ class MergeGateTests(ArborRunTestCase):
         self.assertEqual(self.run_config["best_branch_ref"], "wt/from-evidence")
 
     def test_a_negative_score_can_still_be_the_first_best(self) -> None:
-        # `better()` special-cases only `old is None`, not falsiness.
-        self._prepare()
+        self._prepare(baseline=-4.0)
         self.run_command("merge", "--node", "n1", "--test-score", "-3.5")
         self.assertEqual(self.run_config["best_test_score"], -3.5)
+
+    def test_a_first_candidate_worse_than_the_baseline_is_rejected(self) -> None:
+        self._prepare()
+        out, _ = self.run_command("merge", "--node", "n1", "--test-score", "0.4")
+        self.assertIn("MERGE GATE REJECTED", out)
+        self.assertEqual(self.run_config["best_node"], "n0")
+        self.assertEqual(self.run_config["best_test_score"], 0.5)
+        self.assertEqual(self.tree["nodes"]["n0"]["status"], "root")
+
+    def test_missing_baseline_cannot_silently_admit_a_candidate(self) -> None:
+        self.init()
+        self.run_command("add-node", "--parent", "n0", "--hypothesis", "h")
+        before = self.tree, self.run_config
+        with self.assertRaisesRegex(SystemExit, "tree.py baseline"):
+            self.run_command("merge", "--node", "n1", "--test-score", "0.4")
+        self.assertEqual((self.tree, self.run_config), before)
+
+    def test_baseline_cannot_be_replaced_after_recording(self) -> None:
+        self._prepare(baseline=0.0)
+        before = self.tree, self.run_config
+        with self.assertRaisesRegex(SystemExit, "already recorded"):
+            self.run_command("baseline", "--test-score", "-1", "--branch-ref", "other")
+        self.assertEqual((self.tree, self.run_config), before)
+        self.run_command("validate")
+
+    def test_root_cannot_be_promoted_as_an_experiment(self) -> None:
+        self._prepare()
+        with self.assertRaisesRegex(SystemExit, "root stores"):
+            self.run_command("merge", "--node", "n0", "--test-score", "0.9")
+
+    def test_nonfinite_baseline_leaves_the_run_unscored(self) -> None:
+        self.init()
+        before = self.tree, self.run_config
+        for value in ("nan", "inf", "-inf"):
+            with self.subTest(value=value):
+                with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                    self.run_command("baseline", f"--test-score={value}", "--branch-ref", "base")
+                self.assertEqual((self.tree, self.run_config), before)
+
+    def test_nonfinite_scores_never_mutate_state(self) -> None:
+        self._prepare()
+        before = self.tree, self.run_config
+        for value in ("nan", "inf", "-inf"):
+            for command, flag in (("merge", "test-score"), ("set-evidence", "dev-score")):
+                with self.subTest(command=command, value=value):
+                    with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                        self.run_command(command, "--node", "n1", f"--{flag}={value}")
+                    self.assertEqual((self.tree, self.run_config), before)
 
 
 class CycleTests(ArborRunTestCase):
@@ -415,6 +491,7 @@ class ValidateTests(ArborRunTestCase):
             self.run_command("validate")
 
     def test_a_merged_best_node_validates(self) -> None:
+        self.run_command("baseline", "--test-score", "0.5", "--branch-ref", "baseline-commit")
         self.run_command("merge", "--node", "n1", "--test-score", "0.9")
         out, _ = self.run_command("validate")
         self.assertIn("OK", out)
@@ -422,6 +499,31 @@ class ValidateTests(ArborRunTestCase):
 
 
 class ProjectionTests(ArborRunTestCase):
+    def test_each_observe_list_uses_numeric_node_order(self) -> None:
+        self.init()
+        ids = [f"n{i}" for i in range(1, 13)]
+        for nid in ids:
+            self.run_command("add-node", "--parent", "n0", "--hypothesis", f"idea {nid}")
+        for status in ("running", "executed", "pruned"):
+            with self.subTest(status=status):
+                for nid in ids:
+                    self.run_command("set-status", "--node", nid, "--status", status)
+                before = self.tree
+                out, _ = self.run_command("observe")
+                self.assertEqual(re.findall(r"^\s+(n\d+)\b", out, re.MULTILINE), ids)
+                self.assertEqual(self.tree, before)
+
+    def test_status_preserves_depth_first_order_with_numeric_siblings(self) -> None:
+        self.init()
+        for i in range(11):
+            self.run_command("add-node", "--parent", "n0", "--hypothesis", f"idea {i}")
+        self.run_command("add-node", "--parent", "n2", "--hypothesis", "nested idea")
+        before = self.tree
+        out, _ = self.run_command("status")
+        ids = re.findall(r"^\s*\[.\] (n\d+)\b", out, re.MULTILINE)
+        self.assertEqual(ids, ["n0", "n1", "n2", "n12", *[f"n{i}" for i in range(3, 12)]])
+        self.assertEqual(self.tree, before)
+
     def test_observe_reports_the_objective_and_every_node(self) -> None:
         self.init(objective="Reduce inference latency")
         self.run_command("add-node", "--parent", "n0", "--hypothesis", "quantise weights")

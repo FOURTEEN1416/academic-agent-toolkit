@@ -1,0 +1,50 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width"><title>PaperSpine 论文工作台</title>
+<link rel="stylesheet" href="/product-v1.css"></head><body><main>
+<header><div class="brand"><img src="/assets/brand/paperspine-mark.svg" alt="" aria-hidden="true"><h1>PaperSpine 论文工作台</h1></div><nav aria-label="任务导航"><a href="/">打开完整工作台</a> · <a href="#materials-card">材料清单</a> · <a href="#configuration-card">设置</a> · <a href="#figures-card">图件</a> · <a href="#findings-card">审核</a> · <a href="#delivery-card">交付</a> · <a href="/help">帮助</a></nav><p class="muted">这是同一 PaperSpine Skill 任务的用户界面：网页只承接当前节点配置、作者选择、结果查看和审阅反馈；任务创建、材料授权、研究写作与阶段推进由宿主 Agent 完成。</p><div id="status">正在读取论文任务…</div></header>
+<div id="operation-message" role="alert" aria-live="assertive" hidden></div>
+<section class="card" id="welcome" hidden><h2>等待宿主 Agent 打开任务</h2>
+<p>任务由宿主 Agent 创建并推进。网页只承接当前节点配置、作者选择、结果查看和审阅反馈；请从宿主 Agent 打开同一任务链接。</p><h3>最近论文</h3><div id="recent-tasks" aria-live="polite">正在读取最近任务…</div></section>
+<section class="card" id="overview-card" hidden><p class="eyebrow">当前论文任务</p><h2 id="task-title">正在读取</h2><p id="task-description" class="muted"></p><p id="task-identity" class="muted"></p><p id="task-next-step" role="status"></p><ol id="stages"></ol><p id="stage-copy" class="muted"></p><div id="task-counts" class="task-counts"></div></section>
+<section class="card task-only" id="runner-controls-card" hidden aria-hidden="true"><h2>论文流程执行</h2><p class="muted">流程执行由宿主 Agent 完成。</p><button id="runner-bootstrap" type="button" hidden disabled>初始化论文流程</button><button id="runner-resume" type="button" hidden disabled>从当前阶段继续</button><span id="runner-control-status" class="muted" role="status"></span></section>
+<section class="card" id="materials-card" hidden><h2>材料清单</h2><p id="task-reference"></p>
+<form id="materials-form" hidden aria-hidden="true"><label>材料文件夹的完整路径 <input id="material-path" required></label>
+<label><input id="material-consent" type="checkbox" required>我有权使用这些材料，允许本任务在本机只读使用</label><button>授权本地材料</button></form>
+<p id="material-message" aria-live="polite">只选择本篇论文需要的材料。此操作不授权对外上传。完成后请回到原 Agent，要求它继续同一任务。</p>
+<button id="retry-materials" type="button" hidden>核对并重试原材料请求</button>
+<div id="material-grants"></div><p id="inventory-summary" class="muted"></p>
+<details id="material-list-panel"><summary>查看完整材料清单</summary><label>筛选文件 <input id="material-filter" type="search" placeholder="输入文件名或路径"></label><div class="table-scroll"><table id="material-files" hidden><caption>当前任务实际材料文件</caption><thead><tr><th>文件</th><th>大小</th><th>只读授权</th><th>读取状态</th></tr></thead><tbody></tbody></table></div></details>
+<ul id="inventory-issues"></ul></section>
+<section class="card" id="additional-materials-card" hidden aria-hidden="true"><h2>补充材料</h2>
+<form id="additional-materials-form" hidden aria-hidden="true"><label>补充材料文件夹的完整路径 <input id="additional-material-path"></label>
+<label><input id="additional-material-consent" type="checkbox">我有权使用这些补充材料，允许本任务在本机只读使用</label>
+<button type="submit">登记并重新盘点</button></form>
+<p id="additional-material-message" class="muted">补充材料会加入当前任务并标记相关成果需要重新核对，不会删除已有决定或文件。</p>
+<button id="retry-additional-materials" type="button" hidden>核对并重试原补充材料请求</button></section>
+<section class="card" id="configuration-card" hidden><h2>论文任务设置</h2>
+<p>告诉 PaperSpine 你知道的，其余可以留给 AI 研究。</p>
+<form id="config-form" data-endpoint="/api/v1/tasks/{task_id}/configuration">
+<div class="form-grid">
+<label>要做什么<select id="workflow"><option value="build_from_materials">从材料构建论文</option><option value="rewrite_existing">重写现有稿件</option><option value="audit">审计论文</option><option value="review">评审论文</option><option value="revise">修回论文</option><option value="transfer">转投适配</option></select></label>
+<label>成果类型<select id="scene"><option value="journal">期刊论文</option><option value="conference">会议论文</option><option value="report">报告</option><option value="review">综述</option><option value="competition">竞赛材料</option><option value="other">其他</option></select></label>
+<label>本次完成范围<select id="requested-scope"><option value="local_delivery">本地论文与 PDF/Word 交付</option><option value="manuscript">仅完整论文稿</option><option value="submission_package">投稿包（作者事实仍须本人确认）</option></select></label>
+<label>目标是否确定<select id="target-status"><option value="unknown">还不知道，请 AI 研究</option><option value="known">已经确定</option></select></label>
+<label>目标期刊 / 会议名称<input id="target-name" placeholder="例如：Bioinformatics；尚未确定可留空" disabled></label>
+<label>输出语言<select id="output-language"><option value="en">English</option><option value="zh">中文</option><option value="multilingual">多语言</option><option value="other">其他</option></select></label></div>
+<fieldset><legend>需要的本地交付物</legend><label><input id="deliverable-pdf" type="checkbox" checked>PDF</label><label><input id="deliverable-word" type="checkbox" checked>Word</label><label><input id="deliverable-latex" type="checkbox" checked>LaTeX</label></fieldset>
+<details open><summary>网络、隐私、预算与表达设置</summary>
+<div class="form-grid"><label><span>允许联网查期刊与文献</span><input id="allow-network" type="checkbox"></label><label><span>允许外部服务处理材料</span><input id="allow-external-processing" type="checkbox"></label><label>作者表达恢复<select id="author-voice-restoration"><option value="off">暂不启用</option><option value="standard">标准</option><option value="strict">严格</option></select></label><label>协作方式<select id="interaction-mode" disabled><option value="guided">逐项确认</option><option value="delegated_local_test">已存在本地代决策授权</option></select></label></div>
+<div class="form-grid"><label>时间预算（分钟）<input id="budget-time" type="number" min="0"></label><label>Token 预算<input id="budget-token" type="number" min="0"></label><label>成本预算<input id="budget-cost" type="number" min="0" step="0.01"></label></div>
+<dl id="preserved-settings"></dl><p>外部上传始终禁用；动机和图件仍由你确认。修改这些设置只影响后续执行，不会扩大材料授权。</p></details>
+<p id="config-message" aria-live="polite"></p><p id="config-readonly-note" class="muted" hidden>配置属于已完成阶段，只读查看；由宿主 Agent 推进下一阶段。</p><button id="save-configuration">保存设置</button><button id="retry-configuration" type="button" hidden>核对并重试原设置请求</button>
+</form></section>
+<section class="card" id="recovery-card" hidden aria-hidden="true"><h2>继续论文工作</h2><p id="recovery-message"></p><button id="continue-work" hidden disabled>继续</button></section>
+<section class="card task-only" id="host-card" hidden><h2>回到当前 Agent 继续</h2><p>研究、写作和作图由原宿主中的 Agent 完成。将下列指引带回同一对话，沿用已保存的材料、配置和任务；无需重新登录或另建任务。</p><label>同一任务的续作指引<textarea id="host-handoff" rows="5" readonly></textarea></label><button id="copy-handoff" type="button">复制续作指引</button><button id="refresh-task" type="button">刷新任务进度</button><p id="handoff-status" class="muted" aria-live="polite">准备指引不等于已经启动 AI。</p></section>
+<section class="card task-only" id="workflow-files-card" hidden><h2>Skill 工作流文件</h2><p id="workflow-files-summary" class="muted">这些文件是原 PaperSpine Skill 与网页共用的同一任务状态。</p><div id="workflow-files"></div><button id="open-package" type="button">打开论文工作包目录</button><p id="open-package-status" class="muted" aria-live="polite"></p><form id="feedback-upload-form"><label>上传用户建议或审稿意见 <input id="feedback-file" type="file" accept=".md,.txt,.text"></label><button type="submit">写入同一任务并请求修回</button><p id="feedback-upload-status" class="muted" aria-live="polite"></p></form></section>
+<section class="card task-only" hidden><h2>需要你的选择</h2><div id="decisions"><p class="muted">暂无待确认选择。</p></div></section>
+<section class="card task-only" id="artifacts-card" hidden><h2>论文、图件与下载</h2><p class="muted">当前成果与历史版本分开展示；可下载不代表已通过科研或投稿审核。</p><div id="artifacts"><p class="muted">尚无可读文件。</p></div></section>
+<section class="card task-only" id="delivery-card" hidden><h2>本地交付检查</h2><p id="delivery-summary" class="muted">正在读取交付清单…</p><ul id="delivery-issues"></ul></section>
+<section class="card task-only" id="figures-card" hidden><h2>图件预览与比较</h2><p id="figures-summary" class="muted">正在读取图件信息…</p><button id="copy-figure-handoff" type="button">把图件修改意见带回宿主 Agent</button><span id="figure-handoff-status" class="muted" role="status"></span><div id="figures"></div></section>
+<section class="card task-only" id="findings-card" hidden><h2>独立审核与修回</h2><div id="findings"><p class="muted">尚无审核问题。</p></div><details id="revision-request-panel"><summary>完成后的修改意见</summary><p id="revision-availability" class="muted"></p><form id="revision-request-form"><label>修改范围<select id="revision-request-scope"><option value="manuscript">正文、引用与排版</option><option value="figures">图件内容</option><option value="figure_mapping">图件来源与映射</option></select></label><label>修改意见<textarea id="revision-request-feedback" rows="4" maxlength="8000" placeholder="指出需要改进的段落、引用、图件或格式" required></textarea></label><button id="revision-request-submit" type="submit">登记修回意见</button><p id="revision-request-status" class="muted" aria-live="polite"></p></form></details></section>
+<section class="card task-only" id="history-card" hidden><h2>版本与事件记录</h2><p class="muted">展示同一任务的事件时间线，便于刷新、恢复和核对网页与 Agent 是否读取了同一事实。</p><ol id="events" aria-live="polite"><li class="muted">正在读取事件记录…</li></ol></section>
+<pre id="task" aria-hidden="true"></pre></main><script src="/product-v1.js" defer></script></body></html>

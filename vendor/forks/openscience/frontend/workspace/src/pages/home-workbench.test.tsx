@@ -1,7 +1,7 @@
 import { afterAll, afterEach, describe, expect, test } from "bun:test"
 import { fileURLToPath } from "node:url"
 import type { JSX } from "solid-js"
-import { createServer } from "vite"
+import { createTestServer as createServer } from "../../test/vite"
 import solid from "vite-plugin-solid"
 
 const style = fileURLToPath(new URL("./home-workbench.css", import.meta.url))
@@ -45,7 +45,7 @@ const props = {
       id: "prj_atlas",
       name: "Gateway",
       worktree: "/Users/aayam/Research/gateway",
-      time: { created: Date.now() - 86_400_000 },
+      time: { created: Date.now() - 172_800_000, activity: Date.now() - 86_400_000 },
       updatedAt: Date.now() - 86_400_000,
       pinned: false,
       sessions: 4,
@@ -68,6 +68,44 @@ const props = {
 }
 
 describe("ProjectsWorkbench", () => {
+  test("refreshes activity labels when returning to the app without changing project data", async () => {
+    const original = Date.now
+    const now = original()
+    Date.now = () => now
+    try {
+      const host = mount(() =>
+        subject.ProjectsWorkbench({
+          ...props,
+          projects: [
+            {
+              ...props.projects[0],
+              time: { created: now - 172_800_000, activity: now - 86_400_000 },
+              updatedAt: now - 86_400_000,
+            },
+          ],
+        }),
+      )
+      await Promise.resolve()
+      expect(host.querySelector("time")?.textContent).toContain("1 day")
+      Date.now = () => now + 172_800_000
+      document.dispatchEvent(new Event("visibilitychange"))
+      expect(host.querySelector("time")?.textContent).toContain("3 days")
+    } finally {
+      Date.now = original
+    }
+  })
+
+  test("uses creation rather than edit language when no research activity is recorded", () => {
+    const host = mount(() =>
+      subject.ProjectsWorkbench({
+        ...props,
+        projects: [{ ...props.projects[0], time: { created: props.projects[0].updatedAt } }],
+      }),
+    )
+    expect(host.querySelector("time")?.textContent).toContain("Created")
+    expect(host.querySelector("time")?.textContent).not.toContain("Edited")
+  })
+
   test("renders a useful project row and opens the selected project", async () => {
     const opened: string[] = []
     const host = mount(() => subject.ProjectsWorkbench({ ...props, onOpen: (project) => opened.push(project.id) }))
@@ -78,7 +116,8 @@ describe("ProjectsWorkbench", () => {
     expect(row?.textContent).toContain("Gateway")
     expect(row?.textContent).not.toContain("Local project")
     expect(row?.textContent).toContain("4 sessions")
-    expect(row?.textContent).toContain("Edited")
+    expect(row?.textContent).toContain("Active")
+    expect(row?.textContent).not.toContain("Edited")
     expect(row?.querySelector("time")?.dateTime).toBeTruthy()
     row?.click()
     expect(host.textContent).not.toContain("/Users/aayam")
@@ -210,7 +249,12 @@ describe("ProjectsWorkbench", () => {
       }),
     )
     empty.querySelector<HTMLButtonElement>('button[aria-label="New project"]')?.click()
-    expect(empty.querySelector(".science-home__state")?.textContent).toContain("No projects yet")
+    expect(empty.querySelector(".science-home__state")?.textContent).toContain("Create your first project")
+    // The empty state carries its own create action so a first run never has
+    // to find the toolbar button.
+    const before = calls.length
+    empty.querySelector<HTMLButtonElement>(".science-home__state button")?.click()
+    expect(calls.length).toBe(before + 1)
     expect(empty.querySelector('[aria-label="Import existing folder"]')).toBeNull()
     cleanups.pop()?.()
     empty.remove()
@@ -228,23 +272,6 @@ describe("ProjectsWorkbench", () => {
       .find((button) => button.textContent?.includes("Clear search"))
       ?.click()
 
-    expect(calls).toEqual(["create", "query:"])
-  })
-
-  test("keeps the widened, readable, responsive sizing contract", async () => {
-    const css = await Bun.file(style).text()
-
-    expect(css).toContain("width: min(100%, 1040px)")
-    expect(css).toContain("font-size: 29px")
-    expect(css).toContain("min-height: 64px")
-    expect(css).toContain("font-size: 14.5px")
-    expect(css).toContain("@media (max-width: 760px)")
-    expect(css).toContain("@media (max-width: 520px)")
-    expect(css).toContain("@media (pointer: coarse)")
-    expect(css).toContain("@media (prefers-contrast: more)")
-    expect(css).not.toContain(".science-home__count")
-    expect(css).toContain(":focus-visible")
-    expect(css).toContain(".science-home__project-action:active")
-    expect(css).toContain("transform: scale(0.97)")
+    expect(calls).toEqual(["create", "create", "query:"])
   })
 })

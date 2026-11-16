@@ -13,8 +13,10 @@ import type { Model, Provider } from "@synsci/sdk/v2"
 
 import type { BunShell } from "./shell.js"
 import { type ToolDefinition } from "./tool.js"
+import type { Connector } from "./connector.js"
 
 export * from "./tool.js"
+export type * from "./connector.js"
 
 export type ProviderContext = {
   source: "env" | "config" | "custom" | "api"
@@ -29,6 +31,8 @@ export type PluginInput = {
   worktree: string
   serverUrl: URL
   $: BunShell
+  /** Aborted when this instance unloads the plugin. Older hosts may omit it. */
+  signal?: AbortSignal
 }
 
 export type Plugin = (input: PluginInput) => Promise<Hooks>
@@ -145,11 +149,15 @@ export type AuthOuathResult = { url: string; instructions: string } & (
 )
 
 export interface Hooks {
+  /** Release resources on instance shutdown or plugin invalidation. */
+  dispose?: () => Promise<void>
   event?: (input: { event: Event }) => Promise<void>
   config?: (input: Config) => Promise<void>
   tool?: {
     [key: string]: ToolDefinition
   }
+  /** Scientific sources available through science_list_dbs/search/fetch in this instance. */
+  connector?: Connector[]
   auth?: AuthHook
   /**
    * Called when a new message is received
@@ -221,5 +229,44 @@ export interface Hooks {
   "experimental.text.complete"?: (
     input: { sessionID: string; messageID: string; partID: string },
     output: { text: string },
+  ) => Promise<void>
+  /**
+   * Lines a plugin adds to every provider request for this session. `lines`
+   * are this session's facts (a compute limit, a budget's length, the checks
+   * named): they go in the `<session-context>` block on the first user
+   * message. `rules` are the instructions about those facts: they go in the
+   * system prompt, so the agent follows them as instructions. Both are part
+   * of the provider's cache prefix and must be stable for the whole session:
+   * a line that changes between steps discards the cache for the context
+   * after it. Facts that change while the model works (time used, spend,
+   * study state, one-shot reminders) go in `status`, which is appended to the
+   * conversation as a durable message when it changes. Keep each line short.
+   */
+  "env.lines"?: (
+    input: { sessionID: string; model: Model },
+    output: { lines: string[]; status: string[]; rules: string[] },
+  ) => Promise<void>
+  /**
+   * The model returned a final answer with no tool calls. A plugin may set
+   * `message` to inject it as a continuation and keep the loop running; the
+   * loop bounds how many times this can happen per turn.
+   */
+  "loop.before_finish"?: (
+    input: { sessionID: string; messageID: string; turn: string; injections: number },
+    output: { message?: string },
+  ) => Promise<void>
+  /**
+   * A repetition guard tripped: repeated text, an output-limit stall, or the
+   * same tool failing repeatedly. A plugin may set `message` to redirect the
+   * model instead of stopping; without one the loop stops as it always did.
+   */
+  "loop.guard"?: (
+    input: {
+      sessionID: string
+      kind: "text_loop" | "output_stall" | "tool_errors" | "repeated_call"
+      tool?: string
+      trips: number
+    },
+    output: { message?: string },
   ) => Promise<void>
 }

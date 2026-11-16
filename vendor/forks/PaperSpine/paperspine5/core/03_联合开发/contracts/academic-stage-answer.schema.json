@@ -1,0 +1,298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/academic-stage-answer.schema.json",
+  "title": "Issue-bound answer for one cumulative academic gate",
+  "description": "Public black-box J4-J11 input contract. Persisted issues specialize task, revision, issue and stage. Host-owned trust projections are forbidden and external action stays locked false.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "answer_id", "issue_id", "task_id", "expected_revision", "stage", "payload", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.academic-stage-answer"},
+    "schema_version": {"const": "1.0"},
+    "answer_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "issue_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "expected_revision": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "string", "pattern": "^[0-9]+$"}]},
+    "stage": {"enum": ["awaiting_research", "awaiting_contribution", "awaiting_claim_graph", "awaiting_figure_intent", "awaiting_canonical", "awaiting_review", "awaiting_package"]},
+    "payload": {
+      "type": "object",
+      "not": {
+        "anyOf": [
+          {"required": ["subject"]},
+          {"required": ["trusted_artifacts"]},
+          {"required": ["frozen_authority"]},
+          {"required": ["artifact_descriptors"]}
+        ]
+      }
+    },
+    "external_action_authorized": {"const": false}
+  },
+  "allOf": [
+    {"if": {"properties": {"stage": {"const": "awaiting_research"}}, "required": ["stage"]}, "then": {"properties": {"payload": {"$ref": "#/$defs/research_payload"}}}},
+    {"if": {"properties": {"stage": {"const": "awaiting_contribution"}}, "required": ["stage"]}, "then": {"properties": {"payload": {"$ref": "#/$defs/contribution_payload"}}}},
+    {"if": {"properties": {"stage": {"const": "awaiting_claim_graph"}}, "required": ["stage"]}, "then": {"properties": {"payload": {"$ref": "#/$defs/claim_graph_payload"}}}},
+    {"if": {"properties": {"stage": {"const": "awaiting_figure_intent"}}, "required": ["stage"]}, "then": {"properties": {"payload": {"$ref": "#/$defs/figure_intent_payload"}}}},
+    {"if": {"properties": {"stage": {"const": "awaiting_canonical"}}, "required": ["stage"]}, "then": {"properties": {"payload": {"$ref": "#/$defs/canonical_payload"}}}},
+    {"if": {"properties": {"stage": {"const": "awaiting_review"}}, "required": ["stage"]}, "then": {"properties": {"payload": {"$ref": "#/$defs/review_payload"}}}},
+    {"if": {"properties": {"stage": {"const": "awaiting_package"}}, "required": ["stage"]}, "then": {"properties": {"payload": {"$ref": "#/$defs/package_payload"}}}}
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["principal_id", "session_id", "run_id", "independence_group", "provenance_sha256", "attestation_input_id"],
+      "description": "Complete immutable actor/session attestation. The object stored under input_artifacts[attestation_input_id] must be byte-for-byte equal after canonical JSON normalization to this six-field object. provenance_sha256 is SHA-256 over only principal_id, session_id, run_id, and independence_group using UTF-8 JSON with sorted keys and compact separators, with no trailing newline. It is not the hash of the six-field attestation object.",
+      "properties": {
+        "principal_id": {"type": "string", "minLength": 1, "description": "Immutable principal identifier included in the provenance preimage."},
+        "session_id": {"type": "string", "minLength": 1, "description": "Immutable session identifier included in the provenance preimage."},
+        "run_id": {"type": "string", "minLength": 1, "description": "Immutable run identifier included in the provenance preimage."},
+        "independence_group": {"type": "string", "minLength": 1, "description": "Immutable independence boundary included in the provenance preimage. Producer and independent reviewer may not share any immutable identity field."},
+        "provenance_sha256": {"$ref": "#/$defs/sha256", "description": "sha256(UTF8(compact_sorted_json({principal_id,session_id,run_id,independence_group}))) with no LF or other trailing byte."},
+        "attestation_input_id": {"type": "string", "minLength": 1, "description": "Exact input_artifacts key containing this complete six-field attestation object."}
+      }
+    },
+    "input_artifacts": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+      "additionalProperties": {"type": "object"},
+      "description": "Actual JSON objects to persist as immutable base inputs. For each J4 sources[i].source_id=S, provide the frozen content object under key source:S unless it is already a current base artifact. sources[i].content_sha256 must equal SHA-256 of that exact object's canonical UTF-8 JSON (sorted keys, compact separators, exactly one trailing newline). Each identity attestation_input_id must name the complete equal six-field identity object here or an already-current base artifact; identity provenance uses the distinct no-trailing-newline four-field algorithm documented by $defs.identity."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "lane", "authority", "locator", "content_sha256", "retrieved_at", "effective_date", "valid_until", "officiality_verified", "supported_spans", "availability", "access_basis"],
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "lane": {"enum": ["official", "exemplar_style"]},
+        "authority": {"enum": ["official_hard", "advisory"]},
+        "locator": {"type": "string", "minLength": 1},
+        "content_sha256": {"$ref": "#/$defs/sha256", "description": "Must bind input_artifacts['source:' + source_id] or the same already-current base artifact."},
+        "retrieved_at": {"type": "string", "format": "date-time"},
+        "effective_date": {"type": "string", "format": "date"},
+        "valid_until": {"type": "string", "format": "date"},
+        "officiality_verified": {"type": "boolean"},
+        "supported_spans": {
+          "type": "array", "minItems": 1,
+          "items": {"type": "object", "additionalProperties": false, "required": ["locator", "quote_sha256"], "properties": {"locator": {"type": "string", "minLength": 1}, "quote_sha256": {"$ref": "#/$defs/sha256"}}}
+        },
+        "availability": {"enum": ["accessible", "lawful_frozen_cache", "paywalled", "unavailable"]},
+        "access_basis": {"enum": ["public", "user_provided", "lawful_cache", "none"]}
+      }
+    },
+    "research_payload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract", "schema_version", "as_of_date", "direction", "target", "network_status", "research_scope_sha256", "research_snapshot_sha256", "producer", "sources", "rules", "coverage", "challenger", "conflicts", "external_action_authorized"],
+      "properties": {
+        "contract": {"const": "paperspine5.runtime-research-bundle"}, "schema_version": {"const": "1.0"}, "as_of_date": {"type": "string", "format": "date"},
+        "direction": {"type": "object", "additionalProperties": false, "required": ["statement", "questions", "boundaries"], "properties": {"statement": {"type": "string", "minLength": 1}, "questions": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}, "boundaries": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}}},
+        "target": {"type": "object", "required": ["status"], "properties": {"status": {"enum": ["known", "unknown"]}, "target_id": {"type": "string", "minLength": 1}, "name": {"type": ["string", "null"]}}},
+        "network_status": {"enum": ["online", "offline"]},
+        "research_scope_sha256": {"$ref": "#/$defs/sha256", "description": "Runner recomputes the frozen scope; supply a 64-hex placeholder only when the current host cannot precompute it."},
+        "research_snapshot_sha256": {"$ref": "#/$defs/sha256", "description": "Runner recomputes the research snapshot and challenger binding."},
+        "producer": {"$ref": "#/$defs/identity"}, "sources": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/source"}},
+        "rules": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["rule_id", "kind", "enforcement", "statement", "effective_date", "source_ids"], "properties": {"rule_id": {"type": "string", "minLength": 1}, "kind": {"enum": ["hard", "advisory"]}, "enforcement": {"enum": ["hard", "advisory"]}, "statement": {"type": "string", "minLength": 1}, "effective_date": {"type": "string", "format": "date"}, "source_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}, "readiness_scope": {"enum": ["local_delivery", "author_only_submission"]}, "author_fact_key": {"enum": ["author_identity", "affiliation", "orcid", "funding", "conflict_of_interest", "data_availability", "code_availability", "author_contributions", "corresponding_author"]}, "evidence_locator": {"type": "string", "minLength": 1}}}},
+        "coverage": {"type": "object", "additionalProperties": false, "required": ["required_topics", "covered_topics", "source_ids"], "properties": {"required_topics": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}, "covered_topics": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}, "source_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}}},
+        "challenger": {"type": "object", "additionalProperties": false, "required": ["reviewer", "research_snapshot_sha256", "status", "objections"], "properties": {"reviewer": {"$ref": "#/$defs/identity"}, "research_snapshot_sha256": {"$ref": "#/$defs/sha256"}, "status": {"enum": ["pass", "blocked"]}, "objections": {"type": "array", "items": {"type": "object"}}}},
+        "conflicts": {"type": "array", "items": {"type": "object"}}, "material_semantic_resolution_requests": {"type": "array", "items": {"type": "object"}},
+        "input_artifacts": {"$ref": "#/$defs/input_artifacts"}, "external_action_authorized": {"const": false}
+      }
+    },
+    "contribution_candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "kind", "statement", "author_authority", "supporting_artifact_ids", "direct_competitor_source_ids", "counterevidence_artifact_ids", "limitation_ids", "boundary_statement"],
+      "properties": {
+        "candidate_id": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["contribution", "motivation", "boundary", "limitation"]},
+        "statement": {"type": "string", "minLength": 1},
+        "comparative_claim": {"type": "boolean"},
+        "author_authority": {"enum": ["project_fact", "author_intent", "external_fact", "target_policy", "scientific_truth"]},
+        "supporting_artifact_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "direct_competitor_source_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "counterevidence_artifact_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "limitation_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "boundary_statement": {"type": "string"}
+      }
+    },
+    "contribution_payload": {
+      "type": "object", "additionalProperties": false,
+      "description": "Phase 1 only. The current host prepares evidence-bound candidates but cannot submit decisions, author_identity, or confirmed_at. A separate ordinary Product Web confirmation issue is required for phase 2.",
+      "required": ["contract", "schema_version", "authority_bindings", "candidates", "external_action_authorized"],
+      "properties": {
+        "contract": {"const": "paperspine5.contribution-candidate-preparation"},
+        "schema_version": {"const": "1.0"},
+        "authority_bindings": {"type": "object", "additionalProperties": false, "required": ["direction_authority", "target_authority", "materials.source-ledger"], "properties": {"direction_authority": {"$ref": "#/$defs/sha256"}, "target_authority": {"$ref": "#/$defs/sha256"}, "materials.source-ledger": {"$ref": "#/$defs/sha256"}}},
+        "candidates": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/contribution_candidate"}},
+        "input_artifacts": {"$ref": "#/$defs/input_artifacts"},
+        "external_action_authorized": {"const": false}
+      }
+    },
+    "claim_graph_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "node_type", "statement_sha256", "source_artifact_id", "source_sha256", "locator", "status", "core"],
+      "properties": {
+        "node_id": {"type": "string", "minLength": 1},
+        "node_type": {"enum": ["claim", "evidence", "result", "citation", "limitation", "warrant", "boundary", "counterevidence"]},
+        "statement_sha256": {"$ref": "#/$defs/sha256"},
+        "source_artifact_id": {"type": "string", "minLength": 1, "description": "Exact current base or derived artifact ID containing the located statement."},
+        "source_sha256": {"$ref": "#/$defs/sha256", "description": "Exact current artifact hash. Use a zero placeholder only for Runner-derived direction_authority, target_authority, or contribution_boundary_decision; the Runner overwrites those three bindings."},
+        "locator": {"type": "string", "minLength": 1},
+        "status": {"enum": ["verified", "unsupported", "unknown", "none_found"]},
+        "core": {"type": "boolean", "description": "Set true only for a retained core claim. Every core claim needs all seven forward and inverse relation pairs."},
+        "contribution_candidate_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "claim_graph_edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "relation", "to"],
+      "description": "Exact Runner edge wire object. from_node_id/edge_type/to_node_id and other aliases are invalid. Direction is literal: forward relations start at the claim; inverse relations start at the typed support node.",
+      "properties": {
+        "from": {"type": "string", "minLength": 1, "description": "Existing source node_id."},
+        "relation": {
+          "enum": ["supported_by", "supports", "grounded_in", "grounds", "cited_context", "cited_support", "supports_context", "limited_by", "limits", "warranted_by", "warrants", "bounded_by", "bounds", "challenged_by", "challenges"],
+          "description": "Licensed typed relation. Exact pairs are claim--supported_by-->evidence/evidence--supports-->claim; claim--grounded_in-->result/result--grounds-->claim; claim--cited_context|cited_support-->citation/citation--supports_context-->claim; claim--limited_by-->limitation/limitation--limits-->claim; claim--warranted_by-->warrant/warrant--warrants-->claim; claim--bounded_by-->boundary/boundary--bounds-->claim; claim--challenged_by-->counterevidence/counterevidence--challenges-->claim."
+        },
+        "to": {"type": "string", "minLength": 1, "description": "Existing target node_id."}
+      }
+    },
+    "claim_graph_challenger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewer", "graph_snapshot_sha256", "status", "objections"],
+      "properties": {
+        "reviewer": {"$ref": "#/$defs/identity"},
+        "graph_snapshot_sha256": {"$ref": "#/$defs/sha256", "description": "Runner recomputes this binding after independent review."},
+        "status": {"enum": ["pass", "blocked"]},
+        "objections": {"type": "array", "items": {"type": "object"}}
+      }
+    },
+    "claim_graph_payload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract", "schema_version", "contribution_decision", "nodes", "edges", "producer", "challenger", "graph_snapshot_sha256", "external_action_authorized"],
+      "description": "One complete J6 graph. Each core claim needs verified reciprocal pairs to evidence, result, citation, limitation, warrant, boundary, and counterevidence. The Runner derives subject, the current contribution binding, and graph snapshot hashes.",
+      "properties": {
+        "contract": {"const": "paperspine5.claim-evidence-argument-graph"},
+        "schema_version": {"const": "1.0"},
+        "contribution_decision": {
+          "type": "object", "additionalProperties": false, "required": ["artifact_id", "sha256"],
+          "properties": {"artifact_id": {"const": "contribution_boundary_decision"}, "sha256": {"$ref": "#/$defs/sha256", "description": "Runner-derived current binding; a zero placeholder is permitted in the producer candidate."}}
+        },
+        "nodes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/claim_graph_node"}},
+        "edges": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/claim_graph_edge"}},
+        "producer": {"$ref": "#/$defs/identity"},
+        "challenger": {"$ref": "#/$defs/claim_graph_challenger"},
+        "graph_snapshot_sha256": {"$ref": "#/$defs/sha256", "description": "Runner-derived current graph hash; a zero placeholder is permitted in the producer candidate."},
+        "input_artifacts": {"$ref": "#/$defs/input_artifacts"},
+        "external_action_authorized": {"const": false}
+      }
+    },
+    "figure_asset_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "sha256", "revision_id"],
+      "description": "Exact current artifact binding. candidate_artifact_ids and bare file paths are not aliases for this object.",
+      "properties": {
+        "artifact_id": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "revision_id": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "string", "pattern": "^[0-9]+$"}], "description": "Current bound issue revision; the Runner rebinds this value before evaluation."}
+      }
+    },
+    "figure_panel_intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["panel_id"],
+      "properties": {"panel_id": {"type": "string", "minLength": 1}}
+    },
+    "figure_independent_comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewer_id", "producer_ids", "status", "reviewed_asset_hashes", "decision", "selected_sha256"],
+      "description": "Independent exact-asset comparison. reviewer_id must not equal producer_id or any producer_ids entry. comparison_artifact_id, winner, selected_candidate and similar aliases are invalid.",
+      "properties": {
+        "reviewer_id": {"type": "string", "minLength": 1},
+        "producer_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "status": {"const": "PASS"},
+        "reviewed_asset_hashes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/sha256"}, "description": "Exact set of every current and candidate asset SHA-256 in this comparison."},
+        "decision": {"enum": ["keep_original", "no_clear_winner", "redesign_wins", "candidate_wins"], "description": "redesign permits keep_original, no_clear_winner, or redesign_wins; create requires candidate_wins."},
+        "selected_sha256": {"$ref": "#/$defs/sha256", "description": "Exact SHA-256 of the selected current/candidate asset; this is the winner binding."}
+      }
+    },
+    "figure_intent_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["figure_id", "panels", "reference_plan"],
+      "description": "One non-zero J7 figure decision. reference_plan binds the current Master-frozen pre-execution plan; use candidate_assets plus independent_comparison for generated alternatives. Undocumented ID/winner aliases are rejected before revision mutation.",
+      "properties": {
+        "figure_id": {"type": "string", "minLength": 1},
+        "panels": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/figure_panel_intent"}},
+        "reference_plan": {"$ref": "#/$defs/figure_asset_binding", "description": "Exact current paperspine5.figure-reference-plan/1.0 binding frozen before candidate generation."},
+        "current_asset": {"$ref": "#/$defs/figure_asset_binding", "description": "Required by keep/redesign and must bind the ledger-owned active manuscript figure."},
+        "candidate_assets": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/figure_asset_binding"}, "description": "Required by redesign/create. Every candidate must be a current immutable artifact binding."},
+        "independent_comparison": {"$ref": "#/$defs/figure_independent_comparison", "description": "Required by redesign/create; comparison scope and winner are hash-bound."},
+        "correction_request": {"type": "object", "description": "Optional typed paperspine5.figure-correction-request/1.0 consumed by the Runner quality-evidence route."},
+        "target_size_profile": {"type": "object", "description": "Optional typed paperspine5.target-size-legibility-profile consumed by the Runner quality-evidence route."},
+        "correction_receipt_artifact_id": {"type": "string", "minLength": 1},
+        "target_size_legibility_artifact_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "figure_intent_payload": {
+      "type": "object", "additionalProperties": false, "required": ["intent"],
+      "properties": {
+        "intent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "producer_id", "decision_basis_artifact_ids", "figures"],
+          "description": "J7 figure necessity and exact-asset selection. decision_basis_artifact_ids may name only the frozen W4 authorities. Active manuscript figures require keep or redesign coverage.",
+          "properties": {
+            "mode": {"enum": ["zero", "keep", "redesign", "create"]},
+            "producer_id": {"type": "string", "minLength": 1},
+            "decision_basis_artifact_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["direction_authority", "target_authority", "claim_evidence"]}},
+            "figures": {"type": "array", "items": {"$ref": "#/$defs/figure_intent_item"}}
+          },
+          "allOf": [
+            {
+              "if": {"properties": {"mode": {"const": "zero"}}, "required": ["mode"]},
+              "then": {"properties": {"figures": {"maxItems": 0}}}
+            },
+            {
+              "if": {"properties": {"mode": {"const": "keep"}}, "required": ["mode"]},
+              "then": {"properties": {"figures": {"minItems": 1, "items": {"allOf": [{"$ref": "#/$defs/figure_intent_item"}, {"required": ["current_asset"]}]}}}}
+            },
+            {
+              "if": {"properties": {"mode": {"const": "redesign"}}, "required": ["mode"]},
+              "then": {"properties": {"figures": {"minItems": 1, "items": {"allOf": [{"$ref": "#/$defs/figure_intent_item"}, {"required": ["current_asset", "candidate_assets", "independent_comparison"]}]}}}}
+            },
+            {
+              "if": {"properties": {"mode": {"const": "create"}}, "required": ["mode"]},
+              "then": {"properties": {"figures": {"minItems": 1, "items": {"allOf": [{"$ref": "#/$defs/figure_intent_item"}, {"required": ["candidate_assets", "independent_comparison"]}]}}}}
+            }
+          ]
+        },
+        "input_artifacts": {"$ref": "#/$defs/input_artifacts"}
+      }
+    },
+    "revision_response": {
+      "type": "array", "minItems": 1,
+      "description": "J8 response to the immutable J9 objections. This records changes, never declares an objection closed; only the independent re-review may do that.",
+      "items": {"type": "object", "additionalProperties": false, "required": ["objection_id", "evidence_locator", "change_summary"], "properties": {"objection_id": {"type": "string", "minLength": 1}, "evidence_locator": {"type": "string", "minLength": 1}, "change_summary": {"type": "string", "minLength": 1}}}
+    },
+    "canonical_payload": {"type": "object", "additionalProperties": false, "required": ["canonical_bundle", "manuscript_revision"], "properties": {"canonical_bundle": {"type": "object"}, "manuscript_revision": {"type": "object"}, "revision_response": {"$ref": "#/$defs/revision_response"}, "input_artifacts": {"$ref": "#/$defs/input_artifacts"}}},
+    "revision_diff": {
+      "type": "object", "required": ["contract", "contract_version", "from_revision_id", "to_revision_id", "from_head_sha256", "to_head_sha256", "addressed_objection_ids", "changes", "artifact_changes", "external_action_authorized", "diff_sha256"],
+      "properties": {"contract": {"const": "paperspine5.revision-diff"}, "contract_version": {"const": "1.0"}, "from_revision_id": {"type": "string", "minLength": 1}, "to_revision_id": {"type": "string", "minLength": 1}, "from_head_sha256": {"$ref": "#/$defs/sha256"}, "to_head_sha256": {"$ref": "#/$defs/sha256"}, "addressed_objection_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}, "changes": {"$ref": "#/$defs/revision_response"}, "artifact_changes": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "object", "additionalProperties": false, "required": ["role", "from_artifact_id", "to_artifact_id", "from_sha256", "to_sha256"], "properties": {"role": {"enum": ["source", "pdf", "word"]}, "from_artifact_id": {"type": "string", "minLength": 1}, "to_artifact_id": {"type": "string", "minLength": 1}, "from_sha256": {"$ref": "#/$defs/sha256"}, "to_sha256": {"$ref": "#/$defs/sha256"}}}}, "external_action_authorized": {"const": false}, "diff_sha256": {"$ref": "#/$defs/sha256"}},
+      "description": "One exact prior-head to current-head revision. Host-derived to_revision_id/to_head_sha256 may use 0/all-zero transport sentinels; the Runner persists the exact rebound values. Arbitrary nonzero stale bindings are rejected."
+    },
+    "review_payload": {
+      "type": "object", "additionalProperties": false, "required": ["producer_ids", "initial_review"],
+      "properties": {"producer_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}, "initial_review": {"type": "object"}, "revision_diff": {"$ref": "#/$defs/revision_diff"}, "re_review": {"type": "object", "required": ["contract", "contract_version", "subject", "manuscript_head_sha256", "revision_diff_sha256", "reviewer_id", "status", "final_decision", "external_action_authorized", "review_sha256"], "properties": {"contract": {"const": "paperspine5.publication-re-review"}, "contract_version": {"const": "1.0"}, "status": {"enum": ["PASS", "REVISION_REQUIRED"]}, "final_decision": {"enum": ["pass", "revise"]}, "external_action_authorized": {"const": false}}}, "closure_revisions": {"type": "array", "maxItems": 0, "description": "Deprecated, empty compatibility field only. Use the consumed top-level revision_diff and re_review contracts."}, "input_artifacts": {"$ref": "#/$defs/input_artifacts"}},
+      "dependentRequired": {"revision_diff": ["re_review"], "re_review": ["revision_diff"]}
+    },
+    "package_payload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["surface_receipts", "target_obligations", "package_mapping", "author_close", "package_manifest", "predicates", "readiness_obligation_manifest", "cycle"],
+      "properties": {"surface_receipts": {"type": "array", "minItems": 1, "items": {"type": "object"}}, "target_obligations": {"type": "object"}, "package_mapping": {"type": "array", "minItems": 1, "items": {"type": "object"}}, "author_close": {"type": "array", "items": {"type": "object"}}, "package_manifest": {"type": "object"}, "current_artifacts": {"type": "object"}, "predicates": {"type": "array", "minItems": 1, "items": {"type": "object"}}, "readiness_obligation_manifest": {"type": "object"}, "cycle": {"type": "object"}, "requested_scope": {"enum": ["manuscript", "local_delivery", "submission_package"]}, "input_artifacts": {"$ref": "#/$defs/input_artifacts"}}
+    }
+  }
+}

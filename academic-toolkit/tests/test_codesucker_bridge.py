@@ -1,7 +1,7 @@
 import json
 
 from engine.quality_gates import QualityGate
-from tools.codesucker_bridge import run_source_materials
+from tools.codesucker_bridge import CORE_COMMIT, CORE_VERSION, run_source_materials
 
 
 def test_bridge_runs_vendored_backend(tmp_path):
@@ -22,7 +22,7 @@ def test_bridge_runs_vendored_backend(tmp_path):
         workspace,
     )
     assert manifest["backend"] == "vendored-codesucker-core"
-    assert manifest["coreCommit"] == "b065a1825f4e32dca4c4b7fd8bccf3e020a77c5c"
+    assert manifest["coreCommit"] == CORE_COMMIT
     assert (workspace / "source-materials" / "audit.json").is_file()
     assert len(json.loads((workspace / "source-materials" / "files.json").read_text(encoding="utf-8"))["files"]) == 1
 
@@ -47,6 +47,6 @@ def test_bridge_writes_explicit_versioned_config_and_passes_source_material_gate
     config = json.loads((workspace / "source-materials.config.json").read_text(encoding="utf-8"))
     assert config["configSchemaVersion"] == 1
     assert config["rulesVersion"] == manifest["rulesVersion"]
-    assert config["coreVersion"] == "0.4.4"
-    assert config["coreCommit"] == "b065a1825f4e32dca4c4b7fd8bccf3e020a77c5c"
+    assert config["coreVersion"] == CORE_VERSION
+    assert config["coreCommit"] == CORE_COMMIT
     assert QualityGate(workspace).check_source_materials()["ok"] is True

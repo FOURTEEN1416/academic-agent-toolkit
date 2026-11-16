@@ -165,6 +165,8 @@ For each milestone (in order), write the experiment scripts:
 
 **Skip this step if `CODE_REVIEW` is `false` or if the reviewer script fails (API key not configured).**
 
+> **`$REVIEWER_SCRIPT` 来源**：评审桥脚本路径由执行环境 / 项目 `AGENTS.md` 的评审桥配置注入（如环境中部署的 review bridge 入口脚本）。**变量未设置或脚本不可达时，直接跳过本步（降级为当前 Agent 自审），不阻塞流程**；不要为此现场安装或伪造评审服务。
+
 Before deploying, send the experiment code to the external reviewer for review:
 
 ```bash
@@ -427,23 +429,13 @@ Save to `figures/latex_includes.tex`:
 
 #### Quality check
 
-```bash
-echo "=== Output completeness check ==="
-GATE_FAIL=0
-# experiment_data.json must exist
-[ -s figures/experiment_data.json ] && echo "✅ experiment_data.json" || { echo "❌ experiment_data.json missing"; GATE_FAIL=$((GATE_FAIL+1)); }
-# experiment_results.md must exist
-[ -s experiment_results.md ] && echo "✅ experiment_results.md" || { echo "❌ experiment_results.md missing"; GATE_FAIL=$((GATE_FAIL+1)); }
-# PDF figures
-pdf_count=$(ls figures/*.pdf 2>/dev/null | wc -l)
-table_count=$(ls figures/TABLE_*.tex figures/TABLE_*.md 2>/dev/null | wc -l)
-latex_inc=$([ -s figures/latex_includes.tex ] && echo "YES" || echo "NO")
-echo "PDF figures: $pdf_count, Tables: $table_count, latex_includes: $latex_inc"
-[ "$pdf_count" -gt 0 ] && echo "✅ Figures generated" || { echo "❌ No PDF figures"; GATE_FAIL=$((GATE_FAIL+1)); }
-[ "$latex_inc" = "YES" ] && echo "✅ latex_includes.tex" || { echo "❌ latex_includes.tex missing"; GATE_FAIL=$((GATE_FAIL+1)); }
+**存在性与最低完整性检查（`figures/experiment_data.json`、`experiment_results.md`、PDF 计数、`figures/latex_includes.tex`）由引擎 `finish` 按模板中的 `output_contract` 自动核验。** 本技能正文不再重复执行存在性 bash 门（避免与 finish 双跑两套检查）；finish 返回的具体缺项按提示逐项修复即可。
 
-# ⛔⛔ Figure QUALITY gate (not just existence) — MANDATORY, exit code 0 required.
-#   Everything above only checks that files EXIST. This one checks they are GOOD:
+**图内容质量门（保留，⛔ 必跑，退出码 0 才算过）**——这是**内容质量检查**而非存在性检查，引擎 output_contract 无法替代：
+
+```bash
+# ⛔ Figure QUALITY gate (content, not existence) — MANDATORY, exit code 0 required.
+#   Checks that figures are GOOD, not just present:
 #   missing setup_style / matplotlib default blue / in-figure explanatory text /
 #   axis labels stuffed with caveats / oversized figsize.
 #
@@ -453,19 +445,9 @@ echo "PDF figures: $pdf_count, Tables: $table_count, latex_includes: $latex_inc"
 #   in-figure prose blocks shipped, longest one 118 display-width across 4 lines.
 #   Existence checks cannot catch that class of defect.
 bash _utils/figure_check.sh 2>/dev/null || bash skills/shared-scripts/figure_check.sh
-FC_RC=$?
-if [ "$FC_RC" -ne 0 ]; then
-    echo "❌ figure_check.sh exit=$FC_RC — $FC_RC CRITICAL violations must be fixed"
-    GATE_FAIL=$((GATE_FAIL+1))
-else
-    echo "✅ figure_check.sh passed"
-fi
-
-echo ""
-[ "$GATE_FAIL" -eq 0 ] && echo "✅ ALL PASSED" || echo "❌ $GATE_FAIL FAILURES — fix before proceeding"
 ```
 
-**⛔ If GATE_FAIL > 0, fix and re-run. Do NOT proceed to paper writing with missing data.**
+**⛔ If `figure_check.sh` exits non-zero, fix and re-run. Do NOT proceed to paper writing with bad figures.**
 
 ⛔⛔ **Archiving the report ≠ passing.** Fix the files/lines the report names, then
 **re-run** until exit code is 0. In the 2026-08 incident the AI ran the check, saved
@@ -508,7 +490,7 @@ Ready for next steps:
 ⛔ **File writing strategy (prevent both failure modes):**
 - For short content (<150 lines): use the **Write tool** directly (atomic, reliable)
 - For long content (>150 lines): use **Write** for the first section (ensures file exists on disk), then append remaining sections with `cat << 'EOF' >> experiment_results.md`
-- **NEVER `end_turn` without producing `experiment_results.md`** — even if upstream steps had issues, write what you have
+- 上游步骤有缺口时，把已有结果如实写入 `experiment_results.md`，不要留空文件；缺什么由 finish 核验后返回
 
 产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 

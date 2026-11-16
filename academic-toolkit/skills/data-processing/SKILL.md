@@ -1,6 +1,6 @@
 ---
 name: data-processing
-description: "Data Processing Skill——把原始数据（CSV/Excel/JSON/爬虫）变成”能直接喂给模型”的干净数据。"
+description: "Data Processing Skill——把原始数据（CSV/Excel/JSON/爬虫）变成“能直接喂给模型”的干净数据。"
 ---
 
 # Data Processing Skill
@@ -33,7 +33,7 @@ description: "Data Processing Skill——把原始数据（CSV/Excel/JSON/爬虫
 | 缺失率 < 5% | 均值/中位数/众数填充 | `df.fillna(df.mean())` |
 | 缺失率 5-30% | 回归预测填充 | `IterativeImputer` |
 | 缺失率 > 30% | 删列 or 标记为 "未知" 类别 | `df.drop(columns=...)` |
-| 时间序列 | 前向/后向填充 | `df.fillna(method='ffill')` |
+| 时间序列 | 前向/后向填充 | `df.ffill()`（pandas 2.x+；旧写法 `fillna(method='ffill')` 已弃用） |
 
 ## 异常值 3 种检测
 1. **3σ 原则**：超出均值 ±3 倍标准差
@@ -83,9 +83,9 @@ print(df.describe())
 # 缺失值
 print(df.isnull().sum())
 
-# 异常值（IQR）
-Q1 = df.quantile(0.25)
-Q3 = df.quantile(0.75)
+# 异常值（IQR）—— numeric_only=True：真实数据常含分类列，避免 quantile 抛 TypeError/弃用警告
+Q1 = df.quantile(0.25, numeric_only=True)
+Q3 = df.quantile(0.75, numeric_only=True)
 IQR = Q3 - Q1
 outliers = ((df < (Q1 - 1.5 * IQR)) | (df > (Q3 + 1.5 * IQR))).sum()
 

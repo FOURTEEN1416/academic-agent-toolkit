@@ -2,15 +2,17 @@
 
 > **Codex mirror adaptation (normative).** Resolve `evidence_check.py` through
 > `.aris/installed-skills-codex.txt` and `$ARIS_REPO/tools/`. The deterministic
-> existence check may be accepted; the fresh Codex semantic review that follows
-> is same-family and therefore provisional. Only a Claude/Gemini overlay or a
-> deterministic verifier supplies accepted assurance.
+> existence check may be accepted only for evidence existence. The default
+> fresh Codex semantic review remains same-family/provisional. Select reviewers
+> via [Selectable Reviewers](reviewer-backends.md); accepted semantic assurance
+> needs a completed positive in-scope review with known different actual model
+> families. Neither selecting a transport nor passing this pre-check supplies it.
 
 ARIS's claim audits (`/result-to-claim`, `/experiment-audit`, `/paper-claim-audit`)
 spend a semantic reviewer call to judge whether a claim is supported. In the base
-Codex mirror that call is same-family/provisional; an overlay or deterministic
-verifier is required for accepted assurance. The
-cheapest, most common integrity failure is *hallucinated evidence*: a claim cites
+Codex mirror that call is same-family/provisional. A completed positive review
+with known different actual executor/reviewer families and full scope can
+support accepted semantic assurance. The cheapest, most common integrity failure is *hallucinated evidence*: a claim cites
 a number + a source file, and the file doesn't exist or the number isn't in it.
 You should not need a model call to catch that.
 
@@ -19,7 +21,7 @@ You should not need a model call to catch that.
 ```
 stage 1  tools/evidence_check.py   deterministic · no model · fail-closed
          catches HALLUCINATION — cited path missing, or cited value not in source.
-stage 2  semantic review           fresh Codex (provisional) / overlay or deterministic (accepted)
+stage 2  semantic review           same-family (provisional) / completed positive cross-family review
          catches WRONG-BUT-REAL — the number IS in the file, but it doesn't
          support the claim.
 ```

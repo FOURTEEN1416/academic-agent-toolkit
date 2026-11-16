@@ -3,10 +3,18 @@ name: hugging-face-paper-publisher
 description: Publish and manage research papers on Hugging Face Hub. Supports creating paper pages, linking papers to models/datasets, claiming authorship, and generating professional markdown-based research articles.
 category: writing
 version: 1.0.0
-author: Synthetic Sciences
+author: Hugging Face
 license: MIT
 tags: [Hugging Face, Paper Publishing, Research, Spaces]
 dependencies: [huggingface-hub, pyyaml, requests, python-dotenv]
+metadata:
+  upstream: huggingface/skills
+  upstream-url: https://github.com/huggingface/skills
+  upstream-path: skills/huggingface-paper-publisher
+  upstream-license: Apache-2.0
+  upstream-relationship: derived
+  skill-author: Hugging Face
+  adapted-by: Synthetic Sciences
 ---
 
 # Overview

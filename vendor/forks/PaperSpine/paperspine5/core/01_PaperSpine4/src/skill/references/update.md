@@ -1,107 +1,60 @@
-# Update Stage
+# PaperSpine5 invocation checks and updates
 
-This file is the canonical update playbook for the `paper-spine` orchestrator.
-Update commands never start intake or the writing workflow.
-
-## User Commands
-
-| User intent | Action |
-|---|---|
-| `/paperspine update check` | Run a read-only, immediate version check. |
-| `/paperspine update` | Run a manual update. The explicit command authorizes installation; use `--yes`. |
-| `/paperspine auto-update on` | Opt in to launch-time automatic updates, checked at most once every 24 hours. |
-| `/paperspine auto-update on 72h` | Opt in with a custom 1-168 hour interval. |
-| `/paperspine auto-update off` | Disable automatic updates. |
-| `/paperspine auto-update status` | Show the local policy and last result without using the network. |
-
-Do not infer consent to enable automatic updates. They are disabled until the
-user runs the `on` command.
-
-## Resolve the Installed Updater
-
-Use the first existing installed path. A repository checkout may use
-`src/scripts/paperspine_update.py` directly.
-
-Windows candidates:
-
-```powershell
-$candidates = @(
-  (Join-Path $env:USERPROFILE ".codex\skills\paper-spine\scripts\paperspine_update.py"),
-  (Join-Path $env:USERPROFILE ".claude\skills\paper-spine\scripts\paperspine_update.py"),
-  (Join-Path $env:USERPROFILE ".openclaw\skills\paper-spine\scripts\paperspine_update.py"),
-  (Join-Path $env:USERPROFILE "AppData\Local\hermes\skills\academic-writing\paper-spine\scripts\paperspine_update.py")
-)
-$script = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-if (-not $script) { throw "PaperSpine updater not found. Reinstall PaperSpine." }
-```
-
-macOS / Linux candidates:
-
-```bash
-for script in \
-  "$HOME/.codex/skills/paper-spine/scripts/paperspine_update.py" \
-  "$HOME/.claude/skills/paper-spine/scripts/paperspine_update.py" \
-  "$HOME/.openclaw/skills/paper-spine/scripts/paperspine_update.py"
-do
-  [ -f "$script" ] && break
-done
-[ -f "$script" ] || { echo "PaperSpine updater not found. Reinstall PaperSpine." >&2; exit 1; }
-```
-
-## Script Mapping
-
-After resolving the script:
+Before paper production/resume, run the installed Skill's existing helper with
+its verified Python (the bundled interpreter is sufficient):
 
 ```text
-update check        -> python <script> --check-only
-manual update       -> python <script> --yes
-auto-update on      -> python <script> --enable-auto-update --interval-hours 24
-auto-update off     -> python <script> --disable-auto-update
-auto-update status  -> python <script> --auto-status
-launch preflight    -> python <script> --auto
+python -B scripts/paperspine_update.py --preflight --yes
 ```
 
-Use `python3` where `python` is unavailable. `--target
-codex|claude|openclaw|hermes` limits a manual update or records the target when
-automatic updates are enabled; the default is all four hosts.
+It checks on each invocation, continues immediately when current, and applies a
+newer full suite transactionally when available. Explicitly disabling automatic
+updates with `--disable-auto-update` remains effective. The older opt-in `--auto`
+mode retains its interval behavior. `--preflight --check-only` does not install.
+A metadata network failure may continue the existing installation with a notice;
+a corrupt package or install failure is an error, never a successful update.
 
-## Launch-Time Automatic Update Contract
+## Stable channel and platform selection
 
-On a normal PaperSpine launch, run `python <script> --auto` before intake or
-resuming a paper. This is a local no-op when automatic updates are disabled or
-the configured interval has not elapsed. When due, it checks the manifest and,
-if a newer version exists, installs it without another prompt because the user
-previously opted in.
+The automatic suite channel is:
 
-- If an update was installed, stop the current PaperSpine workflow and tell the
-  user to reload/restart the host, then invoke `/paperspine` again. Do not mix
-  instructions loaded before and after an update in one paper run.
-- If the check fails, report the warning and continue with the existing local
-  version. The updater records the error and throttles repeated launch checks.
-- Automatic update is not a background service. It runs only on PaperSpine
-  launches, so it adds no daemon, scheduler, or startup item.
+```text
+https://raw.githubusercontent.com/WUBING2023/PaperSpine/main/website/downloads/update-channel.json
+```
 
-## Safety and State
+The channel supplies separate Windows x64, Linux glibc x86_64, macOS arm64 and
+macOS x86_64 bundles. Unknown systems/architectures are rejected instead of falling
+back to the Windows ZIP. Local diagnostics can use `--source <channel.json>`,
+`--skill-root <paper-spine>` and `--control-root <updater-directory>`.
+Never substitute a developer checkout for an installed release.
 
-- Read the local version from `~/.paperspine/install_state.json` and the
-  automatic policy from `~/.paperspine/update_policy.json`.
-- Compare with the GitHub release manifest and validate the complete core
-  package before touching an installed host.
-- Update the `paper-spine` skill plus the Claude command and Codex prompt for
-  Codex, Claude Code, OpenClaw, and Hermes.
-- Replace selected host entries as one transaction; if a filesystem operation
-  fails, restore the entries changed earlier in that transaction.
-- Preserve `~/.paperspine/config.json` and every project artifact.
-- On network or package validation failure, do not delete or partially replace
-  the current installation.
-- A successful update requires a host reload before the new instructions are
-  considered active.
+The installed wrapper uses the same canonical stable bootstrap bundled with the
+Skill. Existing managed installs retain their configured update control directory.
+An older public Skill without an installed-suite pointer can migrate through this
+same transaction, preserving its previous files as a rollback backup. Paper data
+and saved profiles are not moved or cleared. After an update reread the installed
+Skill and current tool schemas. Gracefully restart a running old Web service on
+its existing profile before using the new code; do not start duplicate writers.
 
-## Offline and Advanced Use
+## Getting the patch through an old entry
 
-- `--repo-archive <path>` accepts a local repository directory or zip for
-  offline/manual verification and tests.
-- `--auto --force` bypasses the interval once but still refuses to run when
-  automatic updates are disabled.
-- Exit code `2` from `--check-only` means an update is available; it is not an
-  installation failure.
+The published `paperspine-updater/1` apply protocol remains supported. An old
+stable updater can install the new platform-specific channel (or exact ZIP plus
+SHA-256), which carries both the workflow patch and new updater. Then invoke the
+new installed `scripts/paperspine_update.py --preflight --yes` once: it also
+refreshes the external old bootstrap from the verified installed bundle, without
+redownloading when already current. Historical Linux/macOS bootstraps need the
+matching `update-channel-<platform>.json` for this first hop because they do not
+understand the new `bundles` mapping. The universal channel keeps a Windows
+compatibility `bundle` for historical Windows bootstraps.
+
+The older V4 component updater still discovers `dist/paperspine_version.json`.
+Compatibility version 4.0.1 carries the new wrapper/bootstrap; the actual V5
+product version is 0.4.0-alpha.2. These are separate version sequences. After
+that one-time component update, the preflight selects the full suite for the
+current operating system. It must not compare V5 0.4.x as a downgrade of V4 4.x.
+
+The website manifest and install.ps1/install.sh remain supported explicit
+installation/update entries. Verify manifest hashes and sizes before executing
+downloaded code. A successful installer transaction, a reloaded host and a running
+Web process are distinct observations; report only what actually ran.

@@ -9,16 +9,16 @@ metadata:
 <!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（results-backfill + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Results Back-fill
 
-Use this skill **after** `empirical-paper-writer` has produced a draft with
+Use this skill **after** `latex-paper-empirical-writer` has produced a draft with
 placeholders and the user has run experiments outside the AI session.
 
 ## When to Use
-- `empirical-paper-writer` has completed design + code + placeholder draft.
+- `latex-paper-empirical-writer` has completed design + code + placeholder draft.
 - The user has run experiments in their configured conda environment.
 - `paper/results/` contains new CSV / data files from completed experiments.
 
 ## When NOT to Use
-- The paper draft does not yet exist (use `empirical-paper-writer` first).
+- The paper draft does not yet exist (use `latex-paper-empirical-writer` first).
 - Experiments have not been run yet.
 - The user only wants experiment design without paper completion.
 
@@ -44,7 +44,7 @@ placeholders and the user has run experiments outside the AI session.
 1. **No fabrication**: Only use data from actual result files. Never invent numbers.
 2. **Verify before claiming**: Only upgrade `(hypothesis)` to factual claim when CSV data confirms the result.
 3. **Bounded claims**: Factual statements must include specific numbers from verified results (e.g., "reduces violations by 12.3%"), not vague improvements.
-4. **Dependency enforcement**: Follow the same dependency rules as `empirical-paper-writer` — never mark DONE if dependencies are not DONE/SKIP.
+4. **Dependency enforcement**: Follow the same dependency rules as `latex-paper-empirical-writer` — never mark DONE if dependencies are not DONE/SKIP.
 
 ## Workflow
 
@@ -111,23 +111,23 @@ Execute in order:
 
 ### Phase 3: Polish
 1. **RF1 — Rhythm refinement**:
-   - Apply `latex-rhythm-refiner` section-by-section.
+   - Apply `latex-paper-prose-rhythm` section-by-section.
    - Preserve all citations and verified numbers.
 
 2. **QA**:
    - Run citation audit:
      ```bash
-     python3 ../arxiv-paper-writer/scripts/citation_policy.py --project-dir <paper_dir> audit-bib
-     python3 ../arxiv-paper-writer/scripts/citation_policy.py --project-dir <paper_dir> audit-tex --issues <issues.csv>
+     python3 ../latex-paper-survey-writer/scripts/citation_policy.py --project-dir <paper_dir> audit-bib
+     python3 ../latex-paper-survey-writer/scripts/citation_policy.py --project-dir <paper_dir> audit-tex --issues <issues.csv>
      ```
    - Run issue validation with tex audit:
      ```bash
-     python3 ../empirical-paper-writer/scripts/validate_empirical_paper_issues.py <issues.csv> --audit-tex <paper_dir>/main.tex
+     python3 ../latex-paper-empirical-writer/scripts/validate_empirical_paper_issues.py <issues.csv> --audit-tex <paper_dir>/main.tex
      ```
 
 3. **Compile**:
    ```bash
-   python3 ../arxiv-paper-writer/scripts/compile_paper.py --project-dir <paper_dir> --check-warnings --fail-on-warnings
+   python3 ../latex-paper-survey-writer/scripts/compile_paper.py --project-dir <paper_dir> --check-warnings --fail-on-warnings
    ```
 
 4. Deliver `main.tex`, `ref.bib`, figures, and `main.pdf`.
@@ -141,9 +141,9 @@ Before running any script:
 
 ## Relationship to Other Skills
 ```
-paper-from-zero
+latex-paper-from-zero
     ↓ routes to
-empirical-paper-writer (design + code + placeholder draft)
+latex-paper-empirical-writer (design + code + placeholder draft)
     ↓ user runs experiments
 results-backfill (this skill: back-fill results + complete paper)
 ```

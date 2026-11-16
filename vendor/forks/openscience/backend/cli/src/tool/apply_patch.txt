@@ -32,4 +32,6 @@ It is important to remember:
 - You must include a header with your intended action (Add/Delete/Update)
 - You must prefix new lines with `+` even when creating a new file
 - Update hunks match complete physical lines. Re-read long prose or LaTeX lines before editing them; a sentence fragment is not a removable line.
+- To replace a whole existing file, use one Update File section removing its complete current contents and adding the replacement. Do not delete it in one call and recreate it later: other workers may read it between calls. On macOS/Linux, adjacent Delete File + Add File sections for the same path are also treated as a single guarded atomic replacement; platforms without atomic exchange reject that pair. Ordinary Update remains available on every platform.
+- A formatter may change the saved contents after your edit. The result records the saved content, diff and SHA-256; when it differs from your proposal, the output includes the formatting changes (or asks you to re-read a large result). Use the saved contents for the next patch.
 - If verification fails, use the reported failed-hunk number, current SHA-256, and bounded context to construct a revised patch. An unchanged duplicate is blocked, while a materially revised patch is safely preflighted again.

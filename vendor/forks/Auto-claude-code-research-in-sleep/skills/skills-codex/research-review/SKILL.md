@@ -1,28 +1,29 @@
 ---
 name: "research-review"
-description: "Get a deep critical review of research from GPT using a secondary Codex agent. Use when user says \"review my research\", \"help me review\", \"get external review\", or wants critical feedback on research ideas, papers, or experimental results."
+description: "Get a deep critical review of research from a fresh Codex agent or a selected Gemini, Grok, or Claude Code reviewer. Use when user says \"review my research\", \"help me review\", \"get external review\", or wants critical feedback on research ideas, papers, or experimental results."
 ---
 
-# Research Review via a secondary Codex agent (ultra reasoning)
+# Research Review with a Selectable Reviewer
 
 > **Codex assurance:** the fresh base reviewer is same-family. Record
 > `review_independence: same-family` and `acceptance_status: provisional` in
-> traces and deliverables. A Claude/Gemini overlay may record cross-family
-> accepted; an unavailable reviewer is BLOCKED, never a fabricated PASS.
+> traces and deliverables. A selected reviewer can record cross-family accepted
+> only after a completed, in-scope positive review with actual different model
+> families; an unavailable reviewer is BLOCKED, never a fabricated PASS.
 
 Get a multi-round critical review of research work from an external LLM with maximum reasoning depth.
 
 ## Constants
 
-- REVIEWER_MODEL = `gpt-5.6-sol` — Model used via a secondary Codex agent, reasoning effort `ultra` (deep-audit tier). Must be an OpenAI model (e.g., `gpt-5.6-sol`, `gpt-5.5`, `o3`)
-- **REVIEWER_BACKEND = `codex`** — Default: Codex ultra reviewer (deep-audit tier). Use `--reviewer: oracle-pro` only when explicitly requested; if Oracle is unavailable, warn and fall back to Codex at this skill's declared tier (`ultra`). **Same-family note:** this default reviewer is a second Codex/GPT agent — valid for Type-A completeness/drive review, but not a cross-family Type-B verdict; install a `skills-codex-claude-review` / `skills-codex-gemini-review` overlay for a cross-family acquittal (see `shared-references/reviewer-routing.md`).
+- REVIEWER_MODEL = `gpt-6-astra` — Model used via a secondary Codex agent, reasoning effort `ultra` (deep-audit tier). Must be an OpenAI model (e.g., `gpt-6-astra`, `gpt-6.1-sol`)
+- **REVIEWER_BACKEND = `codex`** — Default: a fresh Codex reviewer at the deep-audit tier (`ultra`). Resolve `— reviewer:`, project `.aris/reviewer.json`, then this default using `reviewer_route.py` (`--host codex --tier deep`), per [reviewer-backends.md](../shared-references/reviewer-backends.md). Gemini/Antigravity, Grok, and Claude Code use that contract at every call below; legacy `oracle-pro` rules remain in `reviewer-routing.md`.
 
 ## Context: $ARGUMENTS
 
 ## Prerequisites
 
-- Use `spawn_agent` and `send_input` when the user has explicitly allowed delegation or subagents.
-- If delegation is not allowed, run the same review loop locally and preserve the same deliverable structure.
+- The selected review tool must be available. Native Codex uses authorized `spawn_agent` and `send_input`; MCP routes use their own first/reply tools.
+- If the selected reviewer is unavailable, record `REVIEW_UNAVAILABLE`. The executor reviewing itself does not satisfy the fresh-reviewer requirement.
 
 ## Workflow
 
@@ -33,14 +34,17 @@ Before calling the external reviewer, compile a comprehensive briefing:
 3. Identify: core claims, methodology, key results, known weaknesses
 
 ### Step 2: Initial Review (Round 1)
-Send a detailed prompt with ultra reasoning:
+Save the resolved route and its session id/cwd. Send the following substantive
+prompt through the selected first-call tool, with primary artifact paths inside
+the review workspace. The native Codex example uses ultra reasoning:
 
 ```
 spawn_agent:
-  model: gpt-5.6-sol
+  model: gpt-6-astra
   reasoning_effort: ultra
   message: |
-    [Full research context + specific questions]
+    [Original research question, author claims, specific questions, and primary
+    artifact/raw-result paths. Read those files to check the claims yourself.]
     Please act as a senior ML reviewer (NeurIPS/ICML level). Start from the
     assumption that the work is broken somewhere — your job is to find where.
     Be adversarial. Trust nothing the author tells you — verify everything
@@ -78,7 +82,8 @@ spawn_agent:
 ```
 
 ### Step 3: Iterative Dialogue (Rounds 2-N)
-Use `send_input` with the returned agent id to continue the conversation:
+Use the selected continuation tool with the saved session id. Preserve its
+model and cwd; for native Codex this is `send_input`:
 
 ```text
 send_input:
@@ -130,12 +135,12 @@ always wins. See
 
 ### Step 6: Review Tracing
 
-Save a trace for every `spawn_agent`, `send_input`, or `oracle-pro` review call following `../shared-references/review-tracing.md`. Record the reviewer route, saved agent id, prompt summary, raw response path, decisions, and action items. This preserves the Claude mainline Review Tracing semantics while using Codex-native reviewer calls.
+Save a trace for every reviewer call following `../shared-references/review-tracing.md`. Record the resolved route, session id/cwd, requested and actual reported model/effort, prompt, raw response, decisions, and action items. Check successful completion and required file coverage before assigning a verdict. Record model-family independence and acceptance using `reviewer-backends.md`; agreement alone does not establish cross-family acceptance.
 
 ## Key Rules
 
-- ALWAYS use `model: gpt-5.6-sol` + `reasoning_effort: ultra` for reviews (deep-audit tier; capability fallback per `reviewer-routing.md`, never below `xhigh`)
-- Send comprehensive context in Round 1 — the external model cannot read your files
+- For the default Codex route, use `model: gpt-6-astra` + `reasoning_effort: ultra` (deep-audit tier; capability fallback per `reviewer-routing.md`, never below `xhigh`). Other selected routes use their resolved model/effort.
+- Provide comprehensive context and primary files in Round 1; require artifact-grounded verification. An unreadable file is missing evidence.
 - Be honest about weaknesses — hiding them leads to worse feedback
 - Push back on criticisms you disagree with, but accept valid ones
 - Focus on ACTIONABLE feedback — "what experiment would fix this?"

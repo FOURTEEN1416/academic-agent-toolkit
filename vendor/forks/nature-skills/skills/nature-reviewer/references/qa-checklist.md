@@ -1,5 +1,20 @@
 # QA checklist
 
+## Contents
+
+- [Reviewer-isolation checks](#reviewer-isolation-checks)
+- [Grounding checks](#grounding-checks)
+- [Technical coverage checks](#technical-coverage-checks)
+- [Forensic consistency checks](#forensic-consistency-checks)
+- [Severity and blocking checks](#severity-and-blocking-checks)
+- [Coverage checks](#coverage-checks)
+- [Boundary checks](#boundary-checks)
+- [Style checks](#style-checks)
+- [Non-invention checks](#non-invention-checks)
+- [Consistency checks](#consistency-checks)
+- [Overlap checks](#overlap-checks)
+- [Final release rule](#final-release-rule)
+
 ## Reviewer-isolation checks
 
 - Reviewer emphasis briefs were fixed before any report was generated.
@@ -25,6 +40,20 @@
 - The internal 12-axis matrix was considered without being dumped into the final report.
 - Each axis is marked internally as `applicable`, `not applicable`, or `not assessable`; absence of evidence is not silently treated as a defect.
 - The technical taxonomy supplements the five source-grounded Nature axes and does not create policy claims or severity statistics.
+
+## Forensic consistency checks
+
+- Run the forensic audit only after reviewer reports are frozen.
+- Confirm arithmetic identities, subgroup totals, percentages, deltas, ranges, and precision consistency.
+- Confirm metric bounds after identifying the exact metric and aggregation level.
+- Compare prose superlatives and rankings directly with table and figure values.
+- Flag duplicate rows, identical intervals, or repeated outputs that require explanation.
+- Check dispersion anomalies and influential groups without calling them errors before proof.
+- Verify training, validation, test, continuation, placebo, support, query, and exclusion provenance.
+- Check spatial, temporal, hierarchical, subject, or target leakage.
+- Require existing headline numbers to reproduce before interpreting new experiments.
+- Classify every audit result as `confirmed_internal_error`, `aggregation_ambiguity`, `provenance_gap`, `suspected_duplication`, `unresolved_input_needed`, `not_assessable`, or `passed`.
+- Keep audit findings separate from reviewer consensus and add central findings to synthesis and risk.
 
 ## Severity and blocking checks
 
@@ -93,3 +122,5 @@
 - Do not release the report when Major/Minor labels or Blocking flags conflict with their stated
   rationale, manuscript impact, or resolution test.
 - Do not release habitual dash-heavy or colon-heavy prose without first rewriting it with clearer sentence structure.
+- Do not release a report that omits a confirmed central arithmetic, bounds, aggregation, provenance, or reproduction contradiction found by the forensic audit.
+- Do not report an audit anomaly as a confirmed error unless arithmetic proof or source data supports it.

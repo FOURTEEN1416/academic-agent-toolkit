@@ -25,6 +25,15 @@ from _paper_spine_utils import (
     similarity_canon,
     split_paragraphs,
 )
+from evidence_grounded_review import (
+    validate_file as validate_evidence_review_file,
+)
+from evidence_grounded_review import (
+    validation_markdown as evidence_validation_markdown,
+)
+from evidence_grounded_review import (
+    write_review_plan,
+)
 
 SECTION_RE = re.compile(r"\\(?:section|subsection|subsubsection)\*?\{([^{}]+)\}", re.IGNORECASE)
 
@@ -443,7 +452,38 @@ def generate_structured_review(out_dir: Path, manuscript_path: Path,
 # validation (checks an LLM-produced review for completeness)
 # ---------------------------------------------------------------------------
 
+def _without_explicit_admin_submission_limits(text: str) -> str:
+    """Ignore only whole clauses with an explicit, administrative-only cause.
+
+    An unspecified 'not ready', or a clause mixing metadata and quality problems,
+    remains negative. This is deliberately conservative, not a readiness classifier.
+    """
+    fact = r"(?:author\s+(?:metadata|names?)|(?:author\s+)?(?:affiliations?|orcids?))"
+    admin_clause = re.compile(
+        r"(?:the\s+)?(?:(?:paper|manuscript|package|submission)\s+is\s+)?"
+        r"(?:not\s+submission[-\s]ready|not\s+ready\s+for\s+submission)\s*"
+        r"(?::\s*|(?:until|pending|because\s+of|due\s+to)\s+)"
+        r"(?:"
+        r"(?:the\s+)?authors?\s+(?:provide|confirm)\s+(?:their\s+)?(?:metadata|affiliations?|names?|orcids?)"
+        r"|" + fact + r"(?:\s+(?:arrives?|is\s+(?:provided|confirmed)|are\s+(?:provided|confirmed)|remains?\s+pending))?"
+        r"|(?:missing|pending)\s+" + fact + r")\s*[.!;。；]?",
+        re.IGNORECASE,
+    )
+    clauses = re.split(r"(?<=[.!?;。；])\s*|\n+", text)
+    return "\n".join(clause for clause in clauses
+                     if not admin_clause.fullmatch(clause.strip()))
+
+
 def validate_review(review_path: Path) -> dict:
+    if review_path.suffix.lower() == ".json":
+        checked = validate_evidence_review_file(review_path)
+        return {
+            "ok": checked.ok,
+            "findings": checked.errors,
+            "warnings": checked.warnings,
+            "grounded_findings": checked.grounded_finding_count,
+            "total_findings": checked.finding_count,
+        }
     if not review_path.exists():
         return {"ok": False, "findings": ["Review file not found"]}
 
@@ -469,9 +509,27 @@ def validate_review(review_path: Path) -> dict:
         if not status_match:
             findings.append("Integrated review must state `Review status: PASS` after revision.")
         else:
-            value = status_match.group(1).strip().lower()
-            if not any(token in value for token in ("pass", "ready", "通过")):
+            raw_value = status_match.group(1).strip()
+            value = re.sub(r"[`*_]", "", raw_value).strip().lower()
+            if value not in {"pass", "ready", "通过"}:
                 findings.append(f"Integrated review is not PASS: {status_match.group(1).strip()}")
+
+        recommendation_match = re.search(
+            r"^(?:[-*]\s*)?(?:recommendation|建议|审稿建议)\s*[:：]\s*([^\n]+)",
+            text,
+            re.IGNORECASE | re.MULTILINE,
+        )
+        if recommendation_match:
+            recommendation = recommendation_match.group(1).strip()
+            if re.search(
+                r"\b(?:reject(?:ed|ion)?|major\s+revision|not\s+(?:submission[-\s])?ready|blocked)\b"
+                r"|拒稿|大修|未就绪|尚未准备好|存在未解决的阻断|阻塞",
+                _without_explicit_admin_submission_limits(recommendation),
+                re.IGNORECASE,
+            ):
+                findings.append(
+                    "Integrated review recommendation contradicts PASS: " + recommendation
+                )
 
         synthesis_match = re.search(
             r"^##\s+(?:Editor synthesis|编辑综合判断|编辑判断)\s*$([\s\S]*?)(?=^##\s+|\Z)",
@@ -486,6 +544,24 @@ def validate_review(review_path: Path) -> dict:
                 findings.append(
                     "Editor synthesis is too thin to demonstrate a manuscript-level reading; "
                     "write a substantive free-form judgment instead of another checklist."
+                )
+            blocker_scan = re.sub(
+                r"\b(?:no|zero)\s+unresolved\s+blockers?\b"
+                r"|\bwithout\s+(?:any\s+)?unresolved\s+blockers?\b"
+                r"|无未解决的阻断|不存在未解决的阻断",
+                "resolved-blocker",
+                _without_explicit_admin_submission_limits(synthesis),
+                flags=re.IGNORECASE,
+            )
+            if re.search(
+                r"\b(?:reject(?:ed|ion)?|major\s+revision|not\s+(?:submission[-\s])?ready|"
+                r"major\s+restructur(?:e|ing)\s+required|unresolved\s+(?:(?:scientific|methodological|evidence)\s+)?blocker)\b"
+                r"|拒稿|大修|未就绪|尚未准备好|存在未解决的阻断",
+                blocker_scan,
+                re.IGNORECASE,
+            ):
+                findings.append(
+                    "Editor synthesis contains an unresolved scientific/editorial blocker and cannot be PASS."
                 )
         return {"ok": not findings, "findings": findings}
 
@@ -563,6 +639,9 @@ def dispatch_review(out_dir: Path, manuscript_path: Path,
     sections = extract_sections(manuscript_path)
     prompts_dir = out_dir / "review_prompts"
     prompts_dir.mkdir(parents=True, exist_ok=True)
+    config = load_config(out_dir)
+    review_plan_path = write_review_plan(out_dir, manuscript_path, config)
+    review_plan = json.loads(review_plan_path.read_text(encoding="utf-8"))
 
     if personas is None:
         personas = _default_personas("journal")
@@ -651,36 +730,67 @@ def dispatch_review(out_dir: Path, manuscript_path: Path,
             f"\n## Manuscript Sections\n\n{section_text}\n\n"
             f"## Instructions\n\n"
             f"1. Score each rubric dimension (1-5) with a brief justification.\n"
-            f"2. List at least 3 specific findings. Reference section names.\n"
-            f"3. Recommend: Accept / Minor Revision / Major Revision / Reject.\n"
-            f"4. Write your review in clear, structured Markdown.\n\n"
+            f"2. For every finding, record an exact page/line/paragraph/figure/table locator, "
+            f"a short manuscript quote, and the manuscript SHA-256 from review_plan.json.\n"
+            f"3. Record the read/locate/annotate/search tool receipt IDs and actual token/time usage. "
+            f"A global absence claim needs its searched scope and terms.\n"
+            f"4. Keep external literature evidence separate. `provider_failure` and `no_hit` are "
+            f"different states and neither proves that prior work is absent.\n"
+            f"5. Recommend: Accept / Minor Revision / Major Revision / Reject.\n"
+            f"6. Write your independent Markdown review and a JSON finding fragment conforming to "
+            f"references/contracts/evidence-review.schema.json.\n\n"
             f"Write only your review. Do NOT produce other files.\n"
         )
         out_path = prompts_dir / cfg["file"]
         out_path.write_text(prompt, encoding="utf-8")
         file_list.append(str(out_path.relative_to(out_dir)))
 
+    extra_focus = {
+        "literature": "Run problem-, method-, and time-anchored retrieval and record provider/query/result receipts.",
+        "historian": "Reconstruct the research trajectory from retrieved sources without inflating the manuscript's novelty.",
+        "baseline_scout": "Adversarially search for missing recent baselines, datasets, and evaluation protocols.",
+        "fact_checker": "Verify suspicious first/best/general/causal claims with targeted searches and explicit failure states.",
+    }
+    for selected in review_plan.get("selected_personas", []):
+        role = str(selected.get("role", ""))
+        if role not in extra_focus:
+            continue
+        filename = f"{role}_reviewer.md"
+        extra_prompt = (
+            f"# {role.replace('_', ' ').title()} Reviewer\n\n"
+            f"{extra_focus[role]}\n\n"
+            "Read `review_plan.json` first. Every comment must retain an exact manuscript locator "
+            "and quote. Every external assertion must retain provider, query, status, record ID/URL, "
+            "and tool receipt. A provider failure is degraded coverage, not a no-hit result. "
+            "Write an independent review plus a JSON finding fragment; do not synthesize other reviewers.\n"
+        )
+        (prompts_dir / filename).write_text(extra_prompt, encoding="utf-8")
+        file_list.append(str((prompts_dir / filename).relative_to(out_dir)))
+
     # Write dispatch instructions for the main Claude
+    selected_roles = [
+        str(item.get("role")) for item in review_plan.get("selected_personas", [])
+        if str(item.get("role")) != "editor"
+    ]
+    role_lines = "\n".join(f"- `{role}`: run only its own prompt and write an independent receipt." for role in selected_roles)
     dispatch_md = (
         "# Review Dispatch Instructions\n\n"
-        "Launch **three sub-agents in parallel** using the Agent tool. "
-        "Each agent reads only its own prompt file and the manuscript — "
-        "they must NOT see each other's outputs or the other prompts.\n\n"
-        "### Agent 1: Methods Reviewer\n"
-        "Read `review_prompts/methods_reviewer.md` and produce `review_prompts/methods_review_output.md`\n\n"
-        "### Agent 2: Contribution Reviewer\n"
-        "Read `review_prompts/contribution_reviewer.md` and produce `review_prompts/contribution_review_output.md`\n\n"
-        "### Agent 3: Clarity Reviewer\n"
-        "Read `review_prompts/clarity_reviewer.md` and produce `review_prompts/clarity_review_output.md`\n\n"
-        "### After all three complete:\n"
-        "Run `python scripts/structured_review.py paper_rewriting_output --validate review_prompts` "
-        "to check independence. Then produce the Editor Synthesis.\n"
+        "Use the minimum selected set in `review_plan.json`. Independent reviewers read only their "
+        "own prompt and the manuscript; they must not see each other's outputs before synthesis.\n\n"
+        f"{role_lines}\n\n"
+        "After the selected passes complete, merge their JSON fragments without dropping a unique "
+        "grounded high-severity finding. Activate the conditional Critic only across evidence lanes "
+        "and the Judge only for a material conflict. Write `evidence_review.json`, then run:\n\n"
+        "`python scripts/evidence_grounded_review.py validate evidence_review.json "
+        "--manuscript final_paper/main.tex --markdown --write`\n\n"
+        "Only after PASS may the Editor write the synthesis and reviewer audit.\n"
     )
     (prompts_dir / "dispatch.md").write_text(dispatch_md, encoding="utf-8")
 
     return {
         "status": "dispatched",
         "prompts_dir": str(prompts_dir.relative_to(out_dir)),
+        "review_plan": str(review_plan_path.relative_to(out_dir)),
         "files": file_list,
     }
 
@@ -835,7 +945,18 @@ def main() -> int:
 
     if args.validate:
         validate_path = Path(args.validate)
-        if validate_path.is_dir():
+        if validate_path.suffix.lower() == ".json":
+            checked = validate_evidence_review_file(
+                validate_path,
+                manuscript_path if manuscript_path.exists() else None,
+            )
+            result = {
+                "ok": checked.ok,
+                "findings": checked.errors,
+                "warnings": checked.warnings,
+                "markdown": evidence_validation_markdown(checked),
+            }
+        elif validate_path.is_dir():
             result = validate_independence(validate_path)
         else:
             result = validate_review(validate_path)

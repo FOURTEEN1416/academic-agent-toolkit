@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/maturity-official-recovery-install-v2.schema.json",
+  "title": "PaperSpine official-run profile/host/task chronology evidence v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract", "contract_version", "run_id", "mode", "profile_root",
+    "build_id", "content_index_id", "profile_receipt", "host_receipt",
+    "subject", "install_committed_at", "host_started_at", "task_started_at",
+    "external_action_authorized", "receipt_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.maturity-recovery-install-evidence-v2"},
+    "contract_version": {"const": "2.0"},
+    "run_id": {"type": "string", "minLength": 1},
+    "mode": {"enum": ["uninterrupted_control", "forced_interrupt", "fresh_install"]},
+    "profile_root": {"type": "string", "minLength": 1},
+    "build_id": {"type": "string", "minLength": 1},
+    "content_index_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "profile_receipt": {"$ref": "#/$defs/fileRef"},
+    "host_receipt": {"$ref": "#/$defs/fileRef"},
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "revision_id", "build_id", "material_snapshot_sha256"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "revision_id": {"type": "string", "minLength": 1},
+        "build_id": {"type": "string", "minLength": 1},
+        "material_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "install_committed_at": {"type": "string", "format": "date-time"},
+    "host_started_at": {"type": "string", "format": "date-time"},
+    "task_started_at": {"type": "string", "format": "date-time"},
+    "external_action_authorized": {"const": false},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "fileRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

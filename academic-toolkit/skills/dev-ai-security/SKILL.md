@@ -49,6 +49,8 @@ Access to test prompts or a prompt test file (JSON array). For gray-box and whit
 
 ## AI Threat Scanner Tool
 
+> ⚠️ `scripts/ai_threat_scanner.py` 当前**未随仓集成**（缺口已登记于 `ASSET-GAP.md`）。本节的命令为上游原始接口示例，当前不可直接执行；方法论、注入签名表与风险分级口径仍可使用。
+
 The `ai_threat_scanner.py` tool scans prompts for injection signatures, scores model-level risks, and maps findings to MITRE ATLAS techniques.
 
 ```bash
@@ -269,6 +271,8 @@ For agentic systems with tool access:
 
 ## Workflows
 
+> ⚠️ **依赖缺失降级**：以下工作流依赖 `scripts/ai_threat_scanner.py`，该脚本当前缺失（ASSET-GAP 登记）。当前**仅方法论、注入签名表与风险分级口径可用**；确需自动化扫描时，可用 tool-forge 铸造等价的静态签名扫描器（另行评估，本仓暂未集成）。
+
 ### Workflow 1: Quick LLM Security Scan (20 Minutes)
 
 Before deploying an LLM in a user-facing application:
@@ -356,9 +360,11 @@ fi
 
 ## Cross-References
 
+> ⚠️ 下列为**外部技能族，本仓未集成**（仓库内无对应技能目录）；保留分工说明供生态对照，勿按链接访问。
+
 | Skill | Relationship |
 |-------|-------------|
-| [threat-detection](../threat-detection/SKILL.md) | Anomaly detection in LLM inference API logs can surface model inversion attacks and systematic prompt injection probing |
-| [incident-response](../incident-response/SKILL.md) | Confirmed prompt injection exploitation or data extraction from a model should be classified as a security incident |
-| [cloud-security](../cloud-security/SKILL.md) | LLM API keys and model endpoints are cloud resources — IAM misconfiguration enables unauthorized model access (AML.T0012) |
-| [security-pen-testing](../security-pen-testing/SKILL.md) | Application-layer security testing covers the web interface and API layer; ai-security covers the model and agent layer |
+| threat-detection | Anomaly detection in LLM inference API logs can surface model inversion attacks and systematic prompt injection probing |
+| incident-response | Confirmed prompt injection exploitation or data extraction from a model should be classified as a security incident |
+| cloud-security | LLM API keys and model endpoints are cloud resources — IAM misconfiguration enables unauthorized model access (AML.T0012) |
+| security-pen-testing | Application-layer security testing covers the web interface and API layer; ai-security covers the model and agent layer |

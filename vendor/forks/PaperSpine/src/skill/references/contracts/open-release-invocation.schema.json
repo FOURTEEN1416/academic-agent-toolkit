@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:paperspine:open-release:invocation:0.1-beta",
+  "title": "PaperSpine Open Release Beta Invocation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "interface_version", "operation", "project_root"],
+  "properties": {
+    "contract": {"const": "paperspine.open-release.invoke-request"},
+    "interface_version": {"const": "0.1-beta"},
+    "operation": {"enum": ["catalog", "preflight", "prepare", "authorize", "record"]},
+    "project_root": {"type": "string", "minLength": 1},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "plan": {"type": "string", "minLength": 1},
+        "manifest": {"type": "string", "minLength": 1},
+        "confirmation": {"type": "string", "minLength": 1},
+        "ticket": {"type": "string", "minLength": 1},
+        "receipts": {"type": "string", "minLength": 1}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {"directory": {"type": "string", "minLength": 1}}
+    },
+    "options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "domain": {"type": "string", "minLength": 1},
+        "artifact_roles": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "sensitivity": {"enum": ["none", "deidentified_human", "identifiable_human", "controlled_human", "confidential", "restricted", "unknown"]}
+      }
+    }
+  },
+  "allOf": [
+  {
+    "if": {
+      "properties": {
+        "operation": {
+          "const": "preflight"
+        }
+      },
+      "required": [
+        "operation"
+      ]
+    },
+    "then": {
+      "required": [
+        "inputs"
+      ],
+      "properties": {
+        "inputs": {
+          "required": [
+            "plan"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "if": {
+      "properties": {
+        "operation": {
+          "const": "prepare"
+        }
+      },
+      "required": [
+        "operation"
+      ]
+    },
+    "then": {
+      "required": [
+        "inputs",
+        "outputs"
+      ],
+      "properties": {
+        "inputs": {
+          "required": [
+            "plan"
+          ]
+        },
+        "outputs": {
+          "required": [
+            "directory"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "if": {
+      "properties": {
+        "operation": {
+          "const": "authorize"
+        }
+      },
+      "required": [
+        "operation"
+      ]
+    },
+    "then": {
+      "required": [
+        "inputs",
+        "outputs"
+      ],
+      "properties": {
+        "inputs": {
+          "required": [
+            "manifest",
+            "confirmation"
+          ]
+        },
+        "outputs": {
+          "required": [
+            "directory"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "if": {
+      "properties": {
+        "operation": {
+          "const": "record"
+        }
+      },
+      "required": [
+        "operation"
+      ]
+    },
+    "then": {
+      "required": [
+        "inputs",
+        "outputs"
+      ],
+      "properties": {
+        "inputs": {
+          "required": [
+            "ticket",
+            "receipts"
+          ]
+        },
+        "outputs": {
+          "required": [
+            "directory"
+          ]
+        }
+      }
+    }
+  }
+]
+}

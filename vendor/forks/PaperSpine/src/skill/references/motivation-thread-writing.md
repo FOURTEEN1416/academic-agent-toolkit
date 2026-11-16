@@ -1,6 +1,9 @@
 # Motivation-Thread Writing
 
-Use this when the user wants a strong paper rather than a polished draft. The motivation thread is the backbone and highest-priority organizing constraint of the manuscript.
+Use this when the user wants a strong paper rather than a polished draft. The
+confirmed contribution is the manuscript's governing contract. The motivation
+thread is its supporting problem-solution backbone: it explains why the
+contribution is needed without replacing or enlarging it.
 
 ## Core Idea
 
@@ -15,25 +18,25 @@ Every section should advance that arc. The arc should be visible at strategic re
 **The arrow-chain is internal planning notation, not prose.** The
 `A -> B -> C` throughline above is a design device for *you*. Render it as
 flowing argument in the manuscript; never transcribe the literal arrow chain
-(`传统客服痛点 → 大模型机遇 → ...`) into a sentence the reader sees. Likewise the
-manuscript must never name its own writing process — no mention of supervisors,
-reviewers, review comments, an earlier/previous draft, or "this paper is
-reorganized/restructured to address X". State the motivation as a fact about the
+(`传统客服痛点 → 大模型机遇 → ...`) into a sentence the reader sees. Apply publication-surface.md by meaning: move production narration such as
+"this paper is reorganized to address feedback" to work notes. Preserve real
+research-review procedures, necessary reproducibility details and required
+AI-use disclosures. State the motivation as a fact about the
 work, not as a response to feedback. (A legitimate *analytical* arrow chain that
 describes content — a failure pathway or data flow such as
 `指代缺失 → 意图漂移 → 错误检索` — is fine; what is forbidden is narrating the
 plan or the review process.)
 
-## Motivation Confirmation Comes First
+## Contribution-Governed Motivation Confirmation
 
-Before building the motivation thread model, create or verify `paper_rewriting_output/confirmed_motivation.md`. The user's confirmed motivation is the spine. Exemplar papers may teach rhetorical moves, but they must not choose the paper's motivation for the user.
+Before building the motivation thread, read the same task's saved contribution and motivation choices and any explicit delegation. Reuse valid decisions and identify the supported claim boundary. Exemplar papers teach rhetorical moves; they do not supply this paper's contribution or override the user's choices.
 
-There are two allowed intake paths:
+After the contribution is locked, there are two allowed motivation paths:
 
 1. If the user provides a clear motivation and confirms it, save it directly as `confirmed_motivation.md`.
-2. If the user does not provide one, infer 3-5 options from the draft and evidence, save `motivation_options.md`, and stop for user selection or editing.
+2. If motivation remains genuinely unresolved, offer a small set of materially different, evidence-supported options through the current decision route. Reuse an existing selection or act within explicit delegation; ask only for the decision still needed.
 
-Do not proceed to section blueprints or manuscript rewriting while only `motivation_options.md` exists.
+Do not finalize claims that depend on an unresolved contribution or motivation choice. Continue independent evidence reading, diagnosis and other safe work, and resume the affected writing once the required choice is established through the current task.
 
 ## Motivation Options Template
 
@@ -42,8 +45,8 @@ Save as `paper_rewriting_output/motivation_options.md` when motivation is absent
 ```markdown
 # Motivation Options
 
-| Option | One-Sentence Motivation | Field Problem | Specific Gap | Design Response | Evidence Available | Fit To Target Venue | Risk | What Would Be Emphasized | What Would Be De-Emphasized |
-|---|---|---|---|---|---|---|---|---|---|
+| Option | Supports Contribution Option / Claim ID | One-Sentence Motivation | Field Problem | Specific Gap | Design Response | Evidence Available | Fit To Target Venue | Risk | What Would Be Emphasized | What Would Be De-Emphasized |
+|---|---|---|---|---|---|---|---|---|---|---|
 | A | | | | | | | | | |
 | B | | | | | | | | | |
 | C | | | | | | | | | |
@@ -65,6 +68,7 @@ Save as `paper_rewriting_output/confirmed_motivation.md`.
 | Field | Content |
 |---|---|
 | Source | user-provided / selected option / edited option |
+| Governing contribution | exact Core contribution statement / claim ID from confirmed_contribution.md |
 | Confirmed motivation statement | |
 | One-sentence red thread | |
 | Field problem | |
@@ -88,7 +92,10 @@ Save as `paper_rewriting_output/confirmed_motivation.md`.
 | Discussion | | |
 ```
 
-`confirmed_motivation.md` must say not only what the paper argues, but also what it should not argue. This prevents later sections from drifting into generic claims.
+`confirmed_motivation.md` must say not only why the contribution matters, but
+also what the paper should not argue. Its prioritized claims must stay within
+the claim boundary in `confirmed_contribution.md`. This prevents later sections
+from drifting into generic or inflated claims.
 
 ## Required Output
 
@@ -162,7 +169,7 @@ Use motivation-led wording where it reads naturally and helps navigation. If a n
 
 ## How To Use It
 
-1. Derive the red thread from `confirmed_motivation.md` before writing any section.
+1. Lock the contribution contract, then derive the red thread from the aligned `confirmed_motivation.md` before writing any section.
 2. Convert the red thread into paragraph jobs.
 3. Convert the red thread into the visible manuscript surface: a few strategic headings, topic sentences, transitions, and callouts.
 4. Make the final Introduction paragraph a promise of what the Results will prove.

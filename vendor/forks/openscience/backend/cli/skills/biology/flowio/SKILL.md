@@ -4,7 +4,13 @@ description: Parse FCS (Flow Cytometry Standard) files v2.0-3.1. Extract events 
 category: biology
 license: BSD-3-Clause license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/flowio
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # FlowIO: Flow Cytometry Standard File Handler

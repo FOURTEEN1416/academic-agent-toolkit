@@ -1,4 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from "bun:test"
+import { applyPatch } from "diff"
 import { Patch } from "../../src/patch"
 import * as fs from "fs/promises"
 import * as path from "path"
@@ -17,6 +18,45 @@ describe("Patch namespace", () => {
   })
 
   describe("parsePatch", () => {
+    test.each([String.raw`C:\research\results`, "C:/research/results", "results:verified"])(
+      "preserves the entire path after each header delimiter: %s",
+      (directory) => {
+        const result = Patch.parsePatch(
+          [
+            "*** Begin Patch",
+            `*** Add File: ${directory}/new.txt`,
+            "+created",
+            `*** Delete File: ${directory}/obsolete.txt`,
+            `*** Update File: ${directory}/old.txt`,
+            `*** Move to: ${directory}/renamed.txt`,
+            "@@",
+            "-before",
+            "+after",
+            "*** End Patch",
+          ].join("\n"),
+        )
+        expect(result.hunks).toEqual([
+          { type: "add", path: `${directory}/new.txt`, contents: "created" },
+          { type: "delete", path: `${directory}/obsolete.txt` },
+          {
+            type: "update",
+            path: `${directory}/old.txt`,
+            move_path: `${directory}/renamed.txt`,
+            chunks: [{ old_lines: ["before"], new_lines: ["after"] }],
+          },
+        ])
+      },
+    )
+
+    test("drops a CRLF blank line that ends a hunk", () => {
+      const result = Patch.parsePatch(
+        "*** Begin Patch\r\n*** Update File: a.txt\r\n@@\r\n-one\r\n+ONE\r\n\r\n*** End Patch\r\n",
+      )
+      expect(result.hunks).toHaveLength(1)
+      const hunk = result.hunks[0]
+      expect(hunk.type === "update" && hunk.chunks.map((chunk) => chunk.old_lines.length)).toEqual([1])
+    })
+
     test("should parse simple add file patch", () => {
       const patchText = `*** Begin Patch
 *** Add File: test.txt
@@ -258,6 +298,52 @@ PATCH`
         .then(() => true)
         .catch(() => false)
       expect(exists).toBe(true)
+    })
+  })
+
+  describe("deriveNewContentsFromChunks", () => {
+    test.each(["one\n\nthree\n", "one\n\nthree", "", "\n"])(
+      "round-trips blank lines and EOF for %j",
+      async (original) => {
+        const file = path.join(tempDir, "roundtrip.txt")
+        await Bun.write(file, original)
+        const lines = original.split("\n")
+        if (lines.at(-1) === "") lines.pop()
+        const result = Patch.deriveNewContentsFromChunks(file, [{ old_lines: lines, new_lines: ["first", "", "last"] }])
+        expect(applyPatch(original, result.unified_diff)).toBe(result.content)
+      },
+    )
+
+    test("declares the hunk line counts its body actually carries", async () => {
+      const file = path.join(tempDir, "counts.txt")
+      await fs.writeFile(file, ["one", "two", "three", "four", "five", ""].join("\n"))
+
+      const { unified_diff, content } = Patch.deriveNewContentsFromChunks(file, [
+        {
+          old_lines: ["one", "two", "three", "four", "five"],
+          new_lines: ["ONE", "two", "THREE", "four", "FIVE"],
+        },
+      ])
+
+      // Three removed and two context lines on the old side, three added and
+      // two context lines on the new side.
+      expect(unified_diff.split("\n")[0]).toBe("@@ -1,5 +1,5 @@")
+
+      // An applier trusts the header, so a hunk that understates itself is
+      // rejected rather than applied.
+      expect(applyPatch(["one", "two", "three", "four", "five", ""].join("\n"), unified_diff)).toBe(content)
+    })
+
+    test("keeps the header honest when a single line is replaced", async () => {
+      const file = path.join(tempDir, "single.txt")
+      await fs.writeFile(file, ["alpha", "beta", ""].join("\n"))
+
+      const { unified_diff, content } = Patch.deriveNewContentsFromChunks(file, [
+        { old_lines: ["beta"], new_lines: ["BETA"] },
+      ])
+
+      expect(unified_diff.split("\n")[0]).toBe("@@ -1,2 +1,2 @@")
+      expect(applyPatch(["alpha", "beta", ""].join("\n"), unified_diff)).toBe(content)
     })
   })
 

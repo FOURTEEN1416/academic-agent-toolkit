@@ -17,6 +17,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
     const sdk = useSDK()
 
     type Child = ReturnType<(typeof globalSync)["child"]>
+    type Store = Child[0]
     type Setter = Child[1]
 
     const child = () => globalSync.child(sdk.directory, { projectID: sdk.projectID })
@@ -41,7 +42,9 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
 
     const loadMessages = async (input: {
       directory: string
+      streamDirectory: string
       client: typeof sdk.client
+      store: Store
       setStore: Setter
       sessionID: string
       limit: number
@@ -51,6 +54,13 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       if (meta.loading[key]) return
 
       setMeta("loading", key, true)
+      // SSE keeps streaming while this request is in flight. Entities it
+      // changes meanwhile are newer than the response bytes and must win;
+      // otherwise entering a streaming session rolled its text backwards.
+      // The ledger is written under the physical directory the event stream
+      // publishes, while `directory` above is the route scope, so read it
+      // through the stream's own key or the guard never sees a change.
+      const startedAt = globalSync.transcript.revision(input.streamDirectory, input.sessionID)
       await retry(() => input.client.session.messages({ sessionID: input.sessionID, limit: input.limit }))
         .then((messages) => {
           const items = (messages.data ?? []).filter((x) => !!x?.info?.id)
@@ -58,19 +68,30 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             .map((x) => x.info)
             .filter((m) => !!m?.id)
             .sort((a, b) => a.id.localeCompare(b.id))
-          const next = input.preserveMessages?.length
-            ? mergeHydratedMessages(input.preserveMessages, incoming)
-            : incoming
+          const changes = globalSync.transcript.changesSince(input.streamDirectory, input.sessionID, startedAt)
+          const live = input.store.message[input.sessionID] ?? []
+          const next = mergeHydratedMessages(input.preserveMessages?.length ? input.preserveMessages : live, incoming, {
+            preserveCached: !!input.preserveMessages?.length,
+            preferCached: changes.messages.changed,
+            removed: changes.messages.removed,
+          })
 
           batch(() => {
             input.setStore("message", input.sessionID, reconcile(next, { key: "id" }))
 
             for (const message of items) {
+              if (changes.messages.removed.has(message.info.id)) continue
+              const incomingParts = message.parts.filter((p) => !!p?.id).sort((a, b) => a.id.localeCompare(b.id))
+              const liveParts = input.store.part[message.info.id] ?? []
               input.setStore(
                 "part",
                 message.info.id,
                 reconcile(
-                  message.parts.filter((p) => !!p?.id).sort((a, b) => a.id.localeCompare(b.id)),
+                  mergeHydratedMessages(liveParts, incomingParts, {
+                    preserveCached: false,
+                    preferCached: changes.parts.changed,
+                    removed: changes.parts.removed,
+                  }),
                   { key: "id" },
                 ),
               )
@@ -178,7 +199,9 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           const messagesReq = plan.loadMessages
             ? loadMessages({
                 directory,
+                streamDirectory: sdk.directory,
                 client,
+                store,
                 setStore,
                 sessionID,
                 limit: plan.limit,
@@ -220,11 +243,17 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           const client = sdk.client
           const [, setStore] = child()
           const res = await client.session.revert({ sessionID, messageID })
-          if (res.data)
+          const payload: unknown = res.data
+          const data = (() => {
+            if (!payload || typeof payload !== "object") return
+            if (!("session" in payload)) return payload as ReturnType<typeof getSession>
+            return (payload as { session?: ReturnType<typeof getSession> }).session
+          })()
+          if (data)
             setStore(
               produce((draft) => {
                 const m = Binary.search(draft.session, sessionID, (s) => s.id)
-                if (m.found) draft.session[m.index] = res.data!
+                if (m.found) draft.session[m.index] = data
               }),
             )
           const next = await client.session
@@ -232,6 +261,15 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             .then((d) => d.data ?? [])
             .catch(() => [])
           setStore("session_diff", sessionID, reconcile(next, { key: "file" }))
+          if (!payload || typeof payload !== "object" || !("status" in payload)) return
+          const result = payload as { status?: unknown; turns?: unknown; files?: unknown }
+          return {
+            status: typeof result.status === "string" ? result.status : undefined,
+            turns: typeof result.turns === "number" ? result.turns : undefined,
+            files: Array.isArray(result.files)
+              ? result.files.filter((file): file is string => typeof file === "string")
+              : undefined,
+          }
         },
         async unrevert(sessionID: string) {
           const client = sdk.client
@@ -287,7 +325,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           async loadMore(sessionID: string, count = chunk) {
             const directory = sdk.scope
             const client = sdk.client
-            const [, setStore] = child()
+            const [store, setStore] = child()
             const key = keyFor(directory, sessionID)
             if (meta.loading[key]) return
             if (meta.complete[key]) return
@@ -295,7 +333,9 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             const currentLimit = meta.limit[key] ?? chunk
             await loadMessages({
               directory,
+              streamDirectory: sdk.directory,
               client,
+              store,
               setStore,
               sessionID,
               limit: currentLimit + count,

@@ -2552,6 +2552,32 @@
       "current_evidence": "技能目录在位（SKILL.md 存在）；域级验收状态沿用融入时记录",
       "current_gap": "单技能映射级登记；独立 C2-C4 验收未单独执行（沿用融入批次记录）",
       "disposition": "external"
+    },
+    {
+      "capability_id": "paper-cover-letter",
+      "name": "投稿信配套件",
+      "domain": "academic_papers",
+      "description": "投稿前撰写期刊 cover letter、significance statement 与 highlights 草稿，并做信-稿一致性自检（创新点/数字/scope/声明逐项勾稽）；与 paper-submission-audit（稿件内容审计）、paper-presubmit-checks（技术预检）、paper-journal-selection（选刊在前）分工",
+      "input_contract": "稿件摘要或结论段、贡献点清单（2-4 条）、目标期刊名与 scope、通讯作者信息",
+      "output_contract": [
+        "COVER_LETTER.md",
+        "SIGNIFICANCE_STATEMENT.md",
+        "HIGHLIGHTS.md",
+        "LETTER_CONSISTENCY_CHECK.md"
+      ],
+      "status": "experimental",
+      "associated_skills": [
+        "paper-cover-letter"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md + examples/sample-cover-letter-package.md 完整样例四件套，2026-11-16 新建批 NS-1）",
+      "current_gap": "单技能映射级登记；尚未并入 paper_submission 模板与 paper-presubmit-checks 检查面（工单注明另行评估）",
+      "promotion_history": [
+        "2026-11-16: 新建（生态对标补强 G1）"
+      ],
+      "disposition": "external"
     }
   ],
   "literature_research": [
@@ -6948,6 +6974,35 @@
       "high_risk_confirmation": "无",
       "current_evidence": "技能目录在位（SKILL.md + SOURCE.md + 7 篇 references + figstyle.py + 2 套色板）；2026-10-16 与工具箱 skills/_utils/ 逐文件 md5 比对完成，9 组重复件不重复收编；figstyle.py 为包内独有件（13,289B）",
       "current_gap": "单技能映射级登记；无独立 C2-C4 基准；figstyle 质感层在灰度打印下浅色渐变的弱化仅靠声明缓解",
+      "disposition": "routed"
+    },
+    {
+      "capability_id": "latex-equation-from-image",
+      "name": "公式图片转 LaTeX",
+      "domain": "figures_and_document_production",
+      "description": "把图片/截图中的公式或表格转写成可编辑 LaTeX：具备视觉能力的驱动侧模型负责转写，scripts/verify_latex.py 做 sympy 数值自检（eval 求值对账 / check 采样比对 / 回代残差），输出带置信度标记（high/medium/needs-review）的 LaTeX 片段或 tabular",
+      "input_contract": "含公式或表格的图片/截图；可选已知变量值与公式上下文",
+      "output_contract": [
+        "LaTeX 公式片段或 tabular",
+        "数值自检记录（命令+输出）",
+        "置信度标记"
+      ],
+      "status": "experimental",
+      "associated_skills": [
+        "latex-equation-from-image"
+      ],
+      "associated_tools": [
+        "academic-toolkit/skills/latex-equation-from-image/scripts/verify_latex.py"
+      ],
+      "external_dependencies": [
+        "sympy"
+      ],
+      "high_risk_confirmation": "无",
+      "current_evidence": "技能目录在位（SKILL.md + scripts/verify_latex.py + examples/ 3 张样例图转写自检留痕 transcription_log.md，2026-11-16 新建批 NS-2；eq1 回代残差 0、eq2 8/8 采样点一致、tab1 勾稽一致）",
+      "current_gap": "单技能映射级登记；本验证会话驱动模型无图像输入能力，视觉转写正确性未获独立证据（transcription_log.md 如实记录）",
+      "promotion_history": [
+        "2026-11-16: 新建（生态对标补强 G5）"
+      ],
       "disposition": "routed"
     }
   ],

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/release/plugin-cache-reconciliation-restore-receipt.schema.json",
+  "title": "PaperSpine5 runtime bytecode restoration receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "operation_id",
+    "source_receipt_path",
+    "source_receipt_sha256",
+    "status",
+    "file_count",
+    "cache_root",
+    "restored_classification",
+    "source_validation_mode",
+    "source_validation_sha256",
+    "created_at",
+    "external_action_authorized",
+    "self_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.plugin-cache-reconciliation-restore-receipt"},
+    "schema_version": {"const": "1.0"},
+    "operation_id": {"type": "string", "minLength": 1},
+    "source_receipt_path": {"type": "string", "minLength": 1},
+    "source_receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"const": "committed"},
+    "file_count": {"type": "integer", "minimum": 1},
+    "total_bytes": {"type": "integer", "minimum": 16},
+    "path_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "cache_root": {"type": "string", "minLength": 1},
+    "restored_classification": {"const": "runtime-residue"},
+    "source_validation_mode": {"enum": ["strict-candidate", "recorded-legacy-installed"]},
+    "source_validation_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "created_at": {"type": "string", "minLength": 1},
+    "external_action_authorized": {"const": false},
+    "self_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

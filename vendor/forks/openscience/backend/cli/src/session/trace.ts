@@ -74,7 +74,7 @@ export namespace SessionTrace {
         modelID: z.string(),
       })
       .optional(),
-    status: z.enum(["pending", "running", "completed", "partial", "error"]),
+    status: Tool.shape.status,
     startedAt: z.number().optional(),
     completedAt: z.number().optional(),
     durationMs: z.number().optional(),
@@ -89,7 +89,7 @@ export namespace SessionTrace {
     tool: z.string(),
     query: z.string().optional(),
     signature: z.string(),
-    status: z.enum(["pending", "running", "completed", "error"]),
+    status: Tool.shape.status,
     dedupeHit: z.boolean(),
     dedupeOf: z
       .object({
@@ -107,7 +107,7 @@ export namespace SessionTrace {
     toolID: z.string(),
     messageID: z.string(),
     language: z.enum(["python", "r"]),
-    status: z.enum(["pending", "running", "completed", "error"]),
+    status: Tool.shape.status,
     startedAt: z.number().optional(),
     completedAt: z.number().optional(),
     durationMs: z.number().optional(),
@@ -353,6 +353,7 @@ export namespace SessionTrace {
     if (
       part.tool === "webfetch" ||
       part.tool === "science_fetch" ||
+      part.tool === "literature" ||
       part.tool === "atlas" ||
       part.tool.startsWith("query_")
     ) {
@@ -395,10 +396,12 @@ export namespace SessionTrace {
     return values.filter((value): value is number => value !== undefined).toSorted((a, b) => a - b)[0]
   }
 
-  export async function build(sessionID: string): Promise<Info> {
+  /** `messages` lets a caller that already holds the complete, oldest-first
+   * transcript skip a second read of the session. */
+  export async function build(sessionID: string, options?: { messages?: MessageV2.WithParts[] }): Promise<Info> {
     const [session, messages, stored, allJobs, contract, storedVersions] = await Promise.all([
       Session.get(sessionID),
-      Session.messages({ sessionID }),
+      options?.messages ?? Session.messages({ sessionID }),
       SessionTraceStore.read(sessionID),
       ComputeJobs.list().catch(() => [] as ComputeJobs.Job[]),
       SessionResearch.read(sessionID),

@@ -4,9 +4,15 @@ description: Statistical models library for Python. Use when you need specific m
 category: coding
 license: BSD-3-Clause license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/statsmodels
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Statistics, Econometrics, Time Series, Regression]
 dependencies: ["statsmodels>=0.14.0", "numpy>=1.25.0", "scipy>=1.12.0"]
 ---

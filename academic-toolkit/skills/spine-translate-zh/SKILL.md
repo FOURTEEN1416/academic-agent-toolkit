@@ -17,6 +17,22 @@ A translation package that covers only a few files is a failed output.
 The orchestrator requires a complete `translation_zh/` before declaring the
 workflow complete.  This branch owns the translation responsibility end-to-end.
 
+Translation scope is tiered:
+
+- **Core (always required):** the final paper text
+  (`full_paper_translation.zh.md`), `confirmed_motivation.zh.md`, and
+  `writing_rationale_matrix.zh.md`. Missing or partial core files are always
+  a failure.
+- **Optional (internal process files):** research/learning/audit working
+  documents. Translate them by default; skip them only when `tier` is `flash`
+  or the user explicitly agrees, and record every skipped file as
+  `optional-skipped` in `manifest.md`.
+
+`scripts/translate_guard.py` currently checks the full artifact list. If
+optional files were skipped with user consent, treat the guard's `missing`
+findings for exactly those recorded files as confirmed-and-accepted and note
+the decision — never silently claim PASS while core files are missing.
+
 ## Three-Phase Flow
 
 ### Phase 1 — Inventory
@@ -25,40 +41,45 @@ Read `paper_spine_config.json` to determine `workflow`.  List every file that
 must be translated.  Write the inventory to `translation_zh/manifest.md` with
 status `pending` for each entry.
 
-**Common files (both workflows):**
+**Common files (both workflows):** (`core` = always required; `optional` =
+internal process file, skippable only under the tiered scope above)
 
-| English Source | Chinese Target |
-|---|---|
-| `paper_spine_config.json` | `paper_spine_config.zh.md` |
-| `source_map.md` | `source_map.zh.md` |
-| `reference_materials/source_index.md` | `reference_materials/source_index.zh.md` |
-| `research_dossier.md` | `research_dossier.zh.md` |
-| `exemplar_learning_dossier.md` | `exemplar_learning_dossier.zh.md` |
-| `style_profile.md` | `style_profile.zh.md` |
-| `sota_gap_map.md` | `sota_gap_map.zh.md` |
-| `motivation_options_after_research.md` | `motivation_options_after_research.zh.md` |
-| `confirmed_motivation.md` | `confirmed_motivation.zh.md` |
-| `section_blueprints.md` | `section_blueprints.zh.md` |
-| `writing_rationale_matrix.md` | `writing_rationale_matrix.zh.md` |
-| `citation_support_bank.md` | `citation_support_bank.zh.md` |
-| `latex_report.md` | `latex_report.zh.md` |
-| `final_artifact_manifest.md` | `final_artifact_manifest.zh.md` |
-| `artifact_check.md` | `artifact_check.zh.md` |
-| the final paper (`.tex` or `.md`) | `full_paper_translation.zh.md` |
-| — | `translation_coverage.md` |
+| English Source | Chinese Target | Tier |
+|---|---|---|
+| `paper_spine_config.json` | `paper_spine_config.zh.md` | optional |
+| `source_map.md` | `source_map.zh.md` | optional |
+| `reference_materials/source_index.md` | `reference_materials/source_index.zh.md` | optional |
+| `research_dossier.md` | `research_dossier.zh.md` | optional |
+| `exemplar_learning_dossier.md` | `exemplar_learning_dossier.zh.md` | optional |
+| `style_profile.md` | `style_profile.zh.md` | optional |
+| `sota_gap_map.md` | `sota_gap_map.zh.md` | optional |
+| `motivation_options_after_research.md` | `motivation_options_after_research.zh.md` | optional |
+| `confirmed_motivation.md` | `confirmed_motivation.zh.md` | core |
+| `section_blueprints.md` | `section_blueprints.zh.md` | optional |
+| `writing_rationale_matrix.md` | `writing_rationale_matrix.zh.md` | core |
+| `citation_support_bank.md` | `citation_support_bank.zh.md` | optional |
+| `latex_report.md` | `latex_report.zh.md` | optional |
+| `final_artifact_manifest.md` | `final_artifact_manifest.zh.md` | optional |
+| `artifact_check.md` | `artifact_check.zh.md` | optional |
+| the final paper (`.tex` or `.md`) | `full_paper_translation.zh.md` | core |
+| — | `translation_coverage.md` | optional |
 
 **Rewrite-only additions:**
 
-| `original_logic_map.md` | `original_logic_map.zh.md` |
-| `rewrite_matrix.md` | `rewrite_matrix.zh.md` |
-| `logic_transfer_audit.md` | `logic_transfer_audit.zh.md` |
+| English Source | Chinese Target | Tier |
+|---|---|---|
+| `original_logic_map.md` | `original_logic_map.zh.md` | optional |
+| `rewrite_matrix.md` | `rewrite_matrix.zh.md` | optional |
+| `logic_transfer_audit.md` | `logic_transfer_audit.zh.md` | optional |
 
 **Build-only additions:**
 
-| `source_inventory.md` | `source_inventory.zh.md` |
-| `evidence_bank.md` | `evidence_bank.zh.md` |
-| `figure_asset_map.md` | `figure_asset_map.zh.md` |
-| `claim_register.md` | `claim_register.zh.md` |
+| English Source | Chinese Target | Tier |
+|---|---|---|
+| `source_inventory.md` | `source_inventory.zh.md` | optional |
+| `evidence_bank.md` | `evidence_bank.zh.md` | optional |
+| `figure_asset_map.md` | `figure_asset_map.zh.md` | optional |
+| `claim_register.md` | `claim_register.zh.md` | optional |
 
 ### Phase 2 — Translate
 
@@ -80,16 +101,25 @@ Translate every file listed in the inventory.  Follow these rules:
   narrative text.
 - Update `manifest.md` status from `pending` → `translated` after each file.
 
-Do not skip files because they are "large."  Do not summarize instead of
-translating.  The audit will reject partial translations.
+Do not skip core files because they are "large."  Do not summarize instead of
+translating.  Optional files may be skipped only under the tiered scope above
+(`flash` tier or explicit user consent), with each skip recorded in
+`manifest.md`.  The audit rejects partial core translations.
 
 ### Phase 3 — Verify
 
 Run the guard script and require PASS:
 
 ```bash
-python scripts/translate_guard.py paper_rewriting_output --markdown --write
+# Resolve the script from this repository checkout, not the user's project cwd
+# (a bare `python scripts/...` path is the most common reason the command fails).
+REPO="$(git rev-parse --show-toplevel)"
+python "$REPO/academic-toolkit/skills/spine-translate-zh/scripts/translate_guard.py" paper_rewriting_output --markdown --write
 ```
+
+Same-name guard scripts exist in several spine skill directories (registered
+in `academic-toolkit/data/duplicate_assets_registry.json`); use this skill's
+own copy shown above.
 
 This produces `translation_zh/translate_guard_report.md`.  If any check fails,
 return to Phase 2 and fix the specific files flagged by the report.

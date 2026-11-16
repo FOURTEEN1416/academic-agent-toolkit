@@ -19,6 +19,7 @@ import { Snapshot } from "@/snapshot"
 import { assertExternalDirectory, sessionToolDirectory } from "./external-directory"
 import { SafeFileIO } from "@/file/safe-io"
 import { AuthoritySignal } from "@/project/authority-signal"
+import { PayloadIntegrity } from "./payload-integrity"
 
 const MAX_DIAGNOSTICS_PER_FILE = 20
 
@@ -64,6 +65,7 @@ export const EditTool = Tool.define("edit", {
         contentOld = approved?.bytes.toString("utf8") ?? ""
         if (approved) await FileTime.assert(ctx.sessionID, filePath)
         contentNew = params.newString
+        PayloadIntegrity.assert({ content: contentNew, before: contentOld, messages: ctx.messages })
         diff = trimDiff(createTwoFilesPatch(filePath, filePath, contentOld, contentNew))
         await ctx.ask({
           permission: "edit",
@@ -93,6 +95,7 @@ export const EditTool = Tool.define("edit", {
       await FileTime.assert(ctx.sessionID, filePath)
       contentOld = approved.bytes.toString("utf8")
       contentNew = replace(contentOld, params.oldString, params.newString, params.replaceAll)
+      PayloadIntegrity.assert({ content: contentNew, before: contentOld, messages: ctx.messages })
 
       diff = trimDiff(
         createTwoFilesPatch(filePath, filePath, normalizeLineEndings(contentOld), normalizeLineEndings(contentNew)),
@@ -193,11 +196,11 @@ function levenshtein(a: string, b: string): number {
   return matrix[a.length][b.length]
 }
 
-export const SimpleReplacer: Replacer = function* (_content, find) {
+const SimpleReplacer: Replacer = function* (_content, find) {
   yield find
 }
 
-export const LineTrimmedReplacer: Replacer = function* (content, find) {
+const LineTrimmedReplacer: Replacer = function* (content, find) {
   const originalLines = content.split("\n")
   const searchLines = find.split("\n")
 
@@ -237,7 +240,7 @@ export const LineTrimmedReplacer: Replacer = function* (content, find) {
   }
 }
 
-export const BlockAnchorReplacer: Replacer = function* (content, find) {
+const BlockAnchorReplacer: Replacer = function* (content, find) {
   const originalLines = content.split("\n")
   const searchLines = find.split("\n")
 
@@ -372,7 +375,7 @@ export const BlockAnchorReplacer: Replacer = function* (content, find) {
   }
 }
 
-export const WhitespaceNormalizedReplacer: Replacer = function* (content, find) {
+const WhitespaceNormalizedReplacer: Replacer = function* (content, find) {
   const normalizeWhitespace = (text: string) => text.replace(/\s+/g, " ").trim()
   const normalizedFind = normalizeWhitespace(find)
 
@@ -416,7 +419,7 @@ export const WhitespaceNormalizedReplacer: Replacer = function* (content, find) 
   }
 }
 
-export const IndentationFlexibleReplacer: Replacer = function* (content, find) {
+const IndentationFlexibleReplacer: Replacer = function* (content, find) {
   const removeIndentation = (text: string) => {
     const lines = text.split("\n")
     const nonEmptyLines = lines.filter((line) => line.trim().length > 0)
@@ -444,7 +447,7 @@ export const IndentationFlexibleReplacer: Replacer = function* (content, find) {
   }
 }
 
-export const EscapeNormalizedReplacer: Replacer = function* (content, find) {
+const EscapeNormalizedReplacer: Replacer = function* (content, find) {
   const unescapeString = (str: string): string => {
     return str.replace(/\\(n|t|r|'|"|`|\\|\n|\$)/g, (match, capturedChar) => {
       switch (capturedChar) {
@@ -493,7 +496,7 @@ export const EscapeNormalizedReplacer: Replacer = function* (content, find) {
   }
 }
 
-export const MultiOccurrenceReplacer: Replacer = function* (content, find) {
+const MultiOccurrenceReplacer: Replacer = function* (content, find) {
   // This replacer yields all exact matches, allowing the replace function
   // to handle multiple occurrences based on replaceAll parameter
   let startIndex = 0
@@ -507,7 +510,7 @@ export const MultiOccurrenceReplacer: Replacer = function* (content, find) {
   }
 }
 
-export const TrimmedBoundaryReplacer: Replacer = function* (content, find) {
+const TrimmedBoundaryReplacer: Replacer = function* (content, find) {
   const trimmedFind = find.trim()
 
   if (trimmedFind === find) {
@@ -533,7 +536,7 @@ export const TrimmedBoundaryReplacer: Replacer = function* (content, find) {
   }
 }
 
-export const ContextAwareReplacer: Replacer = function* (content, find) {
+const ContextAwareReplacer: Replacer = function* (content, find) {
   const findLines = find.split("\n")
   if (findLines.length < 3) {
     // Need at least 3 lines to have meaningful context
@@ -633,6 +636,8 @@ export function replace(content: string, oldString: string, newString: string, r
   }
 
   let notFound = true
+  const indent = (value: string) => /^[ \t]*/.exec(value)?.[0] ?? ""
+  const quoted = indent(oldString).length
 
   for (const replacer of [
     SimpleReplacer,
@@ -645,16 +650,38 @@ export function replace(content: string, oldString: string, newString: string, r
     ContextAwareReplacer,
     MultiOccurrenceReplacer,
   ]) {
-    for (const search of replacer(content, oldString)) {
+    for (const candidate of replacer(content, oldString)) {
+      // A fuzzy candidate can span leading whitespace the model never quoted,
+      // and the replacement was written for the text it did quote. Substituting
+      // the whole candidate would delete that padding and turn valid code into
+      // an IndentationError. Slicing off only the padding the candidate added
+      // keeps the search anchored on text the model actually wrote, where
+      // trimStart would also eat a leading newline, and re-indenting every
+      // replacement line holds a multi-line block at one depth instead of
+      // landing its first line at the file's depth and the rest at the quoted
+      // one. Compared against the quoted text rather than the replacement, so
+      // a deliberate outdent still applies.
+      const leading = indent(candidate)
+      const pad = leading.slice(0, Math.max(0, leading.length - quoted))
+      const search = candidate.slice(pad.length)
+      // An empty search matches at index 0 and then splits the content into
+      // single characters, so replaceAll would interleave the replacement
+      // between every one of them. A fuzzy replacer can return a candidate
+      // that is nothing but whitespace, and slicing off the padding it added
+      // can leave nothing behind.
+      if (!search) continue
+      const replacement = pad ? newString.replaceAll("\n", `\n${pad}`) : newString
       const index = content.indexOf(search)
       if (index === -1) continue
       notFound = false
       if (replaceAll) {
-        return content.replaceAll(search, newString)
+        // A string replacement still expands `$$`, `$&`, $`` and $'; the
+        // model's text is literal, exactly as in the single-match branch.
+        return content.split(search).join(replacement)
       }
       const lastIndex = content.lastIndexOf(search)
       if (index !== lastIndex) continue
-      return content.substring(0, index) + newString + content.substring(index + search.length)
+      return content.substring(0, index) + replacement + content.substring(index + search.length)
     }
   }
 

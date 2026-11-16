@@ -1,0 +1,41 @@
+name: Test paper translation tooling
+
+on:
+  pull_request:
+    paths:
+      - 'skills/nature-paper-trans/**'
+      - '.github/requirements-ci.txt'
+      - '.github/workflows/test-paper-trans.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'skills/nature-paper-trans/**'
+      - '.github/requirements-ci.txt'
+      - '.github/workflows/test-paper-trans.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-page-jobs:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+      - name: Install offline tooling test dependencies
+        run: python -m pip install -c .github/requirements-ci.txt pytest -r skills/nature-paper-trans/requirements.txt
+      - name: Test page jobs without image generation or publisher APIs
+        working-directory: skills/nature-paper-trans
+        env:
+          PYTHONUTF8: '1'
+          PYTHONIOENCODING: utf-8
+        run: python -m pytest -q tests

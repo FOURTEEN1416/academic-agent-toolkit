@@ -4,7 +4,13 @@ description: Comprehensive toolkit for survival analysis and time-to-event model
 category: biology
 license: GPL-3.0 license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/scikit-survival
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # scikit-survival: Survival Analysis in Python

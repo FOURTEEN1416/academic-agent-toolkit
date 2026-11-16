@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/runner-snapshot.schema.json",
+  "title": "PaperSpine5 Runner Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "runner_version", "product_build_id", "task_id", "revision", "task_status", "stage", "open_issues", "next_actions", "material_inventory", "material_inventory_fresh", "run_contract", "run_contract_fresh", "figure_review", "interaction", "migration_status", "successor_migration", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.runner-snapshot"},
+    "schema_version": {"const": "1.0"},
+    "runner_version": {"const": "0.2.0"},
+    "product_build_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "revision": {"type": "integer", "minimum": 0},
+    "task_status": {"enum": ["created", "active", "blocked", "completed", "archived"]},
+    "stage": {"enum": ["uninitialized", "awaiting_materials", "awaiting_configuration", "configured", "awaiting_research", "awaiting_contribution", "awaiting_claim_graph", "awaiting_figure_intent", "awaiting_canonical", "awaiting_review", "awaiting_package", "target_package_ready", "blocked_j4"]},
+    "open_issues": {"type": "array", "items": {"$ref": "runner-issue.schema.json"}},
+    "next_actions": {"type": "array", "description": "Executable actions at this exact snapshot. A verified runner.successor_migration_required preview exposes only runner.resume; predecessor academic actions remain unavailable until migration commits.", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "material_inventory": {"type": ["object", "null"]},
+    "material_inventory_fresh": {"type": "boolean"},
+    "run_contract": {"type": ["object", "null"]},
+    "run_contract_fresh": {"type": "boolean"},
+    "academic_inputs": {"type": ["object", "null"]},
+    "academic_artifacts": {"type": ["object", "null"]},
+    "academic_base_artifacts": {"type": ["object", "null"]},
+    "user_revision_request": {"oneOf": [{"type": "null"}, {"type": "object", "additionalProperties": false, "required": ["origin", "feedback", "scope", "requested_revision", "previous_completed_revision"], "properties": {"origin": {"const": "user_feedback"}, "feedback": {"type": "string", "minLength": 1, "maxLength": 8000}, "scope": {"enum": ["manuscript", "figures", "figure_mapping"]}, "requested_revision": {"type": "integer", "minimum": 1}, "previous_completed_revision": {"type": "integer", "minimum": 0}}}]},
+    "figure_quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "contract_version", "correction_receipts", "target_size_legibility_receipts", "status", "external_action_authorized"],
+      "properties": {
+        "contract": {"const": "paperspine5.figure-quality-projection"},
+        "contract_version": {"const": "1.0"},
+        "correction_receipts": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^figure-correction\\."}},
+        "target_size_legibility_receipts": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^target-size-legibility\\."}},
+        "status": {"enum": ["PASS", "not_evaluated"]},
+        "external_action_authorized": {"const": false}
+      }
+    },
+    "figure_review": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "figures"],
+          "properties": {
+            "mode": {"enum": ["zero", "keep", "redesign", "create"]},
+            "figures": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["figure_id", "role", "panels", "current_asset", "candidate_assets", "independent_comparison", "reference_plan_binding", "reference_plan"],
+                "properties": {
+                  "figure_id": {"type": "string", "minLength": 1},
+                  "role": {"type": "string", "minLength": 1},
+                  "panels": {"type": "array"},
+                  "current_asset": {"type": ["object", "null"]},
+                  "candidate_assets": {"type": "array", "items": {"type": "object"}},
+                  "independent_comparison": {"type": ["object", "null"]},
+                  "reference_plan_binding": {"$ref": "figure-intent.schema.json#/$defs/asset"},
+                  "reference_plan": {"$ref": "figure-intent.schema.json#/$defs/reference_plan_projection"}
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "interaction": {"$ref": "interaction-state.schema.json"},
+    "migration_status": {"type": "string", "description": "Legacy task-ingestion status, not successor-build readiness. not_applicable does not exclude a pending runner.successor_migration_required open issue.", "minLength": 1},
+    "successor_migration": {"type": ["object", "null"], "description": "Persisted committed successor migration link, if any. A new pending successor is represented by its open issue and next_actions, not by rewriting this audit link."},
+    "external_action_authorized": {"const": false}
+  }
+}

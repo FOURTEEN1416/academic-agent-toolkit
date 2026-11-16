@@ -176,7 +176,7 @@ Require another rewrite when any of these are true:
 - Abstract or Introduction lacks a clear motivation-gap-response chain.
 - Results cannot be mapped to Introduction promises.
 - Discussion lacks a direct answer to the paper's central question.
-- Most changed sections have the same paragraph functions as the original.
+- Sections diagnosed as logically weak still contain the same unresolved argument defects after revision; unchanged paragraph functions alone are not a reason to rewrite valid content.
 - `revision_audit.md` reports high near-identical paragraphs in sections that were supposed to be rebuilt.
 - The logic-transfer audit says "partially transferred" for Introduction, Results, or Discussion.
 

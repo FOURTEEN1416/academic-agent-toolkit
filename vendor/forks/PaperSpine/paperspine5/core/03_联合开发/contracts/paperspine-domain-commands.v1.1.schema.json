@@ -1,0 +1,1009 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/paperspine-domain-commands.v1.1.schema.json",
+  "title": "PaperSpine domain command envelope",
+  "x-contract-status": "additive-v1.1-task-inputs",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "command_id",
+    "task_id",
+    "expected_version",
+    "command_type",
+    "actor",
+    "payload",
+    "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {
+      "const": "paperspine.domain-command"
+    },
+    "schema_version": {
+      "const": "1.1"
+    },
+    "command_id": {
+      "$ref": "#/$defs/safeId"
+    },
+    "task_id": {
+      "$ref": "#/$defs/safeId"
+    },
+    "expected_version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "expected_revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "command_type": {
+      "enum": [
+        "OpenTask",
+        "AuthorizeMaterials",
+        "CommitMilestone",
+        "BindEvidence",
+        "PublishArtifact",
+        "RequestDecision",
+        "ResolveDecision",
+        "SubmitReview",
+        "ResolveFinding",
+        "PrepareDelivery",
+        "SaveConfiguration",
+        "RequestRevision"
+      ]
+    },
+    "actor": {
+      "$ref": "#/$defs/actor"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "external_action_authorized": {
+      "const": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "OpenTask"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/openTask"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "AuthorizeMaterials"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/authorizeMaterials"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "CommitMilestone"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/commitMilestone"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "BindEvidence"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/bindEvidence"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "PublishArtifact"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/publishArtifact"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "RequestDecision"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/requestDecision"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "ResolveDecision"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "actor": {
+            "properties": {
+              "surface": {
+                "const": "business"
+              },
+              "authority": {
+                "const": "authenticated_user"
+              }
+            }
+          },
+          "payload": {
+            "$ref": "#/$defs/resolveDecision"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "SubmitReview"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/submitReview"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "ResolveFinding"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/resolveFinding"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "PrepareDelivery"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/prepareDelivery"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "SaveConfiguration"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "task-configuration-patch.v1.1.schema.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "RequestRevision"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/requestRevision"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "safeId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "stage": {
+      "enum": [
+        "intake",
+        "research",
+        "contribution",
+        "evidence",
+        "draft",
+        "figure",
+        "review",
+        "delivery"
+      ]
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actor_id",
+        "surface",
+        "authority"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "surface": {
+          "enum": [
+            "agent",
+            "business",
+            "reviewer",
+            "system"
+          ]
+        },
+        "authority": {
+          "enum": [
+            "host_agent",
+            "authenticated_user",
+            "independent_reviewer",
+            "system"
+          ]
+        },
+        "session_id": {
+          "$ref": "#/$defs/safeId"
+        }
+      }
+    },
+    "openTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "open",
+            "resume"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "requested_task_id": {
+          "$ref": "#/$defs/safeId"
+        }
+      }
+    },
+    "authorizeMaterials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grants"
+      ],
+      "properties": {
+        "grants": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "grant_id",
+              "uri",
+              "scope"
+            ],
+            "properties": {
+              "grant_id": {
+                "$ref": "#/$defs/safeId"
+              },
+              "uri": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scope": {
+                "const": "read_only"
+              },
+              "include_paths": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 4096,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "Exact forward-slash file paths relative to this authorized root. Omit to retain its existing selection or enumerate an unselected root."
+              }
+            }
+          }
+        },
+        "replace": {
+          "type": "boolean",
+          "default": false,
+          "description": "Replace the active material roots instead of adding roots. Existing task files are retained."
+        }
+      }
+    },
+    "commitMilestone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage",
+        "summary",
+        "artifact_ids"
+      ],
+      "properties": {
+        "stage": {
+          "$ref": "#/$defs/stage"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/safeId"
+          }
+        }
+      }
+    },
+    "bindEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "evidence_id",
+        "relation"
+      ],
+      "properties": {
+        "claim_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "evidence_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "relation": {
+          "enum": [
+            "supports",
+            "limits",
+            "challenges",
+            "visualizes"
+          ]
+        },
+        "locator": {
+          "type": "string"
+        }
+      }
+    },
+    "publishArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "artifact_type",
+        "stage"
+      ],
+      "properties": {
+        "artifact_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "supersedes_artifact_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "description": "Explicitly replace these already published artifacts of the same type in this task. Preserve their historical bytes; do not infer figure or package replacements from filenames."
+        },
+        "artifact_type": {
+          "enum": [
+            "research_note",
+            "evidence_graph",
+            "manuscript_source",
+            "figure",
+            "pdf",
+            "docx",
+            "tex",
+            "bibliography",
+            "review_packet",
+            "delivery_package"
+          ]
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stage": {
+          "$ref": "#/$defs/stage"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "relative_path"
+          ],
+          "properties": {
+            "grant_id": {
+              "$ref": "#/$defs/safeId"
+            },
+            "relative_path": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "Relative to this task workspace when grant_id is omitted; otherwise relative to the named authorized material root. Normally supply source without sha256/media_type: the core computes SHA-256, media type and size from actual bytes. Supplied sha256/media_type must match. Regular single-link files at most 128 MiB; delivery_package supports ZIP only. Use paperspine_check_delivery before publishing a candidate package. Never another task or an arbitrary absolute path."
+        },
+        "package_scope": {
+          "enum": [
+            "shareable",
+            "local_workspace"
+          ],
+          "description": "Explicit intended package use after checking contents. shareable excludes private raw materials; local_workspace can contain them. Never infer this from filenames."
+        },
+        "document_id": {
+          "$ref": "#/$defs/safeId",
+          "description": "Stable manuscript document identity across formats and revisions. An explicit value overrides previous classification. When omitted, valid same-type supersedes_artifact_ids inherit their unique document identity; legacy targets without an identity mean main. Ambiguous target identities require an explicit value. New publications without replacement targets retain legacy main. Automatic replacement is limited to the same document and format; filenames do not imply identity."
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "source"
+          ]
+        },
+        {
+          "required": [
+            "sha256",
+            "media_type"
+          ]
+        }
+      ],
+      "description": "Publish an already registered artifact, or import a regular file relative to a committed read-only material grant of this task. The core computes and validates content metadata. No absolute paths, parent traversal, links, cross-task data or external action."
+    },
+    "requestDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "task_version",
+        "decision_type",
+        "prompt",
+        "allowed_decisions",
+        "scope_refs",
+        "requested_by_command_id",
+        "expires_at"
+      ],
+      "properties": {
+        "decision_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "task_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "decision_type": {
+          "enum": [
+            "contribution",
+            "motivation",
+            "figure",
+            "author_fact",
+            "target_boundary"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "allowed_decisions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "option_id",
+              "label"
+            ],
+            "properties": {
+              "option_id": {
+                "$ref": "#/$defs/safeId"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "risk": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "files": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "Exact task-relative paths from this task's figure-files discovery list. Put supported figure files under paper/figures/ or paper/figure-candidates/ (nested directories allowed). Published artifact IDs or other task-relative locations do not substitute for discovered files. Undiscoverable paths return validation_failed before the decision is saved."
+              },
+              "action": {
+                "enum": [
+                  "keep",
+                  "adopt",
+                  "revise",
+                  "reject"
+                ],
+                "description": "Explicit intent for a figure option, required for custom option_id values on new figure requests. Existing keep/adopt/revise/modify/request-changes/request_changes/reject IDs retain their exact meaning and cannot contradict action. Saving revise/reject never adopts the attached file."
+              }
+            }
+          }
+        },
+        "scope_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/safeId"
+          }
+        },
+        "requested_by_command_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "expires_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "figure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "figure_id",
+            "label",
+            "reference_files",
+            "comparison_files",
+            "current_files",
+            "panel_ids"
+          ],
+          "properties": {
+            "figure_id": {
+              "$ref": "#/$defs/safeId"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            },
+            "panel_id": {
+              "$ref": "#/$defs/safeId"
+            },
+            "panel_label": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            },
+            "reference_files": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "current_files": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "replaces_decision_id": {
+              "$ref": "#/$defs/safeId"
+            },
+            "reference_note": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S",
+              "description": "Explain an empty reference_files list honestly (for example an original design or no suitable available reference). This is not evidence of visual learning or quality."
+            },
+            "panel_ids": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/safeId"
+              },
+              "description": "Explicit selection granularity on new requests: [] means whole indivisible figure; nonempty lists the independently selectable panels. Prior live plans cannot be erased by omission or shrinking. Each panel needs explicit keep/adopt before assembly confirmation; never infer panels from filenames."
+            },
+            "comparison_files": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Exact discovered paths for separately prepared side-by-side comparisons. Not selectable results. Required and nonempty on new requests with references; file metadata does not prove visual inspection."
+            }
+          },
+          "description": "Required for new figure decisions. Explicit reference/comparison/current discovered file lists and panel_ids selection granularity. Empty references need reference_note; nonempty references need comparison_files. Whole-figure confirmation never fabricates panel adoption. No metadata proves visual learning.",
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "reference_files": {
+                    "maxItems": 0
+                  }
+                },
+                "required": [
+                  "reference_files"
+                ]
+              },
+              "then": {
+                "required": [
+                  "reference_note"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "reference_files": {
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "reference_files"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "comparison_files": {
+                    "minItems": 1
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "required": [
+                  "panel_id"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "panel_ids": {
+                    "minItems": 1
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "decision_type": {
+                "const": "figure"
+              }
+            },
+            "required": [
+              "decision_type"
+            ]
+          },
+          "then": {
+            "required": [
+              "figure"
+            ],
+            "properties": {
+              "allowed_decisions": {
+                "items": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    {
+                      "properties": {
+                        "option_id": {
+                          "enum": [
+                            "keep",
+                            "adopt",
+                            "revise",
+                            "modify",
+                            "request-changes",
+                            "request_changes",
+                            "reject"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "figure"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "resolveDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "option_id",
+        "confirmed_at",
+        "reason"
+      ],
+      "description": "The stable decision_id is sufficient for recovery; internal continuation references and Runner tokens are never exposed.",
+      "properties": {
+        "decision_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "option_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "confirmed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "submitReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_id",
+        "reviewed_artifact_ids",
+        "reviewer_id",
+        "findings"
+      ],
+      "properties": {
+        "review_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "reviewed_artifact_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/safeId"
+          }
+        },
+        "reviewer_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "decision": {
+          "enum": [
+            "pass",
+            "block"
+          ],
+          "description": "Explicit independent reviewer conclusion. Omission means no recorded conclusion; zero findings never implies pass."
+        },
+        "report_artifact_id": {
+          "$ref": "#/$defs/safeId",
+          "description": "Explicit current published report artifact in this task. The provider freezes its SHA-256; never infer an association from a filename or workspace path."
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "finding_id",
+              "severity",
+              "message"
+            ],
+            "properties": {
+              "finding_id": {
+                "$ref": "#/$defs/safeId"
+              },
+              "severity": {
+                "enum": [
+                  "blocking",
+                  "major",
+                  "minor"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "reviewed_hashes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "description": "Optional SHA-256 of each inspected artifact copy, keyed by exactly reviewed_artifact_ids. When supplied, every value must match the current published bytes; omission retains legacy input compatibility."
+        }
+      }
+    },
+    "resolveFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "resolution_artifact_ids",
+        "explanation",
+        "revision_id"
+      ],
+      "properties": {
+        "finding_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "resolution_artifact_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/safeId"
+          }
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision_id": {
+          "$ref": "#/$defs/safeId"
+        }
+      }
+    },
+    "prepareDelivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "required_formats"
+      ],
+      "properties": {
+        "scope": {
+          "enum": [
+            "manuscript",
+            "local_delivery",
+            "submission_package"
+          ]
+        },
+        "required_formats": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "pdf",
+              "docx",
+              "tex",
+              "figures",
+              "bibliography"
+            ]
+          }
+        }
+      }
+    },
+    "requestRevision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feedback",
+        "scope"
+      ],
+      "properties": {
+        "feedback": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32000
+        },
+        "scope": {
+          "enum": [
+            "manuscript",
+            "figures",
+            "figure_mapping",
+            "all"
+          ]
+        },
+        "feedback_file": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional task-relative saved feedback file."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/target-research-receipt.schema.json",
+  "title": "Runtime target research authority receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "subject", "producer", "research_snapshot_sha256", "sources", "rules", "coverage", "challenger", "conflicts"],
+  "properties": {
+    "contract": {"const": "paperspine5.target-research-receipt"},
+    "subject": {"$ref": "#/$defs/subject"},
+    "producer": {"$ref": "#/$defs/identity"},
+    "research_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+    "sources": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": true,
+        "required": ["source_id", "lane", "authority", "locator", "content_sha256", "retrieved_at", "effective_date", "officiality_verified", "supported_spans"],
+        "properties": {
+          "source_id": {"type": "string", "minLength": 1},
+          "lane": {"enum": ["official", "exemplar_style"]},
+          "authority": {"enum": ["official_hard", "advisory"]},
+          "locator": {"type": "string", "minLength": 1},
+          "content_sha256": {"$ref": "#/$defs/sha256"},
+          "retrieved_at": {"type": "string", "minLength": 1},
+          "effective_date": {"type": "string", "minLength": 1},
+          "officiality_verified": {"type": "boolean"},
+          "supported_spans": {"type": "array", "minItems": 1, "items": {"type": "object"}}
+        }
+      }
+    },
+    "rules": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "coverage": {"type": "object"},
+    "challenger": {"type": "object"},
+    "conflicts": {"type": "array", "items": {"type": "object"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "subject": {
+      "type": "object", "additionalProperties": false,
+      "required": ["task_id", "revision_id", "input_hashes"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "revision_id": {"type": "string", "minLength": 1},
+        "input_hashes": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/sha256"}}
+      }
+    },
+    "identity": {
+      "type": "object", "additionalProperties": true,
+      "required": ["principal_id", "session_id", "run_id", "independence_group", "provenance_sha256", "attestation_input_id"],
+      "properties": {
+        "principal_id": {"type": "string", "minLength": 1},
+        "session_id": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1},
+        "independence_group": {"type": "string", "minLength": 1},
+        "provenance_sha256": {"$ref": "#/$defs/sha256"},
+        "attestation_input_id": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

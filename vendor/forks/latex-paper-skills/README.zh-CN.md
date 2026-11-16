@@ -69,11 +69,82 @@
 
 ## 快速开始
 
+### 通过 npm / npx 安装（推荐）
+
+[latex-paper-skills](https://www.npmjs.com/package/latex-paper-skills) 已发布到 npm，
+当前版本为 **0.1.0**，发布账号为 `yunshenwuchuxun`。使用者无需 npm 账号。
+安装器需要 **Node.js 22.20.0+**。
+
+在论文项目目录中运行以下命令，将完整技能安装到当前项目的 Codex 环境：
+
+```bash
+npx latex-paper-skills@latest --agent codex --copy --yes
+```
+
+Claude Code 用户使用：
+
+```bash
+npx latex-paper-skills@latest --agent claude-code --copy --yes
+```
+
+`--copy` 将技能资源复制到项目中；`--yes` 跳过交互确认。省略 `--agent`
+可交互选择智能体。若要安装到用户级技能目录，追加 `--global`：
+
+```bash
+npx latex-paper-skills@latest --agent codex --global --copy --yes
+```
+
+将 `@latest` 换成 `@0.1.0` 可固定版本。也可以查看版本和包含的技能入口：
+
+```bash
+npx latex-paper-skills@latest --version
+npx latex-paper-skills@latest list
+```
+
+安装后可直接说：`Use latex-paper-skills. My topic is: <你的主题>`。
+统一入口包含全部 8 个工作流、`_shared`、脚本和模板。
+
+### 从 GitHub 安装
+
+也可以通过 [Skills CLI](https://github.com/vercel-labs/skills) 从 GitHub
+安装同一个完整技能包：
+
+```bash
+npx skills@latest add yunshenwuchuxun/latex-paper-skills --skill latex-paper-skills --agent codex --copy --yes
+```
+
+Claude Code 用户将 `--agent codex` 换成 `--agent claude-code`；用户级安装追加
+`--global`。请使用统一入口 `latex-paper-skills`，以保留跨技能共享依赖。
+开发源码位于 `.codex/skills/`，可安装的完整分发包位于
+`skills/latex-paper-skills/`。
+
+### 已发布渠道
+
+| 渠道 | 当前版本 | 安装或下载 |
+|------|----------|------------|
+| [npm](https://www.npmjs.com/package/latex-paper-skills) | `0.1.0` | 使用上面的 `npx latex-paper-skills@latest` 命令 |
+| [GitHub Releases](https://github.com/yunshenwuchuxun/latex-paper-skills/releases/tag/v0.1.0) | `v0.1.0` | [下载完整技能 ZIP](https://github.com/yunshenwuchuxun/latex-paper-skills/releases/download/v0.1.0/latex-paper-skills-0.1.0.zip) |
+| [ClawHub / OpenClaw](https://clawhub.ai/yunshenwuchuxun/plugins/latex-paper-skills) | `0.1.0` | 安装完整插件包，命令见下方 |
+| [LobeHub](https://lobehub.com/skills/yunshenwuchuxun-latex-paper-skills) | 平台 `1.0.2`，源码 `0.1.0` | 从技能页面安装或下载完整包 |
+
+OpenClaw 用户可安装已发布的 ClawHub 插件包：
+
+```bash
+openclaw plugins install clawhub:@yunshenwuchuxun/latex-paper-skills@0.1.0
+```
+
+`clawhub:` 前缀指定 ClawHub 来源。各渠道均包含完整技能及第三方许可说明；
+LobeHub 的平台版本号由平台分配，与 npm / 源码版本分别管理。
+
 ### 前置要求
 
-- Python 3.8+
+- Node.js 22.20.0+（用于 npm / npx 安装器）
+- Python 3.10+
 - LaTeX 环境（`pdflatex` + `bibtex`，或 `latexmk`）
 - 能读取 `SKILL.md` 的 AI 智能体运行时（Codex CLI、Claude Code 等）
+
+安装器依赖 Node.js；运行论文脚本和编译 PDF 仍需 Python 与 LaTeX。
+Gemini CLI 和 Claude Code CLI 仅在启用对应协作工作流时需要。
 
 ### 完整流水线（选题 → PDF）
 
@@ -184,6 +255,11 @@ latex-paper-skills/
 │   ├── check-collaborators/          # CLI 健康检查
 │   ├── _shared/                      # 跨技能共享工具
 │   └── _orchestration/               # 工作流编排配置
+├── skills/latex-paper-skills/        # 可安装的完整技能包
+├── bin/latex-paper-skills.mjs        # npm / npx 安装命令
+├── distribution/README.md            # 各平台分发与发布指南
+├── scripts/build_distribution.py    # 生成 ZIP、技能包和 ClawHub 插件包
+├── package.json                     # npm 元数据、依赖和打包范围
 ├── projects/
 │   ├── rt-inflow-forecast-closed-loop/  # 实证论文 showcase
 │   └── peft-survey-2022-2026/           # 综述论文 showcase
@@ -193,6 +269,35 @@ latex-paper-skills/
 ├── README.md
 └── README.zh-CN.md
 ```
+
+## 维护者：构建与发布
+
+修改 `.codex/skills/` 中的源码后，需要重新生成完整分发包。发布后续版本前，
+先按[分发与发布说明](distribution/README.md#standalone-npm-package)同步版本号，
+再在仓库根目录运行：
+
+```bash
+npm ci
+npm run build:distribution
+npm run check:distribution
+npm test
+npm pack --pack-destination dist
+npm publish --dry-run --access public
+```
+
+确认发行包内容后，用维护者账号登录并发布：
+
+```bash
+npm login --auth-type=web
+npm whoami
+npm publish --access public
+```
+
+npm 发布需要账号启用 2FA，并在 CLI 提供的 npm 官方页面完成发布验证。
+当前 `0.1.0` 已发布；后续发布需使用新的版本号，并提交生成的
+`skills/latex-paper-skills/`，让 GitHub 安装渠道与发行包保持一致。
+GitHub Releases、ClawHub 和 LobeHub 的发布流程详见
+[分发与发布说明](distribution/README.md)。
 
 ## 相关
 

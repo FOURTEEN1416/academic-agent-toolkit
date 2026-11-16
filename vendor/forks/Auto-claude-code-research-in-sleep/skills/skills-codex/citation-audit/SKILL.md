@@ -2,14 +2,25 @@
 name: citation-audit
 description: "Zero-context verification that every bibliographic entry in the paper is real, correctly attributed, and used in a context the cited paper actually supports — catching hallucinated authors, wrong years, fabricated venues, version mismatches, and wrong-context citations. Use when user says \"审查引用\", \"check citations\", \"citation audit\", \"verify references\", \"引用核对\", or before submission to ensure bibliography integrity."
 argument-hint: "[paper-directory-or-bib-file] [--uncited] [— soft-only]"
-allowed-tools: Bash(*), Read, Grep, Glob, Edit, Write, WebSearch, WebFetch
+allowed-tools: Bash(*), Read, Grep, Glob, Edit, Write, WebSearch, WebFetch, mcp__antigravity__antigravity, mcp__antigravity__antigravity-reply, mcp__grok__grok, mcp__grok__grok-reply, mcp__claude-review__review, mcp__claude-review__review_reply, mcp__claude-review__review_start, mcp__claude-review__review_reply_start, mcp__claude-review__review_status
 ---
 
 # Citation Audit
 
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
+
 > **Codex assurance:** base audit artifacts record
 > `review_independence: same-family` and `acceptance_status: provisional`.
-> Cross-family overlays or deterministic metadata checks may record accepted;
+> Completed positive reviews with known different families, or deterministic metadata checks, may record accepted;
 > unavailable semantic review emits BLOCKED.
 
 Verify every `\cite{...}` in a paper against three independent layers:
@@ -43,7 +54,7 @@ The dangerous citation problems are **not** wildly fake citations — those are 
 
 ## Constants
 
-- **REVIEWER_MODEL = `gpt-5.6-sol`** — Fresh Codex reviewer with web access; same-family provisional in the base mirror.
+- **REVIEWER_MODEL = `gpt-6-astra`** — Fresh Codex reviewer with web access; same-family provisional in the base mirror.
 - **CONTEXT_POLICY = `fresh`** — Each audit run uses a new reviewer thread (REVIEWER_BIAS_GUARD). Continue only with `send_input` when explicitly resuming the same audit.
 - **WEB_SEARCH = required** — The reviewer must perform real web/DBLP/arXiv lookups, not pattern-match from memory.
 - **OUTPUT = `CITATION_AUDIT.md`** — Human-readable per-entry verdict report.
@@ -82,9 +93,11 @@ Save the extracted contexts to `paper/.aris/citation-audit/contexts.txt` so the 
 
 For each **cited** bib entry — i.e., each key in `cited_keys` with at least one extracted citation context — launch a fresh Codex reviewer agent. Do not reuse the same reviewer across entries. Do **not** spawn an agent for entries in `bib_keys \ cited_keys`; those are detect-only and surface only when `--uncited` is explicitly enabled (see "Uncited Entry Detection" below).
 
+> Resolve this reviewer slot first; the following is the `backend=codex` example.
+
 ```
 spawn_agent:
-  model: gpt-5.6-sol
+  model: gpt-6-astra
   reasoning_effort: xhigh
   message: |
     You are auditing a bibliographic entry. Use web/DBLP/arXiv search.
@@ -292,7 +305,7 @@ If the bib file cannot be read well enough to audit even the cited entries, fall
 | `/paper-claim-audit` | Numerical claims in manuscript | Number inflation, best-seed cherry-pick, config mismatch |
 | `/citation-audit` | Bibliographic entries | Hallucinated refs, wrong-context citations, metadata errors |
 
-Together: code → result → numerical claim → cited claim. Each layer uses a fresh validator context; base Codex results are same-family provisional and overlays may be cross-family accepted.
+Together: code → result → numerical claim → cited claim. Each layer uses a fresh validator context; base Codex results are same-family provisional and completed positive reviews with known different model families may be cross-family accepted.
 
 ## Known Limitations
 
@@ -419,12 +432,12 @@ The artifact conforms to the schema in `shared-references/assurance-contract.md`
   },
   "trace_path":       ".aris/traces/citation-audit/<date>_run<NN>/",
   "thread_id":        "<codex mcp thread id>",
-  "executor_model":   "codex-gpt-5.6-sol",
+  "executor_model":   "codex-gpt-6-astra",
   "executor_family":  "openai",
-  "reviewer_model":   "gpt-5.6-sol",
+  "reviewer_model":   "gpt-6-astra",
   "reviewer_family":  "openai",
-  "review_independence": "same-family",
-  "acceptance_status": "provisional",
+  "review_independence": "<actual family comparison>",
+  "acceptance_status": "<actual acceptance status>",
   "reviewer_reasoning": "xhigh",
   "generated_at":     "<UTC ISO-8601>",
   "details": {

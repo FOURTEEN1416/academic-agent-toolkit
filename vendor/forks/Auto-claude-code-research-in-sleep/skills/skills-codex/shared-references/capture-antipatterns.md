@@ -2,8 +2,11 @@
 
 > **Codex mirror adaptation (normative).** Resolve helpers through the Codex
 > manifest and `$ARIS_REPO/tools/`. A clean same-family Codex review may drive a
-> capture decision but is recorded as provisional; only a cross-family overlay
-> or deterministic verifier produces accepted authorization.
+> capture decision but is recorded as provisional. Select reviewers via
+> [Selectable Reviewers](reviewer-backends.md); accepted semantic authorization
+> needs a completed positive in-scope review with known different actual model
+> families. A deterministic screen accepts only its mechanical checks, never
+> the correctness of the captured claim.
 
 When ARIS captures *durable* knowledge — a research-wiki idea / claim / experiment
 node, a `/meta-optimize` SKILL.md proposal — it must not store **operational
@@ -51,7 +54,9 @@ This filter may **REJECT a capture same-model** — it is a mechanical safety sc
 low risk, and same-model is always allowed to *reject*. But anything that **passes**
 the filter and would become a **load-bearing** skill/claim still goes to a
 **classified reviewer route** before it is trusted. Base Codex review is
-provisional; only an overlay or deterministic verifier is accepted.
+provisional; accepted semantic assurance needs a completed positive review
+with known different actual model families and full scope. Passing the
+mechanical filter does not supply that review.
 
 ## Helper
 
@@ -73,8 +78,8 @@ python3 tools/capture_filter.py <file|->   # exit 1 + reasons if anti-pattern fo
 
 ## Cross-references
 - `acceptance-gate.md` — the reject/accept asymmetry: same-model may reject or
-  record provisional progress; only an overlay/deterministic route may accept
-  into the load-bearing set.
+  record provisional progress; acceptance into the load-bearing set requires
+  the completed positive cross-family review of its semantic obligations.
 - `evidence-precheck.md` / `injection-hygiene.md` — sibling deterministic
   pre-gates feeding the classified reviewer route.
 

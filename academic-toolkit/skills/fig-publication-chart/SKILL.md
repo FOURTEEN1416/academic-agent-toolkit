@@ -6,6 +6,8 @@ version: 0.2.0
 
 # Publication Chart Skill
 
+> **本仓路由边界**：数模竞赛出图主链走 `paper-figure`（FIGURE_MANIFEST 账本 + save_fig 护栏）；仅做"该用哪种图"的纯选型咨询走 `fig-visualization-advisor`；本技能面向期刊投稿级图表/表格的端到端生产（pubfig/pubtab 栈）与出版 QA。
+
 ## Goal
 
 Use this skill to turn research results into **publication-grade figures and tables** with an end-to-end workflow.

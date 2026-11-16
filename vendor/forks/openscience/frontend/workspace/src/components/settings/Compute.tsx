@@ -1,7 +1,7 @@
 import { For, Show, createEffect, createResource, type Component, type JSX, type Setter } from "solid-js"
 import { createStore } from "solid-js/store"
 import { Button } from "@synsci/ui/button"
-import { Icon, type IconProps } from "@synsci/ui/icon"
+import { Icon } from "@synsci/ui/icon"
 import { Select } from "@synsci/ui/select"
 import { Switch } from "@synsci/ui/switch"
 import { showToast } from "@synsci/ui/toast"
@@ -11,9 +11,9 @@ import { usePlatform } from "@/context/platform"
 import { confirmDialog } from "@/atlas/dialogs"
 import { settingsApi } from "./api"
 import { CredentialServices } from "./CredentialServices"
-import { ProviderLogo } from "./ProviderLogo"
-import { PanelBody, PanelHeader, PanelScroll } from "./_shared"
+import { Card, PanelBody, PanelHeader, PanelScroll, RowCopy, Section, steady } from "./_shared"
 import "./preference-panels.css"
+import { ProviderLogo } from "./ProviderLogo"
 
 type Scheduler = "none" | "slurm" | "pbs"
 type Host = {
@@ -22,6 +22,8 @@ type Host = {
   host: string
   user?: string
   port?: number
+  identity_file?: string
+  proxy_jump?: string
   scheduler: Scheduler
   workdir?: string
   notes?: string
@@ -30,15 +32,29 @@ type Host = {
 }
 type Provider = {
   id: string
+  name: string
+  integration: "integrated" | "cli_credential"
+  placeholder: string
+  hint: string
+  credential: {
+    label: string
+    environment: string
+    aliases: string[]
+    docs_url: string
+  }
   connected: boolean
   enabled: boolean
-  source: "stored" | "account" | "modal_toml" | null
+  source: "stored" | "modal_toml" | null
+  connected_at: string | null
+  last_used: string | null
 }
 type ConfigHost = {
   alias: string
   hostname?: string
   user?: string
   port?: number
+  identity_file?: string
+  proxy_jump?: string
 }
 type Modal = {
   app: string
@@ -77,6 +93,14 @@ type Notice = {
   title: string
   detail?: string
 }
+type ProviderDoctor = {
+  ok: boolean
+  provider: string
+  cli: string
+  command: string
+  checked_at: string
+  error?: string
+}
 
 const schedulers = [
   { value: "none" as const, label: "Plain SSH" },
@@ -90,7 +114,7 @@ const Compute: Component = () => {
   const dialog = useDialog()
   const fetchFn = platform.fetch ?? fetch
   const call = <T,>(path = "", init?: RequestInit) => settingsApi<T>(sdk.url, fetchFn, `/settings/compute${path}`, init)
-  const [data, control] = createResource(() => call<Info>())
+  const [data, control] = steady(createResource(() => call<Info>()))
   const [state, setState] = createStore({
     adding: false,
     busy: {} as Record<string, boolean>,
@@ -99,6 +123,8 @@ const Compute: Component = () => {
     host: "",
     user: "",
     port: "",
+    identityFile: "",
+    proxyJump: "",
     scheduler: "none" as Scheduler,
     workdir: "",
     notes: "",
@@ -114,6 +140,9 @@ const Compute: Component = () => {
     concurrency: "10",
     connection: undefined as Notice | undefined,
     defaults: undefined as Notice | undefined,
+    providerKeys: {} as Record<string, string>,
+    providerChecks: {} as Record<string, ProviderDoctor>,
+    editingProvider: undefined as string | undefined,
   })
   const adding = () => state.adding
   const setAdding: Setter<boolean> = (value) => setState("adding", value)
@@ -142,6 +171,10 @@ const Compute: Component = () => {
   const setUser: Setter<string> = (value) => setState("user", value)
   const port = () => state.port
   const setPort: Setter<string> = (value) => setState("port", value)
+  const identityFile = () => state.identityFile
+  const setIdentityFile: Setter<string> = (value) => setState("identityFile", value)
+  const proxyJump = () => state.proxyJump
+  const setProxyJump: Setter<string> = (value) => setState("proxyJump", value)
   const scheduler = () => state.scheduler
   const setScheduler: Setter<Scheduler> = (value) => setState("scheduler", value)
   const workdir = () => state.workdir
@@ -178,6 +211,11 @@ const Compute: Component = () => {
     return value
   }
   const modal = () => data()?.providers.find((item) => item.id === "modal")
+  const cliProviders = () => data()?.providers.filter((item) => item.integration === "cli_credential") ?? []
+  const providerKey = (id: string) => state.providerKeys[id] ?? ""
+  const setProviderKey = (id: string, value: string) => setState("providerKeys", id, value)
+  const editingProvider = () => state.editingProvider
+  const providerCheck = (id: string) => state.providerChecks[id]
   const environment = (language: "python" | "r") =>
     data()?.environments.environments.find((item) => item.language === language)
   const configHosts = () => {
@@ -376,8 +414,10 @@ const Compute: Component = () => {
 
   const repairEnvironments = async () => {
     setBusy("environments:repair", true)
-    const next = await call<Info>("/environments/repair", { method: "POST" }).catch((error) => {
+    const next = await call<Info>("/environments/repair", { method: "POST" }).catch(async (error) => {
       showToast({ title: "Environment setup failed", description: message(error) })
+      // The card reads the recorded failure; refresh so it names the reason.
+      await control.refetch()
       return undefined
     })
     setBusy("environments:repair", false)
@@ -386,11 +426,113 @@ const Compute: Component = () => {
     showToast({ variant: "success", title: "Scientific environments are ready" })
   }
 
+  const saveProvider = async (item: Provider) => {
+    const key = `provider:save:${item.id}`
+    const value = providerKey(item.id).trim()
+    if (!value || isBusy(key)) return
+    setBusy(key, true)
+    const next = await call<Info>(`/provider/${item.id}`, {
+      method: "POST",
+      body: JSON.stringify({ key: value }),
+    }).catch((error) => {
+      showToast({ title: `Could not save ${item.name} credential`, description: message(error) })
+      return undefined
+    })
+    setBusy(key, false)
+    if (!next) return
+    control.mutate(next)
+    setProviderKey(item.id, "")
+    setState("editingProvider", undefined)
+    const saved = next.providers.find((provider) => provider.id === item.id)
+    showToast({
+      variant: "success",
+      title: `${item.name} credential saved`,
+      description: saved?.enabled
+        ? "Enabled. Test connection must approve an administrator-managed executable before agents can use the read-only broker."
+        : "Saved encrypted and off. Generic agent processes cannot access it.",
+    })
+  }
+
+  const toggleProvider = async (item: Provider, enabled: boolean) => {
+    const key = `provider:toggle:${item.id}`
+    if (isBusy(key)) return
+    setBusy(key, true)
+    const next = await call<Info>(`/provider/${item.id}/enabled`, {
+      method: "POST",
+      body: JSON.stringify({ enabled }),
+    }).catch((error) => {
+      showToast({ title: `Could not ${enabled ? "enable" : "disable"} ${item.name}`, description: message(error) })
+      return undefined
+    })
+    setBusy(key, false)
+    if (!next) return
+    control.mutate(next)
+    showToast({
+      variant: "success",
+      title: enabled ? `${item.name} credential enabled` : `${item.name} credential is off`,
+      description: enabled
+        ? "A reviewed provider-specific broker may resolve it. Bash, Task, kernels, and local MCP cannot."
+        : "Provider-specific brokers cannot resolve this credential.",
+    })
+  }
+
+  const checkProvider = async (item: Provider) => {
+    const key = `provider:check:${item.id}`
+    if (isBusy(key) || !item.enabled) return
+    setBusy(key, true)
+    setState("providerChecks", item.id, {
+      ok: false,
+      provider: item.id,
+      cli: "",
+      command: "",
+      checked_at: new Date().toISOString(),
+    })
+    const result = await call<ProviderDoctor>(`/provider/${item.id}/doctor`, { method: "POST" }).catch((error) => ({
+      ok: false,
+      provider: item.id,
+      cli: "",
+      command: "",
+      checked_at: new Date().toISOString(),
+      error: message(error),
+    }))
+    setBusy(key, false)
+    setState("providerChecks", item.id, result)
+    if (result.ok) await control.refetch()
+    showToast({
+      variant: result.ok ? "success" : "error",
+      title: result.ok ? `${item.name} connection verified` : `${item.name} connection failed`,
+      description: result.ok ? `${result.command} completed successfully.` : result.error,
+    })
+  }
+
+  const removeProvider = async (item: Provider) => {
+    const confirmed = await confirmDialog(dialog, {
+      title: `Remove ${item.name} credential?`,
+      message: "This removes the encrypted credential. It does not change cloud resources.",
+      confirmLabel: "Remove credential",
+      danger: true,
+    })
+    if (!confirmed) return
+    const key = `provider:remove:${item.id}`
+    setBusy(key, true)
+    const next = await call<Info>(`/provider/${item.id}`, { method: "DELETE" }).catch((error) => {
+      showToast({ title: `Could not remove ${item.name} credential`, description: message(error) })
+      return undefined
+    })
+    setBusy(key, false)
+    if (!next) return
+    control.mutate(next)
+    setProviderKey(item.id, "")
+    if (editingProvider() === item.id) setState("editingProvider", undefined)
+  }
+
   const reset = () => {
     setLabel("")
     setHost("")
     setUser("")
     setPort("")
+    setIdentityFile("")
+    setProxyJump("")
     setScheduler("none")
     setWorkdir("")
     setNotes("")
@@ -417,6 +559,8 @@ const Compute: Component = () => {
         host: host().trim(),
         user: user().trim() || undefined,
         port: parsedPort,
+        identity_file: identityFile().trim() || undefined,
+        proxy_jump: proxyJump().trim() || undefined,
         scheduler: scheduler(),
         workdir: workdir().trim() || undefined,
         notes: notes().trim() || undefined,
@@ -465,6 +609,8 @@ const Compute: Component = () => {
         host: item.hostname ?? item.alias,
         user: item.user,
         port: item.port,
+        identity_file: item.identity_file,
+        proxy_jump: item.proxy_jump,
         scheduler: "none",
         concurrency: 4,
       }),
@@ -532,27 +678,31 @@ const Compute: Component = () => {
         <PanelBody>
           <Section
             title="Local runtimes"
-            subtitle="OpenScience owns shared, reproducible starter environments and keeps your system Python, R, and shell untouched."
+            description="OpenScience owns shared, reproducible starter environments and keeps your system Python, R, and shell untouched."
           >
-            <Panel>
-              <Row
-                icon="braces"
-                title="Python starter"
-                subtitle="Python 3.11 with NumPy, pandas, SciPy, Matplotlib, Seaborn, and Pillow. Variables persist for the session."
-              >
-                <Badge tone={environment("python")?.ready ? "ready" : "muted"}>
-                  {environment("python")?.ready ? "Ready" : "Setup needed"}
-                </Badge>
-              </Row>
-              <Row
-                icon="braces"
-                title="R starter"
-                subtitle="R with tidyverse, ggplot2, and jsonlite. It is isolated from your system R libraries."
-              >
-                <Badge tone={environment("r")?.ready ? "ready" : "muted"}>
-                  {environment("r")?.ready ? "Ready" : "Setup needed"}
-                </Badge>
-              </Row>
+            <Card>
+              <div class="settings-row settings-compute-summary-row">
+                <RowCopy
+                  title="Python starter"
+                  description="Python 3.11 with NumPy, pandas, SciPy, Matplotlib, Seaborn, and Pillow. Variables persist for the session."
+                />
+                <div class="settings-compute-summary-action">
+                  <Badge tone={environment("python")?.ready ? "ready" : "muted"}>
+                    {environment("python")?.ready ? "Ready" : "Setup needed"}
+                  </Badge>
+                </div>
+              </div>
+              <div class="settings-row settings-compute-summary-row">
+                <RowCopy
+                  title="R starter"
+                  description="R with tidyverse, ggplot2, and jsonlite. It is isolated from your system R libraries."
+                />
+                <div class="settings-compute-summary-action">
+                  <Badge tone={environment("r")?.ready ? "ready" : "muted"}>
+                    {environment("r")?.ready ? "Ready" : "Setup needed"}
+                  </Badge>
+                </div>
+              </div>
               <Show when={data()?.environments.status !== "ready"}>
                 <div class="settings-row items-center gap-3">
                   <div class="settings-list-copy min-w-0 flex-1">
@@ -576,43 +726,33 @@ const Compute: Component = () => {
                   </Button>
                 </div>
               </Show>
-            </Panel>
+            </Card>
           </Section>
 
-          <CredentialServices
-            category="compute"
-            title="Cloud credentials"
-            description="Connect a cloud once. Credentials stay encrypted locally and go only to the tools that need them."
-          />
-
-          <Section title="Modal" subtitle="Connect Modal for approved jobs in isolated cloud sandboxes.">
-            <Panel>
+          <Section title="Modal" description="Connect Modal for approved jobs in isolated cloud sandboxes.">
+            <Card>
               <div class="settings-compute-card" aria-busy={modalBusy() ? "true" : undefined}>
                 <div class="settings-compute-provider-row">
-                  <div class="flex min-w-0 flex-1 basis-[240px] items-center gap-2.5">
-                    <ProviderLogo id="modal" label="Modal" connected={modal()?.connected} />
-                    <div class="flex min-w-0 flex-col gap-0.5">
-                      <span class="text-14-medium text-text-strong">Modal</span>
-                      <span class="text-12-regular text-text-weak">
-                        {modal()?.connected
-                          ? modal()?.source === "modal_toml"
-                            ? "Active profile from ~/.modal.toml"
-                            : modal()?.source === "account"
-                              ? "Synced from your Synthetic Sciences account."
-                              : "Token stored locally and encrypted."
-                          : data()?.modal_file.ready
-                            ? "Modal CLI configuration found at ~/.modal.toml."
-                            : data()?.modal_file.found
-                              ? "Modal config found, but its active profile has no usable token."
-                              : "Enter the token ID and secret from Modal."}
-                      </span>
-                    </div>
+                  <span class="settings-row-logo" aria-hidden="true">
+                    <ProviderLogo id="modal" label="Modal" size="small" />
+                  </span>
+                  <div class="flex min-w-0 flex-1 basis-[240px] flex-col gap-0.5">
+                    <span class="text-14-medium text-text-strong">Modal</span>
+                    <span class="text-12-regular text-text-weak">
+                      {modal()?.connected
+                        ? modal()?.source === "modal_toml"
+                          ? "Active profile from ~/.modal.toml"
+                          : "Token stored locally and encrypted."
+                        : data()?.modal_file.ready
+                          ? "Modal CLI configuration found at ~/.modal.toml. Token values stay in that file."
+                          : data()?.modal_file.found
+                            ? "Modal config found, but its active profile has no usable token."
+                            : "Enter the token ID and secret from Modal."}
+                    </span>
                   </div>
                   <Show when={modal()?.connected}>
                     <div class="settings-compute-actions">
-                      <span class="settings-preference-status" data-tone={modal()?.enabled ? "success" : undefined}>
-                        {modal()?.enabled ? "Enabled" : "Off"}
-                      </span>
+                      <span class="settings-row-status">{modal()?.enabled ? "Enabled" : "Off"}</span>
                       <Switch
                         hideLabel
                         checked={modal()?.enabled ?? false}
@@ -623,29 +763,24 @@ const Compute: Component = () => {
                       </Switch>
                     </div>
                   </Show>
-                </div>
-                <Show when={connectionNotice()}>{(notice) => <NoticeBox notice={notice()} />}</Show>
-                <Show when={!data.loading && !modal()?.connected && data()?.modal_file.ready}>
-                  <div class="settings-alert flex-wrap">
-                    <p class="min-w-0 flex-1 basis-[240px] text-12-regular text-text-weak">
-                      Configure OpenScience to use this profile. Token values stay in the Modal config file.
-                    </p>
-                    <span class="ml-auto shrink-0">
+                  <Show when={!data.loading && !modal()?.connected && data()?.modal_file.ready}>
+                    <div class="settings-compute-actions">
                       <Button
                         class="settings-panel-action"
                         size="small"
-                        variant="primary"
+                        variant="secondary"
                         disabled={modalBusy()}
                         onClick={() => void configure()}
                       >
-                        {isBusy("modal:configure") ? "Configuring…" : "Configure"}
+                        {isBusy("modal:configure") ? "Configuring…" : "Use this profile"}
                       </Button>
-                    </span>
-                  </div>
-                </Show>
+                    </div>
+                  </Show>
+                </div>
+                <Show when={connectionNotice()}>{(notice) => <NoticeBox notice={notice()} />}</Show>
                 <Show when={!data.loading && !modal()?.connected && !data()?.modal_file.ready}>
                   <div class="flex flex-col gap-2">
-                    <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="settings-form-grid">
                       <Field label="Modal token ID" value={token()} placeholder="ak-…" onInput={setToken} />
                       <Field
                         label="Modal token secret"
@@ -670,23 +805,25 @@ const Compute: Component = () => {
                 </Show>
                 <Show when={modal()?.connected}>
                   <div class="settings-list-header">
-                    <h4 class="text-11-medium text-text-weak">Job defaults</h4>
+                    <h4 class="text-12-medium text-text-weak">Job defaults</h4>
                   </div>
-                  <div class="grid gap-3 sm:grid-cols-2">
+                  <div class="settings-form-grid">
                     <Field label="Modal app" value={app()} placeholder="openscience" onInput={setApp} />
                     <Field label="Default image" value={image()} placeholder="python:3.12-slim" onInput={setImage} />
-                    <label class="flex min-w-0 flex-col gap-1.5">
+                    <div class="flex min-w-0 flex-col gap-1.5">
                       <span class="text-12-medium text-text-strong">Network</span>
-                      <select
+                      <Select
                         aria-label="Modal network"
-                        class="settings-control px-3 text-13-regular text-text-strong"
-                        value={network()}
-                        onChange={(event) => setNetwork(event.currentTarget.value as Modal["network"])}
-                      >
-                        <option value="none">Blocked</option>
-                        <option value="unrestricted">Unrestricted</option>
-                      </select>
-                    </label>
+                        options={networks}
+                        current={networks.find((item) => item.value === network())}
+                        value={(item) => item.value}
+                        label={(item) => item.label}
+                        onSelect={(item) => item && setNetwork(item.value)}
+                        variant="secondary"
+                        size="small"
+                        triggerVariant="settings"
+                      />
+                    </div>
                     <Field
                       label="Default timeout (minutes)"
                       value={timeout()}
@@ -724,52 +861,197 @@ const Compute: Component = () => {
                       {isBusy("modal:save") ? "Saving…" : "Save defaults"}
                     </Button>
                   </div>
-                  <p class="text-11-regular text-text-weak">
+                  <p class="text-12-regular text-text-weak">
                     Credentials stay local. Every dispatch still requires approval.
                   </p>
                 </Show>
               </div>
-            </Panel>
+            </Card>
+          </Section>
+
+          <Section
+            title="GPU provider credentials"
+            description="Encrypted credentials for reviewed read-only agent operations. They never enter agent shells, and paid or mutating actions stay unavailable."
+          >
+            <Card>
+              <For each={cliProviders()}>
+                {(item) => {
+                  const rowBusy = () =>
+                    hasBusyPrefix(`provider:`) && Object.keys(state.busy).some((key) => key.endsWith(item.id))
+                  const status = () =>
+                    item.connected ? (item.enabled ? "Enabled for broker" : "Credential saved · off") : "Not configured"
+                  return (
+                    <div class="settings-list-item" aria-busy={rowBusy() ? "true" : undefined}>
+                      <div class="settings-list-row">
+                        <span class="settings-row-logo" aria-hidden="true">
+                          <ProviderLogo id={item.id} label={item.name} size="small" />
+                        </span>
+                        <div class="settings-list-copy min-w-0 flex-1">
+                          <strong>{item.name}</strong>
+                          <span
+                            title={`Broker field ${item.credential.environment}${item.credential.aliases.length ? ` · aliases ${item.credential.aliases.join(", ")}` : ""}`}
+                          >
+                            {item.hint}
+                            <Show when={item.last_used}>
+                              {(value) => <> Last used {new Date(value()).toLocaleDateString()}.</>}
+                            </Show>
+                          </span>
+                        </div>
+                        <div class="settings-list-actions max-w-full flex-wrap justify-end">
+                          <span class="settings-row-status">{status()}</span>
+                          <Show when={item.connected}>
+                            <Switch
+                              hideLabel
+                              checked={item.enabled}
+                              disabled={rowBusy()}
+                              onChange={(enabled) => void toggleProvider(item, enabled)}
+                            >
+                              Enable {item.name} credential
+                            </Switch>
+                            <Button
+                              class="settings-panel-action settings-panel-action--quiet"
+                              size="small"
+                              variant="secondary"
+                              disabled={rowBusy()}
+                              aria-label={`Remove ${item.name} credential`}
+                              onClick={() => void removeProvider(item)}
+                            >
+                              Remove
+                            </Button>
+                          </Show>
+                          <Show when={item.enabled}>
+                            <Button
+                              class="settings-panel-action settings-panel-action--quiet"
+                              size="small"
+                              variant="secondary"
+                              disabled={rowBusy()}
+                              onClick={() => void checkProvider(item)}
+                            >
+                              {isBusy(`provider:check:${item.id}`) ? "Testing…" : "Test connection"}
+                            </Button>
+                          </Show>
+                          <Button
+                            class="settings-panel-action settings-panel-action--quiet"
+                            size="small"
+                            variant="secondary"
+                            disabled={rowBusy()}
+                            onClick={() => {
+                              setProviderKey(item.id, "")
+                              setState("editingProvider", editingProvider() === item.id ? undefined : item.id)
+                            }}
+                          >
+                            {editingProvider() === item.id ? "Cancel" : item.connected ? "Update" : "Add credential"}
+                          </Button>
+                        </div>
+                      </div>
+                      <Show when={editingProvider() === item.id}>
+                        <form
+                          class="credential-form min-w-0"
+                          onSubmit={(event) => {
+                            event.preventDefault()
+                            void saveProvider(item)
+                          }}
+                        >
+                          <label>
+                            <span>{item.credential.label}</span>
+                            <input
+                              type="password"
+                              autocomplete="off"
+                              spellcheck={false}
+                              disabled={rowBusy()}
+                              value={providerKey(item.id)}
+                              placeholder={item.connected ? "Enter a replacement credential" : item.placeholder}
+                              onInput={(event) => setProviderKey(item.id, event.currentTarget.value)}
+                            />
+                          </label>
+                          <p class="text-12-regular text-text-weak">
+                            Stored encrypted. Saving a new credential leaves this bridge off; updating preserves its
+                            current on/off state. No provider API call or paid resource is created here.
+                          </p>
+                          <div class="credential-form-actions max-w-full flex-wrap">
+                            <Button
+                              type="submit"
+                              size="small"
+                              variant="primary"
+                              disabled={rowBusy() || !providerKey(item.id).trim()}
+                            >
+                              {isBusy(`provider:save:${item.id}`) ? "Saving…" : "Save credential"}
+                            </Button>
+                            <Button
+                              type="button"
+                              size="small"
+                              variant="ghost"
+                              disabled={rowBusy()}
+                              onClick={() => platform.openLink(item.credential.docs_url)}
+                            >
+                              Official setup docs
+                            </Button>
+                          </div>
+                        </form>
+                      </Show>
+                      <Show when={!isBusy(`provider:check:${item.id}`) && providerCheck(item.id)}>
+                        {(result) => (
+                          <div class="credential-form min-w-0" role={result().ok ? "status" : "alert"}>
+                            <p
+                              class={
+                                result().ok ? "text-12-regular text-text-success" : "text-12-regular text-text-danger"
+                              }
+                            >
+                              {result().ok
+                                ? `Verified with ${result().command}. No resource was created.`
+                                : (result().error ?? "The native connection check did not complete.")}
+                            </p>
+                          </div>
+                        )}
+                      </Show>
+                    </div>
+                  )
+                }}
+              </For>
+            </Card>
           </Section>
 
           <Section
             title="Remote hosts"
-            subtitle="Pin a host key, then dispatch staged jobs through your active SSH agent."
+            description="Pin a host key, then dispatch staged jobs through your active SSH agent. A selected identity file and data-only ProxyJump are optional."
           >
             <div class="settings-compute-remote" aria-busy={hasBusyPrefix("ssh:") ? "true" : undefined}>
               <Show
                 when={!data.loading}
                 fallback={
-                  <Panel>
-                    <Row icon="server" title="Loading SSH hosts" subtitle="Reading saved compute profiles.">
-                      <Badge tone="muted">Loading</Badge>
-                    </Row>
-                  </Panel>
+                  <Card>
+                    <div class="settings-panel-loading__rows" role="status" aria-label="Loading SSH hosts">
+                      <span />
+                      <span />
+                    </div>
+                  </Card>
                 }
               >
                 <Show
                   when={(data()?.ssh_hosts.length ?? 0) > 0}
                   fallback={
-                    <Panel>
-                      <Row
-                        icon="server"
-                        title="No remote hosts connected"
-                        subtitle="Add a plain SSH, Slurm, or PBS host, then run a real connection check."
-                      >
-                        <Button
-                          class="settings-panel-action settings-panel-action--quiet"
-                          size="small"
-                          variant="secondary"
-                          disabled={sshMutationBusy()}
-                          onClick={() => setAdding(true)}
-                        >
-                          Add host
-                        </Button>
-                      </Row>
-                    </Panel>
+                    <Card>
+                      <div class="settings-row settings-compute-summary-row">
+                        <RowCopy
+                          title="No remote hosts connected"
+                          description="Add a plain SSH, Slurm, or PBS host, then run a real connection check."
+                        />
+                        <div class="settings-compute-summary-action">
+                          <Button
+                            class="settings-panel-action settings-panel-action--quiet"
+                            size="small"
+                            variant="secondary"
+                            disabled={sshMutationBusy()}
+                            onClick={() => setAdding(true)}
+                          >
+                            Add host
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
                   }
                 >
-                  <Panel>
+                  <Card>
                     <For each={data()?.ssh_hosts}>
                       {(item) => {
                         const probe = () => probes()[item.id]
@@ -777,20 +1059,8 @@ const Compute: Component = () => {
                           <>
                             <div class="settings-row settings-compute-host-row">
                               <div class="settings-compute-host-copy">
-                                <div class="settings-row-icon mt-0.5" aria-hidden="true">
-                                  <Icon name="server" size="small" />
-                                </div>
                                 <div class="min-w-0 flex-1">
-                                  <div class="flex min-w-0 flex-wrap items-center gap-2">
-                                    <span class="truncate text-14-medium text-text-strong">{item.label}</span>
-                                    <Badge tone={probe()?.ok || item.fingerprint ? "ready" : "muted"}>
-                                      {probe()?.ok
-                                        ? "Ready to dispatch"
-                                        : item.fingerprint
-                                          ? "Host key pinned"
-                                          : schedulerLabel(item.scheduler)}
-                                    </Badge>
-                                  </div>
+                                  <span class="block truncate text-14-medium text-text-strong">{item.label}</span>
                                   <p class="mt-0.5 truncate text-12-regular text-text-weak">
                                     {destination(item)}
                                     {item.workdir ? ` · ${item.workdir}` : ""}
@@ -798,13 +1068,19 @@ const Compute: Component = () => {
                                   <Show when={item.notes}>
                                     <p class="settings-compute-host-notes-copy">{item.notes}</p>
                                   </Show>
+                                  <Show when={item.identity_file || item.proxy_jump}>
+                                    <p class="mt-1 truncate text-12-regular text-text-weak">
+                                      {item.identity_file ? `Identity ${item.identity_file}` : "SSH agent"}
+                                      {item.proxy_jump ? ` · via ${item.proxy_jump}` : ""}
+                                    </p>
+                                  </Show>
                                   <Show when={probe()}>
                                     {(result) => (
                                       <p
                                         class={
                                           result().ok
-                                            ? "mt-1 text-11-regular text-text-success"
-                                            : "mt-1 text-11-regular text-text-danger"
+                                            ? "mt-1 text-12-regular text-text-success"
+                                            : "mt-1 text-12-regular text-text-danger"
                                         }
                                       >
                                         {result().ok
@@ -814,10 +1090,7 @@ const Compute: Component = () => {
                                     )}
                                   </Show>
                                   <Show when={item.fingerprint}>
-                                    <p
-                                      class="mt-1 truncate font-mono text-11-regular text-text-weak"
-                                      title={item.fingerprint}
-                                    >
+                                    <p class="mt-1 truncate text-12-regular text-text-weak" title={item.fingerprint}>
                                       {item.fingerprint} · {item.concurrency} concurrent job
                                       {item.concurrency === 1 ? "" : "s"}
                                     </p>
@@ -825,6 +1098,13 @@ const Compute: Component = () => {
                                 </div>
                               </div>
                               <div class="settings-compute-host-actions">
+                                <span class="settings-row-status">
+                                  {probe()?.ok
+                                    ? "Ready to dispatch"
+                                    : item.fingerprint
+                                      ? "Host key pinned"
+                                      : schedulerLabel(item.scheduler)}
+                                </span>
                                 <Button
                                   class="settings-panel-action settings-panel-action--quiet"
                                   size="small"
@@ -896,34 +1176,32 @@ const Compute: Component = () => {
                         )
                       }}
                     </For>
-                  </Panel>
+                  </Card>
                 </Show>
               </Show>
 
               <Show when={configHosts().length > 0}>
                 <div class="settings-compute-config-import">
-                  <div class="settings-compute-config-import__heading">
+                  <div class="settings-section-heading">
                     <div>
-                      <h4>From ~/.ssh/config</h4>
+                      <h3>From ~/.ssh/config</h3>
                       <p>
-                        Literal host entries only. Imports host, user, and port; Match, Include, identity files, and
-                        proxy commands stay untouched.
+                        Literal host entries only, plus bounded Includes. Imports safe identity files and ProxyJump
+                        values; Match blocks are ignored and proxy commands are never evaluated.
                       </p>
                     </div>
                   </div>
-                  <Panel>
+                  <Card>
                     <For each={configHosts()}>
                       {(item) => (
                         <div class="settings-row settings-compute-host-row">
                           <div class="settings-compute-host-copy">
-                            <div class="settings-row-icon mt-0.5" aria-hidden="true">
-                              <Icon name="server" size="small" />
-                            </div>
                             <div class="min-w-0 flex-1">
-                              <p class="text-13-medium text-text-strong">{item.alias}</p>
-                              <p class="mt-0.5 truncate text-11-regular text-text-weak">
+                              <p class="text-14-medium text-text-strong">{item.alias}</p>
+                              <p class="mt-0.5 truncate text-12-regular text-text-weak">
                                 {[item.user, item.hostname ?? item.alias].filter(Boolean).join("@")}
                                 {item.port ? `:${item.port}` : ""}
+                                {item.proxy_jump ? ` · via ${item.proxy_jump}` : ""}
                               </p>
                             </div>
                           </div>
@@ -941,7 +1219,7 @@ const Compute: Component = () => {
                         </div>
                       )}
                     </For>
-                  </Panel>
+                  </Card>
                 </div>
               </Show>
 
@@ -959,28 +1237,38 @@ const Compute: Component = () => {
 
               <Show when={adding()}>
                 <form
-                  class="settings-card settings-form-card grid gap-5"
+                  class="settings-card settings-form-card"
                   onSubmit={(event) => {
                     event.preventDefault()
                     void add()
                   }}
                 >
                   <div class="flex items-start gap-3">
-                    <div class="settings-row-icon mt-0.5" aria-hidden="true">
-                      <Icon name="server" size="small" />
-                    </div>
                     <div class="min-w-0">
                       <h4 class="text-14-medium text-text-strong">New SSH host</h4>
                       <p class="mt-0.5 text-12-regular text-text-weak">
-                        OpenScience uses your active SSH agent, pins the tested host key, and never copies private keys.
+                        OpenScience pins tested host keys and uses your agent or a selected private-key path. Key bytes
+                        are never copied into OpenScience storage.
                       </p>
                     </div>
                   </div>
-                  <div class="grid gap-3 sm:grid-cols-2">
+                  <div class="settings-form-grid">
                     <Field label="Name" value={label()} placeholder="Lab cluster" onInput={setLabel} />
                     <Field label="Hostname" value={host()} placeholder="hpc.example.edu" onInput={setHost} />
                     <Field label="User" value={user()} placeholder="Optional" onInput={setUser} />
                     <Field label="Port" value={port()} placeholder="22" inputMode="numeric" onInput={setPort} />
+                    <Field
+                      label="Identity file"
+                      value={identityFile()}
+                      placeholder="~/.ssh/id_ed25519 (optional)"
+                      onInput={setIdentityFile}
+                    />
+                    <Field
+                      label="ProxyJump"
+                      value={proxyJump()}
+                      placeholder="user@bastion.example.org:22 (optional)"
+                      onInput={setProxyJump}
+                    />
                     <label class="flex min-w-0 flex-col gap-1.5">
                       <span class="text-12-medium text-text-strong">Scheduler</span>
                       <Select
@@ -1008,7 +1296,7 @@ const Compute: Component = () => {
                       inputMode="numeric"
                       onInput={setSshConcurrency}
                     />
-                    <div class="sm:col-span-2">
+                    <div data-span="full">
                       <TextArea
                         label="Host notes"
                         value={notes()}
@@ -1042,6 +1330,12 @@ const Compute: Component = () => {
               </Show>
             </div>
           </Section>
+
+          <CredentialServices
+            category="compute"
+            title="Cloud credentials"
+            description="Credential-only access for reviewed CLI, SDK, and hosted-model skills. Saving a credential does not add a first-party compute backend or verify the service."
+          />
         </PanelBody>
       </div>
     </PanelScroll>
@@ -1090,19 +1384,10 @@ const TextArea: Component<{
   </label>
 )
 
-const Section: Component<{ title: string; subtitle: string; children: JSX.Element }> = (props) => (
-  <section class="settings-section">
-    <div class="settings-section-heading">
-      <div>
-        <h3>{props.title}</h3>
-        <p>{props.subtitle}</p>
-      </div>
-    </div>
-    {props.children}
-  </section>
-)
-
-const Panel: Component<{ children: JSX.Element }> = (props) => <div class="settings-card">{props.children}</div>
+const networks: Array<{ value: Modal["network"]; label: string }> = [
+  { value: "none", label: "Blocked" },
+  { value: "unrestricted", label: "Unrestricted" },
+]
 
 const NoticeBox: Component<{ notice: Notice }> = (props) => (
   <div
@@ -1131,24 +1416,9 @@ const NoticeBox: Component<{ notice: Notice }> = (props) => (
         {props.notice.title}
       </p>
       <Show when={props.notice.detail}>
-        <p class="mt-0.5 text-11-regular text-text-weak">{props.notice.detail}</p>
+        <p class="mt-0.5 text-12-regular text-text-weak">{props.notice.detail}</p>
       </Show>
     </div>
-  </div>
-)
-
-const Row: Component<{ icon: IconProps["name"]; title: string; subtitle: string; children: JSX.Element }> = (props) => (
-  <div class="settings-row settings-compute-summary-row">
-    <div class="flex min-w-0 flex-1 basis-[220px] items-center gap-3">
-      <div class="settings-row-icon" aria-hidden="true">
-        <Icon name={props.icon} size="small" />
-      </div>
-      <div class="flex min-w-0 flex-col gap-0.5">
-        <span class="text-14-medium text-text-strong">{props.title}</span>
-        <span class="text-12-regular text-text-weak">{props.subtitle}</span>
-      </div>
-    </div>
-    <div class="settings-compute-summary-action">{props.children}</div>
   </div>
 )
 

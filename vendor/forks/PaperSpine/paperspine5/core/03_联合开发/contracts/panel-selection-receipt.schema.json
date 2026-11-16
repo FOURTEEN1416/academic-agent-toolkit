@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/panel-selection-receipt.schema.json",
+  "title": "Panel-aware publication-figure selection receipt",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "figure_id", "preservation_prior", "final_size_context", "panels", "candidates"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "figure_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "preservation_prior": {"const": true},
+    "final_size_context": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["column_span", "physical_width_mm", "render_dpi"],
+      "properties": {
+        "column_span": {"enum": ["one_column", "two_column_span"]},
+        "physical_width_mm": {"type": "number", "exclusiveMinimum": 0},
+        "render_dpi": {"type": "integer", "minimum": 72}
+      }
+    },
+    "panels": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["panel_id", "claim_role", "evidence_anchor"],
+        "properties": {
+          "panel_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+          "claim_role": {"type": "string", "minLength": 1},
+          "evidence_anchor": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["candidate_id", "candidate_family", "final_size_render_sha256", "identity_status", "blockers", "scores", "panel_actions"],
+        "properties": {
+          "candidate_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+          "candidate_family": {"enum": ["preserved_original", "minimally_repaired_hybrid", "exemplar_mechanism_redesign", "alternative_evidence_architecture", "full_redraw"]},
+          "final_size_render_sha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+          "identity_status": {"enum": ["verified", "blocked"]},
+          "blockers": {"type": "array", "items": {"type": "string"}},
+          "panel_reviews": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["panel_id", "final_size_render_sha256", "scores", "blockers"],
+              "properties": {
+                "panel_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+                "final_size_render_sha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"},
+                "blockers": {"type": "array", "items": {"type": "string"}},
+                "scores": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["scientific_fidelity", "information_retention", "conclusion_speed", "readability", "publication_fit", "aesthetic_coherence"],
+                  "properties": {
+                    "scientific_fidelity": {"type": "number", "minimum": 0, "maximum": 100},
+                    "information_retention": {"type": "number", "minimum": 0, "maximum": 100},
+                    "conclusion_speed": {"type": "number", "minimum": 0, "maximum": 100},
+                    "readability": {"type": "number", "minimum": 0, "maximum": 100},
+                    "publication_fit": {"type": "number", "minimum": 0, "maximum": 100},
+                    "aesthetic_coherence": {"type": "number", "minimum": 0, "maximum": 100}
+                  }
+                }
+              }
+            }
+          },
+          "scores": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["scientific_fidelity", "information_retention", "conclusion_speed", "readability", "hierarchy_scan_path", "publication_fit", "aesthetic_coherence"],
+            "properties": {
+              "scientific_fidelity": {"type": "number", "minimum": 0, "maximum": 100},
+              "information_retention": {"type": "number", "minimum": 0, "maximum": 100},
+              "conclusion_speed": {"type": "number", "minimum": 0, "maximum": 100},
+              "readability": {"type": "number", "minimum": 0, "maximum": 100},
+              "hierarchy_scan_path": {"type": "number", "minimum": 0, "maximum": 100},
+              "publication_fit": {"type": "number", "minimum": 0, "maximum": 100},
+              "aesthetic_coherence": {"type": "number", "minimum": 0, "maximum": 100}
+            }
+          },
+          "panel_actions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["panel_id", "panel_action", "claim_ids", "rationale"],
+              "properties": {
+                "panel_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+                "panel_action": {"enum": ["keep", "repair", "redraw", "promote", "demote", "omit"]},
+                "claim_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+                "rationale": {"type": "string", "minLength": 8}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PaperSpine Integrity Audit — teaching-quality checkpoint before LaTeX.
+"""PaperSpine Integrity Audit — evidence-safety checkpoint before LaTeX.
 
 Unlike a binary gate, this audit produces a structured report where every finding
 includes a root-cause analysis, a concrete fix action, the downstream impact if
@@ -7,7 +7,8 @@ left unfixed, and a teaching note.  The report is designed to be read by both
 the user and downstream PaperSpine agents so they can reason about what to fix
 and why.
 
-Pattern: follows the *writing_rationale_matrix* philosophy — every row teaches.
+Balanced review stays manuscript-first: optional planning paperwork never
+becomes a substitute for editorial judgment.
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ if hasattr(sys.stderr, "reconfigure"):
 
 from _paper_spine_utils import (
     markdown_tables,
+    review_policy,
 )
 
 # ---------------------------------------------------------------------------
@@ -128,8 +130,9 @@ def audit_artifacts(out_dir: Path, config: dict) -> AuditDimension:
         "paper_spine_config.json", "research_dossier.md",
         "exemplar_learning_dossier.md", "citation_support_bank.md",
         "confirmed_motivation.md", "section_blueprints.md",
-        "writing_rationale_matrix.md",
     ]
+    if review_policy(config) == "strict":
+        required.append("writing_rationale_matrix.md")
     if workflow == "rewrite_existing":
         required.extend(["original_logic_map.md", "evidence_bank.md", "rewrite_matrix.md", "logic_transfer_audit.md"])
     else:
@@ -167,9 +170,23 @@ def audit_artifacts(out_dir: Path, config: dict) -> AuditDimension:
 # Dimension 2 — Reasoning Depth Audit
 # ---------------------------------------------------------------------------
 
-def audit_reasoning_depth(out_dir: Path, _config: dict) -> AuditDimension:
+def audit_reasoning_depth(out_dir: Path, config: dict) -> AuditDimension:
     dim = AuditDimension("Reasoning Depth")
     matrix_path = out_dir / "writing_rationale_matrix.md"
+    if review_policy(config) == "balanced":
+        dim.findings.append(AuditFinding(
+            id="RSN-000", severity="INFO", dimension=dim.name,
+            what_was_found=(
+                "Balanced policy leaves paragraph-level reasoning to the section blueprint, "
+                "manuscript, and integrated editor synthesis; a rationale matrix is optional"
+            ),
+            root_cause="", fix_action="", downstream_impact="",
+            teaching_note=(
+                "Judge whether the paper works for its reader. Do not make the Agent expand "
+                "an optional matrix merely because the file exists."
+            ),
+        ))
+        return dim
     if not matrix_path.exists():
         dim.findings.append(AuditFinding(
             id="RSN-001", severity="BLOCKER", dimension=dim.name,
@@ -206,10 +223,11 @@ def audit_reasoning_depth(out_dir: Path, _config: dict) -> AuditDimension:
                 what_was_found=f"First rationale row is shallow ({len(first_row_text)} chars). "
                                "The whole-work framework justification should be at least 300 chars.",
                 root_cause="The writing step spent insufficient effort on the controlling structure justification. "
-                           "This row should explain *why* the chosen framework fits the confirmed motivation.",
+                               "This row should explain *why* the chosen framework advances the confirmed contribution and fits the aligned motivation.",
                 fix_action="Expand the first data row to include: (a) why this structure was chosen over alternatives, "
-                           "(b) how SOTA examples informed it, (c) how it serves the confirmed motivation, "
-                           "(d) which user evidence anchors it, and (e) how the final text will be checked against it.",
+                           "(b) which contribution promise governs it, (c) how the aligned motivation establishes necessity, "
+                           "(d) how SOTA examples informed it, (e) which user evidence anchors it, and "
+                           "(f) how the final text will be checked against it.",
                 downstream_impact="A weak first row means the entire paper structure is unjustified. "
                                   "The structured review will flag this as a fundamental weakness.",
                 teaching_note="The whole-work framework row is the most important row in the matrix. "
@@ -226,7 +244,8 @@ def audit_reasoning_depth(out_dir: Path, _config: dict) -> AuditDimension:
             root_cause="The writing agent is producing placeholder rows instead of reasoned units. "
                        "This typically happens when the matrix is treated as a checklist rather than a design tool.",
             fix_action="For each shallow row, add: (a) the original problem this unit solves, "
-                       "(b) the motivation link, (c) a SOTA pattern reference, and (d) a concrete planned change. "
+                       "(b) the contribution promise, (c) the aligned motivation, (d) a SOTA pattern reference, "
+                       "and (e) a concrete planned change. "
                        "A row that just says 'improve clarity' is not a rationale — it's an admission of not thinking.",
             downstream_impact="Shallow rows produce shallow writing. The structured review will have nothing "
                               "to verify against, and the final manuscript will read as generic.",
@@ -238,7 +257,7 @@ def audit_reasoning_depth(out_dir: Path, _config: dict) -> AuditDimension:
             id="RSN-005", severity="WARNING", dimension=dim.name,
             what_was_found=f"{len(shallow)} shallow rows: {[s[0] for s in shallow[:8]]}",
             root_cause="Minor gaps in reasoning depth — likely rows that were left as placeholders.",
-            fix_action="Review each shallow row and add at least motivation link + planned change.",
+            fix_action="Review each shallow row and add at least contribution promise + motivation alignment + planned change.",
             downstream_impact="These rows will produce weaker-than-necessary writing units.",
             teaching_note="A rationale row doesn't need to be long, but it needs to be specific.",
         ))

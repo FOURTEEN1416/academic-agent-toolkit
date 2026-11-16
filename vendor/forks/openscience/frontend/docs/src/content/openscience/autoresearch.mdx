@@ -1,0 +1,62 @@
+---
+title: "Autoresearch"
+description: "Let a study hill-climb a metric over many runs while you watch: tracked metrics, a baseline, ideas ranked by expected value, and a ledger of what was kept."
+---
+
+The Autoresearch pane sits beside Files, Terminal and Compute. Each study has a tab: its score (the best value and how far it moved from the baseline), the climb across runs, the runs with their training curves, the idea queue, the lessons and the activity. A study runs experiments in a loop: one metric, a baseline, a queue of ideas, and a ledger of what was kept or reverted.
+
+## Track a run
+
+Any script that OpenScience runs can report metrics. Import the tracker and log the numbers you want to see:
+
+```python
+import openscience_track as track
+
+run = track.init(project="lora-vs-full", name="lora-r16", config={"lr": 1e-4, "rank": 16})
+for step, batch in enumerate(loader):
+    loss = train_step(batch)
+    if step % 50 == 0:
+        track.log({"train_loss": loss, "lr": lr}, step=step)
+track.summary["val_loss"] = evaluate()
+track.finish()
+```
+
+Scripts written for `wandb` work unchanged inside a study: `import wandb` resolves to a shim that forwards to the tracker. No account, no network, no dependency: inside a compute job each record is one marked line on the job's output, which OpenScience reads back and stores in a per-project SQLite file under the data root. The Compute pane's log view and the model's `compute_job logs` never show those lines.
+
+New study runs retain their bound compute job’s provenance envelope. Expand **Recorded execution provenance** in run details to inspect the recorded command, working directory, code state, host/runtime information when captured, output hashes and timestamps. Unavailable fields retain their reason, and older runs without evidence say so. A run stays open while its compute job is delivering outputs, so its retained provenance includes the final captured artifacts and checkpoints. This snapshot survives reopening the experiment database; it is not a complete replay bundle or a guarantee that the dataset and environment can be reconstructed.
+
+Runs appear under their study as they log. Click a run for its configuration, summary values and one chart per metric; toggle runs on the comparison chart with the coloured squares, pick the metric, smooth or switch to a log scale.
+
+## Start a study
+
+Ask for one in plain words:
+
+```text
+Start an autoresearch study on train.py: minimize val_loss, baseline first,
+at most 2 runs at a time on this machine, kill a run after 1 hour or if
+val_loss plateaus for 500 steps, stop after 20 runs or 8 hours.
+```
+
+Give the study a research question and a testable hypothesis as well as its metric, for example: “Does momentum improve validation loss at equal compute? I predict it will reach the same loss in fewer steps.” These are stored separately from the study’s purpose and appear in **About** and `study.md`. Use **Edit question and hypothesis** in About, or ask the agent to update either field. Existing studies show “Not recorded” until you supply them; OpenScience does not infer them from the purpose. Driver updates carry the recorded question and hypothesis forward.
+
+The agent agrees the objective, creates the study, proposes the baseline and the first ideas ranked by expected value, and starts the baseline through the compute permissions you already use. From then on:
+
+- OpenScience follows each run's metrics, ends runs that break the kill criteria, and when a run finishes wakes the session with a **Study update** that reports the metric against the baseline. You can read every wake-up in the transcript.
+- The agent records a verdict for each run (kept or reverted, with its analysis and any lesson), queues the ideas the result suggests, and starts the next one. Exactly one run per idea.
+- Pause, Resume and Halt sit beside the score. Halt cancels live runs. The budget you set pauses the study and asks for a conclusion when it is reached; a study always has its own budget, agreed when it starts, never one inherited from an earlier study.
+- **steer** adds a standing directive ("only vary the optimizer from now on") that wakes the agent immediately and stays in its instructions until you retire it. Typing in the chat works too; a directive is the version that survives the next fifty runs.
+- The loop keeps itself honest: the agent is asked for more ideas when fewer than three are queued, for a different kind of idea after four runs without progress, and for a step-back review every six runs. Short runs are waited on inside a turn; wake-ups are for runs that outlast one.
+- `study.md`, `ideas.md`, `results.tsv` and `lessons.md` are rendered into the working folder as the study advances, in the shape of Karpathy's autoresearch loop, so the record is readable without the app and travels with the project.
+
+Studies run on the local machine (one run per GPU when `nvidia-smi` is present), on a saved SSH or scheduler host, or on Modal. Local and SSH runs chart live; a Modal run's metrics arrive when its log is delivered at the end. The compute permissions are unchanged: a study starts runs the way you would, with the same approvals, under your Independence setting. With the review gate on (the default), the agent has a read-only `explore` worker critique the training and evaluation code before the baseline runs and fixes anything marked blocking. Approving a Modal study also grants a time allowance equal to its hour budget for the jobs that follow the runs (the final refit, an external baseline), so those do not ask again. A run whose dispatch fails before its command executes (an input over the upload limit, a file edited while a dispatch was in flight) returns its idea to the queue instead of spending it.
+
+## Write it up
+
+**Write up** beside the score starts a turn that reads the ledger and the tracked runs and drafts the results: baseline, best configuration, the ablations that mattered, and the figures the data supports. Kept runs are the claims; reverted runs are the ablations that keep them honest.
+
+## Tools the agent uses
+
+- `study`: create, update (question/hypothesis), status, propose, start, record, drop, conclude, reopen.
+- `experiments`: runs, keys, series, compare.
+
+Both are ordinary tools with their own permission entries (`study` is contained, `experiments` is read-only). Runs still go through `compute_job`.

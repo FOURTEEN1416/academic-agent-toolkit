@@ -2,11 +2,12 @@ import z from "zod"
 import path from "path"
 import crypto from "node:crypto"
 import { Tool } from "./tool"
-import { registry } from "../science/connectors"
+import { connectorRegistry } from "../science/connectors/plugin"
 import type { ConnectorHit } from "../science/connectors"
 import { SessionFilesystem } from "../session/filesystem"
 import { SafeFileIO } from "../file/safe-io"
 import { outcomeFor, formatBytes, classifyError, safeSegment } from "../science/connectors/fetch-outcome"
+import { AuthoritySignal } from "../project/authority-signal"
 
 async function existingFile(target: string, body: string, size: number) {
   const source = await SafeFileIO.open(target).catch((error: NodeJS.ErrnoException) => {
@@ -31,6 +32,71 @@ async function existingFile(target: string, body: string, size: number) {
 }
 
 /**
+ * A source failure rendered for the model: what failed, the HTTP evidence
+ * (status, endpoint, attempts, requested wait) and where the same record can
+ * be obtained right now. arXiv gets concrete alternatives because every
+ * arXiv record is also reachable through OpenAlex and its own abs/pdf pages.
+ */
+function degraded(input: {
+  connector: { id: string; name: string; domain: string }
+  registry: Awaited<ReturnType<typeof connectorRegistry>>
+  attempted: string
+  err: unknown
+  id?: string
+}) {
+  const failure = classifyError(input.err)
+  const kind = failure.retryable ? "rate_limited" : "source_error"
+  const evidence = [
+    failure.http_status !== undefined ? `HTTP ${failure.http_status}` : undefined,
+    failure.endpoint ? `from ${failure.endpoint}` : undefined,
+    failure.attempts ? `after ${failure.attempts} attempt${failure.attempts === 1 ? "" : "s"}` : undefined,
+    failure.retry_after_seconds ? `source asks for a ${failure.retry_after_seconds} s wait` : undefined,
+  ]
+    .filter(Boolean)
+    .join(" ")
+  const arxivId =
+    input.connector.id === "arxiv" && input.id ? input.id.replace(/^arxiv:/i, "").replace(/v\d+$/, "") : undefined
+  const alternatives = arxivId
+    ? [
+        `science_fetch db "openalex" id "10.48550/arXiv.${arxivId}"`,
+        `webfetch https://arxiv.org/abs/${arxivId} (metadata) or https://arxiv.org/pdf/${arxivId} (full text)`,
+        `literature read "${arxivId}" (cached full text)`,
+      ]
+    : input.connector.id === "arxiv"
+      ? [`science_search db "openalex"`, `literature search (routes across sources)`]
+      : input.registry
+          .byDomain(input.connector.domain as never)
+          .filter((c) => c.id !== input.connector.id)
+          .slice(0, 4)
+          .map((c) => `science_search db "${c.id}"`)
+  const lines = [
+    `Could not ${input.attempted} from ${input.connector.name}.`,
+    failure.retryable
+      ? `Rate limited${evidence ? `: ${evidence}` : ""}. ${failure.message}`
+      : `${input.connector.name} returned an error${evidence ? ` (${evidence})` : ""}: ${failure.message}`,
+    alternatives.length ? `Alternatives now: ${alternatives.join(" · ")}.` : undefined,
+    failure.retryable
+      ? "Do not retry this exact call in a loop; use an alternative or wait out the cooldown."
+      : undefined,
+  ].filter((line): line is string => !!line)
+  return {
+    title: `${input.connector.name} temporarily unavailable — ${failure.retryable ? "rate limited" : "source error"}`,
+    output: lines.join("\n"),
+    metadata: {
+      db: input.connector.id,
+      count: 0,
+      error: kind,
+      message: failure.message,
+      http_status: failure.http_status,
+      endpoint: failure.endpoint,
+      attempts: failure.attempts,
+      retry_after_seconds: failure.retry_after_seconds,
+      truncated: false,
+    } as Record<string, unknown>,
+  }
+}
+
+/**
  * Small, database-agnostic surface over the scientific connector registry.
  *
  * There are intentionally only TWO tools regardless of how many databases are
@@ -40,9 +106,8 @@ async function existingFile(target: string, body: string, size: number) {
 
 export const ScienceListDbsTool = Tool.define("science_list_dbs", {
   description: [
-    "List the scientific databases available to search via `science_search`.",
-    "Returns each database's id, name, domain, and description.",
-    "Call this first to discover which `db` id to pass to `science_search`.",
+    "List the scientific databases available to `science_search` and `science_fetch`: id, name, domain, description.",
+    "Well-known ids (arxiv, openalex, pubmed, uniprot, rcsb-pdb) can be used directly without listing.",
   ].join("\n"),
   parameters: z.object({
     domain: z
@@ -51,6 +116,7 @@ export const ScienceListDbsTool = Tool.define("science_list_dbs", {
       .describe("Optional domain filter (e.g. 'chemistry', 'biology', 'literature', 'structure')"),
   }),
   async execute(params, _ctx) {
+    const registry = await connectorRegistry()
     const entries = registry.catalog().filter((e) => !params.domain || e.domain === params.domain)
     if (!entries.length) {
       return {
@@ -87,9 +153,8 @@ export const ScienceListDbsTool = Tool.define("science_list_dbs", {
 
 export const ScienceSearchTool = Tool.define("science_search", {
   description: [
-    "Search a scientific database registered in the connector registry.",
-    "Pass a `db` id (from `science_list_dbs`) and a `query`.",
-    "Returns normalized hits: id, title, summary, and URL.",
+    "Search one scientific database by `db` id (see science_list_dbs) with a `query` in its native syntax.",
+    "Returns normalized hits: id, title, summary, URL.",
   ].join("\n"),
   parameters: z.object({
     db: z.string().describe("Database id to search (from science_list_dbs, e.g. 'uniprot', 'arxiv')"),
@@ -98,6 +163,7 @@ export const ScienceSearchTool = Tool.define("science_search", {
     organism: z.string().optional().describe("Optional organism/taxon filter where supported"),
   }),
   async execute(params, ctx) {
+    const registry = await connectorRegistry()
     const connector = registry.get(params.db)
     if (!connector) {
       const available = registry
@@ -123,25 +189,10 @@ export const ScienceSearchTool = Tool.define("science_search", {
       // A source error is NOT the same as "no results" — surface it as an
       // actionable, degraded result instead of throwing a raw `HTTP 429` string.
       if (ctx.abort.aborted) throw err
-      const message = err instanceof Error ? err.message : String(err)
-      const rateLimited = /\b(429|503|408)\b/.test(message) || /rate.?limit/i.test(message)
-      const guidance = rateLimited
-        ? `${connector.name} is rate limiting requests. Wait a few seconds, then retry${
-            connector.id === "arxiv" ? " (arXiv allows ~1 request every 3s)" : ""
-          }.`
-        : `${connector.name} returned an error: ${message}`
-      return {
-        title: `${connector.name} temporarily unavailable — ${rateLimited ? "rate limited, retry shortly" : "source error"}`,
-        output: [`Could not complete the search for "${params.query}".`, guidance].join("\n"),
-        metadata: {
-          db: connector.id,
-          count: 0,
-          error: rateLimited ? "rate_limited" : "source_error",
-          message,
-        } as Record<string, unknown>,
-      }
+      return degraded({ connector, registry, attempted: `complete the search for "${params.query}"`, err })
     }
 
+    ctx.abort.throwIfAborted()
     if (!hits.length) {
       return {
         title: `${connector.name}: ${params.query}`,
@@ -161,11 +212,16 @@ export const ScienceSearchTool = Tool.define("science_search", {
       if (h.summary) lines.push(h.summary)
       return lines.join("\n")
     })
+    // A connector that answered through a fallback says so once, not per hit.
+    const via = hits.map((h) => h.extra?.via).find((v): v is string => typeof v === "string")
+    const note = via ? `_${connector.name}'s API was unavailable; results come from ${via}._` : undefined
 
     return {
       title: `${connector.name}: ${params.query}`,
-      output: [`**${connector.name}** — ${hits.length} result(s):`, "", rows.join("\n\n---\n\n")].join("\n"),
-      metadata: { db: connector.id, count: hits.length } as Record<string, unknown>,
+      output: [`**${connector.name}** — ${hits.length} result(s):`, note, "", rows.join("\n\n---\n\n")]
+        .filter((line): line is string => line !== undefined)
+        .join("\n"),
+      metadata: { db: connector.id, count: hits.length, via } as Record<string, unknown>,
     }
   },
 })
@@ -174,6 +230,7 @@ export const ScienceFetchTool = Tool.define("science_fetch", {
   description: [
     "Retrieve one record from a scientific database by id.",
     "Pass a `db` id (from `science_list_dbs`) and the record `id` returned by `science_search`.",
+    "Literature records hold metadata and abstracts, not the full paper; `literature` read gets the text.",
     "Small records are returned inline; large ones are written to a file whose path is reported.",
     "Pass `format` to retrieve a file (e.g. 'cif', 'fasta', 'sdf') instead of a record —",
     "`science_list_dbs` reports which formats each database supports.",
@@ -187,6 +244,7 @@ export const ScienceFetchTool = Tool.define("science_fetch", {
       .describe("Optional file format, e.g. 'cif' | 'pdb' | 'fasta' | 'sdf'. Omit for a structured record."),
   }),
   async execute(params, ctx) {
+    const registry = await connectorRegistry()
     const connector = registry.get(params.db)
     if (!connector) {
       const available = registry
@@ -220,23 +278,10 @@ export const ScienceFetchTool = Tool.define("science_fetch", {
           : await connector.fetch(params.id, { signal: ctx.abort })
     } catch (err) {
       if (ctx.abort.aborted) throw err
-      const { retryable: rateLimited, message } = classifyError(err)
-      const guidance = rateLimited
-        ? `${connector.name} is rate limiting requests. Wait a few seconds, then retry.`
-        : `${connector.name} returned an error: ${message}`
-      return {
-        title: `${connector.name} temporarily unavailable — ${rateLimited ? "rate limited, retry shortly" : "source error"}`,
-        output: [`Could not retrieve "${params.id}".`, guidance].join("\n"),
-        metadata: {
-          db: connector.id,
-          count: 0,
-          error: rateLimited ? "rate_limited" : "source_error",
-          message,
-          truncated: false,
-        } as Record<string, unknown>,
-      }
+      return degraded({ connector, registry, attempted: `retrieve "${params.id}"`, err, id: params.id })
     }
 
+    ctx.abort.throwIfAborted()
     const outcome = outcomeFor({ db: connector.id, id: params.id, format, payload })
 
     if (outcome.kind === "miss")
@@ -275,13 +320,33 @@ export const ScienceFetchTool = Tool.define("science_fetch", {
     const workspace = await SessionFilesystem.workspace(ctx.sessionID)
     const relative = `science-${safeSegment(connector.id)}-${path.basename(outcome.filename)}`
     const requested = path.join(workspace, relative)
-    const target = (await SessionFilesystem.authorize({ sessionID: ctx.sessionID, path: requested, access: "write" }))
-      .path
-    const existing = await existingFile(target, outcome.body, outcome.bytes)
-    if (existing.exists && !existing.matches) {
-      throw new Error(`Refusing to replace the existing session file ${relative}; read or rename it first`)
+    const authorized = await SessionFilesystem.authorize({ sessionID: ctx.sessionID, path: requested, access: "write" })
+    const authorization = await SessionFilesystem.bindAuthorization({
+      sessionID: ctx.sessionID,
+      access: "write",
+      authorized,
+    })
+    using binding = {
+      [Symbol.dispose]() {
+        SessionFilesystem.releaseAuthorization(authorization)
+      },
     }
-    if (!existing.exists) await SafeFileIO.write(target, outcome.body)
+    await AuthoritySignal.exclusive(async () => {
+      ctx.abort.throwIfAborted()
+      const current = await SessionFilesystem.revalidateAuthorization(authorization, {
+        path: authorized.path,
+        access: "write",
+      })
+      if (current.path !== authorized.path) throw new Error("Scientific output destination changed before saving")
+      const target = current.path
+      const existing = await existingFile(target, outcome.body, outcome.bytes)
+      ctx.abort.throwIfAborted()
+      if (existing.exists && !existing.matches) {
+        throw new Error(`Refusing to replace the existing session file ${relative}; read or rename it first`)
+      }
+      if (!existing.exists) await SafeFileIO.write(target, outcome.body)
+    })
+    ctx.abort.throwIfAborted()
 
     return {
       title: `${connector.name}: ${params.id} → ${outcome.filename}`,
@@ -306,5 +371,3 @@ export const ScienceFetchTool = Tool.define("science_fetch", {
 })
 
 export const ScienceTools = [ScienceListDbsTool, ScienceSearchTool, ScienceFetchTool]
-
-export const SCIENCE_TOOL_IDS = new Set(["science_list_dbs", "science_search", "science_fetch"])

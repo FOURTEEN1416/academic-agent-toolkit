@@ -10,7 +10,9 @@ metadata:
 
 ## Overview
 
-This guide covers essential PDF processing operations using Python libraries and command-line tools. For advanced features, JavaScript libraries, and detailed examples, see reference.md. If you need to fill out a PDF form, read forms.md and follow its instructions.
+This guide covers essential PDF processing operations using Python libraries and command-line tools. Advanced features / JavaScript libraries / detailed examples 原本见 `reference.md`，PDF 表单填写细节见 `forms.md`；**两文件当前缺失（已登记 ASSET-GAP），直接按本页内联步骤执行即可，功能不受阻。**
+
+> **资产与溯源说明（本仓适配）**：本技能目录现仅 SKILL.md 孤本；frontmatter 引用的 `LICENSE.txt` 与正文引用的 `reference.md`、`forms.md` 盘上均缺失（已登记 ASSET-GAP 豁免）。在资产补齐前，`license: Proprietary` 行**视同待考**（暂无可查证的来源与授权台账）；使用时以本页内联步骤为准。
 
 ## Quick Start
 

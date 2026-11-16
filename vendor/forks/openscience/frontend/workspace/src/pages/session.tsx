@@ -1,3 +1,4 @@
+import { delegatedAssignment } from "./session-delegation"
 import {
   createEffect,
   createMemo,
@@ -14,6 +15,7 @@ import {
 import { useLocation, useNavigate, useParams } from "@solidjs/router"
 import { createMediaQuery } from "@solid-primitives/media"
 import { SessionTurn } from "@synsci/ui/session-turn"
+import { isContinuationCarrier } from "@synsci/ui/session-turn-carrier"
 import { createAutoScroll } from "@synsci/ui/hooks"
 import { useSync } from "@/context/sync"
 import { useSDK } from "@/context/sdk"
@@ -24,6 +26,8 @@ import { usePlatform } from "@/context/platform"
 import { useTerminal } from "@/context/terminal"
 import { PromptInput } from "@/components/prompt-input"
 import { AsciiSpinner } from "@/atlas/shared/AsciiSpinner"
+import { AtomLoader } from "@synsci/ui/atom-loader"
+import { PaneResizer } from "@/atlas/PaneResizer"
 import { AppHeader } from "@/atlas/AppHeader"
 import { FONT_SANS } from "@/styles/tokens"
 import { uiStore } from "@/atlas/store/ui"
@@ -32,6 +36,7 @@ import { useDialog } from "@synsci/ui/context/dialog"
 import { DropdownMenu } from "@synsci/ui/dropdown-menu"
 import { useCommand, type CommandOption } from "@/context/command"
 import { useLanguage } from "@/context/language"
+import { useSettings } from "@/context/settings"
 import { confirmDialog } from "@/atlas/dialogs"
 import { DialogSettings } from "@/components/dialog-settings"
 import { SessionSidebarActions, SidebarAction, type SessionContext } from "@/pages/session-sidebar-action"
@@ -54,6 +59,7 @@ import {
   IconArchive,
   IconShield,
   IconSplit,
+  IconRefresh,
   IconX,
 } from "@/atlas/shared/Icon"
 import { StatusDot } from "@/atlas/shared/StatusDot"
@@ -69,10 +75,26 @@ import { sessionUnavailable } from "@/pages/session-availability"
 import { publicContextAvailable, sanitizePublicContexts } from "@/pages/public-contexts"
 import { useExecutionAuthority } from "@/atlas/use-execution-authority"
 import { sessionEntryTarget } from "@/pages/session-entry"
+import { shouldConfirmUndo, undoPreview, undoSummary, type UndoPreview } from "@/pages/session-undo"
+import { SessionContextUsage } from "@/components/session-context-usage"
+import { createTraceExpansion } from "@/pages/session-trace"
+import { estimate, latestContext, type ContextEstimate, type ContextSample } from "@/pages/session-context"
 import "./session-header.css"
+import "./session-undo.css"
+import "./session-empty.css"
 import "../components/chat-surface.css"
 
 type SyncSession = ReturnType<typeof useSync>["data"]["session"][number]
+type RevertInfo = NonNullable<SyncSession["revert"]> & { turns?: number; files?: string[] }
+
+function requestError(error: unknown) {
+  if (error && typeof error === "object" && "data" in error) {
+    const data = (error as { data?: { message?: string } }).data
+    if (data?.message) return data.message
+  }
+  if (error instanceof Error) return error.message
+  return String(error)
+}
 
 /**
  * Session page — new visual identity (Synthetic Sciences wordmark + sessions
@@ -82,11 +104,12 @@ type SyncSession = ReturnType<typeof useSync>["data"]["session"][number]
  */
 const sessionSidebarKey = "openscience-session-sidebar-v1"
 const sessionSidebarWidthKey = "openscience-session-sidebar-width-v1"
-const traceExpansionKey = "openscience-trace-expansion-v1"
 
 function readSessionSidebar() {
-  if (typeof localStorage === "undefined") return false
+  // Reading `localStorage` itself can throw when storage is blocked, so the
+  // existence check has to sit inside the guard too.
   try {
+    if (typeof localStorage === "undefined") return false
     return localStorage.getItem(sessionSidebarKey) === "collapsed"
   } catch {
     return false
@@ -100,8 +123,8 @@ function writeSessionSidebar(collapsed: boolean) {
 }
 
 function readSessionSidebarWidth() {
-  if (typeof localStorage === "undefined") return SIDEBAR_WIDTH.initial
   try {
+    if (typeof localStorage === "undefined") return SIDEBAR_WIDTH.initial
     const value = Number.parseFloat(localStorage.getItem(sessionSidebarWidthKey) ?? "")
     return Number.isFinite(value) ? clampSidebarWidth(value) : SIDEBAR_WIDTH.initial
   } catch {
@@ -112,26 +135,6 @@ function readSessionSidebarWidth() {
 function writeSessionSidebarWidth(width: number) {
   try {
     localStorage.setItem(sessionSidebarWidthKey, clampSidebarWidth(width).toString())
-  } catch {}
-}
-
-function readTraceExpansion() {
-  if (typeof localStorage === "undefined") return {} as Record<string, boolean>
-  try {
-    const value: unknown = JSON.parse(localStorage.getItem(traceExpansionKey) ?? "{}")
-    if (!value || typeof value !== "object" || Array.isArray(value)) return {}
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>).filter((entry): entry is [string, true] => entry[1] === true),
-    )
-  } catch {
-    return {}
-  }
-}
-
-function writeTraceExpansion(value: Record<string, boolean>) {
-  try {
-    const entries = Object.entries(value).filter((entry): entry is [string, true] => entry[1] === true)
-    localStorage.setItem(traceExpansionKey, JSON.stringify(Object.fromEntries(entries.slice(-200))))
   } catch {}
 }
 
@@ -146,16 +149,26 @@ export default function Page(): JSX.Element {
   const terminal = useTerminal()
   const server = useServer()
   const platform = usePlatform()
+  const settings = useSettings()
   const dialog = useDialog()
   const [creating, setCreating] = createSignal(false)
   const pending: { value?: Promise<string | undefined>; context?: SessionContext } = {}
   const [mobileSessionsOpen, setMobileSessionsOpen] = createSignal(false)
+  const [undoOperation, setUndoOperation] = createSignal<
+    { type: "confirm" | "undo"; messageID: string } | { type: "restore" } | undefined
+  >()
   const [sessionsCollapsed, setSessionsCollapsed] = createSignal(readSessionSidebar())
   const [sessionsWidth, setSessionsWidth] = createSignal(readSessionSidebarWidth())
   const [sessionListReady, setSessionListReady] = createSignal<string>()
   const sessionTabs = createSessionTabs()
   const hydration = new Map<string, Promise<void>>()
   const prewarmed = new Set<string>()
+  // A transcript that failed to load must say so instead of posing as a new,
+  // empty conversation.
+  const [loadFailure, setLoadFailure] = createSignal<{ id: string; message: string }>()
+  // The transcript of the session being entered is still on its way. Until it
+  // lands the conversation shows the loader instead of posing as a new, empty one.
+  const [opening, setOpening] = createSignal<string>()
 
   const hydrateSession = (id: string) => {
     const pending = hydration.get(id)
@@ -188,7 +201,7 @@ export default function Page(): JSX.Element {
         const endpoint = `${url.replace(/\/$/, "")}/settings/preferences`
         void (platform.fetch ?? fetch)(endpoint)
           .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Preferences unavailable"))))
-          .then((preferences) => productPreferences.sync(preferences as ProductPreferences))
+          .then((preferences: ProductPreferences) => productPreferences.sync(preferences))
           .catch(() => productPreferences.sync({ show_trace: false, atlas_enabled: false, show_local_models: true }))
       },
     ),
@@ -379,11 +392,16 @@ export default function Page(): JSX.Element {
       () => params.id,
       (id) => {
         if (!id || id === "new") return
+        setLoadFailure(undefined)
+        setOpening(id)
         ;(async () => {
           try {
             await hydrateSession(id)
           } catch (error) {
-            discardUnavailableSession(id, error)
+            if (discardUnavailableSession(id, error)) return
+            setLoadFailure({ id, message: error instanceof Error ? error.message : String(error) })
+          } finally {
+            setOpening((current) => (current === id ? undefined : current))
           }
         })()
       },
@@ -498,9 +516,14 @@ export default function Page(): JSX.Element {
   }
 
   const messages = createMemo(() => (params.id ? (sync.data.message[params.id] ?? []) : []))
+  // Runtime continuations (a background worker's completion, a harness nudge)
+  // are user messages nobody typed; they extend the turn before them rather
+  // than opening one, so they never get a turn card of their own.
+  const opensTurn = (message: (typeof sync.data.message)[string][number]) =>
+    message.role === "user" && !isContinuationCarrier(message, sync.data.part[message.id])
   const lastUserMessage = createMemo(() => {
     const ms = messages()
-    for (let i = ms.length - 1; i >= 0; i--) if (ms[i].role === "user") return ms[i]
+    for (let i = ms.length - 1; i >= 0; i--) if (opensTurn(ms[i])) return ms[i]
   })
   // A SessionTurn renders nothing for an assistant message — it only renders
   // when handed a user message, gathering that turn's assistant replies itself.
@@ -512,6 +535,14 @@ export default function Page(): JSX.Element {
   // stay hidden until the user restores them or sends a new message (which
   // makes the revert permanent server-side).
   const activeSession = createMemo(() => (params.id ? sync.session.get(params.id) : undefined))
+  createEffect(() => {
+    const parent = activeSession()?.parentID
+    if (parent) void sync.session.sync(parent).catch(() => {})
+  })
+  const assignment = createMemo(() => {
+    const session = activeSession()
+    return delegatedAssignment(session, sync.data.message[session?.parentID ?? ""] ?? [], sync.data.part)
+  })
   const childSessions = createMemo(() => {
     const parent = activeSession()?.parentID
     if (!parent) return []
@@ -530,11 +561,11 @@ export default function Page(): JSX.Element {
     if (index < 0 || index >= childSessions().length - 1) return
     return childSessions()[index + 1]
   })
-  const revertInfo = createMemo(() => activeSession()?.revert)
+  const revertInfo = createMemo(() => activeSession()?.revert as RevertInfo | undefined)
   onMount(() => {
     const onOpenContext = (event: Event) => {
       const context = (event as CustomEvent).detail?.context
-      if (!(["files", "terminal", "canvas", "kernels", "trace"] as SessionContext[]).includes(context)) return
+      if (!(["files", "terminal", "kernels", "autoresearch", "trace"] as SessionContext[]).includes(context)) return
       openContext(context)
     }
     document.addEventListener("openscience:open-context", onOpenContext)
@@ -544,11 +575,45 @@ export default function Page(): JSX.Element {
   })
   const turnMessages = createMemo(() => {
     const revertID = revertInfo()?.messageID
-    return messages().filter((m) => m.role === "user" && (!revertID || m.id < revertID))
+    return messages().filter((m) => opensTurn(m) && (!revertID || m.id < revertID))
   })
   const sessionStatus = createMemo(() =>
     params.id ? (sync.data.session_status?.[params.id] as { type?: string } | undefined)?.type : undefined,
   )
+  const sessionBusy = () => {
+    const status = sessionStatus()
+    return Boolean(status && status !== "idle")
+  }
+  // Live pre-call context estimate per session from `session.context`, so the header
+  // count moves during the first-token wait instead of only after the turn completes.
+  // Each one is anchored to the newest stored message, so a later turn or compaction
+  // summary supersedes it by id rather than by comparing the client's clock to the server's.
+  const [estimates, setEstimates] = createSignal<Record<string, ContextEstimate>>({})
+  const contextSubscription = sdk.event.on("session.context", (event) => {
+    const id = event.properties.sessionID
+    const stored = sync.data.message[id] ?? []
+    // The headline counts the whole request the provider caches, not only the
+    // message log: budget.total adds the tool-definition schemas and prompt
+    // overhead sent every turn, so the estimate matches the cache-read the
+    // finished turn reports instead of jumping when it settles. The difference
+    // is shown as its own "Tool definitions" bucket so the breakdown reconciles.
+    const composed = event.properties.total
+    const assembled = event.properties.budget?.total ?? composed
+    const definitions = event.properties.tokens.definitions ?? Math.max(0, assembled - composed)
+    setEstimates((current) => ({
+      ...current,
+      [id]: estimate(stored, assembled, {
+        total: assembled,
+        tokens: { ...event.properties.tokens, definitions },
+      }),
+    }))
+  })
+  onCleanup(contextSubscription)
+  const contextSample = createMemo(() => {
+    const id = params.id
+    if (!id || id === "new") return undefined
+    return latestContext(messages(), estimates()[id])
+  })
   // A message is a compaction boundary when it carries a `compaction` part.
   const compactionPart = (id: string) => (sync.data.part[id] ?? []).find((part) => part.type === "compaction")
   const hasCompactionPart = (id: string) => Boolean(compactionPart(id))
@@ -572,8 +637,16 @@ export default function Page(): JSX.Element {
   const revertedCount = createMemo(() => {
     const revertID = revertInfo()?.messageID
     if (!revertID) return 0
-    return messages().filter((m) => m.role === "user" && m.id >= revertID).length
+    return messages().filter((m) => opensTurn(m) && m.id >= revertID).length
   })
+  const revertedPreview = createMemo<UndoPreview>(() => ({
+    turns: revertInfo()?.turns ?? revertedCount(),
+    files: revertInfo()?.files ?? [],
+  }))
+  const undoing = (messageID: string) => {
+    const operation = undoOperation()
+    return operation?.type === "undo" && operation.messageID === messageID
+  }
 
   const nextTurnID = (messageID: string) => {
     const turns = turnMessages()
@@ -583,31 +656,66 @@ export default function Page(): JSX.Element {
 
   const revertTo = async (messageID: string) => {
     const id = params.id
-    if (!id) return
-    const ok = await confirmDialog(dialog, {
-      title: "Undo from here?",
-      message:
-        "Hides this message and everything after it, and rolls back the file changes they made. You can restore until you send the next message.",
-      confirmLabel: "Undo",
-      danger: true,
-    })
-    if (!ok) return
+    if (!id || undoOperation()) return
+    if (sessionBusy()) {
+      toast.info("Undo available when this response finishes")
+      return
+    }
+    const preview = undoPreview(messages(), sync.data.part, messageID, projectPath())
+    setUndoOperation({ type: "confirm", messageID })
     try {
-      await sync.session.revert(id, messageID)
-      toast.success("Reverted", "Files rolled back. Send a message to continue from here.")
-    } catch (e: any) {
-      toast.error("Undo failed", e?.message ?? String(e))
+      if (shouldConfirmUndo(preview)) {
+        const ok = await confirmDialog(dialog, {
+          title: "Undo from here?",
+          message: (
+            <div class="session-undo-preview">
+              <p>
+                <strong>{undoSummary(preview)}</strong> will be hidden and its file changes rolled back. You can restore
+                everything until you send another message.
+              </p>
+              <Show when={preview.files.length > 0}>
+                <ul class="session-undo-preview__files" aria-label="Files that will be rolled back">
+                  <For each={preview.files.slice(0, 6)}>{(file) => <li title={file}>{file}</li>}</For>
+                  <Show when={preview.files.length > 6}>
+                    <li class="session-undo-preview__more">+{preview.files.length - 6} more</li>
+                  </Show>
+                </ul>
+              </Show>
+            </div>
+          ),
+          confirmLabel: "Undo",
+        })
+        if (!ok) return
+      }
+      setUndoOperation({ type: "undo", messageID })
+      const result = await sync.session.revert(id, messageID)
+      const applied = {
+        turns: result?.turns ?? preview.turns,
+        files: result?.files ?? preview.files,
+      }
+      toast.success("Undone", `${undoSummary(applied)} rolled back. Restore remains available below the conversation.`)
+    } catch (error: unknown) {
+      toast.error("Undo failed", requestError(error))
+    } finally {
+      setUndoOperation(undefined)
     }
   }
 
   const restoreRevert = async () => {
     const id = params.id
-    if (!id) return
+    if (!id || undoOperation()) return
+    if (sessionBusy()) {
+      toast.info("Restore available when this response finishes")
+      return
+    }
+    setUndoOperation({ type: "restore" })
     try {
       await sync.session.unrevert(id)
-      toast.success("Messages restored")
-    } catch (e: any) {
-      toast.error("Restore failed", e?.message ?? String(e))
+      toast.success("Undo restored", `${undoSummary(revertedPreview())} restored.`)
+    } catch (error: unknown) {
+      toast.error("Restore failed", requestError(error))
+    } finally {
+      setUndoOperation(undefined)
     }
   }
 
@@ -620,6 +728,25 @@ export default function Page(): JSX.Element {
   const showTerminal = () => {
     if (uiStore.context() === "terminal" && uiStore.open()) return
     openContext("terminal")
+  }
+  // Native session commands (/compact, /status, ...) reuse the last turn's effort and
+  // delegation so the palette and the slash menu behave alike.
+  const sessionCommand = (sessionID: string, name: string) => {
+    const last = lastUserMessage()
+    const request = {
+      sessionID,
+      command: name,
+      arguments: "",
+      effort: last?.role === "user" ? (last.effort ?? "normal") : "normal",
+      delegation: last?.role === "user" ? (last.delegation ?? true) : true,
+    } satisfies Parameters<typeof sdk.client.session.command>[0] & {
+      effort: "normal" | "ultra"
+      delegation: boolean
+    }
+    void sdk.client.session.command(request).catch((error: unknown) => {
+      console.error(`${name} failed`, error)
+      toast.error(`Could not run /${name}`, requestError(error))
+    })
   }
   commands.register(() => {
     const id = params.id
@@ -647,6 +774,13 @@ export default function Page(): JSX.Element {
         onSelect: () => openContext("kernels"),
       },
       {
+        id: "project.autoresearch",
+        title: "Open project autoresearch",
+        description: "Studies that hill-climb a metric, with their runs and charts",
+        category: "Project",
+        onSelect: () => openContext("autoresearch"),
+      },
+      {
         id: "settings.open",
         title: "Open settings",
         description: "Configure models, capabilities, runtime, and the app",
@@ -663,9 +797,9 @@ export default function Page(): JSX.Element {
       {
         id: "documentation.open",
         title: "Open documentation",
-        description: "Read the Synthetic Sciences documentation",
+        description: "Read the OpenScience documentation",
         category: "Help",
-        onSelect: () => platform.openLink(URLS.site),
+        onSelect: () => platform.openLink(URLS.docs),
       },
       {
         id: "terminal.toggle",
@@ -698,7 +832,7 @@ export default function Page(): JSX.Element {
         title: language.t("command.session.undo"),
         description: language.t("command.session.undo.description"),
         category: language.t("command.category.session"),
-        slash: "undo",
+        disabled: sessionBusy(),
         onSelect: () => void revertTo(last.id),
       })
     }
@@ -708,17 +842,9 @@ export default function Page(): JSX.Element {
         title: language.t("command.session.redo"),
         description: language.t("command.session.redo.description"),
         category: language.t("command.category.session"),
-        slash: "redo",
+        disabled: sessionBusy(),
         onSelect: () => void restoreRevert(),
       })
-    }
-    const failure = (error: unknown) => {
-      if (error && typeof error === "object" && "data" in error) {
-        const data = (error as { data?: { message?: string } }).data
-        if (data?.message) return data.message
-      }
-      if (error instanceof Error) return error.message
-      return "Request failed"
     }
     const action = (name: string, title: string, description: string) => ({
       id: `session.${name}`,
@@ -726,42 +852,16 @@ export default function Page(): JSX.Element {
       description,
       category: language.t("command.category.session"),
       slash: name,
-      onSelect: () => {
-        const last = lastUserMessage()
-        const request = {
-          sessionID: id,
-          command: name,
-          arguments: "",
-          effort: last?.role === "user" ? (last.effort ?? "normal") : "normal",
-          delegation: last?.role === "user" ? (last.delegation ?? true) : true,
-        } satisfies Parameters<typeof sdk.client.session.command>[0] & {
-          effort: "normal" | "ultra"
-          delegation: boolean
-        }
-        void sdk.client.session.command(request).catch((error: unknown) => {
-          console.error(`${name} failed`, error)
-          toast.error(`Could not run /${name}`, failure(error))
-        })
-      },
+      onSelect: () => sessionCommand(id, name),
     })
     list.push(
-      action("status", "Session status", "Show live plan, artifact, and workspace state"),
-      action("context", "Context usage", "Show context composition, capacity, and compaction state"),
       action("stop", "Stop active work", "Stop the active response in this session"),
-      action("compact", "Compact conversation", "Summarize the conversation to free up context"),
-      action("handoff", "Write handoff & compact", "Save a resumable handoff, then compact"),
-      action("checkpoint", "Save checkpoint", "Capture a local recovery packet from current session state"),
+      action("compact", "Compact conversation", "Summarize the conversation so far to free up context"),
+      action("handoff", "Write handoff & compact", "Save a resumable handoff.md for another agent, then compact"),
+      action("checkpoint", "Save checkpoint", "Capture a local recovery packet from the session state"),
     )
     return list
   })
-
-  const [stepsExpanded, setStepsExpanded] = createSignal<Record<string, boolean>>(readTraceExpansion())
-  const toggleSteps = (id: string) =>
-    setStepsExpanded((previous) => {
-      const next = { ...previous, [id]: !previous[id] }
-      writeTraceExpansion(next)
-      return next
-    })
 
   useGlobalKeys({ onNew: newSession })
 
@@ -783,6 +883,16 @@ export default function Page(): JSX.Element {
     return !!status && status.type !== "idle"
   })
 
+  const traceExpansion = createTraceExpansion()
+  createEffect(
+    on(
+      () => (working() ? lastUserMessage()?.id : undefined),
+      (id) => {
+        if (id) traceExpansion.open(id)
+      },
+    ),
+  )
+
   const chatScroll = createAutoScroll({
     working,
     overflowAnchor: "dynamic",
@@ -803,10 +913,12 @@ export default function Page(): JSX.Element {
   } = {}
   let chatElement: HTMLDivElement | undefined
   let contentElement: HTMLDivElement | undefined
+  let historyVersion = 0
   const [historyLoading, setHistoryLoading] = createSignal(false)
 
   const loadOlderMessages = async () => {
     const sessionID = params.id
+    const scope = sessionKey()
     const scroller = chatElement
     if (!sessionID || !scroller || historyLoading()) return
 
@@ -817,10 +929,18 @@ export default function Page(): JSX.Element {
     const offset = anchor ? anchor.getBoundingClientRect().top - top : 0
     const height = scroller.scrollHeight
     cancelRestoration()
+    const version = historyVersion
     setHistoryLoading(true)
     try {
       await sync.session.history.loadMore(sessionID)
       const restore = () => {
+        if (scope !== sessionKey() || chatElement !== scroller || !scroller.isConnected) return
+        // Loading history must not undo a newer navigation or reading intent.
+        // If the reader explicitly resumed following, include the late prepend.
+        if (version !== historyVersion) {
+          if (!chatScroll.userScrolled()) chatScroll.forceScrollToBottom()
+          return
+        }
         const row = anchorID
           ? scroller.querySelector<HTMLElement>(`[data-message-id="${CSS.escape(anchorID)}"]`)
           : undefined
@@ -845,6 +965,12 @@ export default function Page(): JSX.Element {
 
   const cancelRestoration = () => {
     restoration.target = undefined
+    historyVersion++
+  }
+
+  const followLatest = () => {
+    cancelRestoration()
+    chatScroll.forceScrollToBottom()
   }
 
   const applyRestoration = () => {
@@ -874,7 +1000,7 @@ export default function Page(): JSX.Element {
     const hasMessages = messages().length > 0
     if (restoration.initialized !== scope) {
       restoration.initialized = undefined
-      restoration.target = undefined
+      cancelRestoration()
     }
     if (!hasMessages || restoration.initialized === scope) return
     restoration.initialized = scope
@@ -934,7 +1060,12 @@ export default function Page(): JSX.Element {
     >
       <ToastContainer />
       <HelpOverlay open={uiStore.helpOpen()} onClose={() => uiStore.setHelpOpen(false)} />
-      <CommandPalette open={uiStore.paletteOpen()} onClose={() => uiStore.setPaletteOpen(false)} />
+      <CommandPalette
+        open={uiStore.paletteOpen()}
+        onClose={() => uiStore.setPaletteOpen(false)}
+        directory={sdk.directory}
+        projectID={sdk.projectID}
+      />
 
       <DisconnectedPanel />
 
@@ -1027,6 +1158,7 @@ export default function Page(): JSX.Element {
         >
           <Header
             title={chatTitle()}
+            context={contextSample()}
             tabs={openSessions()}
             active={params.id ?? "new"}
             onSelect={(id) => {
@@ -1074,23 +1206,53 @@ export default function Page(): JSX.Element {
             >
               <Switch>
                 <Match when={params.id === undefined}>
-                  <div
-                    role="status"
-                    aria-live="polite"
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      "align-items": "center",
-                      "justify-content": "center",
-                      gap: "8px",
-                      color: "var(--color-text-muted)",
-                      "font-family": FONT_SANS,
-                      "font-size": "12px",
-                    }}
-                  >
-                    <AsciiSpinner size={10} />
-                    <span>Opening your last session…</span>
+                  <div class="session-empty" role="status" aria-live="polite">
+                    <AtomLoader size={180} caption="Opening your last session" />
                   </div>
+                </Match>
+                <Match when={params.id && messages().length === 0 && loadFailure()?.id === params.id}>
+                  <div class="session-empty" role="alert">
+                    <div class="session-empty__inner">
+                      <h2 class="session-empty__title">This conversation didn't load</h2>
+                      <p class="session-empty__hint">{loadFailure()?.message}</p>
+                      <div class="session-empty__starters">
+                        <button
+                          type="button"
+                          class="session-empty__starter"
+                          onClick={() => {
+                            const id = params.id
+                            if (!id) return
+                            setLoadFailure(undefined)
+                            void hydrateSession(id).catch((error) => {
+                              if (discardUnavailableSession(id, error)) return
+                              setLoadFailure({ id, message: error instanceof Error ? error.message : String(error) })
+                            })
+                          }}
+                        >
+                          Try again
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </Match>
+                <Match when={params.id && messages().length === 0 && activeSession()?.parentID}>
+                  <div class="session-empty" role="region" aria-label="Worker session">
+                    <div class="session-empty__inner">
+                      <h2 class="session-empty__title">Waiting for the lead's brief</h2>
+                      <p class="session-empty__hint">
+                        This worker starts when its lead delegates a task. Its work and handoff will appear here.
+                      </p>
+                    </div>
+                  </div>
+                </Match>
+                <Match when={params.id && messages().length === 0 && opening() === params.id}>
+                  <div class="session-empty" role="status" aria-live="polite">
+                    <AtomLoader size={180} caption="Opening session" />
+                  </div>
+                </Match>
+                <Match when={params.id && messages().length === 0}>
+                  {/* A new session opens on the composer alone. */}
+                  <div class="session-empty" role="region" aria-label="Start a session" />
                 </Match>
                 <Match when={params.id && messages().length > 0}>
                   {/* Scoped to just the scroll area (not the revert banner / Composer
@@ -1121,6 +1283,11 @@ export default function Page(): JSX.Element {
                       }}
                       onWheel={cancelRestoration}
                       onPointerDown={cancelRestoration}
+                      onTouchMove={cancelRestoration}
+                      onKeyDown={(event) => {
+                        if (["PageUp", "PageDown", "ArrowUp", "ArrowDown", "Home", "End", " "].includes(event.key))
+                          cancelRestoration()
+                      }}
                       onClick={chatScroll.handleInteraction}
                       class="atlas-scroll atlas-chat-scroll session-scroller"
                       style={{
@@ -1149,13 +1316,17 @@ export default function Page(): JSX.Element {
                           This remains outside contentRef so the ResizeObserver measures
                           only the growing message list. */}
                       <Show when={activeSession()?.parentID}>
-                        <div class="sticky top-0 z-30 bg-background-stronger w-full">
+                        <div class="session-delegated-bar sticky top-0 z-30 bg-background-stronger w-full">
                           <div class="w-full px-4 md:px-6 md:max-w-200 md:mx-auto">
                             <div class="min-h-12 py-1.5 flex items-center gap-2 border-b border-border-weak-base">
                               <div class="min-w-0 flex-1">
-                                <div class="text-[10px] tracking-[0.04em] text-text-weaker">Delegated agent</div>
+                                <div class="text-[10px] tracking-[0.04em] text-text-weaker">
+                                  {assignment()?.phase
+                                    ? `${assignment()!.phase.charAt(0).toUpperCase()}${assignment()!.phase.slice(1)} agent`
+                                    : "Delegated agent"}
+                                </div>
                                 <div class="truncate text-xs font-medium text-text-base">
-                                  {activeSession()?.title?.trim() || "Research task"}
+                                  {assignment()?.description || activeSession()?.title?.trim() || "Research task"}
                                 </div>
                               </div>
                               <div
@@ -1169,7 +1340,7 @@ export default function Page(): JSX.Element {
                                   aria-label="Back to parent session"
                                   onClick={() => navigate(`/${params.dir}/session/${activeSession()!.parentID}`)}
                                 >
-                                  <IconChevronLeft size={13} strokeWidth={1.6} />
+                                  <IconChevronLeft size={12} strokeWidth={1.5} />
                                   Parent
                                 </button>
                                 <button
@@ -1179,7 +1350,7 @@ export default function Page(): JSX.Element {
                                   disabled={!previousChild()}
                                   onClick={() => navigate(`/${params.dir}/session/${previousChild()!.id}`)}
                                 >
-                                  <IconChevronLeft size={13} strokeWidth={1.6} />
+                                  <IconChevronLeft size={12} strokeWidth={1.5} />
                                 </button>
                                 <span class="min-w-10 text-center text-[11px] text-text-weaker">
                                   {Math.max(0, childIndex()) + 1}/{childSessions().length}
@@ -1191,7 +1362,7 @@ export default function Page(): JSX.Element {
                                   disabled={!nextChild()}
                                   onClick={() => navigate(`/${params.dir}/session/${nextChild()!.id}`)}
                                 >
-                                  <IconChevronRight size={13} strokeWidth={1.6} />
+                                  <IconChevronRight size={12} strokeWidth={1.5} />
                                 </button>
                               </div>
                             </div>
@@ -1248,10 +1419,8 @@ export default function Page(): JSX.Element {
                                   sessionID={params.id!}
                                   messageID={message.id}
                                   lastUserMessageID={lastUserMessage()?.id}
-                                  stepsExpanded={
-                                    stepsExpanded()[message.id] ?? (working() && message.id === lastUserMessage()?.id)
-                                  }
-                                  onStepsExpandedToggle={() => toggleSteps(message.id)}
+                                  stepsExpanded={traceExpansion.expanded(message.id)}
+                                  onStepsExpandedToggle={() => traceExpansion.toggle(message.id)}
                                   classes={{
                                     root: "min-w-0 w-full relative",
                                     content: "flex flex-col justify-between !overflow-visible",
@@ -1259,6 +1428,25 @@ export default function Page(): JSX.Element {
                                   }}
                                 />
                                 <div class="session-turn-actions" role="group" aria-label="Turn actions">
+                                  <Show when={!revertInfo()}>
+                                    <button
+                                      type="button"
+                                      class="session-turn-action"
+                                      disabled={Boolean(undoOperation()) || sessionBusy()}
+                                      aria-busy={undoing(message.id)}
+                                      onClick={() => void revertTo(message.id)}
+                                      aria-label="Undo conversation from this turn"
+                                      title="Undo from here"
+                                    >
+                                      <Show
+                                        when={undoing(message.id)}
+                                        fallback={<IconRefresh size={12} strokeWidth={1.5} />}
+                                      >
+                                        <AsciiSpinner size={10} />
+                                      </Show>
+                                      Undo
+                                    </button>
+                                  </Show>
                                   <button
                                     type="button"
                                     class="session-turn-action"
@@ -1285,14 +1473,9 @@ export default function Page(): JSX.Element {
 
                     <div class="session-jump-latest-rail" aria-live="polite">
                       <Show when={chatScroll.userScrolled()}>
-                        <button
-                          type="button"
-                          class="session-jump-latest"
-                          onClick={() => chatScroll.forceScrollToBottom()}
-                          title="Jump to Latest"
-                        >
-                          <IconChevronDown size={13} strokeWidth={1.6} />
-                          Jump to Latest
+                        <button type="button" class="session-jump-latest" onClick={followLatest} title="Jump to latest">
+                          <IconChevronDown size={12} strokeWidth={1.5} />
+                          Jump to latest
                         </button>
                       </Show>
                     </div>
@@ -1310,45 +1493,46 @@ export default function Page(): JSX.Element {
               >
                 <div class="session-prompt-dock__inner">
                   <Show when={revertInfo()}>
-                    <div
-                      class="mb-3"
-                      style={{
-                        display: "flex",
-                        "align-items": "center",
-                        gap: "12px",
-                        padding: "8px 12px",
-                        border: "1px solid var(--color-border)",
-                        "border-radius": "8px",
-                        "font-size": "12px",
-                        "font-family": FONT_SANS,
-                        color: "var(--color-text-muted)",
-                        background: "var(--color-bg)",
-                      }}
-                    >
-                      <span style={{ flex: 1, "min-width": 0 }}>
-                        Conversation reverted. {revertedCount()} turn{revertedCount() === 1 ? "" : "s"} hidden and file
-                        changes rolled back. Sending a new message makes this permanent.
+                    <div class="session-undo-bar" role="status" aria-live="polite">
+                      <span class="session-undo-bar__copy">
+                        <strong>{undoSummary(revertedPreview())} undone.</strong> Restore it now, or send a message to
+                        keep this version.
                       </span>
                       <button
                         type="button"
+                        class="session-undo-bar__restore"
+                        disabled={Boolean(undoOperation()) || sessionBusy()}
+                        aria-busy={undoOperation()?.type === "restore"}
                         onClick={() => void restoreRevert()}
-                        style={{
-                          border: "1px solid var(--color-border)",
-                          background: "transparent",
-                          color: "inherit",
-                          padding: "4px 10px",
-                          "border-radius": "8px",
-                          "font-size": "12px",
-                          "font-weight": "var(--font-weight-regular)",
-                          cursor: "pointer",
-                          "white-space": "nowrap",
-                        }}
                       >
+                        <Show
+                          when={undoOperation()?.type === "restore"}
+                          fallback={<IconRefresh size={12} strokeWidth={1.5} />}
+                        >
+                          <AsciiSpinner size={10} />
+                        </Show>
                         Restore
                       </button>
                     </div>
                   </Show>
-                  <PromptInput />
+                  {/* A worker session belongs to its lead: the lead writes its
+                      brief and reads its handoff. Messages go to the lead. */}
+                  <Show
+                    when={!activeSession()?.parentID}
+                    fallback={
+                      <div class="session-worker-readonly" role="note">
+                        <span>This is a worker session. It takes instructions from its lead, not from the chat.</span>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/${params.dir}/session/${activeSession()!.parentID}`)}
+                        >
+                          Message the lead
+                        </button>
+                      </div>
+                    }
+                  >
+                    <PromptInput onSubmit={followLatest} />
+                  </Show>
                 </div>
               </div>
             </section>
@@ -1426,6 +1610,7 @@ function Header(props: {
   onWarm: (id: string) => void
   onBack: () => void
   onToggleSessions: () => void
+  context?: ContextSample
 }): JSX.Element {
   return (
     <AppHeader class="workspace-header">
@@ -1436,7 +1621,7 @@ function Header(props: {
         title="Show sessions"
         aria-label="Show sessions"
       >
-        <IconMessageSquare size={13} strokeWidth={1.5} />
+        <IconMessageSquare size={12} strokeWidth={1.5} />
       </button>
       <button
         class="workspace-header__back"
@@ -1444,7 +1629,7 @@ function Header(props: {
         title="Back to projects"
         aria-label="Back to projects"
       >
-        <IconChevronLeft size={14} strokeWidth={1.6} />
+        <IconChevronLeft size={14} strokeWidth={1.5} />
       </button>
       <h1 class="sr-only">{props.title}</h1>
       <SessionTabStrip
@@ -1456,6 +1641,7 @@ function Header(props: {
         onRename={props.onRename}
         onWarm={props.onWarm}
       />
+      <SessionContextUsage variant="header" sample={props.context} />
     </AppHeader>
   )
 }
@@ -1528,22 +1714,6 @@ function SessionsSidebar(props: {
     })
   })
 
-  const resize = (event: PointerEvent) => {
-    if (props.collapsed) return
-    event.preventDefault()
-    const origin = event.clientX
-    const width = props.width
-    const controller = new AbortController()
-    const move = (next: PointerEvent) => props.onResize(width + next.clientX - origin, false)
-    const stop = (next: PointerEvent) => {
-      props.onResize(width + next.clientX - origin, true)
-      controller.abort()
-    }
-    window.addEventListener("pointermove", move, { signal: controller.signal })
-    window.addEventListener("pointerup", stop, { once: true, signal: controller.signal })
-    window.addEventListener("pointercancel", stop, { once: true, signal: controller.signal })
-  }
-
   return (
     <aside
       ref={sidebar}
@@ -1569,7 +1739,7 @@ function SessionsSidebar(props: {
           data-tooltip="Projects"
           onClick={props.onBack}
         >
-          <IconHome size={15} strokeWidth={1.5} />
+          <IconHome size={16} strokeWidth={1.5} />
           <strong>{props.projectName}</strong>
         </button>
         <button
@@ -1586,12 +1756,12 @@ function SessionsSidebar(props: {
           <Show
             when={compact()}
             fallback={
-              <Show when={props.collapsed} fallback={<IconChevronLeft size={14} strokeWidth={1.6} />}>
-                <IconChevronRight size={14} strokeWidth={1.6} />
+              <Show when={props.collapsed} fallback={<IconChevronLeft size={14} strokeWidth={1.5} />}>
+                <IconChevronRight size={14} strokeWidth={1.5} />
               </Show>
             }
           >
-            <IconX size={14} strokeWidth={1.6} />
+            <IconX size={14} strokeWidth={1.5} />
           </Show>
         </button>
       </div>
@@ -1607,7 +1777,7 @@ function SessionsSidebar(props: {
             disabled={props.creating}
             onClick={props.onNew}
           >
-            <IconPlus size={15} strokeWidth={1.7} />
+            <IconPlus size={16} strokeWidth={1.5} />
           </SidebarAction>
           <SidebarAction
             label="Search"
@@ -1616,7 +1786,7 @@ function SessionsSidebar(props: {
             shortcut="⌘K"
             onClick={props.onSearch}
           >
-            <IconSearch size={15} strokeWidth={1.5} />
+            <IconSearch size={16} strokeWidth={1.5} />
           </SidebarAction>
           <SidebarAction
             label="Customize"
@@ -1624,7 +1794,7 @@ function SessionsSidebar(props: {
             ariaLabel="Customize OpenScience"
             onClick={props.onCustomize}
           >
-            <IconSettings size={15} strokeWidth={1.5} />
+            <IconSettings size={16} strokeWidth={1.5} />
           </SidebarAction>
           <ProjectTrustControl />
         </div>
@@ -1633,21 +1803,20 @@ function SessionsSidebar(props: {
       </nav>
 
       <Show when={!props.collapsed && !compact()}>
-        <div
+        <PaneResizer
+          owner={props.dirParam}
+          controls="session-sidebar"
           class="session-sidebar__resize"
-          role="separator"
-          aria-label="Resize sessions sidebar"
-          aria-orientation="vertical"
-          aria-valuemin={SIDEBAR_WIDTH.min}
-          aria-valuemax={SIDEBAR_WIDTH.max}
-          aria-valuenow={props.width}
-          tabindex={0}
-          onPointerDown={resize}
-          onKeyDown={(event) => {
-            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return
-            event.preventDefault()
-            props.onResize(props.width + (event.key === "ArrowRight" ? 16 : -16), true)
-          }}
+          label="Resize sessions sidebar"
+          title="Drag or use arrow keys to resize. Shift resizes faster. Home/End sets the minimum/maximum. Double-click to reset sidebar width. Escape cancels a drag."
+          edge="right"
+          disabled={props.collapsed || compact()}
+          min={SIDEBAR_WIDTH.min}
+          max={SIDEBAR_WIDTH.max}
+          width={props.width}
+          onResize={(width) => props.onResize(width, false)}
+          onCommit={(width) => props.onResize(width, true)}
+          onReset={() => props.onResize(SIDEBAR_WIDTH.initial, true)}
         />
       </Show>
 
@@ -1731,7 +1900,7 @@ function ProjectTrustControl(): JSX.Element {
         disabled={authority.trusting()}
         onClick={() => void trust()}
       >
-        <IconShield size={15} strokeWidth={1.5} />
+        <IconShield size={16} strokeWidth={1.5} />
       </SidebarAction>
     </Show>
   )
@@ -1814,7 +1983,7 @@ function SessionRow(props: {
                   </span>
                 }
               >
-                <IconPinFilled size={10} strokeWidth={1.4} />
+                <IconPinFilled size={10} strokeWidth={1.5} />
               </Show>
             </span>
             <span class="session-sidebar__session-title" title="Double-click to rename">
@@ -1849,7 +2018,11 @@ function SessionRow(props: {
         />
       </Show>
       <Show when={!editing()}>
-        <DropdownMenu open={menu()} onOpenChange={setMenu}>
+        {/* Uncontrolled on purpose: the row mirrors the menu's state for its
+            styling, but does not drive it. A controlled `open` raced the
+            trigger's pointerdown/click pair under load and the menu could
+            close in the same gesture that opened it. */}
+        <DropdownMenu onOpenChange={setMenu}>
           <DropdownMenu.Trigger
             class="session-sidebar__session-menu-button"
             title="Session actions"

@@ -1,6 +1,6 @@
 export type FilesystemAccess = "read" | "write"
 export type FilesystemScope = "once" | "session" | "project" | "installation"
-export type FilesystemSource = "workspace" | "permission" | "api" | "tool" | "handoff"
+type FilesystemSource = "workspace" | "project" | "skill" | "permission" | "api" | "tool" | "handoff" | "parent"
 
 export interface FilesystemGrant {
   id: string
@@ -18,10 +18,15 @@ export interface FilesystemGrant {
 export interface FilesystemSnapshot {
   version: 1
   revision: number
-  sessionID: string
+  sessionID?: string
   projectID: string
   directory: string
   grants: FilesystemGrant[]
+  /** Where the session's relative paths land right now: the folder pinned for
+   * this conversation, the one the server chose for it, or the session's own
+   * scratch directory. Absent from servers older than the field. */
+  toolDirectory?: string
+  workingRoot?: string
   enforcement: {
     broker: "enforced"
     processWrite: "grant_only"
@@ -30,7 +35,7 @@ export interface FilesystemSnapshot {
 }
 
 export interface FilesystemIdentity {
-  sessionID: string
+  sessionID?: string
   projectID?: string
   directory: string
 }
@@ -67,7 +72,10 @@ export function containsFilePath(root: string, target: string) {
   return child === parent || child.startsWith(`${parent}/`)
 }
 
-function equalFilePath(left: string, right: string) {
+/** Two spellings of one location. A Windows volume is case-insensitive, so
+ * `C:\Research` and `c:/research` are the same folder and must compare equal;
+ * a POSIX path is not, and `/Data` is not `/data`. */
+export function equalFilePath(left: string, right: string) {
   const first = normalizeFilePath(left)
   const second = normalizeFilePath(right)
   if (!/^[a-z]:\//.test(first) && !/^[a-z]:\//.test(second)) return first === second
@@ -91,6 +99,7 @@ export function parseFilesystemSnapshot(value: unknown, identity: FilesystemIden
     typeof root.directory !== "string" ||
     !equalFilePath(root.directory, identity.directory) ||
     !Array.isArray(root.grants) ||
+    (root.toolDirectory !== undefined && typeof root.toolDirectory !== "string") ||
     enforcement?.broker !== "enforced" ||
     enforcement.processWrite !== "grant_only" ||
     (enforcement.processRead !== "grant_only" && enforcement.processRead !== "policy_only")
@@ -110,10 +119,13 @@ export function parseFilesystemSnapshot(value: unknown, identity: FilesystemIden
         grant.scope !== "project" &&
         grant.scope !== "installation") ||
       (grant.source !== "workspace" &&
+        grant.source !== "project" &&
+        grant.source !== "skill" &&
         grant.source !== "permission" &&
         grant.source !== "api" &&
         grant.source !== "tool" &&
-        grant.source !== "handoff") ||
+        grant.source !== "handoff" &&
+        grant.source !== "parent") ||
       typeof time?.created !== "number" ||
       (time.consumed !== undefined && typeof time.consumed !== "number") ||
       (time.revoked !== undefined && typeof time.revoked !== "number")
@@ -139,10 +151,12 @@ export function parseFilesystemSnapshot(value: unknown, identity: FilesystemIden
   return {
     version: 1,
     revision: root.revision,
-    sessionID: root.sessionID,
+    sessionID: typeof root.sessionID === "string" ? root.sessionID : undefined,
     projectID: root.projectID,
     directory: normalizeFilePath(root.directory),
     grants,
+    ...(typeof root.workingRoot === "string" ? { workingRoot: root.workingRoot } : {}),
+    ...(root.toolDirectory ? { toolDirectory: normalizeFilePath(root.toolDirectory) } : {}),
     enforcement: {
       broker: "enforced",
       processWrite: "grant_only",
@@ -151,30 +165,69 @@ export function parseFilesystemSnapshot(value: unknown, identity: FilesystemIden
   }
 }
 
-export function activeFilesystemGrants(snapshot?: FilesystemSnapshot) {
+function activeFilesystemGrants(snapshot?: FilesystemSnapshot) {
   return (snapshot?.grants ?? []).filter((grant) => !grant.time.consumed && !grant.time.revoked)
 }
 
+/** Folders the user connected or approved for this project. The project's
+ * own roots, skill directories and one-shot tool grants are runtime authority,
+ * not working files. */
+function projectFilesystemGrants(snapshot?: FilesystemSnapshot) {
+  return activeFilesystemGrants(snapshot).filter(
+    (grant) => (grant.source === "permission" || grant.source === "api") && grant.scope !== "installation",
+  )
+}
+
+/**
+ * The folders the pane lists as connected locations: the ones connected or
+ * approved for this project, plus the folder this conversation actually works
+ * in when that is a grant the list would otherwise skip — one inherited from a
+ * lead session, or one approved installation-wide.
+ *
+ * Those two are working folders that no row named, so the pane had nowhere to
+ * open and fell back to the managed project root, which is empty. A folder the
+ * agent writes in has to be reachable from the pane that browses it.
+ */
 export function connectedFilesystemGrants(snapshot?: FilesystemSnapshot) {
-  return activeFilesystemGrants(snapshot).filter((grant) => grant.source === "permission" || grant.source === "api")
+  const listed = projectFilesystemGrants(snapshot)
+  const working = workingFilesystemRoot(snapshot)
+  if (!working || listed.some((grant) => equalFilePath(grant.path, working))) return listed
+  const inherited = workingRootCandidates(snapshot).find((grant) => equalFilePath(grant.path, working))
+  return inherited ? [...listed, inherited] : listed
+}
+
+/** The folders the server will consider when this conversation has pinned
+ * none. Mirrors `workingRootCandidates` in the CLI's session filesystem:
+ * durable writable folders the user connected, plus the ones a parent session
+ * handed down. Deliberately wider than `connectedFilesystemGrants`, which
+ * decides what the pane lists rather than what the agent works in. */
+function workingRootCandidates(snapshot?: FilesystemSnapshot) {
+  return activeFilesystemGrants(snapshot)
+    .filter(
+      (grant) =>
+        (grant.source === "permission" || grant.source === "api" || grant.source === "parent") &&
+        grant.scope !== "once" &&
+        grant.access === "write",
+    )
+    .toSorted((left, right) => right.time.created - left.time.created)
+}
+
+/**
+ * The folder this conversation works in — the one the composer's "Working in …"
+ * chip names. The server has already resolved it, pinned choice and all, so the
+ * answer is read off the snapshot rather than guessed a second time from the
+ * grants, where a pinned folder leaves no trace. A scratch working folder comes
+ * back as the session workspace root, which the pane offers as "This session".
+ * Older servers send no answer; only then is it recomputed.
+ */
+export function workingFilesystemRoot(snapshot?: FilesystemSnapshot) {
+  return snapshot?.toolDirectory ?? (snapshot?.workingRoot ? undefined : workingRootCandidates(snapshot)[0]?.path)
 }
 
 export function sessionFilesystemRoot(snapshot?: FilesystemSnapshot) {
   return activeFilesystemGrants(snapshot).find(
     (grant) => grant.source === "workspace" && grant.scope === "session" && grant.access === "write",
   )?.path
-}
-
-export function filesystemRole(grant: Pick<FilesystemGrant, "access">) {
-  if (grant.access === "write") return "Read & write"
-  return "Read only"
-}
-
-export function filesystemScope(grant: Pick<FilesystemGrant, "scope">) {
-  if (grant.scope === "once") return "One request"
-  if (grant.scope === "installation") return "Every project"
-  if (grant.scope === "project") return "This project"
-  return "This session"
 }
 
 export function findFilesystemGrant(
@@ -194,6 +247,7 @@ export function findFilesystemGrant(
 export function requestedFolder(target: string) {
   const file = normalizeFilePath(target)
   const index = file.lastIndexOf("/")
-  if (index <= 0) return file
+  if (index < 0) return file
+  if (index === 0 || (index === 2 && /^[a-z]:/i.test(file))) return file.slice(0, index + 1)
   return file.slice(0, index)
 }

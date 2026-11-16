@@ -5,6 +5,7 @@ import { SessionCompaction } from "../../src/session/compaction"
 import { SessionLoopState } from "../../src/session/loop-state"
 import { MessageV2 } from "../../src/session/message-v2"
 import { SessionPrompt } from "../../src/session/prompt"
+import { SessionProcessor } from "../../src/session/processor"
 import { Identifier } from "../../src/id/id"
 import { tmpdir } from "../fixture/fixture"
 
@@ -69,7 +70,23 @@ function assistant(id: string, parentID: string, finish: string, summary = false
 }
 
 describe("session loop restart state", () => {
-  test("output recovery remains resumable after a transcript reload", () => {
+  test("output recovery remains resumable after a transcript reload while continuations make progress", () => {
+    const history = [
+      user("u1", [text("u1", "build the project")]),
+      { ...assistant("a1", "u1", "length"), parts: [text("a1", "chapter one of the build log")] },
+      user("c1", [text("c1", "continue", { synthetic: true, kind: "output" })], "output"),
+      { ...assistant("a2", "c1", "length"), parts: [text("a2", "chapter two of the build log")] },
+      user("c2", [text("c2", "continue", { synthetic: true, kind: "output" })], "output"),
+      { ...assistant("a3", "c2", "length"), parts: [text("a3", "chapter three of the build log")] },
+    ]
+    const reloaded = JSON.parse(JSON.stringify(history)) as MessageV2.WithParts[]
+    expect(SessionLoopState.restore(reloaded)).toMatchObject({ step: 3, outputContinuations: 2 })
+    const stalled = SessionProcessor.outputStall(SessionProcessor.turnMessages(reloaded, "c2"))
+    expect(stalled).toBe(0)
+    expect(MessageV2.outputRecovery({ finish: "length", unanswered: true, bare: false, stalled })).toBe("continue")
+  })
+
+  test("a reloaded transcript whose continuations replayed the same truncated output stops asking", () => {
     const history = [
       user("u1", [text("u1", "build the project")]),
       assistant("a1", "u1", "length"),
@@ -79,16 +96,9 @@ describe("session loop restart state", () => {
       assistant("a3", "c2", "length"),
     ]
     const reloaded = JSON.parse(JSON.stringify(history)) as MessageV2.WithParts[]
-    const state = SessionLoopState.restore(reloaded)
-    expect(state).toMatchObject({ step: 3, outputContinuations: 2 })
-    expect(
-      MessageV2.outputRecovery({
-        finish: "length",
-        unanswered: true,
-        bare: false,
-        attempts: state.outputContinuations,
-      }),
-    ).toBe("continue")
+    const stalled = SessionProcessor.outputStall(SessionProcessor.turnMessages(reloaded, "c2"))
+    expect(stalled).toBe(2)
+    expect(MessageV2.outputRecovery({ finish: "length", unanswered: true, bare: false, stalled })).toBe("fail")
   })
 
   test("a completed non-length response resets only output recovery", () => {
@@ -122,6 +132,7 @@ describe("session loop restart state", () => {
       outputContinuations: 0,
       contractContinuations: 0,
       overflowCompactions: 0,
+      preflightRecoveries: 0,
     })
   })
 
@@ -155,6 +166,29 @@ describe("session loop restart state", () => {
     delayed.info.error = error.info.error
     expect(SessionLoopState.terminalError({ user: retry.info, assistant: delayed.info })).toBe(false)
   })
+
+  test.each(["compaction", "continuation"] as const)(
+    "a %s record cannot restart a terminal error attached to its real prompt",
+    (type) => {
+      const carrier = user("c1", [], "compaction")
+      const error = assistant("e1", "u1", "")
+      if (carrier.info.role !== "user" || error.info.role !== "assistant") throw new Error("bad fixture")
+      if (type === "compaction") carrier.info.internal = { type, auto: true, epoch: "u1", transaction: "c1" }
+      error.info.error = { name: "UnknownError", data: { message: "assembled conversation exceeds input limit" } }
+      expect(SessionLoopState.terminalError({ user: carrier.info, assistant: error.info })).toBe(true)
+
+      const unrelated = { ...carrier.info, internal: { ...carrier.info.internal!, epoch: "u2" } }
+      expect(SessionLoopState.terminalError({ user: unrelated, assistant: error.info })).toBe(false)
+      const fresh = user("u2", [text("u2", "a genuine new request")])
+      if (fresh.info.role !== "user") throw new Error("bad fixture")
+      fresh.info.internal = SessionLoopState.prompt("u2")
+      expect(SessionLoopState.terminalError({ user: fresh.info, assistant: error.info })).toBe(false)
+      // Only synthetic carriers inherit the old stop; even a malformed real
+      // prompt with a stale epoch must not be mistaken for a continuation.
+      fresh.info.internal = SessionLoopState.prompt("u1")
+      expect(SessionLoopState.terminalError({ user: fresh.info, assistant: error.info })).toBe(false)
+    },
+  )
 
   test("an atomic assistant claim restores the exact step and ignores unrelated assistants", () => {
     const command: MessageV2.TextPart = { ...text("cmd", "/status"), ignored: true }
@@ -210,6 +244,7 @@ describe("session loop restart state", () => {
       outputContinuations: 0,
       contractContinuations: 0,
       overflowCompactions: 0,
+      preflightRecoveries: 0,
     })
 
     const manual = user("compact", [
@@ -430,6 +465,7 @@ describe("session loop restart state", () => {
     source.info.system = "stay local"
     source.info.variant = "careful"
     source.info.tier = "priority"
+    source.info.context = 128_000
     expect(SessionLoopState.controls(source.info)).toEqual({
       tools: { task: false, bash: false },
       delegation: false,
@@ -440,7 +476,9 @@ describe("session loop restart state", () => {
       system: "stay local",
       variant: "careful",
       tier: "priority",
+      context: 128_000,
       inference: undefined,
+      deadline: undefined,
     })
   })
 
@@ -452,6 +490,131 @@ describe("session loop restart state", () => {
     expect(SessionLoopState.overflowRecovery({ assistant: normal, unanswered: true, attempts: 2 })).toBe("fail")
     expect(SessionLoopState.overflowRecovery({ assistant: summary, unanswered: true, attempts: 1 })).toBe("fail")
     expect(SessionLoopState.overflowRecovery({ assistant: normal, unanswered: false, attempts: 1 })).toBe("none")
+  })
+
+  test("preflight recovery is durable and capped at one attempt", () => {
+    expect(SessionLoopState.preflightRecovery({ attempts: 0 })).toBe(true)
+    expect(SessionLoopState.preflightRecovery({ attempts: 1 })).toBe(false)
+    expect(SessionLoopState.preflightRecovery({ attempts: 2 })).toBe(false)
+
+    const recovery = user("003", [text("003", "continue", { synthetic: true, kind: "context" })], "context")
+    const reloaded = JSON.parse(JSON.stringify([user("001", [text("001", "oversized")]), recovery]))
+    expect(SessionLoopState.restore(reloaded)).toMatchObject({ preflightRecoveries: 1 })
+  })
+
+  test("repairs only a preflight error that crashed before its continuation", () => {
+    const source = user("001", [text("001", "run the genome pipeline")])
+    const error = assistant("002", "001", "")
+    if (source.info.role !== "user" || error.info.role !== "assistant") throw new Error("bad fixture")
+    error.info.error = new MessageV2.ContextWindowError({ message: "request did not fit" }).toObject()
+    expect(SessionLoopState.pendingPreflight([source, error])).toEqual({ user: source.info, epoch: source.info.id })
+
+    const recovery = user("003", [text("003", "continue", { synthetic: true, kind: "context" })], "context")
+    if (recovery.info.role !== "user" || recovery.info.internal?.type !== "continuation") throw new Error("bad fixture")
+    recovery.info.internal.epoch = source.info.id
+    recovery.info.internal.routing = "run the genome pipeline"
+    expect(SessionLoopState.routing([source, error, recovery])).toBe("run the genome pipeline")
+    expect(SessionLoopState.pendingPreflight([source, error, recovery])).toBeUndefined()
+
+    const repeated = assistant("004", "001", "")
+    if (repeated.info.role !== "assistant") throw new Error("bad fixture")
+    repeated.info.error = error.info.error
+    expect(SessionLoopState.pendingPreflight([source, error, recovery, repeated])).toBeUndefined()
+    expect(
+      SessionLoopState.pendingPreflight([source, error, user("005", [text("005", "new request")])]),
+    ).toBeUndefined()
+  })
+
+  test("preflight recovery passes its originating error through the compaction carrier only", () => {
+    const error = assistant("002", "001", "")
+    const recovery = user("003", [text("003", "continue", { synthetic: true, kind: "context" })], "context")
+    const carrier = user("004", [])
+    if (error.info.role !== "assistant" || recovery.info.role !== "user" || carrier.info.role !== "user")
+      throw new Error("bad fixture")
+    error.info.error = { name: "UnknownError", data: { message: "current turn is too large" } }
+    carrier.info.internal = {
+      type: "compaction",
+      auto: true,
+      epoch: "001",
+      transaction: carrier.info.id,
+      trigger: "proactive",
+      recovery: { type: "preflight", continuationID: recovery.info.id },
+    }
+
+    expect(SessionLoopState.terminalError({ user: recovery.info, assistant: error.info })).toBe(false)
+    expect(SessionLoopState.terminalError({ user: carrier.info, assistant: error.info })).toBe(false)
+
+    const failed = assistant("005", "001", "")
+    if (failed.info.role !== "assistant") throw new Error("bad fixture")
+    failed.info.error = error.info.error
+    expect(SessionLoopState.terminalError({ user: carrier.info, assistant: failed.info })).toBe(true)
+  })
+
+  test("a completed preflight compaction passes only its retained originating rejection", () => {
+    const rejected = assistant("002", "001", "")
+    const carrier = user("004", [])
+    const continuation = user("006", [], "compaction")
+    if (
+      rejected.info.role !== "assistant" ||
+      carrier.info.role !== "user" ||
+      continuation.info.role !== "user" ||
+      continuation.info.internal?.type !== "continuation"
+    )
+      throw new Error("bad fixture")
+    rejected.info.error = { name: "MessageContextWindowError", data: { message: "local preflight rejected" } }
+    carrier.info.internal = {
+      type: "compaction",
+      auto: true,
+      epoch: "001",
+      transaction: carrier.info.id,
+      continuationID: continuation.info.id,
+      trigger: "proactive",
+      recovery: { type: "preflight", continuationID: "003" },
+    }
+    continuation.info.internal.epoch = "001"
+    const input = {
+      user: continuation.info,
+      assistant: rejected.info,
+      messages: [carrier, assistant("005", carrier.info.id, "stop", true), rejected, continuation],
+    }
+    // Reloaded, filtered history can retain the rejection after the summary.
+    expect(SessionLoopState.terminalError(JSON.parse(JSON.stringify(input)))).toBe(false)
+    expect(SessionLoopState.terminalError({ ...input, messages: [] })).toBe(true)
+
+    for (const patch of [
+      { epoch: "other" },
+      { transaction: "other" },
+      { continuationID: "other" },
+      { recovery: undefined },
+      { recovery: { type: "preflight" as const, continuationID: "001" } },
+      { recovery: { type: "preflight" as const, continuationID: "007" } },
+    ]) {
+      expect(
+        SessionLoopState.terminalError({
+          ...input,
+          messages: [{ ...carrier, info: { ...carrier.info, internal: { ...carrier.info.internal, ...patch } } }],
+        }),
+      ).toBe(true)
+    }
+    for (const patch of [{ transaction: "other" }, { kind: "output" as const }])
+      expect(
+        SessionLoopState.terminalError({
+          ...input,
+          user: { ...input.user, internal: { ...continuation.info.internal, ...patch } },
+        }),
+      ).toBe(true)
+    // A newer failure or an uncertain paid outcome never gains permission to
+    // run merely because an older recovery carrier exists.
+    expect(SessionLoopState.terminalError({ ...input, assistant: { ...input.assistant, id: "007" } })).toBe(true)
+    expect(
+      SessionLoopState.terminalError({
+        ...input,
+        assistant: {
+          ...input.assistant,
+          error: { name: "UnknownError", data: { message: "provider outcome unknown" } },
+        },
+      }),
+    ).toBe(true)
   })
 
   test("recognizes pre-marker contract continuations from existing sessions", () => {
@@ -725,5 +888,38 @@ describe("session loop restart state", () => {
         await Session.remove(session.id)
       },
     })
+  })
+})
+
+describe("epoch routing inputs", () => {
+  test("routes from external prompts so synthetic continuations cannot consume the window", () => {
+    const history = [
+      user("u0", [text("u0", "first request about SMA actuators")]),
+      user("u1", [text("u1", "now analyse the resistance data with python")]),
+      assistant("a1", "u1", "length"),
+      user("c1", [text("c1", "continue", { synthetic: true, kind: "output" })], "output"),
+      user("c2", [text("c2", "continue", { synthetic: true, kind: "output" })], "output"),
+      user("c3", [text("c3", "continue", { synthetic: true, kind: "output" })], "output"),
+      user("c4", [text("c4", "continue", { synthetic: true, kind: "output" })], "output"),
+    ]
+    expect(SessionLoopState.externalPrompts(history)).toBe(
+      "first request about SMA actuators\nnow analyse the resistance data with python",
+    )
+    expect(SessionLoopState.externalPrompts(history, 1)).toBe("now analyse the resistance data with python")
+    expect(SessionLoopState.externalPrompts(history, 4, 6)).toBe("python")
+    expect(SessionLoopState.externalPrompts(history.slice(2))).toBe("")
+  })
+
+  test("epochMessages starts at the current request's first record", () => {
+    const history = [
+      user("u0", [text("u0", "first request")]),
+      assistant("a0", "u0", "stop"),
+      user("u1", [text("u1", "second request")]),
+      assistant("a1", "u1", "length"),
+      user("c1", [text("c1", "continue", { synthetic: true, kind: "output" })], "output"),
+      assistant("a2", "c1", "stop"),
+    ]
+    expect(SessionLoopState.epochMessages(history).map((message) => message.info.id)).toEqual(["u1", "a1", "c1", "a2"])
+    expect(SessionLoopState.epochMessages(history.slice(0, 2)).map((message) => message.info.id)).toEqual(["u0", "a0"])
   })
 })

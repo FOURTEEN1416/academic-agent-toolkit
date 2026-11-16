@@ -3,10 +3,11 @@ import { Component, Show, createSignal } from "solid-js"
 import { createStore } from "solid-js/store"
 import { usePlatform } from "@/context/platform"
 import { useLanguage } from "@/context/language"
-import { FONT_MONO, FONT_SANS } from "@/styles/tokens"
+import { FONT_SANS } from "@/styles/tokens"
 import { IconAlertCircle, IconCopy, IconRefresh } from "@/atlas/shared/Icon"
+import { updateController } from "@/components/settings/update-controller"
 
-export type InitError = {
+type InitError = {
   name: string
   data: Record<string, unknown>
 }
@@ -46,11 +47,6 @@ function formatInitError(error: InitError, t: Translator): string {
     case "MCPFailed": {
       const name = typeof data.name === "string" ? data.name : ""
       return t("error.chain.mcpFailed", { name })
-    }
-    case "ProviderAuthError": {
-      const providerID = typeof data.providerID === "string" ? data.providerID : "unknown"
-      const message = typeof data.message === "string" ? data.message : safeJson(data.message)
-      return t("error.chain.providerAuthFailed", { provider: providerID, message })
     }
     case "APIError": {
       const message = typeof data.message === "string" ? data.message : t("error.chain.apiError")
@@ -111,9 +107,10 @@ function formatInitError(error: InitError, t: Translator): string {
     }
     case "ConfigInvalidError": {
       const issues = Array.isArray(data.issues)
-        ? data.issues.map(
-            (issue: { message: string; path: string[] }) => "↳ " + issue.message + " " + issue.path.join("."),
-          )
+        ? data.issues.map((issue: { message: string; path: string[] }) => {
+            const location = issue.path.join(".")
+            return "↳ " + issue.message + (location ? " " + location : "")
+          })
         : []
       const message = typeof data.message === "string" ? data.message : ""
       const path = typeof data.path === "string" ? data.path : safeJson(data.path)
@@ -123,6 +120,25 @@ function formatInitError(error: InitError, t: Translator): string {
         : t("error.chain.configInvalid", { path })
 
       return [line, ...issues].join("\n")
+    }
+    case "ProjectMismatchError": {
+      const directory = typeof data.directory === "string" ? data.directory : safeJson(data.directory)
+      return `This link points at a project that does not match the folder the server resolved (${directory}). Open the project again from the Projects list.`
+    }
+    case "ProjectDirectoryError": {
+      const directory = typeof data.directory === "string" ? data.directory : safeJson(data.directory)
+      return `The project folder ${directory} could not be used as a project root. Choose the folder again from the Projects list.`
+    }
+    case "ProjectUnknownError":
+      return "This project is no longer registered on this server. Open or create it again from the Projects list."
+    case "ProjectStaleError": {
+      const directory = typeof data.directory === "string" ? ` (${data.directory})` : ""
+      return `This project's folder is missing or was moved${directory}. Reconnect it from the Projects list.`
+    }
+    case "SessionFilesystemInvalidPathError": {
+      const path = typeof data.path === "string" ? data.path : safeJson(data.path)
+      const message = typeof data.message === "string" ? data.message : ""
+      return message || `The folder ${path} cannot be used by this session. Choose a different project folder.`
     }
     case "UnknownError":
       return typeof data.message === "string" ? data.message : safeJson(data)
@@ -197,8 +213,14 @@ function formatErrorChain(error: unknown, t: Translator, depth = 0, parentMessag
   return indent + safeJson(error)
 }
 
-function formatError(error: unknown, t: Translator): string {
+export function formatError(error: unknown, t: Translator): string {
   return formatErrorChain(error, t, 0)
+}
+
+/** A project or folder the server refuses is bound to the current URL, so
+ * reloading reproduces it; the Projects list is the way out. */
+export function projectRecovery(detail: string): boolean {
+  return /Project(?:Mismatch|Directory|Unknown|Stale)Error|SessionFilesystemInvalidPathError/.test(detail)
 }
 
 interface ErrorPageProps {
@@ -207,10 +229,13 @@ interface ErrorPageProps {
 
 export const ErrorPage: Component<ErrorPageProps> = (props) => {
   const platform = usePlatform()
+  const updates = updateController(platform)
+  updates.start()
   const language = useLanguage()
   const [copied, setCopied] = createSignal(false)
   const [store, setStore] = createStore({
     checking: false,
+    updating: false,
     version: undefined as string | undefined,
     updateError: undefined as string | undefined,
   })
@@ -220,8 +245,8 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
     setStore("checking", true)
     setStore("updateError", undefined)
     try {
-      const result = await platform.checkUpdate({ refresh: true })
-      if (result.updateAvailable && result.version) setStore("version", result.version)
+      const result = await updates.check()
+      if (result?.updateAvailable && result.version) setStore("version", result.version)
     } catch (error) {
       setStore("updateError", error instanceof Error ? error.message : String(error))
     } finally {
@@ -230,14 +255,35 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
   }
 
   async function installUpdate() {
-    if (!platform.update || !platform.restart) return
-    await platform.update()
-    await platform.restart()
+    if (store.updating) return
+    setStore("updating", true)
+    setStore("updateError", undefined)
+    try {
+      if (platform.stageUpdate && platform.applyUpdate) {
+        if (updates.state.phase === "ready") await updates.apply()
+        else await updates.stage()
+        return
+      }
+      if (!platform.update || !platform.restart) return
+      await platform.update()
+      await platform.restart()
+    } catch (error) {
+      setStore("updateError", error instanceof Error ? error.message : String(error))
+    } finally {
+      setStore("updating", false)
+    }
   }
 
   const detail = () => formatError(props.error, language.t)
+  // A project or folder the server refuses is bound to this URL; reloading it
+  // reproduces the same error, so the way out is the Projects list.
+  const projectProblem = () => projectRecovery(detail())
+  const home = () => window.location.assign("/")
   const hint = () => {
     const text = detail().toLowerCase()
+    if (projectProblem()) {
+      return "This conversation link points at a project folder the server cannot use. Your files and saved conversations are intact; go back to Projects and open the project from there."
+    }
     if (text.includes("providerauth") || text.includes("unauthorized") || text.includes("401")) {
       return "A model provider rejected its credentials. Reload first; if it returns, reconnect that provider in Settings."
     }
@@ -271,7 +317,7 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
         "font-family": FONT_SANS,
         padding: "32px",
         background:
-          "radial-gradient(circle at 50% 25%, color-mix(in srgb, var(--color-danger) 6%, transparent), transparent 34%), var(--color-bg)",
+          "radial-gradient(circle at 50% 25%, color-mix(in srgb, var(--color-error) 6%, transparent), transparent 34%), var(--color-bg)",
       }}
     >
       <main
@@ -296,12 +342,12 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
               "align-items": "center",
               "justify-content": "center",
               "border-radius": "10px",
-              background: "color-mix(in srgb, var(--color-danger) 10%, transparent)",
-              color: "var(--color-danger)",
+              background: "color-mix(in srgb, var(--color-error) 10%, transparent)",
+              color: "var(--color-error)",
               "flex-shrink": 0,
             }}
           >
-            <IconAlertCircle size={20} strokeWidth={1.6} />
+            <IconAlertCircle size={20} strokeWidth={1.5} />
           </span>
           <div style={{ display: "flex", "flex-direction": "column", gap: "8px", "min-width": 0 }}>
             <span
@@ -332,15 +378,22 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
         </div>
 
         <div style={{ display: "flex", "align-items": "center", "flex-wrap": "wrap", gap: "8px" }}>
-          <Button size="large" onClick={() => void platform.restart()}>
+          <Button
+            size="large"
+            variant={projectProblem() ? "secondary" : "primary"}
+            onClick={() => void platform.restart()}
+          >
             <span style={{ display: "inline-flex", "align-items": "center", gap: "7px" }}>
-              <IconRefresh size={13} />
+              <IconRefresh size={12} />
               {platform.platform === "desktop" ? "Restart App" : "Reload App"}
             </span>
           </Button>
+          <Button size="large" variant={projectProblem() ? "primary" : "secondary"} onClick={home}>
+            Back to Projects
+          </Button>
           <Button size="large" variant="secondary" onClick={() => void copy()}>
             <span style={{ display: "inline-flex", "align-items": "center", gap: "7px" }}>
-              <IconCopy size={13} />
+              <IconCopy size={12} />
               {copied() ? "Diagnostic Copied" : "Copy Diagnostic"}
             </span>
           </Button>
@@ -353,13 +406,24 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
                 </Button>
               }
             >
-              <Button size="large" onClick={installUpdate}>
-                Update to {store.version}
+              <Button
+                size="large"
+                onClick={installUpdate}
+                disabled={
+                  store.updating ||
+                  ["downloading", "extracting", "verifying", "restarting"].includes(updates.state.phase)
+                }
+              >
+                {updates.state.phase === "ready"
+                  ? "Restart to update"
+                  : ["downloading", "extracting", "verifying"].includes(updates.state.phase)
+                    ? "Preparing update…"
+                    : `Download ${store.version}`}
               </Button>
             </Show>
           </Show>
         </div>
-        <Show when={store.updateError}>
+        <Show when={store.updateError ?? updates.state.error}>
           {(message) => (
             <p role="alert" style={{ margin: 0, color: "var(--color-error)", "font-size": "12px" }}>
               Update check failed: {message()}
@@ -380,7 +444,7 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
               cursor: "pointer",
               padding: "11px 13px",
               color: "var(--color-text-muted)",
-              "font-family": FONT_MONO,
+              "font-family": FONT_SANS,
               "font-size": "10px",
               "user-select": "none",
             }}
@@ -396,7 +460,7 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
               "border-top": "1px solid var(--color-border)",
               background: "var(--color-bg)",
               color: "var(--color-text-muted)",
-              "font-family": FONT_MONO,
+              "font-family": FONT_SANS,
               "font-size": "10px",
               "line-height": 1.55,
               "white-space": "pre-wrap",
@@ -414,7 +478,7 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
             "justify-content": "space-between",
             gap: "16px",
             color: "var(--color-text-faint)",
-            "font-family": FONT_MONO,
+            "font-family": FONT_SANS,
             "font-size": "10px",
           }}
         >

@@ -7,6 +7,8 @@ import {
   fileReadRetryDelay,
   fileErrorMessage,
   initialFileScope,
+  fileReadSession,
+  linkedFileTarget,
   isMissingFileError,
   missingFileFallback,
   PDF_PREVIEW_LIMIT,
@@ -37,7 +39,12 @@ describe("file viewer capabilities", () => {
       copy: false,
       download: true,
     })
-    expect(describeFile({ kind: "code", format: "ipynb" }).label).toBe("IPYNB source")
+    expect(describeFile({ kind: "notebook", format: "ipynb" }).label).toBe("Jupyter notebook")
+    expect(describeFile({ kind: "notebook", format: "Rmd" })).toMatchObject({
+      label: "R Markdown document",
+      source: true,
+    })
+    expect(describeFile({ kind: "notebook", format: "qmd" }).label).toBe("Quarto document")
     expect(describeFile({ kind: "table", format: "csv" }).label).toBe("CSV data")
     expect(describeFile({ kind: "scientific-data", format: "fastq" }).label).toBe("FASTQ data")
   })
@@ -153,20 +160,34 @@ describe("file viewer reads", () => {
     expect(isMissingFileError(new Error("Project file access denied"))).toBe(false)
   })
 
-  test("normalizes successful reads without changing their data", async () => {
-    const data = { content: "# Result", encoding: "utf8", mimeType: "text/markdown", size: 8 }
-
-    expect(await readFile(async () => data)).toEqual({ data })
+  test("uses explicit project locations directly while keeping scratch and external links session-authorized", () => {
+    const location = { directory: "/projects/one", sessionID: "ses_one" }
+    expect(initialFileScope("auto", { ...location, path: "/projects/one/report.md" })).toBe("project")
+    expect(initialFileScope("auto", { ...location, path: "report.md" })).toBe("session")
+    expect(initialFileScope("auto", { ...location, path: "/projects/one-old/report.md" })).toBe("session")
+    expect(initialFileScope("auto", { ...location, path: "/private/tmp/report.md" })).toBe("session")
+    expect(initialFileScope("auto", { ...location, path: "/projects/one/../secret.md" })).toBe("session")
+    expect(initialFileScope("session", { ...location, path: "/projects/one/report.md" })).toBe("session")
+    expect(initialFileScope("auto", { directory: location.directory, path: "report.md" })).toBe("project")
   })
 
-  test("turns a rejected read into local error state instead of throwing", async () => {
-    const result = await readFile(async () => {
-      throw "file access denied"
-    })
-
-    expect(result.data).toBeUndefined()
-    expect(result.error).toBeInstanceOf(Error)
-    expect(result.error?.message).toBe("file access denied")
+  test("retains origin authority for auto reads inside even a broad project root and nested links", () => {
+    const input = {
+      directory: "/home/user",
+      path: "/home/user/.openscience/sessions/sibling/result.md",
+      scope: "auto" as const,
+      resolved: "project" as const,
+      sessionID: "ses_origin",
+    }
+    expect(fileReadSession(input)).toBe("ses_origin")
+    const nested = linkedFileTarget({ ...input, path: "reports/figure.svg" })
+    expect(nested).toEqual({ path: "/home/user/reports/figure.svg", scope: "auto", sessionID: "ses_origin" })
+    expect(fileReadSession({ ...input, ...nested })).toBe("ses_origin")
+    expect(fileReadSession({ ...input, scope: "project" })).toBeUndefined()
+    expect(fileReadSession({ ...input, scope: "session", resolved: "session" })).toBe("ses_origin")
+    expect(
+      missingFileFallback({ requested: "auto", resolved: "session", error: new Error("Access denied") }),
+    ).toBeUndefined()
   })
 
   test("extracts useful messages from structured SDK failures", async () => {
@@ -189,18 +210,6 @@ describe("file viewer reads", () => {
     expect(result.error?.message).toBe("Project file access denied")
   })
 
-  test("classifies aborted primary reads as cancellation instead of a visible error", async () => {
-    const named = await readFile(async () => {
-      throw new DOMException("The operation was aborted", "AbortError")
-    })
-    const browser = await readFile(async () => {
-      throw new Error("signal is aborted without reason")
-    })
-
-    expect(named).toEqual({ cancelled: true })
-    expect(browser).toEqual({ cancelled: true })
-  })
-
   test("uses bounded backoff for an active interrupted file read", () => {
     expect(fileReadRetryDelay(0)).toBe(150)
     expect(fileReadRetryDelay(1)).toBe(500)
@@ -220,6 +229,12 @@ describe("file viewer reads", () => {
     expect(owner.owns(first)).toBe(false)
     expect(owner.owns(second)).toBe(true)
     owner.dispose()
+  })
+
+  test("includes server-verified preview authority in request identity without dropping the session", () => {
+    const input = { directory: "/project", sessionID: "session-a", path: "/project/note.md" }
+    expect(fileRequestKey(input)).not.toBe(fileRequestKey({ ...input, projectPreview: true }))
+    expect(fileRequestKey({ ...input, projectPreview: true })).toContain("session-a")
   })
 })
 

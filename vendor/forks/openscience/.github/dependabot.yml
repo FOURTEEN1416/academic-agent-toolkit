@@ -11,3 +11,76 @@ updates:
       actions:
         patterns:
           - "*"
+
+  # Bun lockfiles. The security `overrides` in package.json are otherwise
+  # maintained by hand. Majors are ignored until each group has a green
+  # track record; bump them deliberately. Needs the text-format bun.lock
+  # (present); if the first run reports an unsupported ecosystem, check the
+  # org's Dependabot settings.
+  - package-ecosystem: "bun"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # The AI SDK providers carry hand-maintained patches (tooling/patches)
+      # and the tool-call repair path depends on exact `ai` semantics; those
+      # bumps are engineering work, not lockfile updates (see #503).
+      - dependency-name: "ai"
+      - dependency-name: "@ai-sdk/*"
+      - dependency-name: "@openrouter/*"
+    groups:
+      solid:
+        patterns:
+          - "solid-js"
+          - "solid-*"
+          - "@solidjs/*"
+          - "@solid-primitives/*"
+          - "@kobalte/*"
+      vite:
+        patterns:
+          - "vite"
+          - "vite-*"
+          - "@vitejs/*"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      parcel-watcher:
+        patterns:
+          - "@parcel/watcher"
+          - "@parcel/watcher-*"
+      dev-tools:
+        patterns:
+          - "typescript"
+          - "@typescript/*"
+          - "@types/*"
+          - "prettier"
+          - "turbo"
+          - "husky"
+          - "@playwright/*"
+
+  - package-ecosystem: "bun"
+    directory: "/frontend/landing"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # Tracks the packageManager pin in the root package.json by hand.
+      - dependency-name: "@types/bun"
+    groups:
+      landing:
+        patterns:
+          - "*"

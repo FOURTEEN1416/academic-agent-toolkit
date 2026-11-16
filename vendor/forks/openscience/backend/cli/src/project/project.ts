@@ -11,7 +11,7 @@ import { Session } from "../session"
 import { work } from "../util/queue"
 import { fn } from "@synsci/util/fn"
 import { BusEvent } from "@/bus/bus-event"
-import { iife } from "@/util/iife"
+import { iife } from "@synsci/util/iife"
 import { GlobalBus } from "@/bus/global"
 import { existsSync, realpathSync } from "fs"
 import { NamedError } from "@synsci/util/error"
@@ -20,6 +20,7 @@ import type { SessionFilesystem } from "@/session/filesystem"
 import type { SessionWorkspace } from "@/session/workspace"
 import { FileLease } from "@/util/file-lease"
 import { Global } from "@/global"
+import { isDeepStrictEqual } from "node:util"
 
 export namespace Project {
   const log = Log.create({ service: "project" })
@@ -80,9 +81,15 @@ export namespace Project {
           start: z.string().optional().describe("Startup script to run when creating a new workspace (worktree)"),
         })
         .optional(),
+      origin: z.literal("openscience").optional(),
       time: z.object({
         created: z.number(),
         updated: z.number(),
+        activity: z
+          .number()
+          .nonnegative()
+          .optional()
+          .describe("Last substantive session or file activity, not metadata refresh"),
         initialized: z.number().optional(),
         archived: z.number().optional(),
       }),
@@ -99,14 +106,17 @@ export namespace Project {
 
   export function canonicalize(input: string) {
     const resolved = path.resolve(input)
-    let real = resolved
-    try {
-      real = realpathSync(resolved)
-    } catch {
-      // path may not exist yet — fall back to the resolved form
-    }
-    if (real.length > 1 && real.endsWith(path.sep)) real = real.slice(0, -1)
-    return real
+    const real = (() => {
+      try {
+        // Windows reports canonical casing only through the native call; the
+        // same folder typed as c:\… and C:\… must resolve to one record.
+        return process.platform === "win32" ? realpathSync.native(resolved) : realpathSync(resolved)
+      } catch {
+        // path may not exist yet — fall back to the resolved form
+        return resolved
+      }
+    })()
+    return Filesystem.trimSeparator(real)
   }
 
   function createID() {
@@ -118,7 +128,11 @@ export namespace Project {
   }
 
   async function records(worktree: string) {
-    const keys = await Storage.list(["project"]).catch(() => [])
+    // A failure to enumerate is not proof there are no projects. Swallowing it
+    // mints a second identity for a worktree that already has one and skips
+    // adoptLegacy, stranding the folder's sessions under the old id. Storage.list
+    // already rethrows for exactly this reason; let it.
+    const keys = await Storage.list(["project"])
     const projects = await Promise.all(
       keys.map(async (key) => ({
         id: key[key.length - 1],
@@ -173,6 +187,20 @@ export namespace Project {
     }
   }
 
+  // Keep concurrent edits (including cleared optional fields), while filling
+  // metadata that only exists in a legacy record being adopted.
+  function discovered<T extends object>(before: T | undefined, live: T | undefined, next: T | undefined) {
+    if (isDeepStrictEqual(before, live)) return next
+    if (!live) return live
+    const result = { ...next, ...live }
+    for (const key of Object.keys({ ...before, ...live }) as (keyof T)[]) {
+      if (!isDeepStrictEqual(before?.[key], live[key])) continue
+      if (next && key in next) result[key] = next[key]
+      else delete result[key]
+    }
+    return result
+  }
+
   /**
    * Resolve an opaque project selector to a canonical server-owned directory.
    * A caller may include a legacy directory while migrating, but it must remain
@@ -225,8 +253,9 @@ export namespace Project {
     }
 
     return {
-      project,
+      project: await withActivity(project),
       directory: target,
+      worktree: roots.filter((root) => contains(root, target)).toSorted((a, b) => b.length - a.length)[0],
       alias: redirected ? link?.id : undefined,
     }
   }
@@ -244,6 +273,7 @@ export namespace Project {
   }
 
   export async function fromDirectory(input: string) {
+    await assertDirectory(input)
     const directory = canonicalize(input)
     log.info("fromDirectory", { directory })
 
@@ -275,7 +305,7 @@ export namespace Project {
           .nothrow()
           .cwd(sandbox)
           .text()
-          .then((x) => canonicalize(path.resolve(sandbox, x.trim())))
+          .then((x) => (x.trim() ? canonicalize(path.resolve(sandbox, x.trim())) : undefined))
           .catch(() => undefined)
 
         if (!top) {
@@ -290,9 +320,10 @@ export namespace Project {
           .cwd(sandbox)
           .text()
           .then((x) => {
+            if (!x.trim()) return
             const dirname = path.dirname(x.trim())
             if (dirname === ".") return sandbox
-            return canonicalize(dirname)
+            return canonicalize(path.resolve(sandbox, dirname))
           })
           .catch(() => undefined)
 
@@ -329,6 +360,7 @@ export namespace Project {
         const opaque = found.find((record) => record.id.startsWith("prj_"))
         const source = opaque ?? found[0]
         const id = opaque?.id ?? createID()
+        const created = Date.now()
         const current = found
           .filter((record) => record.id !== source?.id)
           .reduce(
@@ -345,8 +377,9 @@ export namespace Project {
                   vcs: vcs as Info["vcs"],
                   sandboxes: [],
                   time: {
-                    created: Date.now(),
-                    updated: Date.now(),
+                    created,
+                    updated: created,
+                    activity: created,
                   },
                 },
           )
@@ -355,10 +388,6 @@ export namespace Project {
           ...current,
           worktree,
           vcs: vcs as Info["vcs"],
-          time: {
-            ...current.time,
-            updated: Date.now(),
-          },
         }
         if (sandbox !== result.worktree && !result.sandboxes.includes(sandbox)) result.sandboxes.push(sandbox)
         result.sandboxes = [
@@ -368,9 +397,31 @@ export namespace Project {
             ),
           ),
         ]
-        await Storage.write<Info>(["project", id], result)
+        // Resolving an unchanged directory is a read, not a metadata edit.
+        // When discovery does change VCS/sandbox state, preserve concurrent
+        // user metadata and activity writes under Storage's atomic lock.
+        const stored =
+          opaque && isDeepStrictEqual(result, opaque.project)
+            ? result
+            : await Storage.upsert<Info>(["project", id], (live) =>
+                live
+                  ? {
+                      ...result,
+                      ...live,
+                      name: live.name === opaque?.project.name ? result.name : live.name,
+                      icon: discovered(opaque?.project.icon, live.icon, result.icon),
+                      commands: discovered(opaque?.project.commands, live.commands, result.commands),
+                      time: discovered(opaque?.project.time, live.time, result.time)!,
+                      worktree: result.worktree,
+                      vcs: result.vcs,
+                      sandboxes: [...new Set([...(live.sandboxes ?? []), ...result.sandboxes])].filter(
+                        (directory) => canonicalize(directory) !== result.worktree && existsSync(directory),
+                      ),
+                    }
+                  : result,
+              )
         await adoptLegacy(id, worktree, found)
-        return result
+        return withActivity(stored)
       })
     })
 
@@ -425,12 +476,12 @@ export namespace Project {
     await moveSessions(
       "global",
       newProjectID,
-      (session) => !session.directory || canonicalize(session.directory) === worktree,
+      (session) => !!session.directory && canonicalize(session.directory) === worktree,
     )
     await moveFilesystemBucket(
       "global",
       newProjectID,
-      (state) => !state.directory || canonicalize(state.directory) === worktree,
+      (state) => !!state.directory && canonicalize(state.directory) === worktree,
     )
 
     const legacy = (projectID: string) =>
@@ -623,13 +674,76 @@ export namespace Project {
     })
   }
 
+  function timestamp(value: unknown) {
+    return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= Date.now() ? value : 0
+  }
+
+  /** One-time, conservative backfill. Older project.updated values measured
+   * bootstrap/icon refreshes, so only creation and session metadata may seed
+   * activity. Freeze that historical value without changing metadata time. */
+  async function withActivity(project: Info): Promise<Info> {
+    if (project.time.activity !== undefined && timestamp(project.time.activity) === project.time.activity)
+      return project
+    const keys = await Storage.list(["session", project.id])
+    const sessions = await Promise.all(
+      keys.map(async (key) => {
+        const value = await Storage.read<unknown>(key).catch(absent)
+        const parsed = z
+          .object({
+            projectID: z.string().optional(),
+            time: z.object({ created: z.number().optional(), updated: z.number().optional() }),
+          })
+          .safeParse(value)
+        if (!parsed.success || (parsed.data.projectID && parsed.data.projectID !== project.id)) return 0
+        return Math.max(timestamp(parsed.data.time.created), timestamp(parsed.data.time.updated))
+      }),
+    )
+    const activity = Math.max(timestamp(project.time.created), ...sessions)
+    return Storage.update<Info>(["project", project.id], (draft) => {
+      if (draft.time.activity !== undefined && timestamp(draft.time.activity) === draft.time.activity) return
+      draft.time.activity = activity
+    })
+  }
+
+  export async function get(projectID: string) {
+    return withActivity(await Storage.read<Info>(["project", projectID]))
+  }
+
+  /** Record an actual user/session/file action. Older completions and replayed
+   * writes cannot move activity backward; metadata updated remains separate. */
+  export async function touchActivity(projectID: string, at = Date.now()) {
+    const project = await get(projectID)
+    const activity = timestamp(at)
+    if (activity <= (project.time.activity ?? 0)) return project
+    const result = await Storage.update<Info>(["project", projectID], (draft) => {
+      draft.time.activity = Math.max(timestamp(draft.time.activity), activity)
+    })
+    GlobalBus.emit("event", { payload: { type: Event.Updated.type, properties: result } })
+    return result
+  }
+
   export async function list() {
     const keys = await Storage.list(["project"])
-    const projects = await Promise.all(keys.map((x) => Storage.read<Info>(x)))
+    const projects = await Promise.all(keys.map((x) => Storage.read<Info>(x).then(withActivity)))
     return projects.map((project) => ({
       ...project,
       sandboxes: project.sandboxes?.filter((x) => existsSync(x)),
     }))
+  }
+
+  /** Mark an app-created workspace without changing its user-visible activity
+   * timestamp. Generic project updates cannot set this ownership boundary. */
+  export async function markOpenScience(projectID: string) {
+    const result = await Storage.update<Info>(["project", projectID], (draft) => {
+      draft.origin = "openscience"
+    })
+    GlobalBus.emit("event", {
+      payload: {
+        type: Event.Updated.type,
+        properties: result,
+      },
+    })
+    return withActivity(result)
   }
 
   export const update = fn(

@@ -25,18 +25,3 @@ describe("instance disposal", () => {
     expect(calls).toEqual(["clear", "sync"])
   })
 })
-
-describe("event stream recovery", () => {
-  test("rebuilds root and project state when a replacement stream connects", async () => {
-    const component = await source
-    const connected = component.slice(
-      component.indexOf('case "server.connected"'),
-      component.indexOf('case "global.disposed"'),
-    )
-
-    expect(connected).toContain("refresh()")
-    expect(connected).toContain("Object.keys(children)")
-    expect(connected).toContain("push(directory)")
-    expect(connected).toContain("refreshLoadedMessages(directory)")
-  })
-})

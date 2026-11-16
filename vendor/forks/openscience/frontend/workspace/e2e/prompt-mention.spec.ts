@@ -9,7 +9,9 @@ test("smoke @mention inserts file pill token", async ({ page, gotoSession }) => 
 
   await page.keyboard.type(`@${file}`)
 
-  const suggestion = page.getByText("/package.json", { exact: true }).locator("xpath=ancestor::button[1]")
+  // A top-level file is one row named by its file name alone; a nested file
+  // would carry its folder dimmed beside the name.
+  const suggestion = page.getByRole("option", { name: "package.json", exact: true })
   await expect(suggestion).toBeVisible()
   await suggestion.click()
 

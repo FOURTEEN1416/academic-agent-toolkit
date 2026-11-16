@@ -4,6 +4,13 @@ description: Use this skill when the user asks to parse, perform multi-format do
 compatibility: Requires Node 18+ and `@llamaindex/liteparse` installed globally via npm (`npm i -g @llamaindex/liteparse`)
 license: MIT
 metadata:
+  upstream: K-Dense-AI/scientific-agent-skills
+  upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+  upstream-path: scientific-skills/liteparse
+  upstream-license: MIT
+  upstream-relationship: adapted and rewritten
+  skill-author: Synthetic Sciences
+  adapted-by: Synthetic Sciences
   author: LlamaIndex
   version: "0.1.0"
 ---

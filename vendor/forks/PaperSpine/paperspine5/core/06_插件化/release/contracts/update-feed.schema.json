@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/release/update-feed.schema.json",
+  "title": "PaperSpine5 hash-bound update feed",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "status",
+    "product_id",
+    "product_version",
+    "channel",
+    "build_id",
+    "bundle",
+    "install_kind",
+    "requires_new_session",
+    "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.update-feed"},
+    "schema_version": {"const": "1.0"},
+    "status": {"const": "PASS"},
+    "product_id": {"const": "paperspine5"},
+    "product_version": {"type": "string", "minLength": 1},
+    "channel": {"type": "string", "minLength": 1},
+    "build_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "bytes", "sha256"],
+      "properties": {
+        "url": {"type": "string", "minLength": 1},
+        "bytes": {"type": "integer", "minimum": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "install_kind": {"enum": ["plugin", "skill"]},
+    "requires_new_session": {"const": true},
+    "external_action_authorized": {"const": false}
+  }
+}

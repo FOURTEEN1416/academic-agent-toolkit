@@ -4,7 +4,13 @@ description: Direct REST API access to KEGG (academic use only). Pathway analysi
 category: databases
 license: Non-academic use of KEGG requires a commercial license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/kegg-database
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # KEGG Database

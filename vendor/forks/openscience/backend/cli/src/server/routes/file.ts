@@ -8,7 +8,7 @@ import { Provenance, type Artifact, type Run } from "../../science/provenance/st
 import { Ripgrep } from "../../file/ripgrep"
 import { LSP } from "../../lsp"
 import { Instance } from "../../project/instance"
-import { lazy } from "../../util/lazy"
+import { lazy } from "@synsci/util/lazy"
 import { ScienceFile } from "../../file/science"
 import { ArtifactFile } from "../../file/artifacts"
 import { PublicationFile } from "../../file/publication"
@@ -19,6 +19,7 @@ import { ArtifactStore } from "../../artifact/store"
 import { FileTrash } from "../../file/trash"
 import { SessionFilesystem } from "../../session/filesystem"
 import { errors } from "../error"
+import { ProjectPreview } from "../../file/project-preview"
 
 const LineageRun = z.object({
   id: z.string(),
@@ -59,7 +60,12 @@ const authorized = <T>(promise: Promise<T>) =>
 
 const byteRange = (value: string | undefined, size: number) => {
   if (!value) return
-  const match = /^bytes=(\d*)-(\d*)$/.exec(value.trim())
+  const range = value.trim()
+  // RFC 9110 section 14.2 requires an origin server to ignore a Range field
+  // that names a range unit it does not understand, rather than reject it.
+  // Serving the whole representation is the only defined way to ignore it.
+  if (!/^bytes=/i.test(range)) return
+  const match = /^bytes=(\d*)-(\d*)$/i.exec(range)
   if (!match || (!match[1] && !match[2]) || size === 0) return "invalid" as const
   const suffix = match[1] ? undefined : Number(match[2])
   const start = match[1] ? Number(match[1]) : Math.max(0, size - (suffix ?? 0))
@@ -239,11 +245,15 @@ export const FileRoutes = lazy(() =>
         z.object({
           path: z.string(),
           sessionID: Identifier.schema("session").optional(),
+          projectPreview: z.enum(["true", "false"]).optional(),
         }),
       ),
       async (c) => {
         const query = c.req.valid("query")
-        const content = await File.read(query.path, { sessionID: query.sessionID })
+        const content = await File.read(query.path, {
+          sessionID: query.sessionID,
+          projectPreview: query.projectPreview === "true",
+        })
         return c.json(content)
       },
     )
@@ -252,14 +262,20 @@ export const FileRoutes = lazy(() =>
       describeRoute({
         summary: "Resolve a session file reference",
         description:
-          "Resolve an unambiguous relative file reference across project, session, and connected roots authorized for the active session.",
+          "Resolve an exact absolute file receipt or an unambiguous relative reference across project, session, and connected roots authorized for the active session. Absolute paths never fall back to a filename search.",
         operationId: "file.resolveReference",
         responses: {
           200: {
             description: "Resolved authorized file path, or null when the reference is missing or ambiguous",
             content: {
               "application/json": {
-                schema: resolver(z.object({ path: z.string().nullable(), writable: z.boolean().nullable() })),
+                schema: resolver(
+                  z.object({
+                    path: z.string().nullable(),
+                    writable: z.boolean().nullable(),
+                    scope: z.enum(["project", "session"]).nullable(),
+                  }),
+                ),
               },
             },
           },
@@ -272,15 +288,26 @@ export const FileRoutes = lazy(() =>
         z.object({
           path: z.string().trim().min(1).max(4_096),
           sessionID: Identifier.schema("session"),
+          projectPreview: z.enum(["true", "false"]).optional(),
         }),
       ),
       async (c) => {
         const query = c.req.valid("query")
-        const resolved = await authorized(File.resolveReference(query.path, { sessionID: query.sessionID }))
+        const session =
+          query.projectPreview === "true"
+            ? undefined
+            : await authorized(File.resolveReference(query.path, { sessionID: query.sessionID }))
+        // Receipts for files the agent wrote under Project files resolve
+        // through the project's own authority when no session grant covers
+        // them; otherwise a report written there would vanish from the turn's
+        // file list while the scratch copies of its pages stayed.
+        const project = session ? undefined : await authorized(ProjectPreview.resolve(query.path, query.sessionID))
+        const exists = project ? await Bun.file(project).exists() : false
+        const resolved = session ?? (exists ? project : undefined)
         const writable = resolved
           ? await authorized(SessionFilesystem.allows({ sessionID: query.sessionID, path: resolved, access: "write" }))
           : null
-        return c.json({ path: resolved ?? null, writable })
+        return c.json({ path: resolved ?? null, writable, scope: resolved ? (exists ? "project" : "session") : null })
       },
     )
     .put(
@@ -298,6 +325,7 @@ export const FileRoutes = lazy(() =>
               },
             },
           },
+          409: { description: "The file no longer matches the editor's read revision" },
         },
       }),
       validator(
@@ -305,12 +333,16 @@ export const FileRoutes = lazy(() =>
         z.object({
           path: z.string(),
           content: z.string(),
-          sessionID: Identifier.schema("session"),
+          sessionID: Identifier.schema("session").optional(),
+          expectedRevision: File.Revision.optional(),
         }),
       ),
       async (c) => {
         const body = c.req.valid("json")
-        const content = await File.write(body.path, body.content, { sessionID: body.sessionID })
+        const content = await File.write(body.path, body.content, {
+          sessionID: body.sessionID,
+          expectedRevision: body.expectedRevision,
+        })
         return c.json(content)
       },
     )
@@ -349,13 +381,13 @@ export const FileRoutes = lazy(() =>
         "json",
         z.object({
           path: z.string().min(1),
-          sessionID: Identifier.schema("session"),
+          sessionID: Identifier.schema("session").optional(),
         }),
       ),
       async (c) => {
         const body = c.req.valid("json")
         const authorized = await SessionFilesystem.authorize({
-          sessionID: body.sessionID,
+          sessionID: body.sessionID ?? SessionFilesystem.projectActor(),
           path: body.path,
           access: "write",
         })
@@ -363,13 +395,13 @@ export const FileRoutes = lazy(() =>
           throw new HTTPException(409, { message: "The workspace root cannot be moved to trash" })
         }
         const authorization = await SessionFilesystem.bindAuthorization({
-          sessionID: body.sessionID,
+          sessionID: body.sessionID ?? SessionFilesystem.projectActor(),
           access: "write",
           authorized,
         })
         const record = await FileTrash.trash({
           projectID: Instance.project.id,
-          sessionID: body.sessionID,
+          sessionID: body.sessionID ?? SessionFilesystem.projectActor(),
           path: authorized.path,
           requestedPath: body.path,
           root: authorized.grant.path,
@@ -396,11 +428,11 @@ export const FileRoutes = lazy(() =>
         },
       }),
       validator("param", z.object({ id: z.string().startsWith("ftr_") })),
-      validator("json", z.object({ sessionID: Identifier.schema("session") })),
+      validator("json", z.object({ sessionID: Identifier.schema("session").optional() })),
       async (c) => {
         const result = await FileTrash.restore({
           projectID: Instance.project.id,
-          sessionID: c.req.valid("json").sessionID,
+          sessionID: c.req.valid("json").sessionID ?? SessionFilesystem.projectActor(),
           id: c.req.valid("param").id,
         })
         if (!result) return c.json({ error: "Recoverable file not found" }, 404)
@@ -422,11 +454,11 @@ export const FileRoutes = lazy(() =>
         },
       }),
       validator("param", z.object({ id: z.string().startsWith("ftr_") })),
-      validator("json", z.object({ sessionID: Identifier.schema("session") })),
+      validator("json", z.object({ sessionID: Identifier.schema("session").optional() })),
       async (c) => {
         const result = await FileTrash.purge({
           projectID: Instance.project.id,
-          sessionID: c.req.valid("json").sessionID,
+          sessionID: c.req.valid("json").sessionID ?? SessionFilesystem.projectActor(),
           id: c.req.valid("param").id,
         })
         if (!result) return c.json({ error: "Recoverable file not found" }, 404)
@@ -452,10 +484,13 @@ export const FileRoutes = lazy(() =>
         z.object({
           from: z.string().min(1),
           to: z.string().min(1),
-          sessionID: Identifier.schema("session"),
+          sessionID: Identifier.schema("session").optional(),
         }),
       ),
-      async (c) => c.json(await File.rename(c.req.valid("json"))),
+      async (c) => {
+        const input = c.req.valid("json")
+        return c.json(await File.rename({ ...input, sessionID: input.sessionID ?? SessionFilesystem.projectActor() }))
+      },
     )
     .get(
       "/file/inspect",
@@ -523,11 +558,16 @@ export const FileRoutes = lazy(() =>
             .max(1024 * 1024 * 1024)
             .optional(),
           inline: z.enum(["true", "false"]).optional(),
+          projectPreview: z.enum(["true", "false"]).optional(),
         }),
       ),
       async (c) => {
         const query = c.req.valid("query")
-        const source = await File.rawSource(query.path, { sessionID: query.sessionID, maxBytes: query.maxBytes })
+        const source = await File.rawSource(query.path, {
+          sessionID: query.sessionID,
+          maxBytes: query.maxBytes,
+          projectPreview: query.projectPreview === "true",
+        })
         const range = byteRange(c.req.header("Range"), source.size)
         if (range === "invalid") {
           await source.close()
@@ -854,7 +894,8 @@ export const FileRoutes = lazy(() =>
         const graph = await Provenance.project({ projectID: Instance.project.id, directory: Instance.directory })
         const absolute = path.resolve(Instance.directory, query.path)
         const relative = path.relative(Instance.directory, absolute)
-        const inside = relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative)
+        const inside =
+          relative !== "" && relative !== ".." && !relative.startsWith(".." + path.sep) && !path.isAbsolute(relative)
         const matches = (value?: string) =>
           value !== undefined &&
           (value === absolute || (inside && (value === relative || value.endsWith(`/${relative}`))))

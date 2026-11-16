@@ -3,10 +3,18 @@ name: blip-2-vision-language
 description: Vision-language pre-training framework bridging frozen image encoders and LLMs. Use when you need image captioning, visual question answering, image-text retrieval, or multimodal chat with state-of-the-art zero-shot performance.
 category: llm-tools
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Multimodal, Vision-Language, Image Captioning, VQA, Zero-Shot]
 dependencies: [transformers>=4.30.0, torch>=1.10.0, Pillow]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 18-multimodal/blip-2
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # BLIP-2: Vision-Language Pre-training

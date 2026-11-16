@@ -723,12 +723,29 @@ export namespace LSPServer {
         if (!(await Bun.file(js).exists())) {
           if (Flag.OPENSCIENCE_DISABLE_LSP_DOWNLOAD) return
           await bunSpawn([BunProc.which(), "install", "pyright"], {
+            // Optional diagnostics must not leave an installer alive when the registry is unreachable.
+            timeout: 30_000,
+            killSignal: "SIGKILL",
+            stdout: "ignore",
+            stderr: "ignore",
             cwd: Global.Path.bin,
             env: {
               ...OpenScience.kernelEnv(process.env),
               BUN_BE_BUN: "1",
             },
           }).exited
+        }
+        // An install that could not reach the registry leaves nothing to run.
+        // Say so once and stand down, instead of starting a process that exits
+        // before it owns anything and is reported as a crashed language server.
+        if (!(await Bun.file(js).exists())) {
+          log.warn(
+            "pyright is not installed and could not be downloaded; Python diagnostics are off for this session",
+            {
+              expected: js,
+            },
+          )
+          return
         }
         binary = BunProc.which()
         args.push(...["run", js])

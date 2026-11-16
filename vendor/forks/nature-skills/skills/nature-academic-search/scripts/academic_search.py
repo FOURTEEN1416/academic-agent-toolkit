@@ -9,7 +9,9 @@ the MCP server (plain CLI use, skill auto-discovery, CI). It mirrors what
 `nature-citation/scripts/nature_citation.py` already does for CrossRef: a single
 self-contained file hitting a public HTTP API with no third-party dependencies.
 
-Source: OpenAlex (https://openalex.org) — free, no API key. OpenAlex indexes
+Source: OpenAlex (https://openalex.org). Basic queries work without a key, but
+since 2026 OpenAlex meters usage per API key (a free key raises the daily budget
+10x) and no longer uses the `mailto` polite pool. OpenAlex indexes
 CrossRef, PubMed and arXiv-deposited works, so one endpoint covers journals,
 preprints and most of the T1/T2/T3 sources for *discovery*. Pair it with
 `format-converter.py` to download/convert the chosen DOIs/PMIDs into
@@ -32,8 +34,10 @@ Usage:
     # By exact author ID (skip name resolution)
     python3 academic_search.py --author-id A5055881494
 
-Be polite to the OpenAlex pool: pass --mailto you@example.com or set the
-OPENALEX_MAILTO / CROSSREF_MAILTO environment variable.
+API key: create a free key at https://openalex.org and pass --api-key KEY or set
+OPENALEX_API_KEY. It is sent as an `Authorization: Bearer` header, so it never
+appears in URLs or logs. --mailto / OPENALEX_MAILTO are accepted for backward
+compatibility but ignored (OpenAlex retired the polite pool).
 
 Output: JSON list of papers with title, DOI, authors, year, citation count, abstract.
 Per-source failures (HTTP 429 rate-limit, timeouts, network errors) are reported
@@ -52,8 +56,8 @@ import urllib.error
 
 OPENALEX_API = "https://api.openalex.org/works"
 AUTHORS_API = "https://api.openalex.org/authors"
-# Polite-pool contact; overridden by --mailto or OPENALEX_MAILTO / CROSSREF_MAILTO.
-MAILTO = "nature-skills@users.noreply.github.com"
+# OpenAlex API key; set from --api-key or OPENALEX_API_KEY in main(). Empty = keyless.
+API_KEY = ""
 
 # When re-ranking a query's results by citations/date, drop candidates whose
 # relevance_score is below this fraction of the top hit's score. OpenAlex's
@@ -114,12 +118,19 @@ def _cluster_summary(results: list[dict]) -> list[dict]:
     return sorted(clusters.values(), key=lambda c: -c["works_count"])
 
 
-def fetch_author_candidates(name: str, per_page: int = 50) -> list[dict]:
-    params = {"search": name, "per_page": per_page, "mailto": MAILTO}
-    url = f"{AUTHORS_API}?{urllib.parse.urlencode(params)}"
-    req = urllib.request.Request(url, headers={"Accept": "application/json"})
+def _get_json(url: str) -> dict:
+    """GET an OpenAlex URL, authenticating with the API key when one is set."""
+    headers = {"Accept": "application/json"}
+    if API_KEY:
+        headers["Authorization"] = f"Bearer {API_KEY}"
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=30) as resp:
-        data = json.loads(resp.read().decode())
+        return json.loads(resp.read().decode())
+
+
+def fetch_author_candidates(name: str, per_page: int = 50) -> list[dict]:
+    params = {"search": name, "per_page": per_page}
+    data = _get_json(f"{AUTHORS_API}?{urllib.parse.urlencode(params)}")
     return data.get("results", [])
 
 
@@ -185,11 +196,8 @@ def resolve_by_orcid(orcid: str) -> dict | None:
     # records carry; reject it so it can't resolve to whoever holds that junk tag.
     if set(oid) <= {"0", "-"}:
         return None
-    params = {"filter": f"orcid:{oid}", "mailto": MAILTO}
-    url = f"{AUTHORS_API}?{urllib.parse.urlencode(params)}"
-    req = urllib.request.Request(url, headers={"Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        data = json.loads(resp.read().decode())
+    params = {"filter": f"orcid:{oid}"}
+    data = _get_json(f"{AUTHORS_API}?{urllib.parse.urlencode(params)}")
     results = data.get("results", [])
     # Defensive: only keep records that actually carry the requested ORCID, so a
     # server-side filter miss can't resolve to an unrelated author. OpenAlex
@@ -221,7 +229,6 @@ def search(query: str | None = None, limit: int = 10, year_from: int | None = No
 
     params = {
         "per_page": per_page,
-        "mailto": MAILTO,
     }
     if query:
         params["search"] = query
@@ -242,10 +249,7 @@ def search(query: str | None = None, limit: int = 10, year_from: int | None = No
     if filters:
         params["filter"] = ",".join(filters)
 
-    url = f"{OPENALEX_API}?{urllib.parse.urlencode(params)}"
-    req = urllib.request.Request(url, headers={"Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        data = json.loads(resp.read().decode())
+    data = _get_json(f"{OPENALEX_API}?{urllib.parse.urlencode(params)}")
 
     results = []
     for work in data.get("results", []):
@@ -322,16 +326,17 @@ def main():
                         choices=["relevance_score", "cited_by_count", "publication_date"],
                         help="Sort order. With a query, cited_by_count/publication_date "
                              "re-rank within the relevance-matched pool (not the whole DB)")
+    parser.add_argument("--api-key", default=None,
+                        help="OpenAlex API key (falls back to OPENALEX_API_KEY env); "
+                             "sent as a Bearer header")
     parser.add_argument("--mailto", default=None,
-                        help="Contact email for the OpenAlex polite pool "
-                             "(falls back to OPENALEX_MAILTO / CROSSREF_MAILTO env)")
+                        help="Deprecated and ignored: OpenAlex retired the mailto polite pool")
     parser.add_argument("--compact", action="store_true", help="Compact output (one line per paper)")
     args = parser.parse_args()
 
-    # Resolve the polite-pool contact: --mailto > OPENALEX_MAILTO > CROSSREF_MAILTO > default.
-    global MAILTO
-    MAILTO = (args.mailto or os.environ.get("OPENALEX_MAILTO")
-              or os.environ.get("CROSSREF_MAILTO") or MAILTO)
+    # Resolve the API key: --api-key > OPENALEX_API_KEY. Empty means keyless.
+    global API_KEY
+    API_KEY = (args.api_key or os.environ.get("OPENALEX_API_KEY") or "").strip()
 
     if (not args.query and not args.author and not args.author_id
             and not args.orcid and not args.list_authors):
@@ -405,7 +410,13 @@ def main():
     try:
         results = search(args.query, args.limit, args.year_from, args.sort, author_id)
     except urllib.error.HTTPError as e:
-        hint = " (429 = rate-limited; retry later or lower --limit)" if e.code == 429 else ""
+        if e.code in (401, 403):
+            hint = " (API key missing or invalid: set OPENALEX_API_KEY or pass --api-key)"
+        elif e.code == 429:
+            hint = (" (429 = rate-limited or daily budget used up; retry later, lower --limit, "
+                    "or set OPENALEX_API_KEY / --api-key for a 10x larger budget)")
+        else:
+            hint = ""
         print(f"ERROR: OpenAlex returned HTTP {e.code}: {e.reason}{hint}", file=sys.stderr)
         return 1
     except (urllib.error.URLError, TimeoutError, OSError) as e:

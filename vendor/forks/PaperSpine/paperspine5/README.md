@@ -1,17 +1,24 @@
 # PaperSpine5 release source
 
-This directory is the reviewed source snapshot shared by the four
-`0.3.0-rc.1` distribution formats.  `core/` contains exactly 176 files and is
-identified by this SHA-256 aggregate digest:
+This directory contains the public product core and release tools for
+`0.4.0-alpha.3`. The canonical Skill instructions, scripts and host projections
+are in the repository's `src/` and `dist/` directories.
 
-`9eed412bf2a40b1e00787cd04de2adf696a662055ea31152ebc8f2899e2ba95f`
+The [release manifest](../website/downloads/manifest.json) identifies the current
+Windows x64, Linux glibc x86_64, macOS arm64 and macOS x86_64 suites by build ID,
+byte count and SHA-256. Installable ZIPs are hosted on
+[GitHub Releases](https://github.com/WUBING2023/PaperSpine/releases/tag/v0.4.0-alpha.3).
+Use the matching full platform suite for installation or repair. This release
+does not offer a Skill-only ZIP; historical copies lack the runtime and Web core.
+The older compatibility bridge is for V4 migration, not a current V5 download.
 
-The public GitHub Release carries the byte-immutable installable ZIP files.
-They are deliberately not committed to Git.  The repository source, release
-evidence, checksums, and website manifest provide the reviewable contract; the
-Release assets provide the installable packages.
+The original update entry remains available. Component version `4.0.1` bridges
+old V4 installations to the V5 suite; it is separate from product version
+`0.4.0-alpha.3`. Each Skill invocation checks the official platform channel and
+updates the suite and updater when needed, respecting an explicit opt-out.
+Updates retain task data and profile identity. See [UPDATE.md](../UPDATE.md).
 
-PaperSpine5 does not replace the established PaperSpine V4 update identity.
-The existing V4 source, installers, and `dist/paperspine_version.json` remain
-available for compatibility.  The V5 release candidate is opt-in, uses manual
-update checks by default, and never authorizes external manuscript submission.
+The host Agent creates or resumes the public paper task and performs research,
+writing, figures and review. Web saves configuration, choices and feedback and
+displays actual results. Historical Runner job files are not startup prerequisites.
+The release never authorizes external manuscript submission.

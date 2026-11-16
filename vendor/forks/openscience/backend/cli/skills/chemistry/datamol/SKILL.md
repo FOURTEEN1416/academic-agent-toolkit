@@ -4,9 +4,15 @@ description: Pythonic wrapper around RDKit with simplified interface and sensibl
 category: chemistry
 license: Apache-2.0 license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/datamol
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Cheminformatics, Molecules, SMILES, Drug Discovery]
 dependencies: ["datamol>=0.12.0", "rdkit-pypi>=2024.3.1"]
 ---

@@ -70,6 +70,13 @@ export namespace Question {
         answers: z.array(Answer),
       }),
     ),
+    Cancelled: BusEvent.define(
+      "question.cancelled",
+      z.object({
+        sessionID: z.string(),
+        requestID: z.string(),
+      }),
+    ),
     Rejected: BusEvent.define(
       "question.rejected",
       z.object({
@@ -79,27 +86,41 @@ export namespace Question {
     ),
   }
 
-  const state = Instance.state(async () => {
-    const pending: Record<
-      string,
-      {
-        info: Request
-        resolve: (answers: Answer[]) => void
-        reject: (e: any) => void
+  const state = Instance.state(
+    async () => {
+      const pending: Record<
+        string,
+        {
+          info: Request
+          resolve: (answers: Answer[]) => void
+          reject: (error: unknown) => void
+          cleanup: () => void
+        }
+      > = {}
+      return { pending }
+    },
+    async (current) => {
+      for (const [id, pending] of Object.entries(current.pending)) {
+        delete current.pending[id]
+        pending.cleanup()
+        pending.reject(new InstanceDisposedError())
       }
-    > = {}
+    },
+  )
 
-    return {
-      pending,
-    }
-  })
-
-  export async function ask(input: {
-    sessionID: string
-    questions: Info[]
-    tool?: { messageID: string; callID: string }
-  }): Promise<Answer[]> {
+  export async function ask(
+    input: {
+      sessionID: string
+      questions: Info[]
+      tool?: { messageID: string; callID: string }
+      /** Withdraw the question and reject with TimeoutError when no one answers in time. */
+      timeoutMs?: number
+    },
+    signal?: AbortSignal,
+  ): Promise<Answer[]> {
+    signal?.throwIfAborted()
     const s = await state()
+    signal?.throwIfAborted()
     const id = Identifier.ascending("question")
 
     log.info("asking", { id, questions: input.questions.length })
@@ -111,23 +132,39 @@ export namespace Question {
         questions: input.questions,
         tool: input.tool,
       }
+      const withdraw = (error: unknown) => {
+        const pending = s.pending[id]
+        if (!pending) return
+        delete s.pending[id]
+        pending.cleanup()
+        reject(error)
+        Bus.publish(Event.Cancelled, { sessionID: info.sessionID, requestID: id }).catch((error) =>
+          log.error("failed to publish question cancellation", { id, error }),
+        )
+      }
+      const abort = () => withdraw(signal?.reason ?? new DOMException("Question cancelled", "AbortError"))
+      const timer =
+        input.timeoutMs === undefined ? undefined : setTimeout(() => withdraw(new TimeoutError()), input.timeoutMs)
       s.pending[id] = {
         info,
         resolve,
         reject,
+        cleanup: () => {
+          clearTimeout(timer)
+          signal?.removeEventListener("abort", abort)
+        },
       }
-      Bus.publish(Event.Asked, info)
+      signal?.addEventListener("abort", abort, { once: true })
+      Bus.publish(Event.Asked, info).catch((error) => log.error("failed to publish question request", { id, error }))
     })
   }
 
-  export async function reply(input: { requestID: string; answers: Answer[] }): Promise<void> {
+  export async function reply(input: { requestID: string; sessionID?: string; answers: Answer[] }): Promise<boolean> {
     const s = await state()
     const existing = s.pending[input.requestID]
-    if (!existing) {
-      log.warn("reply for unknown request", { requestID: input.requestID })
-      return
-    }
+    if (!existing || (input.sessionID !== undefined && existing.info.sessionID !== input.sessionID)) return false
     delete s.pending[input.requestID]
+    existing.cleanup()
 
     log.info("replied", { requestID: input.requestID, answers: input.answers })
 
@@ -135,28 +172,40 @@ export namespace Question {
       sessionID: existing.info.sessionID,
       requestID: existing.info.id,
       answers: input.answers,
-    })
+    }).catch((error) => log.error("failed to publish question reply", { requestID: input.requestID, error }))
 
     existing.resolve(input.answers)
+    return true
   }
 
-  export async function reject(requestID: string): Promise<void> {
+  export async function reject(requestID: string, sessionID?: string): Promise<boolean> {
     const s = await state()
     const existing = s.pending[requestID]
-    if (!existing) {
-      log.warn("reject for unknown request", { requestID })
-      return
-    }
+    if (!existing || (sessionID !== undefined && existing.info.sessionID !== sessionID)) return false
     delete s.pending[requestID]
+    existing.cleanup()
 
     log.info("rejected", { requestID })
 
     Bus.publish(Event.Rejected, {
       sessionID: existing.info.sessionID,
       requestID: existing.info.id,
-    })
+    }).catch((error) => log.error("failed to publish question rejection", { requestID, error }))
 
     existing.reject(new RejectedError())
+    return true
+  }
+
+  export class InstanceDisposedError extends Error {
+    constructor() {
+      super("The question ended because the project runtime was closed.")
+    }
+  }
+
+  export class TimeoutError extends Error {
+    constructor() {
+      super("No one answered this question in time")
+    }
   }
 
   export class RejectedError extends Error {

@@ -4,7 +4,9 @@ The package is intentionally small and file-oriented so it can later be
 embedded in PaperSpine without turning the writing workflow into a web app.
 """
 
+from .composition import build_component_routing_plan, make_composition_contract, validate_composition_plan
 from .config import ConfigError, load_config, validate_config
+from .correction import apply_svg_text_correction
 from .data_analysis import DataStudyError, render_data_study
 from .evidence_bridge import (
     EvidenceBridgeError,
@@ -27,6 +29,11 @@ from .img2ppt_pipeline import (
 from .overlay import build_overlay_sheet
 from .panels import export_panels
 from .ranking import rank_job
+from .redesign_review import (
+    comparison_selection,
+    prepare_redesign_comparisons,
+    record_redesign_comparison,
+)
 from .review import build_review
 from .review_server import resolve_review_target, serve_review
 from .raster_schematic import (
@@ -36,6 +43,7 @@ from .raster_schematic import (
     prepare_raster_schematic,
 )
 from .svg import SvgAudit, audit_svg, render_scene
+from .source_discovery import discover_source_versions
 from .vector_blueprint import apply_vector_feedback, build_vector_blueprint, write_vector_lineage
 from .vectorization import build_dual_path_vector, build_selective_vector_assets
 
@@ -46,6 +54,7 @@ __all__ = [
     "LayoutAudit",
     "SvgAudit",
     "audit_svg",
+    "apply_svg_text_correction",
     "audit_img2ppt_pptx",
     "apply_vector_feedback",
     "assemble_img2ppt_candidate",
@@ -54,6 +63,7 @@ __all__ = [
     "build_overlay_sheet",
     "build_dual_path_vector",
     "build_data_evidence_bundle",
+    "build_component_routing_plan",
     "build_selective_vector_assets",
     "build_vector_blueprint",
     "bind_schematic_evidence",
@@ -62,20 +72,26 @@ __all__ = [
     "finalize_agent_candidate",
     "finalize_img2ppt_candidate",
     "finalize_raster_candidate",
+    "comparison_selection",
+    "discover_source_versions",
     "load_config",
     "load_data_evidence_bundle",
     "materialize_schematic_evidence",
+    "make_composition_contract",
     "layout_figure_spec",
     "plan_agent_generation",
     "prepare_raster_schematic",
     "prepare_img2ppt_candidate",
+    "prepare_redesign_comparisons",
     "rank_job",
     "render_data_study",
     "render_scene",
     "render_figure_spec",
+    "record_redesign_comparison",
     "resolve_review_target",
     "serve_review",
     "validate_config",
+    "validate_composition_plan",
     "validate_data_evidence_bundle",
     "validate_materialized_evidence_svg",
     "validate_figure_spec",

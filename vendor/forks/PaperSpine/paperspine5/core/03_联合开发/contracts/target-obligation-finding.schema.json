@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/target-obligation-finding.schema.json",
+  "title": "Independent current-revision target obligation finding",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "contract_version",
+    "obligation_id",
+    "authority_rule_id",
+    "target_authority_sha256",
+    "status",
+    "artifact_id",
+    "artifact_sha256",
+    "evidence_locator",
+    "external_action_authorized",
+    "finding_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.target-obligation-finding"},
+    "contract_version": {"const": "1.0"},
+    "obligation_id": {"type": "string", "minLength": 1},
+    "authority_rule_id": {"type": "string", "minLength": 1},
+    "target_authority_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "status": {"enum": ["satisfied", "unsatisfied"]},
+    "artifact_id": {"type": "string", "minLength": 1},
+    "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "evidence_locator": {"type": "string", "minLength": 1},
+    "external_action_authorized": {"const": false},
+    "finding_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

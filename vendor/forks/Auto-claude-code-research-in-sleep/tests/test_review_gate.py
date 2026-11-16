@@ -298,7 +298,7 @@ def test_codex_finalizer_positive_stops_but_identity_remains_declared() -> None:
         verdict="ready",
         requires_external_acquittal=True,
         executor_model="claude-sonnet-4.5",
-        reviewer_model="gpt-5.6-sol",
+        reviewer_model="gpt-6-astra",
     )
 
     assert transition.decision == "stop"
@@ -313,7 +313,7 @@ def test_same_family_finalizer_fails_closed() -> None:
         verdict="ready",
         requires_external_acquittal=True,
         executor_model="gpt-5.4",
-        reviewer_model="gpt-5.6-sol",
+        reviewer_model="gpt-6-astra",
     )
 
     assert transition.decision == "review_unavailable"
@@ -350,9 +350,100 @@ def test_explicit_manual_positive_still_rejects_same_family() -> None:
         score=7,
         verdict="ready",
         executor_model="gpt-5.4",
-        reviewer_model="gpt-5.6-sol",
+        reviewer_model="gpt-6-astra",
         manual_identity_reported=True,
     )
 
     assert transition.decision == "review_unavailable"
     assert transition.identity_assurance == "failed"
+
+
+NEW_REVIEWERS = [
+    ("antigravity", "claude-opus-5-5-high"),
+    ("grok", "grok-4.7-build"),
+    ("claude-code", "deepseek-flash"),
+]
+
+
+def _reported_review(backend: str, reviewer: str, **overrides):
+    arguments = dict(
+        round_backend=backend, score=8, verdict="ready",
+        executor_model="gpt-6-astra", reviewer_model=reviewer,
+        review_completed=True, review_scope_complete=True, review_status="ok",
+    )
+    arguments.update(overrides)
+    return review_gate.evaluate_transition(**arguments)
+
+
+@pytest.mark.parametrize(("backend", "reviewer"), NEW_REVIEWERS)
+def test_completed_reported_cross_family_review_accepts(backend: str, reviewer: str) -> None:
+    result = _reported_review(backend, reviewer)
+    assert result.decision == "stop"
+    assert result.review_independence == "cross-family"
+    assert result.acceptance_status == "accepted"
+    assert result.identity_assurance == "caller_declared"
+
+
+@pytest.mark.parametrize(("backend", "reviewer"), NEW_REVIEWERS)
+def test_same_family_review_can_stop_drive_only_provisionally(backend: str, reviewer: str) -> None:
+    result = _reported_review(backend, reviewer, executor_model=reviewer)
+    assert result.decision == "stop"
+    assert result.review_independence == "same-family"
+    assert result.acceptance_status == "provisional"
+
+
+@pytest.mark.parametrize(("backend", "reviewer"), NEW_REVIEWERS)
+@pytest.mark.parametrize(("score", "verdict"), [(8, "not ready"), (5, "ready")])
+def test_completed_negative_review_continues_provisionally(
+    backend: str, reviewer: str, score: float, verdict: str,
+) -> None:
+    result = _reported_review(backend, reviewer, score=score, verdict=verdict)
+    assert result.decision == "continue"
+    assert result.next_backend == backend
+    assert result.acceptance_status == "provisional"
+
+
+@pytest.mark.parametrize(("backend", "reviewer"), NEW_REVIEWERS)
+@pytest.mark.parametrize("overrides", [
+    {"review_completed": False},
+    {"review_scope_complete": False},
+    {"review_status": "error"},
+    {"review_status": ""},
+    {"reviewer_model": ""},
+    {"reviewer_model": "mystery-reviewer"},
+    {"executor_model": "mystery-executor"},
+])
+def test_failed_or_incomplete_review_is_unavailable_even_when_negative(
+    backend: str, reviewer: str, overrides: dict,
+) -> None:
+    result = _reported_review(backend, reviewer, verdict="not ready", **overrides)
+    assert result.decision == "review_unavailable"
+    assert result.acceptance_status == "provisional"
+
+
+@pytest.mark.parametrize(("backend", "reviewer"), NEW_REVIEWERS)
+@pytest.mark.parametrize("verdict", ["ready", "not ready"])
+def test_new_routes_cannot_discharge_a_copilot_finalizer_obligation(
+    backend: str, reviewer: str, verdict: str,
+) -> None:
+    result = _reported_review(backend, reviewer, verdict=verdict, requires_external_acquittal=True)
+    assert result.decision == "review_unavailable"
+    assert result.requires_external_acquittal is True
+    assert result.acceptance_status == "provisional"
+
+
+@pytest.mark.parametrize("status", ["ok", "fallback_used", "SUCCESS", "completed"])
+def test_reported_route_accepts_successful_status_spellings(status: str) -> None:
+    assert _reported_review("grok", "grok-4.7-build", review_status=status).acceptance_status == "accepted"
+
+
+@pytest.mark.parametrize(("backend", "reviewer"), NEW_REVIEWERS)
+def test_reported_route_cli_requires_explicit_completion_and_scope(backend: str, reviewer: str) -> None:
+    base = [sys.executable, str(MODULE_PATH), "--round-backend", backend,
+            "--score", "8", "--verdict", "ready", "--executor-model", "gpt-6-astra",
+            "--reviewer-model", reviewer, "--review-status", "success"]
+    missing = subprocess.run(base, capture_output=True, text=True, check=True)
+    complete = subprocess.run(base + ["--review-completed", "--review-scope-complete"],
+                              capture_output=True, text=True, check=True)
+    assert json.loads(missing.stdout)["decision"] == "review_unavailable"
+    assert json.loads(complete.stdout)["acceptance_status"] == "accepted"

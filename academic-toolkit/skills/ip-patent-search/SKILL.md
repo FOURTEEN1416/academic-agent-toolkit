@@ -234,7 +234,7 @@ Surface the **legally-relevant date** per sub-use-case:
 
 - Save: `<output-dir>/patent_<invention-slug>_<sub-use-case>_<YYYY-MM-DD>.docx`
 - Chat summary: file path + sub-use-case + verdict + audit counts + plan-tier
-- Validate: check zip integrity with `python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).testzip()" <docx>` (no output = intact), then confirm the required sections are present
+- Validate: check zip integrity with `python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).testzip()" <docx>` (no output = intact), then confirm the required sections are present（本机用 `python` 不用 `python3`：`python3` 可能触发 Microsoft Store 存根、exit 49）
 - Reminder: "Consult patent attorney before filing/licensing"
 
 ## Tooling

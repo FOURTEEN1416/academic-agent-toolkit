@@ -134,7 +134,7 @@ async function main() {
   writeJson(path.join(temp, 'stats.json'), { ...result.stats, errors: result.errors });
   const manifest = {
     schemaVersion, backend: 'vendored-codesucker-core', sourceMode: config.sourceMode || 'real',
-    coreVersion: '0.4.4', coreCommit: 'b065a1825f4e32dca4c4b7fd8bccf3e020a77c5c',
+    coreVersion: '0.5.3', coreCommit: '16fb1e3928eefda14bd8cf56f93fa325a7b9d5d9',
     rulesVersion,
     config: normalized, configSha256: sha256(JSON.stringify(stable(normalized))), coreSha256: sha256(coreFiles.join('')),
     projectRoot, outputDir: 'source-materials', audit: result.auditItems, errors: result.errors,

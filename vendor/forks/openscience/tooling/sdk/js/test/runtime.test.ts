@@ -4,6 +4,79 @@ import type { RuntimeEvent } from "../src/v2/gen/types.gen.js"
 import { createOpenScienceRuntime, RuntimeEventCursorError } from "../src/v2/runtime.js"
 
 describe("OpenScienceRuntime", () => {
+  test("serializes a typed decision body and reads durable state without resubmitting prompts", async () => {
+    const requests: Request[] = []
+    let reads = 0
+    const runtime = createOpenScienceRuntime({
+      baseUrl: "http://runtime.test",
+      fetch: async (input) => {
+        const request = input instanceof Request ? input : new Request(input)
+        requests.push(request)
+        if (new URL(request.url).pathname === "/runtime/decision")
+          return Response.json({
+            sessionID: "ses_decision",
+            requestID: "que_pending",
+            status: "resolved",
+            decidedAt: 1,
+          })
+        reads++
+        return Response.json({
+          runID: "run_durable",
+          sessionID: "ses_decision",
+          messageID: "msg_input",
+          state: reads === 1 ? "running" : "interrupted",
+          acceptedAt: 1,
+          updatedAt: 2,
+        })
+      },
+    })
+    const decision = {
+      sessionID: "ses_decision",
+      requestID: "que_pending",
+      kind: "question" as const,
+      answers: [["A"]],
+    }
+    assert.equal((await runtime.decide(decision)).status, "resolved")
+    assert.deepEqual(await requests[0]!.json(), decision)
+    assert.equal(
+      (await runtime.wait({ sessionID: "ses_decision", runID: "run_durable", intervalMs: 10 })).state,
+      "interrupted",
+    )
+    assert.deepEqual(
+      requests.map((request) => new URL(request.url).pathname),
+      ["/runtime/decision", "/runtime/run", "/runtime/run"],
+    )
+  })
+
+  test("deduplicates replayed events and refuses a gap instead of silently skipping work", async () => {
+    const event = (sequence: number) =>
+      `data: ${JSON.stringify({ sequence, sessionID: "ses_gap", runID: "run_gap", type: "tick", time: 1, properties: {} })}\n\n`
+    const runtime = createOpenScienceRuntime({
+      baseUrl: "http://runtime.test",
+      fetch: async () =>
+        new Response(event(1) + event(1) + event(3), { headers: { "content-type": "text/event-stream" } }),
+    })
+    const received: number[] = []
+    await assert.rejects(async () => {
+      for await (const value of runtime.events({ sessionID: "ses_gap", afterSequence: 0 }))
+        received.push(value.sequence)
+    }, RuntimeEventCursorError)
+    assert.deepEqual(received, [1])
+  })
+
+  test("an aborted wait neither polls nor cancels the runtime", async () => {
+    let calls = 0
+    const runtime = createOpenScienceRuntime({
+      baseUrl: "http://runtime.test",
+      fetch: async () => {
+        calls++
+        return Response.json({})
+      },
+    })
+    await assert.rejects(runtime.wait({ sessionID: "ses_abort", runID: "run_abort", signal: AbortSignal.abort() }))
+    assert.equal(calls, 0)
+  })
+
   test("sends the strict public prompt contract and returns the accepted run", async () => {
     let request: Request | undefined
     const runtime = createOpenScienceRuntime({
@@ -125,6 +198,43 @@ describe("OpenScienceRuntime", () => {
     assert.equal(requests.length, 2)
     assert.equal(requests[0]?.headers.get("Last-Event-ID"), "0")
     assert.equal(requests[1]?.headers.get("Last-Event-ID"), "1")
+  })
+
+  test("backs off after empty clean closes and resets once events arrive", async () => {
+    const times: number[] = []
+    const controller = new AbortController()
+    const event = {
+      sequence: 1,
+      sessionID: "ses_empty",
+      runID: "run_empty",
+      type: "runtime.accepted",
+      properties: { effort: "normal" },
+      time: 1,
+    }
+    const runtime = createOpenScienceRuntime({
+      baseUrl: "http://runtime.test",
+      runtimeReconnectDelayMs: 20,
+      fetch: async () => {
+        times.push(Date.now())
+        if (times.length === 6) controller.abort()
+        const body = times.length === 5 ? `id: 1\nevent: runtime.accepted\ndata: ${JSON.stringify(event)}\n\n` : ""
+        return new Response(body, { headers: { "content-type": "text/event-stream" } })
+      },
+    })
+
+    const received: RuntimeEvent[] = []
+    for await (const item of runtime.events({ sessionID: "ses_empty", signal: controller.signal })) {
+      received.push(item)
+    }
+
+    assert.equal(received.length, 1)
+    assert.equal(times.length, 6)
+    const gaps = times.slice(1).map((time, index) => time - (times[index] ?? time))
+    // Four empty closes wait 20, 40, 80, and 160 ms; the delivered event on
+    // the fifth connection resets the next wait to the 20 ms base.
+    assert.ok((gaps[3] ?? 0) >= 150, `fourth reconnect waited ${gaps[3]}ms`)
+    assert.ok((gaps[0] ?? 0) + (gaps[1] ?? 0) + (gaps[2] ?? 0) + (gaps[3] ?? 0) >= 280, `empty closes waited ${gaps}`)
+    assert.ok((gaps[4] ?? 0) < 200, `reconnect after a delivered event waited ${gaps[4]}ms`)
   })
 
   test("surfaces a retained-window conflict without retrying forever", async () => {

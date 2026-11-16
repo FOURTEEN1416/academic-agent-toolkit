@@ -8,6 +8,10 @@ version: 0.1.0
 
 Transform code reviews from gatekeeping to knowledge sharing through constructive feedback, systematic analysis, and collaborative improvement.
 
+> **Division of labor / 评审三件分工**：本技能聚焦**评审沟通与团队流程**（怎么写评审意见、定团队标准、带教评审者）。需要**结构化逐文件评审方法论与检查清单**时用 `dev-code-review`；需要**对抗性批判视角**（击穿自评盲区）时用 `dev-adversarial-code-review`。三者互补，不重复投递。
+
+## When to Use This Skill
+
 ## When to Use This Skill
 
 - Reviewing pull requests and code changes
@@ -513,9 +517,11 @@ When author disagrees with your feedback:
 
 ## Resources
 
-- **references/code-review-best-practices.md**: Comprehensive review guidelines
-- **references/common-bugs-checklist.md**: Language-specific bugs to watch for
-- **references/security-review-guide.md**: Security-focused review checklist
-- **assets/pr-review-template.md**: Standard review comment template
-- **assets/review-checklist.md**: Quick reference checklist
-- **scripts/pr-analyzer.py**: Analyze PR complexity and suggest reviewers
+> ⚠️ 以下参考文件与脚本**缺失，见 [ASSET-GAP.md](ASSET-GAP.md)**（已同步登记于 `tools/asset_gap_register.json` 棘轮）。当前以正文的方法论、检查清单与模板为准执行；下列条目仅供追踪补齐进度。
+
+- **references/code-review-best-practices.md**: Comprehensive review guidelines *(缺失)*
+- **references/common-bugs-checklist.md**: Language-specific bugs to watch for *(缺失)*
+- **references/security-review-guide.md**: Security-focused review checklist *(缺失)*
+- **assets/pr-review-template.md**: Standard review comment template *(缺失)*
+- **assets/review-checklist.md**: Quick reference checklist *(缺失)*
+- **scripts/pr-analyzer.py**: Analyze PR complexity and suggest reviewers *(缺失)*

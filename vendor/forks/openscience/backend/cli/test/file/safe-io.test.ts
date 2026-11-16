@@ -1,10 +1,59 @@
 import { describe, expect, test } from "bun:test"
 import fs from "node:fs/promises"
+import { constants } from "node:fs"
 import path from "node:path"
 import { SafeFileIO } from "../../src/file/safe-io"
 import { tmpdir } from "../fixture/fixture"
 
 describe("SafeFileIO", () => {
+  test.skipIf(process.platform === "win32")("rejects a FIFO before waiting for a writer", async () => {
+    await using tmp = await tmpdir()
+    const target = path.join(tmp.path, "output.txt")
+    const create = Bun.spawn(["mkfifo", target], { stdout: "ignore", stderr: "pipe" })
+    expect(await create.exited).toBe(0)
+    const pending = SafeFileIO.read(target).then(
+      () => ({ error: undefined }),
+      (error: Error) => ({ error }),
+    )
+    const result = await Promise.race([pending, Bun.sleep(500).then(() => undefined)])
+    // Reap even a regressed blocking read, so a failed test never leaves an
+    // open FIFO request/thread behind in the shared test process.
+    if (!result) {
+      const peer = await fs.open(target, constants.O_RDWR | constants.O_NONBLOCK)
+      await pending
+      await peer.close()
+    }
+    expect(result?.error?.message).toContain("Only regular files can be accessed")
+  })
+
+  test.skipIf(process.platform === "win32")("rejects a FIFO swapped in after the regular-file check", async () => {
+    await using tmp = await tmpdir()
+    const target = path.join(tmp.path, "output.txt")
+    await fs.writeFile(target, "original")
+    using barrier = SafeFileIO.testing({
+      afterReadStat: async () => {
+        await fs.rename(target, path.join(tmp.path, "retained.txt"))
+        const create = Bun.spawn(["mkfifo", target], { stdout: "ignore", stderr: "pipe" })
+        expect(await create.exited).toBe(0)
+      },
+    })
+    const pending = SafeFileIO.open(target).then(
+      async (source) => {
+        await source.close()
+        return { error: undefined }
+      },
+      (error: Error) => ({ error }),
+    )
+    const result = await Promise.race([pending, Bun.sleep(500).then(() => undefined)])
+    if (!result) {
+      const peer = await fs.open(target, constants.O_RDWR | constants.O_NONBLOCK)
+      await pending
+      await peer.close()
+    }
+    expect(result?.error?.message).toContain("Only regular files can be accessed")
+    expect(await fs.readFile(path.join(tmp.path, "retained.txt"), "utf8")).toBe("original")
+  })
+
   test.skipIf(process.platform === "win32")(
     "rejects an indirect symlink spelling even when the final component is regular",
     async () => {
@@ -183,6 +232,32 @@ describe("SafeFileIO", () => {
     expect((await fs.readdir(tmp.path)).filter((file) => file.startsWith(".openscience-"))).toEqual([])
   })
 
+  test("rejects file growth before reading a replacement snapshot", async () => {
+    await using tmp = await tmpdir()
+    const target = path.join(tmp.path, "result.txt")
+    await fs.writeFile(target, "approved")
+    const approved = await SafeFileIO.read(target)
+    await fs.truncate(target, 32 * 1024 * 1024)
+    await expect(SafeFileIO.write(target, "replacement", approved)).rejects.toThrow("file changed after approval")
+    expect((await fs.stat(target)).size).toBe(32 * 1024 * 1024)
+  })
+
+  test.skipIf(process.platform === "win32")(
+    "rolls back growth after approval without reading the enlarged backup",
+    async () => {
+      await using tmp = await tmpdir()
+      const target = path.join(tmp.path, "result.txt")
+      await fs.writeFile(target, "approved")
+      const approved = await SafeFileIO.read(target)
+      using barrier = SafeFileIO.testing({ afterDirectoryVerify: () => fs.truncate(target, 32 * 1024 * 1024) })
+      await expect(SafeFileIO.write(target, "replacement", approved)).rejects.toThrow(
+        "approved file changed before replacement",
+      )
+      expect((await fs.stat(target)).size).toBe(32 * 1024 * 1024)
+      expect((await fs.readdir(tmp.path)).filter((file) => file.startsWith(".openscience-"))).toEqual([])
+    },
+  )
+
   test("creates missing direct directories and permits names beginning with dots", async () => {
     await using tmp = await tmpdir()
     const target = path.join(tmp.path, "..hidden", "nested", "result.txt")
@@ -191,6 +266,64 @@ describe("SafeFileIO", () => {
 
     expect(await Bun.file(target).text()).toBe("contained")
   })
+
+  test.skipIf(process.platform === "win32")(
+    "completes a replacement whose displaced original comes back under a new inode",
+    async () => {
+      // An overlay root (Modal's gVisor sandboxes) copies a lower-layer file up
+      // on exchange and renumbers it: the first edit of any file shipped in the
+      // image. The public name holds the replacement either way; the displaced
+      // original is ours to remove by its bytes, not by an identity the
+      // filesystem has just changed.
+      await using tmp = await tmpdir({
+        init: (directory) => Bun.write(path.join(directory, "solve.py"), "original"),
+      })
+      const target = path.join(tmp.path, "solve.py")
+      const approved = await SafeFileIO.read(target)
+      const renumbered = { value: false }
+      using barrier = SafeFileIO.testing({
+        afterReplaceMutation: async (_target, staged) => {
+          const bytes = await fs.readFile(staged)
+          await fs.unlink(staged)
+          await fs.writeFile(staged, bytes)
+          renumbered.value = true
+        },
+      })
+
+      await SafeFileIO.write(target, "replacement", approved)
+
+      expect(renumbered.value).toBe(true)
+      expect(await Bun.file(target).text()).toBe("replacement")
+      expect((await fs.readdir(tmp.path)).filter((file) => file.startsWith(".openscience-"))).toEqual([])
+    },
+  )
+
+  test.skipIf(process.platform === "win32")(
+    "retains a displaced entry whose bytes are not the original's",
+    async () => {
+      await using tmp = await tmpdir({
+        init: (directory) => Bun.write(path.join(directory, "solve.py"), "original"),
+      })
+      const target = path.join(tmp.path, "solve.py")
+      const approved = await SafeFileIO.read(target)
+      using barrier = SafeFileIO.testing({
+        afterReplaceMutation: async (_target, staged) => {
+          // A different file at our staging name. Written beside the original
+          // and renamed over it, so its inode is allocated while the original's
+          // is still live: an unlink-then-write can be handed the freed number
+          // back (ext4 does), which would make a stranger's file look like the
+          // original edited in place.
+          await fs.writeFile(`${staged}.other`, "someone else's bytes")
+          await fs.rename(`${staged}.other`, staged)
+        },
+      })
+
+      await expect(SafeFileIO.write(target, "replacement", approved)).rejects.toThrow("changed after approval")
+      const retained = (await fs.readdir(tmp.path)).filter((file) => file.startsWith(".openscience-"))
+      expect(retained).toHaveLength(1)
+      expect(await Bun.file(path.join(tmp.path, retained[0]!)).text()).toBe("someone else's bytes")
+    },
+  )
 
   test("replaces only the exact approved file through its held parent", async () => {
     await using tmp = await tmpdir({

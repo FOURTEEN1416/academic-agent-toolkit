@@ -2,15 +2,26 @@
 name: paper-claim-audit
 description: "Zero-context verification that every number, comparison, and scope claim in the paper matches raw result files. Uses a fresh Codex reviewer with no prior context; base output is same-family provisional. Use when user says \"审查论文数据\", \"check paper claims\", \"verify numbers\", \"论文数字核对\", or before submission to ensure paper-to-evidence fidelity."
 argument-hint: "[paper-directory]"
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, mcp__antigravity__antigravity, mcp__antigravity__antigravity-reply, mcp__grok__grok, mcp__grok__grok-reply, mcp__claude-review__review, mcp__claude-review__review_reply, mcp__claude-review__review_start, mcp__claude-review__review_reply_start, mcp__claude-review__review_status
 ---
 
 # Paper Claim Audit: Zero-Context Evidence Verification
 
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
+
 > **Codex assurance:** write `review_independence: same-family` and
 > `acceptance_status: provisional` into base audit JSON. A fresh Codex PASS may
 > advance the pipeline but cannot produce submission-ready yes. Missing/failed
-> review emits BLOCKED; overlay/deterministic acceptance uses accepted.
+> review emits BLOCKED; a completed positive known-cross-family review or deterministic acceptance uses accepted.
 
 Verify that every claim in the paper matches raw evidence for: **$ARGUMENTS**
 
@@ -81,13 +92,15 @@ NARRATIVE_REPORT.md, PAPER_PLAN.md, findings.md
 Any .md file that is an executor-written summary
 ```
 
-### Step 2: Fresh Reviewer Audit (GPT-5.6-Sol — NEW thread, no reply)
+### Step 2: Fresh Reviewer Audit (GPT-6-Astra — NEW thread, no reply)
 
 **CRITICAL: Use a fresh reviewer agent every run.** Never reuse an old reviewer context for this audit.
 
+> Resolve this reviewer slot first; the following is the `backend=codex` example.
+
 ```text
 spawn_agent:
-  model: gpt-5.6-sol
+  model: gpt-6-astra
   reasoning_effort: ultra
   message: |
     You are a paper-to-evidence auditor. You have ZERO prior context about
@@ -168,7 +181,7 @@ Parse the reviewer's response and write `PAPER_CLAIM_AUDIT.md`:
 # Paper Claim Audit Report
 
 **Date**: [today]
-**Auditor**: GPT-5.6-Sol ultra (fresh zero-context thread)
+**Auditor**: GPT-6-Astra ultra (fresh zero-context thread)
 **Paper**: [paper title from tex]
 
 ## Overall Verdict: [PASS | WARN | FAIL]
@@ -259,7 +272,7 @@ Skip if `RENDER_HTML = false` is set in `AGENTS.md` / `CLAUDE.md` or passed as `
 - **Zero executor interpretation.** Only file paths. No summaries.
 - **Only raw results.** No EXPERIMENT_LOG, no AUTO_REVIEW, no human summaries.
 - **Rounding rule.** Only standard rounding to displayed precision. 84.7% → 84.7% or 85% is OK. 84.7% → 85.3% is NOT OK.
-- **Review class.** Base Codex reviewer is same-family provisional; only an overlay may record cross-family accepted.
+- **Review class.** Base Codex reviewer is same-family provisional; a completed positive selected review may record cross-family accepted only with known different model families.
 
 ## Review Tracing
 
@@ -289,12 +302,12 @@ The artifact conforms to the schema in `shared-references/assurance-contract.md`
   },
   "trace_path":       ".aris/traces/paper-claim-audit/<date>_run<NN>/",
   "thread_id":        "<codex mcp thread id>",
-  "executor_model":   "codex-gpt-5.6-sol",
+  "executor_model":   "codex-gpt-6-astra",
   "executor_family":  "openai",
-  "reviewer_model":   "gpt-5.6-sol",
+  "reviewer_model":   "gpt-6-astra",
   "reviewer_family":  "openai",
-  "review_independence": "same-family",
-  "acceptance_status": "provisional",
+  "review_independence": "<actual family comparison>",
+  "acceptance_status": "<actual acceptance status>",
   "reviewer_reasoning": "ultra",
   "generated_at":     "<UTC ISO-8601>",
   "details": {

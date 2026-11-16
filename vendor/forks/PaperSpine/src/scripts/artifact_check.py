@@ -15,9 +15,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _paper_spine_utils import (
+    literature_scope,
     markdown_tables,
+    review_policy,
     year_from_row,
 )
+from author_voice_check import validate_author_voice
+from citation_bank_check import source_identity
+from evidence_grounded_review import validate_file as validate_evidence_review_file
 
 WORKFLOWS = ("rewrite_existing", "build_from_materials")
 TIERS = ("flash", "pro")
@@ -33,12 +38,20 @@ COMMON = (
     "exemplar_learning_dossier.md",
     "style_profile.md",
     "sota_gap_map.md",
+    "contribution_options_after_research.md",
     "motivation_options_after_research.md",
     "citation_support_bank.md",
     "confirmed_contribution.md",
     "confirmed_motivation.md",
     "section_blueprints.md",
     "writing_rationale_matrix.md",
+    "structured_review.md",
+    "evidence_review.json",
+    "evidence_review_check.md",
+    "reviewer_audit.md",
+)
+EVIDENCE_BEARING = (
+    "results_validation.md",
 )
 REWRITE = (
     "original_logic_map.md",
@@ -78,17 +91,24 @@ TRANSLATION_COMMON = (
     "translation_zh/exemplar_learning_dossier.zh.md",
     "translation_zh/style_profile.zh.md",
     "translation_zh/sota_gap_map.zh.md",
+    "translation_zh/contribution_options_after_research.zh.md",
     "translation_zh/motivation_options_after_research.zh.md",
     "translation_zh/citation_support_bank.zh.md",
+    "translation_zh/confirmed_contribution.zh.md",
     "translation_zh/confirmed_motivation.zh.md",
     "translation_zh/section_blueprints.zh.md",
     "translation_zh/writing_rationale_matrix.zh.md",
+    "translation_zh/structured_review.zh.md",
+    "translation_zh/reviewer_audit.zh.md",
     "translation_zh/final_structure.zh.md",
     "translation_zh/final_paper.zh.md",
     "translation_zh/full_paper_translation.zh.md",
     "translation_zh/latex_report.zh.md",
     "translation_zh/final_artifact_manifest.zh.md",
     "translation_zh/artifact_check.zh.md",
+)
+TRANSLATION_EVIDENCE_BEARING = (
+    "translation_zh/results_validation.zh.md",
 )
 TRANSLATION_REWRITE = (
     "translation_zh/original_logic_map.zh.md",
@@ -201,8 +221,14 @@ DOWNSTREAM_UPSTREAM_PAIRS = (
     ("word_report.md", "final_paper/paper.docx"),
     ("latex_report.md", "final_paper/main.tex"),
     ("final_artifact_manifest.md", "final_paper/main.tex"),
+    ("confirmed_contribution.md", "contribution_options_after_research.md"),
     ("confirmed_motivation.md", "motivation_options_after_research.md"),
     ("section_blueprints.md", "confirmed_contribution.md"),
+    ("section_blueprints.md", "confirmed_motivation.md"),
+    ("results_validation.md", "confirmed_contribution.md"),
+    ("reviewer_audit.md", "structured_review.md"),
+    ("evidence_review_check.md", "evidence_review.json"),
+    ("reviewer_audit.md", "evidence_review.json"),
     ("citation_quality_audit.md", "citation_support_bank.md"),
     ("rewrite_matrix.md", "writing_rationale_matrix.md"),
     ("logic_transfer_audit.md", "original_logic_map.md"),
@@ -238,11 +264,16 @@ TRANSLATION_SOURCE_BY_TARGET = {
     "translation_zh/exemplar_learning_dossier.zh.md": "exemplar_learning_dossier.md",
     "translation_zh/style_profile.zh.md": "style_profile.md",
     "translation_zh/sota_gap_map.zh.md": "sota_gap_map.md",
+    "translation_zh/contribution_options_after_research.zh.md": "contribution_options_after_research.md",
     "translation_zh/motivation_options_after_research.zh.md": "motivation_options_after_research.md",
     "translation_zh/citation_support_bank.zh.md": "citation_support_bank.md",
+    "translation_zh/confirmed_contribution.zh.md": "confirmed_contribution.md",
     "translation_zh/confirmed_motivation.zh.md": "confirmed_motivation.md",
     "translation_zh/section_blueprints.zh.md": "section_blueprints.md",
     "translation_zh/writing_rationale_matrix.zh.md": "writing_rationale_matrix.md",
+    "translation_zh/results_validation.zh.md": "results_validation.md",
+    "translation_zh/structured_review.zh.md": "structured_review.md",
+    "translation_zh/reviewer_audit.zh.md": "reviewer_audit.md",
     "translation_zh/final_structure.zh.md": "final_structure.md",
     "translation_zh/final_paper.zh.md": "final_paper.md",
     "translation_zh/full_paper_translation.zh.md": "final_paper/main.tex",
@@ -259,7 +290,8 @@ TRANSLATION_SOURCE_BY_TARGET = {
 }
 
 RATIONALE_ANCHOR_CATEGORIES = {
-    "motivation": ("motivation", "spine", "throughline", "动机", "主线", "贡献"),
+    "contribution": ("contribution", "claim", "promise", "贡献", "主张", "承诺"),
+    "motivation": ("motivation", "spine", "throughline", "动机", "主线"),
     "reference": ("reference", "sota", "example", "pattern", "paper", "literature", "参考", "样例", "论文", "文献"),
     "target": ("target", "scene", "venue", "journal", "conference", "competition", "rubric", "norm", "目标", "场景", "期刊", "会议", "比赛", "评分", "规范"),
     "evidence": ("evidence", "figure", "table", "result", "citation", "data", "source", "claim", "证据", "图", "表", "结果", "引用", "数据", "素材", "主张"),
@@ -349,6 +381,17 @@ def config_requests_chinese_word(config: dict[str, object]) -> bool:
     return language == "zh" or (language == "en" and package == "zh")
 
 
+def config_requests_author_voice(config: dict[str, object]) -> bool:
+    explicit = config.get("author_voice_restoration")
+    if isinstance(explicit, dict):
+        explicit = explicit.get("enabled", True)
+    if explicit is not None:
+        if explicit is False:
+            return False
+        return str(explicit).strip().lower() not in {"none", "off", "false", "no", "0", "disabled"}
+    return str(config.get("humanize_tier") or "none").strip().lower() in {"light", "medium", "heavy"}
+
+
 def required_artifacts(
     workflow: str,
     output_dir: Path,
@@ -358,11 +401,34 @@ def required_artifacts(
     tex_engine: str,
 ) -> tuple[list[str], bool]:
     items = list(COMMON)
+    if review_policy(config) == "balanced":
+        items = [
+            item for item in items
+            if item not in {
+                "writing_rationale_matrix.md",
+                "reviewer_audit.md",
+                "evidence_review.json",
+                "evidence_review_check.md",
+            }
+        ]
+    evidence_bearing = str(config.get("scene") or "").strip().lower() in {
+        "journal", "conference", "competition"
+    }
+    if evidence_bearing:
+        items.extend(EVIDENCE_BEARING)
     if workflow == "build_from_materials":
         items.extend(BUILD)
     else:
         items.extend(REWRITE)
     items.extend(FINAL_LATEX)
+
+    if config_requests_author_voice(config):
+        items.extend([
+            "author_voice_profile.json",
+            "author_voice_revision.json",
+            "author_voice_receipt.json",
+            "author_voice_report.md",
+        ])
 
     if pdf_policy == "always" or (pdf_policy == "auto" and tex_engine):
         items.extend(FINAL_PDF)
@@ -381,6 +447,16 @@ def required_artifacts(
     translation_required = config_requests_translation(config)
     if translation_required:
         items.extend(TRANSLATION_COMMON)
+        if review_policy(config) == "balanced":
+            items = [
+                item for item in items
+                if item not in {
+                    "translation_zh/writing_rationale_matrix.zh.md",
+                    "translation_zh/reviewer_audit.zh.md",
+                }
+            ]
+        if evidence_bearing:
+            items.extend(TRANSLATION_EVIDENCE_BEARING)
         if workflow == "build_from_materials":
             items.extend(TRANSLATION_BUILD)
         else:
@@ -414,8 +490,10 @@ def find_rationale_table(text: str) -> tuple[list[str], list[list[str]]] | None:
         if not table:
             continue
         header = table[0]
-        if header_has(header, ("manuscript", "unit", "writing", "section", "单元", "段落", "章节")) and header_has(
-            header, ("motivation", "动机")
+        if (
+            header_has(header, ("manuscript", "unit", "writing", "section", "单元", "段落", "章节"))
+            and header_has(header, ("contribution", "claim", "promise", "贡献", "主张", "承诺"))
+            and header_has(header, ("motivation", "动机"))
         ):
             return header, table[1:]
     return None
@@ -431,13 +509,14 @@ def validate_writing_rationale_matrix(output_dir: Path) -> list[str]:
     table = find_rationale_table(text)
     if table is None:
         return [
-            "writing_rationale_matrix.md must contain a Markdown table with manuscript/writing units and motivation links."
+            "writing_rationale_matrix.md must contain a Markdown table with manuscript/writing units, contribution promises, and motivation alignment."
         ]
 
     header, rows = table
     required_columns = {
         "manuscript unit": ("manuscript", "unit", "writing", "section", "单元", "段落", "章节"),
-        "motivation link": ("motivation", "动机"),
+        "contribution promise": ("contribution", "claim", "promise", "贡献", "主张", "承诺"),
+        "motivation alignment": ("motivation", "动机"),
         "reference or SOTA pattern": ("reference", "sota", "example", "样例", "参考", "文献", "优秀"),
         "target scene or venue norm": ("target", "scene", "venue", "norm", "目标", "场景", "期刊", "会议", "比赛", "规范"),
         "evidence or citation anchor": ("evidence", "citation", "anchor", "证据", "引用", "材料", "数据"),
@@ -475,7 +554,8 @@ def validate_writing_rationale_matrix(output_dir: Path) -> list[str]:
         checked_rows += 1
         rationale_cells: list[str] = []
         for label in (
-            "motivation link",
+            "contribution promise",
+            "motivation alignment",
             "reference or SOTA pattern",
             "target scene or venue norm",
             "evidence or citation anchor",
@@ -492,7 +572,7 @@ def validate_writing_rationale_matrix(output_dir: Path) -> list[str]:
         rationale_text = " ".join(rationale_cells).strip()
         if len(rationale_text) < RATIONALE_MIN_CHARS:
             issues.append(
-                f"writing_rationale_matrix.md row {row_number} rationale is too thin; explain the writing decision with motivation, reference/SOTA, target-scene, evidence, and text-move anchors."
+                f"writing_rationale_matrix.md row {row_number} rationale is too thin; explain the writing decision with contribution, motivation, reference/SOTA, target-scene, evidence, and text-move anchors."
             )
         if row_number == 1 and len(rationale_text) < FRAMEWORK_MIN_CHARS:
             issues.append(
@@ -501,10 +581,10 @@ def validate_writing_rationale_matrix(output_dir: Path) -> list[str]:
         category_hits = sum(
             1 for terms in RATIONALE_ANCHOR_CATEGORIES.values() if any(term in lowered for term in terms)
         )
-        required_hits = 5 if row_number == 1 else 4
+        required_hits = 6 if row_number == 1 else 5
         if category_hits < required_hits:
             issues.append(
-                f"writing_rationale_matrix.md row {row_number} lacks enough concrete anchors; include motivation, learned reference/SOTA pattern, target-scene norm, evidence/citation, and the planned text move."
+                f"writing_rationale_matrix.md row {row_number} lacks enough concrete anchors; include a contribution promise, motivation alignment, learned reference/SOTA pattern, target-scene norm, evidence/citation, and the planned text move."
             )
         if any(phrase in lowered for phrase in BAD_GENERIC_PHRASES) and not any(
             token in lowered for token in ("because", "动机", "evidence", "sota", "reference", "目标", "证据", "引用")
@@ -637,7 +717,8 @@ def validate_citation_support_bank(output_dir: Path, config: dict[str, object]) 
         target_count = max(1, int(config.get("citation_target_count") or 20))
     except (TypeError, ValueError):
         target_count = 20
-    required_candidates = target_count * CITATION_BANK_MULTIPLIER
+    closed_corpus = literature_scope(config) == "closed_corpus"
+    required_candidates = target_count if closed_corpus else target_count * CITATION_BANK_MULTIPLIER
     required_recent = int(required_candidates * CITATION_BANK_RECENT_RATIO + 0.999)
     recent_threshold = CURRENT_YEAR - 3
 
@@ -689,14 +770,28 @@ def validate_citation_support_bank(output_dir: Path, config: dict[str, object]) 
         else:
             warnings.append(msg)
 
-    if len(rows) < required_candidates:
+    exhaustive_marker = "CLOSED_CORPUS_EXHAUSTIVE" in text
+    if len(rows) < required_candidates and not (closed_corpus and exhaustive_marker):
         issues.append(
-            f"citation_support_bank.md has fewer than {required_candidates} candidates; create 3x the target citation count before selecting final citations."
+            f"citation_support_bank.md has fewer than {required_candidates} claim-use rows; create 3x the target citation count before selecting final citations."
+        )
+    unique_sources = {source_identity(header, row) for row in rows}
+    if len(unique_sources) < required_candidates and not (closed_corpus and exhaustive_marker):
+        issues.append(
+            f"citation_support_bank.md has only {len(unique_sources)} unique sources across {len(rows)} claim-use rows; "
+            f"create at least {required_candidates} unique sources. Repeated uses of one paper do not satisfy source coverage."
         )
     recent_rows = [row for row in rows if (year_from_row(row) or 0) >= recent_threshold]
-    if len(recent_rows) < required_recent:
-        issues.append(
-            f"citation_support_bank.md should keep about 80% recent candidates since {recent_threshold}; found {len(recent_rows)} of required {required_recent}."
+    unique_recent_sources = {source_identity(header, row) for row in recent_rows}
+    if len(unique_recent_sources) < required_recent:
+        message = (
+            f"citation_support_bank.md should keep about 80% unique recent sources since {recent_threshold}; "
+            f"found {len(unique_recent_sources)} of required {required_recent}. Repeated claim uses count once for recency."
+        )
+        (warnings if closed_corpus else issues).append(message)
+    if closed_corpus:
+        warnings.append(
+            "Closed-corpus mode keeps recency and 3x discovery breadth advisory; all used citations must still be real, deduplicated, and claim-supporting."
         )
     weak_rows = []
     for index, row in enumerate(rows[:required_candidates], start=1):
@@ -986,9 +1081,18 @@ def validate_manifest_config_consistency(output_dir: Path, config: dict[str, obj
     return issues
 
 
-def validate_downstream_before_upstream(output_dir: Path) -> list[str]:
+def validate_downstream_before_upstream(
+    output_dir: Path, config: dict[str, object]
+) -> list[str]:
     issues: list[str] = []
-    for downstream, upstream in DOWNSTREAM_UPSTREAM_PAIRS:
+    pairs = DOWNSTREAM_UPSTREAM_PAIRS
+    if review_policy(config) == "balanced":
+        pairs = tuple(
+            (downstream, upstream)
+            for downstream, upstream in pairs
+            if upstream not in {"writing_rationale_matrix.md", "evidence_review.json"}
+        )
+    for downstream, upstream in pairs:
         if (output_dir / downstream).exists() and not (output_dir / upstream).exists():
             issues.append(
                 f"Downstream artifact `{downstream}` exists but upstream `{upstream}` is missing. "
@@ -1035,7 +1139,7 @@ def validate_content(output_dir: Path, required: list[str], translation_required
     warnings: list[str] = []
     tier = str(config.get("tier") or "flash")
     issues.extend(validate_misplaced_artifacts(output_dir))
-    issues.extend(validate_downstream_before_upstream(output_dir))
+    issues.extend(validate_downstream_before_upstream(output_dir, config))
     issues.extend(validate_pdf_alias_current(output_dir))
     issues.extend(validate_wrong_language_word_files(output_dir, config))
     issues.extend(validate_manifest_config_consistency(output_dir, config))
@@ -1044,6 +1148,19 @@ def validate_content(output_dir: Path, required: list[str], translation_required
     issues.extend(mojibake_issues)
     warnings.extend(mojibake_warnings)
     issues.extend(validate_writing_rationale_matrix(output_dir))
+    if review_policy(config) == "strict":
+        manuscript = output_dir / "final_paper" / "main.tex"
+        evidence_result = validate_evidence_review_file(
+            output_dir / "evidence_review.json",
+            manuscript if manuscript.is_file() else None,
+        )
+        issues.extend(f"evidence_review.json: {item}" for item in evidence_result.errors)
+    if config_requests_author_voice(config):
+        voice_result = validate_author_voice(output_dir)
+        issues.extend(
+            f"author_voice_revision.json: {item.code}: {item.message}"
+            for item in voice_result.hard_findings
+        )
     citation_issues, citation_warnings = validate_citation_support_bank(output_dir, config)
     issues.extend(citation_issues)
     warnings.extend(citation_warnings)

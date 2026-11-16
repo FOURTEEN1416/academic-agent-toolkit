@@ -1,0 +1,179 @@
+/** Reviewed Ace roster shipped with the client. No dashboard sync is required. */
+export const MANAGED_OPENROUTER_MODELS = Object.freeze([
+  "openai/gpt-6-astra",
+  "openai/gpt-6-luna",
+  "anthropic/claude-opus-5.5",
+  "anthropic/claude-fable-5.1",
+  "anthropic/claude-sonnet-5",
+  "anthropic/claude-haiku-4.5",
+  "google/gemini-3.1-pro-preview",
+  "google/gemini-3.8-flash",
+  "google/gemini-4-argon",
+  "x-ai/grok-4.7",
+  "z-ai/glm-5.3",
+  "z-ai/glm-5.3-flash",
+  "deepseek/deepseek-v4-pro",
+  "deepseek/deepseek-v4.1-flash",
+  "qwen/qwen3.8-max",
+  "qwen/qwen3.8-flash",
+  "moonshotai/kimi-k3",
+  "moonshotai/kimi-k2.7-code",
+  "minimax/minimax-m3",
+  "xiaomi/mimo-v2.6-pro",
+  "meta/muse-spark-1.3",
+  "nvidia/nemotron-3-ultra-550b-a55b",
+] as const)
+
+export const MANAGED_OPENROUTER_MODEL_SET = new Set<string>(MANAGED_OPENROUTER_MODELS)
+
+type ManagedModel = {
+  name: string
+  context: number
+  output: number
+  maxInput?: number
+  efforts?: readonly string[]
+  defaultEffort?: string
+  requiresApproval?: boolean
+  input: readonly ("text" | "image" | "video" | "audio" | "pdf")[]
+  temperature?: boolean
+}
+
+// Verified against https://openrouter.ai/api/v1/models and the per-model
+// endpoints (https://openrouter.ai/api/v1/models/{id}/endpoints, which report
+// max_prompt_tokens) on 2026-09-24.
+// Runtime metadata supplies prices for the actual upstream route; this fallback
+// only keeps model identity and token budgeting usable when models.dev lags.
+export const MANAGED_MODEL_DETAILS: Record<(typeof MANAGED_OPENROUTER_MODELS)[number], ManagedModel> = {
+  "openai/gpt-6-astra": {
+    name: "GPT-6 Astra",
+    context: 1_050_000,
+    maxInput: 922_000,
+    output: 128_000,
+    input: ["text", "image", "pdf"],
+    temperature: false,
+    efforts: ["low", "medium", "high", "xhigh", "max"],
+  },
+  // Every OpenAI-hosted GPT-6 endpoint reports max_prompt_tokens 922000.
+  // Luna accepts `none`; Astra does not.
+  "openai/gpt-6-luna": {
+    name: "GPT-6 Luna",
+    context: 1_050_000,
+    maxInput: 922_000,
+    output: 128_000,
+    input: ["text", "image", "pdf"],
+    temperature: false,
+    efforts: ["none", "low", "medium", "high", "xhigh", "max"],
+    defaultEffort: "medium",
+  },
+  "anthropic/claude-opus-5.5": {
+    name: "Claude Opus 5.5",
+    context: 1_000_000,
+    output: 128_000,
+    input: ["text", "image", "pdf"],
+    temperature: false,
+    efforts: ["low", "medium", "high", "xhigh", "max"],
+    defaultEffort: "high",
+  },
+  "anthropic/claude-fable-5.1": {
+    name: "Claude Fable 5.1",
+    context: 1_000_000,
+    output: 128_000,
+    input: ["text", "image", "pdf"],
+    temperature: false,
+    efforts: ["low", "medium", "high", "xhigh", "max"],
+    defaultEffort: "high",
+    // The gateway must confirm its native Anthropic route can preserve bound
+    // thinking replay. Missing metadata is not approval.
+    requiresApproval: true,
+  },
+  "anthropic/claude-sonnet-5": {
+    name: "Claude Sonnet 5",
+    context: 1_000_000,
+    output: 128_000,
+    input: ["text", "image", "pdf"],
+    temperature: false,
+  },
+  "anthropic/claude-haiku-4.5": {
+    name: "Claude Haiku 4.5",
+    context: 200_000,
+    output: 64_000,
+    input: ["text", "image", "pdf"],
+  },
+  "google/gemini-3.1-pro-preview": {
+    name: "Gemini 3.1 Pro Preview",
+    context: 1_048_576,
+    output: 65_536,
+    input: ["text", "image", "video", "audio", "pdf"],
+  },
+  // Native GenerateContent metadata for the deployed key, checked 2026-10-18.
+  // Long decode is not enabled on this synchronous Ace route.
+  "google/gemini-4-argon": {
+    name: "Gemini 4 Argon",
+    context: 1_048_576,
+    output: 32_768,
+    input: ["text", "image", "video", "audio", "pdf"],
+    temperature: false,
+    efforts: ["low", "medium", "high"],
+    defaultEffort: "medium",
+    requiresApproval: true,
+  },
+  "google/gemini-3.8-flash": {
+    name: "Gemini 3.8 Flash",
+    context: 1_048_576,
+    output: 65_536,
+    input: ["text", "image", "video", "audio", "pdf"],
+    temperature: false,
+    efforts: ["low", "medium", "high"],
+  },
+  "x-ai/grok-4.7": {
+    name: "Grok 4.7",
+    context: 500_000,
+    output: 450_000,
+    input: ["text", "image", "pdf"],
+    efforts: ["low", "medium", "high", "xhigh"],
+    defaultEffort: "high",
+  },
+  "z-ai/glm-5.3": { name: "GLM 5.3", context: 1_310_720, output: 131_072, input: ["text"] },
+  "z-ai/glm-5.3-flash": {
+    name: "GLM 5.3 Flash",
+    context: 1_310_720,
+    output: 131_072,
+    input: ["text", "image", "video"],
+  },
+  "deepseek/deepseek-v4-pro": { name: "DeepSeek V4 Pro", context: 1_048_576, output: 384_000, input: ["text"] },
+  "deepseek/deepseek-v4.1-flash": {
+    name: "DeepSeek V4.1 Flash",
+    context: 1_048_576,
+    output: 384_000,
+    input: ["text", "image"],
+  },
+  "qwen/qwen3.8-max": { name: "Qwen 3.8 Max", context: 1_000_000, output: 131_072, input: ["text", "image", "video"] },
+  // Official Flash-Next production API: https://qwen.ai/blog?id=qwen3.8-flash-next
+  "qwen/qwen3.8-flash": {
+    name: "Qwen 3.8 Flash Next",
+    context: 1_000_000,
+    output: 131_072,
+    input: ["text", "image", "video"],
+  },
+  "moonshotai/kimi-k3": { name: "Kimi K3", context: 1_048_576, output: 943_718, input: ["text", "image", "video"] },
+  "moonshotai/kimi-k2.7-code": { name: "Kimi K2.7 Code", context: 262_144, output: 235_929, input: ["text", "image"] },
+  "minimax/minimax-m3": { name: "MiniMax M3", context: 1_048_576, output: 512_000, input: ["text", "image", "video"] },
+  "xiaomi/mimo-v2.6-pro": {
+    name: "MiMo V2.6 Pro",
+    context: 1_048_576,
+    output: 131_072,
+    input: ["text", "image", "video", "audio"],
+  },
+  "meta/muse-spark-1.3": {
+    name: "Muse Spark 1.3",
+    context: 1_048_576,
+    output: 943_718,
+    input: ["text", "image", "video", "audio", "pdf"],
+  },
+  "nvidia/nemotron-3-ultra-550b-a55b": { name: "Nemotron 3 Ultra", context: 262_144, output: 16_384, input: ["text"] },
+}
+
+export function managedModelDetails(modelID: string): ManagedModel | undefined {
+  if (!MANAGED_OPENROUTER_MODEL_SET.has(modelID)) return undefined
+  return MANAGED_MODEL_DETAILS[modelID as keyof typeof MANAGED_MODEL_DETAILS]
+}

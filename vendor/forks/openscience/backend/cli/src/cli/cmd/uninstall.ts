@@ -2,12 +2,14 @@ import type { Argv } from "yargs"
 import { UI } from "../ui"
 import * as prompts from "@clack/prompts"
 import { Installation } from "../../installation"
+import { CliShim } from "../../installation/cli-shim"
 import { Global } from "../../global"
 import { $ } from "bun"
 import fs from "fs/promises"
 import path from "path"
 import os from "os"
 import { cmd } from "./cmd"
+import { Reason } from "../../util/reason"
 
 interface UninstallArgs {
   keepConfig?: boolean
@@ -21,6 +23,7 @@ interface RemovalTargets {
   directories: Array<{ path: string; label: string; keep: boolean }>
   shellConfig: string | null
   binary: string | null
+  link: string | null
 }
 
 export const UninstallCommand = cmd({
@@ -87,17 +90,26 @@ export const UninstallCommand = cmd({
 
     await executeUninstall(method, targets)
 
-    prompts.outro("Done")
+    prompts.outro(packageStep(method)?.outro ?? "Done")
   },
 })
 
 async function collectRemovalTargets(args: UninstallArgs, method: Installation.Method): Promise<RemovalTargets> {
   const directories = uninstallDirectories(args)
 
-  const shellConfig = method === "curl" ? await getShellConfigFile() : null
+  // The desktop app writes the installer's PATH line and links the sidecar
+  // from ~/.openscience/bin; both go the way the curl install's do.
+  const shellConfig = method === "curl" || method === "desktop" ? await getShellConfigFile() : null
   const binary = method === "curl" ? process.execPath : null
+  const link =
+    method === "desktop"
+      ? await CliShim.status().then(
+          (status) => (status.exists && status.ours && status.target ? status.path : null),
+          () => null,
+        )
+      : null
 
-  return { directories, shellConfig, binary }
+  return { directories, shellConfig, binary, link }
 }
 
 export function uninstallDirectories(args: Pick<UninstallArgs, "keepConfig" | "keepData" | "purge">) {
@@ -134,25 +146,57 @@ async function showRemovalSummary(targets: RemovalTargets, method: Installation.
     prompts.log.info(`  ✓ Binary: ${shortenPath(targets.binary)}`)
   }
 
+  if (targets.link) {
+    prompts.log.info(`  ✓ Command-line link: ${shortenPath(targets.link)}`)
+  }
+
   if (targets.shellConfig) {
     prompts.log.info(`  ✓ Shell PATH in ${shortenPath(targets.shellConfig)}`)
   }
 
-  if (method !== "curl" && method !== "unknown") {
-    const cmds: Record<string, string> = {
-      npm: "npm uninstall -g @synsci/openscience",
-      pnpm: "pnpm uninstall -g @synsci/openscience",
-      bun: "bun remove -g @synsci/openscience",
-      yarn: "yarn global remove @synsci/openscience",
-      brew: "brew uninstall openscience",
-      choco: "choco uninstall openscience",
-      scoop: "scoop uninstall openscience",
-    }
-    prompts.log.info(`  ✓ Package: ${cmds[method] || method}`)
-  }
+  const step = packageStep(method)
+  if (step) prompts.log.info(`  ${step.summary}`)
 }
 
-async function executeUninstall(method: Installation.Method, targets: RemovalTargets) {
+const PACKAGE_COMMANDS: Partial<Record<Installation.Method, string[]>> = {
+  npm: ["npm", "uninstall", "-g", "@synsci/openscience"],
+  pnpm: ["pnpm", "uninstall", "-g", "@synsci/openscience"],
+  bun: ["bun", "remove", "-g", "@synsci/openscience"],
+  yarn: ["yarn", "global", "remove", "@synsci/openscience"],
+  choco: ["choco", "uninstall", "openscience"],
+  scoop: ["scoop", "uninstall", "openscience"],
+}
+
+/**
+ * What uninstalling does about the program itself: the package manager command
+ * it runs, or, for the desktop app, nothing. A desktop copy is the app's own
+ * sidecar and cannot remove the bundle it is running from, so the summary and
+ * the outro say the app stays and how the person removes it. A curl or
+ * unrecognised install has no step here; its binary has a line of its own.
+ */
+export function packageStep(
+  method: Installation.Method,
+  platform: NodeJS.Platform = process.platform,
+): { summary: string; command?: string[]; outro?: string } | undefined {
+  if (method === "desktop") {
+    const app = platform === "darwin" ? "OpenScience.app" : "OpenScience"
+    const how =
+      platform === "darwin"
+        ? "move it to the Trash"
+        : platform === "win32"
+          ? 'remove it from "Add or remove programs" in Windows Settings'
+          : "delete the AppImage (or remove its package)"
+    return {
+      summary: `○ App: ${app} is left in place — ${how} to finish uninstalling`,
+      outro: `Done. ${app} is still installed: ${how} to finish uninstalling.`,
+    }
+  }
+  const command = PACKAGE_COMMANDS[method]
+  if (!command) return
+  return { summary: `✓ Package: ${command.join(" ")}`, command }
+}
+
+export async function executeUninstall(method: Installation.Method, targets: RemovalTargets) {
   const spinner = prompts.spinner()
   const errors: string[] = []
 
@@ -169,10 +213,10 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
     if (!exists) continue
 
     spinner.start(`Removing ${dir.label}...`)
-    const err = await fs.rm(dir.path, { recursive: true, force: true }).catch((e) => e)
-    if (err) {
+    const result = await Reason.capture(fs.rm(dir.path, { recursive: true, force: true }))
+    if (!result.ok) {
       spinner.stop(`Failed to remove ${dir.label}`, 1)
-      errors.push(`${dir.label}: ${err.message}`)
+      errors.push(`${dir.label}: ${Reason.of(result.error)}`)
       continue
     }
     spinner.stop(`Removed ${dir.label}`)
@@ -180,46 +224,42 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
 
   if (targets.shellConfig) {
     spinner.start("Cleaning shell config...")
-    const err = await cleanShellConfig(targets.shellConfig).catch((e) => e)
-    if (err) {
+    const result = await Reason.capture(cleanShellConfig(targets.shellConfig))
+    if (!result.ok) {
       spinner.stop("Failed to clean shell config", 1)
-      errors.push(`Shell config: ${err.message}`)
+      errors.push(`Shell config: ${Reason.of(result.error)}`)
     } else {
       spinner.stop("Cleaned shell config")
     }
   }
 
-  if (method !== "curl" && method !== "unknown") {
-    const cmds: Record<string, string[]> = {
-      npm: ["npm", "uninstall", "-g", "@synsci/openscience"],
-      pnpm: ["pnpm", "uninstall", "-g", "@synsci/openscience"],
-      bun: ["bun", "remove", "-g", "@synsci/openscience"],
-      yarn: ["yarn", "global", "remove", "@synsci/openscience"],
-      brew: ["brew", "uninstall", "openscience"],
-      choco: ["choco", "uninstall", "openscience"],
-      scoop: ["scoop", "uninstall", "openscience"],
+  if (targets.link) {
+    spinner.start("Removing the command-line link...")
+    const result = await Reason.capture(CliShim.remove())
+    if (!result.ok) {
+      spinner.stop("Failed to remove the command-line link", 1)
+      errors.push(`Command-line link: ${Reason.of(result.error)}`)
+    } else {
+      spinner.stop("Removed the command-line link")
     }
+  }
 
-    const cmd = cmds[method]
-    if (cmd) {
-      spinner.start(`Running ${cmd.join(" ")}...`)
-      const result =
-        method === "choco"
-          ? await $`echo Y | choco uninstall openscience -y -r`.quiet().nothrow()
-          : await $`${cmd}`.quiet().nothrow()
-      if (result.exitCode !== 0) {
-        spinner.stop(`Package manager uninstall failed: exit code ${result.exitCode}`, 1)
-        if (
-          method === "choco" &&
-          result.stdout.toString("utf8").includes("not running from an elevated command shell")
-        ) {
-          prompts.log.warn(`You may need to run '${cmd.join(" ")}' from an elevated command shell`)
-        } else {
-          prompts.log.warn(`You may need to run manually: ${cmd.join(" ")}`)
-        }
+  const cmd = packageStep(method)?.command
+  if (cmd) {
+    spinner.start(`Running ${cmd.join(" ")}...`)
+    const result =
+      method === "choco"
+        ? await $`echo Y | choco uninstall openscience -y -r`.quiet().nothrow()
+        : await $`${cmd}`.quiet().nothrow()
+    if (result.exitCode !== 0) {
+      spinner.stop(`Package manager uninstall failed: exit code ${result.exitCode}`, 1)
+      if (method === "choco" && result.stdout.toString("utf8").includes("not running from an elevated command shell")) {
+        prompts.log.warn(`You may need to run '${cmd.join(" ")}' from an elevated command shell`)
       } else {
-        spinner.stop("Package removed")
+        prompts.log.warn(`You may need to run manually: ${cmd.join(" ")}`)
       }
+    } else {
+      spinner.stop("Package removed")
     }
   }
 
@@ -246,14 +286,28 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
   prompts.log.success("Thank you for using OpenScience!")
 }
 
-async function getShellConfigFile(): Promise<string | null> {
-  const shell = path.basename(process.env.SHELL || "bash")
-  const home = os.homedir()
-  const xdgConfig = process.env.XDG_CONFIG_HOME || path.join(home, ".config")
+/**
+ * The startup file that holds the PATH line. The lists have to cover every
+ * file the standalone installer and the desktop app write to, or uninstalling
+ * leaves the line behind: both follow ZDOTDIR for zsh, and both spell fish's
+ * file from the home directory whatever XDG_CONFIG_HOME says.
+ */
+export async function getShellConfigFile(
+  input: { env?: NodeJS.ProcessEnv; home?: string } = {},
+): Promise<string | null> {
+  const env = input.env ?? process.env
+  // The home the command-line link resolves from, so a sandboxed home never
+  // has the real startup files cleaned on its behalf.
+  const home = input.home ?? Global.Path.home
+  const shell = path.basename(env.SHELL || "bash")
+  const xdgConfig = env.XDG_CONFIG_HOME || path.join(home, ".config")
+  const zdot = env.ZDOTDIR || home
 
   const configFiles: Record<string, string[]> = {
-    fish: [path.join(xdgConfig, "fish", "config.fish")],
+    fish: [path.join(xdgConfig, "fish", "config.fish"), path.join(home, ".config", "fish", "config.fish")],
     zsh: [
+      path.join(zdot, ".zshrc"),
+      path.join(zdot, ".zshenv"),
       path.join(home, ".zshrc"),
       path.join(home, ".zshenv"),
       path.join(xdgConfig, "zsh", ".zshrc"),
@@ -290,7 +344,7 @@ async function getShellConfigFile(): Promise<string | null> {
   return null
 }
 
-async function cleanShellConfig(file: string) {
+export async function cleanShellConfig(file: string) {
   const content = await Bun.file(file).text()
   const lines = content.split("\n")
 
@@ -326,7 +380,9 @@ async function cleanShellConfig(file: string) {
     filtered.pop()
   }
 
-  const output = filtered.join("\n") + "\n"
+  // A file that held nothing but the block stays, empty. It is the person's
+  // startup file even when the desktop app created it, and not ours to delete.
+  const output = filtered.length === 0 ? "" : filtered.join("\n") + "\n"
   await Bun.write(file, output)
 }
 

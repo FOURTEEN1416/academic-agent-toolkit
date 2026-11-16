@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/material-figure-set.schema.json",
+  "title": "PaperSpine5 Host-derived material figure set",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "task_id", "material_snapshot_sha256", "primary_manuscript_source_id", "primary_manuscript_relative_path", "primary_manuscript_sha256", "primary_selection_method", "primary_candidates", "fragment_candidates", "main_text_fragment_source_ids", "semantic_resolutions", "figure_sources", "figure_count", "blockers", "status", "external_action_authorized", "profile_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.material-figure-set"},
+    "schema_version": {"const": "1.0"},
+    "task_id": {"type": "string", "minLength": 1},
+    "material_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+    "primary_manuscript_source_id": {"type": ["string", "null"]},
+    "primary_manuscript_relative_path": {"type": ["string", "null"]},
+    "primary_manuscript_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+    "primary_selection_method": {"enum": ["none", "unique_full_main_tex", "unique_main_tex_documentclass", "unique_methods_results_full_document", "unique_full_document"]},
+    "primary_candidates": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/primaryCandidate"}
+    },
+    "fragment_candidates": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/fragmentCandidate"}
+    },
+    "main_text_fragment_source_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "semantic_resolutions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/semanticResolution"}
+    },
+    "figure_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_id", "artifact_id", "relative_path", "sha256", "size_bytes", "include_locators"],
+        "properties": {
+          "source_id": {"type": "string", "minLength": 1},
+          "artifact_id": {"type": "string", "pattern": "^source:"},
+          "relative_path": {"type": "string", "minLength": 1},
+          "sha256": {"$ref": "#/$defs/sha256"},
+          "size_bytes": {"type": "integer", "minimum": 0},
+          "include_locators": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "figure_count": {"type": "integer", "minimum": 0},
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message", "path"],
+        "properties": {
+          "code": {"type": "string", "minLength": 1},
+          "message": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "status": {"enum": ["PASS", "BLOCKED", "NOT_APPLICABLE"]},
+    "external_action_authorized": {"const": false},
+    "profile_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "primaryCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "relative_path", "sha256", "scientific_signals", "selection_status"],
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "relative_path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "scientific_signals": {"type": "array", "uniqueItems": true, "items": {"enum": ["abstract", "methods", "results", "bibliography", "figures"]}},
+        "selection_status": {"enum": ["selected", "rejected"]}
+      }
+    },
+    "fragmentCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "relative_path", "sha256", "detected_role", "section_levels", "resolved_figure_source_ids", "visible_content_sha256", "noncomment_word_count"],
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "relative_path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "detected_role": {"const": "unlinked_scientific_manuscript_fragment"},
+        "section_levels": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["section", "subsection", "subsubsection"]}},
+        "resolved_figure_source_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "visible_content_sha256": {"$ref": "#/$defs/sha256"},
+        "noncomment_word_count": {"type": "integer", "minimum": 50}
+      }
+    },
+    "resolver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind", "attestation_input_id"],
+      "properties": {
+        "actor_id": {"type": "string", "minLength": 1},
+        "actor_kind": {"const": "host_evidence_classifier"},
+        "attestation_input_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "semanticResolutionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "schema_version", "task_id", "material_snapshot_sha256", "source_id", "relative_path", "source_sha256", "requested_role", "basis_codes", "resolver", "external_action_authorized", "request_sha256"],
+      "properties": {
+        "contract": {"const": "paperspine5.material-semantic-resolution-request"},
+        "schema_version": {"const": "1.0"},
+        "task_id": {"type": "string", "minLength": 1},
+        "material_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "source_id": {"type": "string", "minLength": 1},
+        "relative_path": {"type": "string", "minLength": 1},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "requested_role": {"const": "main_text_fragment"},
+        "basis_codes": {"const": ["active_section_structure", "resolved_scientific_figure_dependency", "substantive_scientific_prose"]},
+        "resolver": {"$ref": "#/$defs/resolver"},
+        "external_action_authorized": {"const": false},
+        "request_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "detectedEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["basis_codes", "section_levels", "resolved_figure_source_ids", "visible_content_sha256", "noncomment_word_count"],
+      "properties": {
+        "basis_codes": {"const": ["active_section_structure", "resolved_scientific_figure_dependency", "substantive_scientific_prose"]},
+        "section_levels": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["section", "subsection", "subsubsection"]}},
+        "resolved_figure_source_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "visible_content_sha256": {"$ref": "#/$defs/sha256"},
+        "noncomment_word_count": {"type": "integer", "minimum": 50}
+      }
+    },
+    "semanticResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "schema_version", "task_id", "material_snapshot_sha256", "source_id", "relative_path", "source_sha256", "resolved_role", "request", "detected_evidence", "request_sha256", "external_action_authorized", "resolution_sha256"],
+      "properties": {
+        "contract": {"const": "paperspine5.material-semantic-resolution"},
+        "schema_version": {"const": "1.0"},
+        "task_id": {"type": "string", "minLength": 1},
+        "material_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "source_id": {"type": "string", "minLength": 1},
+        "relative_path": {"type": "string", "minLength": 1},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "resolved_role": {"const": "main_text_fragment"},
+        "request": {"$ref": "#/$defs/semanticResolutionRequest"},
+        "detected_evidence": {"$ref": "#/$defs/detectedEvidence"},
+        "request_sha256": {"$ref": "#/$defs/sha256"},
+        "external_action_authorized": {"const": false},
+        "resolution_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

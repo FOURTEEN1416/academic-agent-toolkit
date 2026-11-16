@@ -8,8 +8,7 @@ import { ProjectTrust } from "../../src/project/trust"
 import { Config } from "../../src/config/config"
 import { Provider } from "../../src/provider/provider"
 import { Auth } from "../../src/auth"
-import { OutboundTelemetry } from "../../src/telemetry/outbound"
-import * as BillingGate from "../../src/session/billing-gate"
+import { UsageLogging } from "../../src/session/usage-logging"
 
 const restores: Array<{ mockRestore(): void }> = []
 
@@ -47,31 +46,34 @@ function generatedModel() {
   } as Provider.Model
 }
 
-function generationTelemetrySpies() {
-  const sessionStarted = spyOn(OutboundTelemetry, "sessionStarted").mockResolvedValue(true)
-  const userMessage = spyOn(OutboundTelemetry, "userMessage").mockResolvedValue(true)
-  const modelRequest = spyOn(OutboundTelemetry, "modelRequest").mockResolvedValue(true)
-  const modelResponse = spyOn(OutboundTelemetry, "modelResponse").mockResolvedValue(true)
-  const modelUsage = spyOn(OutboundTelemetry, "modelUsage").mockResolvedValue(true)
-  const error = spyOn(OutboundTelemetry, "error").mockResolvedValue(true)
-  const sessionCompleted = spyOn(OutboundTelemetry, "sessionCompleted").mockResolvedValue(true)
-  restores.push(sessionStarted, userMessage, modelRequest, modelResponse, modelUsage, error, sessionCompleted)
-  return { sessionStarted, userMessage, modelRequest, modelResponse, modelUsage, error, sessionCompleted }
-}
-
 test("returns default native agents when no config", async () => {
   await using tmp = await tmpdir()
   await Instance.provide({
     directory: tmp.path,
     fn: async () => {
       const agents = await Agent.list()
-      const names = agents.map((a) => a.name)
-      expect(names).toContain("research")
-      expect(names).toContain("plan")
-      expect(names).toContain("task")
-      expect(names).toContain("explore")
-      expect(names).toContain("compaction")
-      expect(names).toContain("title")
+      // The exact built-in list, its modes, and its hidden flags: the workers
+      // are listed in the composer's @ menu, the system agents are not.
+      expect(agents.map((a) => [a.name, a.mode, a.hidden === true])).toEqual([
+        ["research", "primary", false],
+        ["plan", "primary", true],
+        ["explore", "subagent", false],
+        ["ml", "subagent", false],
+        ["biology", "subagent", false],
+        ["physics", "subagent", false],
+        ["chemistry", "subagent", false],
+        ["data", "subagent", false],
+        ["general", "subagent", false],
+        ["compaction", "primary", true],
+        ["title", "primary", true],
+        ["summary", "primary", true],
+        ["reader", "primary", true],
+      ])
+      // No built-in agent carries a model; the user's configuration chooses.
+      for (const agent of agents) expect(agent.model, agent.name).toBeUndefined()
+      for (const name of ["execute", "task", "write", "critique", "physics-critique", "literature-review"]) {
+        expect(await Agent.get(name), name).toBeUndefined()
+      }
     },
   })
 })
@@ -99,9 +101,14 @@ test("domain agents are delegated specialists instead of competing primary modes
       expect((await Agent.get("biology"))?.mode).toBe("subagent")
       expect((await Agent.get("physics"))?.mode).toBe("subagent")
       expect((await Agent.get("ml"))?.mode).toBe("subagent")
-      expect((await Agent.get("biology"))?.hidden).toBe(true)
-      expect((await Agent.get("physics"))?.hidden).toBe(true)
-      expect((await Agent.get("ml"))?.hidden).toBe(true)
+      expect((await Agent.get("biology"))?.hidden).toBe(false)
+      expect((await Agent.get("physics"))?.hidden).toBe(false)
+      expect((await Agent.get("ml"))?.hidden).toBe(false)
+      // A read-only scout asks for a path outside the project instead of
+      // being refused by its wildcard deny.
+      const explore = await Agent.get("explore")
+      const external = explore!.permission.filter((rule) => rule.permission === "external_directory")
+      expect(external.at(-1)?.action).not.toBe("deny")
     },
   })
 })
@@ -116,55 +123,9 @@ test("Research is the only built-in user-facing primary", async () => {
         .map((agent) => agent.name)
       expect(visiblePrimary).toEqual(["research"])
       const research = await Agent.get("research")
-      expect(research?.prompt).toContain("collaborative research agent")
-      expect(evalPerm(research!, "research_contract")).toBe("deny")
+      // Research has no prompt of its own: it takes the model-family header.
+      expect(research?.prompt).toBeUndefined()
       expect((await Agent.get("plan"))?.hidden).toBe(true)
-    },
-  })
-})
-
-test("thin research profile is absent unless the explicit dev flag is enabled", async () => {
-  const previous = process.env.OPENSCIENCE_ENABLE_RESEARCH_AGENT_TEST
-  try {
-    delete process.env.OPENSCIENCE_ENABLE_RESEARCH_AGENT_TEST
-    await using production = await tmpdir()
-    await Instance.provide({
-      directory: production.path,
-      fn: async () => expect(await Agent.get("researchagent-test")).toBeUndefined(),
-    })
-
-    process.env.OPENSCIENCE_ENABLE_RESEARCH_AGENT_TEST = "1"
-    await using laboratory = await tmpdir()
-    await Instance.provide({
-      directory: laboratory.path,
-      fn: async () => {
-        const thin = await Agent.get("researchagent-test")
-        expect(thin).toMatchObject({ name: "researchagent-test", mode: "primary", native: true })
-        expect(thin?.prompt).toContain("collaborative research agent")
-        expect(evalPerm(thin, "research_contract")).toBe("deny")
-      },
-    })
-  } finally {
-    if (previous === undefined) delete process.env.OPENSCIENCE_ENABLE_RESEARCH_AGENT_TEST
-    else process.env.OPENSCIENCE_ENABLE_RESEARCH_AGENT_TEST = previous
-  }
-})
-
-test("built-in delegation uses only Explore and Execute profiles", async () => {
-  await using tmp = await tmpdir()
-  await Instance.provide({
-    directory: tmp.path,
-    fn: async () => {
-      const profiles = (await Promise.all([Agent.get("execute"), Agent.get("explore")])).map((agent) => agent?.name)
-      expect(profiles).toEqual(["execute", "explore"])
-      expect((await Agent.get("execute"))?.hidden).toBe(true)
-      expect((await Agent.get("explore"))?.hidden).toBe(true)
-      expect(evalPerm(await Agent.get("execute"), "edit")).toBe("allow")
-      expect((await Agent.get("explore"))?.steps).toBeUndefined()
-      expect((await Agent.get("execute"))?.steps).toBeUndefined()
-      expect(await Agent.get("review")).toBeUndefined()
-      expect(await Agent.get("reviewer")).toBeUndefined()
-      expect(await Agent.get("artifact-reviewer")).toBeUndefined()
     },
   })
 })
@@ -215,25 +176,10 @@ test("explore agent denies edit and write", async () => {
       expect(explore?.mode).toBe("subagent")
       expect(evalPerm(explore, "edit")).toBe("deny")
       expect(evalPerm(explore, "write")).toBe("deny")
-      expect(evalPerm(explore, "webfetch")).toBe("ask")
+      expect(evalPerm(explore, "webfetch")).toBe("allow")
       expect(evalPerm(explore, "network")).toBe("ask")
       expect(evalPerm(explore, "todoread")).toBe("deny")
       expect(evalPerm(explore, "todowrite")).toBe("deny")
-    },
-  })
-})
-
-test("task agent denies todo tools", async () => {
-  await using tmp = await tmpdir()
-  await Instance.provide({
-    directory: tmp.path,
-    fn: async () => {
-      const task = await Agent.get("task")
-      expect(task).toBeDefined()
-      expect(task?.mode).toBe("subagent")
-      expect(task?.hidden).toBe(true)
-      expect(evalPerm(task, "todoread")).toBe("deny")
-      expect(evalPerm(task, "todowrite")).toBe("deny")
     },
   })
 })
@@ -276,8 +222,7 @@ test("untrusted project agent configuration stays inert", async () => {
       await ProjectTrust.update(Instance.project, { trusted: false })
       expect(await Agent.get("repo-agent")).toBeUndefined()
       const research = await Agent.get("research")
-      expect(research?.prompt).toContain("collaborative research agent")
-      expect(research?.prompt).not.toContain("repository-controlled")
+      expect(research?.prompt).toBeUndefined()
       expect(research?.color).toBe("#d48765")
       expect(evalPerm(research, "bash")).toBe("ask")
       expect(await Agent.defaultAgent()).toBe("research")
@@ -604,7 +549,8 @@ test("fresh Approve mode auto-allows safe sandboxed work and asks at external bo
       expect(evalPerm(research, "edit")).toBe("allow")
       expect(evalPerm(research, "bash")).toBe("allow")
       expect(evalPerm(research, "network")).toBe("ask")
-      expect(evalPerm(research, "websearch")).toBe("ask")
+      expect(evalPerm(research, "webfetch")).toBe("allow")
+      expect(evalPerm(research, "websearch")).toBe("allow")
       expect(evalPerm(research, "mcp")).toBe("ask")
       expect(evalPerm(research, "external_directory")).toBe("ask")
       expect(evalPerm(research, "compute_job")).toBe("ask")
@@ -630,7 +576,9 @@ test("persisted Ask mode overrides built-in subagent convenience allows", async 
         expect(evalPerm(explore, permission)).toBe("ask")
       }
       expect(evalPerm(research, "external_directory")).toBe("ask")
-      expect(evalPerm(explore, "external_directory")).toBe("deny")
+      // The scout asks for outside paths like the lead does, instead of a
+      // flat refusal it cannot explain.
+      expect(evalPerm(explore, "external_directory")).toBe("ask")
     },
   })
 })
@@ -905,23 +853,22 @@ test("defaultAgent throws when all primary visible agents are disabled", async (
   })
 })
 
-test("agent configuration generation emits one canonical ephemeral model trace and disables AI SDK telemetry", async () => {
+test("agent configuration generation disables AI SDK telemetry", async () => {
   await using tmp = await tmpdir()
   await Instance.provide({
     directory: tmp.path,
     fn: async () => {
       const model = generatedModel()
-      const telemetry = generationTelemetrySpies()
       const getModel = spyOn(Provider, "getModel").mockResolvedValue(model)
       const getLanguage = spyOn(Provider, "getLanguage").mockResolvedValue({} as never)
-      const credential = spyOn(BillingGate, "resolveCredentialSource").mockResolvedValue("byok")
       const auth = spyOn(Auth, "get").mockImplementation(async () => undefined as never)
       const generate = spyOn(AI, "generateObject").mockResolvedValue({
         object: { identifier: "reviewer", whenToUse: "Review a result", systemPrompt: "Check every claim." },
         usage: { inputTokens: 20, outputTokens: 10, totalTokens: 30 },
         finishReason: "stop",
+        response: { id: "gen-test" },
       } as never)
-      restores.push(getModel, getLanguage, credential, auth, generate)
+      restores.push(getModel, getLanguage, auth, generate)
 
       const output = await Agent.generate({
         description: "Create a careful reviewer",
@@ -938,67 +885,19 @@ test("agent configuration generation emits one canonical ephemeral model trace a
         experimental_telemetry: { isEnabled: false, recordInputs: false, recordOutputs: false },
         temperature: 0.3,
       })
-      const started = telemetry.sessionStarted.mock.calls[0]?.[0]
-      const user = telemetry.userMessage.mock.calls[0]?.[0]
-      const request = telemetry.modelRequest.mock.calls[0]?.[0]
-      const response = telemetry.modelResponse.mock.calls[0]?.[0]
-      expect(started?.sessionID).toMatch(/^agent-config:/)
-      expect(started?.session).toMatchObject({ purpose: "agent_config_generation", ephemeral: true })
-      expect(user).toMatchObject({
-        sessionID: started?.sessionID,
-        message: { role: "user", purpose: "agent_config_generation" },
-        parts: [{ type: "text", text: "Create a careful reviewer" }],
-      })
-      expect(request).toMatchObject({
-        sessionID: started?.sessionID,
-        messageID: user?.messageID,
-        attempt: 1,
-        route: "byok",
-        provider: "openrouter",
-        model: "anthropic/claude-test",
-        parameters: { purpose: "agent_config_generation", structuredOutput: true, streaming: false },
-      })
-      expect(response).toMatchObject({
-        sessionID: started?.sessionID,
-        messageID: user?.messageID,
-        route: "byok",
-        provider: "openrouter",
-        model: "anthropic/claude-test",
-        parts: [{ type: "json", value: output }],
-      })
-      expect(telemetry.modelUsage).toHaveBeenCalledWith({
-        sessionID: started?.sessionID,
-        messageID: user?.messageID,
-        operationID: "agent-config-generation",
-        attempt: 1,
-        route: "byok",
-        provider: "openrouter",
-        model: "anthropic/claude-test",
-        tokens: { input: 20, output: 10, reasoning: 0, cache: { read: 0, write: 0 } },
-        cost: 0,
-      })
-      expect(telemetry.error).not.toHaveBeenCalled()
-      expect(telemetry.sessionCompleted).toHaveBeenCalledWith({
-        sessionID: started?.sessionID,
-        messageID: user?.messageID,
-        reason: "completed",
-        session: { purpose: "agent_config_generation", source: "cli", ephemeral: true },
-      })
     },
   })
 })
 
-test("OAuth configuration generation traces the streamObject response without provider telemetry", async () => {
+test("OAuth configuration generation streams without provider telemetry", async () => {
   await using tmp = await tmpdir()
   await Instance.provide({
     directory: tmp.path,
     fn: async () => {
       const output = { identifier: "planner", whenToUse: "Plan work", systemPrompt: "Plan carefully." }
       const model = { ...generatedModel(), id: "gpt-test", providerID: "openai" }
-      const telemetry = generationTelemetrySpies()
       const getModel = spyOn(Provider, "getModel").mockResolvedValue(model)
       const getLanguage = spyOn(Provider, "getLanguage").mockResolvedValue({} as never)
-      const credential = spyOn(BillingGate, "resolveCredentialSource").mockResolvedValue("oauth-free")
       const auth = spyOn(Auth, "get").mockResolvedValue({
         type: "oauth",
         refresh: "refresh",
@@ -1010,11 +909,12 @@ test("OAuth configuration generation traces the streamObject response without pr
         object: Promise.resolve(output),
         usage: Promise.resolve({ inputTokens: 20, outputTokens: 10, totalTokens: 30 }),
         finishReason: Promise.resolve("stop"),
+        response: Promise.resolve({ id: "gen-test" }),
         fullStream: (async function* () {
           yield { type: "finish" }
         })(),
       } as never)
-      restores.push(getModel, getLanguage, credential, auth, generate, stream)
+      restores.push(getModel, getLanguage, auth, generate, stream)
 
       expect(
         await Agent.generate({
@@ -1028,70 +928,100 @@ test("OAuth configuration generation traces the streamObject response without pr
       expect(stream.mock.calls[0]?.[0]).toMatchObject({
         experimental_telemetry: { isEnabled: false, recordInputs: false, recordOutputs: false },
       })
-      expect(telemetry.modelRequest.mock.calls[0]?.[0]).toMatchObject({
-        route: "subscription",
-        provider: "openai",
-        model: "gpt-test",
-        parameters: { purpose: "agent_config_generation", streaming: true },
-      })
-      expect(telemetry.modelResponse.mock.calls[0]?.[0]).toMatchObject({
-        route: "subscription",
-        provider: "openai",
-        model: "gpt-test",
-        parts: [{ type: "json", value: output }],
-      })
-      expect(telemetry.modelUsage.mock.calls[0]?.[0]).toMatchObject({
-        route: "subscription",
-        provider: "openai",
-        model: "gpt-test",
-        tokens: { input: 20, output: 10, reasoning: 0, cache: { read: 0, write: 0 } },
-      })
-      expect(telemetry.error).not.toHaveBeenCalled()
     },
   })
 })
 
-test("agent configuration generation records provider errors under the model request span", async () => {
+test("OAuth structured-output failure records usage once", async () => {
   await using tmp = await tmpdir()
   await Instance.provide({
     directory: tmp.path,
     fn: async () => {
-      const model = generatedModel()
-      const telemetry = generationTelemetrySpies()
+      const model = { ...generatedModel(), id: "gpt-test", providerID: "openai" }
       const getModel = spyOn(Provider, "getModel").mockResolvedValue(model)
       const getLanguage = spyOn(Provider, "getLanguage").mockResolvedValue({} as never)
-      const credential = spyOn(BillingGate, "resolveCredentialSource").mockResolvedValue("managed")
-      const auth = spyOn(Auth, "get").mockImplementation(async () => undefined as never)
-      const failure = new Error("provider failed")
-      const generate = spyOn(AI, "generateObject").mockRejectedValue(failure)
-      restores.push(getModel, getLanguage, credential, auth, generate)
+      const auth = spyOn(Auth, "get").mockResolvedValue({
+        type: "oauth",
+        refresh: "refresh",
+        access: "access",
+        expires: Date.now() + 60_000,
+      })
+      const context = spyOn(UsageLogging, "context").mockResolvedValue({} as never)
+      const record = spyOn(UsageLogging, "record").mockResolvedValue(undefined as never)
+      const error = new AI.NoObjectGeneratedError({
+        message: "Invalid structured response",
+        text: "invalid",
+        response: { id: "gen-invalid" } as never,
+        usage: { inputTokens: 20, outputTokens: 10, totalTokens: 30 } as never,
+        finishReason: "stop",
+      })
+      const stream = spyOn(AI, "streamObject").mockReturnValue({
+        get object() {
+          return Promise.reject(error)
+        },
+        fullStream: (async function* () {
+          yield { type: "finish" }
+        })(),
+      } as never)
+      restores.push(getModel, getLanguage, auth, context, record, stream)
 
       await expect(
-        Agent.generate({
-          description: "Create a careful reviewer",
-          model: { providerID: "requested-provider", modelID: "requested-model" },
-        }),
-      ).rejects.toThrow("provider failed")
+        Agent.generate({ description: "Create an agent", model: { providerID: "openai", modelID: "gpt-test" } }),
+      ).rejects.toBe(error)
+      expect(record).toHaveBeenCalledTimes(1)
+    },
+  })
+})
 
-      const request = telemetry.modelRequest.mock.calls[0]?.[0]
-      expect(telemetry.modelResponse).not.toHaveBeenCalled()
-      expect(telemetry.modelUsage).not.toHaveBeenCalled()
-      expect(telemetry.error).toHaveBeenCalledTimes(1)
-      expect(telemetry.error.mock.calls[0]?.[0]).toMatchObject({
-        sessionID: request?.sessionID,
-        messageID: request?.messageID,
-        attempt: 1,
-        parentSpanID: `${request?.messageID}:model:1:request`,
-        route: "managed",
-        provider: "openrouter",
-        model: "anthropic/claude-test",
-        error: failure,
-        context: { purpose: "agent_config_generation", phase: "model_generation" },
-      })
-      expect(telemetry.sessionCompleted.mock.calls[0]?.[0]).toMatchObject({
-        sessionID: request?.sessionID,
-        reason: "error",
-      })
+test("specialists are one template plus their skill categories and domain tools", async () => {
+  await using tmp = await tmpdir()
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const biology = await Agent.get("biology")
+      expect(biology?.skills).toEqual(["biology", "databases"])
+      expect(biology?.unlocks).toContain("query_uniprot")
+      expect(biology?.prompt).toContain("biology specialist")
+      expect(biology?.prompt).toContain("{{DOMAIN_SKILLS}}")
+      expect(evalPerm(biology, "todowrite")).toBe("deny")
+      expect(evalPerm(biology, "task")).toBe("deny")
+      expect(evalPerm(biology, "question")).toBe("deny")
+      expect(evalPerm(biology, "edit")).toBe("allow")
+      const data = await Agent.get("data")
+      expect(data?.skills).toEqual(["data-engineering", "coding", "visualization", "cloud-compute"])
+      expect(data?.unlocks).toEqual(["r"])
+      expect((await Agent.get("summary"))?.prompt).toContain("lab-notebook")
+    },
+  })
+})
+
+test("a configured agent model, variant and skill categories resolve for the child", async () => {
+  await using tmp = await tmpdir({
+    git: true,
+    config: {
+      agent: {
+        biology: { model: "openai/gpt-5.6-sol", variant: "high" },
+        geoscience: {
+          mode: "subagent",
+          description: "Geoscience specialist",
+          skills: ["physics"],
+          permission: { r: "allow" },
+        },
+      },
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    init: trustProject,
+    fn: async () => {
+      const biology = await Agent.get("biology")
+      expect(biology?.model).toEqual({ providerID: "openai", modelID: "gpt-5.6-sol" })
+      expect(biology?.variant).toBe("high")
+      const geoscience = await Agent.get("geoscience")
+      expect(geoscience?.mode).toBe("subagent")
+      expect(geoscience?.skills).toEqual(["physics"])
+      expect(geoscience?.unlocks).toEqual(["r"])
+      expect(geoscience?.model).toBeUndefined()
     },
   })
 })

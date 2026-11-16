@@ -9,6 +9,9 @@ import { ScrapCommand } from "./scrap"
 import { SkillCommand } from "./skill"
 import { SnapshotCommand } from "./snapshot"
 import { AgentCommand } from "./agent"
+import { CapabilityCanaryCommand } from "./capability-canary"
+import { AuditCommand } from "./audit"
+import { LegacyImportCommand } from "./legacy-import"
 
 export const DebugCommand = cmd({
   command: "debug",
@@ -23,6 +26,9 @@ export const DebugCommand = cmd({
       .command(SkillCommand)
       .command(SnapshotCommand)
       .command(AgentCommand)
+      .command(CapabilityCanaryCommand)
+      .command(AuditCommand)
+      .command(LegacyImportCommand)
       .command(PathsCommand)
       .command(
         cmd({
@@ -42,9 +48,10 @@ export const DebugCommand = cmd({
 const PathsCommand = cmd({
   command: "paths",
   describe: "show global paths (data, config, cache, state)",
-  handler() {
+  async handler() {
+    // dataTarget resolves the managed data-root link; print the path, not the promise.
     for (const [key, value] of Object.entries(Global.Path)) {
-      console.log(key.padEnd(10), value)
+      console.log(key.padEnd(10), await value)
     }
   },
 })

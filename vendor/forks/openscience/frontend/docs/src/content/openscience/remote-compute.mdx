@@ -1,0 +1,94 @@
+---
+title: "Remote compute and GPU accounts"
+description: "Connect your own Modal account or SSH host and understand other compute-account connections."
+---
+
+Open **Customize → Compute** to prepare resources for work that needs more time, memory, or GPUs than your local machine provides. Each connected service keeps its own availability, limits, and billing terms.
+
+## Choose the connection type
+
+| Connection | What it provides |
+| --- | --- |
+| Modal | Supported job planning, execution, status, and output delivery after setup. |
+| Plain SSH | Jobs on a host you can access. |
+| SSH with Slurm or PBS | Jobs using the selected scheduler on a configured host. |
+| Other GPU provider credentials | Supported account, inventory, or status operations where available; storing a credential does not add a general job launcher. |
+| Cloud credentials | Account access for compatible reviewed workflows; setup and supported operations still need verification. |
+
+Use [Compute jobs](/openscience/jobs) for the lifecycle after connection.
+
+## Open an existing project through SSH
+
+For interactive access to the server's existing files and environment, open a **remote workspace** from the desktop server selector. Compute host registration above remains the job-dispatch workflow.
+
+1. Install a current OpenScience runtime on the trusted remote host and start it on loopback:
+   ```bash
+   openscience serve --port 4096
+   ```
+2. Keep an SSH tunnel running on your computer:
+   ```bash
+   ssh -N -L 127.0.0.1:14096:127.0.0.1:4096 lab-host
+   ```
+3. In the local desktop window, open the server selector, add `http://127.0.0.1:14096`, and choose **Open workspace**. Review the exact address in the desktop confirmation.
+4. A separate window opens the remote runtime's own workspace. Choose an existing project, or create a project and connect an absolute source-folder path **on the remote host** using the in-app folder picker. Files are used in place; no project copy is made on your laptop.
+5. Choose that source folder as the working folder. File edits, agent tools, and user terminals run on the remote runtime. Its installed environments, credentials, permissions, and sandbox apply. Large datasets stay on that host.
+
+Keep the tunnel and remote runtime running for the window's lifetime. If the tunnel disconnects, restore it and reload the workspace page. The window title includes the server address; the desktop Window menu returns you to your local workspace.
+
+This workflow checks `/global/health` before opening. Redirects, insecure non-loopback HTTP addresses, URLs containing credentials, and unhealthy runtimes are refused. A runtime requiring separate HTTP authentication is not yet supported by this desktop opener; use its authenticated browser workspace. The remote window has isolated browser storage and no local desktop bridge. The local workspace's CSP remains unchanged.
+
+## Connect Modal
+
+1. Open the Modal section in Compute.
+2. Use the available profile configuration action or enter your Modal token ID and secret.
+3. Enable the connection.
+4. Test the connection and read the result.
+5. Review the default app, image, timeout, and concurrent-job settings before dispatch.
+
+Defaults can be changed for future work. A saved token alone is not the same as an enabled and tested connection. Begin with a small environment check and confirm that its output returns to the project.
+
+What Modal jobs can ask for: a GPU by Modal's type name (`T4`, `L4`, `A10`, `L40S`, `A100`, `A100-80GB`, `H100`, `H200`, `B200`; `H100:2` for two, up to eight per container, four for A10), up to 24 hours of wall time (the default is 60 minutes), and outbound network only when you enable it; it is off by default. Modal may serve an `A100` request on an 80 GB card and an `H100` request on an H200; `H100!` opts out of the upgrade. OpenScience talks to Modal through its JavaScript SDK and never runs `modal` CLI commands or Python apps of its own.
+
+## Add an SSH host
+
+Supply the fields shown in **Remote hosts**:
+
+| Field | What to enter |
+| --- | --- |
+| Name | A recognizable label such as Lab cluster. |
+| Hostname | The machine's hostname. |
+| User and port | The account and SSH port, when different from defaults. |
+| Identity file | An optional existing SSH identity path. |
+| ProxyJump | An optional supported jump-host address. |
+| Scheduler | Plain SSH, Slurm, or PBS. |
+| Remote working directory | The location where the host should run the work. |
+| Concurrent jobs | The allowed parallel job count for this connection. |
+| Host notes | Modules, partitions, paths, quotas, and local usage rules. |
+
+You can import supported entries from your existing SSH configuration. Test the connection before use and review the host identity shown by the app. Authentication depends on the configured identity and active SSH setup.
+
+## Describe a cluster accurately
+
+```text
+Use the Lab cluster connection. Read its host notes, check the scheduler
+and required modules, and propose a short CPU pilot with explicit memory,
+time, input staging, and output paths. Do not submit until I approve.
+```
+
+A reachable host can still have unavailable partitions, exhausted quota, or a missing executable. Check those prerequisites on the target, not just on your laptop.
+
+## Other GPU provider accounts
+
+The Compute panel includes connections for TensorPool, Lambda, Prime Intellect, Vast.ai, and RunPod. Supported reviewed operations can inspect account information, resources, jobs, status, or availability, depending on the provider and installed integration.
+
+These connections do not imply automatic paid instance creation or arbitrary provider commands. If the panel reports credential-only access or a failed connection test, resolve that state before relying on it for a task.
+
+## Large inputs
+
+Modal jobs stage their inputs from the working directory. Everything a glob or the default sweep picks up must fit 100 MiB together, so an approval never covers bytes that were not listed. A file the request names by its exact path, such as a model checkpoint or a dataset, may be up to 2 GiB (4 GiB for a job in all); the approval card lists it with its size and hash. Name large files in `uploads` rather than compressing them to fit.
+
+## Keep costs and outputs explicit
+
+Ask for a resource estimate, maximum duration, and a pilot before a large run. Use the provider's account limits in addition to instructions in the conversation. After completion, retrieve and inspect outputs, then release resources that are no longer needed.
+
+Your Ace model selection and remote compute connection are separate choices. Switching chat models does not stop a remote job or cancel its resource charges.

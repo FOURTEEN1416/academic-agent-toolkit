@@ -4,6 +4,13 @@ ARIS audits emit machine-readable verdicts. The `assurance` axis decides whether
 
 This contract is referenced by `paper-writing`, `paper-claim-audit`, `citation-audit`, `proof-checker`, and the external verifier (canonical name `verify_paper_audits.sh`; callers resolve the actual path via `integration-contract.md` §2).
 
+Reviewer selection and actual-model evidence follow
+[reviewer-backends.md](reviewer-backends.md) and
+[reviewer-routing.md](reviewer-routing.md). The Codex host default remains a
+fresh native Codex reviewer with same-family/provisional assurance. Selecting
+Antigravity, Grok or local Claude Code changes the transport, not the audit
+obligations or acceptance threshold.
+
 ## Why a separate axis from `effort`
 
 `effort` controls depth and cost. `assurance` controls audit strictness.
@@ -76,9 +83,9 @@ Every mandatory audit must write a JSON artifact, and may also write a Markdown 
   },
   "trace_path": ".aris/traces/paper-claim-audit/2026-04-21_run01/",
   "agent_id": "019dae73-fc12-4ab8-...",
-  "executor_model": "codex-gpt-5.6-sol",
+  "executor_model": "codex-gpt-6-astra",
   "executor_family": "openai",
-  "reviewer_model": "gpt-5.6-sol",
+  "reviewer_model": "gpt-6-astra",
   "reviewer_family": "openai",
   "review_independence": "same-family",
   "acceptance_status": "provisional",
@@ -97,17 +104,36 @@ Field rules:
 - Files outside the paper directory may use absolute paths.
 - `trace_path` points to the saved reviewer trace.
 - `agent_id` is the Codex reviewer id when a reviewer agent was used;
-  `thread_id` remains accepted for MCP overlays. At least one is required.
-- `reviewer_model` and `reviewer_reasoning` document the reviewer route.
+  `thread_id` identifies a selected MCP reviewer session. At least one is required.
+- `reviewer_model` records the actual returned model, not the requested alias or
+  bridge name; `reviewer_reasoning` records observed reasoning effort, or null
+  when it is unavailable. The reasoning key remains required even when null;
+  this does not relax model-identity checks. Preserve the evidence source in the trace. Claude
+  Code may run DeepSeek and Antigravity may run Claude, so derive executor and
+  reviewer families from actual model identities.
 - `review_independence` is `same-family`, `cross-family`, or `deterministic`.
   `deterministic` is valid ONLY for what a process can actually decide
   (compilation, schema validity, hash freshness, test suites) — the audit
   aggregator REJECTS a deterministic label on the four semantic paper audits
   (proof / claims / citations / attack); only a cross-family model review can
   accept those.
-- `acceptance_status` is `provisional` for the base Codex route and `accepted`
-  for a cross-family overlay or deterministic verifier.
+- `acceptance_status` is `provisional` for the same-family Codex default. For
+  selectable MCP routes, a positive result can be `accepted` only after successful
+  completion within the required scope and with known different actual model
+  families. A same-family positive review can stop a drive loop provisionally.
+  Selection of a provider or installation of a legacy overlay never grants
+  acceptance by itself. Missing identity, errors and incomplete or negative new
+  route outcomes remain provisional; keep their substantive blocking verdicts.
+  A deterministic verifier can record accepted only for what it actually checks,
+  subject to the semantic-audit restriction above.
 - `generated_at` is UTC ISO-8601.
+
+For cross-family `PASS`/`WARN` artifacts, `acceptance_status` must be
+`accepted`; same-family artifacts always require `provisional`. Cross-family
+`FAIL`, `ERROR` and `BLOCKED` artifacts may record `provisional` for new routes,
+or retain the historical `accepted` classification of review evidence. Both
+forms are schema-readable and still block submission by their substantive
+verdict. Unknown model identity remains blocking regardless of that label.
 
 ## Verifier Contract
 
@@ -121,6 +147,8 @@ Field rules:
 6. Exit 0 only when all mandatory audits are green.
 
 The report emits `overall_assurance: blocked | provisional | accepted`.
+A per-call trace classification is evidence for the audit, not a replacement for
+this aggregate verifier or the audit's substantive verdict.
 Provisional remains exit 0 so the Final Report can be generated, but the report
 must say `submission-ready: provisional`, never `yes`.
 

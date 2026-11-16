@@ -7,25 +7,34 @@ This file is the canonical stage playbook for the paper-spine orchestrator.
 Substantively rewrite an existing manuscript from confirmed motivation,
 research outputs, and a compact evidence-aware writing plan.
 
-## Prerequisites
+## Inputs
 
-- `paper_spine_config.json`
-- User draft from `draft_path`
-- Research outputs: `research_dossier.md`, `exemplar_learning_dossier.md`,
-  `style_profile.md`, `sota_gap_map.md`
-- `citation_support_bank.md`
-- `confirmed_contribution.md` (user-confirmed and passing `contribution_check.py`)
-- `confirmed_motivation.md`
+Read the current draft, saved configuration and contribution/motivation choices,
+actual source results, relevant literature and prior feedback. Identify which
+reader problem needs repair and which scientific content remains valid.
 
-If any prerequisite is missing, return to the owning stage.
+Reuse the same task's valid configuration, choices, source evidence and learning notes. If a substantive input is missing, resolve that specific gap; the absence of a historical filename alone does not send the current host back to an old stage.
 
-## Humanize Tier
+For full-paper reconstruction or a reference-guided rewrite, apply
+[reference-guided-writing.md](reference-guided-writing.md). Establish the study's
+question and contribution hierarchy before exemplar selection; learn complementary
+moves from the existing learning pool, preserve an independent structure, and
+use fresh-context writing followed by a distinct fresh reviewer when available.
+Existing valid prose may remain. A local edit uses only affected claims/passages.
 
-If `paper_spine_config.json` has `humanize_tier` set to `light`, `medium`, or
-`heavy`, read `references/humanize.md` and apply tier-specific constraints
-during all prose generation.
+## Authorial Voice Restoration
 
-## Required Outputs
+Apply the saved author-expression preference through
+assertive-scientific-writing.md. Preserve the prior draft, retain already-clear
+text, and compare revised meaning, terminology, evidence and claim strength.
+Use independent review for actual concerns; ordinary authorized editing does
+not require another author confirmation or a detector/rhythm target.
+
+## Historical helper inventory
+
+Use these files only when an invoked helper or an explicit trace request needs
+them. Existing notes may carry the reasoning in the current host; the requested
+revised manuscript and its usable outputs are the delivery.
 
 - `original_logic_map.md` - map the existing manuscript in order
 - `evidence_bank.md`
@@ -36,6 +45,8 @@ during all prose generation.
 - `rewrite_matrix.md`
 - `logic_transfer_audit.md`
 - Revised manuscript
+- `author_voice_profile.json`, `author_voice_revision.json`,
+  `author_voice_receipt.json`, and `author_voice_report.md` when enabled
 
 ## Planning Depth
 
@@ -60,14 +71,15 @@ When strict mode applies, read `references/writing-rationale-matrix.md` and appl
 full depth rules. Every non-trivial row must identify a contribution promise
 and include concrete anchors from the aligned motivation, SOTA/example pattern,
 target scene, evidence/citation, and the planned text move. For evidence-bearing
-scenes, create and pass `results_validation.md` before drafting Results prose.
+scenes, apply results-validation.md to the current results and claim boundaries
+before dependent prose; a separate table/checker is not a drafting gate.
 After drafting, every `Final Text Check` value must
 start with `PASS` or `FAIL`; do not write vague notes such as "done" or only a
 section location.
 
 ## Rewrite Rules
 
-- Rewrite from the matrix, not by appending to old paragraphs.
+- Rewrite from the applicable evidence-aware plan. Use matrix rows when requested or useful; preserve valid passages and make the changes needed by the actual problem rather than merely appending generic prose.
 - Preserve LaTeX commands, labels, citations, equations, figures, tables.
 - Use `output_language` from config.
 - Select citations sentence by sentence from `citation_support_bank.md`.
@@ -84,15 +96,12 @@ move-guided section rewrite, structural-coherence pass, and a numerical /
 cross-section motivation audit — apply the staged method in
 `references/round1-literature-revision.md`.
 
-## Pre-LaTeX Gate
+## Review the revised paper
 
-```bash
-python scripts/structured_review.py paper_rewriting_output --markdown --write
-python scripts/integrity_audit.py paper_rewriting_output --markdown --write
-```
-
-Balanced mode performs one integrated, free-form editor synthesis and proceeds
-after truth/claim-relevant defects are fixed and the manuscript has been revised
-to complete its reader-facing arc. Strict mode launches three
-independent reviewers, validates their outputs, synthesizes
-`reviewer_audit.md`, and passes `reviewer_audit_check.py` before LaTeX.
+Use review-policy.md for an independent, located assessment of actual prose,
+evidence and rendered outputs. Render when needed for that assessment; a
+pre-LaTeX approval chain cannot inspect pagination or Word fidelity. Revise
+affected passages and outputs in the same task, reusing valid unaffected work.
+Compare the final distinct cited references with citation.md and rebuild portable
+packages with submission.md. Report scientific, editorial, format and submission
+limitations separately.

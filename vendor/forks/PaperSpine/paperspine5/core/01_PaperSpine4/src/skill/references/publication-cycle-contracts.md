@@ -52,6 +52,26 @@ artifact's `schema_version`.
     "results_or_analysis": {"preferred_moves": ["..."], "evidence_expectations": ["..."], "avoid": ["..."], "source_ids": ["recent-corpus"]},
     "discussion_and_conclusion": {"preferred_moves": ["..."], "evidence_expectations": ["..."], "avoid": ["..."], "source_ids": ["recent-corpus"]}
   },
+  "compliance": {
+    "coverage": [
+      {"area": "title", "status": "known", "source_ids": ["official-guide"], "source_locator": "Title limits", "note": "Official maximum applies."},
+      {"area": "abstract", "status": "known", "source_ids": ["official-guide"], "source_locator": "Abstract", "note": "Official maximum applies."},
+      {"area": "body", "status": "known", "source_ids": ["official-guide"], "source_locator": "Article length", "note": "Official maximum applies."},
+      {"area": "figures", "status": "not_applicable", "source_ids": ["official-guide"], "source_locator": "Figures", "note": "No separate count limit is stated for this article type."},
+      {"area": "tables", "status": "not_applicable", "source_ids": ["official-guide"], "source_locator": "Tables", "note": "No separate count limit is stated for this article type."},
+      {"area": "references", "status": "not_applicable", "source_ids": ["official-guide"], "source_locator": "References", "note": "No separate count limit is stated for this article type."},
+      {"area": "attachments", "status": "not_applicable", "source_ids": ["official-guide"], "source_locator": "Submission files", "note": "No aggregate attachment-count limit is stated."},
+      {"area": "required_sections", "status": "known", "source_ids": ["official-guide"], "source_locator": "Article structure", "note": "Named sections are required."},
+      {"area": "required_materials", "status": "known", "source_ids": ["official-guide"], "source_locator": "Submission files", "note": "Named files are required."}
+    ],
+    "rules": [
+      {"id": "title-words-max", "area": "title", "verification": "machine_verifiable", "metric": "word_count", "scope": "title", "operator": "max", "limit": 20, "unit": "words", "source_ids": ["official-guide"], "source_locator": "Title limits", "remediation": "Shorten the title while preserving the scientific identity."},
+      {"id": "abstract-words-max", "area": "abstract", "verification": "machine_verifiable", "metric": "word_count", "scope": "abstract", "operator": "max", "limit": 250, "unit": "words", "source_ids": ["official-guide"], "source_locator": "Abstract", "remediation": "Compress the abstract without dropping supported findings."},
+      {"id": "body-words-max", "area": "body", "verification": "machine_verifiable", "metric": "word_count", "scope": "body", "operator": "max", "limit": 8000, "unit": "words", "source_ids": ["official-guide"], "source_locator": "Article length", "remediation": "Move secondary detail to an allowed supplement."},
+      {"id": "required-sections", "area": "required_sections", "verification": "machine_verifiable", "metric": "required_sections", "operator": "required", "limit": ["Introduction", "Methods", "Results", "Discussion"], "unit": "sections", "source_ids": ["official-guide"], "source_locator": "Article structure", "remediation": "Add the missing required section with supported content."},
+      {"id": "required-files", "area": "required_materials", "verification": "machine_verifiable", "metric": "required_material", "operator": "required", "limit": ["main-manuscript"], "unit": "materials", "source_ids": ["official-guide"], "source_locator": "Submission files", "remediation": "Provide and validate every required file."}
+    ]
+  },
   "package_requirements": [
     {
       "id": "main-manuscript",
@@ -81,6 +101,13 @@ artifact's `schema_version`.
 `reuse_policy` is `reuse_if_identical`, `revalidate`, `regenerate`, or
 `author_supply`.
 
+Every profile must carry exactly one coverage record for `title`, `abstract`,
+`body`, `figures`, `tables`, `references`, `attachments`,
+`required_sections`, and `required_materials`. Use `pending` rather than
+guessing; `profile-check` blocks pending/missing coverage. Non-advisory rules
+must cite an official source. See
+`references/contracts/publication-target-profile.schema.json`.
+
 ## `submission_package_plan.json`
 
 ```json
@@ -89,6 +116,11 @@ artifact's `schema_version`.
   "project_root": "../../..",
   "target_name": "Exact journal name",
   "target_profile_sha256": "64-hex profile hash",
+  "compliance_inputs": {
+    "manuscript_path": "final_paper/main.tex",
+    "rendered_pdf_path": "final_paper/paper.pdf",
+    "bibliography_paths": ["final_paper/references.bib"]
+  },
   "author_confirmations": [
     {"id": "target_selected", "status": "confirmed"},
     {"id": "author_identity_and_order", "status": "confirmed"},
@@ -113,7 +145,10 @@ artifact's `schema_version`.
 
 Item status is `ready`, `needs_author`, or `not_applicable`. The assembler
 accepts only files, so a LaTeX project must first become a validated `.zip` or
-other target-accepted source archive.
+other target-accepted source archive. `compliance_inputs.manuscript_path` is the
+current project-local `.tex`, `.md`, or `.txt` authority used for writing-stage
+and final deterministic rule checks; it may differ from an uploaded PDF/Word
+artifact only when validation receipts prove the rendering is synchronized.
 
 ## `review_round.json`
 

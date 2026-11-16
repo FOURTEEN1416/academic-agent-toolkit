@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/material-source-ledger.schema.json",
+  "title": "PaperSpine5 Material Source Ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "task_id", "revision_id", "product_build_id", "runner_version", "generated_at", "grants", "entries", "source_count", "total_size_bytes", "snapshot_sha256", "scan_issues", "privacy"],
+  "properties": {
+    "contract": {"const": "paperspine5.material-source-ledger"},
+    "schema_version": {"const": "1.0"},
+    "task_id": {"type": "string", "minLength": 1},
+    "revision_id": {"type": "string", "pattern": "^[0-9]+$"},
+    "product_build_id": {"type": "string", "minLength": 1},
+    "runner_version": {"enum": ["0.1.0", "0.2.0"]},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "grants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["grant_id", "root", "read_only", "snapshot_sha256"],
+        "properties": {
+          "grant_id": {"type": "string", "minLength": 1},
+          "root": {"type": "string", "minLength": 1},
+          "read_only": {"const": true},
+          "snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_id", "grant_id", "relative_path", "object_path", "sha256", "size_bytes", "media_type", "source_mtime_ns"],
+        "properties": {
+          "source_id": {"type": "string", "minLength": 1},
+          "grant_id": {"type": "string", "minLength": 1},
+          "relative_path": {"type": "string", "minLength": 1},
+          "object_path": {"type": "string", "pattern": "^runner/materials/objects/"},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "size_bytes": {"type": "integer", "minimum": 0},
+          "media_type": {"type": "string", "minLength": 1},
+          "source_mtime_ns": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "source_count": {"type": "integer", "minimum": 0},
+    "total_size_bytes": {"type": "integer", "minimum": 0},
+    "snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scan_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "severity", "details"],
+        "properties": {
+          "code": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"},
+          "severity": {"enum": ["blocker", "warning"]},
+          "details": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["materials_read_only", "copied_to_task_run_root", "external_transfer_authorized"],
+      "properties": {
+        "materials_read_only": {"const": true},
+        "copied_to_task_run_root": {"const": true},
+        "external_transfer_authorized": {"const": false}
+      }
+    }
+  }
+}

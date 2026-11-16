@@ -2,10 +2,12 @@ import { Hono } from "hono"
 import { describeRoute, validator } from "hono-openapi"
 import { resolver } from "hono-openapi"
 import { Instance } from "../../project/instance"
+import { SessionFilesystem } from "../../session/filesystem"
 import { Project } from "../../project/project"
+import { ManagedProject } from "../../project/managed"
 import z from "zod"
 import { errors } from "../error"
-import { lazy } from "../../util/lazy"
+import { lazy } from "@synsci/util/lazy"
 import { ProjectTrust } from "../../project/trust"
 import { ExecutionAuthority } from "../../project/execution"
 import { ProjectAccess } from "../../project/access"
@@ -19,30 +21,36 @@ async function current(projectID: string) {
   })
 }
 
-export const ProjectRoutes = lazy(() =>
-  new Hono()
-    .get(
-      "/",
-      describeRoute({
-        summary: "List all projects",
-        description: "Get a list of projects that have been opened with OpenScience.",
-        operationId: "project.list",
-        responses: {
-          200: {
-            description: "List of projects",
-            content: {
-              "application/json": {
-                schema: resolver(Project.Info.array()),
-              },
+export const ProjectListRoutes = lazy(() =>
+  new Hono().get(
+    "/",
+    describeRoute({
+      summary: "List OpenScience projects",
+      description: "Get the app-created OpenScience projects owned by this server.",
+      operationId: "project.list",
+      responses: {
+        200: {
+          description: "List of projects",
+          content: {
+            "application/json": {
+              schema: resolver(Project.Info.array()),
             },
           },
         },
-      }),
-      async (c) => {
-        const projects = await Project.list()
-        return c.json(projects)
       },
-    )
+    }),
+    // Retain the existing SDK call shape. Library discovery is global, so this
+    // legacy query is accepted but must never resolve or register a directory.
+    validator("query", z.object({ directory: z.string().optional().meta({ deprecated: true }) })),
+    async (c) => {
+      const projects = await ManagedProject.list()
+      return c.json(projects)
+    },
+  ),
+)
+
+export const ProjectRoutes = lazy(() =>
+  new Hono()
     .get(
       "/current",
       describeRoute({
@@ -61,8 +69,90 @@ export const ProjectRoutes = lazy(() =>
         },
       }),
       async (c) => {
-        return c.json(Instance.project)
+        return c.json(await Project.get(Instance.project.id))
       },
+    )
+    .get(
+      "/current/filesystem",
+      describeRoute({
+        summary: "Inspect project folders before or during a conversation",
+        operationId: "project.filesystem.list",
+        responses: {
+          200: {
+            description: "Project folder access",
+            content: { "application/json": { schema: resolver(SessionFilesystem.ProjectSnapshot) } },
+          },
+        },
+      }),
+      async (c) => {
+        const snapshot = await SessionFilesystem.projectSnapshot()
+        void SessionFilesystem.watchProject(snapshot).catch(() => {})
+        return c.json(snapshot)
+      },
+    )
+    .post(
+      "/current/filesystem",
+      describeRoute({
+        summary: "Connect a project folder or replace its access level",
+        operationId: "project.filesystem.connect",
+        responses: {
+          200: {
+            description: "Connected folder",
+            content: { "application/json": { schema: resolver(SessionFilesystem.Grant) } },
+          },
+          ...errors(400),
+        },
+      }),
+      validator("json", z.object({ path: z.string().trim().min(1), access: SessionFilesystem.Access }).strict()),
+      async (c) => c.json(await SessionFilesystem.connectProject(c.req.valid("json"))),
+    )
+    .delete(
+      "/current/filesystem/:grantID",
+      describeRoute({
+        summary: "Disconnect a project folder without deleting files",
+        operationId: "project.filesystem.revoke",
+        responses: {
+          200: {
+            description: "Revoked folder access",
+            content: { "application/json": { schema: resolver(SessionFilesystem.Grant) } },
+          },
+          ...errors(404),
+        },
+      }),
+      validator("param", z.object({ grantID: z.string().startsWith("fsg_") })),
+      async (c) => c.json(await SessionFilesystem.revokeProject(c.req.valid("param").grantID)),
+    )
+    .put(
+      "/current/working-root",
+      describeRoute({
+        summary: "Choose the default working folder for this project",
+        operationId: "project.filesystem.workingRoot",
+        responses: {
+          200: {
+            description: "Updated project folders",
+            content: { "application/json": { schema: resolver(SessionFilesystem.ProjectSnapshot) } },
+          },
+          ...errors(400),
+        },
+      }),
+      validator("json", z.object({ workingRoot: SessionFilesystem.WorkingRoot.nullable() }).strict()),
+      async (c) => c.json(await SessionFilesystem.setProjectWorkingRoot(c.req.valid("json").workingRoot)),
+    )
+    .get(
+      "/current/working-roots",
+      describeRoute({
+        summary: "List the project's connected read/write folders",
+        description:
+          "The folders a new session can use as its working directory, newest first. Empty when the project has no connected folder, in which case sessions work in scratch.",
+        operationId: "project.workingRoots",
+        responses: {
+          200: {
+            description: "Connected read/write folder grants",
+            content: { "application/json": { schema: resolver(SessionFilesystem.Grant.array()) } },
+          },
+        },
+      }),
+      async (c) => c.json(await SessionFilesystem.projectWorkingRoots()),
     )
     .get(
       "/:projectID/trust",

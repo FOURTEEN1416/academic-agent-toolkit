@@ -35,7 +35,7 @@ describe("createScrollPersistence", () => {
     restored.dispose()
   })
 
-  test.skip("debounces persisted scroll writes", async () => {
+  test("debounces persisted scroll writes", async () => {
     const key = "layout-scroll.test"
     const data = new Map<string, string>()
     const writes: string[] = []
@@ -58,7 +58,10 @@ describe("createScrollPersistence", () => {
           sessionView: {} as Record<string, { scroll: Record<string, { x: number; y: number }> }>,
         })
 
-        const [store, setStore] = makePersisted([raw, setRaw], { name: key, storage })
+        const [store, setStore] = makePersisted<typeof raw, [typeof raw, typeof setRaw]>([raw, setRaw], {
+          name: key,
+          storage,
+        })
 
         const scroll = createScrollPersistence({
           debounceMs: 30,

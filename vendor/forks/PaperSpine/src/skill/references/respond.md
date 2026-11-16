@@ -1,77 +1,83 @@
-# Review Response Workflow
+# Review, Revision, and Rebuttal Cycle
 
-Use this stage when the user has reviewer comments and needs a revision
-response package.  Do **not** create a separate skill — this is routed from
-the main `paper-spine` orchestrator.
+Use this mode for editorial decisions, reviewer comments, minor/major revision,
+reject-and-resubmit, or follow-up review rounds. Read `publication-cycle.md`
+and reuse/refresh the current target profile.
 
-## Output Directory
+## Output layout
 
+```text
+paper_rewriting_output/publication_cycle/revisions/<round-id>/
+├── review_round.json
+├── rebuttal_check.md
+├── reviewer_comments_extracted.md
+├── response_matrix.md
+├── response_letter.md
+├── revision_change_log.md
+└── review_round.snapshot.json
 ```
-paper_rewriting_output/review_response/
-```
 
-## Inputs
+Target-required revised/marked manuscripts, new figures/tables, supplements,
+or forms then enter a new `submission_package_plan.json` and READY bundle.
 
-- Reviewer comments file or user-pasted text
-- Original manuscript: `final_paper/main.tex`
-- Supporting artifacts: `writing_rationale_matrix.md`, `evidence_bank.md`,
-  `claim_register.md` (read when available)
+## Source and atomic-comment contract
 
-## Comment Extraction
+1. Preserve the editor/reviewer source files and SHA-256.
+2. Classify the decision as `minor_revision`, `major_revision`, or
+   `reject_and_resubmit`.
+3. Split every editor/reviewer passage into atomic issues. Use `E.C1`, `R1.C1`,
+   etc.; use child IDs such as `R1.C1.1` when one original bullet contains
+   independent asks. Preserve each atomic quote verbatim and hash it.
+4. Show the atomic list to the author when segmentation or intent is ambiguous.
+   No issue may disappear inside a summary.
 
-If reviewer comments are not already numbered, extract and assign IDs:
+For every issue record:
 
-- `R1.C1`, `R1.C2`, `R2.C1`, etc.  (`R` = Reviewer, `C` = Comment)
-- Present the extracted list to the user for confirmation before proceeding.
+- issue type and response strategy (`accept`, `clarify`, `defend`,
+  `experiment`, `partial`, `cannot_complete`);
+- confirmed author position and constraints;
+- verified evidence, including new results/analysis when claimed;
+- locatable manuscript/figure/table changes and their verification status;
+- final reviewer-facing response.
 
-## Required Outputs
+Use an outline-first response: acknowledge only when natural, answer the issue
+directly, give evidence or the honest constraint, then point to the exact
+revision. Do not invent experiments, data, citations, author promises, or line
+numbers. A respectful disagreement is better than a fabricated concession.
 
-### 1. `reviewer_comments_extracted.md`
+## Minor versus major revision
 
-Numbered list of every reviewer comment with stable Comment IDs.
+- **Minor revision:** revalidate every PaperSpine readiness dimension and mark
+  an actually unaffected dimension `not_affected`. Changed artifacts still need
+  real receipts.
+- **Major revision / reject-and-resubmit:** assess the actual effects on scientific identity, Results, figures, citations, metadata and portable files. Recheck changed inputs and all affected conclusions, including integrated editorial quality, while reusing still-valid evidence for unchanged work. A decision label alone does not invalidate every prior check.
 
-### 2. `response_matrix.md`
+New or changed experiments must return to the evidence ledger, Results
+validation, figure story/body contract, citations, and final renders. A response
+letter cannot make an unverified experiment real.
 
-| Comment ID | Reviewer | Original Comment | Issue Type | Required Action | Manuscript Change | Evidence / Source | Response Draft | Status |
-|---|---|---|---|---|---|---|---|---|
+## Multi-round chain
 
-- **Comment ID**: `R1.C1`, etc.
-- **Issue Type**: `major` / `minor` / `clarification` / `format`
-- **Status**: `draft` / `final` / `needs-author`
+`round_number > 1` must bind the previous `review_round.json` path and SHA-256.
+Add follow-up comments as new atomic IDs while preserving earlier rounds; do not
+rewrite history to make the discussion look cleaner.
 
-### 3. `response_letter.md`
-
-Point-by-point response letter addressed to the editor/reviewers.  Each
-comment ID must appear.  Polite, specific, and locatable in the manuscript.
-
-### 4. `revision_change_log.md`
-
-Summary of every revision made, with manuscript line/section references.
-
-### 5. Revised manuscript
-
-Either `revised_manuscript.md` or a note that changes have been applied to
-`final_paper/main.tex`.
-
-## Rules
-
-- Every reviewer comment must receive an individual response.  No omissions.
-- Responses must be polite, specific, and traceable to a manuscript change.
-- Do **not** fabricate new experiments, data, statistics, author info, or
-  reviewer comments.
-- When user data is needed, use explicit placeholders:
-  `[NEEDS USER DATA: <description>]`
-  `[AUTHOR CONFIRMATION REQUIRED: <description>]`
-- If a comment cannot be adopted, explain why and offer an alternative.
-- All changes must be traceable to the original manuscript, `evidence_bank`,
-  `claim_register`, or explicit user supplements.
-- Do **not** silently pass unresolved comments to appear complete.
-
-## Verification
+## Validate and render
 
 ```bash
-python scripts/respond_check.py paper_rewriting_output/review_response --markdown --write
+python scripts/publication_cycle.py rebuttal-check \
+  paper_rewriting_output/publication_cycle/revisions/<round-id>/review_round.json \
+  --markdown --write
+
+python scripts/publication_cycle.py rebuttal-render \
+  paper_rewriting_output/publication_cycle/revisions/<round-id>/review_round.json \
+  paper_rewriting_output/publication_cycle/revisions/<round-id>/rendered \
+  --markdown
 ```
 
-Produces `review_response/respond_check.md`.  Fix all FAIL findings before
-delivery.
+The renderer uses only author-approved fields from `review_round.json`; it does
+not add rhetoric or promises. Convert the rendered letter to the target's
+required Word/PDF/portal format, validate it, and include it in a target-driven
+bundle. `respond_check.py` remains a compatibility check for legacy Markdown
+packages; `publication_cycle.py rebuttal-check` is authoritative for atomic
+coverage, author intent, evidence, multi-round lineage, and revalidation.

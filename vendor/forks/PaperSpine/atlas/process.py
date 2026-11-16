@@ -545,10 +545,20 @@ def main():
         "companies": companies,
         "countries": dict(countries.most_common()),
     }
-    with open(os.path.join(HERE, "data.js"), "w", encoding="utf-8") as f:
-        f.write("window.ATLAS=")
-        json.dump(data, f, ensure_ascii=False)
-        f.write(";")
+    def write_data(path):
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("window.ATLAS=")
+            json.dump(data, f, ensure_ascii=False)
+            f.write(";")
+
+    write_data(os.path.join(HERE, "data.js"))
+    # The V5 release page embeds website/community/, a separate view of this same
+    # dataset. Publish into it here so the two copies can never drift apart.
+    community_data = os.path.normpath(
+        os.path.join(HERE, os.pardir, "website", "community", "data.js")
+    )
+    if os.path.isdir(os.path.dirname(community_data)):
+        write_data(community_data)
 
     geo = json.load(open(os.path.join(HERE, "world.geo.json"), encoding="utf-8"))
     with open(os.path.join(HERE, "worldgeo.js"), "w", encoding="utf-8") as f:

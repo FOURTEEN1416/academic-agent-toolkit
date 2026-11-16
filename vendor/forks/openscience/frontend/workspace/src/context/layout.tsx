@@ -5,25 +5,13 @@ import { useGlobalSync } from "./global-sync"
 import { useGlobalSDK } from "./global-sdk"
 import { useServer } from "./server"
 import { Project } from "@synsci/sdk/v2"
+import { usePlatform } from "@/context/platform"
 import { Persist, persisted, removePersisted } from "@/utils/persist"
 import { same } from "@/utils/same"
 import { createScrollPersistence, type SessionScroll } from "./layout-scroll"
 
 const AVATAR_COLOR_KEYS = ["pink", "mint", "orange", "purple", "cyan", "lime"] as const
 export type AvatarColorKey = (typeof AVATAR_COLOR_KEYS)[number]
-
-export function getAvatarColors(key?: string) {
-  if (key && AVATAR_COLOR_KEYS.includes(key as AvatarColorKey)) {
-    return {
-      background: `var(--avatar-background-${key})`,
-      foreground: `var(--avatar-text-${key})`,
-    }
-  }
-  return {
-    background: "var(--surface-info-base)",
-    foreground: "var(--text-base)",
-  }
-}
 
 type SessionTabs = {
   active?: string
@@ -35,7 +23,7 @@ type SessionView = {
   reviewOpen?: string[]
 }
 
-export type LocalProject = Partial<Project> & { worktree: string; expanded: boolean }
+type LocalProject = Partial<Project> & { worktree: string; expanded: boolean }
 
 export type ReviewDiffStyle = "unified" | "split"
 
@@ -128,6 +116,9 @@ export const { use: useLayout, provider: LayoutProvider } = createSimpleContext(
       { key: "file-view", legacy: "file", version: "v1" },
     ] as const
 
+    // Pruning runs from the scroll flush timer and from pagehide, outside any
+    // Solid owner; capture the platform now so removal can still reach storage.
+    const platform = usePlatform()
     const dropSessionState = (keys: string[]) => {
       for (const key of keys) {
         const parts = key.split("/")
@@ -137,10 +128,10 @@ export const { use: useLayout, provider: LayoutProvider } = createSimpleContext(
 
         for (const entry of SESSION_STATE_KEYS) {
           const target = session ? Persist.session(dir, session, entry.key) : Persist.workspace(dir, entry.key)
-          void removePersisted(target)
+          void removePersisted(target, platform)
 
           const legacyKey = `${dir}/${entry.legacy}${session ? "/" + session : ""}.${entry.version}`
-          void removePersisted({ key: legacyKey })
+          void removePersisted({ key: legacyKey }, platform)
         }
       }
     }
@@ -399,14 +390,6 @@ export const { use: useLayout, provider: LayoutProvider } = createSimpleContext(
             if (colorRequested.get(worktree) === color) colorRequested.delete(worktree)
           })
       }
-    })
-
-    onMount(() => {
-      Promise.all(
-        server.projects.list().map((project) => {
-          return globalSync.project.loadSessions(project.worktree)
-        }),
-      )
     })
 
     return {

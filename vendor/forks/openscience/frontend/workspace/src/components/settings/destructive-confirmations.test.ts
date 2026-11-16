@@ -2,11 +2,12 @@ import { describe, expect, test } from "bun:test"
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 
+// The disconnect confirmation moved with the account section to Ace.tsx.
 const COMPONENTS = [
+  "Ace.tsx",
   "CodexConnection.tsx",
   "Connectors.tsx",
   "CredentialServices.tsx",
-  "General.tsx",
   "Network.tsx",
   "ProviderKeys.tsx",
 ] as const

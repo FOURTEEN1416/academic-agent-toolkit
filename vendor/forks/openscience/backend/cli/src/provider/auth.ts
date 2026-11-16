@@ -2,7 +2,7 @@ import { Instance } from "@/project/instance"
 import { Plugin } from "../plugin"
 import { map, filter, pipe, fromEntries, mapValues } from "remeda"
 import z from "zod"
-import { fn } from "@/util/fn"
+import { fn } from "@synsci/util/fn"
 import type { AuthOuathResult } from "@synsci/plugin"
 import { NamedError } from "@synsci/util/error"
 import { Auth } from "@/auth"
@@ -38,12 +38,10 @@ export namespace ProviderAuth {
   export async function methods() {
     const s = await state().then((x) => x.methods)
     return mapValues(s, (x) =>
-      x.methods.map(
-        (y): Method => ({
-          type: y.type,
-          label: y.label,
-        }),
-      ),
+      x.methods.map((y): Method => ({
+        type: y.type,
+        label: y.label,
+      })),
     )
   }
 

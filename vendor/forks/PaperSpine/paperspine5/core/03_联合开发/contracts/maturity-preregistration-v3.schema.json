@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/maturity-preregistration-v3.schema.json",
+  "title": "PaperSpine maturity preregistration successor v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract", "contract_version", "protocol_id", "status", "frozen_at",
+    "protocol_sha256", "authority", "predecessor", "semantic_commitments",
+    "semantic_diff_receipt", "public_entry_semantics", "evaluator_requirements",
+    "official_roots", "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.maturity-acceptance-protocol-v3"},
+    "contract_version": {"const": "3.0"},
+    "protocol_id": {"const": "ps-gap-014-pairwise-v3-successor"},
+    "status": {"enum": ["draft_unfrozen", "design_frozen"]},
+    "frozen_at": {"type": ["string", "null"], "format": "date-time"},
+    "protocol_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "authority": {"const": "paperspine5-product-acceptance"},
+    "predecessor": {
+      "type": "object", "additionalProperties": false,
+      "required": ["protocol_path", "protocol_file_sha256", "protocol_sha256", "fixture_index_path", "fixture_index_file_sha256", "fixture_index_sha256"],
+      "properties": {
+        "protocol_path": {"type": "string", "minLength": 1},
+        "protocol_file_sha256": {"$ref": "#/$defs/sha256"},
+        "protocol_sha256": {"$ref": "#/$defs/sha256"},
+        "fixture_index_path": {"type": "string", "minLength": 1},
+        "fixture_index_file_sha256": {"$ref": "#/$defs/sha256"},
+        "fixture_index_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "semantic_commitments": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sample_order_sha256", "samples_sha256", "coverage_requirements_sha256", "thresholds_sha256", "registered_entry_semantics_sha256", "required_evidence_sha256", "target_profile_catalog_sha256", "fixture_payload_set_sha256"],
+      "properties": {
+        "sample_order_sha256": {"$ref": "#/$defs/sha256"},
+        "samples_sha256": {"$ref": "#/$defs/sha256"},
+        "coverage_requirements_sha256": {"$ref": "#/$defs/sha256"},
+        "thresholds_sha256": {"$ref": "#/$defs/sha256"},
+        "registered_entry_semantics_sha256": {"$ref": "#/$defs/sha256"},
+        "required_evidence_sha256": {"$ref": "#/$defs/sha256"},
+        "target_profile_catalog_sha256": {"$ref": "#/$defs/sha256"},
+        "fixture_payload_set_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "semantic_diff_receipt": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "file_sha256", "receipt_sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "file_sha256": {"$ref": "#/$defs/sha256"},
+        "receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "public_entry_semantics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authority_plan_path", "authority_plan_sha256", "adapter_contract", "natural_language", "explicit_paper_spine", "same_suite_task_material_required", "final_fresh_app_tasks_remain_separate_gate"],
+      "properties": {
+        "authority_plan_path": {"type": "string", "minLength": 1},
+        "authority_plan_sha256": {"$ref": "#/$defs/sha256"},
+        "adapter_contract": {"const": "paperspine5.codex-app-server-public-entry-v2"},
+        "natural_language": {"const": "request bytes contain no Skill name"},
+        "explicit_paper_spine": {"const": "request bytes begin $paper-spine"},
+        "same_suite_task_material_required": {"const": true},
+        "final_fresh_app_tasks_remain_separate_gate": {"const": true}
+      }
+    },
+    "evaluator_requirements": {
+      "type": "object", "additionalProperties": false,
+      "required": ["evaluator_identity", "producer_identity_must_differ", "validator_code_sha256", "protocol_schema_sha256", "semantic_diff_schema_sha256", "freeze_journal_schema_sha256", "freeze_receipt_schema_sha256", "fixture_receipt_schema_sha256", "fixture_index_schema_sha256", "freeze_transaction_sha256", "fixture_materializer_sha256", "canonical_surface_adapter_sha256", "surface_receipt_schema_sha256", "target_review_schema_sha256"],
+      "properties": {
+        "evaluator_identity": {"const": "paperspine5-independent-maturity-evaluator-v3"},
+        "producer_identity_must_differ": {"const": true},
+        "validator_code_sha256": {"$ref": "#/$defs/sha256"},
+        "protocol_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "semantic_diff_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "freeze_journal_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "freeze_receipt_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "fixture_receipt_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "fixture_index_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "freeze_transaction_sha256": {"$ref": "#/$defs/sha256"},
+        "fixture_materializer_sha256": {"$ref": "#/$defs/sha256"},
+        "canonical_surface_adapter_sha256": {"$ref": "#/$defs/sha256"},
+        "surface_receipt_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "target_review_schema_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "official_roots": {
+      "type": "object", "additionalProperties": false,
+      "required": ["fixtures", "results"],
+      "properties": {
+        "fixtures": {"const": "03_联合开发/acceptance/ps-gap-014/frozen-fixtures-v3"},
+        "results": {"const": "03_联合开发/acceptance/ps-gap-014/results-v3"}
+      }
+    },
+    "external_action_authorized": {"const": false}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "draft_unfrozen"}}},
+      "then": {"properties": {"frozen_at": {"type": "null"}, "protocol_sha256": {"type": "null"}}},
+      "else": {"properties": {"frozen_at": {"type": "string", "format": "date-time"}, "protocol_sha256": {"$ref": "#/$defs/sha256"}}}
+    }
+  ],
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

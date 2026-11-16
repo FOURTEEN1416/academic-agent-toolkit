@@ -1,0 +1,74 @@
+---
+title: "Slash commands"
+description: "Use conversation controls and define reusable project requests."
+---
+
+Type `/` in the composer. The menu opens on the **Core** toolkit: `/plan`, `/goal`, the core research skills in workflow order (lookup, literature review, brainstorming, hypotheses, reproduce, autoresearch, compute, delegation, figures, schematics, paper writing, citations, peer review, sources) and `/compact`. Pinned skills follow, then the **Session** actions, then the whole skill library by subject. Typing filters everything at once; a library skill shows its subject on the right.
+
+## Conversation controls
+
+| Command | Purpose |
+| --- | --- |
+| `/plan [objective]` | Plan the work before execution. |
+| `/goal [objective]` | Set an objective to pursue across steps. |
+| `/compact [focus]` | Summarize earlier conversation to free context. |
+| `/stop` | Stop active work in the session (offered while a turn runs). |
+| `/checkpoint [label]` | Save a recovery point. |
+| `/handoff [path]` | Save a continuation note, then compact. |
+| `/init [notes]` | Write the project's `AGENTS.md`: research question, data locations, conventions, deliverables. |
+| `/review [focus]` | Referee the current deliverables with the peer-review skill; blocking issues first. |
+| `/reproduce [claim]` | Reproduce a stated result with the reproduce skill, deviations recorded. |
+| `/literature [question]` | A focused literature review: two or three searches, the closest papers read. |
+
+Session state, context usage, and undo live in the workspace itself: the token counter in the session header shows context usage, and **Undo from here** on a finished response reverts a turn.
+
+Compaction summarizes conversation history; it is not a backup of project files. Save important methods and results as files before starting a different task.
+
+## Create a project command
+
+Create `.openscience/command/check-data.md`:
+
+```markdown
+---
+description: Check data quality before analysis
+---
+
+Inspect $ARGUMENTS for missing values, duplicate rows, units, and
+inconsistent labels. Keep the input unchanged. Report findings before
+proposing cleaning steps.
+```
+
+Invoke it in the composer:
+
+```text
+/check-data data/samples.csv
+```
+
+Or from the terminal:
+
+```bash
+openscience run --command check-data "data/samples.csv"
+```
+
+`$ARGUMENTS` is replaced by the text after the command. A command is a reusable prompt; the selected model still needs the relevant files, tools, and access.
+
+## Define a command in configuration
+
+```json
+{
+  "command": {
+    "review-methods": {
+      "description": "Review a methods draft",
+      "template": "Review $ARGUMENTS for missing assumptions, unclear exclusions, and claims not supported by the analysis."
+    }
+  }
+}
+```
+
+Optional `agent` and `model` fields select a particular configured profile or model. Use exact identifiers from your installation.
+
+## Share and maintain commands
+
+Keep project commands in version control and review changes with the same care as other project instructions. Personal commands can live in the global configuration's `command/` folder.
+
+Reopen the project if a newly added command is not yet listed. See [Configuration](/openscience/configuration) for scopes and [Skills](/openscience/skills) for longer reusable procedures.

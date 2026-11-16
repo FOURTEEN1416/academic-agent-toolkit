@@ -1,0 +1,72 @@
+name: Verify workflow patch upgrade on native platforms
+
+on:
+  push:
+    branches: [fix/workflow-upgrade-alpha2]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag containing the workflow patch assets
+        required: true
+        default: v0.4.0-alpha.2
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  upgrade:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            platform: windows-amd64
+            suffix: ""
+          - runner: ubuntu-24.04
+            platform: linux-x86_64
+            suffix: -linux-x86_64
+          - runner: macos-15
+            platform: macos-arm64
+            suffix: -macos-arm64
+          - runner: macos-15-intel
+            platform: macos-x86_64
+            suffix: -macos-x86_64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download exact old and new platform assets (including authorized drafts)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || 'v0.4.0-alpha.2' }}
+          SUFFIX: ${{ matrix.suffix }}
+        run: |
+          gh release download v0.4.0-alpha.1-dev --pattern "paperspine5-suite-0.4.0-alpha.1-dev${SUFFIX}.zip" --dir inputs
+          gh release download "$TAG" --pattern "paperspine5-suite-${TAG#v}${SUFFIX}.zip" --dir inputs
+      - name: Replay old updater and run current bundled workspace
+        env:
+          TAG: ${{ inputs.tag || 'v0.4.0-alpha.2' }}
+          SUFFIX: ${{ matrix.suffix }}
+          PLATFORM: ${{ matrix.platform }}
+        run: >-
+          python -B paperspine5/release_tools/smoke_workflow_upgrade.py
+          --old-suite "inputs/paperspine5-suite-0.4.0-alpha.1-dev${SUFFIX}.zip"
+          --new-suite "inputs/paperspine5-suite-${TAG#v}${SUFFIX}.zip"
+          --platform "$PLATFORM" --output smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: workflow-upgrade-${{ matrix.platform }}
+          path: |
+            smoke/verification.json
+            smoke/*.stdout.txt
+            smoke/*.stderr.txt
+            smoke/profile/.paperspine5-web/*.log
+          if-no-files-found: warn

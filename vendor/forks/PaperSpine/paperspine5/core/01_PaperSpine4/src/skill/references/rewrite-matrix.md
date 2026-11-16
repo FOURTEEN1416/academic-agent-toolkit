@@ -100,7 +100,7 @@ Do not change LaTeX commands during this step. If the source is `.tex`, draft th
 
 ## Step 4.5: Closed-Book Rewrite
 
-For major sections, do not edit the original paragraph in place.
+For a section with a diagnosed structural weakness, consider rewriting from its facts and a new outline. Preserve valid sections and use targeted edits when they address the actual request.
 
 1. Extract facts, numbers, citations, and figure references into notes.
 2. Hide the original prose.
@@ -168,7 +168,7 @@ python scripts/revision_audit.py <original> <revised> --markdown > paper_rewriti
 
 Interpretation:
 
-- High unchanged ratio means the rewrite preserved too much old prose.
+- A high unchanged ratio is a diagnostic signal. Check whether the diagnosed weaknesses remain; preserve valid, unaffected prose and explain why it was retained.
 - High addition ratio means the rewrite mainly appended content.
 - High similarity in weak sections means the section should be rebuilt from the blueprint.
 

@@ -1,0 +1,24 @@
+{
+  "name": "dsh-paperspine5",
+  "version": "0.4.0-alpha.1-dev",
+  "description": "PaperSpine5 local workflow tools for DeepSeek Harness",
+  "private": true,
+  "files": [
+    "cordis.patch.yml",
+    "README.md",
+    "INSTALL.md",
+    "adapter.json",
+    "configure_dsh.py",
+    "install.ps1",
+    "install.sh",
+    "scripts",
+    "core",
+    "install_bundle.py",
+    "DSH-BUILD.json"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

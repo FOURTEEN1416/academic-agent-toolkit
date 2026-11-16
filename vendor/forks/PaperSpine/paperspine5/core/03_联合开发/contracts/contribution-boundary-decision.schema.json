@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/contribution-boundary-decision.schema.json",
+  "title": "Author confirmation limited to project facts and intent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "subject", "authority_bindings", "candidates", "decisions", "author_identity", "confirmed_at", "override_blockers", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.contribution-boundary-decision"},
+    "schema_version": {"const": "1.0"},
+    "subject": {"$ref": "quality-subject.schema.json"},
+    "authority_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["direction_authority", "target_authority", "materials.source-ledger"],
+      "properties": {
+        "direction_authority": {"$ref": "https://paperspine.local/contracts/contribution-boundary-decision.schema.json#/$defs/sha256"},
+        "target_authority": {"$ref": "https://paperspine.local/contracts/contribution-boundary-decision.schema.json#/$defs/sha256"},
+        "materials.source-ledger": {"$ref": "https://paperspine.local/contracts/contribution-boundary-decision.schema.json#/$defs/sha256"}
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidate_id", "kind", "statement", "author_authority", "supporting_artifact_ids", "direct_competitor_source_ids", "counterevidence_artifact_ids", "limitation_ids", "boundary_statement"],
+        "properties": {
+          "candidate_id": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["contribution", "motivation", "boundary", "limitation"]},
+          "statement": {"type": "string", "minLength": 1},
+          "comparative_claim": {"type": "boolean"},
+          "author_authority": {"enum": ["project_fact", "author_intent", "external_fact", "target_policy", "scientific_truth"]},
+          "supporting_artifact_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "direct_competitor_source_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "counterevidence_artifact_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "limitation_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "boundary_statement": {"type": "string"}
+        }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidate_id", "choice", "reason"],
+        "properties": {
+          "candidate_id": {"type": "string", "minLength": 1},
+          "choice": {"enum": ["accept", "revise", "reject"]},
+          "revised_statement": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "author_identity": {"type": "object"},
+    "confirmed_at": {"type": "string", "minLength": 1},
+    "override_blockers": {"const": false},
+    "external_action_authorized": {"const": false}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

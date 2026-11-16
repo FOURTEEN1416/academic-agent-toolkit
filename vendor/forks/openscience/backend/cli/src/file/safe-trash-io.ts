@@ -1,5 +1,6 @@
+import { FileIdentity } from "./identity"
 import crypto from "node:crypto"
-import nodefs, { constants as FS, type Stats } from "node:fs"
+import nodefs, { constants as FS } from "node:fs"
 import fs from "node:fs/promises"
 import path from "node:path"
 import { dlopen, FFIType, toArrayBuffer, type Pointer } from "bun:ffi"
@@ -12,8 +13,8 @@ import { WindowsSafeIO } from "./windows-safe-io"
  */
 export namespace SafeTrashIO {
   export type Identity = {
-    dev: number
-    ino: number
+    dev: FileIdentity.Value
+    ino: FileIdentity.Value
     size: number
     mode: number
     mtimeMs: number
@@ -27,12 +28,14 @@ export namespace SafeTrashIO {
 
   export type Hooks = {
     afterDirectoryVerify?: (operation: "move" | "restore" | "remove", target: string) => void | Promise<void>
+    afterEntryVerify?: (operation: "remove", target: string) => void | Promise<void>
+    afterFinalEntryVerify?: (operation: "remove", target: string) => void | Promise<void>
   }
 
   type Directory = {
     fd: number
     expected: string
-    before: Stats
+    before: FileIdentity.Stat
     close(): Promise<void>
   }
 
@@ -61,6 +64,41 @@ export namespace SafeTrashIO {
   const O_CLOEXEC = process.platform === "darwin" ? 0x01000000 : 0x00080000
   const natives = { value: undefined as Native | undefined }
 
+  function directorySymbols(platform: string, arch: string) {
+    // Intel macOS keeps the unsuffixed directory APIs on the legacy dirent ABI.
+    // Pair both functions with the 64-bit inode ABI that decode() implements.
+    const suffix = platform === "darwin" && arch === "x64" ? "$INODE64" : ""
+    return {
+      fdopendir: `fdopendir${suffix}`,
+      readdir: `readdir${suffix}`,
+    }
+  }
+
+  export const directorySymbolsForTests = directorySymbols
+
+  function decodeDirectoryRecord(bytes: Uint8Array, platform: string) {
+    const offset = platform === "darwin" ? 21 : 19
+    const maximum = platform === "darwin" ? 1048 : 280
+    if (bytes.byteLength < offset + 1) throw new Error("Directory record header is truncated")
+    const record = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+    const length = record.readUInt16LE(16)
+    if (length <= offset || length > maximum || length > record.byteLength) {
+      throw new Error("Directory record length does not match the selected ABI")
+    }
+    if (platform === "darwin") {
+      const nameLength = record.readUInt16LE(18)
+      if (nameLength > 1023 || offset + nameLength >= length || record[offset + nameLength] !== 0) {
+        throw new Error("Directory record name does not match the selected ABI")
+      }
+      return record.subarray(offset, offset + nameLength).toString("utf8")
+    }
+    const end = record.indexOf(0, offset)
+    if (end < 0 || end >= length) throw new Error("Directory record name is not terminated")
+    return record.subarray(offset, end).toString("utf8")
+  }
+
+  export const decodeDirectoryRecordForTests = decodeDirectoryRecord
+
   function libraries() {
     if (process.platform === "darwin") return ["/usr/lib/libSystem.B.dylib"]
     if (process.arch === "arm64") {
@@ -76,6 +114,7 @@ export namespace SafeTrashIO {
     if (natives.value) return natives.value
     const symbol = process.platform === "darwin" ? "__error" : "__errno_location"
     const exclusive = process.platform === "darwin" ? "renameatx_np" : "renameat2"
+    const directory = directorySymbols(process.platform, process.arch)
     const loaded = { library: undefined as ReturnType<typeof dlopen> | undefined, error: undefined as unknown }
     for (const candidate of libraries()) {
       try {
@@ -108,11 +147,11 @@ export namespace SafeTrashIO {
             args: [FFIType.i32],
             returns: FFIType.i32,
           },
-          fdopendir: {
+          [directory.fdopendir]: {
             args: [FFIType.i32],
             returns: FFIType.ptr,
           },
-          readdir: {
+          [directory.readdir]: {
             args: [FFIType.ptr],
             returns: FFIType.ptr,
           },
@@ -157,8 +196,8 @@ export namespace SafeTrashIO {
         rename(fromDir, from, toDir, to, process.platform === "darwin" ? 0x4 : 0x1),
       unlinkat: symbols.unlinkat as Native["unlinkat"],
       dup: symbols.dup as Native["dup"],
-      fdopendir: symbols.fdopendir as Native["fdopendir"],
-      readdir: symbols.readdir as Native["readdir"],
+      fdopendir: symbols[directory.fdopendir] as Native["fdopendir"],
+      readdir: symbols[directory.readdir] as Native["readdir"],
       closedir: symbols.closedir as Native["closedir"],
       errno,
     }
@@ -208,9 +247,7 @@ export namespace SafeTrashIO {
   }
 
   function stat(fd: number) {
-    return new Promise<Stats>((resolve, reject) => {
-      nodefs.fstat(fd, (error, value) => (error ? reject(error) : resolve(value)))
-    })
+    return FileIdentity.fstat(fd)
   }
 
   function sync(fd: number, directory = false) {
@@ -270,7 +307,7 @@ export namespace SafeTrashIO {
     return digest.digest("hex")
   }
 
-  function identity(value: Stats): Identity {
+  function identity(value: FileIdentity.Stat): Identity {
     const kind = value.isDirectory() ? "directory" : value.isFile() ? "file" : undefined
     if (!kind) throw new Error("Only regular files and directories can be moved to trash")
     return {
@@ -286,8 +323,7 @@ export namespace SafeTrashIO {
 
   function same(left: Identity, right: Identity) {
     return (
-      left.dev === right.dev &&
-      left.ino === right.ino &&
+      FileIdentity.same(left, right) &&
       left.size === right.size &&
       left.mtimeMs === right.mtimeMs &&
       left.ctimeMs === right.ctimeMs &&
@@ -296,7 +332,7 @@ export namespace SafeTrashIO {
   }
 
   function sameObject(left: Identity, right: Identity) {
-    return left.dev === right.dev && left.ino === right.ino && left.kind === right.kind
+    return FileIdentity.same(left, right) && left.kind === right.kind
   }
 
   function sameMoved(left: Identity, right: Identity) {
@@ -306,17 +342,15 @@ export namespace SafeTrashIO {
   async function verify(directory: Directory) {
     const [after, current, canonical] = await Promise.all([
       stat(directory.fd),
-      fs.lstat(directory.expected),
+      FileIdentity.lstat(directory.expected),
       fs.realpath(directory.expected),
     ]).catch(() => [undefined, undefined, undefined] as const)
     if (
       !after?.isDirectory() ||
       !current?.isDirectory() ||
       current.isSymbolicLink() ||
-      directory.before.dev !== after.dev ||
-      directory.before.ino !== after.ino ||
-      current.dev !== after.dev ||
-      current.ino !== after.ino ||
+      !FileIdentity.same(directory.before, after) ||
+      !FileIdentity.same(current, after) ||
       canonical !== directory.expected
     ) {
       throw new Error(`Trash directory identity changed during access: ${directory.expected}`)
@@ -327,7 +361,7 @@ export namespace SafeTrashIO {
     const expected = path.resolve(target)
     const canonical = await fs.realpath(expected)
     if (canonical !== expected) throw new Error(`Refusing an indirect trash directory: ${target}`)
-    const requested = await fs.lstat(expected)
+    const requested = await FileIdentity.lstat(expected)
     if (!requested.isDirectory() || requested.isSymbolicLink()) {
       throw new Error(`Trash path is not a direct directory: ${target}`)
     }
@@ -336,7 +370,7 @@ export namespace SafeTrashIO {
       const result: Directory = {
         fd: handle.fd,
         expected,
-        before: await handle.stat(),
+        before: await FileIdentity.stat(handle),
         close: () => handle.close(),
       }
       await verify(result)
@@ -440,7 +474,7 @@ export namespace SafeTrashIO {
     const missing: string[] = []
     const cursor = { value: expected }
     while (true) {
-      const info = await fs.lstat(cursor.value).catch((cause: NodeJS.ErrnoException) => {
+      const info = await FileIdentity.lstat(cursor.value).catch((cause: NodeJS.ErrnoException) => {
         if (cause.code === "ENOENT") return
         throw cause
       })
@@ -719,10 +753,13 @@ export namespace SafeTrashIO {
 
   function decode(pointer: number | bigint) {
     const offset = process.platform === "darwin" ? 21 : 19
-    const bytes = new Uint8Array(toArrayBuffer(pointer as Pointer, 0, process.platform === "darwin" ? 1045 : 275))
-    const end = bytes.indexOf(0, offset)
-    const stop = end < 0 ? bytes.byteLength : end
-    return Buffer.from(bytes.subarray(offset, stop)).toString("utf8")
+    const header = new Uint8Array(toArrayBuffer(pointer as Pointer, 0, offset))
+    const length = Buffer.from(header.buffer, header.byteOffset, header.byteLength).readUInt16LE(16)
+    const maximum = process.platform === "darwin" ? 1048 : 280
+    if (length <= offset || length > maximum) {
+      throw new Error("Directory record length does not match the selected ABI")
+    }
+    return decodeDirectoryRecord(new Uint8Array(toArrayBuffer(pointer as Pointer, 0, length)), process.platform)
   }
 
   async function entries(fd: number) {
@@ -747,7 +784,7 @@ export namespace SafeTrashIO {
     }
   }
 
-  async function empty(directory: Directory, device: number) {
+  async function empty(directory: Directory, device: FileIdentity.Value) {
     for (const entry of await entries(directory.fd)) {
       const tomb = `.openscience-purge-${crypto.randomUUID()}`
       renameExclusive(directory, entry, directory, tomb)
@@ -767,7 +804,7 @@ export namespace SafeTrashIO {
         close: () => close(opened.value),
       }
       try {
-        if (child.before.dev !== device) {
+        if (!FileIdentity.equal(child.before.dev, device)) {
           throw new Error(`Refusing to purge a mounted trash subtree: ${child.expected}`)
         }
         await empty(child, device)
@@ -803,39 +840,60 @@ export namespace SafeTrashIO {
       } finally {
         await close(opened.fd)
       }
-      const tomb = `.openscience-purge-${crypto.randomUUID()}`
-      renameExclusive(target.parent, target.child, target.parent, tomb)
-      const current = await openFile(target.parent, tomb)
+      await hooks?.afterEntryVerify?.("remove", target.resolved)
+      await verify(target.parent)
+      const final = await openFile(target.parent, target.child).catch((cause: NodeJS.ErrnoException) => {
+        if (cause.code === "ENOENT" || cause.errno === ENOENT) return
+        throw cause
+      })
+      if (!final) return false
       try {
-        if (approved && !sameObject(current.identity, approved)) {
-          throw new Error(`Trash payload identity changed during purge for ${target.resolved}`)
+        if (approved && !sameObject(final.identity, approved)) {
+          throw new Error(`Trash payload identity changed before purge for ${target.resolved}`)
         }
-        if (current.identity.kind === "file") {
-          const removed = attempt(() => native().unlinkat(target.parent.fd, name(tomb), 0))
-          if (!removed.ok) throw error("unlinkat", target.resolved, removed.errno)
-          await sync(target.parent.fd, true)
-          return true
+        await hooks?.afterFinalEntryVerify?.("remove", target.resolved)
+        const tomb = `.openscience-purge-${crypto.randomUUID()}`
+        renameExclusive(target.parent, target.child, target.parent, tomb)
+        const current = await openFile(target.parent, tomb)
+        try {
+          if (approved && !sameObject(current.identity, approved)) {
+            try {
+              renameExclusive(target.parent, tomb, target.parent, target.child)
+              await sync(target.parent.fd, true)
+            } catch (rollback) {
+              throw new AggregateError(
+                [new Error(`Trash payload identity changed during purge for ${target.resolved}`), rollback],
+                `Unapproved trash entry was quarantined at ${path.join(target.parent.expected, tomb)}`,
+              )
+            }
+            throw new Error(`Trash payload identity changed during purge for ${target.resolved}`)
+          }
+          if (current.identity.kind === "file") {
+            const removed = attempt(() => native().unlinkat(target.parent.fd, name(tomb), 0))
+            if (!removed.ok) throw error("unlinkat", target.resolved, removed.errno)
+            await sync(target.parent.fd, true)
+            return true
+          }
+        } finally {
+          await close(current.fd)
         }
+        const directory = await openChild(target.parent, tomb, path.join(target.parent.expected, tomb))
+        try {
+          if (!FileIdentity.equal(directory.before.dev, target.parent.before.dev)) {
+            throw new Error(`Refusing to purge a mounted trash root: ${target.resolved}`)
+          }
+          await empty(directory, directory.before.dev)
+          await sync(directory.fd, true)
+        } finally {
+          await directory.close()
+        }
+        const removed = attempt(() => native().unlinkat(target.parent.fd, name(tomb), AT_REMOVEDIR))
+        if (!removed.ok) throw error("unlinkat", target.resolved, removed.errno)
+        await sync(target.parent.fd, true)
+        return true
       } finally {
-        await close(current.fd)
+        await close(final.fd)
       }
-      const directory = await openChild(target.parent, tomb, path.join(target.parent.expected, tomb))
-      try {
-        if (directory.before.dev !== target.parent.before.dev) {
-          throw new Error(`Refusing to purge a mounted trash root: ${target.resolved}`)
-        }
-        await empty(directory, directory.before.dev)
-        await sync(directory.fd, true)
-      } finally {
-        await directory.close()
-      }
-      const removed = attempt(() => native().unlinkat(target.parent.fd, name(tomb), AT_REMOVEDIR))
-      if (!removed.ok) throw error("unlinkat", target.resolved, removed.errno)
-      await sync(target.parent.fd, true)
-      return true
-    } catch (cause) {
-      if ((cause as NodeJS.ErrnoException).code === "ENOENT") return false
-      throw cause
     } finally {
       await target.parent.close()
     }

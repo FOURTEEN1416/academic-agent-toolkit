@@ -18,8 +18,8 @@ VENDOR = ROOT.parent / "third_party" / "codesucker-core"
 CLI = VENDOR / "codesucker-cli.mjs"
 TSX_LOADER = VENDOR / "node_modules" / "tsx" / "dist" / "loader.mjs"
 CONFIG_SCHEMA_VERSION = 1
-CORE_VERSION = "0.4.4"
-CORE_COMMIT = "b065a1825f4e32dca4c4b7fd8bccf3e020a77c5c"
+CORE_VERSION = "0.5.3"
+CORE_COMMIT = "16fb1e3928eefda14bd8cf56f93fa325a7b9d5d9"
 
 
 def sha256_bytes(data: bytes) -> str:

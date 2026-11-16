@@ -1,7 +1,7 @@
 import { afterAll, afterEach, describe, expect, test } from "bun:test"
 import { fileURLToPath } from "node:url"
 import type { JSX } from "solid-js"
-import { createServer } from "vite"
+import { createTestServer as createServer } from "../../test/vite"
 import solid from "vite-plugin-solid"
 
 const server = await createServer({
@@ -48,33 +48,24 @@ const press = async (target: HTMLElement, key: string) => {
 describe("inference source classification", () => {
   test("labels provider routes by the access the user controls", () => {
     expect(subject.inferenceSource({ providerID: "synsci", credential: "custom" })).toBeUndefined()
-    expect(subject.inferenceSource({ providerID: "anthropic", credential: "managed" })).toBeUndefined()
     expect(subject.inferenceSource({ providerID: "openai-codex", credential: "custom" })).toBe("chatgpt")
     expect(subject.inferenceSource({ providerID: "anthropic", credential: "api" })).toBe("byok")
     expect(subject.inferenceSource({ providerID: "anthropic", credential: "env" })).toBe("byok")
     expect(subject.inferenceSource({ providerID: "xai", credential: "config" })).toBe("byok")
     // Own gateway key in the local auth store is decisive: own key wins server-side.
     expect(subject.inferenceSource({ providerID: "openrouter", credential: "api" })).toBe("byok")
-    // A gateway env credential can be an own key or the synced managed token.
+    expect(subject.inferenceSource({ providerID: "openrouter", credential: "managed" })).toBe("managed")
+    // An ambient gateway is ambiguous until the explicit access mode resolves it.
     expect(subject.inferenceSource({ providerID: "openrouter", credential: "env" })).toBeUndefined()
-    expect(subject.inferenceSource({ providerID: "openrouter", credential: "env", billing: "managed" })).toBeUndefined()
-    // Explicit byok billing drops managed credentials server-side, so a surviving gateway is the user's own.
     expect(subject.inferenceSource({ providerID: "openrouter", credential: "env", billing: "byok" })).toBe("byok")
     // OAuth subscriptions outside ChatGPT and config-defined custom providers stay unlabeled.
     expect(subject.inferenceSource({ providerID: "github-copilot", credential: "custom" })).toBeUndefined()
-    // provider.source itself now says "managed" once a route is genuinely wallet-billed
-    // (the gateway's managed-proxy branch, or a synced token with no own key under
-    // auto-detect) — trust it outright, regardless of the billing toggle's value.
-    expect(subject.inferenceSource({ providerID: "openrouter", credential: "managed" })).toBe("managed")
-    expect(subject.inferenceSource({ providerID: "openrouter", credential: "managed", billing: "managed" })).toBe(
-      "managed",
-    )
   })
 
   test("labels model access without changing provider routing ids", () => {
     expect(subject.inferenceSourceLabel("chatgpt")).toBe("ChatGPT")
     expect(subject.inferenceSourceLabel("byok")).toBe("BYOK")
-    expect(subject.inferenceSourceLabel("managed")).toBe("Managed")
+    expect(subject.inferenceSourceLabel("managed")).toBe("Ace")
     expect(subject.inferenceSourceLabel(undefined, "Local runtime")).toBe("Local runtime")
   })
 })
@@ -82,10 +73,10 @@ describe("inference source classification", () => {
 describe("compact model descriptions", () => {
   test("uses only factual capability, context, and provider metadata", () => {
     expect(subject.modelSummary({ reasoning: true, context: 1_000_000, provider: "Anthropic" })).toBe(
-      "Reasoning · 1m context · Anthropic",
+      "Reasoning · 1M context · Anthropic",
     )
     expect(subject.modelSummary({ reasoning: false, context: 128_000, provider: "OpenAI" })).toBe(
-      "General · 128k context · OpenAI",
+      "General · 128K context · OpenAI",
     )
   })
 })
@@ -235,6 +226,72 @@ describe("model option keyboard navigation", () => {
 })
 
 describe("reasoning effort and Fast mode", () => {
+  test("balances four effort options into two equal rows", () => {
+    const host = mount(() =>
+      web.createComponent(subject.ModelEffortPanel, {
+        current: "high",
+        options: ["medium", "high", "xhigh", "max"].map((id) => ({ id, label: id })),
+        onEffortSelect: () => undefined,
+        onTierSelect: () => undefined,
+      }),
+    )
+    const group = host.querySelector<HTMLElement>('[data-model-options-compact] [role="radiogroup"]')!
+    const radios = Array.from(group.querySelectorAll<HTMLElement>('[role="radio"]'))
+    expect(radios).toHaveLength(4)
+    // Two to a row on the six-track grid: every option spans three tracks.
+    expect(radios.map((radio) => radio.style.gridColumn)).toEqual(Array(4).fill("span 3"))
+  })
+
+  test("centres a short last row instead of leaving a dead cell", () => {
+    const host = mount(() =>
+      web.createComponent(subject.ModelEffortPanel, {
+        current: "high",
+        options: ["low", "medium", "high", "xhigh", "max"].map((id) => ({ id, label: id })),
+        onEffortSelect: () => undefined,
+        onTierSelect: () => undefined,
+      }),
+    )
+    const radios = Array.from(host.querySelectorAll<HTMLElement>('[data-model-options-compact] [role="radio"]'))
+    // Three across, then the remaining two start one track in so they sit centred.
+    expect(radios.map((radio) => radio.style.gridColumn)).toEqual([
+      "span 2",
+      "span 2",
+      "span 2",
+      "2 / span 2",
+      "4 / span 2",
+    ])
+  })
+
+  test("keeps every effort and context option in separate compact keyboard groups", async () => {
+    const selected = { effort: "medium", context: "1050000" }
+    const efforts = ["standard", "low", "medium", "high", "xhigh", "max"]
+    const contexts = ["64000", "128000", "272000", "1050000"]
+    const host = mount(() =>
+      web.createComponent(subject.ModelEffortPanel, {
+        current: selected.effort,
+        options: efforts.map((id) => ({ id, label: id })),
+        context: {
+          current: selected.context,
+          options: contexts.map((id) => ({ id, label: id })),
+        },
+        onEffortSelect: (value) => (selected.effort = value),
+        onTierSelect: () => undefined,
+        onContextSelect: (value) => (selected.context = value),
+      }),
+    )
+    const groups = host.querySelectorAll('[data-model-options-compact] [role="radiogroup"]')
+    expect(groups).toHaveLength(2)
+    expect(groups[0]?.querySelectorAll('[role="radio"]')).toHaveLength(efforts.length)
+    expect(groups[1]?.querySelectorAll('[role="radio"]')).toHaveLength(contexts.length)
+    const current = host.querySelector<HTMLButtonElement>('[data-model-option="effort"][aria-checked="true"]')!
+    current.focus()
+    await press(current, "End")
+    expect(selected).toEqual({ effort: "max", context: "1050000" })
+    expect(document.activeElement?.getAttribute("data-model-option-id")).toBe("max")
+    host.querySelector<HTMLButtonElement>('[data-model-option="context"][data-model-option-id="64000"]')?.click()
+    expect(selected).toEqual({ effort: "max", context: "64000" })
+  })
+
   test("renders one Fast toggle only when the exact route advertises it", () => {
     const unsupported = mount(() =>
       web.createComponent(subject.ModelEffortPanel, {
@@ -259,7 +316,7 @@ describe("reasoning effort and Fast mode", () => {
           { id: "standard", label: "Standard" },
           { id: "high", label: "High" },
         ],
-        fast: { active: false },
+        fast: { active: false, offered: true },
         onEffortSelect: () => undefined,
         onTierSelect: () => undefined,
       }),
@@ -271,18 +328,111 @@ describe("reasoning effort and Fast mode", () => {
     expect(supported.textContent).not.toContain("Response speed")
     expect(supported.textContent).not.toContain("Prefer faster responses")
     expect(supported.querySelector('[aria-label="Fast mode"]')).not.toBeNull()
+    // No rate is claimed until the route's pricing has loaded.
+    expect(supported.querySelector("[data-model-rate]")).toBeNull()
+    expect(supported.querySelector("[data-model-fast-rate]")).toBeNull()
 
-    const fastOnly = mount(() =>
+    // With pricing, each control carries its own consequence and a footer row
+    // states the effective rate; the selected cap decides whether the
+    // long-context step can ever apply.
+    const rates = {
+      standard: { input: 2.11, output: 12.66 },
+      fast: { input: 4.22, output: 25.32 },
+      multiple: 2,
+      tiers: [{ threshold: 272_000, standard: { input: 4.22, output: 18.99 }, fast: { input: 8.44, output: 37.98 } }],
+      basis: "wallet" as const,
+    }
+    const context = {
+      current: "272000",
+      options: [
+        { id: "272000", label: "272K" },
+        { id: "1050000", label: "1.05M" },
+      ],
+    }
+    const text = (host: Element, selector: string) =>
+      host.querySelector(selector)?.textContent?.replace(/\s+/g, " ").trim()
+    const rate = (host: Element) =>
+      [
+        host.querySelector("[data-model-rate] .model-settings-heading")?.textContent,
+        host.querySelector("[data-model-rate] .model-settings-rate-value")?.textContent?.replace(/\s+/g, " ").trim(),
+      ].join(" ")
+    const capped = mount(() =>
       web.createComponent(subject.ModelEffortPanel, {
         current: "standard",
-        options: [],
-        fast: { active: false },
+        options: [{ id: "standard", label: "Standard" }],
+        fast: { active: false, offered: true },
+        context,
+        rates,
         onEffortSelect: () => undefined,
         onTierSelect: () => undefined,
       }),
     )
-    expect(fastOnly.querySelector('[role="radiogroup"]')).toBeNull()
-    expect(fastOnly.querySelector('[data-component="switch"]')).not.toBeNull()
+    expect(capped.querySelector("table")).toBeNull()
+    // One rate line says what the selections cost; the multiplier, the
+    // "no step" reassurance and the pricing basis are not on the surface. The
+    // basis stays reachable as the rate row's tooltip.
+    expect(capped.querySelector("[data-model-fast-rate]")).toBeNull()
+    expect(capped.querySelector("[data-model-context-rate]")).toBeNull()
+    expect(capped.querySelector("[data-model-rate-basis]")).toBeNull()
+    expect(rate(capped)).toBe("Rate $2.11 in · $12.66 out /1M tokens")
+    expect(capped.querySelector("[data-model-rate]")?.getAttribute("title")).toBe("Wallet rates")
+    // A 272K cap never reaches the step, so nothing about it is shown.
+    expect(capped.querySelector("[data-model-rate-step]")).toBeNull()
+
+    const full = mount(() =>
+      web.createComponent(subject.ModelEffortPanel, {
+        current: "standard",
+        options: [],
+        fast: { active: true, offered: true },
+        context: { ...context, current: "1050000" },
+        rates,
+        onEffortSelect: () => undefined,
+        onTierSelect: () => undefined,
+      }),
+    )
+    expect(full.querySelector('[data-model-option="effort"]')).toBeNull()
+    // Fast on with the full window: the rate reflects Fast, and the step a
+    // long prompt pays appears beneath it, also at the Fast rate.
+    expect(full.querySelector("[data-model-fast-rate]")).toBeNull()
+    expect(full.querySelector("[data-model-context-rate]")).toBeNull()
+    expect(rate(full)).toBe("Rate $4.22 in · $25.32 out /1M tokens")
+    expect(
+      [
+        text(full, "[data-model-rate-step] .model-settings-heading"),
+        text(full, "[data-model-rate-step] .model-settings-rate-value"),
+      ].join(" "),
+    ).toBe("Past 272K $8.44 in · $37.98 out /1M tokens")
+
+    // A provider route reports a catalog estimate and no fee.
+    const byok = mount(() =>
+      web.createComponent(subject.ModelEffortPanel, {
+        current: "standard",
+        options: [],
+        fast: { active: false, offered: true },
+        rates: { standard: { input: 2, output: 12 }, tiers: [], basis: "provider" as const },
+        onEffortSelect: () => undefined,
+        onTierSelect: () => undefined,
+      }),
+    )
+    expect(byok.querySelector("[data-model-fast-rate]")).toBeNull()
+    expect(rate(byok)).toBe("Rate $2.00 in · $12.00 out /1M tokens")
+    expect(byok.querySelector("[data-model-rate]")?.getAttribute("title")).toBe(
+      "Catalog estimate · billed by your provider",
+    )
+
+    // A route without Fast keeps the section, disabled, and says where it exists.
+    const elsewhere = mount(() =>
+      web.createComponent(subject.ModelEffortPanel, {
+        current: "standard",
+        options: [],
+        fast: { active: false, offered: false, note: "Not offered on this route. Available through Anthropic." },
+        onEffortSelect: () => undefined,
+        onTierSelect: () => undefined,
+      }),
+    )
+    expect(elsewhere.querySelector('[data-model-fast-toggle][data-disabled="true"]')).not.toBeNull()
+    expect(elsewhere.querySelector<HTMLInputElement>('[data-slot="switch-input"]')?.disabled).toBe(true)
+    expect(elsewhere.querySelector("[data-model-fast-note]")?.textContent).toContain("Available through Anthropic")
   })
 
   test("changes effort and tier independently without touching the selected route", () => {
@@ -298,7 +448,7 @@ describe("reasoning effort and Fast mode", () => {
           { id: "standard", label: "Standard" },
           { id: "high", label: "High" },
         ],
-        fast: { active: false },
+        fast: { active: false, offered: true },
         onEffortSelect: (variant) => (state.variant = variant),
         onTierSelect: (tier) => (state.tier = tier),
       }),
@@ -319,6 +469,31 @@ describe("reasoning effort and Fast mode", () => {
     })
   })
 
+  test("renders and selects an exact context cap independently", () => {
+    const selected = { value: "1050000" }
+    const host = mount(() =>
+      web.createComponent(subject.ModelEffortPanel, {
+        current: "standard",
+        options: [],
+        context: {
+          current: selected.value,
+          options: [
+            { id: "272000", label: "272K" },
+            { id: "1050000", label: "1.05M" },
+          ],
+        },
+        onEffortSelect: () => undefined,
+        onTierSelect: () => undefined,
+        onContextSelect: (context) => (selected.value = context),
+      }),
+    )
+
+    const choices = host.querySelectorAll('[data-model-option="context"]')
+    expect(choices).toHaveLength(2)
+    host.querySelector<HTMLButtonElement>('[data-model-option="context"][data-model-option-id="272000"]')?.click()
+    expect(selected.value).toBe("272000")
+  })
+
   test("uses a real dialog trigger and restores focus to its own effort chip", async () => {
     const host = mount(() =>
       web.createComponent(subject.ModelEffortPopover, {
@@ -328,7 +503,7 @@ describe("reasoning effort and Fast mode", () => {
           { id: "standard", label: "Standard" },
           { id: "high", label: "High" },
         ],
-        fast: { active: false },
+        fast: { active: false, offered: true },
         onEffortSelect: () => undefined,
         onTierSelect: () => undefined,
       }),
@@ -361,7 +536,7 @@ describe("reasoning effort and Fast mode", () => {
         value: "High",
         current: "high",
         options: [{ id: "high", label: "High" }],
-        fast: { active: true },
+        fast: { active: true, offered: true },
         onEffortSelect: () => undefined,
         onTierSelect: () => undefined,
       }),
@@ -373,5 +548,28 @@ describe("reasoning effort and Fast mode", () => {
     expect(trigger.getAttribute("aria-label")).toBe("Reasoning effort: High. Fast mode on. Reasoning options")
     expect(trigger.querySelector("[data-model-fast-indicator]")).not.toBeNull()
     expect(trigger.querySelector('[data-icon="bolt"]')).toBeNull()
+  })
+
+  test("labels context-only model options without advertising unsupported Fast mode", () => {
+    const host = mount(() =>
+      web.createComponent(subject.ModelEffortPopover, {
+        value: "Fast",
+        current: "standard",
+        options: [],
+        context: {
+          current: "1050000",
+          options: [
+            { id: "272000", label: "272K" },
+            { id: "1050000", label: "1.05M" },
+          ],
+        },
+        onEffortSelect: () => undefined,
+        onTierSelect: () => undefined,
+      }),
+    )
+    const trigger = host.querySelector<HTMLButtonElement>("[data-model-effort-chip]")!
+    expect(trigger.textContent).toContain("Context")
+    expect(trigger.textContent).not.toContain("Fast")
+    expect(trigger.getAttribute("aria-label")).toBe("Context window: 1.05M. Model options")
   })
 })

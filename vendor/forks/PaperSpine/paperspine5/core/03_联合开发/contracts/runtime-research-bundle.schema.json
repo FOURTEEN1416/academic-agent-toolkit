@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/runtime-research-bundle.schema.json",
+  "title": "Runtime-frozen direction and target research",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "subject", "direction", "target", "network_status", "research_scope_sha256", "research_snapshot_sha256", "producer", "sources", "rules", "coverage", "challenger", "conflicts", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.runtime-research-bundle"},
+    "schema_version": {"const": "1.0"},
+    "subject": {"$ref": "quality-subject.schema.json"},
+    "direction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["statement", "questions", "boundaries"],
+      "properties": {
+        "statement": {"type": "string", "minLength": 1},
+        "questions": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "boundaries": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "target": {"type": "object", "required": ["status"], "properties": {"status": {"enum": ["known", "unknown"]}}},
+    "network_status": {"enum": ["online", "offline"]},
+    "research_scope_sha256": {"$ref": "https://paperspine.local/contracts/runtime-research-bundle.schema.json#/$defs/sha256"},
+    "research_snapshot_sha256": {"$ref": "https://paperspine.local/contracts/runtime-research-bundle.schema.json#/$defs/sha256"},
+    "producer": {"$ref": "https://paperspine.local/contracts/runtime-research-bundle.schema.json#/$defs/identity"},
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_id", "lane", "authority", "locator", "content_sha256", "retrieved_at", "effective_date", "valid_until", "officiality_verified", "supported_spans", "availability", "access_basis"],
+        "properties": {
+          "source_id": {"type": "string", "minLength": 1},
+          "lane": {"enum": ["official", "exemplar_style"]},
+          "authority": {"enum": ["official_hard", "advisory"]},
+          "locator": {"type": "string", "minLength": 1},
+          "content_sha256": {"$ref": "https://paperspine.local/contracts/runtime-research-bundle.schema.json#/$defs/sha256"},
+          "retrieved_at": {"type": "string", "minLength": 1},
+          "effective_date": {"type": "string", "format": "date"},
+          "valid_until": {"type": "string", "format": "date"},
+          "officiality_verified": {"type": "boolean"},
+          "supported_spans": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["locator", "quote_sha256"],
+              "properties": {"locator": {"type": "string", "minLength": 1}, "quote_sha256": {"$ref": "https://paperspine.local/contracts/runtime-research-bundle.schema.json#/$defs/sha256"}}
+            }
+          },
+          "availability": {"enum": ["accessible", "lawful_frozen_cache", "paywalled", "unavailable"]},
+          "access_basis": {"enum": ["public", "user_provided", "lawful_cache", "none"]}
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "kind", "enforcement", "statement", "effective_date", "source_ids"],
+        "properties": {
+          "rule_id": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["hard", "advisory"]},
+          "enforcement": {"enum": ["hard", "advisory"]},
+          "statement": {"type": "string", "minLength": 1},
+          "effective_date": {"type": "string", "format": "date"},
+          "source_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "readiness_scope": {"enum": ["local_delivery", "author_only_submission"]},
+          "author_fact_key": {
+            "enum": ["author_identity", "affiliation", "orcid", "funding", "conflict_of_interest", "data_availability", "code_availability", "author_contributions", "corresponding_author"]
+          },
+          "evidence_locator": {"type": "string", "minLength": 1}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"kind": {"const": "hard"}, "enforcement": {"const": "hard"}}, "required": ["kind", "enforcement"]},
+            "then": {
+              "required": ["readiness_scope", "evidence_locator"],
+              "allOf": [
+                {
+                  "if": {"properties": {"readiness_scope": {"const": "author_only_submission"}}, "required": ["readiness_scope"]},
+                  "then": {"required": ["author_fact_key"]},
+                  "else": {"not": {"required": ["author_fact_key"]}}
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_topics", "covered_topics", "source_ids"],
+      "properties": {
+        "required_topics": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "covered_topics": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "source_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "challenger": {"type": "object"},
+    "conflicts": {"type": "array", "items": {"type": "object"}},
+    "external_action_authorized": {"const": false}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["principal_id", "session_id", "run_id", "independence_group", "provenance_sha256", "attestation_input_id"],
+      "properties": {
+        "principal_id": {"type": "string", "minLength": 1}, "session_id": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1}, "independence_group": {"type": "string", "minLength": 1},
+        "provenance_sha256": {"$ref": "https://paperspine.local/contracts/runtime-research-bundle.schema.json#/$defs/sha256"}, "attestation_input_id": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

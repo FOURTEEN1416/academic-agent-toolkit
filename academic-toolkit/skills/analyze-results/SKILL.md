@@ -1,6 +1,6 @@
 ---
 name: analyze-results
-description: Analyze ML experiment results, compute statistics, generate comparison tables and insights. Use when user says "analyze results", "compare", or needs to interpret experimental data.
+description: Analyze ML experiment results, compute statistics, generate comparison tables and insights. Use when user says "analyze results", "compare", or needs to interpret experimental data. Lightweight numeric cross-checks and tabulation only; for strict statistical evidence bundles (significance/CI/effect size), use results-analysis.
 argument-hint: [results-path-or-description]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent
 ---
@@ -8,6 +8,8 @@ allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent
 # Analyze Experiment Results
 
 Analyze: $ARGUMENTS
+
+> **分工说明**：本技能 = **快速数值口径核对与表格化**（对比表、趋势观察、洞察草拟，不含严格统计保证）。**严格统计 + 证据包**（显著性/CI/效应量/图目录）走 `results-analysis`；学术论文级 APA 统计报告走 `data-statistics-report`。触发词相近时按此分工路由，不要用本技能替代论文级统计分析。
 
 ## Workflow
 

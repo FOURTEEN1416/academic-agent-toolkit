@@ -18,7 +18,7 @@ DeepXiv is the **progressive-reading** literature source:
 | `/arxiv` | arXiv API | Batch search, PDF download, metadata |
 | **`/deepxiv`** | **DeepXiv SDK** | **Progressive section-level reading** |
 | `/semantic-scholar` | S2 API | Published venue metadata, citation counts |
-| `/alphaxiv` | alphaxiv.org | Instant LLM-optimized summary of one paper, with LaTeX source fallback |
+| `/alphaxiv` | www.alphaxiv.org | Instant LLM-optimized summary of one paper, with LaTeX source fallback |
 
 Use DeepXiv when you want to avoid loading full papers too early.
 
@@ -48,7 +48,14 @@ DeepXiv is optional. If the CLI is not installed, tell the user:
 pip install deepxiv-sdk
 ```
 
-On first use, `deepxiv` auto-registers a free token and stores it in `~/.env`.
+Authentication is handled by the third-party `deepxiv-sdk` CLI using
+`DEEPXIV_TOKEN`. In [SDK 1.2.2](https://pypi.org/project/deepxiv-sdk/1.2.2/),
+a command that needs a token auto-registers one if none is configured and saves
+it to `~/.env`. With `python-dotenv` installed, the CLI also loads `~/.env` and
+the current project's `.env` on startup. Providing `DEEPXIV_TOKEN` in the CLI's
+environment skips automatic registration and token saving, but does not disable
+that file loading. This skill does not need to read those files or display tokens;
+leave authentication to the CLI.
 
 ## Workflow
 

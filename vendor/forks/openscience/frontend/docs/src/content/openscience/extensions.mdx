@@ -1,0 +1,114 @@
+---
+title: "Plugins, SDK, and editors"
+description: "Extend OpenScience or connect it to your own application."
+---
+
+Use [Skills](/openscience/skills) for procedures and [MCP connectors](/openscience/connectors) for external tools. Plugins and the SDK are for integrations that need code.
+
+## Install a plugin
+
+Add a reviewed plugin to your global `openscience.json`:
+
+```json
+{
+  "plugin": ["your-openscience-plugin@1.2.0"]
+}
+```
+
+The package name is an example. Use an actual compatible package and pin a version for a repeatable setup. Restart OpenScience after changing plugin configuration.
+
+A local module can be referenced with a `file:///absolute/path/to/plugin.ts` URL. Remove its entry and restart to stop loading it.
+
+Plugins execute code with access to the application context. Install ones you trust. Organization or project policy may prevent a plugin from loading; use the reported error to resolve that setup.
+
+The [plugin authoring guide](https://github.com/synthetic-sciences/openscience/blob/main/docs/notes/writing-a-plugin.md) documents the typed extension contract.
+
+## Build a scientific plugin
+
+Plugins can contribute a scientific source through `connector`, alongside their
+`tool` hooks. Sources appear in the existing `science_list_dbs`, `science_search`,
+and `science_fetch` tools for that instance. A source needs a unique ID and typed
+search/fetch methods; it cannot replace a built-in database.
+
+Tools may return text or a structured result with a title, JSON metadata and file
+attachments. OpenScience retains those fields when it truncates long textual
+output and supplies each attachment's session and message identity. Attachments
+are tool results; save a research artifact separately when you need versioned
+storage. No custom browser component is required to expose a file result to
+another client.
+
+Use matching OpenScience runtime and plugin package versions that include
+connector contributions and structured results. Older package versions may not
+support these APIs; check their exported types when building your integration.
+
+Use a trusted global plugin for code that runs inside the server. Project plugins
+require project trust and are refused while the execution sandbox is enabled.
+For separate tool services, use [MCP connectors](/openscience/connectors). Use a skill to teach a procedure and
+the SDK to build a separate application around the same research sessions.
+
+## Write a project tool
+
+Use the [custom tool guide](/openscience/custom-tools) for a complete typed example and how to test it. Tools add operations; skills and commands provide instructions for using operations.
+
+## Connect with the TypeScript SDK
+
+Install the SDK in your integration project:
+
+```bash
+npm install @synsci/sdk
+```
+
+Start OpenScience in the project you want to access:
+
+```bash
+openscience serve --port 4096
+```
+
+Use the v2 client with the same project directory:
+
+```typescript
+import { createOpenScienceClient } from "@synsci/sdk/v2"
+
+const client = createOpenScienceClient({
+  baseUrl: "http://localhost:4096",
+  directory: "/absolute/path/to/research-project",
+})
+
+const sessions = await client.session.list({ limit: 10 })
+if (sessions.error) throw new Error("Could not list sessions")
+console.log(sessions.data)
+```
+
+Replace the directory with the project path and use the server's actual URL. This example only lists sessions; sending prompts requires a configured model and suitable permission handling.
+
+The SDK version should match the installed OpenScience version. See the [SDK source and types](https://github.com/synthetic-sciences/openscience/tree/main/tooling/sdk/js) for current methods. The generated [API reference](https://github.com/synthetic-sciences/openscience/blob/main/tooling/sdk/openapi.json) describes request and response schemas.
+
+The Research composer uses this public runtime boundary too: it checks
+`runtime.capabilities` before sending rich prompt parts to `runtime.prompt`, with
+the message ID as its idempotency key. It uses the older session endpoint only
+when the capabilities route returns HTTP 404. Authentication failures, server
+errors, and a dropped prompt response never trigger a second submission through
+that older route. Specialized agent and command routes remain compatible.
+
+## Editor integration with ACP
+
+Editors that support the Agent Client Protocol can start OpenScience as an external agent:
+
+```bash
+openscience acp --cwd /absolute/path/to/research-project
+```
+
+Configure that executable and its arguments in your editor's agent settings. The editor supplies the interactive interface; your model connections and project configuration still apply.
+
+Editors can list and resume sessions and select a connected model, including its
+reasoning variants, through ACP session configuration. Older editors using
+`session/set_model` remain supported. Supplied MCP servers can use HTTP,
+SSE, or stdio; forwarding MCP messages over the ACP connection is not supported.
+
+Refer to the editor's documentation for its exact configuration format.
+
+## Contribute to OpenScience
+
+Use the [contributor guide](https://github.com/synthetic-sciences/openscience/blob/main/CONTRIBUTING.md) for repository setup and checks. The [architecture guide](https://github.com/synthetic-sciences/openscience/blob/main/ARCHITECTURE.md) maps the codebase.
+
+For a documentation correction, use the page's edit link and describe the observed behavior, installed version, and source of the correction.

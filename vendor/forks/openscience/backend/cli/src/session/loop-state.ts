@@ -2,7 +2,7 @@ import { createHash } from "node:crypto"
 import type { MessageV2 } from "./message-v2"
 
 export namespace SessionLoopState {
-  export type Continuation = "output" | "contract" | "compaction" | "task"
+  export type Continuation = "output" | "contract" | "compaction" | "task" | "context" | "harness"
 
   export type ContractMarker = {
     progress: string
@@ -15,6 +15,7 @@ export namespace SessionLoopState {
     outputContinuations: number
     contractContinuations: number
     overflowCompactions: number
+    preflightRecoveries: number
   }
 
   export type PendingCompaction = {
@@ -56,6 +57,7 @@ export namespace SessionLoopState {
     text: string
     epoch: string
     transaction: string
+    routing?: string
     progress?: string
     repair?: boolean
   }): NonNullable<MessageV2.User["internal"]> {
@@ -65,6 +67,7 @@ export namespace SessionLoopState {
       text: input.text,
       epoch: input.epoch,
       transaction: input.transaction,
+      ...(input.routing ? { routing: input.routing } : {}),
       ...(input.progress ? { progress: input.progress } : {}),
       ...(input.repair === undefined ? {} : { repair: input.repair }),
     }
@@ -78,7 +81,9 @@ export namespace SessionLoopState {
       delegationSettings: message.delegationSettings,
       variant: message.variant,
       tier: message.tier,
+      context: message.context,
       inference: message.inference,
+      deadline: message.deadline,
     }
   }
 
@@ -90,7 +95,15 @@ export namespace SessionLoopState {
    * normal task on the current research agent; no reviewer profile or writable
    * review workflow is reintroduced. */
   function compatibleContinuation(value: unknown): Continuation | undefined {
-    if (value === "output" || value === "contract" || value === "compaction" || value === "task") return value
+    if (
+      value === "output" ||
+      value === "contract" ||
+      value === "compaction" ||
+      value === "task" ||
+      value === "context" ||
+      value === "harness"
+    )
+      return value
     if (value === "review" || value === "review-summary") return "task"
   }
 
@@ -212,6 +225,29 @@ export namespace SessionLoopState {
     }
   }
 
+  /** Messages from the current epoch's first surviving record onward. Synthetic
+   * continuations and compaction carriers extend an epoch without starting one. */
+  export function epochMessages(messages: MessageV2.WithParts[]) {
+    return scope(messages).messages
+  }
+
+  /** Request text from the newest external prompts. Synthetic continuations
+   * carry no request text, so they must not push the real prompt out of the
+   * window a long tool loop routes tools and skills from. */
+  export function externalPrompts(messages: MessageV2.WithParts[], limit = 4, tail = 8_000) {
+    // slice(-0) is slice(0), which keeps the whole prompt, so a zero bound has
+    // to be answered before the slice instead of by it.
+    if (limit <= 0 || tail <= 0) return ""
+    return messages
+      .filter(external)
+      .slice(-limit)
+      .flatMap((message) =>
+        message.parts.flatMap((part) => (part.type === "text" && !part.synthetic && !part.ignored ? [part.text] : [])),
+      )
+      .join("\n")
+      .slice(-tail)
+  }
+
   function scope(messages: MessageV2.WithParts[]) {
     const epoch = currentEpoch(messages)
     if (!epoch) return { epoch, messages, legacy: true }
@@ -271,6 +307,7 @@ export namespace SessionLoopState {
         return kinds.reduce<Info & { durableStep?: number }>((next, value) => {
           if (value === "output") return { ...next, outputContinuations: next.outputContinuations + 1 }
           if (value === "contract") return { ...next, contractContinuations: next.contractContinuations + 1 }
+          if (value === "context") return { ...next, preflightRecoveries: next.preflightRecoveries + 1 }
           return next
         }, state)
       },
@@ -280,6 +317,7 @@ export namespace SessionLoopState {
         outputContinuations: 0,
         contractContinuations: 0,
         overflowCompactions: 0,
+        preflightRecoveries: 0,
       },
     )
     return {
@@ -288,6 +326,7 @@ export namespace SessionLoopState {
       outputContinuations: state.outputContinuations,
       contractContinuations: state.contractContinuations,
       overflowCompactions: state.overflowCompactions,
+      preflightRecoveries: state.preflightRecoveries,
     }
   }
 
@@ -350,8 +389,111 @@ export namespace SessionLoopState {
     return "compact"
   }
 
-  export function terminalError(input: { user: MessageV2.User; assistant?: MessageV2.Assistant }) {
-    return !!input.assistant?.error && input.assistant.parentID === input.user.id
+  /** Find the single preflight rejection that crashed before its durable
+   * continuation was written. Any existing recovery in the epoch proves the
+   * bounded attempt was already consumed, even if a later rejection followed. */
+  export function pendingPreflight(messages: MessageV2.WithParts[]) {
+    const error = messages.findLast(
+      (message): message is MessageV2.WithParts & { info: MessageV2.Assistant } =>
+        message.info.role === "assistant" && message.info.error?.name === "MessageContextWindowError",
+    )
+    if (!error) return
+    const source = messages.find(
+      (message): message is MessageV2.WithParts & { info: MessageV2.User } =>
+        message.info.role === "user" && message.info.id === error.info.parentID,
+    )
+    if (!source || !external(source)) return
+    const epoch = source.info.internal?.epoch ?? source.info.id
+    const after = messages.slice(messages.findIndex((message) => message.info.id === source.info.id) + 1)
+    if (after.some((message) => external(message))) return
+    const recovered = after.some(
+      (message) =>
+        message.info.role === "user" &&
+        messageKind(message.info) === "context" &&
+        message.info.internal?.type === "continuation" &&
+        message.info.internal.epoch === epoch,
+    )
+    if (recovered) return
+    return { user: source.info, epoch }
+  }
+
+  /** Recover the bounded request signal that survives preflight compaction. */
+  export function routing(messages: MessageV2.WithParts[]) {
+    const message = messages.findLast(
+      (message): message is MessageV2.WithParts & { info: MessageV2.User } =>
+        message.info.role === "user" &&
+        messageKind(message.info) === "context" &&
+        message.info.internal?.type === "continuation" &&
+        !!message.info.internal.routing,
+    )
+    const intent = message?.info.internal
+    if (intent?.type !== "continuation") return
+    return intent.routing
+  }
+
+  /** One synthetic continuation may close an oversized active turn and make
+   * it reducible. More retries in the same epoch cannot create new room. */
+  export function preflightRecovery(input: { attempts: number }) {
+    return input.attempts === 0
+  }
+
+  export function terminalError(input: {
+    user: MessageV2.User
+    assistant?: MessageV2.Assistant
+    messages?: MessageV2.WithParts[]
+  }) {
+    if (!input.assistant?.error) return false
+    if (input.assistant.parentID === input.user.id) return true
+    // A failed compaction is displayed under the real prompt, while the newest
+    // user record may be its synthetic carrier/continuation. It still terminates
+    // that epoch; restarting the loop must not send another oversized request.
+    const intent = input.user.internal
+    if (intent?.type !== "compaction" && intent?.type !== "continuation") return false
+    if (input.assistant.parentID !== intent.epoch) return false
+    // Runtime-owned preflight recovery records may pass only the error that
+    // predates them. Any error written after the continuation/carrier remains
+    // terminal, so a failed compaction cannot restart forever after a crash.
+    if (intent.type === "continuation" && messageKind(input.user) === "context") {
+      return input.assistant.id >= input.user.id
+    }
+    if (
+      intent.type === "compaction" &&
+      intent.transaction === input.user.id &&
+      intent.recovery?.type === "preflight" &&
+      intent.recovery.continuationID < input.user.id &&
+      input.assistant.id < intent.recovery.continuationID
+    )
+      return false
+    // A retained tail may still end in the original preflight rejection after
+    // its recovery summary. Only that summary's reserved continuation can pass
+    // the old, undispatched error; ordinary continuations and paid failures
+    // remain terminal. The carrier is runtime-owned durable provenance.
+    if (
+      intent.type === "continuation" &&
+      intent.kind === "compaction" &&
+      intent.transaction === input.user.id &&
+      input.assistant.error.name === "MessageContextWindowError"
+    ) {
+      const carrier = input.messages?.find(
+        (message) =>
+          message.info.role === "user" &&
+          message.info.internal?.type === "compaction" &&
+          message.info.internal.continuationID === input.user.id,
+      )?.info
+      const recovery = carrier?.role === "user" ? carrier.internal : undefined
+      if (
+        carrier &&
+        recovery?.type === "compaction" &&
+        recovery.transaction === carrier.id &&
+        recovery.epoch === intent.epoch &&
+        carrier.id < input.user.id &&
+        recovery.recovery?.type === "preflight" &&
+        recovery.recovery.continuationID < carrier.id &&
+        input.assistant.id < recovery.recovery.continuationID
+      )
+        return false
+    }
+    return true
   }
 
   function isFinalized(

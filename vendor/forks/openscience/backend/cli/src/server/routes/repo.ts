@@ -19,7 +19,7 @@
 
 import { Hono } from "hono"
 import { spawn } from "child_process"
-import { lazy } from "../../util/lazy"
+import { lazy } from "@synsci/util/lazy"
 import { projectSelection } from "../project-selection"
 import { Instance } from "@/project/instance"
 import { InstanceBootstrap } from "@/project/bootstrap"
@@ -27,6 +27,7 @@ import { Project } from "@/project/project"
 import { ProjectTrust } from "@/project/trust"
 import { AuthoritySignal } from "@/project/authority-signal"
 import { Config } from "@/config/config"
+import { HostCredentials } from "@/credentials/host"
 import { Sandbox } from "@/sandbox/sandbox"
 import { OpenScience } from "@/openscience"
 import { CommandRuntime } from "@/science/command/registry"
@@ -50,7 +51,29 @@ export function assertSafeRemoteUrl(url: unknown): string {
   return value
 }
 
-async function run(command: string, args: string[], cwd: string, ok: number[] = [0]): Promise<RunResult> {
+/** A branch name is passed to git as a positional, and git accepts options
+ *  after positionals: `--mirror`, `--force` or `--all` in this field would
+ *  rewrite the remote. Only names git itself accepts for a branch pass.
+ *  Exported for tests. */
+export function assertSafeBranch(branch: unknown): string {
+  const value = String(branch ?? "").trim()
+  if (!value) throw new Error("branch required")
+  if (value.startsWith("-")) throw new Error("invalid branch name")
+  // git check-ref-format --branch, expressed as a pattern: no control or
+  // space characters, no "..", no "@{", no path components that begin with a
+  // dot or end with ".lock", no leading or trailing slash, no trailing dot.
+  const forbidden = /[\x00-\x20\x7f~^:?*[\\]|\.\.|@\{|\/\/|^\/|\/$|\.$|(^|\/)\.|\.lock(\/|$)/
+  if (forbidden.test(value) || value === "@") throw new Error("invalid branch name")
+  return value
+}
+
+async function run(
+  command: string,
+  args: string[],
+  cwd: string,
+  ok: number[] = [0],
+  network: { publish: boolean } = { publish: false },
+): Promise<RunResult> {
   const launched = await AuthoritySignal.exclusive(async () => {
     await ProjectTrust.require(Instance.project, "repository")
     const options = await Config.trustedSandbox()
@@ -61,7 +84,13 @@ async function run(command: string, args: string[], cwd: string, ok: number[] = 
       readable: [cwd],
       unreadable: OpenScience.kernelSensitivePaths(),
       options,
+      escalateNetwork: network.publish,
     })
+    // A push the user clicked runs with the network and the machine's own
+    // GitHub login (gh, or a saved credential), so it never prompts or hangs.
+    const credentials: Record<string, string> = network.publish
+      ? await HostCredentials.publishEnv(sandbox.temporary, await HostCredentials.discover()).catch(() => ({}))
+      : {}
     const wrapped = await CommandRuntime.wrap({
       file: sandbox.file,
       args: sandbox.args,
@@ -73,11 +102,8 @@ async function run(command: string, args: string[], cwd: string, ok: number[] = 
           cwd,
           env: {
             ...OpenScience.kernelEnv(process.env),
-            GIT_CONFIG_COUNT: "2",
-            GIT_CONFIG_KEY_0: "protocol.ext.allow",
-            GIT_CONFIG_VALUE_0: "never",
-            GIT_CONFIG_KEY_1: "protocol.fake.allow",
-            GIT_CONFIG_VALUE_1: "never",
+            ...credentials,
+            ...protocolGuards(Number(credentials.GIT_CONFIG_COUNT ?? 0)),
           },
           detached: process.platform !== "win32",
         })
@@ -139,6 +165,19 @@ async function run(command: string, args: string[], cwd: string, ok: number[] = 
 }
 
 const git = (args: string[], directory: string, ok?: number[]) => run("git", args, directory, ok)
+const gitPublish = (args: string[], directory: string) => run("git", args, directory, [0], { publish: true })
+
+/** Refuse ext:: and fake transports; numbered after any credential entries so
+ * both sets of GIT_CONFIG_* variables apply. */
+function protocolGuards(offset: number) {
+  return {
+    GIT_CONFIG_COUNT: String(offset + 2),
+    [`GIT_CONFIG_KEY_${offset}`]: "protocol.ext.allow",
+    [`GIT_CONFIG_VALUE_${offset}`]: "never",
+    [`GIT_CONFIG_KEY_${offset + 1}`]: "protocol.fake.allow",
+    [`GIT_CONFIG_VALUE_${offset + 1}`]: "never",
+  }
+}
 
 interface RemoteInfo {
   owner: string
@@ -245,13 +284,18 @@ async function commit(directory: string, message: unknown) {
 
 async function push(directory: string, branch: unknown) {
   if (!directory) throw new Error("directory required")
-  const current = String(branch || (await git(["branch", "--show-current"], directory).then((x) => x.out))).trim()
-  if (!current) throw new Error("branch required")
-  const upstream = await git(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"], directory)
-    .then((x) => x.out)
-    .catch(() => "")
-  const args = upstream ? ["push"] : ["push", "-u", "origin", current]
-  const result = await git(args, directory)
+  const current = assertSafeBranch(branch || (await git(["branch", "--show-current"], directory).then((x) => x.out)))
+  const ref = `refs/heads/${current}`
+  const upstream = await git(
+    ["for-each-ref", "--format=%(upstream:remotename)%00%(upstream:remoteref)", ref],
+    directory,
+  )
+  const [remote, target] = upstream.out.split("\0")
+  // Resolve the selected branch's destination and pass both refs explicitly:
+  // a bare push follows the checked-out branch and push.default instead.
+  const args =
+    remote && target ? ["push", "--", remote, `${ref}:${target}`] : ["push", "-u", "--", "origin", `${ref}:${ref}`]
+  const result = await gitPublish(args, directory)
   return { pushed: true, output: result.out || result.err }
 }
 
@@ -282,6 +326,7 @@ async function within<T>(
   }
   return Instance.provide({
     directory: selected.directory,
+    projectID: selected.project.id,
     init: InstanceBootstrap,
     async fn() {
       if (Instance.project.id !== selected.project.id) {

@@ -7,6 +7,11 @@
   2025b, 2026, and 2026b. Origin 2020b and earlier remain outside this route.
 - Origin 2024b / 10.15 is the current complete end-to-end real-machine baseline. It is not a hard
   upper-version gate.
+- The 2026-10-24 secure-runtime regression used CPython 3.12.14, Pillow 13.0.0 and Origin
+  2024b / 10.15.132: live smoke plus six representative XPS, categorical, physical-grid,
+  event-raster and 3D workflows passed four-format export, readback, independent saved-project
+  reopen and visual review. This is not exhaustive coverage of every template/version pair.
+  The earlier CPython 3.10 record is historical; current runtime support is 3.11/3.12.
 - Do not describe every other target version as verified. For any non-baseline build, compatibility
   is decided by the actual Automation handshake, the capabilities required by the selected
   template, and real output evidence from that machine.
@@ -39,6 +44,9 @@
   `USERNAME` or `USERPROFILE` values. `codex_sandbox` stops before COM with
   `origin_codex_sandbox_context`; `unknown` Windows identity also stops fail-closed with
   `origin_execution_context_unknown`.
+- Check both the token's account and `TokenIsAppContainer`. A restricted AppContainer may keep
+  the signed-in account name; it still needs the same exact-command approval handoff. If the
+  AppContainer flag cannot be read, report unknown instead of claiming desktop access.
 - For `origin_codex_sandbox_context`, Codex may submit a formal, narrowly scoped local-execution
   request for the same exact `origin-smoke` or `render` command. Rerun only if that exact request is
   approved, either by the user when prompted or by the configured Codex auto-reviewer. Approval is

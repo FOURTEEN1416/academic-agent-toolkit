@@ -82,10 +82,6 @@ export const dict = {
   "command.session.compact.description": "Sitzung zusammenfassen, um die Kontextgröße zu reduzieren",
   "command.session.fork": "Von Nachricht abzweigen",
   "command.session.fork.description": "Neue Sitzung aus einer früheren Nachricht erstellen",
-  "command.session.share": "Sitzung teilen",
-  "command.session.share.description": "Diese Sitzung teilen und URL in die Zwischenablage kopieren",
-  "command.session.unshare": "Teilen der Sitzung aufheben",
-  "command.session.unshare.description": "Teilen dieser Sitzung beenden",
 
   "palette.search.placeholder": "Dateien und Befehle durchsuchen",
   "palette.empty": "Keine Ergebnisse gefunden",
@@ -97,7 +93,6 @@ export const dict = {
   "dialog.provider.group.popular": "Beliebt",
   "dialog.provider.group.other": "Andere",
   "dialog.provider.tag.recommended": "Empfohlen",
-  "dialog.provider.synsci.note": "curated models including Claude, GPT, Gemini and more",
   "dialog.provider.anthropic.note": "Mit Claude Pro/Max oder API-Schlüssel verbinden",
   "dialog.provider.openai.note": "Mit ChatGPT Pro/Plus oder API-Schlüssel verbinden",
   "dialog.provider.google.note": "Gemini models for fast, structured responses",
@@ -110,10 +105,6 @@ export const dict = {
   "dialog.model.empty": "Keine Modellergebnisse",
   "dialog.model.manage": "Modelle verwalten",
   "dialog.model.manage.description": "Anpassen, welche Modelle in der Modellauswahl erscheinen.",
-
-  "dialog.model.unpaid.freeModels.title": "Kostenlose Modelle von deinen verbundenen Anbietern",
-  "dialog.model.unpaid.empty": "no free models available yet — connect a provider to add models.",
-  "dialog.model.unpaid.addMore.title": "Weitere Modelle von beliebten Anbietern hinzufügen",
 
   "dialog.provider.viewAll": "Mehr Anbieter anzeigen",
 
@@ -268,16 +259,10 @@ export const dict = {
   "dialog.project.edit.worktree.startup.description":
     "Wird nach dem Erstellen eines neuen Arbeitsbereichs (Worktree) ausgeführt.",
   "dialog.project.edit.worktree.startup.placeholder": "z. B. bun install",
-  "context.breakdown.title": "Kontext-Aufschlüsselung",
-  "context.breakdown.note":
-    'Ungefähre Aufschlüsselung der Eingabe-Token. "Andere" beinhaltet Werkzeugdefinitionen und Overhead.',
-  "context.breakdown.system": "System",
   "context.breakdown.user": "Benutzer",
   "context.breakdown.assistant": "Assistent",
   "context.breakdown.tool": "Werkzeugaufrufe",
-  "context.breakdown.other": "Andere",
 
-  "context.systemPrompt.title": "System-Prompt",
   "context.rawMessages.title": "Rohdaten der Nachrichten",
 
   "context.stats.session": "Sitzung",
@@ -338,16 +323,6 @@ export const dict = {
   "toast.file.listFailed.title": "Dateien konnten nicht aufgelistet werden",
   "toast.context.noLineSelection.title": "Keine Zeilenauswahl",
   "toast.context.noLineSelection.description": "Wählen Sie zuerst einen Zeilenbereich in einem Datei-Tab aus.",
-  "toast.session.share.copyFailed.title": "URL konnte nicht in die Zwischenablage kopiert werden",
-  "toast.session.share.success.title": "Sitzung geteilt",
-  "toast.session.share.success.description": "Teilen-URL in die Zwischenablage kopiert!",
-  "toast.session.share.failed.title": "Sitzung konnte nicht geteilt werden",
-  "toast.session.share.failed.description": "Beim Teilen der Sitzung ist ein Fehler aufgetreten",
-
-  "toast.session.unshare.success.title": "Teilen der Sitzung aufgehoben",
-  "toast.session.unshare.success.description": "Teilen der Sitzung erfolgreich aufgehoben!",
-  "toast.session.unshare.failed.title": "Aufheben des Teilens fehlgeschlagen",
-  "toast.session.unshare.failed.description": "Beim Aufheben des Teilens ist ein Fehler aufgetreten",
 
   "toast.session.listFailed.title": "Sitzungen für {{project}} konnten nicht geladen werden",
 
@@ -386,9 +361,8 @@ export const dict = {
   "error.chain.providerAuthFailed": "Anbieter-Authentifizierung fehlgeschlagen ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     'Anbieter "{{provider}}" konnte nicht initialisiert werden. Überprüfen Sie Anmeldeinformationen und Konfiguration.',
-  "error.chain.configJsonInvalid": "Konfigurationsdatei unter {{path}} ist kein gültiges JSON(C)",
-  "error.chain.configJsonInvalidWithMessage":
-    "Konfigurationsdatei unter {{path}} ist kein gültiges JSON(C): {{message}}",
+  "error.chain.configJsonInvalid": "Konfigurationsdatei unter {{path}} ist kein gültiges JSON",
+  "error.chain.configJsonInvalidWithMessage": "Konfigurationsdatei unter {{path}} ist kein gültiges JSON: {{message}}",
   "error.chain.configDirectoryTypo":
     'Verzeichnis "{{dir}}" in {{path}} ist ungültig. Benennen Sie das Verzeichnis in "{{suggestion}}" um oder entfernen Sie es. Dies ist ein häufiger Tippfehler.',
   "error.chain.configFrontmatterError": "Frontmatter in {{path}} konnte nicht geparst werden:\n{{message}}",
@@ -444,20 +418,6 @@ export const dict = {
   "status.popover.tab.lsp": "LSP",
   "status.popover.tab.plugins": "Plugins",
   "status.popover.action.manageServers": "Server verwalten",
-
-  "session.share.popover.title": "Im Web veröffentlichen",
-  "session.share.popover.description.shared":
-    "Diese Sitzung ist öffentlich im Web. Sie ist für jeden mit dem Link zugänglich.",
-  "session.share.popover.description.unshared":
-    "Sitzung öffentlich im Web teilen. Sie wird für jeden mit dem Link zugänglich sein.",
-  "session.share.action.share": "Teilen",
-  "session.share.action.publish": "Veröffentlichen",
-  "session.share.action.publishing": "Veröffentliche...",
-  "session.share.action.unpublish": "Veröffentlichung aufheben",
-  "session.share.action.unpublishing": "Hebe Veröffentlichung auf...",
-  "session.share.action.view": "Ansehen",
-  "session.share.copy.copied": "Kopiert",
-  "session.share.copy.copyLink": "Link kopieren",
 
   "lsp.tooltip.none": "Keine LSP-Server",
   "lsp.label.connected": "{{count}} LSP",

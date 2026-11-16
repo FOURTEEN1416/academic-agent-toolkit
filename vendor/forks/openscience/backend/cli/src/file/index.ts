@@ -6,6 +6,7 @@ import { formatPatch, structuredPatch } from "diff"
 import { HTTPException } from "hono/http-exception"
 import path from "path"
 import fs from "fs"
+import crypto from "node:crypto"
 import ignore from "ignore"
 import { Log } from "../util/log"
 import { Instance } from "../project/instance"
@@ -24,6 +25,8 @@ import { SafeFileIO } from "./safe-io"
 import { FileTrash } from "./trash"
 import { Lock } from "@/util/lock"
 import { AuthoritySignal } from "@/project/authority-signal"
+import { Project } from "@/project/project"
+import { ProjectPreview } from "./project-preview"
 
 export namespace File {
   const log = Log.create({ service: "file" })
@@ -77,6 +80,10 @@ export namespace File {
     })
   export type Node = z.infer<typeof Node>
 
+  export const Revision = z.string().regex(/^[a-f0-9]{64}$/)
+  const revision = (snapshot: SafeFileIO.Snapshot) =>
+    crypto.createHash("sha256").update(`${snapshot.dev}:${snapshot.ino}\0`).update(snapshot.bytes).digest("hex")
+
   export const Content = z
     .object({
       type: z.literal("text"),
@@ -105,6 +112,8 @@ export namespace File {
       mimeType: z.string().optional(),
       size: z.number().optional(),
       truncated: z.boolean().optional(),
+      revision: Revision.optional(),
+      writable: z.boolean().optional(),
     })
     .meta({
       ref: "FileContent",
@@ -253,9 +262,11 @@ export namespace File {
 
   type AccessOptions = {
     sessionID?: string
+    projectPreview?: boolean
   }
 
   type RawOptions = AccessOptions & { maxBytes?: number }
+  type WriteOptions = AccessOptions & { expectedRevision?: string }
 
   export type RawSource = SafeFileIO.Source & {
     mimeType: string
@@ -282,7 +293,16 @@ export namespace File {
       throw new HTTPException(403, { message: "Recovery data is protected" })
     }
     if (canonical && (await Instance.containsCanonicalPath(canonical))) return canonical
-    throw new Error(`Access denied: path escapes project directory`)
+    return SessionFilesystem.authorizeProject(full, access)
+      .then((result) => result.path)
+      .catch((error) => {
+        if (SessionFilesystem.DeniedError.isInstance(error)) {
+          throw new HTTPException(403, {
+            message: "Access denied: path escapes project directory and connected folders",
+          })
+        }
+        throw error
+      })
   }
 
   async function operate<T>(
@@ -291,8 +311,14 @@ export namespace File {
     options: AccessOptions | undefined,
     action: (target: string) => Promise<T>,
   ) {
-    if (!options?.sessionID) return action(await contained(file, access))
-    const sessionID = options.sessionID
+    if (options?.projectPreview) {
+      if (access !== "read") throw new HTTPException(403, { message: "Project preview is read-only" })
+      const target = await ProjectPreview.authorize(file, options.sessionID)
+      await hooks.value?.afterReadAuthorization?.(target)
+      return AuthoritySignal.exclusive(async () => action(await ProjectPreview.authorize(target, options.sessionID)))
+    }
+    if (!options?.sessionID) await contained(file, access)
+    const sessionID = options?.sessionID ?? SessionFilesystem.projectActor()
     const authorized = await SessionFilesystem.authorize({ sessionID, path: file, access })
     if (FileTrash.protectedPath(authorized.path)) {
       throw new HTTPException(403, { message: "Recovery data is protected" })
@@ -316,19 +342,8 @@ export namespace File {
   }
 
   export async function authority(file: string, options: AccessOptions): Promise<Authority> {
-    if (!options.sessionID) {
-      const source = await contained(file, "read")
-      const root = Filesystem.contains(Instance.directory, source) ? Instance.directory : Instance.worktree
-      return {
-        root,
-        source,
-        scan: true,
-        read: (target) => contained(target, "read"),
-        write: (target) => contained(target, "write"),
-        [Symbol.dispose]() {},
-      }
-    }
-    const sessionID = options.sessionID
+    if (!options.sessionID) await contained(file, "read")
+    const sessionID = options.sessionID ?? SessionFilesystem.projectActor()
     const result = await SessionFilesystem.authorize({
       sessionID,
       path: file,
@@ -409,7 +424,11 @@ export namespace File {
     const project = Instance.project
     if (project.vcs !== "git") return []
 
-    const diffOutput = await $`git -c core.quotepath=false diff --numstat HEAD`
+    // `--relative` so every source below reports a path from Instance.directory,
+    // the same form `ls-files --others` already returns. Without it git prints
+    // repository-root-relative paths, and re-relativizing a relative path
+    // resolves it against the process working directory instead.
+    const diffOutput = await $`git -c core.quotepath=false diff --numstat --relative HEAD`
       .cwd(Instance.directory)
       .quiet()
       .nothrow()
@@ -456,7 +475,7 @@ export namespace File {
     }
 
     // Get deleted files
-    const deletedOutput = await $`git -c core.quotepath=false diff --name-only --diff-filter=D HEAD`
+    const deletedOutput = await $`git -c core.quotepath=false diff --name-only --diff-filter=D --relative HEAD`
       .cwd(Instance.directory)
       .quiet()
       .nothrow()
@@ -474,10 +493,7 @@ export namespace File {
       }
     }
 
-    return changedFiles.map((x) => ({
-      ...x,
-      path: path.relative(Instance.directory, x.path),
-    }))
+    return changedFiles
   }
 
   async function readPath(file: string, full: string): Promise<Content> {
@@ -508,7 +524,14 @@ export namespace File {
     if (encode) {
       const buffer = await bunFile.arrayBuffer().catch(() => new ArrayBuffer(0))
       const content = Buffer.from(buffer).toString("base64")
-      return { type: "text", content, mimeType, encoding: "base64", size: bunFile.size }
+      return {
+        type: "text",
+        content,
+        mimeType,
+        encoding: "base64",
+        size: bunFile.size,
+        revision: revision(snapshot),
+      }
     }
 
     const truncated = snapshot.size > snapshot.bytes.byteLength
@@ -535,14 +558,24 @@ export namespace File {
           ignoreWhitespace: true,
         })
         const diff = formatPatch(patch)
-        return { type: "text", content, before: original, patch, diff }
+        return { type: "text", content, before: original, patch, diff, revision: revision(snapshot) }
       }
     }
-    return { type: "text", content }
+    return { type: "text", content, revision: revision(snapshot) }
   }
 
   export async function read(file: string, options?: AccessOptions): Promise<Content> {
-    return operate(file, "read", options, (full) => readPath(file, full))
+    return operate(file, "read", options, async (full) => ({
+      ...(await readPath(file, full)),
+      writable: options?.projectPreview
+        ? false
+        : options?.sessionID
+          ? await SessionFilesystem.allows({ sessionID: options.sessionID, path: full, access: "write" })
+          : await contained(full, "write").then(
+              () => true,
+              () => false,
+            ),
+    }))
   }
 
   export async function inspect(file: string, options?: AccessOptions): Promise<ScienceFile.Inspection> {
@@ -578,9 +611,36 @@ export namespace File {
       )
       return { ...source, mimeType: Bun.file(full).type || "application/octet-stream" }
     }
-    if (!options?.sessionID) return open(await contained(file, "read"))
-    const sessionID = options.sessionID
-    const authorized = await SessionFilesystem.authorize({ sessionID, path: file, access: "read" })
+    if (options?.projectPreview) {
+      const target = await ProjectPreview.authorize(file, options.sessionID)
+      await hooks.value?.afterReadAuthorization?.(target)
+      return AuthoritySignal.exclusive(async () => {
+        const current = await ProjectPreview.authorize(target, options.sessionID)
+        return open(current, {
+          during: (action) =>
+            AuthoritySignal.exclusive(async () => {
+              await ProjectPreview.authorize(current, options.sessionID)
+              return action()
+            }),
+        })
+      })
+    }
+    if (!options?.sessionID) await contained(file, "read")
+    const sessionID = options?.sessionID ?? SessionFilesystem.projectActor()
+    // A file under Project files is the project's own durable material. Tools
+    // treat the directory as internal, so a session that wrote a report there
+    // must be able to read it back through this path too (artifact saves,
+    // receipts, previews) even though no session grant names the directory.
+    const authorized = await SessionFilesystem.authorize({ sessionID, path: file, access: "read" }).catch(
+      async (error: unknown) => {
+        if (!options?.sessionID) throw error
+        if (!SessionFilesystem.DeniedError.isInstance(error)) throw error
+        const preview = await ProjectPreview.resolve(file, sessionID).catch(() => undefined)
+        if (!preview) throw error
+        return undefined
+      },
+    )
+    if (!authorized) return rawSource(file, { ...options, projectPreview: true })
     if (FileTrash.protectedPath(authorized.path)) {
       throw new HTTPException(403, { message: "Recovery data is protected" })
     }
@@ -773,16 +833,34 @@ export namespace File {
     return await PublicationReview.finalize(id, input, scope)
   }
 
-  export async function write(file: string, content: string, options?: AccessOptions): Promise<Content> {
+  export async function write(file: string, content: string, options?: WriteOptions): Promise<Content> {
     using _ = log.time("write", { file })
     const mutate = async (full: string) => {
-      const approved = await SafeFileIO.optional(full)
-      await SafeFileIO.write(full, content, approved)
-      return { full, exists: !!approved, content: await readPath(file, full) }
+      const conflict = () =>
+        new HTTPException(409, {
+          message: "File changed on disk. Reload it before saving, or save your draft to a different file.",
+        })
+      // The editor supplies the revision it actually read, not a fresh
+      // snapshot captured after another editor or agent has already saved.
+      // If a previously editable file grew out of preview bounds, reject
+      // without loading the replacement into memory.
+      const approved = await SafeFileIO.optional(
+        full,
+        options?.expectedRevision === undefined ? undefined : { maxBytes: preview },
+      ).catch((error: unknown) => {
+        if (options?.expectedRevision !== undefined && error instanceof SafeFileIO.LimitError) throw conflict()
+        throw error
+      })
+      if (options?.expectedRevision !== undefined && (!approved || revision(approved) !== options.expectedRevision)) {
+        throw conflict()
+      }
+      const changed = !approved?.bytes.equals(Buffer.from(content))
+      if (changed) await SafeFileIO.write(full, content, approved)
+      return { full, exists: !!approved, changed, content: await readPath(file, full) }
     }
     const result = await (async () => {
-      if (!options?.sessionID) return mutate(await contained(file, "write"))
-      const sessionID = options.sessionID
+      if (!options?.sessionID) await contained(file, "write")
+      const sessionID = options?.sessionID ?? SessionFilesystem.projectActor()
       const authorized = await SessionFilesystem.authorize({ sessionID, path: file, access: "write" })
       if (FileTrash.protectedPath(authorized.path)) {
         throw new HTTPException(403, { message: "Recovery data is protected" })
@@ -804,13 +882,18 @@ export namespace File {
         SessionFilesystem.releaseAuthorization(binding)
       }
     })()
-    await Bus.publish(File.Event.Edited, {
-      file: result.full,
-    })
-    await Bus.publish(FileWatcher.Event.Updated, {
-      file: result.full,
-      event: result.exists ? "change" : "add",
-    })
+    if (result.changed) {
+      await Project.touchActivity(Instance.project.id).catch((error) =>
+        log.warn("file activity update failed", { error }),
+      )
+      await Bus.publish(File.Event.Edited, {
+        file: result.full,
+      })
+      await Bus.publish(FileWatcher.Event.Updated, {
+        file: result.full,
+        event: result.exists ? "change" : "add",
+      })
+    }
     return result.content
   }
 
@@ -928,6 +1011,9 @@ export namespace File {
       }
     })()
     if (result.from !== result.to) {
+      await Project.touchActivity(Instance.project.id).catch((error) =>
+        log.warn("file activity update failed", { error }),
+      )
       await Promise.all([
         Bus.publish(FileWatcher.Event.Updated, { file: result.from, event: "unlink" }),
         Bus.publish(FileWatcher.Event.Updated, { file: result.to, event: "add" }),
@@ -953,60 +1039,77 @@ export namespace File {
       ignored = ig.ignores.bind(ig)
     }
     const root = options?.sessionID ? await SessionFilesystem.workspace(options.sessionID) : Instance.directory
-    const resolved = await contained(dir || root, "read", options)
-    const local = Filesystem.contains(root, resolved)
+    return operate(dir || root, "read", options, async (resolved) => {
+      const local = Filesystem.contains(root, resolved)
 
-    const nodes: Node[] = []
-    const entries: fs.Dirent[] = await fs.promises
-      .readdir(resolved, { withFileTypes: true })
-      .catch((err: NodeJS.ErrnoException) => {
-        // Surface permission errors as 403 with a TCC-aware message so the
-        // SPA can show "grant Full Disk Access" instead of "0 entries".
-        // macOS blocks Desktop/Documents/Downloads listings for any process
-        // that doesn't have FDA, and node returns EACCES/EPERM in that case.
-        if (err?.code === "EACCES" || err?.code === "EPERM") {
-          const macHint =
-            process.platform === "darwin"
-              ? " — grant Full Disk Access to the openscience binary in System Settings → Privacy & Security"
-              : ""
-          throw new HTTPException(403, {
-            message: `permission denied reading ${resolved}${macHint}`,
-          })
-        }
-        if (err?.code === "ENOENT") {
-          throw new HTTPException(404, { message: `path not found: ${resolved}` })
-        }
-        // Unknown error: log and degrade to empty so the request still
-        // completes — preserves the prior behaviour for benign cases.
-        log.warn("file.list readdir failed", { resolved, error: String(err?.message ?? err) })
-        return [] as fs.Dirent[]
-      })
-    for (const entry of entries) {
-      if (exclude.includes(entry.name)) continue
-      const fullPath = path.join(resolved, entry.name)
-      const relativePath = path.relative(root, fullPath)
-      const nodePath = local ? relativePath : fullPath
-      const type = entry.isDirectory() ? "directory" : "file"
-      // Stat each entry for the file-explorer size / modified columns. Failures
-      // (broken symlink, races) degrade to undefined rather than dropping the row.
-      const stat = await fs.promises.stat(fullPath).catch(() => undefined)
-      nodes.push({
-        name: entry.name,
-        path: nodePath,
-        absolute: fullPath,
-        type,
-        ignored: local ? ignored(type === "directory" ? relativePath + "/" : relativePath) : false,
-        size: stat && type === "file" ? stat.size : undefined,
-        mtime: stat ? Math.round(stat.mtimeMs) : undefined,
-      })
-    }
-    return nodes.sort((a, b) => {
-      if (a.type !== b.type) {
-        return a.type === "directory" ? -1 : 1
+      const nodes: Node[] = []
+      const entries: fs.Dirent[] = await fs.promises
+        .readdir(resolved, { withFileTypes: true })
+        .catch((err: NodeJS.ErrnoException) => {
+          // Surface permission errors as 403 with a TCC-aware message so the
+          // SPA can show "grant Full Disk Access" instead of "0 entries".
+          // macOS blocks Desktop/Documents/Downloads listings for any process
+          // that doesn't have FDA, and node returns EACCES/EPERM in that case.
+          if (err?.code === "EACCES" || err?.code === "EPERM") {
+            const macHint =
+              process.platform === "darwin"
+                ? " — grant Full Disk Access to the openscience binary in System Settings → Privacy & Security"
+                : ""
+            throw new HTTPException(403, {
+              message: `permission denied reading ${resolved}${macHint}`,
+            })
+          }
+          if (err?.code === "ENOENT") {
+            throw new HTTPException(404, { message: `path not found: ${resolved}` })
+          }
+          // Unknown error: log and degrade to empty so the request still
+          // completes — preserves the prior behaviour for benign cases.
+          log.warn("file.list readdir failed", { resolved, error: String(err?.message ?? err) })
+          return [] as fs.Dirent[]
+        })
+      for (const entry of entries) {
+        if (exclude.includes(entry.name)) continue
+        const fullPath = path.join(resolved, entry.name)
+        const relativePath = path.relative(root, fullPath)
+        const nodePath = local ? relativePath : fullPath
+        const type = entry.isDirectory() ? "directory" : "file"
+        // Stat each entry for the file-explorer size / modified columns. Failures
+        // (broken symlink, races) degrade to undefined rather than dropping the row.
+        const stat = await fs.promises.stat(fullPath).catch(() => undefined)
+        nodes.push({
+          name: entry.name,
+          path: nodePath,
+          absolute: fullPath,
+          type,
+          ignored: local ? ignored(type === "directory" ? relativePath + "/" : relativePath) : false,
+          size: stat && type === "file" ? stat.size : undefined,
+          mtime: stat ? Math.round(stat.mtimeMs) : undefined,
+        })
       }
-      return a.name.localeCompare(b.name)
+      return nodes.sort((a, b) => {
+        if (a.type !== b.type) {
+          return a.type === "directory" ? -1 : 1
+        }
+        return a.name.localeCompare(b.name)
+      })
     })
   }
+
+  /** Generated caches and vendored trees never help a person find their own
+   * file, and an isolated project folder has no .gitignore to keep them out
+   * of the scan. A query that names one of them still reaches it. */
+  const SEARCH_NOISE = new Set([
+    "__pycache__",
+    ".ruff_cache",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ipynb_checkpoints",
+    "node_modules",
+    ".venv",
+    "venv",
+    ".DS_Store",
+    ".openscience",
+  ])
 
   export async function search(input: { query: string; limit?: number; dirs?: boolean; type?: "file" | "directory" }) {
     const query = input.query.trim()
@@ -1016,10 +1119,8 @@ export namespace File {
 
     const result = await state().then((x) => x.files())
 
-    const hidden = (item: string) => {
-      const normalized = item.replaceAll("\\", "/").replace(/\/+$/, "")
-      return normalized.split("/").some((p) => p.startsWith(".") && p.length > 1)
-    }
+    const segments = (item: string) => item.replaceAll("\\", "/").split("/").filter(Boolean)
+    const hidden = (item: string) => segments(item).some((p) => p.startsWith(".") && p.length > 1)
     const preferHidden = query.startsWith(".") || query.includes("/.")
     const sortHiddenLast = (items: string[]) => {
       if (preferHidden) return items
@@ -1032,13 +1133,27 @@ export namespace File {
       }
       return [...visible, ...hiddenItems]
     }
+    const lower = query.toLowerCase()
+    const wanted =
+      lower.length >= 3 &&
+      [...SEARCH_NOISE].some((name) => lower.includes(name.toLowerCase()) || name.toLowerCase().includes(lower))
+    const quiet = (items: string[]) =>
+      wanted ? items : items.filter((item) => !segments(item).some((p) => SEARCH_NOISE.has(p)))
     if (!query) {
-      if (kind === "file") return result.files.slice(0, limit)
-      return sortHiddenLast(result.dirs.toSorted()).slice(0, limit)
+      if (kind === "file") return quiet(result.files).slice(0, limit)
+      if (kind === "directory") return sortHiddenLast(quiet(result.dirs).toSorted()).slice(0, limit)
+      // Nothing typed yet: the project's top level, folders before files at
+      // each depth, is what a person browsing for a file expects, not a list
+      // of its deepest directories.
+      const depth = (item: string) => segments(item).length
+      const folder = (item: string) => (item.endsWith("/") ? 0 : 1)
+      const shallow = (a: string, b: string) => depth(a) - depth(b) || folder(a) - folder(b) || a.localeCompare(b)
+      return sortHiddenLast([...quiet(result.dirs), ...quiet(result.files)].toSorted(shallow)).slice(0, limit)
     }
 
-    const items =
-      kind === "file" ? result.files : kind === "directory" ? result.dirs : [...result.files, ...result.dirs]
+    const items = quiet(
+      kind === "file" ? result.files : kind === "directory" ? result.dirs : [...result.files, ...result.dirs],
+    )
 
     const searchLimit = kind === "directory" && !preferHidden ? limit * 20 : limit
     const sorted = fuzzysort.go(query, items, { limit: searchLimit }).map((r) => r.target)
@@ -1059,21 +1174,31 @@ export namespace File {
   }
 
   /**
-   * Resolve a chat-authored relative file reference across the exact roots the
-   * active session may read. Managed projects intentionally keep their durable
-   * directory separate from user-connected source folders, so joining every
+   * Resolve a chat-authored relative reference or an exact absolute receipt
+   * across the roots the active session may read. Managed projects keep their
+   * durable directory separate from user-connected source folders, so joining every
    * relative link to Instance.directory alone cannot open those source files.
    *
-   * Explicit relative paths are checked directly. A bare filename gets a
-   * bounded recursive lookup. Both modes fail closed when multiple authorized
+   * Absolute receipts never fall back to a different file. Relative paths are
+   * checked directly, then a shortened path gets a bounded recursive lookup.
+   * Relative lookups fail closed when multiple authorized
    * files match, and the eventual read still re-authorizes the returned path so
    * revocation wins between resolution and I/O.
    */
   export async function resolveReference(reference: string, options: { sessionID: string }) {
-    const requested = relativeReference(reference)
+    const input = reference.trim()
+    if (!input || input.length > 4_096 || input.includes("\0")) return
+    const absolute = path.isAbsolute(input)
+    const requested = absolute ? input : relativeReference(input)
     if (!requested) return
 
-    const rawRoots = [Instance.directory, ...(await SessionFilesystem.processReadRoots(options.sessionID))]
+    // Preview is brokered I/O, not a native process. Exact session-owned tool
+    // output grants are intentionally absent from processReadRoots(), but their
+    // owner must still be able to open a trajectory's output-file link.
+    const grants = await SessionFilesystem.list(options.sessionID)
+    const rawRoots = grants
+      .filter((grant) => grant.scope !== "once" && !grant.time.consumed && !grant.time.revoked)
+      .map((grant) => grant.path)
     const roots: Array<{ path: string; type: "file" | "directory" }> = []
     for (const raw of rawRoots) {
       const canonical = await Filesystem.canonical(raw)
@@ -1094,7 +1219,14 @@ export namespace File {
         (stat) => stat.isFile(),
         () => false,
       )
-      if (regular) matches.add(canonical)
+      if (!regular) return
+      if (!(await SessionFilesystem.allows({ sessionID: options.sessionID, path: canonical, access: "read" }))) return
+      matches.add(canonical)
+    }
+
+    if (absolute) {
+      for (const root of roots) await add(requested, root.path)
+      return matches.size === 1 ? matches.values().next().value : undefined
     }
 
     const nested = requested.includes("/")
@@ -1104,28 +1236,38 @@ export namespace File {
         await add(path.resolve(root.path, ...requested.split("/")), root.path)
         if (matches.size > 1) return
       }
-      return matches.size === 1 ? matches.values().next().value : undefined
+      if (matches.size === 1) return matches.values().next().value
     }
 
     let scanned = 0
     let complete = true
-    for (const root of roots) {
-      if (root.type === "file") {
-        if (path.basename(root.path) === requested) matches.add(root.path)
-        if (matches.size > 1) return
-        continue
-      }
-      for await (const file of Ripgrep.files({ cwd: root.path })) {
-        scanned += 1
-        if (scanned > referenceScanLimit) {
-          complete = false
-          break
+    const signal = AbortSignal.timeout(30_000)
+    const glob = `**/${requested.replace(/([*?\[\]{}\\])/g, "\\$1")}`
+    try {
+      for (const root of roots) {
+        if (root.type === "file") {
+          if (path.basename(root.path) === requested) await add(root.path, root.path)
+          if (matches.size > 1) return
+          continue
         }
-        if (path.basename(file) !== requested) continue
-        await add(path.resolve(root.path, file), root.path)
-        if (matches.size > 1) return
+        // File links may name ignored outputs. Filter inside rg so unrelated
+        // dependency trees cannot exhaust the candidate budget first.
+        for await (const file of Ripgrep.files({ cwd: root.path, noIgnore: true, glob: [glob], signal })) {
+          scanned += 1
+          if (scanned > referenceScanLimit) {
+            complete = false
+            break
+          }
+          const relative = file.split(path.sep).join("/")
+          if (relative !== requested && !relative.endsWith(`/${requested}`)) continue
+          await add(path.resolve(root.path, file), root.path)
+          if (matches.size > 1) return
+        }
+        if (!complete) break
       }
-      if (!complete) break
+    } catch (error) {
+      if (signal.aborted) return
+      throw error
     }
     return complete && matches.size === 1 ? matches.values().next().value : undefined
   }

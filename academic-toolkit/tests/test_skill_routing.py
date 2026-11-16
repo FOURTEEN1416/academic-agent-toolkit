@@ -63,6 +63,9 @@ KNOWN_LEXICAL_LIMITS: tuple[tuple[str, str, str], ...] = (
      "英文竞赛编译与 docx 写作词法重叠：前者只编译既有 .tex 不做创作，后者 docx 模式写作；描述层已互带改用判别句"),
     ("latex-paper-collab-breadth", "latex-paper-collab-depth",
      "同族广度/深度协作者：breadth 管方向发散、depth 管逐点深挖；描述层已互带只用于/改用判别句"),
+    ("anti-ai-detection", "paper-humanize",
+     "判别句互引导致词法互染：双方描述互写对方技能名（'区别于…'），AI 类词元高度重叠；"
+     "中文 AI 特征检测/使用声明与英文去 AI 味改写靠描述层判别句与 StepAction 绑定区分"),
 )
 
 # ── 词法可分的歧义对（必须给出"判别查询"并验证能正确排序） ──────────────────

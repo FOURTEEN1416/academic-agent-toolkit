@@ -18,7 +18,7 @@ Run a comprehensive set of checks on a LaTeX paper before submission.
 
 The skill runs these checks, ideally in parallel via subagents:
 
-### 1. References (subagent: check-refs skill)
+### 1. References (subagent: 本仓引用核验技能 paper-citation-verify / lit-citation-verify / citation-check)
 Verify all cited papers exist in academic databases. Flag unverified entries, suggest missing DOIs.
 
 ### 2. LaTeX cleanup (subagent: latex-cleanup skill)
@@ -53,7 +53,7 @@ Read the paper and check:
 
 ### 1. Find the paper
 
-Same search logic as check-refs:
+Same search logic as the references check:
 1. User-provided path
 2. `paper/current/main.tex`
 3. `paper/main.tex`
@@ -63,7 +63,7 @@ Same search logic as check-refs:
 ### 2. Run checks in parallel
 
 Launch subagents for independent checks:
-- **Agent 1**: Run check-refs (bibsleuth existence check)
+- **Agent 1**: Run 本仓引用核验技能（paper-citation-verify / lit-citation-verify / citation-check，按稿件与 .bib 形态选择）
 - **Agent 2**: Run latex-cleanup skill on the `.tex` file
 - **Agent 3**: Run `make` in the paper directory if Makefile exists
 - **Agent 4**: Figure format check — scan all `\includegraphics` paths and flag bitmap formats (PNG, JPG, TIFF, BMP)
@@ -109,7 +109,7 @@ For each category, offer to fix what can be automated:
 ### 6. Offer content review
 
 After presenting the report and addressing formatting/technical issues, offer:
-"Want me to run `/critique-manuscript` to check for content-level weaknesses reviewers might flag?"
+"Want me to run `paper-self-review` to check for content-level weaknesses reviewers might flag?"
 
 This is a deeper, separate pass that evaluates the paper's substance (literature, methodology, claims, etc.) rather than its formatting and technical correctness.
 

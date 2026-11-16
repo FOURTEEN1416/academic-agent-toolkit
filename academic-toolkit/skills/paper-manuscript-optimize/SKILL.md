@@ -13,6 +13,8 @@ This workflow is not tied to a single paper or field. Use it across manuscript p
 
 Core rule: do not spend effort polishing prose that sits on top of an unstable claim, a broken evidence chain, or inconsistent figures.
 
+> **与 `paper-writing-scientific` 的分工**：本技能是**修订期**的自上而下五级审计（claim → evidence chain → figures → terminology → sentence polish）；起草期/常规写作的 7A（逆向大纲与主张-证据核对）/7B（定稿前怀疑式自审）流程用 `paper-writing-scientific`。 revising a single section inside an ongoing draft → `paper-writing-scientific`; realigning a whole drifting manuscript → 本技能。
+
 ## When To Use
 
 Use this skill when:

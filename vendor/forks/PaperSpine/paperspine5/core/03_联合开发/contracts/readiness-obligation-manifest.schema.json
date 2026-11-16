@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/readiness-obligation-manifest.schema.json",
+  "title": "Revision-bound readiness obligation manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "contract_version", "required_predicates_by_tier", "manifest_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.readiness-obligation-manifest"},
+    "contract_version": {"const": "1.0"},
+    "required_predicates_by_tier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonical", "independent_quality", "final_render", "target_package", "author_close"],
+      "properties": {
+        "canonical": {"$ref": "#/$defs/predicateIds"},
+        "independent_quality": {"$ref": "#/$defs/predicateIds"},
+        "final_render": {"$ref": "#/$defs/predicateIds"},
+        "target_package": {"$ref": "#/$defs/predicateIds"},
+        "author_close": {"$ref": "#/$defs/predicateIds"}
+      }
+    },
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "predicateIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

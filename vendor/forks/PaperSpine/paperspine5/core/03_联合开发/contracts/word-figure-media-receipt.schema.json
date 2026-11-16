@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/word-figure-media-receipt.schema.json",
+  "title": "Hash-bound reader-visible Word figure media receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "contract_version",
+    "task_id",
+    "revision_id",
+    "word_source",
+    "selected_figure_count",
+    "visible_supported_media_count",
+    "mappings",
+    "render_evidence",
+    "unsupported_media",
+    "status",
+    "external_action_authorized",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.word-figure-media-receipt"},
+    "contract_version": {"const": "1.0"},
+    "task_id": {"type": "string", "minLength": 1},
+    "revision_id": {"type": "string", "minLength": 1},
+    "word_source": {"type": "object", "required": ["sha256"]},
+    "selected_figure_count": {"type": "integer", "minimum": 0},
+    "visible_supported_media_count": {"type": "integer", "minimum": 0},
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["figure_id", "source_artifact", "word_media", "conversion"],
+        "properties": {
+          "figure_id": {"type": "string", "minLength": 1},
+          "source_artifact": {
+            "type": "object",
+            "required": ["artifact_id", "sha256", "size_bytes"]
+          },
+          "word_media": {
+            "type": "object",
+            "required": ["path", "suffix", "media_type", "sha256", "size_bytes"],
+            "properties": {
+              "path": {"type": "string", "pattern": "^word/media/.+\\.png$"},
+              "suffix": {"const": ".png"},
+              "media_type": {"const": "image/png"},
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "size_bytes": {"type": "integer", "minimum": 9}
+            }
+          },
+          "conversion": {
+            "type": "object",
+            "required": ["method", "scope", "canonical_source_preserved"],
+            "properties": {
+              "method": {"enum": ["pdf-to-png", "source-to-png"]},
+              "scope": {"const": "word-delivery-surface-only"},
+              "canonical_source_preserved": {"const": true}
+            }
+          }
+        }
+      }
+    },
+    "render_evidence": {
+      "type": "object",
+      "required": ["surface_kind", "page_count", "pages"],
+      "properties": {
+        "surface_kind": {"const": "word"},
+        "page_count": {"type": "integer", "minimum": 1},
+        "pages": {"type": "array", "minItems": 1, "items": {"type": "object"}}
+      }
+    },
+    "unsupported_media": {"type": "array", "maxItems": 0},
+    "status": {"const": "PASS"},
+    "external_action_authorized": {"const": false},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

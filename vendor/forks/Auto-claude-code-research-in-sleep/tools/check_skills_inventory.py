@@ -65,11 +65,27 @@ def skill_names(root: Path) -> set[str]:
 
 
 def allowed_tools(text: str) -> list[str]:
-    """Tokens on the frontmatter `allowed-tools:` line (empty if absent)."""
-    match = re.search(r"^allowed-tools:\s*(.+)$", text, flags=re.MULTILINE)
+    """Read `allowed-tools` only from a leading YAML frontmatter block.
+
+    Markdown body examples must not be mistaken for an actual tool grant.
+    Keep the canonical single-line comma-separated format used by ARIS.
+    """
+    frontmatter = re.match(
+        r"\A\ufeff?---\r?\n(.*?)\r?\n---(?:\r?\n|\Z)", text, flags=re.DOTALL
+    )
+    if not frontmatter:
+        return []
+    match = re.search(
+        r"^allowed-tools:[ \t]*([^\r\n]+)\r?$", frontmatter.group(1), flags=re.MULTILINE
+    )
     if not match:
         return []
     return [tok.strip() for tok in match.group(1).split(",") if tok.strip()]
+
+
+def base_tool(tool_rule: str) -> str:
+    """Return the base tool name from `Tool` or `Tool(scope)` syntax."""
+    return tool_rule.split("(", 1)[0].strip()
 
 
 def frontmatter_split(text: str) -> str:
@@ -200,7 +216,7 @@ def check_inventory() -> list[str]:
     # vestigial/boilerplate grant and fails the drift check.
     for skill_file in sorted(SKILLS_ROOT.glob("*/SKILL.md")):
         text = read(skill_file)
-        if "Agent" not in allowed_tools(text):
+        if not any(base_tool(rule) == "Agent" for rule in allowed_tools(text)):
             continue
         if "fan-out-pattern.md" not in frontmatter_split(text):
             rel = skill_file.relative_to(REPO_ROOT)

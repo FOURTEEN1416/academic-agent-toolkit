@@ -8,6 +8,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "src" / "scripts" / "paperspine_update.py"
@@ -92,9 +93,11 @@ class PaperSpineUpdateScriptTests(unittest.TestCase):
         env.update(
             {
                 "PAPERSPINE_CODEX_SKILLS_DIR": str(base / "codex" / "skills"),
+                "PAPERSPINE_CODEX_PROMPTS_DIR": str(base / "codex" / "prompts"),
                 "PAPERSPINE_CLAUDE_SKILLS_DIR": str(base / "claude" / "skills"),
                 "PAPERSPINE_CLAUDE_COMMANDS_DIR": str(base / "claude" / "commands"),
                 "PAPERSPINE_OPENCLAW_SKILLS_DIR": str(base / "openclaw" / "skills"),
+                "PAPERSPINE_HERMES_SKILLS_DIR": str(base / "hermes" / "skills"),
             }
         )
         return subprocess.run(
@@ -134,16 +137,32 @@ class PaperSpineUpdateScriptTests(unittest.TestCase):
             write_json(base / "config" / "install_state.json", {"installed_version": "2.0.0-rc.2"})
             config = {"ui_language": "zh"}
             write_json(base / "config" / "config.json", config)
+            legacy = base / "codex" / "skills" / "paper-spine-update" / "SKILL.md"
+            legacy.parent.mkdir(parents=True)
+            legacy.write_text("legacy updater\n", encoding="utf-8")
             result = self.run_updater(base, archive, "--yes")
             self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            self.assertIn("Reload or restart", result.stdout)
             self.assertTrue((base / "codex" / "skills" / "paper-spine" / "SKILL.md").exists())
+            self.assertTrue((base / "codex" / "prompts" / "paperspine.md").exists())
             self.assertTrue((base / "claude" / "skills" / "paper-spine" / "SKILL.md").exists())
             self.assertTrue((base / "claude" / "commands" / "paperspine.md").exists())
             self.assertTrue((base / "openclaw" / "skills" / "paper-spine" / "SKILL.md").exists())
+            self.assertTrue(
+                (
+                    base
+                    / "hermes"
+                    / "skills"
+                    / "academic-writing"
+                    / "paper-spine"
+                    / "SKILL.md"
+                ).exists()
+            )
+            self.assertFalse(legacy.exists())
             self.assertEqual(json.loads((base / "config" / "config.json").read_text(encoding="utf-8")), config)
             state = json.loads((base / "config" / "install_state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["installed_version"], "2.0.0-rc.3")
-            self.assertEqual(state["targets"], ["codex", "claude", "openclaw"])
+            self.assertEqual(state["targets"], ["codex", "claude", "openclaw", "hermes"])
 
     def test_broken_archive_fails_without_overwriting_existing_install(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -181,6 +200,59 @@ class PaperSpineUpdateScriptTests(unittest.TestCase):
             state = json.loads((base / "config" / "install_state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["installed_version"], "2.0.0")
 
+    def test_auto_update_is_opt_in_and_disabled_preflight_does_not_install(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            repo = create_repo(base / "PaperSpine-main", "2.0.0")
+            archive = zip_repo(repo, base / "paperspine.zip")
+            write_json(base / "config" / "install_state.json", {"installed_version": "1.0.0"})
+            result = self.run_updater(base, archive, "--auto")
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            self.assertIn("disabled", result.stdout)
+            self.assertFalse((base / "codex" / "skills" / "paper-spine").exists())
+
+    def test_enabled_auto_update_runs_once_and_records_policy(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            repo = create_repo(base / "PaperSpine-main", "2.0.0")
+            archive = zip_repo(repo, base / "paperspine.zip")
+            write_json(base / "config" / "install_state.json", {"installed_version": "1.0.0"})
+
+            enabled = self.run_updater(
+                base,
+                archive,
+                "--enable-auto-update",
+                "--interval-hours",
+                "24",
+            )
+            self.assertEqual(enabled.returncode, 0, enabled.stderr + enabled.stdout)
+            result = self.run_updater(base, archive, "--auto")
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            self.assertIn("updated to 2.0.0", result.stdout)
+
+            policy = json.loads((base / "config" / "update_policy.json").read_text(encoding="utf-8"))
+            self.assertTrue(policy["auto_update"])
+            self.assertEqual(policy["interval_hours"], 24)
+            self.assertEqual(policy["last_result"], "updated_or_current")
+            self.assertIsNotNone(policy["last_checked_at"])
+
+            second = self.run_updater(base, archive, "--auto")
+            self.assertEqual(second.returncode, 0, second.stderr + second.stdout)
+            self.assertIn("not due", second.stdout)
+
+    def test_auto_update_can_be_disabled_and_status_is_network_free(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            repo = create_repo(base / "PaperSpine-main", "2.0.0")
+            archive = zip_repo(repo, base / "paperspine.zip")
+            enabled = self.run_updater(base, archive, "--enable-auto-update")
+            self.assertEqual(enabled.returncode, 0, enabled.stderr + enabled.stdout)
+            disabled = self.run_updater(base, archive, "--disable-auto-update")
+            self.assertEqual(disabled.returncode, 0, disabled.stderr + disabled.stdout)
+            status = self.run_updater(base, archive, "--auto-status")
+            self.assertEqual(status.returncode, 0, status.stderr + status.stdout)
+            self.assertIn("automatic updates: disabled", status.stdout)
+
 
 class ValidateRepoTests(unittest.TestCase):
     def _import_updater(self):
@@ -196,6 +268,31 @@ class ValidateRepoTests(unittest.TestCase):
         self.assertIn("version", manifest)
         expected = json.loads((ROOT / "dist" / "paperspine_version.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["version"], expected["version"])
+
+    def test_semver_prerelease_precedence_supports_shadow_releases(self) -> None:
+        updater = self._import_updater()
+        ordered = (
+            "0.4.0-alpha.1",
+            "0.4.0-alpha.2",
+            "0.4.0-beta.1",
+            "0.4.0-rc.1",
+            "0.4.0",
+        )
+        for lower, higher in zip(ordered[:-1], ordered[1:], strict=True):
+            self.assertLess(updater.compare_versions(lower, higher), 0)
+            self.assertGreater(updater.compare_versions(higher, lower), 0)
+
+    def test_semver_build_metadata_does_not_change_precedence(self) -> None:
+        updater = self._import_updater()
+        self.assertEqual(
+            updater.compare_versions("0.4.0-alpha.1+build.7", "0.4.0-alpha.1+build.9"),
+            0,
+        )
+
+    def test_semver_rejects_numeric_prerelease_leading_zero(self) -> None:
+        updater = self._import_updater()
+        with self.assertRaises(updater.UpdateError):
+            updater.version_key("0.4.0-alpha.01")
 
     def test_validate_repo_warns_but_accepts_missing_optional(self) -> None:
         # Issue #13 forward-compat: a doc/installer renamed or dropped in a newer
@@ -217,12 +314,28 @@ class ValidateRepoTests(unittest.TestCase):
             with self.assertRaises(updater.UpdateError):
                 updater.validate_repo(root)
 
-    def test_update_reference_points_to_installed_script_path(self) -> None:
-        """update.md must reference the real installed path, not the legacy skill."""
+    def test_update_reference_explains_suite_preflight_and_legacy_bridge(self) -> None:
         doc = (ROOT / "src" / "skill" / "references" / "update.md").read_text(encoding="utf-8")
-        self.assertNotIn("paper-spine-update", doc)
-        self.assertIn(r"paper-spine\scripts\paperspine_update.py", doc)
-        self.assertIn("paper-spine/scripts/paperspine_update.py", doc)
+        self.assertIn("--preflight", doc)
+        self.assertIn("paperspine-updater/1", doc)
+        self.assertIn("separate version sequences", doc)
+        self.assertIn("macOS arm64", doc)
+        self.assertNotIn("full-suite update is currently Windows x64 only", doc)
+
+    def test_orchestrator_and_host_entries_share_suite_preflight(self) -> None:
+        skill = (ROOT / "src" / "skill" / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("--preflight --yes", skill)
+        for path in ("src/adapters/claude/commands/paperspine.md", "src/adapters/codex/prompts/paperspine.md"):
+            entry = (ROOT / path).read_text(encoding="utf-8")
+            self.assertIn("--preflight --yes", entry)
+            self.assertNotIn("without an update\npreflight", entry)
+
+    def test_main_skill_frontmatter_does_not_claim_verified_end_to_end_delivery(self) -> None:
+        skill = (ROOT / "src" / "skill" / "SKILL.md").read_text(encoding="utf-8")
+        frontmatter = skill.split("---", 2)[1]
+        self.assertNotIn("end to end", frontmatter)
+        self.assertNotIn("producing verified", frontmatter)
+        self.assertIn("Blocks unsupported readiness", frontmatter)
 
     def test_resolve_claude_settings_dir_honors_env_override(self) -> None:
         """The overrides cleanup must never touch the real ~/.claude."""
@@ -240,6 +353,35 @@ class ValidateRepoTests(unittest.TestCase):
                     os.environ["PAPERSPINE_CLAUDE_SKILLS_DIR"] = old
             self.assertEqual(resolved, override.parent)
             self.assertNotEqual(resolved, Path.home() / ".claude")
+
+    def test_host_install_rolls_back_if_a_later_entry_fails(self) -> None:
+        updater = self._import_updater()
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            repo = create_repo(base / "PaperSpine-main", "9.9.9")
+            skills = base / "installed" / "codex" / "skills"
+            prompts = base / "installed" / "codex" / "prompts"
+            existing_skill = skills / "paper-spine" / "SKILL.md"
+            existing_prompt = prompts / "paperspine.md"
+            existing_skill.parent.mkdir(parents=True)
+            existing_prompt.parent.mkdir(parents=True)
+            existing_skill.write_text("old skill\n", encoding="utf-8")
+            existing_prompt.write_text("old prompt\n", encoding="utf-8")
+
+            env = {
+                "PAPERSPINE_CODEX_SKILLS_DIR": str(skills),
+                "PAPERSPINE_CODEX_PROMPTS_DIR": str(prompts),
+            }
+            with mock.patch.dict(os.environ, env), mock.patch.object(
+                updater,
+                "copy_file",
+                side_effect=OSError("simulated prompt write failure"),
+            ):
+                with self.assertRaises(updater.UpdateError):
+                    updater.install_target(repo, "codex")
+
+            self.assertEqual(existing_skill.read_text(encoding="utf-8"), "old skill\n")
+            self.assertEqual(existing_prompt.read_text(encoding="utf-8"), "old prompt\n")
 
 
 if __name__ == "__main__":

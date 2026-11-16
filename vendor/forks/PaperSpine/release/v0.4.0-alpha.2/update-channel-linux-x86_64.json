@@ -1,0 +1,14 @@
+{
+  "protocol": "paperspine-updater/1",
+  "product": "paperspine",
+  "product_version": "0.4.0-alpha.2",
+  "platform": "linux-x86_64",
+  "bundle": {
+    "sha256": "36f3ef42cbb8245a775c918b47dd8ce048a5eefd2c66d05b0aecd465110a3fd6",
+    "bytes": 56218667,
+    "platform": "linux-x86_64",
+    "build_id": "w7p-linux-x86_64-3a12feb9dbdc",
+    "url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.2/paperspine5-suite-0.4.0-alpha.2-linux-x86_64.zip",
+    "product_version": "0.4.0-alpha.2"
+  }
+}

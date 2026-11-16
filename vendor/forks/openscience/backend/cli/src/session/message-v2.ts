@@ -1,3 +1,4 @@
+import { SubagentResult } from "./subagent-result"
 import { BusEvent } from "@/bus/bus-event"
 import z from "zod"
 import { NamedError } from "@synsci/util/error"
@@ -5,19 +6,25 @@ import { APICallError, convertToModelMessages, LoadAPIKeyError, type ModelMessag
 import { Identifier } from "../id/id"
 import { LSP } from "../lsp"
 import { Snapshot } from "@/snapshot"
-import { fn } from "@/util/fn"
+import { fn } from "@synsci/util/fn"
 import { Storage } from "@/storage/storage"
 import { ProviderTransform } from "@/provider/transform"
 import { STATUS_CODES } from "http"
-import { iife } from "@/util/iife"
+import { iife } from "@synsci/util/iife"
 import { type SystemError } from "bun"
 import type { Provider } from "@/provider/provider"
 import { correctImageMimeFromBase64 } from "@/util/image"
 import { Lock } from "@/util/lock"
 import { Token } from "@/util/token"
 import { Inference } from "@/provider/inference"
+import { CredentialRevocation } from "@/credentials/revocation"
+import { UsageEvidence } from "./usage-evidence"
+import { SessionRestart } from "./restart"
+import { PayloadIntegrity } from "@/tool/payload-integrity"
+import { Log } from "@/util/log"
 
 export namespace MessageV2 {
+  const log = Log.create({ service: "session.message" })
   export const ResearchEffort = z.enum(["normal", "ultra"]).meta({
     ref: "ResearchEffort",
   })
@@ -34,6 +41,7 @@ export namespace MessageV2 {
         modelID: z.string(),
       })
       .optional(),
+    workerModelOverride: z.boolean().optional().describe("Explicit user model override for this run"),
     autonomy: DelegationAutonomy.default("balanced"),
   })
   export type DelegationSettings = z.infer<typeof DelegationSettings>
@@ -55,6 +63,7 @@ export namespace MessageV2 {
   }
 
   export const OutputLengthError = NamedError.create("MessageOutputLengthError", z.object({}))
+  export const ContextWindowError = NamedError.create("MessageContextWindowError", z.object({ message: z.string() }))
   export const AbortedError = NamedError.create("MessageAbortedError", z.object({ message: z.string() }))
   export const AuthError = NamedError.create(
     "ProviderAuthError",
@@ -217,10 +226,23 @@ export namespace MessageV2 {
     // What asked for this compaction — carried through to summary telemetry so we can
     // tell proactive (0.75 threshold) from reactive (overflow backstop) from manual.
     trigger: z.enum(["proactive", "overflow", "manual"]).optional(),
+    /** The session's root user message, pinned verbatim ahead of the summary
+     * in every compacted view so the original instruction survives. */
+    rootID: z.string().optional(),
+    /** Tokens in the context before the fold and in the handoff that replaced
+     * the folded head, written when the summary is accepted; the trace shows
+     * the reader what the compaction did. */
+    before: z.number().int().nonnegative().optional(),
+    after: z.number().int().nonnegative().optional(),
   }).meta({
     ref: "CompactionPart",
   })
   export type CompactionPart = z.infer<typeof CompactionPart>
+
+  export const SubtaskAttachment = FilePart.omit({ id: true, messageID: true, sessionID: true }).meta({
+    ref: "SubtaskAttachment",
+  })
+  export type SubtaskAttachment = z.infer<typeof SubtaskAttachment>
 
   export const SubtaskPart = PartBase.extend({
     type: z.literal("subtask"),
@@ -234,6 +256,7 @@ export namespace MessageV2 {
       })
       .optional(),
     command: z.string().optional(),
+    attachments: SubtaskAttachment.array().optional(),
   }).meta({
     ref: "SubtaskPart",
   })
@@ -261,6 +284,26 @@ export namespace MessageV2 {
 
   export const StepFinishPart = PartBase.extend({
     type: z.literal("step-finish"),
+    usage: z
+      .object({
+        route: z.enum(["managed", "byok", "chatgpt", "subscription", "local", "custom"]),
+        provider: z.string(),
+        model: z.string(),
+        time: z.number(),
+        /** Client-minted id of the HTTP attempt that produced this step. */
+        call: z.string().optional(),
+        /** Atlas hold that reserved this step's Ace charge (managed route only). */
+        hold: z.string().optional(),
+        /** Provider-owned response or request identity, when the route exposes one. */
+        providerRequest: z.string().optional(),
+        /** Exact provider counts, with null for unreported dimensions. */
+        reported: UsageEvidence.Reported.optional(),
+        reportedCostUSD: z.number().finite().nonnegative().nullable().optional(),
+        cost: UsageEvidence.Cost.optional(),
+      })
+      .optional(),
+    /** Delivered speed when the provider reports it; otherwise the selected speed. */
+    tier: z.string().optional(),
     reason: z.string(),
     snapshot: z.string().optional(),
     cost: z.number(),
@@ -398,10 +441,13 @@ export namespace MessageV2 {
           // Legacy reviewer continuations still parse so 2.x session archives
           // remain readable; SessionLoopState normalizes both to ordinary task
           // continuations and no reviewer workflow is launched.
-          kind: z.enum(["output", "contract", "review", "review-summary", "compaction", "task"]),
+          kind: z.enum(["output", "contract", "review", "review-summary", "compaction", "task", "context", "harness"]),
           text: z.string(),
           epoch: z.string(),
           transaction: z.string(),
+          /** Bounded original request text retained only for tool/capability
+           * routing after the oversized turn itself is compacted away. */
+          routing: z.string().max(8_000).optional(),
           /** Semantic research progress captured by the durable controller. */
           progress: z
             .string()
@@ -418,6 +464,14 @@ export namespace MessageV2 {
           focus: z.string().optional(),
           handoffFile: z.string().optional(),
           trigger: z.enum(["proactive", "overflow", "manual"]).optional(),
+          /** Identifies the preflight continuation whose older error this
+           * carrier is allowed to pass while it performs one bounded retry. */
+          recovery: z
+            .object({
+              type: z.literal("preflight"),
+              continuationID: Identifier.schema("message"),
+            })
+            .optional(),
           before: z.number().nonnegative().optional(),
           headTokens: z.number().nonnegative().optional(),
           continuationID: Identifier.schema("message").optional(),
@@ -430,7 +484,11 @@ export namespace MessageV2 {
     delegationSettings: DelegationSettings.optional(),
     variant: z.string().optional(),
     tier: z.string().optional(),
+    context: z.number().int().positive().optional(),
     inference: Inference.Info.optional(),
+    /** Wall-clock deadline for the work this turn starts (epoch ms). The
+     * budget unit renders time budget and elapsed time from it. */
+    deadline: z.number().int().positive().optional(),
   }).meta({
     ref: "UserMessage",
   })
@@ -457,6 +515,24 @@ export namespace MessageV2 {
     })
   export type Part = z.infer<typeof Part>
 
+  export const ContextComposition = z
+    .object({
+      source: z.literal("estimate"),
+      total: z.number().nonnegative(),
+      tokens: z.object({
+        system: z.number().nonnegative(),
+        definitions: z.number().nonnegative().optional(),
+        text: z.number().nonnegative(),
+        reasoning: z.number().nonnegative(),
+        tool: z.number().nonnegative(),
+        skills: z.number().nonnegative(),
+        image: z.number().nonnegative(),
+        document: z.number().nonnegative().optional(),
+      }),
+    })
+    .meta({ ref: "ContextComposition" })
+  export type ContextComposition = z.infer<typeof ContextComposition>
+
   export const Assistant = Base.extend({
     role: z.literal("assistant"),
     time: z.object({
@@ -466,6 +542,7 @@ export namespace MessageV2 {
     error: z
       .discriminatedUnion("name", [
         AuthError.Schema,
+        ContextWindowError.Schema,
         NamedError.Unknown.Schema,
         OutputLengthError.Schema,
         AbortedError.Schema,
@@ -479,6 +556,8 @@ export namespace MessageV2 {
     internal: z.object({ step: z.number().int().positive() }).optional(),
     /** Named reasoning level resolved from the final provider options for this request. */
     reasoningEffort: z.string().optional(),
+    /** Delivered speed when the provider reports it; otherwise the selected speed. */
+    tier: z.string().optional(),
     /**
      * @deprecated
      */
@@ -490,6 +569,8 @@ export namespace MessageV2 {
     }),
     summary: z.boolean().optional(),
     cost: z.number(),
+    /** Numeric pre-call estimates survive reloads without retaining prompt content. */
+    contextComposition: ContextComposition.optional(),
     // `output` is inclusive; `reasoning` is its provider-reported subset for display.
     tokens: z.object({
       input: z.number(),
@@ -552,35 +633,72 @@ export namespace MessageV2 {
   })
   export type WithParts = z.infer<typeof WithParts>
 
-  // Finish reasons that mean the agent is NOT done — it will call more tools, or the reason
-  // is ambiguous ("unknown") and the loop treats it as "keep going". Everything else ("stop",
-  // "length", …) is a completed turn. The loop uses this to decide whether to keep iterating,
-  // and compaction uses it to decide whether to compact mid-task vs yield after a finished
-  // answer — sharing one predicate so the two can't drift apart.
+  // Provider reasons used for the proactive compaction threshold. The outer
+  // loop also considers settled local tool results through isContinuingTurn.
   export const CONTINUING_FINISH = ["tool-calls", "unknown"]
   export function isContinuing(finish?: string): boolean {
     return !!finish && CONTINUING_FINISH.includes(finish)
   }
 
-  // Whether a completed TURN should keep the agent loop running. Stricter than
-  // isContinuing for the ambiguous "unknown" reason: it only means "keep going"
-  // when the turn actually made a tool call whose result must be fed back. A
-  // text-only turn that finished "unknown" (common with local Ollama models that
-  // don't report a finish reason) produced no continuation signal — re-prompting
-  // the identical context just yields the same text forever (the #176 doom loop),
-  // so treat it as done. Used only by the loop; compaction keeps isContinuing.
-  export function isContinuingTurn(finish: string | undefined, hasToolCall: boolean): boolean {
-    return isContinuing(finish) && (finish !== "unknown" || hasToolCall)
+  /** A settled local result still needs a provider turn even when its finish
+   * reason says "stop". Provider-executed tools and interrupted wrappers have
+   * no local result awaiting interpretation. */
+  export function hasLocalToolResult(parts: readonly Part[]): boolean {
+    return parts.some((part) => {
+      if (part.type !== "tool" || part.metadata?.providerExecuted === true) return false
+      if (part.state.status === "completed") return true
+      if (part.state.status !== "error") return false
+      if (part.state.metadata?.cancelled === true || part.state.metadata?.interrupted === true) return false
+      // Older recovered transcripts predate the explicit interruption marker.
+      return !part.state.error.startsWith("Tool execution was interrupted before completion.")
+    })
   }
 
+  // A text-only unknown finish is complete; repeating it can loop forever.
+  // Terminal limits and errors stay authoritative even when tools ran.
+  export function isContinuingTurn(finish: string | undefined, hasLocalResult: boolean): boolean {
+    if (finish === "stop") return hasLocalResult
+    return isContinuing(finish) && (finish !== "unknown" || hasLocalResult)
+  }
+
+  /** Consecutive continuation turns that may end at the output limit without a
+   * completed tool result or new text before the loop stops asking. */
+  export const OUTPUT_STALL_LIMIT = 2
+
+  /** Resume a truncated turn while its continuations keep producing work. There
+   * is no attempt ceiling: a long document written in chunks is progress. Two
+   * consecutive continuations that only replay the same truncated output (a
+   * `write` larger than the output cap) stop the loop, because every such round
+   * bills the full output budget for nothing. */
   export function outputRecovery(input: {
     finish?: string
     unanswered: boolean
     bare: boolean
-    attempts: number
-  }): "none" | "continue" {
+    stalled: number
+  }): "none" | "continue" | "fail" {
     if (input.finish !== "length" || !input.unanswered || input.bare) return "none"
+    if (input.stalled >= OUTPUT_STALL_LIMIT) return "fail"
     return "continue"
+  }
+
+  /** The replay copy of an OpenRouter reasoning record. The stream delivers a
+   * model's reasoning summary as one `reasoning.summary` item per token, each
+   * wrapped in a hundred bytes of JSON, and every tool call in the step carries
+   * the whole list: one step's summary came back as 450 items and 50 KB. The
+   * upstream needs the signed or encrypted items to continue reasoning; the
+   * summaries are display data, so they stay in the transcript and leave the
+   * request. */
+  export function replayableOpenRouterReplay(metadata: Record<string, unknown> | undefined) {
+    const openrouter = metadata?.openrouter
+    if (!openrouter || typeof openrouter !== "object") return metadata
+    const details = (openrouter as { reasoning_details?: unknown }).reasoning_details
+    if (!Array.isArray(details)) return metadata
+    const kept = details.filter(
+      (detail) =>
+        !(detail && typeof detail === "object" && (detail as { type?: unknown }).type === "reasoning.summary"),
+    )
+    if (kept.length === details.length) return metadata
+    return { ...metadata, openrouter: { ...(openrouter as Record<string, unknown>), reasoning_details: kept } }
   }
 
   function replayableOpenRouterMetadata(metadata: Record<string, unknown> | undefined) {
@@ -597,13 +715,101 @@ export namespace MessageV2 {
     })
   }
 
+  export const TOOL_MEDIA_PROMPT = "Images from the tool results above:"
+
+  /** Which images, in order of appearance, still travel in full under a cap.
+   * A plain "newest N" window would retire one older image for every new one,
+   * and each retirement rewrites an earlier message, which ends the provider's
+   * cached prefix there. Instead the window fills to the cap and then releases
+   * its older half at once, so a session with many figures pays for that
+   * rewrite once per half-window rather than once per figure. */
+  export function retainedImages(order: readonly string[], cap: number): Set<string> {
+    if (cap <= 0) return new Set()
+    const kept: string[] = []
+    for (const id of order) {
+      kept.push(id)
+      if (kept.length > cap) kept.splice(0, kept.length - Math.max(1, Math.ceil(cap / 2)))
+    }
+    return new Set(kept)
+  }
+
+  /** The same window measured in decoded bytes: a proxy or provider accepts a
+   * bounded request body however many images are in it, and one 2K figure
+   * can weigh as much as a dozen plots. Filling to the budget and then
+   * releasing the oldest half of the bytes keeps the cached prefix stable the
+   * same way the count window does. The newest image always travels, so a
+   * single large figure is still governed by the per-image cap alone. */
+  export function retainedImageBytes(
+    order: readonly string[],
+    size: (id: string) => number,
+    budget: number,
+  ): Set<string> {
+    if (budget <= 0) return new Set()
+    const kept: string[] = []
+    let total = 0
+    for (const id of order) {
+      kept.push(id)
+      total += size(id)
+      if (total <= budget) continue
+      while (kept.length > 1 && total > budget / 2) total -= size(kept.shift()!)
+    }
+    return new Set(kept)
+  }
+
+  /** Whether this model's SDK can carry media inside a tool result. Chat
+   * Completions-style transports (OpenRouter, openai-compatible, the Copilot
+   * fork) accept only a string there and JSON-stringify anything else, so a
+   * figure's base64 would be billed as prompt text: a 500 KB PNG became
+   * 170K input tokens on every step until it was pruned. Those transports get
+   * the image as a user message instead, which every image-capable model
+   * reads at image prices. */
+  export function mediaInToolResult(model: Provider.Model, mime: string): boolean {
+    const npm = model.api.npm
+    if (npm === "@ai-sdk/anthropic" || npm === "@ai-sdk/google-vertex/anthropic") return true
+    if (npm === "@ai-sdk/openai" || npm === "@ai-sdk/azure") return true
+    if (npm === "@ai-sdk/amazon-bedrock" || npm === "@ai-sdk/xai") return mime.startsWith("image/")
+    if (npm === "@ai-sdk/google" || npm === "@ai-sdk/google-vertex") {
+      const id = model.api.id.toLowerCase()
+      return id.includes("gemini-3") && !id.includes("gemini-2")
+    }
+    return false
+  }
+
+  /** Whether the model can take this media as input at all, by the same
+   * coarse fallback the request transform applies to user attachments. */
+  function viewable(model: Provider.Model, mime: string): boolean {
+    if (mime.startsWith("image/")) return model.capabilities.input.image || model.capabilities.attachment
+    if (mime === "application/pdf") return model.capabilities.input.pdf || model.capabilities.attachment
+    return false
+  }
+
   export function toModelMessages(
     input: WithParts[],
     model: Provider.Model,
-    options?: { stripMedia?: boolean; keepRecentImages?: number },
+    options?: {
+      stripMedia?: boolean
+      keepRecentImages?: number
+      /** Decoded bytes of inline images one request may carry; older images
+       * past it become placeholders. Set from the route: the managed gateway
+       * takes far less than a provider's own API. */
+      imageBytes?: number
+      /** Longest tool result, in characters, that travels in full; the rest
+       * is cut with a marker. A summarizer that overflowed on the full
+       * transcript gets one more attempt at this reduced fidelity. */
+      toolOutputMaxChars?: number
+      /** Experimental (`compaction.pruneInputs`): a pruned call's long string
+       * arguments are rendered as previews. */
+      reduceInputs?: boolean
+      /** The full transcript `input` is a prefix of. The reasoning boundary
+       * and the image budget are taken from it, so a compaction head rendered
+       * on its own is byte-identical to the same span inside the conversation
+       * and rides the provider's cached prefix instead of re-reading it. */
+      conversation?: WithParts[]
+    },
   ): ModelMessage[] {
     const result: UIMessage[] = []
     const toolNames = new Set<string>()
+    const scope = options?.conversation ?? input
     // P2.1: older tool outputs identical to a more recent call collapse to a back-ref.
     const superseded = supersededOutputs(input)
 
@@ -612,38 +818,53 @@ export namespace MessageV2 {
     // bytes twice, so dedupe by payload rather than MIME or filename.
     const isImage = (mime: string) => mime.startsWith("image/")
     const order: string[] = []
+    const bytes = new Map<string, number>()
     const add = (mime: string, url: string) => {
       if (!isImage(mime)) return
       const id = mediaIdentity(url)
       const found = order.indexOf(id)
       if (found >= 0) order.splice(found, 1)
       order.push(id)
+      bytes.set(id, decodedBytes(url))
     }
-    for (const msg of input)
+    for (const msg of scope)
       for (const part of msg.parts) {
         if (part.type === "file") add(part.mime, part.url)
         if (part.type === "tool" && part.state.status === "completed" && !part.state.time.compacted)
           for (const attachment of part.state.attachments ?? []) add(attachment.mime, attachment.url)
       }
-    const retained = new Set(
-      options?.keepRecentImages === undefined ? order : order.slice(-Math.max(0, options.keepRecentImages)),
-    )
+    const byCount =
+      options?.keepRecentImages === undefined ? new Set(order) : retainedImages(order, options.keepRecentImages)
+    const byBytes =
+      options?.imageBytes === undefined
+        ? new Set(order)
+        : retainedImageBytes(order, (id) => bytes.get(id) ?? 0, options.imageBytes)
+    const retained = new Set([...order].filter((id) => byCount.has(id) && byBytes.has(id)))
+    // One image can never exceed what the whole request may carry.
+    const perImage = options?.imageBytes === undefined ? IMAGE_MAX_BYTES : Math.min(IMAGE_MAX_BYTES, options.imageBytes)
     const emitted = new Set<string>()
     // Returns a placeholder string when this image occurrence should be dropped, else undefined.
     const dropImage = (mime: string, url: string, filename?: string): string | undefined => {
+      if (mime === "application/pdf" && url.startsWith("data:")) {
+        const pages = pdfPages(url)
+        if (pages > PDF_MAX_PAGES) return oversizedPdfNote(pages, filename)
+        return undefined
+      }
       if (!isImage(mime)) return undefined
       if (options?.stripMedia) return `[image omitted${filename ? `: ${filename}` : ""}]`
       // Oversized guard (P2.4): a too-large image is replaced by an actionable resize
       // nudge even when it is a recent image we would otherwise keep — shipping it would
-      // 400 the request. Independent of the recency budget below.
-      const oversized = oversizedImageNudge(url, filename)
+      // 400 the request, or 502 at a proxy whose body limit is below the provider's.
+      // Independent of the recency budget below.
+      const oversized = oversizedImageNudge(url, filename, perImage)
       if (oversized) return oversized
       const id = mediaIdentity(url)
       if (emitted.has(id)) return DUPLICATE_IMAGE
       emitted.add(id)
-      return !retained.has(id)
-        ? `[older image omitted to save context${filename ? `: ${filename}` : ""} — read it again if you need it]`
-        : undefined
+      if (retained.has(id)) return undefined
+      return byCount.has(id)
+        ? `[older image omitted to keep this request under the route's image limit${filename ? `: ${filename}` : ""} — read it again if you need it]`
+        : `[older image omitted to save context${filename ? `: ${filename}` : ""} — read it again if you need it]`
     }
 
     const toModelOutput = (output: unknown) => {
@@ -681,8 +902,31 @@ export namespace MessageV2 {
       return { type: "json", value: output as never }
     }
 
-    for (const msg of input) {
+    // Reasoning is replayed for the work in progress, everything since the
+    // person's last request, and dropped for the turns before it. Anthropic
+    // strips earlier turns' thinking server-side; OpenAI renders earlier turns'
+    // encrypted reasoning into context on GPT-5.6+ and bills it as input on
+    // every step, and this session carried 139 items of it. The transcript
+    // keeps the decisions. The boundary is the person's message, not any
+    // user-role message: a worker's result or a study update lands mid-work,
+    // and stripping there would rewrite the prefix the cache holds for
+    // nothing, while a person's request usually follows a pause that has
+    // cooled the cache anyway. A compaction head is rendered against the
+    // conversation's boundary, which lies in the verbatim tail beyond it:
+    // every head message is an earlier turn there, so it is one here too.
+    const boundary = scope.findLastIndex(
+      (msg) =>
+        msg.info.role === "user" &&
+        msg.parts.some((part) => (part.type === "text" && !part.synthetic) || part.type === "file"),
+    )
+    const lastUser = iife(() => {
+      if (scope === input || boundary < 0) return boundary
+      const index = input.findIndex((msg) => msg.info.id === scope[boundary].info.id)
+      return index < 0 ? input.length : index
+    })
+    for (const [index, msg] of input.entries()) {
       if (msg.parts.length === 0) continue
+      const earlierTurn = index < lastUser
 
       if (msg.info.role === "user") {
         const userMessage: UIMessage = {
@@ -756,22 +1000,23 @@ export namespace MessageV2 {
           role: "assistant",
           parts: [],
         }
+        const media: Array<{ mime: string; url: string; filename?: string }> = []
         // OpenRouter can route consecutive turns through different Anthropic
         // backends. Its stream puts an incomplete reasoning detail on the
         // reasoning part, then the complete signed detail on every tool call.
         // Forwarding all of those duplicates makes the next backend reject the
         // first unsigned thinking block. Preserve one canonical, signed copy.
         const openrouter =
-          model.providerID === "openrouter" && !differentModel
+          model.providerID === "openrouter" && !differentModel && !earlierTurn
             ? iife(() => {
                 const tool = msg.parts.findLast(
                   (part) => part.type === "tool" && replayableOpenRouterMetadata(part.metadata),
                 )
-                if (tool?.type === "tool") return tool.metadata
+                if (tool?.type === "tool") return replayableOpenRouterReplay(tool.metadata)
                 const reasoning = msg.parts.findLast(
                   (part) => part.type === "reasoning" && replayableOpenRouterMetadata(part.metadata),
                 )
-                if (reasoning?.type === "reasoning") return reasoning.metadata
+                if (reasoning?.type === "reasoning") return replayableOpenRouterReplay(reasoning.metadata)
                 return undefined
               })
             : undefined
@@ -780,7 +1025,9 @@ export namespace MessageV2 {
             msg.parts.find((part) => part.type === "tool")?.id)
           : undefined
         for (const part of msg.parts) {
-          if (part.type === "text")
+          // Ignored assistant text (slash-command notices, contract markers)
+          // is shown to the user only; the user branch already skips its own.
+          if (part.type === "text" && !part.ignored)
             assistantMessage.parts.push({
               type: "text",
               text: part.text,
@@ -796,22 +1043,35 @@ export namespace MessageV2 {
               const isDuplicate = superseded.has(part.id)
               const rawAttachments = part.state.time.compacted || isDuplicate ? [] : (part.state.attachments ?? [])
               let droppedNote = ""
-              const attachments = rawAttachments.filter((a) => {
+              const shown = rawAttachments.filter((a) => {
                 const dropped = dropImage(a.mime, a.url, a.filename)
                 if (dropped) droppedNote += `\n${dropped}`
                 return !dropped
               })
+              // Media the provider's tool-result channel cannot carry travels
+              // in a user message right after this one; the result keeps a
+              // pointer so the model connects the two.
+              const carried = shown.filter((a) => mediaInToolResult(model, a.mime))
+              const relocated = shown.filter((a) => !mediaInToolResult(model, a.mime) && viewable(model, a.mime))
+              const blind = shown.length - carried.length - relocated.length
+              if (relocated.length) {
+                media.push(...relocated)
+                droppedNote += `\n[${relocated.length === 1 ? "1 image" : `${relocated.length} images`} from this result ${relocated.length === 1 ? "follows" : "follow"} in the next message]`
+              }
+              if (blind > 0) {
+                droppedNote += `\n[${blind === 1 ? "1 attachment" : `${blind} attachments`} omitted: this model cannot view ${blind === 1 ? "it" : "them"}; work from the data or the file itself]`
+              }
               const baseText = isDuplicate
                 ? DUPLICATE_OUTPUT
                 : part.state.time.compacted
                   ? toolSummary(part.tool, part.state)
                   : part.state.output
-              const outputText = baseText + droppedNote
+              const outputText = capOutput(baseText, options?.toolOutputMaxChars) + droppedNote
               const output =
-                attachments.length > 0
+                carried.length > 0
                   ? {
                       text: outputText,
-                      attachments,
+                      attachments: carried,
                     }
                   : outputText
 
@@ -819,9 +1079,13 @@ export namespace MessageV2 {
                 type: ("tool-" + part.tool) as `tool-${string}`,
                 state: "output-available",
                 toolCallId: part.callID,
-                // A superseded call's output is stubbed to a back-ref, so its (possibly huge)
-                // input args are dead weight too — truncate them, same as a compacted call.
-                input: part.state.time.compacted || isDuplicate ? truncateArgs(part.state.input) : part.state.input,
+                // Reducing a result must not turn its authoritative input into
+                // a shortened payload that a later call could execute.
+                input: compactToolInput(
+                  part.tool,
+                  part.state.input,
+                  options?.reduceInputs === true && !!part.state.time.compacted,
+                ),
                 output,
                 ...(differentModel
                   ? {}
@@ -874,7 +1138,7 @@ export namespace MessageV2 {
                     }),
               })
           }
-          if (part.type === "reasoning") {
+          if (part.type === "reasoning" && !earlierTurn) {
             assistantMessage.parts.push({
               type: "reasoning",
               text: part.text,
@@ -893,6 +1157,21 @@ export namespace MessageV2 {
         }
         if (assistantMessage.parts.length > 0) {
           result.push(assistantMessage)
+          if (media.length > 0) {
+            result.push({
+              id: `${msg.info.id}-media`,
+              role: "user",
+              parts: [
+                { type: "text", text: TOOL_MEDIA_PROMPT },
+                ...media.map((attachment) => ({
+                  type: "file" as const,
+                  url: attachment.url,
+                  mediaType: attachment.mime,
+                  filename: attachment.filename,
+                })),
+              ],
+            })
+          }
         }
       }
     }
@@ -922,8 +1201,62 @@ export namespace MessageV2 {
     return comma === -1 ? url : url.slice(comma + 1)
   }
 
+  /** Decoded size of an inline data URL's payload; 0 for anything else. */
+  export function decodedBytes(url: string) {
+    if (!url.startsWith("data:")) return 0
+    const comma = url.indexOf(",")
+    if (comma === -1) return 0
+    return Math.floor(((url.length - comma - 1) * 3) / 4)
+  }
+
   export function imageTokens(_url: string) {
     return IMAGE_TOKENS
+  }
+
+  // Providers bill a PDF per page (roughly 1.5–3k tokens each), not per
+  // transport byte: a 450 KB scan is a few pages, while its base64 data URL
+  // estimated at ~150k tokens and was refused before any request was sent.
+  // Page objects hidden inside compressed object streams are not visible to
+  // this scan, so the count is a floor of one page.
+  export const PDF_PAGE_TOKENS = 3_000
+  /** The most pages a provider accepts in one PDF attachment (OpenAI: 100).
+   * A 376-page scanned thesis attached whole is refused as a deterministic
+   * invalid request, and the identical request would be refused again on
+   * every retry; its text is read through an extractor instead. */
+  export const PDF_MAX_PAGES = 100
+  const pdfPageCache = new Map<string, number>()
+
+  /** Page objects a PDF's raw bytes declare. Pages hidden in compressed
+   * object streams are not visible to this scan, so the count is a floor. */
+  export function pdfPagesOf(latin1: string) {
+    return Math.max(1, latin1.match(/\/Type\s*\/Page(?![s\w])/g)?.length ?? 0)
+  }
+
+  export function pdfPages(url: string) {
+    const payload = mediaIdentity(url)
+    const key = `${payload.length}:${Bun.hash(payload)}`
+    const cached = pdfPageCache.get(key)
+    if (cached !== undefined) return cached
+    const count = pdfPagesOf(Buffer.from(payload, "base64").toString("latin1"))
+    if (pdfPageCache.size >= 64) pdfPageCache.clear()
+    pdfPageCache.set(key, count)
+    return count
+  }
+
+  /** The note that stands in for a PDF too long to attach. */
+  export function oversizedPdfNote(pages: number, filename?: string) {
+    return `[PDF not attached${filename ? `: ${filename}` : ""}: ${pages} pages, over the ${PDF_MAX_PAGES}-page limit a provider accepts per attachment. Read its text with an extractor (pdftotext from poppler, or PyMuPDF via \`pip install pymupdf\`) and page ranges with \`literature read\`; do not attach it again]`
+  }
+
+  /** Estimate a non-image attachment the way the provider will bill it. Files
+   * without a per-page contract keep the character heuristic of their bytes. */
+  export function documentTokens(mime: string, url: string) {
+    if (mime === "application/pdf") return pdfPages(url) * PDF_PAGE_TOKENS
+    return Token.estimate(url)
+  }
+
+  function inlineDocument(mime: string) {
+    return !mime.startsWith("image/") && mime !== "text/plain" && mime !== "application/x-directory"
   }
 
   // Anthropic (and most providers) reject a single image over 5 MB with an HTTP 400.
@@ -948,11 +1281,12 @@ export namespace MessageV2 {
     const mb = (bytes / (1024 * 1024)).toFixed(1)
     const limit = Math.round(maxBytes / (1024 * 1024))
     const name = filename ? ` ${filename}` : ""
+    const side = maxBytes <= 2 * 1024 * 1024 ? 1400 : 2000
     return (
-      `[Image${name} omitted — too large to send (~${mb} MB, ${limit} MB limit). ` +
-      `To view it, resize the source file to ≤2000px and read the smaller copy, e.g.: ` +
-      `python3 -c "from PIL import Image; im=Image.open(SRC); im.thumbnail((2000,2000)); im.save(OUT)" ` +
-      `(SRC = the file named in the read/attachment just above; OUT = a new path), then read OUT. ` +
+      `[Image${name} omitted — too large to send (~${mb} MB, ${limit} MB limit on this route). ` +
+      `To view it, resize it and read the smaller copy, e.g.: ` +
+      `python3 -c "from PIL import Image; im=Image.open(SRC).convert('RGB'); im.thumbnail((${side},${side})); im.save(OUT, quality=85)" ` +
+      `(SRC = the file named in the read/attachment just above; OUT = a new .jpg path), then read OUT. ` +
       `If it was rendered by a script, re-run it at a lower dpi/figsize.]`
     )
   }
@@ -973,6 +1307,19 @@ export namespace MessageV2 {
   // "unchanged" assertion, so the model reads it as "I already have this, it didn't change"
   // rather than "this read differs from my earlier one." Wording clarity is secondary to the
   // keep-older structure — but both matter (the model still parses this line).
+  /** Cut a tool result to `max` characters, keeping its head and tail. */
+  export function capOutput(text: string, max: number | undefined) {
+    if (max === undefined || text.length <= max) return text
+    if (max <= 0) return ""
+    const tail = Math.floor(max / 5)
+    const head = text.slice(0, max - tail).trimEnd()
+    const kept = tail > 0 ? text.slice(-tail).trimStart() : ""
+    // Both slices reach the model and the trims drop boundary whitespace, so the count is
+    // what the handoff no longer carries — the head length alone over-reports it.
+    const omitted = text.length - head.length - kept.length
+    return `${head}\n[… ${omitted.toLocaleString("en-US")} characters of this result omitted for the handoff …]\n${kept}`
+  }
+
   export const DUPLICATE_OUTPUT =
     "[Duplicate read omitted — byte-for-byte identical to an earlier read of the same tool in this conversation; the content is UNCHANGED. Refer to that earlier copy.]"
 
@@ -1006,25 +1353,73 @@ export namespace MessageV2 {
     return superseded
   }
 
-  // Per-string cap for the args of a reduced (pruned) tool call. Once a call is
-  // compacted its result is gone, so an oversized payload arg (a 50KB `write` content, a
-  // long `edit` oldString) is dead weight — truncate it while keeping the JSON valid and
-  // the small identifying args (paths, flags) intact so the call still reads correctly.
-  export const ARG_TRUNCATE_CHARS = 200
   export const TASK_HANDOFF_CHARS = 8_000
+  export const ARG_TRUNCATION_MARKER = PayloadIntegrity.MARKER
+  export const hasArgTruncationMarker = PayloadIntegrity.hasMarker
 
-  export function truncateArgs(input: Record<string, unknown>, cap = ARG_TRUNCATE_CHARS): Record<string, unknown> {
-    const out: Record<string, unknown> = {}
-    for (const [k, v] of Object.entries(input ?? {}))
-      out[k] = typeof v === "string" && v.length > cap ? v.slice(0, cap) + `…[+${v.length - cap} chars]` : v
-    return out
+  /** Arguments shorter than this always travel whole. */
+  export const INPUT_PREVIEW_FLOOR = 2_000
+
+  /** Argument fields whose body the filesystem can give back: the model wrote
+   * this text to a file, so a preview costs it a `read`, not the content. A
+   * `command`, a worker's `prompt` or a search pattern is recoverable from
+   * nowhere and always travels whole, however long it is. */
+  const RECOVERABLE_INPUT_FIELDS: Record<string, readonly string[]> = {
+    apply_patch: ["patchText"],
+    write: ["content"],
+    edit: ["oldString", "newString"],
+    python: ["code"],
+    r: ["code"],
   }
 
-  // A 1-line, tool-aware stand-in for a reduced (pruned) tool output. Replaces the blunt
-  // "[Old tool result content cleared]" so the model retains the gist — which tool ran,
-  // against what, and how big the result was — and knows it can re-run to recover the
-  // body. Keeps the token cost to a single line. Used by both toModelMessages (render)
-  // and composition (accounting) so the two never disagree.
+  /** Tool inputs remain byte-exact even when results are reduced, by default:
+   * an earlier release shortened them, and models wrote the shortened text
+   * back into files. With `compaction.pruneInputs` a *pruned* call's long
+   * string arguments become the same `…[+N chars]` preview that release used,
+   * because PayloadIntegrity already refuses a write that reproduces one; the
+   * stored input is never touched, only what the model re-reads. In a run
+   * that writes code, these arguments are most of what pruning leaves behind.
+   * Only fields the filesystem can return are shortened; see
+   * RECOVERABLE_INPUT_FIELDS. */
+  export function compactToolInput(tool: string, input: Record<string, unknown>, reduced: boolean) {
+    if (!reduced) return input
+    const fields = RECOVERABLE_INPUT_FIELDS[tool]
+    if (!fields) return input
+    const long = fields.flatMap((field) => {
+      const value = input[field]
+      return typeof value === "string" && value.length > INPUT_PREVIEW_FLOOR ? [[field, value] as const] : []
+    })
+    if (!long.length) return input
+    return { ...input, ...Object.fromEntries(long.map(([key, value]) => [key, PayloadIntegrity.legacyPreview(value)])) }
+  }
+
+  const TaskArtifactHandle = z.object({ artifactID: z.string().min(1), versionID: z.string().min(1) })
+  const TaskOutcome = z.enum(["completed", "partial", "error"])
+
+  function taskReceipt(metadata: Record<string, unknown>) {
+    const outcome = TaskOutcome.safeParse(metadata.outcome).data
+    const reason = z.string().max(120).safeParse(metadata.stopReason).data
+    const accounting = z.string().max(1000).safeParse(metadata.accounting).data
+    const commands = z.string().max(SubagentResult.COMMAND_RECEIPT_CHARS).safeParse(metadata.commandReceipts).data
+    const evidence = z.object({ artifacts: z.array(z.unknown()) }).safeParse(metadata.evidence).data
+    const handles = (evidence?.artifacts ?? []).slice(0, 8).flatMap((value) => {
+      const handle = TaskArtifactHandle.safeParse(value).data
+      return handle
+        ? [`- artifact_id=${JSON.stringify(handle.artifactID)}, version_id=${JSON.stringify(handle.versionID)}`]
+        : []
+    })
+    return [
+      SubagentResult.describe(outcome, reason),
+      ...(accounting ? [accounting] : []),
+      ...(commands ? [commands] : []),
+      ...(handles.length ? ["Saved outputs: use artifact read_file with these exact IDs.", ...handles] : []),
+      ...((evidence?.artifacts.length ?? 0) > 8 ? ["More saved outputs are listed in the full child trace."] : []),
+    ].join("\n")
+  }
+
+  // Keep reduced results recognizable and recoverable. Delegated outcomes and
+  // immutable output handles survive even when the prose handoff is shortened.
+  // Rendering and context accounting share this representation.
   export function toolSummary(tool: string, state: ToolStateCompleted): string {
     const descriptor = iife(() => {
       const title = state.title?.trim()
@@ -1036,19 +1431,27 @@ export namespace MessageV2 {
       .replace(/\s+/g, " ")
       .slice(0, 80)
       .trim()
+    // A compacted Task must keep its reusable child id: the lead continues the
+    // same worker through `session_id`, and dropping it on prune would strand
+    // that thread. task.ts also writes it as the first line of the live output.
+    const sessionID = tool === "task" && typeof state.metadata.sessionId === "string" ? state.metadata.sessionId : ""
+    const idLine = sessionID ? `Task session ${sessionID}: reuse this sessionId to continue the same worker.\n` : ""
+    const receipt = tool === "task" ? taskReceipt(state.metadata) : ""
+    const prefix = idLine + (receipt ? `${receipt}\n` : "")
     const handoff = tool === "task" && typeof state.metadata.handoff === "string" ? state.metadata.handoff.trim() : ""
     if (handoff) {
       const retained =
         handoff.length <= TASK_HANDOFF_CHARS
           ? handoff
           : handoff.slice(0, TASK_HANDOFF_CHARS).trimEnd() + "\n[… child handoff truncated …]"
-      return `[task]${descriptor ? " " + descriptor : ""} → retained child handoff\n${retained}`
+      return `${prefix}[task]${descriptor ? " " + descriptor : ""} → retained child handoff\n${retained}`
     }
     const lines = state.output ? state.output.split("\n").length : 0
-    return `[${tool}]${descriptor ? " " + descriptor : ""} → cleared (${lines} line${lines === 1 ? "" : "s"})`
+    return `${prefix}[${tool}]${descriptor ? " " + descriptor : ""} → cleared (${lines} line${lines === 1 ? "" : "s"})`
   }
 
   export type Composition = {
+    definitions?: number
     system: number
     text: number
     reasoning: number
@@ -1056,6 +1459,7 @@ export namespace MessageV2 {
     skills: number
     image: number
     images: number
+    document: number
     total: number
   }
 
@@ -1066,7 +1470,17 @@ export namespace MessageV2 {
   // — so a prune visibly shrinks the breakdown. `system` covers the prompt strings that
   // are not part of the message log. Powers P0 context-composition telemetry.
   export function composition(input: WithParts[], options?: { system?: string[] }): Composition {
-    const out: Composition = { system: 0, text: 0, reasoning: 0, tool: 0, skills: 0, image: 0, images: 0, total: 0 }
+    const out: Composition = {
+      system: 0,
+      text: 0,
+      reasoning: 0,
+      tool: 0,
+      skills: 0,
+      image: 0,
+      images: 0,
+      document: 0,
+      total: 0,
+    }
     for (const s of options?.system ?? []) out.system += Token.estimate(s)
     const superseded = supersededOutputs(input)
 
@@ -1101,16 +1515,17 @@ export namespace MessageV2 {
             if (nudge) out.text += Token.estimate(nudge)
             else if (!addImage(part.url)) out.text += Token.estimate(DUPLICATE_IMAGE)
           }
+          // text/plain and directory files travel as text parts and are counted there.
+          if (inlineDocument(part.mime)) out.document += documentTokens(part.mime, part.url)
           continue
         }
         if (part.type === "tool") {
           const bucket = SKILL_TOOLS.has(part.tool) ? "skills" : "tool"
           const compacted = part.state.status === "completed" && !!part.state.time.compacted
-          // Mirror toModelMessages: a compacted OR superseded call's args are truncated in
-          // the render, so count them truncated here too — otherwise the breakdown over-counts.
+          // Mirror toModelMessages: inputs remain exact while results may be reduced.
           const reducedArgs = compacted || superseded.has(part.id)
           out[bucket] += Token.estimate(
-            JSON.stringify((reducedArgs ? truncateArgs(part.state.input) : part.state.input) ?? {}),
+            JSON.stringify(compactToolInput(part.tool, part.state.input, reducedArgs) ?? {}),
           )
           if (part.state.status === "completed") {
             const body = superseded.has(part.id)
@@ -1120,28 +1535,36 @@ export namespace MessageV2 {
                 : part.state.output
             out[bucket] += Token.estimate(body)
             if (!compacted && !superseded.has(part.id))
-              for (const a of part.state.attachments ?? [])
+              for (const a of part.state.attachments ?? []) {
                 if (a.mime.startsWith("image/")) {
                   const nudge = oversizedImageNudge(a.url, a.filename)
                   if (nudge) out[bucket] += Token.estimate(nudge)
                   else if (!addImage(a.url)) out[bucket] += Token.estimate(DUPLICATE_IMAGE)
+                  continue
                 }
+                if (inlineDocument(a.mime)) out.document += documentTokens(a.mime, a.url)
+              }
           }
           if (part.state.status === "error") out[bucket] += Token.estimate(part.state.error)
         }
       }
 
-    out.total = out.system + out.text + out.reasoning + out.tool + out.skills + out.image
+    out.total = out.system + out.text + out.reasoning + out.tool + out.skills + out.image + out.document
     return out
   }
 
+  // Messages within a window are read in parallel; the window stays small so
+  // a caller that stops at the newest user message reads little more than it
+  // needs.
+  const STREAM_WINDOW = 16
+
   export const stream = fn(Identifier.schema("session"), async function* (sessionID) {
-    const list = await Array.fromAsync(await Storage.list(["message", sessionID]))
-    for (let i = list.length - 1; i >= 0; i--) {
-      yield await get({
-        sessionID,
-        messageID: list[i][2],
-      })
+    const list = await Storage.list(["message", sessionID])
+    for (let end = list.length; end > 0; end -= STREAM_WINDOW) {
+      const window = await Promise.all(
+        list.slice(Math.max(0, end - STREAM_WINDOW), end).map((item) => get({ sessionID, messageID: item[2] })),
+      )
+      for (let i = window.length - 1; i >= 0; i--) yield window[i]
     }
   })
 
@@ -1215,11 +1638,9 @@ export namespace MessageV2 {
   }
 
   export const parts = fn(Identifier.schema("message"), async (messageID) => {
-    const result = [] as MessageV2.Part[]
-    for (const item of await Storage.list(["part", messageID])) {
-      const read = await Storage.read<MessageV2.Part>(item)
-      result.push(read)
-    }
+    const result = await Promise.all(
+      (await Storage.list(["part", messageID])).map((item) => Storage.read<MessageV2.Part>(item)),
+    )
     result.sort((a, b) => (a.id > b.id ? 1 : -1))
     return result
   })
@@ -1230,14 +1651,45 @@ export namespace MessageV2 {
       messageID: Identifier.schema("message"),
     }),
     async (input): Promise<WithParts> => {
-      return {
-        info: await Storage.read<MessageV2.Info>(["message", input.sessionID, input.messageID]),
-        parts: await parts(input.messageID),
-      }
+      const [info, list] = await Promise.all([
+        Storage.read<MessageV2.Info>(["message", input.sessionID, input.messageID]),
+        parts(input.messageID),
+      ])
+      return { info, parts: list }
     },
   )
 
+  /** Every message of the epoch that `parentID` belongs to, oldest first. A
+   * continuation's parent names the epoch's first prompt, and message ids are
+   * monotonic within a session, so the epoch is the id range from that prompt
+   * onward; older history is never read. */
+  export async function epoch(sessionID: string, parentID: string): Promise<WithParts[]> {
+    const parent = await Storage.read<Info>(["message", sessionID, parentID]).catch(() => undefined)
+    const anchor = (parent?.role === "user" && parent.internal?.epoch) || parentID
+    const selected = (await Storage.list(["message", sessionID])).filter((item) => item[2] >= anchor)
+    const result: WithParts[] = []
+    for (let start = 0; start < selected.length; start += STREAM_WINDOW) {
+      const window = selected.slice(start, start + STREAM_WINDOW)
+      result.push(...(await Promise.all(window.map((item) => get({ sessionID, messageID: item[2] })))))
+    }
+    return result
+  }
+
   export async function filterCompacted(stream: AsyncIterable<MessageV2.WithParts>) {
+    const result = await filterCompactedLayout(stream)
+    const carrier = result.find(
+      (message) => message.info.role === "user" && message.parts.some((part) => part.type === "compaction"),
+    )
+    const rootID = carrier?.parts.find((part): part is CompactionPart => part.type === "compaction")?.rootID
+    if (!carrier || !rootID || result.some((message) => message.info.id === rootID)) return result
+    // The root instruction outlives every compaction: presented verbatim before
+    // the summary, so the model never works from a paraphrase of the task.
+    const root = await get({ sessionID: carrier.info.sessionID, messageID: rootID }).catch(() => undefined)
+    if (!root || root.info.role !== "user") return result
+    return [root, ...result]
+  }
+
+  async function filterCompactedLayout(stream: AsyncIterable<MessageV2.WithParts>) {
     const result = [] as MessageV2.WithParts[]
     const completed = new Set<string>() // carrier ids (parentIDs of completed summaries)
     let tailStartId: string | undefined // from the newest completed summary
@@ -1293,10 +1745,37 @@ export namespace MessageV2 {
         ...result.slice(tailIdx, carrierIdx), // verbatim tail
         ...result.slice(summaryIdx + 1), // continuation
       ]
-    // tailStartId was set but its message is gone (reverted/migrated) or the layout is
-    // malformed. Fall back to the no-tail behavior — drop everything before the carrier —
-    // rather than returning the whole (unbounded) history the retain scan just collected.
-    return carrierIdx >= 0 ? result.slice(carrierIdx) : result
+    if (carrierIdx < 0) return result
+    // tailStartId was set but its message is gone (reverted/migrated) or the
+    // layout is malformed. The tail is the only place the newest request
+    // lives, since the summary never saw it, so dropping it would resume from
+    // a handoff about older work. Keep the history the retain scan collected
+    // from the previous compaction boundary onward, in order, with this
+    // summary as its recap: no worse than the context before this compaction.
+    const previous = result.findLastIndex(
+      (m, i) =>
+        i < carrierIdx &&
+        m.info.role === "user" &&
+        m.parts.some((p) => p.type === "compaction") &&
+        result.some(
+          (s, j) =>
+            j > i &&
+            j < carrierIdx &&
+            s.info.role === "assistant" &&
+            s.info.summary === true &&
+            s.info.parentID === m.info.id &&
+            !!s.info.finish &&
+            !s.info.error &&
+            s.parts.some((p) => p.type === "text" && p.text.trim()),
+        ),
+    )
+    log.warn("compaction tail start missing; keeping history from the previous boundary", {
+      sessionID: result[carrierIdx].info.sessionID,
+      carrierID: result[carrierIdx].info.id,
+      tailStartId,
+      kept: result.length - Math.max(previous, 0),
+    })
+    return previous >= 0 ? result.slice(previous) : result
   }
 
   const isOpenAiErrorRetryable = (e: APICallError) => {
@@ -1314,8 +1793,47 @@ export namespace MessageV2 {
     return e.isRetryable
   }
 
+  /** A connection that failed before any response byte, as recorded by the
+   * provider fetch wrapper (the only place that knows whether headers arrived).
+   * Nothing reached the model, so sending the request again cannot duplicate
+   * a paid dispatch. */
+  export function transportFailure(error: unknown): { code: string; message: string } | undefined {
+    const seen = new Set<unknown>()
+    const pending = [error]
+    while (pending.length) {
+      const current = pending.shift()
+      if (!current || typeof current !== "object" || seen.has(current)) continue
+      seen.add(current)
+      const shape = current as { name?: unknown; phase?: unknown; code?: unknown; message?: unknown; cause?: unknown }
+      if (shape.name === "ProviderTransportError" && shape.phase === "connect") {
+        return {
+          code: typeof shape.code === "string" ? shape.code : "unknown",
+          message: typeof shape.message === "string" ? shape.message : "",
+        }
+      }
+      pending.push(shape.cause)
+      if (current instanceof AggregateError) pending.push(...current.errors)
+    }
+  }
+
   export function fromError(e: unknown, ctx: { providerID: string }) {
+    const transport = transportFailure(e)
+    if (transport) {
+      return new MessageV2.APIError(
+        {
+          message: `Could not connect to the provider: ${transport.message}`,
+          isRetryable: true,
+          metadata: { code: transport.code, phase: "connect", message: transport.message },
+        },
+        { cause: e },
+      ).toObject()
+    }
     switch (true) {
+      // A credential revision cancelled the turn: a clean abort whose message
+      // names the cause.
+      case CredentialRevocation.interruption(e) !== undefined:
+      case SessionRestart.interruption(e) !== undefined:
+        return new MessageV2.AbortedError({ message: (e as Error).message }, { cause: e }).toObject()
       case e instanceof DOMException && e.name === "AbortError":
         return new MessageV2.AbortedError(
           { message: e.message },
@@ -1369,9 +1887,11 @@ export namespace MessageV2 {
 
           try {
             const body = JSON.parse(e.responseBody)
-            // try to extract common error message fields
-            const errMsg = body.message || body.error || body.error?.message
-            if (errMsg && typeof errMsg === "string") {
+            // OpenAI-compatible servers nest the text under error.message;
+            // vLLM/FastAPI use detail; a few return a bare error string.
+            const candidates = [body?.error?.message, body?.message, body?.error, body?.detail]
+            const errMsg = candidates.find((value) => typeof value === "string" && value.trim())
+            if (errMsg) {
               return `${msg}: ${errMsg}`
             }
           } catch {}
@@ -1379,12 +1899,24 @@ export namespace MessageV2 {
           return `${msg}: ${e.responseBody}`
         }).trim()
 
-        const metadata = e.url ? { url: e.url } : undefined
+        // The provider lets the UI point a credential failure at the right
+        // connection instead of a bare "API key is invalid".
+        // Ace with no upstream for the provider answers 503 every time: it is
+        // tagged so the UI can name it, and never retried.
+        const unavailable = !!ProviderTransform.managedProviderUnavailable(e)
+        const metadata = {
+          providerID: ctx.providerID,
+          ...(e.url ? { url: e.url } : {}),
+          ...(unavailable ? { code: "managed_provider_unavailable" } : {}),
+        }
         return new MessageV2.APIError(
           {
             message,
             statusCode: e.statusCode,
-            isRetryable: ctx.providerID.startsWith("openai") ? isOpenAiErrorRetryable(e) : e.isRetryable,
+            isRetryable:
+              ((ctx.providerID.startsWith("openai") ? isOpenAiErrorRetryable(e) : e.isRetryable) ||
+                ProviderTransform.managedRetryable(e)) &&
+              !unavailable,
             responseHeaders: e.responseHeaders,
             responseBody: e.responseBody,
             metadata,

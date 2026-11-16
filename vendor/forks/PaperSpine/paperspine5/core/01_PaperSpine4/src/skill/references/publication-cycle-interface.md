@@ -63,6 +63,13 @@ Operations:
 review-round input for the two check-only operations. Generated output
 directories are immutable run directories; do not reuse a non-empty one.
 
+The standalone `rules-check` CLI is an early writing precheck, not a sixth
+public interface operation. `assemble` always performs the final structured
+journal-rule evaluation from the profile and the plan's `compliance_inputs`.
+`BUNDLE_READY` therefore requires complete official coverage for title,
+abstract, body, figures, tables, references, attachments, required sections,
+and required materials, plus PASS for every non-advisory rule.
+
 ## Result
 
 Every invocation writes one JSON object to stdout and exits `0` only when

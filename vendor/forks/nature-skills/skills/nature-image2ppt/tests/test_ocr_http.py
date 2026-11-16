@@ -5,6 +5,8 @@ import os
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
+import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
@@ -17,6 +19,7 @@ RUNTIME = ROOT / "cli" / "image2ppt" / "runtime"
 sys.path.insert(0, str(RUNTIME))
 
 import deck_text_hints  # noqa: E402
+import build_pptx_from_manifest  # noqa: E402
 import paddle_text_hints  # noqa: E402
 import runtime_env  # noqa: E402
 
@@ -277,9 +280,13 @@ class PaddleHttpRegressionTests(unittest.TestCase):
             self.assertEqual(list(results), [page])
             submit.assert_called_once_with(source, "token", paddle_text_hints.DEFAULT_MODEL, 30)
 
-    def test_ocr_blocks_become_content_aware_measured_hints(self) -> None:
+    def test_public_result_response_converts_to_editable_pptx(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             page = Path(tmp)
+            slide_size = {"width": 12.8, "height": 7.2}
+            (page / "page_request.json").write_text(
+                json.dumps({"slide": slide_size}), encoding="utf-8",
+            )
             image = Image.new("RGB", (320, 180), "white")
             draw = ImageDraw.Draw(image)
             for char in range(8):
@@ -294,11 +301,62 @@ class PaddleHttpRegressionTests(unittest.TestCase):
                     {"block_label": "image", "block_content": "ignore", "block_bbox": [0, 0, 320, 180]},
                 ],
             }
-            hints = paddle_text_hints.build_page_hints(page, pruned)
+            result_url = "https://results.example.com/job.jsonl"
+            result = {"result": {"layoutParsingResults": [{"prunedResult": pruned}]}}
+            with patch.object(paddle_text_hints.requests, "post", return_value=FakeResponse(
+                payload={"data": {"jobId": "conversion-regression"}},
+            )), patch.object(paddle_text_hints.requests, "get", side_effect=[
+                FakeResponse(payload={"data": {"state": "done", "resultUrl": {"jsonUrl": result_url}}}),
+                FakeResponse(text=json.dumps(result)),
+            ]) as get:
+                results = paddle_text_hints.submit_and_fetch(
+                    page / "source.png", "fixture-token", paddle_text_hints.DEFAULT_MODEL, 30,
+                )
+            self.assertEqual(results, [pruned])
+            self.assertEqual(get.call_count, 2)
+            get.assert_called_with(result_url, timeout=60)
+            hints = paddle_text_hints.build_page_hints(page, results[0])
             self.assertEqual(hints["backend"], "paddleocr-vl")
             self.assertEqual([line["text"] for line in hints["lines"]], ["示例文本"])
             self.assertIn(hints["lines"][0]["glyph_source"], {"ink-measured", "bbox-estimate"})
             self.assertIn("font_pt", hints["lines"][0])
+
+            # Only the HTTP boundary is replayed: measurement and PPTX writing run for real.
+            line = hints["lines"][0]
+            manifest = {
+                "slide": slide_size,
+                "source": hints["source"],
+                "text_boxes": [{
+                    "text": line["text"], "box_px": line["box_px"],
+                    "font_size": line["font_pt"], "font_size_source": "measured",
+                }],
+            }
+            manifest_path = page / "manifest.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            output = page / "converted.pptx"
+            build_pptx_from_manifest.write_pptx(manifest, output, manifest_path)
+            with zipfile.ZipFile(output) as package:
+                self.assertIsNone(package.testzip())
+                slide = ET.fromstring(package.read("ppt/slides/slide1.xml"))
+            ns = {
+                "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
+                "p": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            }
+            boxes = slide.findall(".//p:sp", ns)
+            self.assertEqual(len(boxes), 1)
+            self.assertEqual([node.text for node in boxes[0].findall(".//a:t", ns)], ["示例文本"])
+            self.assertEqual(boxes[0].find("p:nvSpPr/p:cNvSpPr", ns).get("txBox"), "1")
+            self.assertEqual(slide.findall(".//p:pic", ns), [])
+            self.assertEqual(
+                int(boxes[0].find(".//a:rPr", ns).get("sz")), int(line["font_pt"] * 100),
+            )
+            x, y, width, height = line["box_px"]
+            off = boxes[0].find("p:spPr/a:xfrm/a:off", ns)
+            extent = boxes[0].find("p:spPr/a:xfrm/a:ext", ns)
+            self.assertEqual(int(off.get("x")), round(x / 320 * 12.8 * 914400))
+            self.assertEqual(int(off.get("y")), round(y / 180 * 7.2 * 914400))
+            self.assertEqual(int(extent.get("cx")), round(width / 320 * 12.8 * 914400))
+            self.assertEqual(int(extent.get("cy")), round(height / 180 * 7.2 * 914400))
 
 
 if __name__ == "__main__":

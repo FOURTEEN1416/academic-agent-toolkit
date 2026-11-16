@@ -1,107 +1,161 @@
 ---
-title: "Models & providers"
-description: "Bring your own keys, use eligible ChatGPT/Codex access, run local models, or optionally route managed calls through Synthetic Sciences."
-icon: "package-check"
+title: "Models and providers"
+description: "Choose Ace, connect your own provider access, and select a model for each task."
 ---
 
-OpenScience is model-agnostic. A **model** is one inference endpoint the agent routes through; a **provider** is a vendor that exposes models. Routing happens on your machine: with your own keys, each call goes straight from your machine to the provider, with no managed model service in the middle. A free Synthetic Sciences account is still required for OpenScience identity and trace ownership.
+Open **Customize → Models** to choose model access and manage your connections. The model picker shows the models available with your current setup.
 
-## Bring your own keys
+| Access | Setup | Good fit |
+| --- | --- | --- |
+| Ace | Sign in and use a funded Wallet. | Managed models without individual provider keys. |
+| Keys & subscriptions | Connect a provider API key or supported sign-in. | Existing provider accounts and subscriptions. |
+| Local model | Add a running endpoint in **Customize → Local models**. | Models on your machine or infrastructure you manage. |
 
-Set a key from any provider and start working:
+First-run setup requires an [account](/openscience/account); choosing your own provider keeps model requests on that provider's connection. See [Pricing](/openscience/pricing) before starting paid work. A model's presence in a public catalog does not guarantee that your account can use it.
+
+## Use Ace
+
+Select **Ace** in **Customize → Models**. Sign in when prompted, check the funding workspace, then confirm purchased or valid promotional credits. Add funds if needed; automatic reload is optional and requires separate consent. Select an available model and return to your conversation.
+
+The Wallet control opens account and funding details. Changing model access to **Keys & subscriptions** does not cancel automatic reloads; manage them in Wallet. See [Ace and your account](/openscience/ace).
+
+## Connect your own API key
+
+Select **Keys & subscriptions**, choose your provider, and follow its connection form. You can also connect from a terminal:
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...   # or OPENAI_API_KEY, GEMINI_API_KEY, ...
+openscience keys add
+openscience keys list
+openscience models
+```
+
+Use an API key issued by the provider you choose. A consumer chat subscription and an API account may have separate billing and access.
+
+For terminal sessions, supported provider environment variables are another option:
+
+```bash
+export ANTHROPIC_API_KEY="your-provider-api-key"
 openscience
 ```
 
-Keys stay on your machine. Anthropic, OpenAI, Google, OpenRouter, Groq, Mistral, xAI, Meta Model API, DeepSeek, and dozens more work the same way — the catalogue is models.dev-backed, so any `provider/model` id a provider currently exposes is addressable. You can also paste keys into the Credentials panel in the [workspace](/openscience/workspace) instead of exporting them, and OpenAI Codex signs in via OAuth.
+Other examples include `OPENAI_API_KEY`, `GEMINI_API_KEY`, and `DEEPSEEK_API_KEY`. Set the variable required by your provider. Desktop apps launched from an application launcher may not inherit a terminal's environment; use the connection form for that setup.
 
-The current frontier families are available on both paths:
+Remove a saved connection in Customize or with `openscience keys rm`. If a key is still present in your environment or shared workspace, remove that source too.
 
-| Family | BYOK model | Synthetic Sciences model |
-| --- | --- | --- |
-| GPT-5.6 Sol / Terra / Luna | `openai/gpt-5.6-*` | `openrouter/openai/gpt-5.6-*` |
-| Grok 4.5 | `xai/grok-4.5` | `openrouter/x-ai/grok-4.5` |
-| Muse Spark 1.1 | `meta/muse-spark-1.1` | `openrouter/meta/muse-spark-1.1` |
+### GPT-6.1 Sol
 
-For BYOK, use `OPENAI_API_KEY`, `XAI_API_KEY`, or `META_MODEL_API_KEY`. Managed LLM routes use OpenRouter and send only your Synthetic Sciences session token to the managed endpoint; provider credentials remain server-side.
+Connect an OpenAI API key, then choose **6.1 Sol** in the model picker. OpenScience uses the Responses API for tools and offers **low**, **medium** (default), **high**, **xhigh**, and **max** reasoning. Fast mode costs twice the standard token rates and is unavailable with EU data residency. The previous 6 Sol model remains selectable. Availability depends on your OpenAI API account; this does not add a ChatGPT subscription or Ace route.
 
-Current frontier families include:
+## Use a supported provider sign-in
 
-| Provider | Model IDs |
-| --- | --- |
-| Anthropic | `claude-opus-5`, `claude-sonnet-5` |
-| OpenAI | `gpt-5.6`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna` |
-| xAI | `grok-4.5`, `grok-4.3`, `grok-build-0.1`, and Grok 4.20 reasoning, non-reasoning, and multi-agent models |
-| Moonshot AI | `kimi-k3` |
-| Vercel AI Gateway | `meta/muse-spark-1.1` |
-
-This is not a hardcoded allowlist for your own provider keys. OpenScience refreshes models.dev at startup and hourly, so newly published models appear without waiting for an OpenScience release. The OpenAI Codex OAuth provider is the exception: it only shows models verified to work through a ChatGPT subscription, currently including the full GPT-5.6 family.
-
-## Local models
-
-Prefer to run offline? OpenScience talks to any OpenAI-compatible endpoint on your machine — Ollama, LM Studio, llama.cpp, vLLM, and more:
+Where a connection offers browser sign-in, follow that flow instead of entering an API key. For supported ChatGPT access:
 
 ```bash
-openscience local add        # detects Ollama / LM Studio, lists + adds their models
-openscience run --model ollama/llama3.1 "hello"
+openscience keys signin
 ```
 
-Local models are free and never metered. See **[Local models](/openscience/local-models)** for the full guide.
+Complete the browser sign-in and select an available model. Access and limits depend on your provider account. Signing into a provider does not add funds to Ace.
 
-## List what is configured
+ChatGPT access tokens renew automatically while work continues. Disconnecting or replacing a provider connection still stops work using the previous credentials.
+
+### Keep ChatGPT and an API key connected
+
+The two connections remain separate. In the conversation model controls, select
+**ChatGPT** as the access route for a supported model. Its CLI provider is
+`openai-codex`, for example:
 
 ```bash
-openscience models             # grouped by provider, with a routing label per provider
-openscience models anthropic   # one provider
+openscience run --model openai-codex/gpt-6.1-sol "Review this project"
 ```
 
-Each provider is labeled `your key`, `credits`, `local`, `Signed in with Codex`, or `unconfigured`, so you always know which route a model takes. `--verbose` adds per-model metadata like costs, `--refresh` refetches the catalogue, and `--flat` prints one `provider/model` id per line for scripting.
+Automatic access prefers a connected ChatGPT subscription when choosing a new
+route. An existing conversation's exact route stays selected: changing effort
+or speed must not silently switch credentials or billing. If that conversation
+still says **Your key**, select **ChatGPT** explicitly; deleting credential
+files is unnecessary. An API-only model still requires an OpenAI API key.
 
-## Pick a model per run
+To disconnect that connection:
 
 ```bash
-openscience run --model anthropic/claude-opus-5 --variant xhigh "Design the ablation study"
-openscience run --model anthropic/claude-sonnet-5 "Clean up the plotting code"
-openscience run --model openai/gpt-5.6-terra --variant max "Review the analysis"
-openscience run --model moonshotai/kimi-k3 "Implement the pipeline"
+openscience disconnect codex
 ```
 
-`--model <provider>/<model>` overrides the default for one run; in the workspace, use the model selector per session. `--variant` picks a reasoning-effort tier — `minimal`, `high`, `max`, and so on. Available tiers depend on the model: Claude Opus 5 and GPT-5.6 extend through `xhigh` and `max`, Kimi K3 supports `low`, `high`, and `max`, and current Grok models expose their provider-supported ladders.
+## Select a model
 
-## Ace credits (optional)
+Use the conversation's model picker. Each row leads with what a request on that model is charged to: **Wallet**, **Your key**, **Subscription**, or **Local**. When a model is available through more than one connection, the row names the one that choosing it selects: the credential you are already using stays in use, then your configured default, then the **Model access** mode. A connection the app cannot classify, such as a cloud profile, has no label.
 
-[Synthetic Sciences](/openscience/gateway) provides the required free account. Ace is the optional credit-backed service: supported models route through OpenRouter and bill a pay-as-you-go wallet, so you can skip per-provider keys when you choose:
+For a terminal run, copy an exact identifier from `openscience models --flat`:
 
 ```bash
-openscience login   # defaults to app.syntheticsciences.ai
+openscience models --flat
+openscience run --model <provider>/<model> "Review the analysis in this project"
 ```
 
-Settings → Credits offers Automatic, Credits, and Accounts routing. Ace credits never disable BYOK, local, or eligible ChatGPT/Codex routes; only calls served through Synthetic Sciences debit the wallet.
+Replace `<provider>/<model>` with an identifier from your list. An unknown or disconnected model produces an error; connect it before retrying.
 
-| Path | What runs where | Billing |
-| --- | --- | --- |
-| BYOK (default) | Your machine calls the provider directly. | Your provider account. |
-| Synthetic Sciences | Your machine calls Synthetic Sciences, which routes supported models through OpenRouter. | Shared pay-as-you-go wallet. See [Connect Synthetic Sciences](/openscience/gateway). |
+To set a default in `openscience.json`:
 
-## Key hygiene
+```json
+{
+  "model": "provider/model-id"
+}
+```
 
-Provider keys and synced credentials are filtered out of the environment of every subprocess the agent spawns and redacted from output. The agent talks to providers itself; the code it runs never needs your keys. Credentials are stored per user in your home directory, never in the project's `.openscience/` directory, so they cannot end up in a commit. See [Security](/openscience/security).
+Replace the example value with your configured model. See [Configuration](/openscience/configuration) for file locations.
 
-## What's next
+## Reasoning, context, and rates
 
-<Columns cols={2}>
-  <Card title="Quickstart" icon="rocket" href="/openscience/quickstart">
-    First key to first result.
-  </Card>
-  <Card title="Sessions" icon="layers" href="/openscience/sessions">
-    Per-run model and variant flags in context.
-  </Card>
-  <Card title="Synthetic Sciences" icon="globe" href="/openscience/gateway">
-    Managed credits, research search, and private graphs.
-  </Card>
-  <Card title="Security" icon="shield-check" href="/openscience/security">
-    The env allow-list and trust boundary.
-  </Card>
-</Columns>
+Use the effort control beside the model name in the composer to choose the model's supported effort, Fast mode, and context window. Available choices depend on the exact model and access route; there is no universal list. View current prices in **Customize → Models → Rates and limits**. Ace shows Wallet input/output rates per million tokens in both places, including Fast and long-context tiers. Variable prices say **Up to** for input and output; their cache prices are estimates. Fixed schedules show exact rates. Provider-key connections show catalog estimates billed by your provider.
+
+Verified effort choices remain usable while Ace refreshes pricing. Fast appears only after its route and prices are verified. If the options report that rates are unavailable, choose **Refresh options**; this only reloads metadata and does not send a model request, change your selection, or purchase anything.
+
+Open the context indicator for the latest request's token breakdown and the session's recorded model cost. The header and details include the lead's cost and completed direct worker costs, and display small charges below one cent. Recorded Ace turns stay labeled **Ace** if you later switch to provider keys.
+
+The token breakdown separates ordinary input, cache reads, cache writes, and output when reported by the model service. Cache writes are counted once in the total. A reported request charge takes precedence over an estimate from the token rates. Ace applies the same rounding to each reported request charge as Wallet settlement; provider-key costs retain the provider's reported precision.
+
+### GPT-6.1 Sol with ChatGPT
+
+After connecting ChatGPT in **Customize → Models**, choose **6.1 Sol** and its **ChatGPT** access route. The CLI model ID is `openai-codex/gpt-6.1-sol`. It offers **Low, Medium, High, Extra high, and Max** reasoning, plus **Fast** mode. Usage counts against your ChatGPT/Codex allowance; the API-key route remains available separately.
+
+Access depends on OpenAI's rollout and your plan or workspace settings. Enterprise and Edu administrators must enable the model. See [OpenAI's current model availability](https://learn.chatgpt.com/docs/models#gpt-61-sol).
+
+The previous **6 Sol** remains selectable through **ChatGPT** as `openai-codex/gpt-6-sol`, with the same reasoning levels and Fast mode. It is no longer offered through Ace.
+
+### GPT-6 Astra and Claude Fable 5.1
+
+Both models offer **Low, Medium, High, Extra high, and Max** effort. Their transport contracts remain distinct:
+
+- **GPT-6 Astra:** native OpenAI access uses Responses for tool calls. The public API supports a 1.05M context window; supported ChatGPT access has separate 272K/872K context choices. Ace uses Azure Responses behind its compatible managed gateway. Ace Fast uses OpenAI's own priority processing alongside Azure Global Standard. Direct OpenRouter connections retain their own supported options.
+- **Claude Fable 5.1:** adaptive thinking is always on, with High as the default; there is no Off or manual thinking-budget option. Native Anthropic access preserves valid thinking blocks and uses the documented handling for blocks invalidated by a changed conversation prefix. Forced tool selection is unsupported. Fable 5.1 has no Fast mode.
+
+Native Fable requests the provider's readable thinking and progress output (`thinking.display: "summarized"`), which the API otherwise omits by default. This is provider-supplied text, not an additional summary generated by OpenScience, and is not the model's private internal reasoning.
+
+Model availability still depends on your account and the selected route. The exact IDs are `openai/gpt-6-astra`, `openai-codex/gpt-6-astra`, and `anthropic/claude-fable-5-1` for those native connections. OpenRouter slugs are `openai/gpt-6-astra` and `anthropic/claude-fable-5.1` (prefixed by `openrouter/` in CLI model selections).
+
+Fable 5.1 replaces Fable 5 in Ace and runs through Anthropic's API behind the managed gateway. OpenScience offers it when the Ace catalog confirms that route is available, preserving its bound thinking replay across tool turns. Native Anthropic support is available independently. The client still leaves Fable 5.1 out of automatic BYOK OpenRouter catalog imports; explicit custom routes remain user-controlled and their replay compatibility is unverified.
+
+Provider contracts: [Astra](https://developers.openai.com/api/docs/models/gpt-6-astra), [OpenRouter Astra](https://openrouter.ai/openai/gpt-6-astra), and [Fable 5.1](https://platform.claude.com/docs/en/models/fable-5-1/overview).
+
+`openscience run --variant <tier>` selects a supported reasoning tier for that run. Research effort, selected with `--effort normal` or `--effort ultra`, is a separate control for how broadly to investigate the task.
+
+The conversation displays readable reasoning and tool activity when the model supplies them. Some models return only a final answer or a reasoning summary. The visible activity is useful for following progress, but the saved outputs and cited evidence are what you should verify.
+
+Use **Show reasoning and activity / Hide reasoning and activity** above a turn to inspect its steps. Expansion is saved per turn, not applied to every earlier response. Live turns open once and stay open when they finish; answers and pending approvals remain accessible when steps are collapsed. The control does not stop the model or change the conversation sent to it. There is no global reasoning toggle or Detailed/Compact mode.
+
+Readable passages appear as plain prose, with routine provider phase headings removed from the display. OpenScience does not generate another summary or modify the stored provider response. A model that exposes only a reasoning summary cannot be made to expose private internal reasoning through this setting.
+
+An open response can pause between outputs. OpenScience shows the time since the last output and keeps waiting by default; after two minutes without model output the turn's status says so instead of "Thinking". **Stop** cancels your wait without undoing completed work. Explicit provider timeout settings still apply, as do provider-side limits. Resubmitting a stopped or failed request can incur a new charge.
+
+For usage across conversations, open **Customize → Usage**. See [Usage reports and CSV exports](/openscience/usage).
+
+## Local and custom endpoints
+
+Use [Local models](/openscience/local-models) for Ollama, LM Studio, and self-hosted endpoints. For a service not listed in the connection picker, see [Custom providers](/openscience/custom-providers).
+
+Choose a model that supports tool calling for tasks that read files, search, or run code. A chat-only endpoint can answer text requests but cannot perform the full research workflow.
+
+## When a connection fails
+
+Check the selected access mode, model ID, and account access. For Ace, also check the funding workspace and available Wallet balance. For your own provider, check key validity, API access, and that provider's usage limits.
+
+If a request times out, the output already received stays in the conversation. Review it before resending the request. [Troubleshooting](/openscience/troubleshooting) covers stalled requests, missing models, and local endpoint checks.

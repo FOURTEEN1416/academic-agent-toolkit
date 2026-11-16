@@ -1,95 +1,136 @@
 ---
 title: "Skills"
-description: "309 bundled research skills, direct access to around 30 scientific databases, and commands for installing, writing, and pinning skills."
-icon: "book-open"
+description: "Use reusable research procedures and add your own."
 ---
 
-A **skill** is a portable instruction bundle the agent loads into a session to prime it for a domain. OpenScience ships 309 of them, spanning the surface a working scientist actually hits.
+A skill is a set of instructions and supporting files for a particular workflow. OpenScience loads relevant skills while working, or you can select one explicitly.
 
-## Built-in categories
+The library has two tiers. The **core** skills are the research procedures the agent always has on its index: research lookup, literature review, brainstorming, hypotheses, reproduce, autoresearch, compute, delegation, figures, schematics, paper writing (general and ML), citations, peer review, and sources. Their names and one-line summaries are in every Research request, and the agent loads one when the task matches. Everything else, roughly 340 skills covering biology, chemistry, physics, machine learning, data engineering, cloud GPU providers, scientific databases and documents, is the **library**: found by search, by category, or by exact name when the core index points at it (cloud providers and databases are listed there by name).
 
-| Category | Covers |
-| --- | --- |
-| Training | DeepSpeed, PEFT, TRL, distributed and parameter-efficient fine-tuning. |
-| Evaluation | Harnesses, benchmarks, regression suites. |
-| Datasets | Acquisition, cleaning, splits, augmentation. |
-| Molecular & clinical biology | Sequence analysis, structures, omics, clinical data workflows. |
-| Cheminformatics | Molecule handling, descriptors, property prediction. |
-| Papers & LaTeX | Manuscript drafting, citations, submission-ready LaTeX. |
-| Figures | Publication-quality plots and layouts. |
-| User infrastructure | Modal, Tinker, and other user-configured GPU backends. |
-
-Run `openscience skill list --all` to print the full bundled set, grouped by category.
-
-## Scientific databases
-
-The major scientific databases are wired in as tools, not skills: UniProt, PDB, Ensembl, ChEMBL, PubChem, arXiv, OpenAlex, Semantic Scholar, and around 30 in total. Research queries them directly during a session — no API keys and no manual downloads required for public sources — and loads domain skills when their procedures or references help (see [Agents](/openscience/agents)).
-
-## Skill commands
-
-| Command | Use |
-| --- | --- |
-| `openscience skill list` | Show learned and installed skills; `--all` includes the bundled set. |
-| `openscience skill show <ns>[/<name>]` | Namespace summary, or a single skill's full `SKILL.md`. |
-| `openscience skill add <url>` | Install every skill from a public git repo; `gh:owner/repo` shorthand works. Runs a safety review. |
-| `openscience skill new <name>` | Scaffold a local user skill. |
-| `openscience skill edit <name>` | Open a user skill in `$EDITOR`. |
-| `openscience skill validate <target>` | Check a skill's frontmatter and safety (`--strict` fails on warnings). |
-| `openscience skill set-entries <ns> <entries>` | Choose which skills in a namespace surface in the `/` picker. |
-| `openscience skill remove <target>` | Uninstall a skill or a whole namespace. |
-
-## Install third-party skills
+Browse the [skill directory](/openscience/skill-library) or your installed version:
 
 ```bash
-openscience skill add gh:anthropics/superpowers
+openscience skill list --all
+```
+
+## Explore the library
+
+The dedicated **Skills** tab contains the [full directory](/openscience/skill-library), with a description and usage-instruction link for each bundled entry, plus [skill recipes](/openscience/skill-workflows) that show the inputs and outputs of common procedures.
+
+Use the directory to discover a procedure, then check the entry available in your installed app. A skill can guide several tools; enabling it does not automatically install every package mentioned by the procedure.
+
+## Find and use a skill
+
+Open **Customize → Skills**. The catalog is organised the way the agent uses it: **Core** first, in workflow order; **Personal** for the skills you wrote, installed or keep in the project; the **Library** as shelves by subject, each folded until you open it, with Activate all / Turn off all per shelf; and **Sources**, every directory feeding the catalog and any name that lost a collision. The views at the top (All, Core, Library, Personal, Off) narrow the list; search is one flat list across everything. In a conversation, type `/` for the same tiers, or ask for the procedure in your request.
+
+```text
+Use the appropriate single-cell analysis skill to inspect this dataset.
+First check the counts and metadata; propose preprocessing before
+changing anything.
+```
+
+A skill supplies guidance. It does not guarantee that every referenced package, dataset, or external service is installed or connected.
+
+OpenScience searches the enabled library when it does not know an exact skill name. Search results are suggestions; instructions load only after selecting an available name. If a request includes both an unavailable name and a search query, OpenScience uses the query to find candidates instead of loading a guessed substitute.
+
+The `/` menu opens on Core, then pinned skills, the session actions, and the whole library by subject; typing filters all of it, and a library skill shows its subject on the right. Selecting a skill prepares its slash command in the composer; it does not send your request. Pin a skill in Customize → Skills to keep it near the top of the menu.
+
+A successful tool load appears in the conversation as **Loaded skill: name**, even when reasoning and activity are collapsed. Expand it to inspect the saved instructions, then **Load details** for the source and instruction hash. Searches and failed loads are labeled separately.
+
+Loaded guidance remains available in ordinary follow-up turns through conversation history, so a new load is not required on every turn. The receipt stays on the original turn; it confirms that guidance was supplied, not that every instruction was followed. Context compaction can remove older guidance; load the skill again when its full procedure is needed afterward.
+
+## Install from a Git repository
+
+```bash
+openscience skill add gh:owner/repository
+```
+
+Replace `owner/repository` with the public repository you intend to install. A full Git URL is also supported. OpenScience reviews discovered skills and reports any that were skipped or rejected. Installation may need a configured model for review.
+
+Installed repositories use a namespace so you can inspect or remove their skills together:
+
+```bash
 openscience skill list
+openscience skill show <namespace>
+openscience skill show <namespace>/<skill-name>
 ```
 
-Each skill in the repo passes a static safety check and an LLM safety review before it installs; rejected skills are skipped and reported. Installed skills are namespaced by repo, so `remove <namespace>` uninstalls the whole set.
+Review third-party instructions and any scripts before relying on them. A review is not a guarantee about what an external package or service will do.
 
-### Community skills
-
-Skills contributed by the community that install with the command above:
-
-- **1000 Genomes genotypes** — [`dnaerys/onekgpd-skill`](https://github.com/dnaerys/onekgpd-skill) (MIT). Individual-level queries over the 1000 Genomes cohort (3,202 WGS samples, GRCh38): which individuals carry variants matching given criteria and zygosity, kinship between individuals, and cohort population/pedigree metadata. Queries a public, keyless [Dnaerys](https://dnaerys.org) endpoint (an external service the maintainers don't control), with an offline metadata tier.
-
-  ```bash
-  openscience skill add gh:dnaerys/onekgpd-skill
-  ```
-
-## Write your own
+## Write a skill
 
 ```bash
-openscience skill new leakage-checks --description "Checklists for spotting data leakage" --editor
+openscience skill new leakage-checks --description "Check analysis plans for data leakage" --editor
+openscience skill validate leakage-checks
 ```
 
-A skill is a `SKILL.md` file with `name`, `description`, and `category` frontmatter and an instruction body. Iterate with `openscience skill edit` and check it with `openscience skill validate`.
+A minimal `SKILL.md`:
 
-## Pin skills to a project
+```markdown
+---
+name: leakage-checks
+description: Check analysis plans for data leakage
+category: research
+---
 
-Point the project config at extra skill folders with `skills.paths` in `openscience.json` at the project root:
+Before model fitting:
+1. Identify the unit of observation and the train/test split.
+2. Check whether preprocessing learned from the test set.
+3. Check repeated subjects and near-duplicate records across splits.
+4. Report the evidence and unresolved risks before proposing changes.
+```
+
+Use `openscience skill edit leakage-checks` to revise it. `validate --strict` also fails on warnings.
+
+## Register a local skill directory
+
+A team pack, a vendor's collection or an air-gapped mirror can join the library without editing a config file or restarting. In **Customize → Skills**, choose **Add skill → Add a local folder**, enter the path and whether to keep it always (your config), for this project (the project config) or until the server restarts; the folder then appears under Sources with a remove control. The same is available through the API and SDK; the skills are scanned at once, nested category folders included:
+
+```bash
+curl -X POST http://127.0.0.1:4096/settings/skills/paths \
+  -H 'content-type: application/json' \
+  -d '{"path": "/data/team-skills", "persist": "global"}'
+```
+
+`persist` writes the absolute path to `skills.paths` in the global or the project `openscience.json` so it survives a restart; without it the root lives for this project's server process only. A missing or empty directory is rejected, and a directory that is already a root is refused rather than loaded twice. `GET /settings/skills/paths` lists every root feeding the catalog (bundled, project, user, installed, config, runtime) with the skills it won and the ones it lost to a same-named skill elsewhere; a skill that shadows another carries `shadows` with the losing paths, so a local edit that had no effect is explained. `DELETE /settings/skills/paths?path=…` removes a root, `POST /settings/skills/reload` rescans after files changed outside the app, and `GET /skill/{name}/content` returns a skill's instructions for clients without filesystem access.
+
+Custom roots load with project precedence: a same-named skill in a registered directory wins over the bundled and personal copies.
+
+## Use project skills
+
+Add a skill under `.openscience/skills/<name>/SKILL.md`, or configure additional folders:
 
 ```json
 {
-  "skills": { "paths": ["./skills", "../shared-skills"] }
+  "skills": {
+    "paths": ["./skills", "../shared-skills"]
+  }
 }
 ```
 
-Sessions started in that directory load those skills, so teammates and CI get the same primed agent. Existing `.claude/skills/` directories are picked up unchanged.
+Existing `.claude/skills/` folders are also discovered. Keep shared procedures in version control so teammates can review changes.
 
-## What's next
+For stable research, record the skill revision alongside the analysis code and inputs. Installing a repository is not the same as permanently pinning its current behavior.
 
-<Columns cols={2}>
-  <Card title="Agents" icon="bot" href="/openscience/agents">
-    Pair skills with custom agent profiles to build specialists.
-  </Card>
-  <Card title="Commands" icon="terminal" href="/openscience/commands">
-    Full `skill` subcommand reference.
-  </Card>
-  <Card title="Security" icon="shield-check" href="/openscience/security">
-    How the safety review and the subprocess allow-list protect you.
-  </Card>
-  <Card title="Connect Synthetic Sciences" icon="link" href="/openscience/gateway">
-    Sync the cloud and ML credentials a skill needs.
-  </Card>
-</Columns>
+## Control the skill picker
+
+```bash
+openscience skill set-entries <namespace> <entry-one>,<entry-two>
+```
+
+This chooses the entry skills exposed from an installed namespace. The names must match that namespace.
+
+Disable a skill in Customize to hide it from discovery without deleting its files. To uninstall:
+
+```bash
+openscience skill remove <namespace>/<skill-name>
+openscience skill remove <namespace>
+```
+
+See [Project instructions](/openscience/instructions) for rules that should apply throughout a project instead of only when a skill is used.
+
+Contributors can read the [skill runtime design](https://github.com/synthetic-sciences/openscience/blob/main/docs/notes/skill-runtime-design.md) for discovery, source precedence, and the permission checks around loading instructions.
+
+### Hugging Face dataset helpers
+
+The bundled `hugging-face-datasets` skill creates private repositories by default with `dataset_manager.py init`. Pass `--public` when you intend to create a public repository. The `add_rows` and `quick_setup` commands exit unsuccessfully when validation or row upload fails; check their exit status before continuing an automated workflow.

@@ -12,10 +12,35 @@ describe("ModalAdapter image", () => {
     ])
   })
 
+  test("a slim Debian image gets libgomp before Python packages; a full image and an empty package list do not", () => {
+    const slim = ModalAdapter.layers(["lightgbm==4.6.0"], undefined, "python:3.12-slim")
+    expect(slim).toHaveLength(2)
+    expect(slim[0]).toContain("apt-get install -y -qq --no-install-recommends libgomp1")
+    expect(slim[1]).toContain("pip install")
+    expect(ModalAdapter.layers(["lightgbm==4.6.0"], undefined, "python:3.12")).toHaveLength(1)
+    expect(ModalAdapter.layers([], undefined, "python:3.12-slim")).toEqual([])
+    const locked = ModalAdapter.layers(
+      ["numpy==2.5.2"],
+      { digest: "b".repeat(64), requirements: "numpy==2.5.2 --hash=sha256:" + "a".repeat(64) + "\n" },
+      "python:3.12-slim",
+    )
+    expect(locked[0]).toContain("libgomp1")
+    expect(locked[1]).toContain("--require-hashes")
+  })
+
   test("quotes package requirements as data instead of Docker shell syntax", () => {
     expect(ModalAdapter.layers(["project; echo unsafe", "name's-extra"])[0]).toContain(
       `'project; echo unsafe' 'name'\"'\"'s-extra'`,
     )
+  })
+
+  test("installs scientific packs only from a sha256 wheel lock", () => {
+    const requirements = "numpy==2.5.2 --hash=sha256:" + "a".repeat(64) + "\n"
+    const layer = ModalAdapter.layers(["numpy==2.5.2"], { digest: "b".repeat(64), requirements })[0]!
+    expect(layer).toContain("--only-binary=:all:")
+    expect(layer).toContain("--require-hashes")
+    expect(layer).not.toContain(requirements)
+    expect(layer).toContain(Buffer.from(requirements).toString("base64"))
   })
 })
 
@@ -207,6 +232,11 @@ describe("ModalAdapter input guard", () => {
     expect(() => ModalAdapter.validateUploads([{ ...file, size: ModalUpload.LIMIT + 1 }])).toThrow(
       "input exceeds the 100 MiB approval limit",
     )
+    // A file the plan marked as named may be large; nothing may pass 2 GiB.
+    expect(() => ModalAdapter.validateUploads([{ ...file, size: ModalUpload.LIMIT + 1, named: true }])).not.toThrow()
+    expect(() => ModalAdapter.validateUploads([{ ...file, size: ModalUpload.NAMED_LIMIT + 1, named: true }])).toThrow(
+      "exceeds the 2 GiB limit for one file",
+    )
     expect(() =>
       ModalAdapter.validateUploads([
         { ...file, size: 60 * 1024 * 1024 },
@@ -285,7 +315,7 @@ describe("ModalAdapter input guard", () => {
       ModalAdapter.preflightUploads(root, [
         { path: "source.bin", canonical: source, size: approved.size, sha256: approved.sha256 },
       ]),
-    ).rejects.toThrow("input exceeds the 100 MiB approval limit")
+    ).rejects.toThrow("input changed after approval")
     expect(reads).toEqual([])
     await fs.rm(root, { recursive: true, force: true })
   })

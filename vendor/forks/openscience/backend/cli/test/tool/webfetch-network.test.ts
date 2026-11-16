@@ -19,6 +19,54 @@ import z from "zod"
 import { Instance } from "../../src/project/instance"
 import { Session } from "../../src/session"
 import { tmpdir } from "../fixture/fixture"
+import { Agent } from "../../src/agent/agent"
+import { PermissionNext } from "../../src/permission/next"
+import { ProjectAccess } from "../../src/project/access"
+
+test.each(["approve", "full"] as const)(
+  "%s retrieves an allowed source without any user reply, including Explore workers",
+  async (mode) => {
+    await Network.set({ allowlistEnabled: true, enabled: [], custom: ["example.com"] })
+    const server = Bun.serve({
+      hostname: "127.0.0.1",
+      port: 0,
+      fetch: () => new Response("<h1>Verified source</h1>", { headers: { "content-type": "text/html" } }),
+    })
+    globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) =>
+      realFetch(server.url, init)) as typeof fetch
+    try {
+      await using tmp = await tmpdir({ git: true })
+      await Instance.provide({
+        directory: tmp.path,
+        fn: async () => {
+          await ProjectAccess.update(Instance.project, { mode, root: Instance.project.worktree })
+          const session = await Session.create({})
+          for (const name of ["research", "explore"]) {
+            const agent = await Agent.get(name)
+            const signal = AbortSignal.timeout(2_000)
+            const ctx = {
+              ...context(async (request) => {
+                await PermissionNext.ask(
+                  { ...request, sessionID: session.id, mode, ruleset: agent!.permission },
+                  signal,
+                )
+              }),
+              sessionID: session.id,
+              abort: signal,
+            }
+            const result = await (
+              await WebFetchTool.init()
+            ).execute({ url: "https://example.com/paper", format: "markdown" }, ctx)
+            expect(result.output).toContain("Verified source")
+            expect(await PermissionNext.list()).toEqual([])
+          }
+        },
+      })
+    } finally {
+      await server.stop(true)
+    }
+  },
+)
 
 const realFetch = globalThis.fetch
 
@@ -92,6 +140,108 @@ test("webfetch schema teaches the root-download then sandboxed-move sequence", a
   expect(schema.properties?.max_bytes).toBeUndefined()
   expect(schema.properties?.declared_size_bytes).toBeUndefined()
   expect(schema.properties?.declared_size_evidence_call_id).toBeUndefined()
+})
+
+test.each(["application/x-bibtex", "application/bibtex", "application/x-research-info-systems", "application/ris"])(
+  "webfetch reads %s citation exports inline instead of creating an unrequested file",
+  async (mime) => {
+    await Network.set({ allowlistEnabled: true, enabled: [], custom: ["example.com"] })
+    const citation = mime.includes("bibtex")
+      ? "@article{example, title={Verified source}, year={2026}}\n"
+      : "TY  - JOUR\nTI  - Verified source\nPY  - 2026\nER  -\n"
+    const server = Bun.serve({
+      hostname: "127.0.0.1",
+      port: 0,
+      fetch: () =>
+        new Response(citation, {
+          headers: {
+            "content-type": `${mime}; charset=utf-8`,
+            "content-disposition": "attachment; filename=reference.bib",
+          },
+        }),
+    })
+    globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) =>
+      realFetch(server.url, init)) as typeof fetch
+    try {
+      const requests: string[] = []
+      const result = await (
+        await WebFetchTool.init()
+      ).execute(
+        { url: "https://example.com/export", format: "text" },
+        context(async (request) => {
+          requests.push(request.permission)
+        }),
+      )
+      expect(result.output).toBe(citation)
+      expect(result.metadata).not.toHaveProperty("download")
+      expect(requests).toEqual(["webfetch"])
+    } finally {
+      await server.stop(true)
+    }
+  },
+)
+
+test("webfetch reads HTML inline over HTTP and distinguishes raw page downloads from disguised PDFs", async () => {
+  await Network.set({ allowlistEnabled: false, enabled: [], custom: [] })
+  const html =
+    "<!doctype html><html><body><h1>Fixture article</h1><p>Measured evidence from the local fixture.</p></body></html>"
+  const server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch(request) {
+      return new Response(html, {
+        headers: {
+          "content-type": new URL(request.url).pathname === "/disguised" ? "application/pdf" : "text/html",
+          "content-length": String(Buffer.byteLength(html)),
+        },
+      })
+    },
+  })
+  // The broker still validates a public source. Only the transport points at
+  // this test's real HTTP server; no external request or model call is made.
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = new URL(input instanceof Request ? input.url : input)
+    if (url.origin !== "https://example.com") throw new Error("Unexpected non-fixture WebFetch request")
+    return realFetch(new URL(url.pathname, server.url), init)
+  }) as typeof fetch
+
+  try {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const session = await Session.create({ title: "WebFetch page contract" })
+        const ctx = { ...context(async () => {}), sessionID: session.id }
+        const webfetch = await WebFetchTool.init()
+        const url = "https://example.com/article"
+        const inline = await webfetch.execute(webfetch.parameters.parse({ url }), ctx)
+        expect(inline.output).toContain("# Fixture article")
+        expect(inline.output).toContain("Measured evidence from the local fixture.")
+        expect(inline.metadata).not.toHaveProperty("download")
+        const text = await webfetch.execute({ url, format: "text" }, ctx)
+        expect(text.output).toContain("Fixture article")
+        expect(text.output).not.toContain("<h1>")
+        expect(text.metadata).not.toHaveProperty("download")
+
+        const workspace = await SessionFilesystem.workspace(session.id)
+        for (const output_path of ["article.md", "article.txt", "a"]) {
+          const failure = await captureError(webfetch.execute({ url, format: "markdown", output_path }, ctx))
+          expect(failure.message).toContain("omit output_path entirely; it is optional")
+          expect(failure.message).toContain("format does not convert downloaded bytes")
+          expect(await Bun.file(path.join(workspace, output_path)).exists()).toBe(false)
+        }
+        const raw = await webfetch.execute({ url, format: "markdown", output_path: "article.html" }, ctx)
+        expect(raw.metadata).toHaveProperty("download.filename", "article.html")
+        expect(await Bun.file(path.join(workspace, "article.html")).text()).toBe(html)
+        await expect(
+          webfetch.execute({ url: "https://example.com/disguised", format: "text", output_path: "article.pdf" }, ctx),
+        ).rejects.toThrow("Downloaded response is HTML, not the requested .pdf file")
+        expect(await Bun.file(path.join(workspace, "article.pdf")).exists()).toBe(false)
+      },
+    })
+  } finally {
+    await server.stop(true)
+  }
 })
 
 test("webfetch serializes same-host requests and honors Retry-After after a 429", async () => {

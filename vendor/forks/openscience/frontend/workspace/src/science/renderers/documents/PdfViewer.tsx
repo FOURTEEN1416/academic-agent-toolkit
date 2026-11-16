@@ -1,4 +1,5 @@
 import { For, Show, onCleanup, onMount } from "solid-js"
+import { ViewerControls } from "@/atlas/file-chrome"
 import { createStore } from "solid-js/store"
 import type { ArtifactRenderProps } from "../registry"
 import { ensurePdfWorker } from "./pdfjs-worker"
@@ -360,14 +361,19 @@ export function PdfViewer(props: ArtifactRenderProps) {
       data-component="science-pdf"
       style={{ height: props.height ? `${props.height}px` : undefined }}
     >
-      <header class="pdf-viewer-toolbar" data-slot="pdf-header">
-        <div class="pdf-viewer-title">
-          <strong>PDF</strong>
-          <Show when={cfg.url}>
-            <span title={cfg.url}>{cfg.url?.split("/").pop()}</span>
-          </Show>
-        </div>
-
+      <ViewerControls
+        fallback={(controls) => (
+          <header class="pdf-viewer-toolbar" data-slot="pdf-header">
+            <div class="pdf-viewer-title">
+              <strong>PDF</strong>
+              <Show when={cfg.url}>
+                <span title={cfg.url}>{cfg.url?.split("/").pop()}</span>
+              </Show>
+            </div>
+            {controls}
+          </header>
+        )}
+      >
         <Show when={view.pages}>
           {(count) => (
             <div class="pdf-viewer-page-controls" aria-label="Page navigation">
@@ -416,7 +422,7 @@ export function PdfViewer(props: ArtifactRenderProps) {
             <span aria-hidden="true">+</span>
           </button>
         </div>
-      </header>
+      </ViewerControls>
 
       <div class="pdf-viewer-workspace">
         <nav
@@ -466,5 +472,3 @@ export function PdfViewer(props: ArtifactRenderProps) {
     </section>
   )
 }
-
-export default PdfViewer

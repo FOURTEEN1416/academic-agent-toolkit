@@ -3,10 +3,18 @@ name: nnsight-remote-interpretability
 description: Provides guidance for interpreting and manipulating neural network internals using nnsight with optional NDIF remote execution. Use when needing to run interpretability experiments on massive models (70B+) without local GPU resources, or when working with any PyTorch architecture.
 category: ml-training
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [nnsight, NDIF, Remote Execution, Mechanistic Interpretability, Model Internals]
 dependencies: [nnsight>=0.5.0, torch>=2.0.0]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 04-mechanistic-interpretability/nnsight
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # nnsight: Transparent Access to Neural Network Internals

@@ -1,63 +1,34 @@
 ---
-description: Start PaperSpine — research, then rewrite or build a paper or report end to end
-argument-hint: "[optional: target/scene, e.g. 'IEEE conference paper from ./materials']"
+description: Open or resume the current PaperSpine Skill workflow, or handle an explicit update request
+argument-hint: "[update check | optional target/scene]"
 ---
 
-Start the PaperSpine workflow for the current project using the **`$paper-spine`
-orchestrator** skill. Route through `$paper-spine`; do not call the worker
-sub-skills directly unless the orchestrator tells you to.
+Invocation arguments: `$1`
 
-If `paper_rewriting_output/paper_spine_config.json` is missing or incomplete,
-your FIRST tool action MUST be to run the launcher below with
-`sandbox_permissions: require_escalated` (opening a visible window is an
-escalated action in Codex; without it the window will not reliably appear). Do
-NOT inspect materials, infer defaults, create config files, or continue the
-workflow before the UI has launched or explicitly failed. Resolve the launcher
-by its absolute installed path — Codex runs from the project folder, where
-`scripts/` does not exist. Only fall back to numbered/chat intake on launch error.
+Read the installed `paper-spine` Skill and follow its current host workflow.
+The host Agent performs research, writing, figures and revision; Web stores the
+same task's configuration, choices and feedback and presents actual files.
 
-### Windows
+For an explicit update or update-check request, read `references/update.md` and
+handle that request without starting paper work. On a normal paper invocation,
+follow the installed Skill's `scripts/paperspine_update.py --preflight --yes`
+once, then continue the same task. This original wrapper now selects the full
+suite channel for the actual operating system; explicit opt-out is respected.
+After upgrading, reread the installed Skill and current public tool schemas.
 
-```powershell
-$config = Join-Path (Get-Location) "paper_rewriting_output\paper_spine_config.json"
-$launcher = @(
-  "$env:USERPROFILE\.codex\skills\paper-spine\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\.claude\skills\paper-spine\scripts\launch_paperspine_ui.ps1",
-  "$env:USERPROFILE\AppData\Local\hermes\skills\academic-writing\paper-spine\scripts\launch_paperspine_ui.ps1"
-) | Where-Object { Test-Path $_ } | Select-Object -First 1
-if (-not $launcher) { throw "PaperSpine UI launcher not found. Reinstall or resync PaperSpine." }
-if (-not (Test-Path -LiteralPath $config)) {
-  powershell.exe -NoProfile -ExecutionPolicy Bypass -File $launcher -OutputDir "paper_rewriting_output"
-}
-for ($i = 0; $i -lt 120 -and -not (Test-Path -LiteralPath $config); $i++) { Start-Sleep -Seconds 5 }
-if (-not (Test-Path -LiteralPath $config)) {
-  throw "PaperSpine intake config not created yet. Finish the opened UI window, then rerun /paperspine."
-}
-Get-Content -LiteralPath $config -Raw
-```
+For writing, formatting, review or revision, open or resume the user's existing
+public task as directed by `SKILL.md` and `references/product-v1-workflow.md`.
+Use the installed `scripts/paperspine5_web.py launch --no-open` and its `host`
+commands when public MCP tools are not exposed. Reuse the remembered or explicitly
+supplied profile; read the actual saved configuration before continuing. Open the
+exact returned task URL once, preferring Codex's available in-app browser unless
+the user selected another. Reuse that tab; do not also open the default browser.
+A service homepage is not a task handoff. A new host reads saved task files rather
+than assuming access to the old conversation's memory.
 
-### macOS / Linux
-
-```bash
-CONFIG="paper_rewriting_output/paper_spine_config.json"
-LAUNCHER="$HOME/.codex/skills/paper-spine/scripts/launch_paperspine_ui.sh"
-[ -f "$LAUNCHER" ] || LAUNCHER="$HOME/.claude/skills/paper-spine/scripts/launch_paperspine_ui.sh"
-if [ ! -f "$LAUNCHER" ]; then
-  echo "PaperSpine UI launcher not found. Reinstall or resync PaperSpine." >&2; exit 1
-fi
-if [ ! -f "$CONFIG" ]; then
-  chmod +x "$LAUNCHER"; bash "$LAUNCHER" "paper_rewriting_output"
-fi
-for i in $(seq 1 120); do [ -f "$CONFIG" ] && break; sleep 5; done
-if [ ! -f "$CONFIG" ]; then
-  echo "PaperSpine intake config not created yet. Finish the opened terminal, then rerun /paperspine." >&2; exit 1
-fi
-cat "$CONFIG"
-```
-
-### After config is ready
-
-When the config already exists, read it and continue through the `$paper-spine`
-orchestrator workflow (research → confirm motivation → rationale matrix →
-rewrite/build → LaTeX/PDF/Word → audit) without relaunching intake unless
-required fields are missing. If `$1` was provided, treat it as the target/scene hint.
+A missing historical `paper_rewriting_output/paper_spine_config.json` is not a
+reason to create another task, restart intake or use a legacy Runner flow.
+Treat invocation arguments as the user's instructions or target hint, preserving
+valid existing materials, configuration, selections and versions. Continue the
+same task through actual writing, target-venue formatting, independent review,
+preview/download and requested revision.

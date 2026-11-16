@@ -1,9 +1,11 @@
+import type { JSX } from "solid-js"
 import type {
   Message,
   Session,
   Part,
   FileDiff,
   SessionStatus,
+  SessionRequestProgress,
   PermissionRequest,
   QuestionRequest,
   QuestionAnswer,
@@ -15,6 +17,11 @@ type Data = {
   session: Session[]
   session_status: {
     [sessionID: string]: SessionStatus
+  }
+  // Live provider request phase per session. Optional: older backends never
+  // publish it and the status line falls back to its generic copy.
+  session_progress?: {
+    [sessionID: string]: SessionRequestProgress
   }
   session_diff: {
     [sessionID: string]: FileDiff[]
@@ -54,6 +61,20 @@ export type SaveArtifactFn = (path: string) => Promise<void>
 /** Open a durable saved artifact version in the contextual Files surface. */
 export type OpenArtifactFn = (id: string) => void
 
+export type ComputeJobDetails = {
+  id: string
+  name: string
+  status: string
+  command: string
+  completed_at?: string
+  exit_code?: number | null
+  error?: string
+  capture_error?: string
+  cleanup_error?: string
+  lifecycle?: { delivery: string; resource: string; recoverable: boolean }
+  artifacts?: { path: string; artifact_id?: string }[]
+}
+
 export const { use: useData, provider: DataProvider } = createSimpleContext({
   name: "Data",
   init: (props: {
@@ -66,6 +87,14 @@ export const { use: useData, provider: DataProvider } = createSimpleContext({
     onOpenFile?: (path: string) => void
     onOpenArtifact?: OpenArtifactFn
     onSaveArtifact?: SaveArtifactFn
+    onLoadComputeJob?: (id: string) => Promise<ComputeJobDetails | undefined>
+    onResolveFileReceipts?: (sessionID: string, paths: readonly string[]) => Promise<string[]>
+    /** Open the host's credential settings; question cards that ask for a login offer it. */
+    onOpenCredentials?: () => void
+    /** Send a turn's user message again as a new request, after a provider stopped answering. */
+    onResendTurn?: (input: { sessionID: string; messageID: string }) => void
+    /** Continue actions for a worker that stopped at a runtime limit, shown on its Task card. */
+    renderTaskActions?: (input: { sessionID: string; taskSessionID: string }) => JSX.Element
   }) => {
     return {
       get store() {
@@ -81,6 +110,11 @@ export const { use: useData, provider: DataProvider } = createSimpleContext({
       openFile: props.onOpenFile,
       openArtifact: props.onOpenArtifact,
       saveArtifact: props.onSaveArtifact,
+      loadComputeJob: props.onLoadComputeJob,
+      renderTaskActions: props.renderTaskActions,
+      resolveFileReceipts: props.onResolveFileReceipts,
+      openCredentials: props.onOpenCredentials,
+      resendTurn: props.onResendTurn,
     }
   },
 })

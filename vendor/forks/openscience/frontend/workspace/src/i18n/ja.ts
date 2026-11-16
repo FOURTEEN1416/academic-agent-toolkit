@@ -78,10 +78,6 @@ export const dict = {
   "command.session.compact.description": "セッションを要約してコンテキストサイズを削減",
   "command.session.fork": "メッセージからフォーク",
   "command.session.fork.description": "以前のメッセージから新しいセッションを作成",
-  "command.session.share": "セッションを共有",
-  "command.session.share.description": "このセッションを共有しURLをクリップボードにコピー",
-  "command.session.unshare": "セッションの共有を停止",
-  "command.session.unshare.description": "このセッションの共有を停止",
 
   "palette.search.placeholder": "ファイルとコマンドを検索",
   "palette.empty": "結果が見つかりません",
@@ -93,7 +89,6 @@ export const dict = {
   "dialog.provider.group.popular": "人気",
   "dialog.provider.group.other": "その他",
   "dialog.provider.tag.recommended": "推奨",
-  "dialog.provider.synsci.note": "curated models including Claude, GPT, Gemini and more",
   "dialog.provider.anthropic.note": "Claude Pro/MaxまたはAPIキーで接続",
   "dialog.provider.openai.note": "ChatGPT Pro/PlusまたはAPIキーで接続",
   "dialog.provider.google.note": "Gemini models for fast, structured responses",
@@ -106,10 +101,6 @@ export const dict = {
   "dialog.model.empty": "モデルが見つかりません",
   "dialog.model.manage": "モデルを管理",
   "dialog.model.manage.description": "モデルセレクターに表示するモデルをカスタマイズします。",
-
-  "dialog.model.unpaid.freeModels.title": "接続済みプロバイダーの無料モデル",
-  "dialog.model.unpaid.empty": "no free models available yet — connect a provider to add models.",
-  "dialog.model.unpaid.addMore.title": "人気のプロバイダーからモデルを追加",
 
   "dialog.provider.viewAll": "さらにプロバイダーを表示",
 
@@ -263,15 +254,10 @@ export const dict = {
   "dialog.project.edit.worktree.startup.description":
     "新しいワークスペース (ワークツリー) を作成した後に実行されます。",
   "dialog.project.edit.worktree.startup.placeholder": "例: bun install",
-  "context.breakdown.title": "コンテキストの内訳",
-  "context.breakdown.note": '入力トークンのおおよその内訳です。"その他"にはツールの定義やオーバーヘッドが含まれます。',
-  "context.breakdown.system": "システム",
   "context.breakdown.user": "ユーザー",
   "context.breakdown.assistant": "アシスタント",
   "context.breakdown.tool": "ツール呼び出し",
-  "context.breakdown.other": "その他",
 
-  "context.systemPrompt.title": "システムプロンプト",
   "context.rawMessages.title": "生のメッセージ",
 
   "context.stats.session": "セッション",
@@ -332,16 +318,6 @@ export const dict = {
   "toast.file.listFailed.title": "ファイル一覧の取得に失敗しました",
   "toast.context.noLineSelection.title": "行が選択されていません",
   "toast.context.noLineSelection.description": "まずファイルタブで行範囲を選択してください。",
-  "toast.session.share.copyFailed.title": "URLのコピーに失敗しました",
-  "toast.session.share.success.title": "セッションを共有しました",
-  "toast.session.share.success.description": "共有URLをクリップボードにコピーしました！",
-  "toast.session.share.failed.title": "セッションの共有に失敗しました",
-  "toast.session.share.failed.description": "セッションの共有中にエラーが発生しました",
-
-  "toast.session.unshare.success.title": "セッションの共有を解除しました",
-  "toast.session.unshare.success.description": "セッションの共有解除に成功しました！",
-  "toast.session.unshare.failed.title": "セッションの共有解除に失敗しました",
-  "toast.session.unshare.failed.description": "セッションの共有解除中にエラーが発生しました",
 
   "toast.session.listFailed.title": "{{project}}のセッション読み込みに失敗しました",
 
@@ -380,8 +356,8 @@ export const dict = {
   "error.chain.providerAuthFailed": "プロバイダー認証に失敗しました ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     'プロバイダー "{{provider}}" の初期化に失敗しました。認証情報と設定を確認してください。',
-  "error.chain.configJsonInvalid": "{{path}} の設定ファイルは有効なJSON(C)ではありません",
-  "error.chain.configJsonInvalidWithMessage": "{{path}} の設定ファイルは有効なJSON(C)ではありません: {{message}}",
+  "error.chain.configJsonInvalid": "{{path}} の設定ファイルは有効なJSONではありません",
+  "error.chain.configJsonInvalidWithMessage": "{{path}} の設定ファイルは有効なJSONではありません: {{message}}",
   "error.chain.configDirectoryTypo":
     '{{path}} 内のディレクトリ "{{dir}}" は無効です。"{{suggestion}}" に名前を変更するか削除してください。これはよくあるタイプミスです。',
   "error.chain.configFrontmatterError": "{{path}} のフロントマターの解析に失敗しました:\n{{message}}",
@@ -437,20 +413,6 @@ export const dict = {
   "status.popover.tab.lsp": "LSP",
   "status.popover.tab.plugins": "プラグイン",
   "status.popover.action.manageServers": "サーバーを管理",
-
-  "session.share.popover.title": "ウェブで公開",
-  "session.share.popover.description.shared":
-    "このセッションはウェブで公開されています。リンクを知っている人なら誰でもアクセスできます。",
-  "session.share.popover.description.unshared":
-    "セッションをウェブで公開します。リンクを知っている人なら誰でもアクセスできるようになります。",
-  "session.share.action.share": "共有",
-  "session.share.action.publish": "公開",
-  "session.share.action.publishing": "公開中...",
-  "session.share.action.unpublish": "非公開にする",
-  "session.share.action.unpublishing": "非公開にしています...",
-  "session.share.action.view": "表示",
-  "session.share.copy.copied": "コピーしました",
-  "session.share.copy.copyLink": "リンクをコピー",
 
   "lsp.tooltip.none": "LSPサーバーなし",
   "lsp.label.connected": "{{count}} LSP",

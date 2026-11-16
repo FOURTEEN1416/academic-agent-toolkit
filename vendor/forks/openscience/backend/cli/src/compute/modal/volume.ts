@@ -6,13 +6,20 @@ import { Global } from "../../global"
 import { DataRootBarrier } from "../../global/data-root-barrier"
 import { CredentialLifecycle } from "../../credentials/lifecycle"
 import { CredentialProcessLedger } from "../../credentials/process-ledger"
+import { CredentialRevocation } from "../../credentials/revocation"
 import { ProcessIdentity } from "../../process/process-identity"
 import { DARWIN_RESPONSIBILITY_ACTIVATION_SUFFIX } from "../../process/darwin-responsibility-launcher"
 import { WindowsJobLauncher } from "../../process/windows-job-launcher"
+import { TrustedExecutable } from "../../process/trusted-executable"
 import { Shell } from "../../shell/shell"
 
 export namespace ModalVolume {
-  export const VERSION = "1.1.4"
+  /** The Modal Python SDK the uv fallback installs. A system interpreter is
+   * accepted from `MINIMUM` up: the four Volume calls the bridge makes
+   * (`from_name`, `objects.list`, `listdir`, `read_file`) are unchanged since
+   * 1.1.2, so a newer install is not forced onto the download path. */
+  export const VERSION = "1.5.5"
+  export const MINIMUM = "1.1.2"
   export const DOWNLOAD_DISK_RESERVE_BYTES = 512 * 1024 * 1024 // preserve 512 MiB for the host
 
   export type Context = {
@@ -23,6 +30,26 @@ export namespace ModalVolume {
     env?: Record<string, string | undefined>
     python?: string
     uv?: string
+  }
+
+  type TestHooks = {
+    probe?: { argv: string[]; timeout: number }
+    beforeUv?: () => void | Promise<void>
+    directories?: string[]
+  }
+
+  const hooks = { value: undefined as TestHooks | undefined }
+
+  /** Deterministic SDK-selection barriers for process-ownership regressions. */
+  export function testing(input: TestHooks) {
+    if (!process.env.OPENSCIENCE_TEST_HOME) throw new Error("Modal Volume test hooks are disabled outside tests")
+    const prior = hooks.value
+    hooks.value = input
+    return {
+      [Symbol.dispose]() {
+        if (hooks.value === input) hooks.value = prior
+      },
+    }
   }
 
   export type Entry = {
@@ -98,6 +125,14 @@ export namespace ModalVolume {
   const MAX_STDOUT = 8 * 1024 * 1024
   const MAX_STDERR = 1024 * 1024
   const text = new TextDecoder()
+
+  class TimeoutError extends Error {
+    constructor(action: string, timeout: number) {
+      super(`Modal Volume ${action} timed out after ${timeout}ms`)
+      this.name = "ModalVolumeTimeoutError"
+    }
+  }
+
   const clean = (value: string) => value.replaceAll("\\", "/").replace(/^\/+/, "")
   const safe = (value: string) => {
     const result = clean(value)
@@ -175,28 +210,52 @@ export namespace ModalVolume {
     if (signal?.aborted) throw abortReason(signal)
     if (context.command) return context.command
     const file = await driverPath()
-    const python = context.python ?? Bun.which("python3") ?? Bun.which("python")
+    const env = environment({ ...process.env, ...context.env })
+    // Finder-launched desktop apps inherit a minimal PATH. Resolve existing
+    // Homebrew/user installations directly, without sourcing shell startup
+    // files or making the user reinstall a runtime that is already present.
+    const search =
+      process.platform === "win32" ? Object.entries(env).find(([key]) => key.toUpperCase() === "PATH")?.[1] : env.PATH
+    const executable = async (name: string) =>
+      Bun.which(name, { PATH: search ?? "" }) ??
+      (await TrustedExecutable.resolve(name, { directories: hooks.value?.directories }))
+    const python = context.python ?? (await executable("python3")) ?? (await executable("python"))
     if (python) {
       const probe = await execute(
-        [
+        hooks.value?.probe?.argv ?? [
           python,
           "-I",
           "-c",
-          `import modal; assert modal.__version__ == '${VERSION}'; assert hasattr(modal.Volume, 'read_file')`,
+          // Import what a Volume download actually touches, not just `modal`:
+          // an ambient install missing certifi or aiohttp imports fine and then
+          // fails on the first block read. Such an interpreter is skipped for
+          // the pinned uv runtime.
+          `import modal, certifi, aiohttp, grpclib, google.protobuf; v = tuple(int(p) for p in modal.__version__.split('.')[:3] if p.isdigit()); assert v >= tuple(int(p) for p in '${MINIMUM}'.split('.')), modal.__version__; assert hasattr(modal.Volume, 'read_file') and hasattr(modal.Volume, 'objects')`,
         ],
-        environment({ ...process.env, ...context.env }),
-        PROBE_TIMEOUT,
+        env,
+        hooks.value?.probe?.timeout ?? PROBE_TIMEOUT,
         "SDK probe",
         undefined,
         signal,
-      )
-      if (probe.code === 0) return [python, "-I", file]
+      ).catch((error) => {
+        if (signal?.aborted) throw abortReason(signal)
+        if (error instanceof TimeoutError) return undefined
+        throw error
+      })
+      if (probe?.signal) throw new Error(`Modal Volume SDK probe was killed by ${probe.signal}`)
+      if (probe?.code === 0) return [python, "-I", file]
+      if (probe?.code === null) throw new Error("Modal Volume SDK probe ended without an exit code")
     }
-    const uv = context.uv ?? Bun.which("uv")
+    if (signal?.aborted) throw abortReason(signal)
+    const uv = context.uv ?? (await executable("uv"))
     if (uv) {
+      await hooks.value?.beforeUv?.()
       return [uv, "run", "--no-project", "--python", "3.12", "--with", `modal==${VERSION}`, "python", "-I", file]
     }
-    throw new Error("Modal Volume access requires uv or a Python installation that can import the Modal SDK")
+    throw new Error(
+      `OpenScience could not find uv or an isolated Python installation with Modal SDK ${MINIMUM} or newer. ` +
+        "Install uv, then retry Modal Volumes.",
+    )
   }
 
   const RUNTIME_ENV = new Set([
@@ -377,10 +436,7 @@ export namespace ModalVolume {
         timeout === undefined
           ? undefined
           : new Promise<never>((_, reject) => {
-              timer = setTimeout(
-                () => reject(new Error(`Modal Volume ${action} timed out after ${timeout}ms`)),
-                timeout,
-              )
+              timer = setTimeout(() => reject(new TimeoutError(action, timeout)), timeout)
             })
       const result = Promise.all([launched.stdout, launched.stderr, launched.completion] as const)
       const interrupted = signal ? Promise.withResolvers<never>() : undefined
@@ -607,6 +663,7 @@ export namespace ModalVolume {
 
 // A credential rotation in this or another server must revoke any helper that
 // inherited the prior Modal token pair before the new revision is acknowledged.
-CredentialLifecycle.onRevoke(async () => {
-  await CredentialProcessLedger.revoke("modal-volume")
+// An expired synced overlay reaches only helpers that inherited it.
+CredentialLifecycle.onRevoke(async ({ reason }) => {
+  await CredentialProcessLedger.revoke({ kind: "modal-volume", ...CredentialRevocation.scope(reason) })
 })

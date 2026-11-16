@@ -113,6 +113,9 @@ export interface KernelStartOptions {
   cwd?: string
   /** Extra environment variables. */
   env?: Record<string, string>
+  /** Resolver-owned package directories required for interpreter imports.
+   * These are derived runtime paths, never arbitrary caller PYTHONPATH. */
+  extraReadable?: string[]
   /** Narrow writable roots granted only to this process incarnation. Used for
    * explicitly approved package/environment mutations, never normal code. */
   extraWritable?: string[]

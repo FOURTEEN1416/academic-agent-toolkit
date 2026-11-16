@@ -3,10 +3,18 @@ name: transformer-lens-interpretability
 description: Provides guidance for mechanistic interpretability research using TransformerLens to inspect and manipulate transformer internals via HookPoints and activation caching. Use when reverse-engineering model algorithms, studying attention patterns, or performing activation patching experiments.
 category: ml-training
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Mechanistic Interpretability, TransformerLens, Activation Patching, Circuit Analysis]
 dependencies: [transformer-lens>=2.0.0, torch>=2.0.0]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 04-mechanistic-interpretability/transformer-lens
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # TransformerLens: Mechanistic Interpretability for Transformers

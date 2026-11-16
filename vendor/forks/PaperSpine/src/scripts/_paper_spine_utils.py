@@ -8,6 +8,65 @@ from dataclasses import dataclass
 from difflib import SequenceMatcher
 from pathlib import Path
 
+
+def review_policy(config: dict[str, object]) -> str:
+    """Return the workflow review policy; balanced is the non-bureaucratic default."""
+    value = str(config.get("review_policy") or "balanced").strip().lower()
+    return "strict" if value == "strict" else "balanced"
+
+
+def literature_scope(config: dict[str, object]) -> str:
+    """Resolve whether citation work may expand beyond a supplied corpus."""
+    explicit = str(config.get("literature_scope") or "auto").strip().lower()
+    if explicit in {"closed_corpus", "open_literature"}:
+        return explicit
+
+    workflow = str(config.get("workflow") or "").strip().lower()
+    reference_mode = str(config.get("reference_mode") or "").strip().lower()
+    requirements = " ".join(str(item) for item in config.get("special_requirements") or []).lower()
+    closed_language = any(
+        phrase in requirements
+        for phrase in ("no network", "local only", "local-material-only", "existing local", "禁止联网", "仅本地")
+    )
+    if workflow == "rewrite_existing" and (reference_mode == "specified_paths" or closed_language):
+        return "closed_corpus"
+    return "open_literature"
+
+
+def figure_policy(config: dict[str, object]) -> str:
+    """Return the resolved figure-work policy without disabling agent judgment."""
+    value = str(config.get("figure_policy") or "auto").strip().lower()
+    if value in {"none", "existing_only", "generate_or_redesign"}:
+        return value
+    return "auto"
+
+
+def figure_work_required(output_dir: Path, config: dict[str, object]) -> bool:
+    """Infer whether the paper has scientific figure work to plan and audit.
+
+    Explicit configuration wins. In ``auto`` mode, concrete artifacts are used
+    as signals so text-only genres remain lightweight and older jobs stay
+    compatible.
+    """
+    policy = figure_policy(config)
+    if policy == "none":
+        return False
+    if policy in {"existing_only", "generate_or_redesign"}:
+        return True
+    if (output_dir / "figure_requests.json").is_file():
+        return True
+    tex_path = output_dir / "final_paper" / "main.tex"
+    if tex_path.is_file():
+        tex = read_text(tex_path)
+        if re.search(r"\\(?:includegraphics|begin\{figure\*?\})", tex):
+            return True
+    asset_map = output_dir / "figure_asset_map.md"
+    if asset_map.is_file() and re.search(
+        r"\.(?:png|jpe?g|tiff?|svg|pdf|pptx?)\b", read_text(asset_map), flags=re.IGNORECASE
+    ):
+        return True
+    return False
+
 # — file reading ————————————————————————————————————————————————————————————
 
 def read_text(path: Path) -> str:

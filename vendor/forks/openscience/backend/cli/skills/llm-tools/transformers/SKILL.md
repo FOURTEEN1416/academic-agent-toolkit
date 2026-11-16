@@ -5,9 +5,15 @@ category: llm-tools
 license: Apache-2.0 license
 compatibility: Some features require an Huggingface token
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/transformers
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [NLP, Deep Learning, Hugging Face, LLM, Fine-Tuning]
 dependencies: ["transformers>=4.45.0", "torch>=2.0.0", "tokenizers>=0.19.0"]
 ---
@@ -45,7 +51,7 @@ HuggingFace token is auto-injected by openscience when connected via the dashboa
 [ -n "$HF_TOKEN" ] && echo "HF_TOKEN set" || echo "NOT SET"
 ```
 
-If not set: connect HuggingFace at https://app.syntheticsciences.ai -> Services, then restart openscience.
+If not set: add your Hugging Face token in Customize → Tools or export `HF_TOKEN` locally.
 
 ## Quick Start
 
@@ -159,4 +165,3 @@ For detailed information on specific components:
 - **Generation**: `references/generation.md` - Text generation strategies and parameters
 - **Training**: `references/training.md` - Fine-tuning with Trainer API
 - **Tokenizers**: `references/tokenizers.md` - Tokenization and preprocessing
-

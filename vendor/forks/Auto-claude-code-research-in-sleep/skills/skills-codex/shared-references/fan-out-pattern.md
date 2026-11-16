@@ -3,15 +3,19 @@
 > **Codex mirror adaptation (normative).** Codex uses `spawn_agent` for Tier-2
 > shards when delegation is available and the same structured sequential
 > fallback otherwise. Generator shards remain read-only and never judge their
-> candidates. A Codex jury is same-family and records provisional; a
-> Claude/Gemini overlay or deterministic verifier records accepted.
+> candidates. The default native Codex jury stays same-family/provisional.
+> Select other reviewers via [Selectable Reviewers](reviewer-backends.md).
+> Accepted semantic assurance needs a completed positive in-scope review with
+> known different actual model families. Deterministic verifiers accept only
+> the mechanical obligations they actually check.
 
 When a skill needs **breadth** — many candidate ideas, many sources, many
 attack angles, many proof obligations, many draft sections — it may fan
 the generation step out across same-family subagents. This document is
 the canonical convention for doing that **without** weakening assurance:
-base Codex review remains provisional, while overlays and deterministic checks
-are the accepted routes.
+base Codex review remains provisional. A completed positive cross-family
+review can support accepted semantic assurance; deterministic checks retain
+their mechanical scope.
 
 Rule of thumb: **Fan-out is 火力 (firepower); the jury is 裁判席 (the
 bench). Subagents GENERATE candidates; they NEVER score them.** Fan-out
@@ -19,7 +23,52 @@ multiplies how much breadth you can cover per unit time. It does not, and
 must not, change *who renders the verdict*. The verdict stays a single,
 separately classified jury step — identical whether you fanned out across 8
 parallel workers or ran one shard at a time on a slow night. In the base mirror
-it is Codex/same-family/provisional; overlay or deterministic routes are accepted.
+it is Codex/same-family/provisional. Another selected route is accepted only
+when known different actual model families, completed scope and a positive
+verdict justify it.
+
+## Bounded execution contract
+
+Candidate-generation and source-extraction stages in `idea-creator`,
+`research-lit`, and `proof-checker` preserve the same machine-readable limits:
+
+```yaml
+ARIS_FANOUT_AGENT_TYPE: aris-fanout-leaf
+ARIS_FANOUT_MAX_SHARDS: 8
+ARIS_FANOUT_MAX_CONCURRENCY: 4
+ARIS_FANOUT_SHARD_MAX_TURNS: 8
+ARIS_FANOUT_ALLOW_RECURSION: false
+ARIS_FANOUT_REQUIRE_COVERAGE_RECEIPT: true
+```
+
+`aris-fanout-leaf` names the canonical Claude worker. Codex does not pretend to
+install or invoke that Claude custom agent; each `spawn_agent` shard instead
+uses a leaf-equivalent prompt that forbids recursive delegation, shell/mutation,
+and verdicts. These are prompt-only conventions unless the active host supplies
+structural enforcement, so stock Codex does not provide the same hard tool,
+non-recursion, and turn boundary as the Claude leaf. The parent/executor still
+enforces fixed shard and concurrency limits, no replacement workers, and the
+coverage receipt.
+
+Freeze the complete unit list before dispatch, partition it into at most
+`max_shards: 8`, and run no more than `max_concurrency: 4` active shards. Treat
+`max_turns: 8` as the portable worker budget where the host exposes a turn cap.
+A failed, malformed, or timed-out shard gets at most one executor-side
+**sequential fallback** and no replacement agent.
+
+After collection and fallback, emit a **coverage receipt** with
+planned/completed/failed shard IDs, planned/covered/uncovered unit IDs, and a
+mechanically computed `coverage_complete` boolean. The receipt proves execution
+coverage only and does not upgrade the base mirror's provisional assurance.
+
+### Implementation delegation
+
+`lean-formalize` also delegates proof implementation in owned modules. Those
+workers need file edits and compilation, so they do not use the read-only leaf
+contract above. Give each worker a stable lemma interface, its owned files, and
+a concrete compile target; integrate the result at the actual caller and retain
+the skill's type, axiom, and reviewer checks. The general separation between
+implementation work and acceptance judgments still applies.
 
 ## Core principle: decouple FAN-OUT from JURY
 
@@ -29,7 +78,7 @@ rules:
 | | FAN-OUT (breadth) | JURY (verdict) |
 |---|---|---|
 | What it does | Generates N candidate items | Renders the STOP/ACCEPT decision |
-| Who runs it | Same-family subagents (Codex shards) | Fresh Codex (provisional) or overlay/deterministic route (accepted) |
+| Who runs it | Same-family subagents (Codex shards) | Selected reviewer: same-family stays provisional; accepted semantic judgment requires completed positive cross-family review |
 | Allowed to judge quality? | **No.** Generate only. | **Yes.** That is its only job. |
 | Failure if violated | None (it's just more candidates) | Invariant breach: model judges its own family's output |
 | Analogy | 火力 — fire more shots | 裁判席 — the bench that rules |
@@ -67,7 +116,8 @@ Workflow true parallelism) merely *accelerates* the same pattern.
 Therefore fan-out must degrade gracefully across runtimes. The three
 tiers below differ **only** in how the candidate-generation step is
 dispatched. They terminate in the **identical classified** jury step: fresh
-Codex is provisional, while overlay/deterministic routes are accepted.
+Codex is provisional; accepted semantic assurance requires a completed
+positive cross-family review with the same scope.
 
 | Tier | Dispatch mechanism | When available |
 |---|---|---|
@@ -122,32 +172,34 @@ attack axes, draft variants). Returns `candidates[]`:
 }
 ```
 
-**Extraction fan-out** — the shard *reads* a fixed input set and reports the
-units it finds (papers in a verified set, obligations in a proof). Returns
-`entries[]` with the same per-item keys, except `dedup_key` is the unit's
-**pre-existing canonical id** (assigned upstream), not a freshly normalized
-string:
+**Extraction fan-out** — the shard *reads* a fixed input set and reports
+`entries[]`. For identity-preserving extraction, such as papers in a verified
+set, `dedup_key` is the input's pre-existing canonical ID. For discovery
+extraction, such as proof obligations, the frozen coverage units are source
+units and each discovered entry receives a deterministic **post-extraction
+obligation ID** derived from its source-unit ID and stable ordinal or anchor.
+Discovered obligations are not planned coverage units.
 
 ```json
 {
-  "shard_id": "section:4.2",
+  "shard_id": "source-unit:section-4.2",
   "entries": [
     {
       "kind": "source | proof_obligation",
+      "source_unit_id": "section-4.2",
       "payload": "<the extracted record — domain fields may be inlined>",
-      "dedup_key": "<canonical id already assigned upstream: arXiv id / DOI / MC-17>"
+      "dedup_key": "<paper canonical ID, or post-extraction ID such as section-4.2:OB-003>"
     }
   ]
 }
 ```
 
 The `dedup_key` is what makes mechanical clustering possible without judgment:
-for generation, normalize titles / claim-stems / obligation-statements to a
-canonical string and cluster on string match / near-match; for extraction, the
-canonical id already identifies the unit. No model decides "are these the
-same?" by *taste* — the key decides by *normalization rule*. Domain-specific
-fields (an idea's hypothesis, a paper's method) may be inlined alongside these
-keys rather than buried in an opaque `payload`.
+for generation, normalize titles or claim stems; for identity-preserving
+extraction, retain the input ID; for discovery extraction, derive the key
+mechanically from the frozen source unit and source order. No model decides
+"are these the same?" by *taste*. Domain-specific fields may be inlined
+alongside these keys rather than buried in an opaque `payload`.
 
 ### Dedup discipline
 
@@ -169,7 +221,7 @@ judgment:
 
 Required ordering: **dedup BEFORE jury, on the merged union.** This is
 not just hygiene — it is a cost-control invariant. The jury backend
-(fresh Codex / overlay / deterministic verifier) can be rate-limited and
+(selected model reviewer, or a verifier for mechanical obligations) can be rate-limited and
 token-expensive. Sending it 40 candidates of which 25 are near-duplicate is a
 waste of review budget and invites rate-limit failure mid-verdict. Mechanical
 dedup first keeps the classified review step lean.
@@ -237,27 +289,19 @@ these lenses run as parallel shards; on Tier 3 they are enumerated in one
 pass. After fan-out the merged set should be **mechanically deduped only**
 (cluster near-identical ideas; never drop one for being "weak"). The
 **jury** is the already-existing Phase-4 fresh-Codex devil's-advocate
-pass: it is provisional in the base mirror and accepted only through an overlay
-or deterministic verifier; it surfaces the strongest reviewer objection per
+pass: it is provisional with a same-family reviewer; accepted semantic assurance
+requires a completed positive cross-family review covering the whole set. It
+surfaces the strongest reviewer objection per
 idea and ranks for a top venue. `/idea-creator` declares the `Agent` tool — re-granted (per the re-grant
 rule in **Allowed-tools hygiene**) when the lens fan-out was wired, after
 the WB2 sweep had stripped the earlier vestigial grant. On a Tier-1 runtime
 the lenses run as Workflow shards; on Tier 3 they fall back to sequential
 enumeration with no grant needed.
 
-> ⚠️ **Known gap — idea-creator is an *aspirational* example here, not yet a clean one.**
-> Today `/idea-creator` Phase 3 (`skills/idea-creator/SKILL.md:159,175`)
-> does same-family *quick novelty check + feasibility gating* and
-> **eliminates ideas** before the Phase-4 classified review ever sees them.
-> That is exactly the ❌ "executor pre-filters the jury's input with
-> same-family quality judgment" this doc forbids above — a Type-B
-> novelty/quality verdict made same-family (see
-> [`acceptance-gate.md`](acceptance-gate.md)). The fan-out refactor must
-> push all novelty/quality elimination INTO (or after) the Phase-4
-> classified review; Phase 3 keeps only mechanical dedup + *objective*
-> feasibility (compute/time budget), and every non-duplicate idea reaches
-> the jury. Fixing this is part of fanning the skill out, not a separate
-> chore.
+> **Current state.** Phase 3 performs mechanical deduplication and objective
+> compute/data-availability gating only. Novelty, impact, and quality remain
+> annotations until the classified Phase-4 jury. Every feasible non-duplicate
+> candidate reaches the Phase-4 jury.
 
 ### `/research-lit` — per-source fan-out, deterministic gate as "jury"
 
@@ -295,9 +339,10 @@ Two invariants keep a fan-out from manufacturing or laundering errors:
 
 ## Cross-references
 
-- **`reviewer-routing.md`** — jury backend selection. The default fresh Codex
-  `spawn_agent` route is same-family/provisional; a Claude/Gemini overlay or
-  deterministic verifier is accepted. Fan-out tier never changes that class.
+- **`reviewer-backends.md`** / **`reviewer-routing.md`** — jury backend selection.
+  The default fresh native Codex route stays same-family/provisional. Accepted
+  semantic assurance requires a completed positive in-scope review with known
+  different actual model families. Fan-out tier never changes that class.
 - **`reviewer-independence.md`** — the jury call receives **file paths
   only**, in a **fresh thread**, with no executor summary/interpretation.
   This applies to the post-fan-out jury exactly as to any other review:
@@ -307,7 +352,8 @@ Two invariants keep a fan-out from manufacturing or laundering errors:
   EXECUTION-completeness (exit code, files exist, N shards returned, PDF
   compiled) is SAFE same-model; self-judging QUALITY/CORRECTNESS (idea
   novel, proof valid, claim supported, review satisfied) is provisional under
-  base Codex review and accepted only with an overlay/deterministic route. A
+  base Codex review; accepted semantic assurance requires a completed positive
+  cross-family review of the full obligation. A
   fan-out loop may self-verify *that all N shards ran*; it may not silently
   promote *that the candidates are good* to accepted. The loop can DRIVE; it
   cannot ACQUIT as accepted.
@@ -332,8 +378,10 @@ A SKILL that fans out must specify all of:
    executor, judgment-free, declared metric — to control jury cost and
    rate-limit exposure.
 4. **A single classified jury step** (per `reviewer-routing.md` +
-   `reviewer-independence.md`) — base Codex is provisional; overlay or a
-   deterministic verifier is accepted — that is **identical** across all tiers.
+   `reviewer-independence.md`) — same-family stays provisional; accepted semantic
+   assurance requires a completed positive in-scope cross-family review. A
+   deterministic verifier accepts only its mechanical scope. This gate is
+   **identical** across all tiers.
 5. **A breadth-bound justification.** State why this task benefits from
    breadth. If the deliverable IS a verdict, do not fan out the verdict;
    fan out only the evidence that feeds it.
@@ -360,7 +408,8 @@ genuinely fan out. The WB2 least-privilege sweep removed 48 vestigial grants
 (pure copied boilerplate, never invoked); since then **only skills that
 genuinely fan out at Tier-2 re-grant `Agent`, and each must cite this doc in
 its body** (enforced by `check_skills_inventory.py`). As of writing those are
-`idea-creator`, `proof-checker`, and `research-lit`. Note that "reviewer
+`idea-creator`, `proof-checker`, `research-lit`, and `lean-formalize` (owned-module
+implementation as described above). Note that "reviewer
 **sub-agent**" in several skills refers to a fresh Codex reviewer (provisional
 in the base mirror), not the Agent tool, and never implied a real grant need.
 

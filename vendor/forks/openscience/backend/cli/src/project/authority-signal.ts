@@ -33,6 +33,9 @@ export namespace AuthoritySignal {
       projectID: z.string(),
       sessionID: z.string(),
       scope: z.enum(["once", "session", "project", "installation"]),
+      // Legacy events did not distinguish an added grant from a revocation.
+      // Only an explicit widening may keep existing processes running.
+      narrowing: z.boolean().optional(),
     }),
   ])
   export type Event = z.infer<typeof Event>
@@ -41,6 +44,7 @@ export namespace AuthoritySignal {
     revision: z.number().int().positive(),
     event: Event,
   })
+  const HistoryEvent = PendingEvent.extend({ origin: z.number().int().positive() })
 
   const State = z.object({
     version: z.literal(1),
@@ -50,8 +54,21 @@ export namespace AuthoritySignal {
     origin: z.number().int().positive(),
     event: Event,
     backlog: PendingEvent.array().default([]),
+    // The most recent events with the process that published each, so a
+    // watcher that polled past a burst can tell whether what it missed was
+    // its own process's settled work (already applied through the in-process
+    // bus) or another process's, which still earns the conservative resync.
+    history: HistoryEvent.array().default([]),
+    // The last revision that touched each project, and the last that reached
+    // every project (an installation-wide grant). A watcher that knows its
+    // project can tell from these alone whether a gap it cannot replay held
+    // anything addressed to it. A stale unsettled entry once made every new
+    // watcher walk a two-hundred-revision gap and stop everything it owned.
+    projects: z.record(z.string(), z.number().int().positive()).default({}),
+    global: z.number().int().nonnegative().default(0),
   })
   type State = z.infer<typeof State>
+  const HISTORY = 16
 
   const key = ["authority", "revision"]
   const lock = () => path.join(Global.Path.data, "authority", "spawn.lock")
@@ -91,14 +108,19 @@ export namespace AuthoritySignal {
       if (previous?.pending && !backlog.some((item) => item.revision === previous.revision)) {
         backlog.push({ revision: previous.revision, event: previous.event })
       }
+      const revision = (previous?.revision ?? 0) + 1
+      const everywhere = parsed.kind === "filesystem" && parsed.scope === "installation"
       return {
         version: 1,
-        revision: (previous?.revision ?? 0) + 1,
+        revision,
         pending: true,
         time: Date.now(),
         origin: process.pid,
         event: parsed,
         backlog,
+        history: [...(previous?.history ?? []), { revision, event: parsed, origin: process.pid }].slice(-HISTORY),
+        projects: { ...(previous?.projects ?? {}), [parsed.projectID]: revision },
+        global: everywhere ? revision : (previous?.global ?? 0),
       }
     })
   }
@@ -127,10 +149,37 @@ export namespace AuthoritySignal {
 
   export type Change = { type: "event"; revision: number; event: Event } | { type: "resync"; revision: number }
 
+  /** Whether every revision strictly between two others was published by this
+   * process: those events reached every live instance here through the bus
+   * and the filesystem broadcast when they happened, so a watcher that only
+   * polled past them has nothing left to apply. Unknown or foreign revisions
+   * leave the caller to resync. */
+  function ownSettledGap(state: State, from: number, to: number) {
+    for (let revision = from + 1; revision < to; revision++) {
+      const item = state.history.find((entry) => entry.revision === revision)
+      if (!item || item.origin !== process.pid) return false
+    }
+    return true
+  }
+
+  /** Whether any revision after `since` was addressed to this project, or to
+   * every project. Records written before these fields existed report nothing
+   * and leave the caller to resync. */
+  function addressed(state: State, since: number, projectID: string) {
+    return state.global > since || (state.projects[projectID] ?? 0) > since
+  }
+
   /** Poll a tiny revision record. A skipped revision causes a conservative
    * resync signal because the last event alone cannot describe every affected
-   * process. The timer is unref'd and disposed with its project instance. */
-  export async function watch(handler: (change: Change) => Promise<boolean | void>, pollMs = 200) {
+   * process, unless the record shows the gap to be this process's own settled
+   * work, or a watcher that named its project can see nothing in the gap was
+   * addressed to it. The timer is unref'd and disposed with its project
+   * instance. */
+  export async function watch(
+    handler: (change: Change) => Promise<boolean | void>,
+    pollMs = 200,
+    scope?: { projectID: string },
+  ) {
     const initial = await current()
     const firstPending = initial
       ? Math.min(...initial.backlog.map((item) => item.revision), ...(initial.pending ? [initial.revision] : []))
@@ -138,6 +187,14 @@ export namespace AuthoritySignal {
     let revision = Number.isFinite(firstPending) ? Math.max(0, firstPending - 1) : (initial?.revision ?? 0)
     let active = true
     let polling = false
+    // Revisions settled before this watcher looked: our own process's work
+    // was applied when it happened; anything else, or anything the history
+    // no longer names, earns the resync.
+    const catchUp = async (state: State, upTo: number) => {
+      if (upTo <= revision + 1 || ownSettledGap(state, revision, upTo)) return
+      if (scope && Object.keys(state.projects).length > 0 && !addressed(state, revision, scope.projectID)) return
+      await handler({ type: "resync", revision: upTo - 1 })
+    }
     const poll = async () => {
       if (!active || polling) return
       polling = true
@@ -149,25 +206,19 @@ export namespace AuthoritySignal {
           .filter((item) => item.revision > revision)
           .toSorted((a, b) => a.revision - b.revision)
         for (const item of pending) {
-          if (item.revision > revision + 1) {
-            await handler({ type: "resync", revision: item.revision - 1 })
-          }
+          await catchUp(next, item.revision)
           const handled = await handler({ type: "event", revision: item.revision, event: item.event })
           if (handled !== false) await settle(item.revision)
           revision = item.revision
         }
 
         if (next.revision <= revision) return
-        const previous = revision
-        const change: Change =
-          next.revision !== previous + 1
-            ? { type: "resync", revision: next.revision }
-            : { type: "event", revision: next.revision, event: next.event }
         if (next.origin === process.pid && !next.pending) {
           revision = next.revision
           return
         }
-        const handled = await handler(change)
+        await catchUp(next, next.revision)
+        const handled = await handler({ type: "event", revision: next.revision, event: next.event })
         if (next.pending && handled !== false) await settle(next.revision)
         revision = next.revision
       } catch (error) {
@@ -179,6 +230,8 @@ export namespace AuthoritySignal {
     const timer = setInterval(() => void poll(), pollMs)
     ;(timer as { unref?: () => void }).unref?.()
     return {
+      /** One immediate poll, for callers that cannot wait for the timer. */
+      poll,
       async [Symbol.asyncDispose]() {
         active = false
         clearInterval(timer)

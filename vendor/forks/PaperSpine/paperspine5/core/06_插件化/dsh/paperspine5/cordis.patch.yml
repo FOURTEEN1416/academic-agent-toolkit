@@ -1,0 +1,36 @@
+# Cordis patch for the PaperSpine5 DSH Bundle.
+#
+# The package-root value below is a token, not a path. configure_dsh.py fills
+# it from wherever the bundle actually landed, and it must stay a token in
+# source: baking the builder's own directory in here is what made earlier
+# bundles fail to install on every other machine.
+#
+# Everything below that one token is resolved by scripts/paperspine5_mcp.py
+# from its own location, so this file never needs editing by hand.
+- insert:
+    - id: mcp-paperspine5
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: paperspine5
+        transport: stdio
+        command: python
+        args:
+          - '-B'
+          - '__PAPERSPINE5_PACKAGE_ROOT__/scripts/paperspine5_mcp.py'
+          - mcp
+        env:
+          PAPERSPINE5_PROJECT_ROOT: '__PAPERSPINE5_PROJECT_ROOT__'
+        cwd: '__PAPERSPINE5_PACKAGE_ROOT__'
+        toolCallTimeoutMs: 60000
+        failOnStartupError: true
+        reconnect:
+          enabled: true
+          initialDelayMs: 500
+          maxDelayMs: 30000
+          maxAttempts: 10
+    - id: paperspine5-skills
+      name: '@deepseek-ai/dsh-skill-filesystem'
+      config:
+        providerName: paperspine5
+        includeDefaultRoots: false
+        bundledSkillDir: '__PAPERSPINE5_SKILL_ROOT__'

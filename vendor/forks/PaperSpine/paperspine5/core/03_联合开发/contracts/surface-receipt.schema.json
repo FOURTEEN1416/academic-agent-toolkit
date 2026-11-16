@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/surface-receipt.schema.json",
+  "title": "Real rendered final surface receipt",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["contract", "contract_version", "task_id", "revision_id", "surface_kind", "source", "producer_id", "renderer", "pages", "page_count", "review", "status", "blockers", "external_action_authorized", "receipt_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.surface-receipt"},
+    "contract_version": {"const": "1.0"},
+    "task_id": {"type": "string", "minLength": 1},
+    "revision_id": {"type": "string", "minLength": 1},
+    "surface_kind": {"enum": ["pdf", "word"]},
+    "source": {"type": "object", "required": ["path", "sha256", "size_bytes"]},
+    "producer_id": {"type": "string", "minLength": 1},
+    "renderer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["page_count_probe", "page_renderer", "dpi", "page_render"],
+      "properties": {
+        "page_count_probe": {"$ref": "#/$defs/toolReceipt"},
+        "page_renderer": {"$ref": "#/$defs/toolReceipt"},
+        "word_backend": {"enum": ["microsoft-word-native", "libreoffice-soffice"]},
+        "word_renderer": {"$ref": "#/$defs/toolReceipt"},
+        "dpi": {"type": "integer", "minimum": 72},
+        "intermediate_pdf": {"$ref": "#/$defs/fileBinding"},
+        "word_conversion": {"$ref": "#/$defs/wordConversion"},
+        "page_render": {"$ref": "#/$defs/pageRender"}
+      }
+    },
+    "pages": {"type": "array", "items": {"type": "object", "required": ["page", "path", "sha256", "size_bytes"]}},
+    "page_count": {"type": "integer", "minimum": 0},
+    "review": {"type": ["object", "null"]},
+    "status": {"enum": ["REVIEW_REQUIRED", "PASS", "BLOCKED"]},
+    "blockers": {"type": "array", "items": {"type": "object"}},
+    "external_action_authorized": {"const": false},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"surface_kind": {"const": "word"}},
+        "required": ["surface_kind"]
+      },
+      "then": {
+        "properties": {
+          "renderer": {
+            "required": ["word_backend", "word_renderer", "intermediate_pdf", "word_conversion"]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "fileBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "toolReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "version"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "version": {"type": "string", "minLength": 1}
+      }
+    },
+    "pageRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["page", "path", "sha256"],
+      "properties": {
+        "page": {"type": "integer", "minimum": 1},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "pageRender": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority", "command", "input_pdf_path", "input_pdf_sha256", "output_pages", "exit_code", "status"],
+      "properties": {
+        "authority": {"const": "paperspine5-canonical-artifact-adapter"},
+        "command": {"type": "array", "minItems": 2, "items": {"type": "string"}},
+        "input_pdf_path": {"type": "string", "minLength": 1},
+        "input_pdf_sha256": {"$ref": "#/$defs/sha256"},
+        "output_pages": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/pageRecord"}},
+        "exit_code": {"const": 0},
+        "status": {"const": "committed"}
+      }
+    },
+    "wordConversion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority", "backend", "operation_id", "command", "source_path", "source_sha256", "output_pdf_path", "output_pdf_sha256", "exit_code", "status", "external_action_authorized"],
+      "properties": {
+        "authority": {"const": "paperspine5-canonical-artifact-adapter"},
+        "backend": {"enum": ["microsoft-word-native", "libreoffice-soffice"]},
+        "operation_id": {"type": "string", "minLength": 1},
+        "command": {"type": "array", "minItems": 7, "items": {"type": "string"}},
+        "operation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["api", "process_launch_args", "native_object_attachment", "owned_process", "preflight_only", "preexisting_processes", "preexisting_processes_unchanged", "owned_processes_terminated", "child_exit_code", "post_word_processes", "document_redirection", "source_stage", "recent_files", "open_read_only", "add_to_recent_files", "application_visible", "display_alerts", "automation_security", "export_format", "cleanup", "staging_root_removed"],
+          "properties": {
+            "api": {"const": "Word.Application.ExportAsFixedFormat"},
+            "process_launch_args": {
+              "type": "array",
+              "prefixItems": [{"const": "/w"}],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "native_object_attachment": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["method", "owned_process_id", "windows_observed", "selected_window_handle", "native_window_handle", "application_acquired", "native_object_attached", "native_loader_attempts", "binding_failures", "bootstrap_document", "export_document"],
+              "properties": {
+                "method": {"const": "AccessibleObjectFromWindow/OBJID_NATIVEOM"},
+                "owned_process_id": {"type": "integer", "minimum": 1},
+                "windows_observed": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {"$ref": "#/$defs/windowRecord"}
+                },
+                "selected_window_handle": {"type": "integer", "minimum": 1},
+                "native_window_handle": {"type": "integer", "minimum": 1},
+                "application_acquired": {"const": true},
+                "native_object_attached": {"const": true},
+                "native_loader_attempts": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["window_handle", "objid", "hresult", "pointer_present", "exception_category", "exception_message", "attempt_count"],
+                    "properties": {
+                      "window_handle": {"type": "integer", "minimum": 1},
+                      "objid": {"const": "OBJID_NATIVEOM"},
+                      "hresult": {"type": ["integer", "null"]},
+                      "pointer_present": {"type": "boolean"},
+                      "exception_category": {"type": ["string", "null"]},
+                      "exception_message": {"type": ["string", "null"]},
+                      "attempt_count": {"type": "integer", "minimum": 1}
+                    }
+                  }
+                },
+                "binding_failures": {"type": "array", "maxItems": 100, "items": {"type": "object"}},
+                "bootstrap_document": {"$ref": "#/$defs/blankOwnedDocument"},
+                "export_document": {
+                  "allOf": [
+                    {"$ref": "#/$defs/ownedDocument"},
+                    {
+                      "type": "object",
+                      "required": ["open_api"],
+                      "properties": {
+                        "open_api": {"const": "Documents.Open(ReadOnly=True,AddToRecentFiles=False,Visible=False)"}
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "owned_process": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["process_id", "created_at", "exit_code"],
+              "properties": {
+                "process_id": {"type": "integer", "minimum": 1},
+                "created_at": {"type": "number", "minimum": 0},
+                "exit_code": {"type": "integer"}
+              }
+            },
+            "preflight_only": {"const": false},
+            "preexisting_processes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["process_id", "created_at"],
+                "properties": {
+                  "process_id": {"type": "integer", "minimum": 1},
+                  "created_at": {"type": "number", "minimum": 0}
+                }
+              }
+            },
+            "preexisting_processes_unchanged": {"const": true},
+            "owned_processes_terminated": {
+              "type": "array",
+              "items": {"type": "integer", "minimum": 1},
+              "uniqueItems": true
+            },
+            "child_exit_code": {"const": 0},
+            "post_word_processes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["process_id", "created_at"],
+                "properties": {
+                  "process_id": {"type": "integer", "minimum": 1},
+                  "created_at": {"type": "number", "minimum": 0}
+                }
+              }
+            },
+            "document_redirection": {"$ref": "#/$defs/documentRedirection"},
+            "source_stage": {"$ref": "#/$defs/wordSourceStage"},
+            "recent_files": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["before_count", "after_count", "unchanged"],
+              "properties": {
+                "before_count": {"type": "integer", "minimum": 0},
+                "after_count": {"type": "integer", "minimum": 0},
+                "unchanged": {"const": true}
+              }
+            },
+            "open_read_only": {"const": true},
+            "add_to_recent_files": {"const": false},
+            "application_visible": {"const": false},
+            "display_alerts": {"const": 0},
+            "automation_security": {"const": "msoAutomationSecurityForceDisable"},
+            "export_format": {"const": "wdExportFormatPDF"},
+            "cleanup": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["document_closed", "bootstrap_document_closed", "application_quit", "process_exited"],
+              "properties": {
+                "document_closed": {"const": true},
+                "bootstrap_document_closed": {"const": true},
+                "application_quit": {"const": true},
+                "process_exited": {"const": true}
+              }
+            },
+            "staging_root_removed": {"const": true}
+          }
+        },
+        "source_path": {"type": "string", "minLength": 1},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "output_pdf_path": {"type": "string", "minLength": 1},
+        "output_pdf_sha256": {"$ref": "#/$defs/sha256"},
+        "exit_code": {"const": 0},
+        "status": {"const": "committed"},
+        "external_action_authorized": {"const": false}
+      }
+    },
+    "ownedDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "read_only", "window_handle", "window_process_id"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "read_only": {"const": true},
+        "window_handle": {"type": "integer", "minimum": 1},
+        "window_process_id": {"type": "integer", "minimum": 1},
+        "open_api": {"type": "string", "minLength": 1}
+      }
+    },
+    "blankOwnedDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "blank_document", "window_handle", "window_process_id"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "blank_document": {"const": true},
+        "window_handle": {"type": "integer", "minimum": 1},
+        "window_process_id": {"type": "integer", "minimum": 1}
+      }
+    },
+    "wordFileIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "size_bytes", "mtime_ns"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "mtime_ns": {"type": "integer", "minimum": 0}
+      }
+    },
+    "wordSourceStage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["original_before", "original_after", "staged_before", "staged_after", "staged_read_only_before", "staged_read_only_after", "copy_verified", "original_unchanged", "original_opened_by_word"],
+      "properties": {
+        "original_before": {"$ref": "#/$defs/wordFileIdentity"},
+        "original_after": {"$ref": "#/$defs/wordFileIdentity"},
+        "staged_before": {"$ref": "#/$defs/wordFileIdentity"},
+        "staged_after": {"$ref": "#/$defs/wordFileIdentity"},
+        "staged_read_only_before": {"const": true},
+        "staged_read_only_after": {"const": true},
+        "copy_verified": {"const": true},
+        "original_unchanged": {"const": true},
+        "original_opened_by_word": {"const": false}
+      }
+    },
+    "windowRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["handle", "parent_handle", "process_id", "class_name", "title", "visible"],
+      "properties": {
+        "handle": {"type": "integer", "minimum": 1},
+        "parent_handle": {"type": "integer", "minimum": 0},
+        "process_id": {"type": "integer", "minimum": 1},
+        "class_name": {"type": "string"},
+        "title": {"type": "string"},
+        "visible": {"type": "boolean"}
+      }
+    },
+    "documentRedirection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_path", "checked_preexisting_process_ids", "owned_process_id", "windows_by_process", "matching_document_windows", "redirected_to_preexisting_process", "status"],
+      "properties": {
+        "source_path": {"type": "string", "minLength": 1},
+        "checked_preexisting_process_ids": {"type": "array", "items": {"type": "integer", "minimum": 1}, "uniqueItems": true},
+        "owned_process_id": {"type": "integer", "minimum": 1},
+        "windows_by_process": {
+          "type": "object",
+          "additionalProperties": {"type": "array", "items": {"$ref": "#/$defs/windowRecord"}}
+        },
+        "matching_document_windows": {"type": "array", "items": {"type": "object"}},
+        "redirected_to_preexisting_process": {"const": false},
+        "status": {"const": "NOT_OBSERVED"}
+      }
+    }
+  }
+}

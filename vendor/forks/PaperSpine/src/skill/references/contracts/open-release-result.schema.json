@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:paperspine:open-release:result:0.1-beta",
+  "title": "PaperSpine Open Release Beta Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "interface_version", "request_sha256", "operation", "ok", "outcome", "stage", "gaps", "warnings", "artifacts", "signals", "user_feedback", "authority_boundary", "audit"],
+  "properties": {
+    "contract": {"const": "paperspine.open-release.result"},
+    "interface_version": {"const": "0.1-beta"},
+    "request_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "operation": {"enum": ["catalog", "preflight", "prepare", "authorize", "record", "unknown"]},
+    "ok": {"type": "boolean"},
+    "outcome": {"type": "string", "minLength": 1},
+    "stage": {"type": "string", "minLength": 1},
+    "gaps": {"type": "array", "items": {"type": "object"}},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "artifacts": {"type": "array", "items": {"type": "object"}},
+    "signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prepared", "final_confirmation_required", "external_action_authorized", "full_one_click_beta_available", "partial_release_possible", "release_recorded"],
+      "properties": {
+        "prepared": {"type": "boolean"},
+        "final_confirmation_required": {"type": "boolean"},
+        "external_action_authorized": {"type": "boolean"},
+        "full_one_click_beta_available": {"type": "boolean"},
+        "partial_release_possible": {"type": "boolean"},
+        "release_recorded": {"type": "boolean"}
+      }
+    },
+    "user_feedback": {"type": "object"},
+    "authority_boundary": {"type": "object"},
+    "audit": {"type": "object"}
+  }
+}

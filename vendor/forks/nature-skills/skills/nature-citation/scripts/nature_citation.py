@@ -21,9 +21,9 @@ from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
-import xml.etree.ElementTree as ET
-from xml.sax.saxutils import escape as xml_escape
-from xml.sax.saxutils import quoteattr
+import defusedxml.ElementTree as ET
+xml_escape = lambda data: data.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+quoteattr = lambda data: '"%s"' % xml_escape(data).replace('"', "&quot;")
 
 
 CROSSREF_API = "https://api.crossref.org/works"
@@ -44,6 +44,20 @@ ZOTERO_RDF_NS = {
 
 NATURE_EXACT = {
     "Nature",
+    # Research titles verified against the publisher's research-journals directory.
+    "Nature Aging",
+    "Nature Astronomy",
+    "Nature Biomedical Engineering",
+    "Nature Catalysis",
+    "Nature Chemical Engineering",
+    "Nature Cities",
+    "Nature Health",
+    "Nature Mechanical Engineering",
+    "Nature Mental Health",
+    "Nature Sensors",
+    "Nature Sustainability",
+    "Nature Synthesis",
+    "Nature Water",
     "Nature Biotechnology",
     "Nature Cancer",
     "Nature Cardiovascular Research",
@@ -95,6 +109,11 @@ NATURE_EXACT = {
     "Nature Structural & Molecular Biology",
     "Scientific Reports",
 }
+
+
+# Explicit names from the publisher's npj Series directory, checked 2026-10-16.
+# https://www.nature.com/nature-portfolio/about-journals/npj-series
+NPJ_EXACT = set(json.loads((Path(__file__).resolve().parents[1] / "data" / "npj-journals.json").read_text(encoding="utf-8")))
 
 
 SCIENCE_EXACT = {
@@ -282,7 +301,7 @@ def normalize_title(title: str) -> str:
 
 
 def stable_hash(value: str) -> str:
-    return hashlib.sha1(value.encode("utf-8")).hexdigest()[:12]
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
 
 
 def slugify(value: str) -> str:
@@ -431,7 +450,7 @@ def journal_family(journal: str) -> str | None:
     journal = normalize_title(journal)
     if not journal:
         return None
-    if journal in NATURE_EXACT or journal.startswith("Nature ") or journal.startswith("npj "):
+    if journal in NATURE_EXACT or journal in NPJ_EXACT:
         return "Nature Portfolio"
     if journal in SCIENCE_EXACT:
         return "Science family"
@@ -467,9 +486,17 @@ def first(values: list[Any] | None, default: str = "") -> str:
 
 def date_parts(item: dict[str, Any]) -> list[int]:
     for key in ("published-print", "published-online", "published", "issued"):
-        parts = item.get(key, {}).get("date-parts")
-        if parts and parts[0]:
-            return parts[0]
+        parts = (item.get(key) or {}).get("date-parts")
+        if not (parts and parts[0]):
+            continue
+        # Crossref uses [[null]] for an unknown date; keep only the leading integer fields.
+        clean: list[int] = []
+        for value in parts[0]:
+            if not isinstance(value, int) or isinstance(value, bool):
+                break
+            clean.append(value)
+        if clean:
+            return clean
     return []
 
 

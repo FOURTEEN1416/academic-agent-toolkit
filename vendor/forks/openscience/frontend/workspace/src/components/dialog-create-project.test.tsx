@@ -1,7 +1,7 @@
 import { afterAll, afterEach, describe, expect, test } from "bun:test"
 import { fileURLToPath } from "node:url"
 import type { JSX } from "solid-js"
-import { createServer } from "vite"
+import { createTestServer as createServer } from "../../test/vite"
 import solid from "vite-plugin-solid"
 import type { ProjectCreateInput } from "./dialog-create-project"
 
@@ -46,6 +46,7 @@ function Harness(props: {
   onCreate: (input: ProjectCreateInput) => Promise<void>
   onChooseSources: () => void
   sources?: string[]
+  os?: "macos" | "windows"
 }): JSX.Element {
   const dialog = dialogs.useDialog()
   const button = document.createElement("button")
@@ -57,6 +58,7 @@ function Harness(props: {
         onCreate: props.onCreate,
         onChooseSources: props.onChooseSources,
         sources: props.sources,
+        os: props.os,
       }),
     )
   })
@@ -117,6 +119,30 @@ describe("DialogCreateProject", () => {
     expect(choices).toEqual(["choose"])
   })
 
+  test("names the one file manager the system folder dialog opens", () => {
+    const hint = (os?: "macos" | "windows") => {
+      const host = mount(() =>
+        dialogs.DialogProvider({
+          get children() {
+            return Harness({ onCreate: async () => {}, onChooseSources: () => {}, os })
+          },
+        }),
+      )
+      host.querySelector<HTMLButtonElement>("button")?.click()
+      const action = Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find((button) =>
+        button.textContent?.includes("Add source folders"),
+      )
+      const text = action?.textContent?.replace("Add source folders", "").trim()
+      cleanups.splice(0).forEach((cleanup) => cleanup())
+      document.body.replaceChildren()
+      return text
+    }
+
+    expect(hint("macos")).toBe("Choose with Finder")
+    expect(hint("windows")).toBe("Choose with File Explorer")
+    expect(hint()).toBe("Choose a folder")
+  })
+
   test("creates durable read-write source connections", async () => {
     const inputs: ProjectCreateInput[] = []
     const host = mount(() =>
@@ -153,16 +179,5 @@ describe("DialogCreateProject", () => {
         sources: [{ path: "/Users/aayam/kras-speedrun", access: "write" }],
       },
     ])
-  })
-
-  test("uses one quiet responsive surface hierarchy", async () => {
-    const css = await Bun.file(style).text()
-
-    expect(css).toContain(".project-create__source-empty")
-    expect(css).toContain("background: transparent")
-    expect(css).toContain("font-size: 0.875rem")
-    expect(css).toContain("@media (pointer: coarse)")
-    expect(css).toContain("@media (prefers-reduced-motion: reduce)")
-    expect(css).not.toContain("text-transform")
   })
 })

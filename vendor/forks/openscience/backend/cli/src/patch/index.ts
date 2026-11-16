@@ -1,4 +1,5 @@
 import z from "zod"
+import { createPatch } from "diff"
 import * as path from "path"
 import * as fs from "fs/promises"
 import { readFileSync } from "fs"
@@ -91,23 +92,23 @@ export namespace Patch {
     const line = lines[startIdx]
 
     if (line.startsWith("*** Add File:")) {
-      const filePath = line.split(":", 2)[1]?.trim()
+      const filePath = line.slice("*** Add File:".length).trim()
       return filePath ? { filePath, nextIdx: startIdx + 1 } : null
     }
 
     if (line.startsWith("*** Delete File:")) {
-      const filePath = line.split(":", 2)[1]?.trim()
+      const filePath = line.slice("*** Delete File:".length).trim()
       return filePath ? { filePath, nextIdx: startIdx + 1 } : null
     }
 
     if (line.startsWith("*** Update File:")) {
-      const filePath = line.split(":", 2)[1]?.trim()
+      const filePath = line.slice("*** Update File:".length).trim()
       let movePath: string | undefined
       let nextIdx = startIdx + 1
 
       // Check for move directive
       if (nextIdx < lines.length && lines[nextIdx].startsWith("*** Move to:")) {
-        movePath = lines[nextIdx].split(":", 2)[1]?.trim()
+        movePath = lines[nextIdx].slice("*** Move to:".length).trim()
         nextIdx++
       }
 
@@ -117,7 +118,11 @@ export namespace Patch {
     return null
   }
 
-  function parseUpdateFileChunks(lines: string[], startIdx: number): { chunks: UpdateFileChunk[]; nextIdx: number } {
+  function parseUpdateFileChunks(
+    lines: string[],
+    startIdx: number,
+    filePath: string,
+  ): { chunks: UpdateFileChunk[]; nextIdx: number } {
     const chunks: UpdateFileChunk[] = []
     let i = startIdx
 
@@ -130,6 +135,7 @@ export namespace Patch {
         const oldLines: string[] = []
         const newLines: string[] = []
         let isEndOfFile = false
+        let blanks = 0
 
         // Parse change lines
         while (i < lines.length && !lines[i].startsWith("@@") && !lines[i].startsWith("***")) {
@@ -140,6 +146,17 @@ export namespace Patch {
             i++
             break
           }
+
+          if (changeLine === "" || changeLine === "\r") {
+            // The format reads a bare empty line as blank context: models drop the
+            // single space on an empty context line routinely.
+            oldLines.push("")
+            newLines.push("")
+            blanks++
+            i++
+            continue
+          }
+          blanks = 0
 
           if (changeLine.startsWith(" ")) {
             // Keep line - appears in both old and new
@@ -152,10 +169,25 @@ export namespace Patch {
           } else if (changeLine.startsWith("+")) {
             // Add line - only in new
             newLines.push(changeLine.substring(1))
+          } else {
+            // No prefix at all is unambiguously malformed. Dropping the line
+            // shrank the hunk on both sides, and seekSequence then retried with
+            // looser trimming until the remaining context matched somewhere the
+            // model never named. An INDENTED line is a different case and stays a
+            // context line: `   x` and a lost-prefix `    x` are the same bytes.
+            throw new Error(
+              `Malformed patch for ${filePath}: line ${i + 1} of the patch has no leading ` +
+                `" ", "-" or "+". Write context, removed and added lines with that prefix.`,
+            )
           }
 
           i++
         }
+
+        // Bare blank lines that end a hunk are separators before the next section
+        // or `*** End Patch`, not context the file has to contain.
+        oldLines.splice(oldLines.length - blanks)
+        newLines.splice(newLines.length - blanks)
 
         chunks.push({
           old_lines: oldLines,
@@ -164,6 +196,18 @@ export namespace Patch {
           is_end_of_file: isEndOfFile || undefined,
         })
       } else {
+        // A change line before any @@ header is the other malformed shape. Skipping
+        // it left `chunks` empty, so deriveNewContentsFromChunks computed zero
+        // replacements and the "new" content was the file's own bytes: the tool
+        // printed a success for an edit that changed nothing. The `hunks.length === 0`
+        // guard could not see it, because the `*** Update File:` header had already
+        // produced one hunk.
+        if (lines[i].startsWith("-") || lines[i].startsWith("+")) {
+          throw new Error(
+            `Malformed patch for ${filePath}: a "-" or "+" line at line ${i + 1} follows ` +
+              `the update header with no @@ hunk header above it. Every change line belongs to a hunk.`,
+          )
+        }
         i++
       }
     }
@@ -241,7 +285,13 @@ export namespace Patch {
         })
         i = header.nextIdx
       } else if (lines[i].startsWith("*** Update File:")) {
-        const { chunks, nextIdx } = parseUpdateFileChunks(lines, header.nextIdx)
+        const { chunks, nextIdx } = parseUpdateFileChunks(lines, header.nextIdx, header.filePath)
+        if (chunks.length === 0 && !header.movePath) {
+          throw new Error(
+            `Malformed patch for ${header.filePath}: the update section has no @@ hunk and no ` +
+              `"*** Move to:", so it would change nothing. Add a hunk, or a move for a rename.`,
+          )
+        }
         hunks.push({
           type: "update",
           path: header.filePath,
@@ -390,8 +440,13 @@ export namespace Patch {
 
       // Handle pure addition (no old lines)
       if (chunk.old_lines.length === 0) {
-        const insertionIdx =
-          originalLines.length > 0 && originalLines[originalLines.length - 1] === ""
+        // The @@ header already resolved where this belongs, so use it.
+        // Appending instead drops the line at end of file, outside the block
+        // the model named, and the file keeps working while doing something
+        // else. An unanchored hunk still falls back to the end.
+        const insertionIdx = chunk.change_context
+          ? lineIndex
+          : originalLines.length > 0 && originalLines[originalLines.length - 1] === ""
             ? originalLines.length - 1
             : originalLines.length
         replacements.push([insertionIdx, 0, chunk.new_lines])
@@ -520,30 +575,9 @@ export namespace Patch {
   }
 
   function generateUnifiedDiff(oldContent: string, newContent: string): string {
-    const oldLines = oldContent.split("\n")
-    const newLines = newContent.split("\n")
-
-    // Simple diff generation - in a real implementation you'd use a proper diff algorithm
-    let diff = "@@ -1 +1 @@\n"
-
-    // Find changes (simplified approach)
-    const maxLen = Math.max(oldLines.length, newLines.length)
-    let hasChanges = false
-
-    for (let i = 0; i < maxLen; i++) {
-      const oldLine = oldLines[i] || ""
-      const newLine = newLines[i] || ""
-
-      if (oldLine !== newLine) {
-        if (oldLine) diff += `-${oldLine}\n`
-        if (newLine) diff += `+${newLine}\n`
-        hasChanges = true
-      } else if (oldLine) {
-        diff += ` ${oldLine}\n`
-      }
-    }
-
-    return hasChanges ? diff : ""
+    if (oldContent === newContent) return ""
+    const patch = createPatch("file", oldContent, newContent)
+    return patch.slice(patch.indexOf("@@"))
   }
 
   // Apply hunks to filesystem

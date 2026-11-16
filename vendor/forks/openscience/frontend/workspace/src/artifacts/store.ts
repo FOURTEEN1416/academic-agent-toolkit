@@ -1,4 +1,4 @@
-export type ArtifactCaptureQuality = "exact" | "declared" | "partial" | "unknown"
+type ArtifactCaptureQuality = "exact" | "declared" | "partial" | "unknown"
 
 export interface StoredArtifactVersion {
   id: string
@@ -31,7 +31,7 @@ export interface StoredArtifact {
   current: StoredArtifactVersion
 }
 
-export interface StoredArtifactExecution {
+interface StoredArtifactExecution {
   id: string
   artifactVersionID: string
   command?: string

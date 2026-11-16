@@ -1,4 +1,4 @@
-name: CI
+name: Fast CI
 
 on:
   push:
@@ -7,210 +7,165 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: fast-ci-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
+# Keep the merge loop intentionally small. Platform ownership tests, the full
+# backend suite, landing, and browser E2E run outside the PR critical
+# path in Deep CI / E2E. This lane proves the monorepo still types, release
+# entrypoints still parse, the user-facing workspace bundles, and the backend
+# tests a change can affect still pass, including documentation checks.
+# Branch protection requires the job
+# names Typecheck, Test, and Build (web).
 jobs:
   typecheck:
     name: Typecheck
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-bun
-      - run: bun run typecheck
+      - name: Typecheck monorepo
+        run: bun run typecheck
+      - name: Smoke release entrypoints
+        shell: bash
+        run: |
+          node --check tooling/launcher/bin/synsci.mjs
+          node --check backend/cli/bin/openscience
+          bash -n install
+          bash -n frontend/landing/public/install
+          diff -q install frontend/landing/public/install
 
   format:
     name: Format
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-bun
-      - run: bun run format:check
+      # Prettier's content-hash cache skips files that were already clean. The
+      # key ends in the SHA so every run saves a fresh cache and the next run
+      # restores the newest one through the prefix.
+      - name: Restore Prettier cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/prettier-cache
+          key: ${{ runner.os }}-prettier-${{ hashFiles('bun.lock') }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-prettier-${{ hashFiles('bun.lock') }}-
+      - name: Check formatting
+        run: bun run format:check --cache --cache-strategy content --cache-location "$RUNNER_TEMP/prettier-cache"
 
-  # The data-directory import runs at boot on every user's machine and moves
-  # their credentials and history between two roots. It is also the one piece
-  # of the CLI built almost entirely out of filesystem primitives that differ
-  # per platform — hardlinks, exclusive create, chmod, path separators — so
-  # the Linux-only `test` job below is not evidence it works. This leg is
-  # deliberately narrow: one suite, three operating systems, no sandbox or web
-  # assets to build.
-  migration:
-    name: Migration (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+  build:
+    name: Build (web)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-bun
-      - run: bun test test/global/data-dir.test.ts
-        shell: bash
-        working-directory: backend/cli
+      - name: Build workspace
+        run: bun run --cwd frontend/workspace build
 
-  # Windows Job Objects are the runtime ownership boundary for terminals,
-  # commands, compute, kernels, LSPs, and local MCP servers. The source-level
-  # structure contracts run everywhere; this leg exercises the real Kernel32
-  # handles, descendant inheritance, named-job reopen, and verified teardown.
-  windows-runtime:
-    name: Windows runtime ownership
-    runs-on: windows-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/setup-bun
-      - run: bun test test/process/windows-job.test.ts test/global/data-root.test.ts
-        shell: bash
-        working-directory: backend/cli
-
-  # File writes, no-replace rename, and recoverable trash use native Windows
-  # handles to pin verified directories and reject reparse/swap races. Run the
-  # real implementation on NTFS; Linux source tests cannot exercise Win32
-  # sharing modes or SetFileInformationByHandle.
-  windows-files:
-    name: Windows safe file mutations
-    runs-on: windows-latest
+  # Backend tests the change can affect, selected by tooling/repo/test-shards.ts
+  # from the diff against the pull request base (or the previous main tip on
+  # push). The root test files always run and test/project runs in its own bun
+  # process. Changes that can affect every test (fixtures, lockfile, preload)
+  # are reported here and covered by Deep CI. A new backend/cli/test directory
+  # must be added to the weight table in tooling/repo/test-shards.ts; until it
+  # is, the selection step fails with an annotation saying so. Test is a
+  # required check, so the timeout covers the worst case rather than the
+  # typical selection: a cross-cutting change can select the whole weight
+  # table (~14 min of tests in one bun process, the same shape as the
+  # 838-920 s single-process Deep CI baseline) on top of ~2 min of checkout,
+  # install, fixture setup, and the web build the server tests need.
+  frontend:
+    name: Frontend unit tests
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-bun
-      - name: Configure git for file-route tests
-        run: |
-          git config --global user.email "ci@openscience.dev"
-          git config --global user.name "OpenScience CI"
-          git config --global init.defaultBranch main
-        shell: bash
-      # Keep the native Windows slice on the repository's 15-second test
-      # contract. Calling `bun test` directly otherwise restores Bun's 5-second
-      # default, which is too short for NTFS operations on a loaded hosted runner.
-      - run: bun test --timeout 15000 test/file/safe-io.test.ts test/file/rename.test.ts test/file/trash.test.ts
-        shell: bash
-        working-directory: backend/cli
-
-  # macOS responsibility IDs are the kernel-backed ownership boundary for
-  # processes that setsid/double-fork away from their original PID and process
-  # group. Exercise the native private ABI and both durable ledgers on an
-  # actual macOS runner; source-contract tests on Linux cannot prove teardown.
-  macos-runtime:
-    name: macOS runtime ownership
-    runs-on: macos-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/setup-bun
-      - run: >-
-          bun test
-          test/process/darwin-responsibility.test.ts
-          test/credentials/process-ledger.test.ts
-          test/project/authority-process-ledger.test.ts
-        shell: bash
-        working-directory: backend/cli
+      - name: Shared UI
+        run: bun run test:ui
+      - name: Workspace
+        run: bun run test:workspace
+      - name: SDK
+        run: bun run test:sdk
+      - name: Documentation
+        run: bun run test:docs && bun run --cwd frontend/docs build
 
   test:
     name: Test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-bun
-      - name: Configure git for tests
+      - name: Select affected backend tests
+        id: select
+        shell: bash
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          changed="$RUNNER_TEMP/changed.txt"
+          : > "$changed"
+          if [[ "$BASE" =~ ^[0-9a-f]{40}$ && ! "$BASE" =~ ^0+$ ]] && git fetch --no-tags --depth=1 origin "$BASE"; then
+            git diff --name-only "$BASE" HEAD > "$changed"
+          else
+            echo "::notice::No comparable base commit; running only the root backend tests (Deep CI covers the rest)"
+          fi
+          bun tooling/repo/test-shards.ts affected < "$changed" > "$RUNNER_TEMP/affected.json"
+          jq -r '.groups[] | "\(.name): \(.seconds)s, \(.files) files: \(.paths)"' "$RUNNER_TEMP/affected.json"
+          global="$(jq -r '.global | join(", ")' "$RUNNER_TEMP/affected.json")"
+          if [[ -n "$global" ]]; then
+            echo "::notice::Changes to $global can affect any backend test; the full suite runs in Deep CI"
+          fi
+          echo "groups=$(jq -c '.groups' "$RUNNER_TEMP/affected.json")" >> "$GITHUB_OUTPUT"
+      - name: Configure fixtures
+        shell: bash
         run: |
           git config --global user.email "ci@openscience.dev"
           git config --global user.name "OpenScience CI"
           git config --global init.defaultBranch main
-      - name: Install and verify Linux sandbox and SSH fixture
-        run: |
           sudo apt-get update
           sudo apt-get install --yes bubblewrap openssh-server
-          # Ubuntu 24.04's host-wide AppArmor policy blocks unprivileged user
-          # namespaces on the hosted runner before bubblewrap can apply our
-          # stricter per-process profile. This runner is disposable; enable
-          # user namespaces for the job, then prove the sandbox can start.
           if [[ -e /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]]; then
             echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
           fi
           bwrap --ro-bind / / --dev /dev --proc /proc --unshare-pid --die-with-parent -- true
           sudo install -d -m 0755 /run/sshd
-          test -x /usr/sbin/sshd
-      - name: Exercise real OpenSSH dispatch and recovery
-        run: bun test test/compute/ssh-integration.test.ts
-        working-directory: backend/cli
-      - name: Build embedded web assets for server tests
+      # test/server/spa-fallback.test.ts serves the gitignored web asset
+      # manifest and fails in CI without it; build it only when the selection
+      # runs ./test/server.
+      - name: Build web assets
+        if: contains(steps.select.outputs.groups, './test/server')
+        shell: bash
         run: |
           bun run --cwd frontend/workspace build
           bun run --cwd backend/cli script/generate-web-assets.ts
-      - run: bun run --cwd backend/cli test
-
-  build:
-    name: Build (web)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/setup-bun
-      - name: Build workspace UI
-        run: bun run --cwd frontend/workspace build
-      - name: Build docs site
-        run: bun run --cwd frontend/docs build
-
-  # frontend/landing is standalone (own lockfile, not a workspace member),
-  # so the root typecheck/build jobs never touch it.
-  landing:
-    name: Build (landing)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/setup-bun
-      - name: Install
-        working-directory: frontend/landing
-        run: bun install --frozen-lockfile
-      - name: Typecheck
-        working-directory: frontend/landing
-        run: bunx tsc -b
-      - name: Test
-        working-directory: frontend/landing
-        run: bun test src/pages/Landing.test.ts
-      - name: Build
-        working-directory: frontend/landing
-        run: bun run build
-
-  # Packages with no typecheck task and scripts that otherwise only ever
-  # execute during a release — catch syntax errors before release day.
-  smoke:
-    name: Smoke (launcher + scripts)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/setup-bun
-      - name: Launcher parses
-        run: node --check tooling/launcher/bin/synsci.mjs
-      - name: npm bin wrapper parses
-        run: node --check backend/cli/bin/openscience
-      - name: Install script parses
-        run: bash -n install && bash -n frontend/landing/public/install
-      - name: Install script copies are in sync
-        run: diff -q install frontend/landing/public/install
-      - name: Release scripts parse
-        # transpile-only: bundling would follow imports into third-party
-        # packages with exports quirks (giget via node-fetch-native)
+      - name: Run affected backend tests
+        shell: bash
+        working-directory: backend/cli
+        env:
+          # Not GROUPS: bash reserves that name for its group-id array.
+          AFFECTED: ${{ steps.select.outputs.groups }}
         run: |
-          for f in tooling/repo/*.ts; do
-            bun -e "new Bun.Transpiler({ loader: 'ts' }).transformSync(await Bun.file('$f').text())"
-            echo "OK $f"
+          set -euo pipefail
+          groups=()
+          while IFS= read -r group; do groups+=("$group"); done < <(jq -r '.[].paths' <<<"$AFFECTED")
+          expected="$(jq length <<<"$AFFECTED")"
+          if [[ ${#groups[@]} -ne $expected ]]; then
+            echo "::error::Read ${#groups[@]} of $expected test groups"
+            exit 1
+          fi
+          for group in "${groups[@]}"; do
+            read -ra paths <<<"$group"
+            echo "::group::bun test ${paths[*]}"
+            # Tests spawn children that inherit stdin; give bun none so no
+            # child can swallow input meant for this shell.
+            bun test --timeout 15000 "${paths[@]}" </dev/null
+            echo "::endgroup::"
           done
-
-  actionlint:
-    name: Lint workflows
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2

@@ -4,7 +4,13 @@ description: Materials science toolkit. Crystal structures (CIF, POSCAR), phase 
 category: physics
 license: MIT license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/pymatgen
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # Pymatgen - Python Materials Genomics
@@ -508,7 +514,7 @@ Executable Python scripts for common tasks:
   - Stability analysis and thermodynamic properties
   - Usage: `python scripts/phase_diagram_generator.py Li-Fe-O --analyze "LiFeO2"`
 
-All scripts include detailed help: `python scripts/script_name.py --help`
+All scripts include detailed help: `python scripts/<script>.py --help`
 
 ### References (`references/`)
 

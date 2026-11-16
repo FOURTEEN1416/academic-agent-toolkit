@@ -5,7 +5,6 @@ import {
   Part as PartType,
   type PermissionRequest,
   type QuestionRequest,
-  TextPart,
   ToolPart,
 } from "@synsci/sdk/v2/client"
 import { type FileDiff } from "@synsci/sdk/v2"
@@ -16,16 +15,29 @@ import { findLast } from "@synsci/util/array"
 import { getDirectory, getFilename } from "@synsci/util/path"
 
 import { Binary } from "@synsci/util/binary"
-import { createEffect, createMemo, createSignal, For, Match, on, onCleanup, ParentProps, Show, Switch } from "solid-js"
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  type JSX,
+  Match,
+  on,
+  onCleanup,
+  ParentProps,
+  Show,
+  Switch,
+  untrack,
+} from "solid-js"
 import { DiffChanges } from "./diff-changes"
 import { Message, Part, QuestionPrompt } from "./message-part"
-import { BasicTool } from "./basic-tool"
 import {
   artifactTypeLabel,
   artifactActions,
   generatedArtifacts,
-  reasoningTopic,
   sessionErrorDisplay,
+  reasoningDisplayText,
   stripRedactedReasoning,
   writtenFiles,
 } from "./tool-display"
@@ -33,18 +45,30 @@ import { Accordion } from "./accordion"
 import { StickyAccordionHeader } from "./sticky-accordion-header"
 import { FileIcon } from "./file-icon"
 import { Icon } from "./icon"
-import { IconButton } from "./icon-button"
 import { Card } from "./card"
 import { Dynamic } from "solid-js/web"
 import { Button } from "./button"
 import { Spinner } from "./spinner"
-import { Tooltip } from "./tooltip"
 import { createStore } from "solid-js/store"
-import { DateTime, DurationUnit, Interval } from "luxon"
 import { createAutoScroll } from "../hooks"
 import { createResizeObserver } from "@solid-primitives/resize-observer"
-import { lastResponseTextPart } from "./session-turn-response"
-import { visibleResearchTrace } from "./research-trace"
+import { responseText } from "./session-turn-response"
+import { isContinuationCarrier } from "./session-turn-carrier"
+import { headerProgress, progressStatus } from "./session-turn-progress"
+import { elapsedLabel, visibleResearchTrace, type ResearchTraceEntry } from "./research-trace"
+import {
+  buildTraceRows,
+  collapsedTraceRows,
+  editedChanges,
+  editedLabel,
+  exploredLabel,
+  noteLabel,
+  thoughtLabel,
+  type TraceRow,
+} from "./trace-rows"
+import { liveActivity } from "./session-turn-live"
+import { Collapsible } from "./collapsible"
+import { MarkdownFileScope, useMarkdownFileResolvers } from "./markdown"
 
 type Translator = (key: UiI18nKey, params?: UiI18nParams) => string
 
@@ -61,10 +85,12 @@ export function isLongDiffPreview(diff: Pick<FileDiff, "before" | "after">) {
   return Math.max(contentLineCount(diff.before), contentLineCount(diff.after)) > DIFF_PREVIEW_LINE_THRESHOLD
 }
 
-function computeStatusFromPart(part: PartType | undefined, t: Translator): string | undefined {
+export function computeStatusFromPart(part: PartType | undefined, t: Translator): string | undefined {
   if (!part) return undefined
 
   if (part.type === "tool") {
+    // Pending means the model is still supplying arguments, not execution.
+    if (part.state.status !== "running") return undefined
     switch (part.tool) {
       case "task":
         return t("ui.sessionTurn.status.delegating")
@@ -78,6 +104,8 @@ function computeStatusFromPart(part: PartType | undefined, t: Translator): strin
       case "glob":
         return t("ui.sessionTurn.status.searchingCodebase")
       case "webfetch":
+      case "websearch":
+      case "research_search":
         return t("ui.sessionTurn.status.searchingWeb")
       case "edit":
       case "write":
@@ -91,11 +119,11 @@ function computeStatusFromPart(part: PartType | undefined, t: Translator): strin
     }
   }
   if (part.type === "reasoning") {
-    const topic = reasoningTopic(part.text ?? "")
-    if (topic) return t("ui.sessionTurn.status.thinkingWithTopic", { topic })
+    if (part.time?.end || !stripRedactedReasoning(part.text ?? "")) return undefined
     return t("ui.sessionTurn.status.thinking")
   }
   if (part.type === "text") {
+    if (part.time?.end || !part.text?.trim()) return undefined
     return t("ui.sessionTurn.status.gatheringThoughts")
   }
   return undefined
@@ -120,94 +148,322 @@ function isAttachment(part: PartType | undefined) {
   )
 }
 
+/** The child session a running delegation is bound to, if any. */
+function childSessionOf(parts: readonly PartType[]) {
+  for (let index = parts.length - 1; index >= 0; index--) {
+    const part = parts[index]
+    if (part?.type !== "tool" || part.tool !== "task" || part.state.status !== "running") continue
+    const child = "metadata" in part.state ? part.state.metadata?.sessionId : undefined
+    return typeof child === "string" && child ? child : undefined
+  }
+  return undefined
+}
+
 function isGeneratedTool(part: PartType | undefined): part is ToolPart {
   return part?.type === "tool" && part.tool === "artifact" && part.state.status === "completed"
 }
 
+/** One collapsible line of the trace: a verb, a muted summary, a chevron.
+ * Nested content is the ordinary part renderer, so details stay identical.
+ * A burst of one shows its part directly; the header appears once a second
+ * call joins, without remounting the first. */
+function TraceGroupRow(props: {
+  kind: "explored" | "edited" | "thought" | "notice"
+  label: string
+  live?: boolean
+  working?: boolean
+  /** `false`: the body alone (a burst of one call). `"label"`: the label
+   *  alone, for a phase with nothing to open. */
+  header?: boolean | "label"
+  changes?: { additions: number; deletions: number }
+  children: JSX.Element
+}) {
+  const [manual, setManual] = createSignal<boolean>()
+  // Reasoning that streamed while the reader watched stays readable after it
+  // ends; finishing must not fold text away under someone reading it. A
+  // thought loaded from history opens on request. The reader's own choice wins.
+  const [streamed, setStreamed] = createSignal(false)
+  createEffect(() => {
+    if (props.live) setStreamed(true)
+  })
+  const open = () => manual() ?? (!!props.live || streamed())
+  // A burst of one call is that call's own row: nothing to fold, so it never
+  // sits inside a collapsible that a finished turn would close over it.
+  if (props.header === false) {
+    return (
+      <div data-component="trace-group" data-kind={props.kind} data-header="false">
+        <div data-slot="trace-group-body">{props.children}</div>
+      </div>
+    )
+  }
+  if (props.header === "label") {
+    return (
+      <div
+        data-component="trace-group"
+        data-kind={props.kind}
+        data-header="label"
+        data-live={props.live ? "true" : undefined}
+      >
+        <div data-component="trace-row" data-static="true">
+          <Show when={props.live}>
+            <Spinner />
+          </Show>
+          <span data-slot="trace-row-label">{props.label}</span>
+        </div>
+      </div>
+    )
+  }
+  return (
+    <Collapsible
+      open={open()}
+      onOpenChange={(value) => setManual(value)}
+      // Nested parts stay mounted while folded: a pending request or a draft
+      // answer inside a burst must survive the fold, and find-in-page still works.
+      forceMount
+      data-component="trace-group"
+      data-kind={props.kind}
+      data-live={props.live ? "true" : undefined}
+      data-header="true"
+    >
+      <Collapsible.Trigger>
+        <div data-component="trace-row" data-open={open() ? "true" : undefined}>
+          <Show when={props.live}>
+            <Spinner />
+          </Show>
+          <span data-slot="trace-row-label">{props.label}</span>
+          <Show when={props.changes}>{(changes) => <DiffChanges changes={changes()} />}</Show>
+          <Icon name="chevron-down" size="small" data-slot="trace-row-chevron" />
+        </div>
+      </Collapsible.Trigger>
+      <Collapsible.Content>
+        <div data-slot="trace-group-body">{props.children}</div>
+      </Collapsible.Content>
+    </Collapsible>
+  )
+}
+
 function AssistantTrace(props: {
   messages: AssistantMessage[]
-  hideReasoning: boolean
-  hideTools?: boolean
-  hideGeneratedTools?: boolean
+  /** The runtime's own messages inside this turn (a worker's result, a
+   * harness reminder), in transcript order with the assistant messages they
+   * precede; each shows as one grey note in the trace. */
+  carriers?: MessageType[]
+  expanded: boolean
+  working: boolean
+  /** The turn ended in an answer, not a fault: failures along the way were
+   * dealt with, so collapsed they stay inside the trace. */
+  settled?: boolean
   pendingRequestCallID?: string
 }) {
   const data = useData()
   const emptyParts: PartType[] = []
-  const trace = createMemo(() => {
-    const entries = props.messages.flatMap((message) => {
-      const parts = data.store.part[message.id] ?? emptyParts
-      return parts.flatMap((part) => {
-        if (props.hideReasoning && part?.type === "reasoning") return []
-        if (props.hideTools && part?.type === "tool") return []
-        if (part?.type === "tool" && part.callID === props.pendingRequestCallID) return []
-        if (props.hideGeneratedTools && isGeneratedTool(part)) return [{ message, part, hidden: true }]
-        if (part?.type === "tool" && part.tool === "todoread") return [{ message, part, hidden: true }]
-        return [{ message, part }]
-      })
-    })
-    return visibleResearchTrace(entries)
+  const pendingChildRequest = (sessionID: string) =>
+    !!(data.store.permission?.[sessionID]?.[0] || data.store.question?.[sessionID]?.[0])
+  const entries = createMemo(() => {
+    const carriers = props.carriers ?? []
+    // A carrier's note belongs before the first reply that follows it; it
+    // borrows that reply as its message so the row has an owner in the
+    // trace. Order, not parentage, pairs them: a compaction carrier's only
+    // reply is the handoff, which the trace does not show, and message ids
+    // sort in transcript order.
+    const emitted = new Set<string>()
+    const notes = (before: AssistantMessage) =>
+      carriers
+        .filter((carrier) => carrier.id < before.id && !emitted.has(carrier.id))
+        .flatMap((carrier) => {
+          emitted.add(carrier.id)
+          return (data.store.part[carrier.id] ?? emptyParts)
+            .filter((part) => (part.type === "text" && part.synthetic) || part.type === "compaction")
+            .map((part) => ({ message: before, part }))
+        })
+    return visibleResearchTrace(
+      props.messages.flatMap((message) => {
+        const own = (data.store.part[message.id] ?? emptyParts).map((part) => ({
+          message,
+          part,
+          hidden: (part.type === "tool" && part.tool === "todoread") || isGeneratedTool(part),
+        }))
+        return [...notes(message), ...own]
+      }),
+    )
   })
-  const traceByID = createMemo(() => new Map(trace().map((entry) => [entry.part.id, entry])))
-  const traceIDs = createMemo(() => trace().map((entry) => entry.part.id), [], { equals: same })
+  // Expanded, the whole trace appears as rows, chronological, with narration
+  // in place; collapsed, collapsedTraceRows keeps what the reader needs.
+  const rows = createMemo(() => {
+    const all = buildTraceRows(entries())
+    if (props.expanded) return all
+    return collapsedTraceRows(all, {
+      working: props.working,
+      settled: !!props.settled,
+      final: props.messages.at(-1)?.id,
+      pendingRequestCallID: props.pendingRequestCallID,
+      pendingChildRequest,
+    })
+  })
+  // A burst keeps the key of its first call, so a call that joins it later
+  // never remounts what the reader already opened.
+  const keyOf = (row: TraceRow) => ("entries" in row ? `burst:${row.entries[0]!.part.id}` : row.entry.part.id)
+  const rowByKey = createMemo(() => new Map(rows().map((row) => [keyOf(row), row])))
+  const keys = createMemo(() => rows().map(keyOf), [], { equals: same })
+  const live = (entry: ResearchTraceEntry) =>
+    entry.part.type === "reasoning" && !entry.part.time?.end && !entry.message.time.completed
 
+  // The kind of a row never changes under a stable key, so pick the renderer
+  // once and let only labels stay reactive. Re-picking on every store change
+  // would remount the part and drop a pending question's draft.
   return (
-    <For each={traceIDs()}>
-      {(partID) => (
-        <Show when={traceByID().get(partID)}>
-          {(entry) => (
-            <Show when={entry().group} fallback={<Part part={entry().part} message={entry().message} hideCopy />}>
-              {(group) => (
-                <div data-component="trace-preflight-group">
-                  <BasicTool
-                    icon="console"
-                    trigger={{
-                      title: `Checked environment · ${group().length} steps`,
-                      subtitle: group()
-                        .map((item) =>
-                          item.part.type === "tool" && "title" in item.part.state ? item.part.state.title : undefined,
-                        )
-                        .filter((title): title is string => !!title)
-                        .slice(0, 2)
-                        .join(" · "),
-                    }}
+    <For each={keys()}>
+      {(key) => {
+        const row = () => rowByKey().get(key)
+        const kind = untrack(row)?.kind
+        return (
+          <Show when={row()}>
+            {(current) => {
+              if (kind === "thought") {
+                const value = () => current() as Extract<TraceRow, { kind: "thought" }>
+                const ids = createMemo(() => value().entries.map((entry) => entry.part.id), [], { equals: same })
+                const byID = createMemo(() => new Map(value().entries.map((entry) => [entry.part.id, entry])))
+                const running = () => props.working && value().entries.some(live)
+                return (
+                  <TraceGroupRow
+                    kind="thought"
+                    live={running()}
+                    working={props.working}
+                    header={value().readable ? undefined : "label"}
+                    label={thoughtLabel(value().seconds, running())}
                   >
-                    <div data-slot="trace-preflight-items">
-                      <For each={group()}>{(item) => <Part part={item.part} message={item.message} hideCopy />}</For>
+                    <For each={ids()}>
+                      {(id) => (
+                        <Show when={byID().get(id)}>
+                          {(entry) => <Part part={entry().part} message={entry().message} hideCopy />}
+                        </Show>
+                      )}
+                    </For>
+                  </TraceGroupRow>
+                )
+              }
+              if (kind === "explored" || kind === "edited") {
+                const value = () => current() as Extract<TraceRow, { kind: "explored" | "edited" }>
+                const ids = createMemo(() => value().entries.map((entry) => entry.part.id), [], { equals: same })
+                const byID = createMemo(() => new Map(value().entries.map((entry) => [entry.part.id, entry])))
+                return (
+                  <TraceGroupRow
+                    kind={kind}
+                    working={props.working}
+                    header={value().entries.length > 1}
+                    changes={
+                      kind === "edited" ? editedChanges(value() as Extract<TraceRow, { kind: "edited" }>) : undefined
+                    }
+                    label={
+                      kind === "explored"
+                        ? exploredLabel(value() as Extract<TraceRow, { kind: "explored" }>)
+                        : editedLabel(value() as Extract<TraceRow, { kind: "edited" }>)
+                    }
+                  >
+                    <For each={ids()}>
+                      {(id) => (
+                        <Show when={byID().get(id)}>
+                          {(entry) => <Part part={entry().part} message={entry().message} hideCopy />}
+                        </Show>
+                      )}
+                    </For>
+                  </TraceGroupRow>
+                )
+              }
+              if (kind === "note") {
+                const value = () => current() as Extract<TraceRow, { kind: "note" }>
+                if (untrack(value).details)
+                  return (
+                    <TraceGroupRow kind="notice" label="Tool availability">
+                      <div data-slot="trace-note-text">{value().text}</div>
+                    </TraceGroupRow>
+                  )
+                return (
+                  <div data-slot="trace-entry" data-note="true">
+                    <div data-component="trace-row" data-slot="trace-note" title={value().text}>
+                      <Icon name="comment" size="small" data-slot="trace-note-icon" />
+                      <span data-slot="trace-note-text">{noteLabel(value().text)}</span>
                     </div>
-                  </BasicTool>
+                  </div>
+                )
+              }
+              const value = () => current() as Extract<TraceRow, { kind: "text" | "tool" | "agent" }>
+              return (
+                <div
+                  data-slot="trace-entry"
+                  data-narration={(() => {
+                    const row = value()
+                    return row.kind === "text" && row.narration ? "true" : undefined
+                  })()}
+                >
+                  <Part part={value().entry.part} message={value().entry.message} hideCopy />
                 </div>
-              )}
-            </Show>
-          )}
-        </Show>
-      )}
+              )
+            }}
+          </Show>
+        )
+      }}
     </For>
   )
 }
 
-function SessionErrorNotice(props: { error: unknown }) {
+/** A fault or a pause the reader must act on. A plain stop is not one: it
+ * reads on the header line ("Stopped after 2m 3s") and, when a provider or a
+ * credential change ended the turn, as one quiet line under the trace. */
+function SessionErrorNotice(props: { error: unknown; sessionID: string; messageID: string }) {
+  const data = useData()
+  const i18n = useI18n()
   const display = () => sessionErrorDisplay(props.error)
+  // A provider that stopped answering, a wait the runtime gave up on, or a
+  // plain failure: one click sends the same message as a new request. Stops
+  // the user asked for, and pauses that resume on their own, do not need it.
+  const resend = () =>
+    !!data.resendTurn &&
+    (display().state === "error" || display().reason === "timeout" || display().reason === "provider")
   return (
     <Card
       variant={display().state === "paused" ? "warning" : "error"}
       class="session-state-card"
       classList={{ "error-card": display().state === "error" }}
       data-state={display().state}
-      role={display().state === "paused" ? "status" : "alert"}
+      data-reason={display().reason}
+      role={display().state === "error" ? "alert" : "status"}
       aria-live="polite"
     >
-      <Show
-        when={display().state === "paused"}
-        fallback={<span data-slot="session-state-message">{display().message}</span>}
-      >
+      <div data-slot="session-state-head">
         <Icon name="alert-circle" size="small" />
         <div data-slot="session-state-copy">
           <strong>{display().title}</strong>
           <span data-slot="session-state-message">{display().message}</span>
+          <Show when={display().detail}>
+            {(detail) => (
+              <span data-slot="session-state-detail" title={detail()}>
+                {detail()}
+              </span>
+            )}
+          </Show>
+        </div>
+      </div>
+      <Show when={resend()}>
+        <div data-slot="session-state-actions">
+          <Button
+            variant="secondary"
+            size="small"
+            onClick={() => data.resendTurn?.({ sessionID: props.sessionID, messageID: props.messageID })}
+          >
+            {i18n.t("ui.sessionTurn.sendAgain")}
+          </Button>
         </div>
       </Show>
     </Card>
   )
+}
+
+/** The first sentence of a retry message, without a parenthesised code: the
+ * line says what is happening; the tooltip keeps the whole text. */
+export function retryReason(message: string) {
+  const sentence = message.replace(/\s*\([A-Z][A-Z0-9_]+\)/g, "").split(/(?<=[.!?])\s+/)[0] ?? message
+  return sentence.replace(/[.:]\s*$/, "")
 }
 
 export function SessionTurn(
@@ -270,7 +526,7 @@ export function SessionTurn(
     const messages = allMessages() ?? emptyMessages
     for (let i = messages.length - 1; i >= 0; i--) {
       const msg = messages[i]
-      if (msg?.role === "user") return msg.id
+      if (msg?.role === "user" && !isContinuationCarrier(msg, data.store.part[msg.id])) return msg.id
     }
     return undefined
   })
@@ -305,12 +561,23 @@ export function SessionTurn(
       const index = messageIndex()
       if (index < 0) return emptyAssistant
 
+      // A continuation the runtime wrote (a worker's completion, a harness
+      // nudge, an automatic compaction) keeps the turn open: the replies it
+      // draws are this turn's work. The compaction's own reply is the handoff
+      // the next step reads, not work to show; the trace notes the boundary.
+      const owned = new Set([msg.id])
       const result: AssistantMessage[] = []
       for (let i = index + 1; i < messages.length; i++) {
         const item = messages[i]
         if (!item) continue
-        if (item.role === "user") break
-        if (item.role === "assistant" && item.parentID === msg.id) result.push(item as AssistantMessage)
+        if (item.role === "user") {
+          if (!isContinuationCarrier(item, data.store.part[item.id])) break
+          owned.add(item.id)
+          continue
+        }
+        if (item.role !== "assistant" || !owned.has(item.parentID)) continue
+        if ((item as AssistantMessage).summary) continue
+        result.push(item as AssistantMessage)
       }
       return result
     },
@@ -318,28 +585,45 @@ export function SessionTurn(
     { equals: same },
   )
 
+  // The runtime's messages this turn owns, for the trace's grey notes.
+  const carriers = createMemo(
+    () => {
+      const msg = message()
+      const messages = allMessages() ?? emptyMessages
+      const index = messageIndex()
+      if (!msg || index < 0) return emptyMessages
+      const result: MessageType[] = []
+      for (let i = index + 1; i < messages.length; i++) {
+        const item = messages[i]
+        if (!item || item.role !== "user") continue
+        if (!isContinuationCarrier(item, data.store.part[item.id])) break
+        result.push(item)
+      }
+      return result
+    },
+    emptyMessages,
+    { equals: same },
+  )
+
   const lastAssistantMessage = createMemo(() => assistantMessages().at(-1))
 
   const error = createMemo(() => assistantMessages().find((m) => m.error)?.error)
 
-  const lastTextPart = createMemo(() => {
-    const msgs = assistantMessages()
-    for (let mi = msgs.length - 1; mi >= 0; mi--) {
-      const msgParts = data.store.part[msgs[mi].id] ?? emptyParts
-      const part = lastResponseTextPart(msgParts)
-      if (part) return part
-    }
-    return undefined
-  })
-
   const hasSteps = createMemo(() => {
+    if (
+      carriers().some((message) =>
+        (data.store.part[message.id] ?? emptyParts).some(
+          (part) => (part.type === "text" && part.synthetic && !!part.text.trim()) || part.type === "compaction",
+        ),
+      )
+    )
+      return true
     for (const m of assistantMessages()) {
       const msgParts = data.store.part[m.id]
       if (!msgParts) continue
       for (const p of msgParts) {
         if (p?.type === "tool") return true
-        // Encrypted placeholders are continuation state, not readable UI.
-        if (p?.type === "reasoning" && stripRedactedReasoning(p.text ?? "").length > 0) return true
+        if (p?.type === "reasoning" && reasoningDisplayText(p.text ?? "")) return true
       }
     }
     return false
@@ -359,7 +643,6 @@ export function SessionTurn(
     if (!tool) return
     return findLast(assistantMessages(), (message) => message.id === tool.messageID)
   })
-  const pendingRequestCallID = createMemo(() => (requestMessage() ? requestTool()?.callID : undefined))
   const requestParts = createMemo(() => {
     const tool = requestTool()
     if (!tool) return emptyRequestParts
@@ -395,7 +678,8 @@ export function SessionTurn(
   const isShellMode = createMemo(() => !!shellModePart())
 
   const rawStatus = createMemo(() => {
-    const msgs = assistantMessages()
+    const latest = assistantMessages().at(-1)
+    const msgs = latest && !latest.time.completed ? [latest] : []
     let lastStatus: string | undefined
     let currentTask: ToolPart | undefined
 
@@ -430,12 +714,14 @@ export function SessionTurn(
       const taskMessages = data.store.message[taskSessionId] ?? emptyMessages
       for (let mi = taskMessages.length - 1; mi >= 0; mi--) {
         const msg = taskMessages[mi]
-        if (!msg || msg.role !== "assistant") continue
+        if (!msg || msg.role !== "assistant" || msg.time.completed) continue
 
         const msgParts = data.store.part[msg.id] ?? emptyParts
         for (let pi = msgParts.length - 1; pi >= 0; pi--) {
           const part = msgParts[pi]
-          if (part) return computeStatusFromPart(part, i18n.t)
+          if (!part) continue
+          const current = computeStatusFromPart(part, i18n.t)
+          if (current) return current
         }
       }
     }
@@ -444,42 +730,118 @@ export function SessionTurn(
   })
 
   const status = createMemo(() => data.store.session_status[props.sessionID] ?? idle)
-  const working = createMemo(() => status().type !== "idle" && isLastUserMessage())
+  const working = createMemo(() => {
+    if (status().type === "idle" || !isLastUserMessage()) return false
+    const latest = lastAssistantMessage()
+    // Message completion and session status arrive independently. An old busy
+    // or retry event cannot restart a request that already ended with an error.
+    return !(latest?.time.completed && latest.error)
+  })
   const retry = createMemo(() => {
+    if (!working()) return
     const s = status()
     if (s.type !== "retry") return
     return s
   })
+  // Live provider request phase for this turn's in-flight assistant message.
+  // Older backends never publish it, so it is optional end to end.
+  const progress = createMemo(() => {
+    const item = data.store.session_progress?.[props.sessionID]
+    if (!item) return
+    if (assistantMessages().at(-1)?.id !== item.messageID) return
+    return item
+  })
 
-  // Files this turn wrote (completed write/edit/multiedit/apply_patch parts).
-  // Feeds the end-of-response "Save as artifact…" affordance on the last
-  // completed turn, which promotes a scratch file into a durable Result
-  // through the data context's saveArtifact callback.
-  const emptyWritten: string[] = []
-  const written = createMemo(
-    () => {
-      const collected: PartType[] = []
-      for (const m of assistantMessages()) {
-        for (const part of data.store.part[m.id] ?? emptyParts) collected.push(part)
-      }
-      return writtenFiles(collected)
-    },
-    emptyWritten,
-    { equals: same },
+  // Files this turn wrote: completed write/edit/multiedit/apply_patch receipts
+  // plus the filesystem diffs the backend recorded after each step, which is
+  // how a shell command's outputs are known without guessing from its text.
+  // Recorded paths go through the same host-path rules the chat's file links
+  // use, so only project or session-scratch targets are offered. Feeds the
+  // end-of-response "Save as artifact…" affordance on the last completed turn
+  // (promoting a scratch file into a durable Result through the data context's
+  // saveArtifact callback) and the receipt of a turn that ended early.
+  const resolvers = useMarkdownFileResolvers()
+  const resolveReceipt = (path: string) => {
+    const resolve = resolvers.resolveFileReceipt ?? resolvers.resolveFile
+    return resolve ? resolve(path) : path
+  }
+  const turnParts = createMemo(() =>
+    assistantMessages().flatMap((message) => data.store.part[message.id] ?? emptyParts),
   )
+  const emptyWritten: string[] = []
+  const candidates = createMemo(
+    () => writtenFiles(turnParts(), { canonicalOnly: true, resolve: resolveReceipt }),
+    emptyWritten,
+    {
+      equals: same,
+    },
+  )
+  const outputsIdle = createMemo(() => data.store.session_status[props.sessionID]?.type === "idle")
+  const [existing, { refetch: refreshReceipts }] = createResource(
+    () => {
+      if (!data.resolveFileReceipts || !candidates().length) return false
+      return { paths: candidates(), idle: outputsIdle(), sessionID: props.sessionID }
+    },
+    ({ paths, sessionID }) =>
+      data.resolveFileReceipts!(sessionID, paths).then(
+        (paths) => ({ paths, error: false }),
+        () => ({ paths: emptyWritten, error: true }),
+      ),
+    // Background receipt checks must not suspend the surrounding transcript.
+    { initialValue: { paths: emptyWritten, error: false } },
+  )
+  const written = createMemo(() =>
+    data.resolveFileReceipts ? candidates().filter((path) => existing.latest.paths.includes(path)) : candidates(),
+  )
+  const linkedFiles = written
+  // A stop the user asked for needs no explanation beyond the header line; a
+  // stop the provider or a credential change caused keeps its reason.
+  const stopped = createMemo(() => {
+    const value = error()
+    return !!value && sessionErrorDisplay(value).state === "stopped"
+  })
+  const stopNote = createMemo(() => {
+    const value = error()
+    if (!value) return undefined
+    const display = sessionErrorDisplay(value)
+    if (display.state !== "stopped" || display.reason === "user") return undefined
+    return display.message
+  })
+  // A provider that stopped answering or a wait the runtime gave up on: the
+  // same message can go again as a new request in one click.
+  const resendable = createMemo(() => {
+    const value = error()
+    if (!value || !data.resendTurn) return false
+    const reason = sessionErrorDisplay(value).reason
+    return reason === "timeout" || reason === "provider"
+  })
 
-  const response = createMemo(() => lastTextPart()?.text)
+  const response = createMemo(() =>
+    responseText(assistantMessages().flatMap((message) => data.store.part[message.id] ?? emptyParts)),
+  )
   const messageDiffs = createMemo(() => message()?.summary?.diffs ?? emptyDiffs)
   const hasDiffs = createMemo(() => messageDiffs().length > 0)
 
-  const [copied, setCopied] = createSignal(false)
+  const [copy, setCopy] = createStore({ copied: false, error: false })
+  const copyTimer = { current: undefined as ReturnType<typeof setTimeout> | undefined }
+  onCleanup(() => clearTimeout(copyTimer.current))
 
   const handleCopy = async () => {
-    const content = response() ?? ""
+    const content = response()
     if (!content) return
-    await navigator.clipboard.writeText(content)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    clearTimeout(copyTimer.current)
+    setCopy({ copied: false, error: false })
+    if (!navigator.clipboard) {
+      setCopy("error", true)
+      return
+    }
+    await navigator.clipboard.writeText(content).then(
+      () => {
+        setCopy("copied", true)
+        copyTimer.current = setTimeout(() => setCopy("copied", false), 2000)
+      },
+      () => setCopy("error", true),
+    )
   }
 
   const [rootRef, setRootRef] = createSignal<HTMLDivElement | undefined>()
@@ -488,27 +850,20 @@ export function SessionTurn(
   const updateStickyHeight = (height: number) => {
     const root = rootRef()
     if (!root) return
-    const next = Math.ceil(height)
-    root.style.setProperty("--session-turn-sticky-height", `${next}px`)
+    // A transcript that lets the user message scroll away (position: static)
+    // offsets nothing below it.
+    const sticky = stickyRef()
+    const pinned = !!sticky && getComputedStyle(sticky).position === "sticky"
+    root.style.setProperty("--session-turn-sticky-height", `${pinned ? Math.ceil(height) : 0}px`)
   }
 
   function duration() {
     const msg = message()
     if (!msg) return ""
     const completed = lastAssistantMessage()?.time.completed
-    const from = DateTime.fromMillis(msg.time.created)
-    const to = completed ? DateTime.fromMillis(completed) : DateTime.now()
-    const interval = Interval.fromDateTimes(from, to)
-    const unit: DurationUnit[] = interval.length("seconds") > 60 ? ["minutes", "seconds"] : ["seconds"]
-
-    const locale = i18n.locale()
-    const human = interval.toDuration(unit).normalize().reconfigure({ locale }).toHuman({
-      notation: "compact",
-      unitDisplay: "narrow",
-      compactDisplay: "short",
-      showZeros: false,
-    })
-    return locale.startsWith("zh") ? human.replaceAll("、", "") : human
+    // The same "6m 10s" form the activity rows use, instead of a list-formatted
+    // "6m, 10s" that read as two separate values.
+    return elapsedLabel((completed ?? Date.now()) - msg.time.created)
   }
 
   const autoScroll = createAutoScroll({
@@ -539,13 +894,28 @@ export function SessionTurn(
   const diffBatch = 20
 
   const [store, setStore] = createStore({
+    stepsExpanded: undefined as boolean | undefined,
     retrySeconds: 0,
+    now: Date.now(),
     diffsOpen: [] as string[],
     diffPreviewsExpanded: [] as string[],
     diffLimit: diffInit,
     artifacts: {} as Record<string, { state: "saving" | "saved" | "error"; error?: string }>,
-    status: rawStatus(),
     duration: duration(),
+  })
+
+  const expanded = () => props.stepsExpanded ?? store.stepsExpanded ?? false
+  const traceID = () => `session-turn-trace-${props.messageID}`
+  const toggleSteps = () => {
+    props.onUserInteracted?.()
+    if (props.onStepsExpandedToggle) return props.onStepsExpandedToggle()
+    setStore("stepsExpanded", !expanded())
+  }
+
+  // Open a live turn once. Finishing a response must not collapse the text
+  // underneath someone reading it, and an explicit collapse must stay put.
+  createEffect(() => {
+    if (working() && store.stepsExpanded === undefined) setStore("stepsExpanded", true)
   })
 
   createEffect(
@@ -593,6 +963,7 @@ export function SessionTurn(
   createEffect(() => {
     const update = () => {
       setStore("duration", duration())
+      setStore("now", Date.now())
     }
 
     update()
@@ -604,10 +975,59 @@ export function SessionTurn(
     onCleanup(() => clearInterval(timer))
   })
 
-  createEffect(() => {
-    const newStatus = rawStatus()
-    if (newStatus === store.status || !newStatus) return
-    setStore("status", newStatus)
+  // The header names what the reader can act on: a retry countdown, a
+  // conflict wait, or a model silent for minutes. A request being prepared,
+  // sent or briefly quiet reads as thinking, and the tool that is running
+  // reads as its own activity. The clock beside the label keeps the wait
+  // honest; the request detail ("Waiting for output from …", "No new output
+  // for 58s") sits in the tooltip.
+  const tool = createMemo(() => {
+    const latest = assistantMessages().at(-1)
+    if (!latest) return false
+    return (data.store.part[latest.id] ?? emptyParts).some(
+      (part) => part.type === "tool" && part.state.status === "running",
+    )
+  })
+  const phase = createMemo(() => headerProgress(progress(), store.now, tool()))
+  const detail = createMemo(() => {
+    const status = progressStatus(progress(), store.now)
+    if (!status) return
+    return [i18n.t(status.key, status.params), status.hint ? i18n.t(status.hint) : ""].filter(Boolean).join(" ")
+  })
+  // The line names the call in flight ("Reading study.json"), the way the
+  // trace row will once the call lands; one clock, the turn's, sits beside it.
+  const activity = createMemo(() => {
+    const latest = assistantMessages().at(-1)
+    if (!latest || latest.time.completed) return
+    const own = liveActivity(data.store.part[latest.id] ?? emptyParts)
+    if (!own || !own.label.startsWith("Delegating")) return own
+    // A worker in flight: follow its live call when the store has its session.
+    const child = childSessionOf(data.store.part[latest.id] ?? emptyParts)
+    const childParts = child
+      ? (data.store.message[child] ?? emptyMessages).flatMap((message) => data.store.part[message.id] ?? emptyParts)
+      : []
+    const inner = child ? liveActivity(childParts) : undefined
+    return inner ? { label: `${own.label} · ${inner.label}` } : own
+  })
+  const queued = createMemo(() => {
+    if (!working() || assistantMessages().length) return false
+    const messages = allMessages() ?? emptyMessages
+    const previous = findLast(messages, (message) => message.role === "assistant") as AssistantMessage | undefined
+    return !!previous && !previous.time.completed
+  })
+  const statusText = createMemo(() => {
+    // A pending approval or question is a wait on the reader, not work in
+    // flight: "Running Python · 6m 50s" over an unanswered approval card read
+    // as a hang.
+    if (nextPermission()) return i18n.t("ui.sessionTurn.status.awaitingApproval")
+    if (nextQuestion()) return i18n.t("ui.sessionTurn.status.awaitingAnswer")
+    // An automatic compaction runs inside the turn; its summary is not a
+    // reply the trace shows, so the line says what the wait is.
+    if (status().type === "compacting") return i18n.t("ui.sessionTurn.status.compacting")
+    const live = phase()
+    if (live) return i18n.t(live.key, live.params)
+    if (queued()) return i18n.t("ui.sessionTurn.status.queued")
+    return activity()?.label ?? rawStatus() ?? i18n.t("ui.sessionTurn.status.thinking")
   })
 
   return (
@@ -642,127 +1062,148 @@ export function SessionTurn(
                       <div data-slot="session-turn-message-content" aria-live="off">
                         <Message message={msg()} parts={stickyParts()} />
                       </div>
-
-                      {/* Trigger (sticky) */}
-                      <Show when={working() || hasSteps()}>
-                        <div data-slot="session-turn-response-trigger">
+                    </div>
+                    {/* One disclosure owns this turn's trace, never the whole
+                        conversation. It has its own sticky row because the
+                        transcript lets the user message scroll away, and a long
+                        trace must stay collapsible from wherever the reader is.
+                        Request and retry status sit beside the label, never in
+                        place of it. */}
+                    {/* One line owns the trace, the way Cursor does it: while
+                        working it is the live status; afterwards it reads
+                        "Worked for 2m 3s" and folds the whole trace. */}
+                    <Show when={working() || hasSteps()}>
+                      <div data-slot="session-turn-trace-control" data-working={working() ? "true" : undefined}>
+                        <Show when={true}>
                           <Button
-                            data-expandable={assistantMessages().length > 0}
+                            type="button"
                             data-slot="session-turn-collapsible-trigger-content"
                             variant="ghost"
                             size="small"
-                            onClick={props.onStepsExpandedToggle ?? (() => {})}
-                            aria-expanded={props.stepsExpanded}
+                            aria-expanded={expanded()}
+                            aria-controls={traceID()}
+                            aria-label={i18n.t(expanded() ? "ui.sessionTurn.steps.hide" : "ui.sessionTurn.steps.show")}
+                            title={(working() && detail()) || i18n.t("ui.sessionTurn.totalTime")}
+                            onClick={toggleSteps}
                           >
-                            <Switch>
-                              <Match when={working()}>
-                                <Spinner />
-                              </Match>
-                              <Match when={true}>
-                                <svg
-                                  width="10"
-                                  height="10"
-                                  viewBox="0 0 10 10"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  data-slot="session-turn-trigger-icon"
-                                  style={{
-                                    transform: props.stepsExpanded ? "rotate(0deg)" : "rotate(-90deg)",
-                                    transition: "transform 0.15s ease",
-                                  }}
-                                >
-                                  <path
-                                    d="M8.125 1.875H1.875L5 8.125L8.125 1.875Z"
-                                    fill="currentColor"
-                                    stroke="currentColor"
-                                    stroke-linejoin="round"
-                                  />
-                                </svg>
-                              </Match>
-                            </Switch>
-                            <Switch>
-                              <Match when={retry()}>
-                                <span data-slot="session-turn-retry-message">
-                                  {(() => {
-                                    const r = retry()
-                                    if (!r) return ""
-                                    return r.message.length > 60 ? r.message.slice(0, 60) + "..." : r.message
-                                  })()}
-                                </span>
-                                <span data-slot="session-turn-retry-seconds">
-                                  · {i18n.t("ui.sessionTurn.retry.retrying")}
-                                  {store.retrySeconds > 0
-                                    ? " " + i18n.t("ui.sessionTurn.retry.inSeconds", { seconds: store.retrySeconds })
-                                    : ""}
-                                </span>
-                                <span data-slot="session-turn-retry-attempt">(#{retry()?.attempt})</span>
-                              </Match>
-                              <Match when={working()}>
-                                <span data-slot="session-turn-status-text">
-                                  {store.status ?? i18n.t("ui.sessionTurn.status.consideringNextSteps")}
-                                </span>
-                              </Match>
-                              <Match when={props.stepsExpanded}>
-                                <span data-slot="session-turn-status-text">{i18n.t("ui.sessionTurn.steps.hide")}</span>
-                              </Match>
-                              <Match when={!props.stepsExpanded}>
-                                <span data-slot="session-turn-status-text">{i18n.t("ui.sessionTurn.steps.show")}</span>
-                              </Match>
-                            </Switch>
-                            <span aria-hidden="true">·</span>
-                            <span aria-live="off">{store.duration}</span>
+                            <Show when={working()}>
+                              <Spinner />
+                            </Show>
+                            <Icon name="chevron-down" size="small" data-slot="session-turn-trigger-icon" />
+                            <span data-slot="session-turn-trigger-label">
+                              <Switch>
+                                <Match when={working() && retry()}>
+                                  {/* The state first, the reason second and short; the full
+                                      message waits in the tooltip rather than on the line. */}
+                                  <span data-slot="session-turn-retry-seconds">
+                                    {i18n.t("ui.sessionTurn.retry.retrying")}
+                                    {(retry()?.attempt ?? 1) > 1 ? ` (${retry()?.attempt})` : ""}
+                                    {store.retrySeconds > 0
+                                      ? " " + i18n.t("ui.sessionTurn.retry.inSeconds", { seconds: store.retrySeconds })
+                                      : ""}
+                                  </span>
+                                  <span data-slot="session-turn-retry-message" title={retry()?.message}>
+                                    · {retryReason(retry()?.message ?? "")}
+                                  </span>
+                                </Match>
+                                <Match when={working()}>
+                                  <span data-slot="session-turn-status-text">{statusText()}</span>
+                                </Match>
+                                <Match when={stopped()}>
+                                  {i18n.t("ui.sessionTurn.stoppedAfter", { duration: store.duration })}
+                                </Match>
+                                <Match when={true}>
+                                  {i18n.t("ui.sessionTurn.workedFor", { duration: store.duration })}
+                                </Match>
+                              </Switch>
+                            </span>
+                            <Show when={working()}>
+                              <span data-slot="session-turn-duration" aria-live="off">
+                                {store.duration}
+                              </span>
+                            </Show>
                           </Button>
-                        </div>
-                      </Show>
-                    </div>
-                    <Show when={assistantMessages().length > 0}>
-                      <div
-                        data-slot="session-turn-response-section"
-                        data-expanded={props.stepsExpanded ? "true" : undefined}
-                      >
-                        <AssistantTrace
-                          messages={assistantMessages()}
-                          hideReasoning={!props.stepsExpanded}
-                          hideTools={!props.stepsExpanded}
-                          hideGeneratedTools
-                          pendingRequestCallID={props.stepsExpanded ? undefined : pendingRequestCallID()}
-                        />
-                        <Show when={response()}>
-                          <div
-                            data-slot="session-turn-response-copy-wrapper"
-                            data-copied={copied() ? "true" : undefined}
-                          >
-                            <Tooltip
-                              value={copied() ? i18n.t("ui.message.copied") : i18n.t("ui.message.copy")}
-                              placement="top"
-                              gutter={8}
-                            >
-                              <IconButton
-                                icon={copied() ? "check" : "copy"}
-                                variant="ghost"
-                                onMouseDown={(event) => event.preventDefault()}
-                                onClick={(event) => {
-                                  event.stopPropagation()
-                                  handleCopy()
-                                }}
-                                aria-label={copied() ? i18n.t("ui.message.copied") : i18n.t("ui.message.copy")}
-                              />
-                            </Tooltip>
-                          </div>
-                        </Show>
-                        <Show when={props.stepsExpanded && error()}>
-                          {(value) => <SessionErrorNotice error={value()} />}
                         </Show>
                       </div>
                     </Show>
-                    <Show
-                      when={
-                        (!props.stepsExpanded && requestParts().length > 0) ||
-                        (requestParts().length === 0 && requestMessage() && nextQuestion())
-                      }
-                    >
+                    <Show when={assistantMessages().length > 0}>
+                      <div
+                        id={traceID()}
+                        data-slot="session-turn-response-section"
+                        data-expanded={expanded() ? "true" : undefined}
+                      >
+                        <MarkdownFileScope paths={linkedFiles()}>
+                          <AssistantTrace
+                            messages={assistantMessages()}
+                            carriers={carriers()}
+                            expanded={expanded()}
+                            working={working()}
+                            settled={!working() && !error() && !!response()}
+                            pendingRequestCallID={requestTool()?.callID}
+                          />
+                        </MarkdownFileScope>
+                        {/* Copy is for the finished answer; while the turn works,
+                            narration is not something to copy yet. */}
+                        <Show when={response() && !working()}>
+                          <div
+                            data-slot="session-turn-response-copy-wrapper"
+                            data-copied={copy.copied ? "true" : undefined}
+                            role="group"
+                            aria-label="Response actions"
+                          >
+                            <Button
+                              icon={copy.copied ? "check" : "copy"}
+                              size="small"
+                              variant="ghost"
+                              onMouseDown={(event: MouseEvent) => event.preventDefault()}
+                              onClick={(event: MouseEvent) => {
+                                event.stopPropagation()
+                                void handleCopy()
+                              }}
+                              aria-label="Copy response"
+                            >
+                              {copy.copied ? i18n.t("ui.message.copied") : i18n.t("ui.message.copy")}
+                            </Button>
+                            <span role="status" aria-live="polite">
+                              {copy.error ? "Could not copy. Select the response text and copy it manually." : ""}
+                            </span>
+                          </div>
+                        </Show>
+                        <Show when={error()}>
+                          {(value) => (
+                            <Switch>
+                              <Match when={stopped() && stopNote()}>
+                                <div data-slot="session-turn-stop">
+                                  <p data-slot="session-turn-stop-note" role="status">
+                                    {stopNote()}
+                                  </p>
+                                  <Show when={resendable()}>
+                                    <Button
+                                      variant="secondary"
+                                      size="small"
+                                      onClick={() =>
+                                        data.resendTurn?.({ sessionID: props.sessionID, messageID: props.messageID })
+                                      }
+                                    >
+                                      {i18n.t("ui.sessionTurn.sendAgain")}
+                                    </Button>
+                                  </Show>
+                                </div>
+                              </Match>
+                              <Match when={!stopped()}>
+                                <SessionErrorNotice
+                                  error={value()}
+                                  sessionID={props.sessionID}
+                                  messageID={props.messageID}
+                                />
+                              </Match>
+                            </Switch>
+                          )}
+                        </Show>
+                      </div>
+                    </Show>
+                    <Show when={requestParts().length === 0 && requestMessage() && nextQuestion()}>
                       <div data-slot="session-turn-permission-parts">
-                        <For each={requestParts()}>{({ part, message }) => <Part part={part} message={message} />}</For>
                         <Show when={requestParts().length === 0 && requestMessage() && nextQuestion()}>
                           {(question) => (
                             <div data-component="tool-part-wrapper" data-question="true">
@@ -774,6 +1215,12 @@ export function SessionTurn(
                     </Show>
                     <Show when={hasDiffs()}>
                       <div data-slot="session-turn-summary-section">
+                        <div data-slot="session-turn-changes-summary">
+                          <span>
+                            {messageDiffs().length} {messageDiffs().length === 1 ? "file changed" : "files changed"}
+                          </span>
+                          <DiffChanges changes={messageDiffs()} />
+                        </div>
                         <Accordion
                           data-slot="session-turn-accordion"
                           multiple
@@ -943,15 +1390,30 @@ export function SessionTurn(
                       </section>
                     </Show>
                     {/* Session outputs stay editable in scratch until explicitly kept as immutable Results. */}
+                    <Show when={!working() && existing.latest.error}>
+                      <div data-slot="session-turn-output-error">
+                        <span>Session outputs could not be checked.</span>
+                        <Button
+                          variant="ghost"
+                          size="small"
+                          disabled={existing.loading}
+                          onClick={() => void refreshReceipts()}
+                        >
+                          Retry file check
+                        </Button>
+                      </div>
+                    </Show>
                     <Show when={isLastUserMessage() && !working() && !!data.saveArtifact && written().length > 0}>
-                      <section data-slot="session-turn-session-outputs">
-                        <header>
-                          <span>
-                            <strong>Session outputs</strong>
-                            <small>Saved in this session. Keep important deliverables in Results.</small>
-                          </span>
-                          <span>{artifactActions(written()).length}</span>
-                        </header>
+                      {/* One quiet line by default; the file list opens on demand. */}
+                      <details data-slot="session-turn-session-outputs">
+                        <summary>
+                          <Icon name="chevron-down" size="small" />
+                          <strong>
+                            {artifactActions(written()).length}{" "}
+                            {artifactActions(written()).length === 1 ? "file" : "files"} written this turn
+                          </strong>
+                          <small>Save the ones that matter to Results</small>
+                        </summary>
                         <div data-slot="session-turn-artifact-save">
                           <For each={artifactActions(written())}>
                             {(action) => {
@@ -990,10 +1452,7 @@ export function SessionTurn(
                             }}
                           </For>
                         </div>
-                      </section>
-                    </Show>
-                    <Show when={error() && !props.stepsExpanded}>
-                      {(value) => <SessionErrorNotice error={value()} />}
+                      </details>
                     </Show>
                   </Match>
                 </Switch>

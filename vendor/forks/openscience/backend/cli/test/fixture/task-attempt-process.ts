@@ -53,7 +53,7 @@ if (mode === "loop-parent") {
       const params = {
         description: "Durable active budget fixture",
         prompt: "Exercise active-only budget accounting.",
-        subagent_type: "execute",
+        subagent_type: "data",
       }
       await TaskAttempt.reserve({
         ...identity,
@@ -69,7 +69,7 @@ if (mode === "loop-parent") {
               sessionId: settled.childSessionID,
               startedAt: settled.createdAt,
               activeMs: settled.activeMs ?? 0,
-              remainingMs: TaskAttempt.remaining(settled, 300),
+              remainingMs: TaskAttempt.remaining(settled, 2_000),
             },
             output: "ACTIVE_BUDGET_RECOVERED",
           }),
@@ -83,6 +83,11 @@ if (mode === "loop-parent") {
       await new Promise(() => {})
     },
   })
+} else if (mode === "hold-cap-claim") {
+  await using claim = await LockCoordination.claim(TaskCapacity.slotPath("child", 0), 5_000)
+  await fs.writeFile(ready, String(process.pid))
+  await new Promise(() => {})
+  void claim
 } else if (mode === "hold-cap-intent") {
   await using intent = await LockCoordination.intent(TaskCapacity.slotPath("child", 0), 5_000)
   await fs.writeFile(ready, String(process.pid))
@@ -125,7 +130,7 @@ if (mode === "loop-parent") {
         {
           description: "Durable restart fixture",
           prompt: "Return the deterministic child result.",
-          subagent_type: "execute",
+          subagent_type: "data",
         },
         {
           sessionID: parentID,

@@ -14,9 +14,9 @@
   },
   "counts": {
     "core": 52,
-    "ondemand": 207,
-    "resident_chars": 29959,
-    "full_chars": 59863
+    "ondemand": 209,
+    "resident_chars": 30441,
+    "full_chars": 60838
   },
   "skills": {
     "ablation-planner": {
@@ -46,8 +46,8 @@
     "analyze-results": {
       "tier": "core",
       "reason": "主链步骤的推荐/必用位",
-      "resident_description": "Analyze ML experiment results, compute statistics, generate comparison tables and insights. Use when user says \"analyze results\", \"compare\", or needs to interpret experimental data.",
-      "full_description": "Analyze ML experiment results, compute statistics, generate comparison tables and insights. Use when user says \"analyze results\", \"compare\", or needs to interpret experimental data.",
+      "resident_description": "Analyze ML experiment results, compute statistics, generate comparison tables and insights. Use when user says \"analyze results\", \"compare\", or needs to interpret experimental data. Lightweight numeric cross-checks and tabulation only; for strict statistical evidence bundles (significance/CI/effect size), use results-analysis.",
+      "full_description": "Analyze ML experiment results, compute statistics, generate comparison tables and insights. Use when user says \"analyze results\", \"compare\", or needs to interpret experimental data. Lightweight numeric cross-checks and tabulation only; for strict statistical evidence bundles (significance/CI/effect size), use results-analysis.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/analyze-results/SKILL.md"
     },
@@ -55,15 +55,15 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "中文学术文本 AI 特征检测：八维度加八项统计特征分析、AI 味改写建议、改写质量检查，并生成国赛 AI 使用声明。触发词：反AI检测、AI味、去AI化、AI 生成特征、AI 使用声明。",
-      "full_description": "中文学术文本 AI 特征检测：八维度加八项统计特征分析、AI 味改写建议、改写质量检查，并生成国赛 AI 使用声明。触发词：反AI检测、AI味、去AI化、AI 生成特征、AI 使用声明。",
-      "description_compacted": false,
+      "full_description": "中文学术文本 AI 特征检测：八维度加八项统计特征分析、AI 味改写建议、改写质量检查，并生成国赛 AI 使用声明。触发词：反AI检测、AI味、去AI化、AI 生成特征、AI 使用声明。区别于 paper-humanize（英文稿去 AI 味/自然化改写）与 anti-defensive-writing（删防御性限定/免责）：中文稿 AI 特征检测、去 AI 化与 AI 使用声明用本技能。",
+      "description_compacted": true,
       "path": "academic-toolkit/skills/anti-ai-detection/SKILL.md"
     },
     "anti-defensive-writing": {
       "tier": "core",
       "reason": "主链步骤的推荐/必用位",
-      "resident_description": "删减防御性写作：去掉不必要的免责声明、模糊限定、道歉式表述、自我贬低与过度解释，同时保留必要的范围/准确性/安全/法律/伦理/方法学限定。触发词：更简洁、更有力、更直接、更自信、少限定、少免责、别啰嗦、不要过度解释、改掉 hedge、去防御性。适用于论文/摘要/引言/贡献声明/讨论/结论/基金/报告/政策文本。",
-      "full_description": "删减防御性写作：去掉不必要的免责声明、模糊限定、道歉式表述、自我贬低与过度解释，同时保留必要的范围/准确性/安全/法律/伦理/方法学限定。触发词：更简洁、更有力、更直接、更自信、少限定、少免责、别啰嗦、不要过度解释、改掉 hedge、去防御性。适用于论文/摘要/引言/贡献声明/讨论/结论/基金/报告/政策文本。",
+      "resident_description": "删减防御性写作：去掉不必要的免责声明、模糊限定、道歉式表述、自我贬低与过度解释，同时保留必要的范围/准确性/安全/法律/伦理/方法学限定。触发词：更简洁、更有力、更直接、更自信、少限定、少免责、别啰嗦、不要过度解释、改掉 hedge、去防御性。适用于论文/摘要/引言/贡献声明/讨论/结论/基金/报告/政策文本。区别于 anti-ai-detection（中文稿 AI 特征检测）与 paper-humanize（英文稿去 AI 味）：本技能只删防御性限定与免责表述，不做去 AI 味改写。",
+      "full_description": "删减防御性写作：去掉不必要的免责声明、模糊限定、道歉式表述、自我贬低与过度解释，同时保留必要的范围/准确性/安全/法律/伦理/方法学限定。触发词：更简洁、更有力、更直接、更自信、少限定、少免责、别啰嗦、不要过度解释、改掉 hedge、去防御性。适用于论文/摘要/引言/贡献声明/讨论/结论/基金/报告/政策文本。区别于 anti-ai-detection（中文稿 AI 特征检测）与 paper-humanize（英文稿去 AI 味）：本技能只删防御性限定与免责表述，不做去 AI 味改写。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/anti-defensive-writing/SKILL.md"
     },
@@ -422,8 +422,8 @@
     "data-processing": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "Data Processing Skill——把原始数据（CSV/Excel/JSON/爬虫）变成”能直接喂给模型”的干净数据。",
-      "full_description": "Data Processing Skill——把原始数据（CSV/Excel/JSON/爬虫）变成”能直接喂给模型”的干净数据。",
+      "resident_description": "Data Processing Skill——把原始数据（CSV/Excel/JSON/爬虫）变成“能直接喂给模型”的干净数据。",
+      "full_description": "Data Processing Skill——把原始数据（CSV/Excel/JSON/爬虫）变成“能直接喂给模型”的干净数据。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/data-processing/SKILL.md"
     },
@@ -926,8 +926,8 @@
     "ip-source-extractor": {
       "tier": "core",
       "reason": "治理/基础设施（每会话可能调用）",
-      "resident_description": "CodeSucker 软著源程序文档抽取器 — 集成技能——基于 [fanbuz/codesucker](https://github.com/fanbuz/codesucker) (Apache-2.0) 的 Python 移植版。",
-      "full_description": "CodeSucker 软著源程序文档抽取器 — 集成技能——基于 [fanbuz/codesucker](https://github.com/fanbuz/codesucker) (Apache-2.0) 的 Python 移植版。",
+      "resident_description": "CodeSucker 软著源程序文档抽取器 — 集成技能——基于 [fanbuz/codesucker](https://github.com/fanbuz/codesucker) (Apache-2.0) vendored core 的稳定桥接入口。",
+      "full_description": "CodeSucker 软著源程序文档抽取器 — 集成技能——基于 [fanbuz/codesucker](https://github.com/fanbuz/codesucker) (Apache-2.0) vendored core 的稳定桥接入口。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/ip-source-extractor/SKILL.md"
     },
@@ -962,6 +962,14 @@
       "full_description": "> 【中文触发】创建/编译/转换任何 LaTeX 文档：简历、报告、幻灯片(Beamer)、海报、小抄、公式卡、信函、发票、书籍、论文、填表表单、格式转换(Markdown/DOCX/HTML↔LaTeX)、PDF→LaTeX(含手写OCR)、latexdiff 版本对比、mail merge、图表(Mermaid/Graphviz/PlantUML/pgfplots/TikZ)、BibTeX 参考文献。 当用户说：做简历/海报/幻灯片/小抄、编译LaTeX、LaTeX格式转换、PDF转LaTeX、公式卡、邮件合并、版本对比时使用。 【边界】竞赛论文写作用 comp-paper-zh/comp-paper-en，竞赛编译用 comp-compile-zh/comp-compile-en；本技能负责竞赛之外的通用 LaTeX 文档。 【English】Universal LaTeX skill: create, compile (pdflatex/xelatex/lualatex auto-detect, latexmk, auto-installs TeX Live) and convert any document to PDF with PNG previews — resumes, CVs, reports, invoices, papers, theses, slides, posters, letters, exams, books, cheat sheets, fillable PDF forms, mail merge from CSV/JSON, latexdiff, charts/tables/images, bibliographies, CJK, Pandoc conversion, PDF-to-LaTeX incl. OCR. PDF utilities: encrypt, merge, compress, split, extract text, fill forms, watermark, metadata. Use when the user asks to create, compile, or convert any LaTeX/.tex/PDF document.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/latex-document/SKILL.md"
+    },
+    "latex-equation-from-image": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "当需要把图片或截图中的公式、表格转成可编辑 LaTeX 时使用：由具备视觉能力的驱动侧模型转写，再用 scripts/verify_latex.py 做 sympy 数值自检，输出带置信度标记的 LaTeX 片段；仅做内容转写",
+      "full_description": "当需要把图片或截图中的公式、表格转成可编辑 LaTeX 时使用：由具备视觉能力的驱动侧模型转写，再用 scripts/verify_latex.py 做 sympy 数值自检，输出带置信度标记的 LaTeX 片段；仅做内容转写，整图风格仿制请用 plot-from-image，符号推导验证请用 sympy-verify-math。",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/latex-equation-from-image/SKILL.md"
     },
     "latex-paper-collab-breadth": {
       "tier": "ondemand",
@@ -1318,8 +1326,8 @@
     "monitor-experiment": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "Monitor running experiments, check progress, collect results. Use when user says ”check results”, ”is it done”,",
-      "full_description": "Monitor running experiments, check progress, collect results. Use when user says \"check results\", \"is it done\", \"monitor\", or wants experiment output.",
+      "resident_description": "Monitor running experiments, check progress, collect results (remote inspection and result gathering). Use when user",
+      "full_description": "Monitor running experiments, check progress, collect results (remote inspection and result gathering). Use when user says 'check results', 'is it done', or 'check experiment progress'. For training-quality inspection (NaN/divergence/plateau), use training-check.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/monitor-experiment/SKILL.md"
     },
@@ -1386,6 +1394,14 @@
       "full_description": "用 XeLaTeX 把中文 LaTeX 论文编译为 PDF。触发词：编译中文论文、compile Chinese paper、中文PDF。只负责编译既有 .tex，不做内容创作；要从零写正文改用 paper-write-zh。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/paper-compile-zh/SKILL.md"
+    },
+    "paper-cover-letter": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "Use when a manuscript is about to be submitted to a journal and the submission package needs its editor-facing pieces -",
+      "full_description": "Use when a manuscript is about to be submitted to a journal and the submission package needs its editor-facing pieces - a cover letter, a significance statement, and a highlights draft, plus a letter-versus-manuscript consistency checklist. Not for technical preflight (use paper-presubmit-checks) or full content audit (use paper-submission-audit).",
+      "description_compacted": true,
+      "path": "academic-toolkit/skills/paper-cover-letter/SKILL.md"
     },
     "paper-data-availability": {
       "tier": "ondemand",

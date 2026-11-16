@@ -2,15 +2,68 @@ import { describe, expect, test } from "bun:test"
 import crypto from "node:crypto"
 import fs from "node:fs/promises"
 import path from "node:path"
+import { FileIdentity } from "../../src/file/identity"
+import { SafeTrashIO } from "../../src/file/safe-trash-io"
 import { FileTrash } from "../../src/file/trash"
 import { WindowsSafeIO } from "../../src/file/windows-safe-io"
 import { Global } from "../../src/global"
 import { Instance } from "../../src/project/instance"
 import { FileRoutes } from "../../src/server/routes/file"
 import { SessionFilesystem } from "../../src/session/filesystem"
+import { Storage } from "../../src/storage/storage"
 import { executionSession, tmpdir } from "../fixture/fixture"
 
 describe("recoverable source file trash", () => {
+  test("metadata validation failure discards the store and releases native directory handles", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const session = await executionSession()
+        const target = path.join(tmp.path, "retained.txt")
+        await Bun.write(target, "retained\n")
+        await expect(
+          FileTrash.trash({ projectID: Instance.project.id, sessionID: session.id, path: target, now: 0 }),
+        ).rejects.toThrow()
+        expect(await Bun.file(target).text()).toBe("retained\n")
+        expect(await FileTrash.list(Instance.project.id)).toEqual([])
+        const trash = path.join(tmp.path, FileTrash.FOLDER)
+        expect(await fs.readdir(trash)).toEqual([".gitignore"])
+        // Windows refuses this rename if the aborted store retains its parent
+        // handle without FILE_SHARE_DELETE. This is also a native cleanup gate.
+        const renamed = path.join(tmp.path, "closed-trash")
+        await fs.rename(trash, renamed)
+        await fs.rm(renamed, { recursive: true })
+      },
+    })
+  })
+
+  test("uses the 64-bit directory ABI for Intel macOS trash traversal", () => {
+    expect(SafeTrashIO.directorySymbolsForTests("darwin", "x64")).toEqual({
+      fdopendir: "fdopendir$INODE64",
+      readdir: "readdir$INODE64",
+    })
+    expect(SafeTrashIO.directorySymbolsForTests("darwin", "arm64")).toEqual({
+      fdopendir: "fdopendir",
+      readdir: "readdir",
+    })
+    expect(SafeTrashIO.directorySymbolsForTests("linux", "x64")).toEqual({
+      fdopendir: "fdopendir",
+      readdir: "readdir",
+    })
+
+    const inode64 = Buffer.alloc(32)
+    inode64.writeUInt16LE(32, 16)
+    inode64.writeUInt16LE(8, 18)
+    inode64.write("Contents", 21)
+    expect(SafeTrashIO.decodeDirectoryRecordForTests(inode64, "darwin")).toBe("Contents")
+
+    const legacy = Buffer.alloc(264)
+    legacy.writeUInt16LE(12, 4)
+    legacy.write("Contents", 8)
+    expect(() => SafeTrashIO.decodeDirectoryRecordForTests(legacy, "darwin")).toThrow("does not match the selected ABI")
+  })
+
   test("encodes the complete 64-bit FILE_RENAME_INFO layout", () => {
     const name = "result.txt"
     const encoded = Buffer.from(name, "utf16le")
@@ -52,7 +105,8 @@ describe("recoverable source file trash", () => {
         const target = path.join(tmp.path, "results", "finding.txt")
         await fs.mkdir(path.dirname(target), { recursive: true })
         await fs.writeFile(target, "approved finding\n", { mode: 0o640 })
-        const mode = (await fs.stat(target)).mode & 0o777
+        const before = await fs.lstat(target, { bigint: true })
+        const mode = Number(before.mode) & 0o777
 
         const trashed = await FileTrash.trash({
           projectID: Instance.project.id,
@@ -68,6 +122,13 @@ describe("recoverable source file trash", () => {
           size: 17,
           mode,
         })
+        expect(trashed.payloadIdentity?.dev).toBe(FileIdentity.encode(before.dev))
+        expect(trashed.payloadIdentity?.ino).toBe(FileIdentity.encode(before.ino))
+        // This JSON boundary runs on native Windows too, where file IDs often
+        // exceed MAX_SAFE_INTEGER. Reloaded approvals must retain every bit.
+        expect(FileTrash.Record.parse(JSON.parse(JSON.stringify(trashed))).payloadIdentity).toEqual(
+          trashed.payloadIdentity,
+        )
         expect(trashed.expiresAt - trashed.trashedAt).toBe(FileTrash.RETENTION_MS)
         await expect(fs.readFile(target)).rejects.toThrow()
 
@@ -175,6 +236,92 @@ describe("recoverable source file trash", () => {
       },
     })
   })
+
+  test.each(["file", "directory"] as const)(
+    "expires restored %s metadata without touching restored content",
+    async (kind) => {
+      await using tmp = await tmpdir({ git: true })
+      await Instance.provide({
+        directory: tmp.path,
+        fn: async () => {
+          const session = await executionSession()
+          const target = path.join(tmp.path, "restored")
+          if (kind === "directory") await fs.mkdir(target)
+          const content = kind === "directory" ? path.join(target, "result.txt") : target
+          await fs.writeFile(content, "approved result\n")
+          const record = await FileTrash.trash({ projectID: Instance.project.id, sessionID: session.id, path: target })
+          expect(record.store).toBe("workspace")
+          expect(
+            (await FileTrash.restore({ projectID: Instance.project.id, sessionID: session.id, id: record.id }))?.state,
+          ).toBe("restored")
+          await fs.writeFile(content, "new result after restore\n")
+
+          expect(await FileTrash.purgeExpired(Instance.project.id, record.expiresAt + 1)).toBe(1)
+          expect(await fs.readFile(content, "utf8")).toBe("new result after restore\n")
+          expect(await FileTrash.list(Instance.project.id)).toEqual([])
+          expect(await FileTrash.purgeExpired(Instance.project.id, record.expiresAt + 1)).toBe(0)
+
+          const next = path.join(tmp.path, "next.txt")
+          await fs.writeFile(next, "next result\n")
+          const trashed = await FileTrash.trash({ projectID: Instance.project.id, sessionID: session.id, path: next })
+          expect(await FileTrash.list(Instance.project.id)).toMatchObject([{ id: trashed.id }])
+        },
+      })
+    },
+  )
+
+  test.each(["unavailable", "changed"] as const)(
+    "automatic expiry retains an %s payload record without blocking unrelated trash",
+    async (state) => {
+      await using tmp = await tmpdir({ git: true })
+      await Instance.provide({
+        directory: tmp.path,
+        fn: async () => {
+          const session = await executionSession()
+          const projectID = Instance.project.id
+          const target = path.join(tmp.path, "retained.txt")
+          await fs.writeFile(target, "approved result\n")
+          const record = await FileTrash.trash({
+            projectID,
+            sessionID: session.id,
+            path: target,
+            now: Date.now() - FileTrash.RETENTION_MS - 1,
+          })
+          const retained = `${record.payloadPath!}.unavailable`
+          if (state === "unavailable") await fs.rename(record.payloadPath!, retained)
+          if (state === "changed") await fs.writeFile(record.payloadPath!, "changed payload\n")
+          const metadata = path.join(
+            Global.Path.data,
+            "file-trash",
+            crypto.createHash("sha256").update(projectID).digest("hex"),
+            record.id,
+            "record.json",
+          )
+
+          const next = path.join(tmp.path, "expired.txt")
+          await fs.writeFile(next, "safe to expire\n")
+          await FileTrash.trash({
+            projectID,
+            sessionID: session.id,
+            path: next,
+            now: Date.now() - FileTrash.RETENTION_MS - 1,
+          })
+          expect(await FileTrash.purgeExpired(projectID)).toBe(1)
+          expect(await FileTrash.purgeExpired(projectID)).toBe(0)
+          await expect(FileTrash.list(projectID)).resolves.toBeArray()
+          expect(await Bun.file(metadata).json()).toMatchObject({ id: record.id, state: "trash" })
+          expect(await fs.readFile(state === "unavailable" ? retained : record.payloadPath!, "utf8")).toBe(
+            state === "unavailable" ? "approved result\n" : "changed payload\n",
+          )
+
+          const purge = FileTrash.purge({ projectID, sessionID: session.id, id: record.id })
+          if (state === "unavailable") expect(await purge).toBeUndefined()
+          if (state === "changed") await expect(purge).rejects.toThrow("checksum mismatch")
+          expect(await Bun.file(metadata).exists()).toBe(true)
+        },
+      })
+    },
+  )
 
   test("does not advertise metadata written before a recovery payload exists", async () => {
     await using tmp = await tmpdir({ git: true })
@@ -560,6 +707,189 @@ describe("recoverable source file trash", () => {
         ).rejects.toThrow("directory identity changed")
         expect(await Bun.file(path.join(outsideEntry, "sentinel.txt")).text()).toBe("outside\n")
         expect(await Bun.file(path.join(retained, record.id, "payload")).text()).toBe("recoverable\n")
+      },
+    })
+  })
+
+  test.skipIf(process.platform === "win32")(
+    "restores an unapproved entry raced into a purge pathname before mutation",
+    async () => {
+      await using tmp = await tmpdir()
+      const target = path.join(tmp.path, "approved-directory")
+      const retained = path.join(tmp.path, "approved-retained")
+      await fs.mkdir(target)
+      await Bun.write(path.join(target, "identity"), "approved\n")
+      const approved = await SafeTrashIO.inspect(target)
+
+      await expect(
+        SafeTrashIO.remove(target, approved, {
+          afterFinalEntryVerify: async () => {
+            await fs.rename(target, retained)
+            await fs.mkdir(target)
+            await Bun.write(path.join(target, "identity"), "replacement\n")
+          },
+        }),
+      ).rejects.toThrow("identity changed during purge")
+
+      expect(await Bun.file(path.join(target, "identity")).text()).toBe("replacement\n")
+      expect(await Bun.file(path.join(retained, "identity")).text()).toBe("approved\n")
+      expect((await fs.readdir(tmp.path)).some((name) => name.startsWith(".openscience-purge-"))).toBe(false)
+    },
+  )
+})
+
+describe("in-project edit authority for move and delete", () => {
+  async function legacy(sessionID: string) {
+    await Storage.update<SessionFilesystem.State>(["session_filesystem", Instance.project.id, sessionID], (draft) => {
+      draft.grants = draft.grants.filter((grant) => grant.path !== Instance.directory)
+      draft.revision++
+    })
+  }
+
+  test("a session with only a scratch grant can trash and restore a project file it may already overwrite", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const session = await executionSession()
+        // Sessions saved before the project-root write grant existed carry a
+        // scratch workspace grant and no project grant history. A revocation
+        // is an explicit restriction, not the legacy absence of a grant.
+        await legacy(session.id)
+        const target = path.join(tmp.path, "plans", "old-plan.md")
+        await fs.mkdir(path.dirname(target), { recursive: true })
+        await fs.writeFile(target, "superseded\n")
+
+        // Without the in-project edit authority the legacy grant shape is denied.
+        await expect(
+          FileTrash.trash({ projectID: Instance.project.id, sessionID: session.id, path: target }),
+        ).rejects.toThrow()
+
+        const record = await FileTrash.trash({
+          projectID: Instance.project.id,
+          sessionID: session.id,
+          path: target,
+          projectInternal: true,
+          expectedContent: "superseded\n",
+        })
+        expect(record.state).toBe("trash")
+        await expect(fs.access(target)).rejects.toThrow()
+
+        const restored = await FileTrash.restore({
+          projectID: Instance.project.id,
+          sessionID: session.id,
+          id: record.id,
+        })
+        expect(restored?.state).toBe("restored")
+        expect(await fs.readFile(target, "utf8")).toBe("superseded\n")
+      },
+    })
+  })
+
+  for (const restriction of ["revoked", "read-only"] as const) {
+    test(`legacy compatibility never bypasses ${restriction} project authority`, async () => {
+      await using tmp = await tmpdir({ git: true })
+      await Instance.provide({
+        directory: tmp.path,
+        fn: async () => {
+          const session = await executionSession()
+          const target = path.join(tmp.path, "retained.txt")
+          await Bun.write(target, "retained\n")
+          if (restriction === "revoked") {
+            const grant = (await SessionFilesystem.list(session.id)).find((item) => item.path === tmp.path)!
+            await SessionFilesystem.revoke(session.id, grant.id)
+          } else {
+            await legacy(session.id)
+            await SessionFilesystem.grant({ sessionID: session.id, path: tmp.path, access: "read", scope: "session" })
+          }
+          await expect(
+            FileTrash.trash({
+              projectID: Instance.project.id,
+              sessionID: session.id,
+              path: target,
+              projectInternal: true,
+            }),
+          ).rejects.toBeInstanceOf(SessionFilesystem.DeniedError)
+          expect(await Bun.file(target).text()).toBe("retained\n")
+          expect(await FileTrash.list(Instance.project.id)).toEqual([])
+        },
+      })
+    })
+  }
+
+  test("legacy restore and purge honor a later explicit read-only grant", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const session = await executionSession()
+        await legacy(session.id)
+        const target = path.join(tmp.path, "recoverable.txt")
+        await Bun.write(target, "recoverable\n")
+        const record = await FileTrash.trash({
+          projectID: Instance.project.id,
+          sessionID: session.id,
+          path: target,
+          projectInternal: true,
+        })
+        await SessionFilesystem.grant({ sessionID: session.id, path: tmp.path, access: "read", scope: "session" })
+        const input = { projectID: Instance.project.id, sessionID: session.id, id: record.id }
+        await expect(FileTrash.restore(input)).rejects.toBeInstanceOf(SessionFilesystem.DeniedError)
+        await expect(FileTrash.purge(input)).rejects.toBeInstanceOf(SessionFilesystem.DeniedError)
+        expect(await Bun.file(record.payloadPath!).text()).toBe("recoverable\n")
+        expect(await Bun.file(target).exists()).toBe(false)
+      },
+    })
+  })
+
+  test("a restriction introduced after legacy authorization wins before mutation", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const session = await executionSession()
+        await legacy(session.id)
+        const target = path.join(tmp.path, "raced.txt")
+        await Bun.write(target, "retained\n")
+        using barrier = FileTrash.testing({
+          afterAuthorization: async (action) => {
+            if (action === "trash")
+              await SessionFilesystem.grant({ sessionID: session.id, path: tmp.path, access: "read", scope: "session" })
+          },
+        })
+        await expect(
+          FileTrash.trash({
+            projectID: Instance.project.id,
+            sessionID: session.id,
+            path: target,
+            projectInternal: true,
+          }),
+        ).rejects.toBeInstanceOf(SessionFilesystem.DeniedError)
+        expect(await Bun.file(target).text()).toBe("retained\n")
+        expect(await FileTrash.list(Instance.project.id)).toEqual([])
+      },
+    })
+  })
+
+  test("the in-project authority never reaches outside the project", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await using outside = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const session = await executionSession()
+        const external = path.join(outside.path, "notes.txt")
+        await fs.writeFile(external, "external\n")
+        await expect(
+          FileTrash.trash({
+            projectID: Instance.project.id,
+            sessionID: session.id,
+            path: external,
+            projectInternal: true,
+          }),
+        ).rejects.toBeInstanceOf(SessionFilesystem.DeniedError)
+        expect(await fs.readFile(external, "utf8")).toBe("external\n")
+        expect(await FileTrash.list(Instance.project.id)).toEqual([])
       },
     })
   })

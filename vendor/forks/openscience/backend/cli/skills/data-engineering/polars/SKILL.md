@@ -4,9 +4,15 @@ description: Fast in-memory DataFrame library for datasets that fit in RAM. Use 
 category: data-engineering
 license: https://github.com/pola-rs/polars/blob/main/LICENSE
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/polars
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [DataFrames, ETL, Data Processing, Performance]
 dependencies: ["polars>=1.0.0"]
 ---

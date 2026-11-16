@@ -24,6 +24,8 @@ This skill does **not**:
 - edit or upload a revised PDF
 - submit to OpenReview / CMT / HotCRP
 
+> **与 `paper-rebuttal-nature` 的分工**：本技能面向会议限量 rebuttal（ICML 风格 text-only、严格字符预算、多评审人跟帖）；期刊逐点回复（point-by-point response letter）用 `paper-rebuttal-nature`。
+
 If the user already has new results, derivations, or approved commitments, the skill can incorporate them as **user-confirmed evidence**.
 
 ## Lifecycle Position
@@ -40,7 +42,7 @@ Workflow 4:   rebuttal (post-submission external reviews)
 
 - **VENUE = `ICML`** — Default venue. Override if needed.
 - **RESPONSE_MODE = `TEXT_ONLY`** — v1 default.
-- **REVIEWER_MODEL = `gpt-5.4`** — 经评审桥用于内部压力测试。
+- **REVIEWER_MODEL** — 经评审桥用于内部压力测试；具体模型由当前环境/AGENTS.md 配置注入，本仓不预设。
 - **MAX_INTERNAL_DRAFT_ROUNDS = 2** — draft → lint → revise.
 - **MAX_STRESS_TEST_ROUNDS = 1** — 一轮评审桥批评。
 - **MAX_FOLLOWUP_ROUNDS = 3** — per reviewer thread.
@@ -235,19 +237,7 @@ When new reviewer comments arrive:
 - For long content (>150 lines): use **Write** for the first section (ensures file exists on disk), then append remaining sections with `cat << 'EOF' >> rebuttal/ISSUE_BOARD.md`
 - **NEVER `end_turn` without producing the rebuttal outputs** — even if upstream steps had issues, write what you have
 
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-# ISSUE_BOARD.md 是所有模式都必产的核心产物; 完整模式还会产 rebuttal/PASTE_READY.txt
-[ -f rebuttal/ISSUE_BOARD.md ] && SZ=$(wc -c < rebuttal/ISSUE_BOARD.md) || SZ=0
-if [ "$SZ" -ge 500 ]; then
-    echo "✅ rebuttal/ISSUE_BOARD.md ($SZ bytes)"
-else
-    echo "❌ rebuttal/ISSUE_BOARD.md missing or too small ($SZ bytes) — write it NOW before ending"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must produce output before ending step"
-```
+⛔ **MUST run output verification before ending**：产物存在性与最低完整性由引擎 `finish` 按 output_contract 自动核验——`rebuttal/ISSUE_BOARD.md` 是所有模式必产的核心产物，完整模式还会产 `rebuttal/PASTE_READY.txt`；缺件时按 finish 返回的问题补产，不手工复跑校验脚本。
 
 - **Never fabricate.** No invented evidence, numbers, derivations, citations, or links.
 - **Never overpromise.** Only promise what user explicitly approved.

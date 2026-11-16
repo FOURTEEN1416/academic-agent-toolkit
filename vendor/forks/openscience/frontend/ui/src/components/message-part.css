@@ -115,14 +115,14 @@
 
     strong {
       color: var(--text-strong);
-      font-size: 12.5px;
+      font-size: var(--font-size-small);
       font-weight: var(--font-weight-medium);
       line-height: 16px;
     }
 
     span {
       color: var(--text-weak);
-      font-size: 11.5px;
+      font-size: var(--font-size-small);
       font-weight: var(--font-weight-regular);
       line-height: 15px;
     }
@@ -207,26 +207,45 @@
   }
 }
 
+/* While a text part is still growing, its last line ends in a quiet block
+   rather than a blinking cursor: no animation, so it never competes with the
+   words arriving beside it. */
+[data-component="text-part"][data-streaming="true"]
+  [data-component="markdown"]
+  > :is(p, h1, h2, h3, h4, h5, h6, blockquote):last-child::after,
+[data-component="text-part"][data-streaming="true"]
+  [data-component="markdown"]
+  > :is(ul, ol):last-child
+  > li:last-child::after {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 1em;
+  margin-left: 0.15em;
+  vertical-align: -0.15em;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+/* Plain provider prose; visibility is controlled once for the conversation. */
 [data-component="reasoning-part"] {
   width: 100%;
   color: var(--text-base);
-  font-size: 13px;
+  font-size: var(--font-size-medium);
   line-height: 20px;
 
-  [data-slot="reasoning-part-label"] {
-    display: block;
-    margin-bottom: 4px;
-    color: var(--text-weaker);
-    font-size: var(--font-size-small);
-    font-weight: var(--font-weight-medium);
-    letter-spacing: 0.01em;
+  [data-slot="reasoning-part-body"] {
+    margin: 0 0 6px 12px;
+    padding: 4px 12px;
+    border-left: 1px solid var(--border-weaker-base);
+    color: var(--text-weak);
   }
 
   [data-component="markdown"] {
     margin-top: 0;
     font-style: normal;
     color: var(--text-weak);
-    font-size: 13px;
+    font-size: var(--font-size-medium);
     line-height: 20px;
 
     > :first-child {
@@ -239,29 +258,88 @@
   }
 }
 
-[data-component="reasoning-status-part"] {
-  width: 100%;
-  color: var(--text-weaker);
-  font-size: var(--font-size-small);
-  line-height: 18px;
-  -webkit-user-select: text;
-  user-select: text;
+[data-component="shell-output"] {
+  position: relative;
+  min-width: 0;
+
+  [data-slot="shell-output-actions"] {
+    position: absolute;
+    top: 0;
+    right: 4px;
+    opacity: 0;
+  }
+
+  &:hover [data-slot="shell-output-actions"],
+  &:focus-within [data-slot="shell-output-actions"] {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    [data-slot="shell-output-actions"] {
+      opacity: 1;
+    }
+  }
+
+  [data-component="tool-output"] {
+    min-width: 0;
+    padding: 4px 40px 10px 10px;
+    scrollbar-width: thin;
+    overscroll-behavior: contain;
+
+    &::-webkit-scrollbar {
+      display: block;
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: var(--radius-xs);
+      background: var(--border-weak-base);
+    }
+
+    pre {
+      width: 100%;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: var(--font-family-mono);
+      font-size: var(--font-size-medium);
+      line-height: 20px;
+    }
+  }
+
+  [data-slot="shell-output-copy-error"] {
+    padding: 0 12px 8px;
+    color: var(--text-weak);
+    font-size: var(--font-size-x-small);
+  }
 }
 
 [data-component="tool-error"] {
   display: flex;
   align-items: start;
   gap: 8px;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-large);
 
   [data-slot="icon-svg"] {
     color: var(--icon-critical-base);
     margin-top: 4px;
   }
 
+  [data-slot="message-part-tool-error-title"] {
+    color: var(--text-on-critical-base);
+    font-weight: var(--font-weight-medium);
+  }
+
+  [data-slot="message-part-tool-error-message"] {
+    color: var(--text-weak);
+    overflow-wrap: anywhere;
+  }
+
   [data-slot="message-part-tool-error-content"] {
     display: flex;
+    flex-direction: column;
     align-items: start;
-    gap: 8px;
+    gap: 4px;
   }
 
   [data-slot="message-part-tool-error-body"] {
@@ -306,6 +384,72 @@
     overflow-y: auto;
     word-break: break-word;
   }
+
+  &[data-outcome="cancelled"] {
+    [data-slot="icon-svg"] {
+      color: var(--icon-weak);
+    }
+
+    [data-slot="message-part-tool-error-title"],
+    [data-slot="message-part-tool-error-message"] {
+      color: var(--text-weak);
+    }
+  }
+}
+
+/* A failed call keeps its own row; the failure detail lives in the body. */
+[data-component="collapsible"] [data-slot="basic-tool-failure"] {
+  width: auto;
+  margin: 2px 10px 10px 12px;
+}
+
+[data-slot="skill-load-receipt"] {
+  margin: 4px 10px 10px;
+  color: var(--text-weak);
+  font-size: var(--font-size-small);
+
+  summary {
+    cursor: pointer;
+    width: fit-content;
+  }
+
+  pre {
+    margin: 8px 0 0;
+    font-family: var(--font-family-mono);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
+[data-component="research-search-results"] {
+  margin: 4px 12px 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-small);
+
+  [data-slot="search-result"] + [data-slot="search-result"] {
+    margin-top: 14px;
+  }
+
+  p {
+    margin: 6px 0;
+    color: var(--text-weak);
+  }
+
+  details {
+    margin-top: 8px;
+  }
+
+  summary {
+    cursor: pointer;
+    color: var(--text-weak);
+  }
+
+  pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: var(--font-family-mono);
+  }
 }
 
 [data-component="tool-output"] {
@@ -318,13 +462,13 @@
   justify-content: flex-start;
   color: var(--text-weak);
   font-family: var(--font-family-sans);
-  font-size: 13px;
+  font-size: var(--font-size-medium);
   line-height: 20px;
 
   [data-component="markdown"] {
     width: 100%;
     min-width: 0;
-    font-size: 13px;
+    font-size: var(--font-size-medium);
     line-height: 20px;
 
     pre {
@@ -340,7 +484,7 @@
       border: none;
       border-radius: 0;
       background-color: transparent !important;
-      font-size: 13px;
+      font-size: var(--font-size-medium);
       line-height: 20px;
     }
 
@@ -360,7 +504,7 @@
 
     table {
       margin: 0;
-      font-size: 13px;
+      font-size: var(--font-size-medium);
     }
 
     tr {
@@ -383,6 +527,9 @@
     margin: 0;
     padding: 0;
     background: none;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: var(--font-family-mono);
     line-height: 20px;
   }
 
@@ -419,22 +566,23 @@
     min-width: 0;
   }
 
+  /* Same voice as every other trace row: the verb regular, the file quiet. */
   [data-slot="message-part-title"] {
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     font-family: var(--font-family-sans);
-    font-size: 13px;
+    font-size: var(--font-size-medium);
     font-style: normal;
-    font-weight: var(--font-weight-medium);
-    line-height: var(--line-height-large);
+    font-weight: var(--font-weight-regular);
+    line-height: 20px;
     letter-spacing: var(--letter-spacing-normal);
     color: var(--text-base);
   }
 
   [data-slot="message-part-title-filename"] {
-    /* No text-transform - preserve original filename casing */
+    color: var(--text-weak);
   }
 
   [data-slot="message-part-path"] {
@@ -516,7 +664,7 @@
   }
 
   [data-slot="checkbox-checkbox-label"] {
-    font-size: 13px;
+    font-size: var(--font-size-medium);
     line-height: 20px;
   }
 
@@ -539,208 +687,284 @@
   }
 }
 
+/*
+ * A delegated worker reads as one thread inside the conversation: a single
+ * header row in the same voice as the tool rows around it, and a body that
+ * hangs from a thin rail instead of stacking boxes inside a box. Outcome is
+ * carried by the rail and the status word, never by a coloured frame.
+ */
 [data-component="delegation-card"] {
+  --delegation-rail: var(--border-base);
+  --delegation-status: var(--text-weak);
   width: 100%;
   min-width: 0;
-  border: 1px solid var(--border-weak-base);
-  border-radius: var(--radius-md);
-  background: var(--surface-base);
-  overflow: hidden;
 
-  &[data-outcome="error"],
-  &[data-outcome="partial"],
-  &[data-outcome="timed_out"] {
-    border-color: color-mix(in srgb, var(--border-critical-base) 55%, var(--border-weak-base));
+  &[data-outcome="running"],
+  &[data-outcome="pending"] {
+    --delegation-rail: var(--icon-weak);
   }
 
+  &[data-outcome="error"] {
+    --delegation-rail: var(--border-critical-base);
+    --delegation-status: var(--text-critical-base);
+  }
+
+  /* A partial or cancelled worker is an outcome, not an alarm: it reads in
+     words. Only a failed worker and a worker waiting on the user get colour. */
+  &[data-outcome="partial"],
+  &[data-outcome="timed_out"],
+  &[data-outcome="cancelled"] {
+    --delegation-rail: var(--border-weak-base);
+    --delegation-status: var(--text-weak);
+  }
+
+  &[data-attention] {
+    --delegation-rail: var(--border-warning-base);
+    --delegation-status: var(--text-warning-base);
+  }
+
+  /* The row is a link into the worker's session, styled like the rows
+     around it: no border, no fill until hovered, chevron pointing onward. */
   [data-slot="delegation-summary"] {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
     align-items: center;
     gap: 8px;
-    min-height: 42px;
-    padding: 6px 9px;
-    list-style: none;
-    cursor: pointer;
-
-    &::-webkit-details-marker {
-      display: none;
-    }
-
-    &:hover {
-      background: var(--surface-raised-base-hover);
-    }
-  }
-
-  [data-slot="delegation-mark"] {
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-weak-base);
-    border-radius: var(--radius-sm);
-    color: var(--icon-base);
-    background: var(--surface-raised-base);
-  }
-
-  [data-slot="delegation-heading"] {
-    min-width: 0;
-
-    > strong {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 13px;
-      font-weight: var(--font-weight-medium);
-      color: var(--text-weak);
-    }
-
-    > p {
-      margin: 1px 0 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 11px;
-      line-height: 15px;
-      color: var(--text-weaker);
-    }
-  }
-
-  [data-slot="delegation-summary-meta"] {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
-    color: var(--text-weaker);
-    font-size: 11px;
-    white-space: nowrap;
-
-    [data-component="icon"] {
-      transition: transform 140ms ease;
-    }
-  }
-
-  [data-slot="delegation-status"] {
-    color: var(--text-weak);
-  }
-
-  &[open] {
-    [data-slot="delegation-summary"] {
-      background: color-mix(in srgb, var(--surface-raised-base) 65%, transparent);
-    }
-
-    [data-slot="delegation-summary-meta"] [data-component="icon"] {
-      transform: rotate(180deg);
-    }
-  }
-
-  [data-slot="delegation-body"] {
-    border-top: 1px solid var(--border-weaker-base);
-    padding-top: 8px;
-  }
-
-  [data-slot="delegation-toolbar"] {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 0 9px 8px;
-  }
-
-  [data-slot="delegation-open"] {
-    min-height: 32px;
-    padding: 0 9px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    border: 1px solid var(--border-weak-base);
-    border-radius: var(--radius-sm);
-    background: var(--surface-raised-base);
-    color: var(--text-weak);
-    cursor: pointer;
+    width: 100%;
+    min-height: 28px;
+    padding: 4px 8px 4px 0;
+    border: 0;
+    border-radius: var(--radius-xs);
+    background: transparent;
+    color: inherit;
     font: inherit;
-    font-size: 11px;
-    font-weight: var(--font-weight-medium);
-    white-space: nowrap;
+    text-align: left;
+    cursor: pointer;
 
-    &:hover {
-      border-color: var(--border-base);
-      color: var(--text-base);
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--surface-raised-base) 60%, transparent);
     }
 
     &:focus-visible {
       outline: 2px solid var(--color-focus);
       outline-offset: 1px;
     }
+
+    &:disabled {
+      cursor: default;
+    }
   }
 
-  [data-slot="delegation-metrics"] {
+  /* Rows read text-first, like the thought and burst rows around them; the
+     mark shows only while the worker is busy or waiting on the user. */
+  [data-slot="delegation-mark"] {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--icon-weak);
+
+    [data-component="spinner"] {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  &:not([data-outcome="running"]):not([data-outcome="pending"]):not([data-attention]) [data-slot="delegation-summary"] {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  &:not([data-outcome="running"]):not([data-outcome="pending"]):not([data-attention]) [data-slot="delegation-mark"] {
+    display: none;
+  }
+
+  [data-slot="delegation-heading"] {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+    padding: 2px 0;
+  }
+
+  [data-slot="delegation-title"] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--font-size-medium);
+    line-height: 20px;
+    color: var(--text-base);
+  }
+
+  [data-slot="delegation-subline"] {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 4px;
+    gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: var(--font-size-small);
+    line-height: 18px;
+    color: var(--text-weaker);
+    font-variant-numeric: tabular-nums;
+  }
 
-    > span {
-      padding: 2px 6px;
-      border-radius: var(--radius-xs);
-      background: var(--surface-raised-base);
-      color: var(--text-weaker);
-      font-size: 11px;
-      line-height: 16px;
+  [data-slot="delegation-summary-meta"] {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    color: var(--text-weaker);
+    font-size: var(--font-size-medium);
+    white-space: nowrap;
 
-      &[data-failed] {
-        color: var(--text-on-critical-base);
-        background: var(--surface-critical-weak);
-      }
+    [data-component="icon"] {
+      color: var(--icon-weak);
+      opacity: 0;
+      transition:
+        transform 140ms ease,
+        opacity 140ms ease;
+    }
+  }
+
+  [data-slot="delegation-summary"]:hover [data-slot="delegation-summary-meta"] [data-component="icon"],
+  [data-slot="delegation-summary"]:focus-visible [data-slot="delegation-summary-meta"] [data-component="icon"] {
+    opacity: 1;
+    transform: translateX(2px);
+  }
+
+  [data-slot="delegation-agent"] {
+    color: var(--text-weaker);
+  }
+
+  [data-slot="delegation-activity"] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-weak);
+  }
+
+  [data-slot="delegation-activity"]::before {
+    content: "·";
+    margin-right: 8px;
+    color: var(--text-weaker);
+  }
+
+  [data-slot="delegation-status"] {
+    color: var(--delegation-status);
+  }
+
+  [data-slot="delegation-report"] {
+    padding: 2px 8px 8px 0;
+    color: var(--text-weak);
+    font-size: var(--font-size-small);
+    line-height: 18px;
+    overflow-wrap: anywhere;
+
+    p {
+      margin: 2px 0;
+    }
+  }
+
+  [data-slot="delegation-budget"] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  [data-slot="delegation-stop-reason"] {
+    color: var(--text-base);
+  }
+
+  [data-slot="delegation-report-details"] {
+    margin-top: 4px;
+    summary {
+      cursor: pointer;
+    }
+  }
+
+  [data-slot="delegation-report-text"] {
+    max-height: 24rem;
+    overflow: auto;
+    white-space: pre-wrap;
+  }
+
+  /* The body hangs from a rail aligned under the mark. */
+  [data-slot="delegation-body"] {
+    margin: 2px 0 6px 7px;
+    padding: 4px 0 2px 16px;
+    border-left: 2px solid var(--delegation-rail);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* The wrapper already frames a pending request in the warning colour; the
+   * block itself stays flat so the child's row and the actions read as one. */
+  [data-slot="delegation-attention"] {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    [data-component="tool-trigger"] {
+      padding: 0;
+    }
+  }
+
+  [data-slot="delegation-attention-fallback"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-weak);
+    font-size: var(--font-size-small);
+
+    [data-component="icon"] {
+      color: var(--icon-weak);
+    }
+  }
+
+  [data-slot="delegation-quiet"] {
+    margin: 0;
+    color: var(--text-weaker);
+    font-size: var(--font-size-small);
+    line-height: 18px;
+  }
+
+  [data-slot="delegation-notes"] {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    color: var(--text-weaker);
+    font-size: var(--font-size-small);
+    line-height: 18px;
+
+    &[data-outcome="error"] {
+      color: var(--text-critical-base);
     }
   }
 
   [data-slot="delegation-section-label"] {
     display: block;
-    margin-bottom: 7px;
+    margin-bottom: 4px;
     color: var(--text-weaker);
-    font-size: 10px;
-    font-weight: var(--font-weight-medium);
-    letter-spacing: 0.04em;
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-regular);
+    line-height: 18px;
   }
 
-  [data-slot="delegation-current"] {
-    margin: 0 9px 8px;
-    padding: 8px 10px;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    border: 1px solid var(--border-weaker-base);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--surface-raised-base) 78%, transparent);
-    color: var(--text-weaker);
-    font-size: 12px;
-
-    > strong {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: var(--text-base);
-      font-weight: var(--font-weight-medium);
-    }
+  [data-slot="delegation-findings"][data-error="true"] [data-slot="delegation-section-label"] {
+    color: var(--text-critical-base);
   }
 
-  [data-slot="delegation-findings"],
-  [data-slot="delegation-activity"] {
-    margin: 0 9px 8px;
-    padding: 9px;
-    border: 1px solid var(--border-weaker-base);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--surface-raised-base) 72%, transparent);
-  }
-
+  /* A worker's prose is one step quieter and denser than the lead's answer. */
   [data-slot="delegation-findings"] [data-component="markdown"] {
     margin-top: 0;
     color: var(--text-weak);
-    font-size: 13px;
+    font-size: var(--font-size-medium);
+    line-height: 20px;
 
     > :first-child {
       margin-top: 0;
@@ -749,128 +973,130 @@
     > :last-child {
       margin-bottom: 0;
     }
-  }
 
-  [data-slot="delegation-activity"] {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-  }
-
-  [data-slot="delegation-activity-row"] {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 8px;
-
-    > [data-component="icon"] {
-      color: var(--icon-weak);
+    p,
+    ul,
+    ol {
+      margin: 4px 0;
     }
 
-    > div {
-      min-width: 0;
-      display: flex;
-      align-items: baseline;
-      gap: 7px;
-
-      > strong {
-        flex-shrink: 0;
-        color: var(--text-weak);
-        font-size: 12px;
-        font-weight: var(--font-weight-medium);
-      }
-
-      > span {
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        color: var(--text-weaker);
-        font-size: 11px;
-      }
+    li {
+      margin: 1px 0;
     }
-  }
 
-  [data-slot="delegation-activity-failed"] {
-    color: var(--text-on-critical-base);
-    font-size: 11px;
-  }
+    /* A worker's headings sit below the lead's own; its opening heading acts
+     * as this section's label and the rest stay body-sized. */
+    :is(h1, h2, h3, h4) {
+      margin: 12px 0 4px;
+      font-size: var(--font-size-small);
+      font-weight: var(--font-weight-medium);
+      line-height: var(--line-height-large);
+      color: var(--text-base);
+    }
 
-  [data-slot="delegation-raw"] {
-    border-top: 1px solid var(--border-weaker-base);
-
-    > summary {
-      padding: 7px 9px;
-      cursor: pointer;
-      list-style: none;
+    > :is(h1, h2, h3, h4):first-child {
+      margin: 0 0 4px;
+      font-size: var(--font-size-x-small);
+      line-height: 16px;
       color: var(--text-weaker);
-      font-size: 11px;
-
-      &::-webkit-details-marker {
-        display: none;
-      }
-    }
-
-    &[open] > summary {
-      color: var(--text-weak);
-      background: color-mix(in srgb, var(--surface-raised-base) 62%, transparent);
     }
   }
-}
 
-[data-component="task-tools"] {
-  padding: 2px 10px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-
-  [data-slot="task-tool-item"] {
+  /* Files the worker saved, as chips under the row, indented to the title. */
+  [data-slot="delegation-outputs"] {
     display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 0 6px 24px;
+  }
+
+  &:not([data-outcome="running"]):not([data-outcome="pending"]):not([data-attention]) [data-slot="delegation-outputs"] {
+    padding-left: 0;
+  }
+
+  [data-slot="delegation-output"] {
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    min-height: 32px;
+    gap: 5px;
+    max-width: 100%;
+    min-height: 24px;
+    padding: 0 8px 0 6px;
+    border: 1px solid var(--border-weak-base);
+    border-radius: var(--radius-sm);
+    background: transparent;
     color: var(--text-weak);
-
-    [data-slot="icon-svg"] {
-      flex-shrink: 0;
-      color: var(--icon-weak);
-    }
-  }
-
-  [data-slot="task-tool-title"] {
-    font-family: var(--font-family-sans);
-    font-size: 13px;
-    font-weight: var(--font-weight-medium);
-    line-height: 20px;
-    color: var(--text-weak);
-  }
-
-  [data-slot="task-tool-subtitle"] {
-    font-family: var(--font-family-sans);
-    font-size: 13px;
-    font-weight: var(--font-weight-regular);
-    line-height: 20px;
-    color: var(--text-weaker);
+    cursor: pointer;
+    font: inherit;
+    font-size: var(--font-size-small);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    [data-component="icon"] {
+      color: var(--icon-weak);
+      flex-shrink: 0;
+    }
+
+    &:hover:not(:disabled) {
+      color: var(--text-base);
+      border-color: var(--border-base);
+    }
+
+    &:disabled {
+      cursor: default;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 1px;
+    }
+  }
+
+  [data-slot="delegation-footer"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 20px;
+  }
+
+  [data-slot="delegation-metrics"] {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 0;
+    color: var(--text-weaker);
+    font-size: var(--font-size-small);
+
+    > span + span::before {
+      content: "·";
+      margin: 0 6px;
+    }
+  }
+
+  [data-slot="delegation-actions"] {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  [data-slot="delegation-link"] {
+    flex-shrink: 0;
   }
 }
 
 @media (max-width: 560px) {
   [data-component="delegation-card"] {
-    [data-slot="delegation-summary-meta"] > span:not([data-slot="delegation-status"]) {
+    [data-slot="delegation-agent"] {
       display: none;
     }
 
-    [data-slot="delegation-toolbar"] {
-      align-items: flex-start;
-    }
-
-    [data-slot="delegation-activity-row"] > div {
-      align-items: flex-start;
+    [data-slot="delegation-footer"] {
       flex-direction: column;
-      gap: 1px;
+      align-items: flex-start;
+      gap: 6px;
     }
   }
 }
@@ -918,7 +1144,6 @@
 [data-component="user-message"] [data-slot="user-message-text"],
 [data-component="text-part"],
 [data-component="reasoning-part"],
-[data-component="reasoning-status-part"],
 [data-component="tool-error"],
 [data-component="tool-output"],
 [data-component="edit-content"],
@@ -1217,7 +1442,7 @@
   min-width: 0;
   overflow: hidden;
   color: var(--text-strong);
-  font-size: 13px;
+  font-size: var(--font-size-medium);
   font-weight: var(--font-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1226,7 +1451,7 @@
 [data-component="saved-artifact-tool"] > header span,
 [data-component="saved-artifact-tool"] > footer {
   color: var(--text-weak);
-  font-size: 11px;
+  font-size: var(--font-size-x-small);
 }
 
 [data-slot="saved-artifact-preview"] {
@@ -1263,94 +1488,112 @@
   cursor: pointer;
 }
 
-[data-component="permission-prompt"] {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  min-height: 44px;
-  padding: 8px 10px 8px 12px;
-  background-color: var(--surface-raised-base);
+/*
+ * An approval reads as a question with its answers on one line: the action
+ * being approved is the headline, "Approval required" the eyebrow, and the
+ * controls are compact so the card stays the height of two text lines. The
+ * wrapper already carries the warning frame; nothing here adds a second one.
+ */
+/* One card for every request the agent raises — an approval or a question.
+   The shield and an eyebrow name the kind, the decision sits in one line with
+   one quiet line of facts beneath it, everything else waits behind Details,
+   and the actions keep one order on the right: Deny · Allow… · Allow once.
+   "Allow…" turns the action row into the scopes; Cancel turns it back. */
+[data-component="request-card"] {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px 10px 12px;
   border-top: 1px solid var(--border-weaker-base);
-  border-radius: 0 0 var(--radius-xs) var(--radius-xs);
 
-  [data-slot="permission-context"] {
+  [data-slot="request-head"] {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 10px;
     min-width: 0;
-    flex: 1 1 220px;
 
     [data-component="icon"] {
       flex: 0 0 auto;
-      color: var(--icon-weak);
+      margin-top: 2px;
+      color: var(--icon-warning-base);
     }
   }
 
-  [data-slot="permission-copy"] {
+  [data-slot="request-copy"] {
     display: grid;
-    align-items: start;
-    gap: 1px;
+    gap: 2px;
     min-width: 0;
   }
 
-  [data-slot="permission-origin"] {
-    flex: 0 0 auto;
-    color: var(--text-base);
+  [data-slot="request-eyebrow"] {
+    color: var(--text-weaker);
+    font-size: var(--font-size-x-small);
+    line-height: 14px;
+    letter-spacing: 0.01em;
+  }
+
+  [data-slot="request-title"] {
+    min-width: 0;
+    color: var(--text-strong);
     font-size: var(--font-size-small);
     font-weight: var(--font-weight-medium);
-    line-height: var(--line-height-large);
-  }
-
-  [data-slot="permission-summary"] {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: var(--font-size-small);
-    color: var(--text-weak);
-  }
-
-  [data-slot="permission-actions"] {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    margin-left: auto;
-  }
-
-  &[data-expanded="true"] [data-slot="permission-actions"] {
-    gap: 4px;
-    padding: 3px;
-    border-radius: var(--radius-sm);
-    background: var(--surface-inset-base);
-  }
-
-  [data-slot="permission-summary"][data-kind="remote-compute"],
-  [data-slot="permission-summary"][data-kind="environment-mutation"] {
-    display: grid;
-    gap: 5px;
-  }
-
-  [data-slot="permission-compute-title"] {
-    color: var(--text-strong);
-    font-size: 12px;
-    font-weight: var(--font-weight-emphasis);
-  }
-
-  [data-slot="permission-compute-purpose"] {
-    color: var(--text-base);
-    line-height: 1.45;
+    line-height: 18px;
+    overflow-wrap: anywhere;
     text-wrap: pretty;
   }
 
-  [data-slot="permission-compute-details"] {
+  [data-slot="request-subline"] {
+    min-width: 0;
+    color: var(--text-weak);
+    font-size: var(--font-size-x-small);
+    line-height: 16px;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
+  }
+
+  [data-slot="request-details"] {
+    margin-left: 26px;
+    font-size: var(--font-size-x-small);
+    line-height: 16px;
+
+    > summary {
+      width: fit-content;
+      color: var(--text-weak);
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &::before {
+        content: "▸";
+        display: inline-block;
+        width: 10px;
+        margin-right: 4px;
+        color: var(--text-weaker);
+        transition: transform 0.15s;
+      }
+
+      &:hover {
+        color: var(--text-base);
+      }
+    }
+
+    &[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    > * + * {
+      margin-top: 6px;
+    }
+  }
+
+  [data-slot="request-rows"] {
     display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
-    gap: 3px 10px;
-    padding-block: 2px;
+    gap: 3px 12px;
     font-variant-numeric: tabular-nums;
 
     > span {
@@ -1365,53 +1608,87 @@
     }
   }
 
-  [data-slot="permission-compute-warning"] {
-    color: var(--text-base);
-    line-height: 1.45;
-    text-wrap: pretty;
-  }
-
-  [data-slot="permission-compute-scope"] {
+  [data-slot="request-warning"],
+  [data-slot="request-note"] {
+    margin: 0;
     color: var(--text-weak);
-    font-size: 11px;
-    line-height: 1.45;
     text-wrap: pretty;
   }
 
-  &[data-kind="remote-compute"],
-  &[data-kind="environment-mutation"] {
-    align-items: stretch;
-    flex-direction: column;
-    min-height: 0;
-    padding: 8px 12px;
-    background-color: var(--surface-raised-strong);
-    border-top: 0;
+  [data-slot="request-warning"] {
+    color: var(--text-base);
+  }
 
-    [data-slot="permission-actions"] {
-      gap: 4px;
-      align-self: flex-end;
+  [data-slot="request-actions"],
+  [data-slot="question-actions"] {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-left: auto;
+
+    [data-component="button"][data-size="small"] {
+      height: 24px;
+      min-height: 24px;
+      padding: 0 8px;
+      font-size: var(--font-size-small);
+      line-height: 24px;
+      border-radius: var(--radius-xs);
+    }
+
+    [data-component="button"][data-variant="ghost"] {
+      color: var(--text-weak);
+
+      &:hover:not(:disabled) {
+        color: var(--text-base);
+      }
+    }
+  }
+
+  /* A one-line request (a host, a folder) keeps the row shape: copy left,
+     actions right, nothing to disclose. */
+  &:not(:has([data-slot="request-details"])):not([data-kind="question"]) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 16px;
+    min-height: 40px;
+    padding-block: 7px;
+
+    [data-slot="request-head"] {
+      align-items: center;
+    }
+
+    [data-slot="request-head"] [data-component="icon"] {
+      margin-top: 0;
     }
   }
 }
 
 @media (max-width: 560px) {
-  [data-component="permission-prompt"] [data-slot="permission-actions"] {
+  [data-component="request-card"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-component="request-card"] [data-slot="request-actions"] {
     width: 100%;
     justify-content: stretch;
   }
 
-  [data-component="permission-prompt"] [data-slot="permission-actions"] [data-component="button"] {
+  [data-component="request-card"] [data-slot="request-actions"] [data-component="button"] {
     flex: 1 1 auto;
+    min-height: 32px;
   }
 }
 
-[data-component="question-prompt"] {
+/* A question is a short form on the card's own surface: the question at the
+   prose level, choices as rows with a radio mark, the free-text choice as one
+   more row, and one real button to dismiss. Three type levels, no boxes in
+   boxes, and the same 4px rhythm as the rest of the trace. */
+[data-component="request-card"][data-kind="question"] {
   display: flex;
   flex-direction: column;
-  padding: 12px;
-  background-color: var(--surface-inset-base);
-  border-radius: 0 0 var(--radius-xs) var(--radius-xs);
-  gap: 12px;
+  gap: 10px;
 
   [data-slot="question-tabs"] {
     display: flex;
@@ -1419,12 +1696,15 @@
     flex-wrap: wrap;
 
     [data-slot="question-tab"] {
-      padding: 4px 12px;
-      font-size: 13px;
-      border-radius: var(--radius-xs);
-      background-color: var(--surface-base);
-      color: var(--text-base);
-      border: none;
+      height: 24px;
+      padding: 0 10px;
+      font: inherit;
+      font-size: var(--font-size-small);
+      line-height: 18px;
+      border-radius: var(--radius-sm);
+      background-color: transparent;
+      color: var(--text-weak);
+      border: 0;
       cursor: pointer;
       transition:
         color 0.15s,
@@ -1434,12 +1714,18 @@
         background-color: var(--surface-base-hover);
       }
 
+      &[data-answered="true"] {
+        color: var(--text-strong);
+      }
+
       &[data-active="true"] {
+        color: var(--text-strong);
         background-color: var(--surface-raised-base);
       }
 
-      &[data-answered="true"] {
-        color: var(--text-strong);
+      &:focus-visible {
+        outline: 2px solid var(--border-selected);
+        outline-offset: -2px;
       }
     }
   }
@@ -1450,85 +1736,146 @@
     gap: 8px;
 
     [data-slot="question-text"] {
-      font-size: 14px;
-      color: var(--text-base);
-      line-height: 1.5;
+      font-size: var(--font-size-base);
+      line-height: 21px;
+      color: var(--text-strong);
+    }
+
+    /* Credential requests: one hairline row that sends the user to the
+       encrypted store instead of the chat. */
+    [data-slot="question-credential"] {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 6px 10px;
+      border: 1px solid var(--border-weaker-base);
+      border-radius: var(--radius-sm);
+      color: var(--text-weak);
+      font-size: var(--font-size-small);
+      line-height: 18px;
+
+      button {
+        flex: 0 0 auto;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--text-strong);
+        font: inherit;
+        font-weight: var(--font-weight-medium);
+        cursor: pointer;
+      }
+
+      button:hover {
+        text-decoration: underline;
+      }
     }
   }
 
   [data-slot="question-options"] {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
+    margin: 0 -8px;
 
     [data-slot="question-option"] {
       display: flex;
-      flex-direction: column;
       align-items: flex-start;
-      gap: 2px;
-      padding: 8px 12px;
-      background-color: var(--surface-base);
-      border: 1px solid var(--border-weaker-base);
-      border-radius: var(--radius-xs);
-      cursor: pointer;
-      text-align: left;
+      gap: 10px;
       width: 100%;
-      transition:
-        background-color 0.15s,
-        border-color 0.15s;
-      position: relative;
+      padding: 6px 8px;
+      border: 0;
+      border-radius: var(--radius-sm);
+      background-color: transparent;
+      color: var(--text-strong);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: background-color 0.15s;
 
       &:hover {
         background-color: var(--surface-base-hover);
-        border-color: var(--border-default);
       }
 
-      &[data-picked="true"] {
-        [data-component="icon"] {
-          position: absolute;
-          right: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: var(--text-strong);
-        }
+      &:focus-visible {
+        outline: 2px solid var(--border-selected);
+        outline-offset: -2px;
+      }
+
+      [data-slot="option-mark"] {
+        flex: 0 0 auto;
+        box-sizing: border-box;
+        width: 14px;
+        height: 14px;
+        margin-top: 3px;
+        border: 1.5px solid var(--border-default);
+        border-radius: 50%;
+        transition:
+          border-color 0.15s,
+          border-width 0.15s;
+      }
+
+      &[data-picked="true"] [data-slot="option-mark"] {
+        border-width: 4.5px;
+        border-color: var(--text-strong);
+      }
+
+      &[data-custom="true"] [data-slot="option-mark"] {
+        border-style: dashed;
+      }
+
+      [data-slot="option-copy"] {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
       }
 
       [data-slot="option-label"] {
-        font-size: 14px;
-        color: var(--text-base);
-        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-medium);
+        line-height: 20px;
+        color: var(--text-strong);
+      }
+
+      [data-slot="option-tag"] {
+        margin-left: 8px;
+        font-size: var(--font-size-small);
+        line-height: 18px;
+        color: var(--text-weak);
       }
 
       [data-slot="option-description"] {
-        font-size: 12px;
+        font-size: var(--font-size-small);
+        line-height: 18px;
         color: var(--text-weak);
       }
+    }
+
+    &[data-multiple="true"] [data-slot="option-mark"] {
+      border-radius: var(--radius-xs);
     }
 
     [data-slot="custom-input-form"] {
       display: flex;
       gap: 8px;
-      padding: 8px 0;
-      align-items: stretch;
+      align-items: center;
+      padding: 4px 8px 2px 32px;
 
       [data-slot="custom-input"] {
         flex: 1;
-        padding: 8px 12px;
-        font-size: 14px;
+        height: 28px;
+        padding: 0 10px;
+        font: inherit;
+        font-size: var(--font-size-medium);
+        line-height: 20px;
         border: 1px solid var(--border-default);
-        border-radius: var(--radius-xs);
+        border-radius: var(--radius-sm);
         background-color: var(--surface-base);
-        color: var(--text-base);
+        color: var(--text-strong);
         outline: none;
 
-        /* This field frames itself — the border and radius above ARE the frame
-           — so it takes the lit frame, not the halo the app-wide rule hands
-           fields whose border box is just the glyphs (atlas.css). That rule is
-           !important, so out-specifying it is not enough; matching its weight
-           is the only way the treatment declared here reaches the screen at
-           all. Outline included: text inputs match :focus-visible on mouse
-           focus too, and without this the halo's offset ring survives on top
-           of the frame, at a different radius. */
+        /* This field frames itself, so it takes the lit frame rather than the
+           app-wide halo, which is declared !important and must be matched. */
         &:focus {
           border-color: var(--focus-lit-ring);
           outline: none !important;
@@ -1539,17 +1886,13 @@
           color: var(--text-weak);
         }
       }
-
-      [data-component="button"] {
-        height: auto;
-      }
     }
   }
 
   [data-slot="question-review"] {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 
     [data-slot="review-title"] {
       display: none;
@@ -1558,8 +1901,9 @@
     [data-slot="review-item"] {
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      font-size: 13px;
+      gap: 1px;
+      font-size: var(--font-size-medium);
+      line-height: 20px;
 
       [data-slot="review-label"] {
         color: var(--text-weak);
@@ -1578,8 +1922,17 @@
   [data-slot="question-actions"] {
     display: flex;
     align-items: center;
-    gap: 8px;
     justify-content: flex-end;
+    gap: 6px;
+
+    [data-component="button"][data-size="small"] {
+      height: 24px;
+      min-height: 24px;
+      padding: 0 8px;
+      font-size: var(--font-size-small);
+      line-height: 24px;
+      border-radius: var(--radius-xs);
+    }
   }
 }
 
@@ -1593,7 +1946,7 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    font-size: 13px;
+    font-size: var(--font-size-medium);
 
     [data-slot="question-text"] {
       color: var(--text-weak);
@@ -1684,7 +2037,7 @@
   min-height: 29px;
   padding: 4px 18px;
   font-family: var(--font-family-sans);
-  font-size: 13px;
+  font-size: var(--font-size-medium);
   font-weight: var(--font-weight-regular);
   line-height: 20px;
   color: var(--text-weak);
@@ -1711,6 +2064,10 @@
 /* Compact spinner + label shown while a write/edit/apply_patch tool is running,
    before its diff/content exists — revealed as the full card on completion. */
 [data-component="tool-progress"] {
+  /* Same height and left edge as the trigger row that replaces it, so the
+     swap from "writing" to the finished card never moves the rows below. */
+  min-height: 40px;
+  padding: 0 10px 0 12px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1733,5 +2090,18 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     color: var(--text-base);
+  }
+}
+
+[data-component="compute-job-details"] {
+  margin-block: 8px;
+  padding: 8px 12px;
+  border-left: 1px solid var(--border-weaker-base);
+  color: var(--text-weak);
+  font-size: var(--font-size-small);
+  overflow-wrap: anywhere;
+
+  p {
+    margin-block: 4px;
   }
 }

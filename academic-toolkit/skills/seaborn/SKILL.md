@@ -247,6 +247,8 @@ fig.savefig('figure.png', dpi=300, bbox_inches='tight')
 fig.savefig('figure.pdf')  # Vector format for publications
 ```
 
+> 交付图请走本仓护栏：样式基线用 `skills/_utils/academic.mplstyle`（`setup_style()` 一键加载），保存用共享 `save_fig` 护栏（不裁剪、白底、DPI 统一）；上例 `savefig` 参数仅作 seaborn 库级用法示例。
+
 ## Resources
 
 This skill includes reference materials for deeper exploration:

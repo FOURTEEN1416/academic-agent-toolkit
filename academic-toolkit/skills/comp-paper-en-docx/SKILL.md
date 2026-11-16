@@ -73,16 +73,22 @@ echo "FAST_MODE=$FAST_MODE"
 
 ## Load shared rules
 
-
+`writing_rules.md` 是共享写作规则的唯一真源（`skills/_utils/writing_rules.md`，与 `skills/shared-scripts/writing_rules.md` 同源），**不在这里复制正文**。先取 tag 目录，再只读本章实际需要的节：
 
 ```bash
-
-cat _utils/writing_rules.md 2>/dev/null || cat skills/shared-scripts/writing_rules.md
-
+RULES=_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=../_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=skills/_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=academic-toolkit/skills/_utils/writing_rules.md
+awk '/^<[a-z_]+>$/ {print NR": "$0}' "$RULES"   # tag 目录；行号随改版漂移，以实跑输出为准
 ```
 
-
-
+| tag | 何时读 |
+|---|---|
+| `<comp_figure_narrative>` | Step 1 建图表嵌入计划后、写任何图前后文字前 |
+| `<comp_abstract_discipline>` | 写 Summary Sheet 的步骤（分段/加粗/数字回验判据） |
+| `<comp_optimization_writing>` | Step 2.9 优化/规划类模型与求解章节 |
+| 其余 tag（figure_embedding / latex_constraints / references_workflow / output_conventions 等） | 按需（以 tag 目录实跑输出为准） |
 ## MCM/ICM Paper Structure
 
 
@@ -274,27 +280,17 @@ cat figures/latex_includes.tex 2>/dev/null  # caption reference only
 
 
 
-**⛔⛔ Figures must be drawn out by the argument, not stamped with a template sentence (hard rule):**
+**⛔⛔ Figure-text narrative hard rules:** load and follow the `<comp_figure_narrative>` tag in `_utils/writing_rules.md` — the shared contract across comp-paper-en / comp-paper-en-docx / comp-paper-zh-docx (figures drawn out by the argument; depth floor = concrete numbers + comparison/trend + inference/linkage, never one flat sentence; no formulaic "[type] (Fig. N) + verb + conclusion" openers; figure numbers always cited with rotated entry styles; no boilerplate placeholders; short captions; no two images directly adjacent). This skill is the docx variant: captions via `![alt](path)` alt text (body ≤14 words), no LaTeX floats.
 
-- Embed every figure in the prose so the argument itself leads into it. The one test that matters: **it reads as a smooth narrative, not as one label slapped on each figure in turn.**
-
-- **✅ Three goals to reach (goals, NOT a sentence template, and NOT a fixed structure to copy for every figure)**: make the reader understand (1) what this figure shows, (2) what earlier point it follows from, (3) what conclusion it supports. How you weave these in — in what order, in what sentence structure — is up to you as the prose dictates: conclusion-then-figure, or phenomenon-then-figure. **What varies is HOW you write (structure, entry angle, order); what does NOT vary is HOW DEEP you go.**
-
-- **⛔⛔ Depth floor — a figure is never an island; the prose around it must flow logically (lead-in from the argument above → coherent explanation → hand-off to what follows), never a bare figure + one flat sentence.** Each figure's prose (lead-in + follow-up combined) must land all three: (1) **reading** — what key phenomenon/structure/trend it reveals (anchor with concrete numbers *when the plot has quantifiable values* — max radius 4.229 m, 7.59% shorter; for purely qualitative figures just state the qualitative feature clearly, **do NOT invent numbers**); (2) **attribution or comparison** — why it looks this way / vs a baseline, other scheme, or prior sub-problem; (3) **inference and linkage** — what it proves, what it leads into next, so the paragraph is a link in the argument chain, not a standalone caption card. A single flat sentence (e.g. "Fig. 24: the spirals join smoothly.") is a failure; so is a figure whose prose has no connection to the surrounding text (delete it and nothing changes = it was an island).
-
-  - **❌ Perfunctory anti-example (forbidden)**: "The arc-length optimization is shown in Fig. 25: multiple starts converge to the same neighborhood, and the optimum stays below the baseline." — one sentence, no numbers, no quantified comparison.
-
-  - **✅ Benchmark example (the fullness to emulate)**: "Fig. 15 shows the collision radius decreasing strictly monotonically as the pitch grows: from 0.4 m to 0.55 m pitch, the radius falls from 7.04 m to 2.289 m; its intersection with the R_t = 4.5 m threshold lands exactly at the critical pitch p_min = 0.448 m. The moderate slope near the intersection indicates a stable inversion and well-conditioned bisection." — numbers, trend, threshold crossing, and inference all present.
-
-- **⛔⛔ No formulaic sentence patterns (the core problem being fixed here)**: never write every figure with the same skeleton, especially the "[figure type] (Fig. N) + verb + one-line conclusion" opener (e.g. "The waterfall chart (Fig. 33) decomposes…", "The radar chart (Fig. 34) compares…", "The heatmap (Fig. 35) shows…" — several in a row like this is a failure). **For adjacent figures and figures in the same section, vary the entry angle and sentence structure**: lead from the prior conclusion, from the question being answered, from an anomaly in the figure, or fold the figure into an argument already in flow. Write like a good paper, not identically-formatted caption cards.
-
-- **✅ Figure numbers MUST be cited explicitly (academic norm, compatible with "no formulaic patterns")**: every figure must be named ("Fig. N") so the reader maps the paragraph to the exact figure — a hard requirement; don't drop numbers to avoid templating. **What varies is the citation's structure and position, not whether you cite.** Rotate entry styles, never the same one for two adjacent figures: sentence-start ("In the pipeline of Fig. 3…"), mid-sentence parenthetical ("…holds (see Fig. 2):"), verb-led ("Observing the curves in Fig. 4…"), figure-as-subject ("Fig. 5 compares…"), or post-hoc confirmation ("…confirmed in Fig. 6."). The number must always appear — just don't open every figure with the one "Fig. N + verb + one-line conclusion" pattern.
-
-- **⛔ No boilerplate placeholders**: "as shown below", "the figure shows the results", "this is the flowchart" carry no real information and hold true for any figure — they count as nothing. If you cannot say what is unique about it and why it matters to the argument, do not include it ("if it's not useful, better not to include it").
-
-- **⛔ Keep captions SHORT — a label (body ≤14 words, excluding the "Figure N:" prefix)**: the alt text in `![caption](path)` holds only a short noun phrase naming what the figure is; criteria, parameters, axis meanings, and conclusions go into the prose, not the caption (Word centers/bolds captions, so long ones wrap to ugly multi-line blocks). Anti-example `![Figure 3: Coverage-radius geometry: station as center, R=3km coverage circle, dispatch distance and response-time criterion](...)` → short form `![Figure 3: Station coverage-radius geometry](...)`. See the caption-length rule in `_utils/writing_rules.md`; final verification scans caption length and flags overruns.
-
-- **⛔ No two images directly adjacent** (one `![...](...)` right after another with no prose paragraph between). If two figures must appear back-to-back, write a transition paragraph explaining their logical relationship.
+```bash
+RULES=_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=../_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=skills/_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=academic-toolkit/skills/_utils/writing_rules.md
+for t in comp_figure_narrative; do
+  awk -v s="<$t>" -v e="</$t>" '$0==s{f=1} $0==e{f=0} f' "$RULES"
+done
+```
 
 
 
@@ -602,34 +598,17 @@ Table 2 shows that our method... [≥ 2 paragraphs of analysis]
 
 ### Step 2.9: Optimization-model writing refinement (upstream, incremental)
 
-**⛔ Section titles must name the model, not the slot**: "Model Formulation" tells a judge nothing —
-use "A 0-1 Integer Programming Model for Service-Station Siting", "Two-Stage Solution and Feasibility
-Checks", "Exact Solution via Branch-and-Cut". Titles carry information; chapter numbers stay free.
+⛔⛔ The full writing contract for optimization models — section titles naming the model, decision-variable five factors (symbol/meaning/type/index range/why that type), objective traceability to `MODELING_REPORT.md`, constraint numbering with real-world meaning, linearization justification with data-derived M, model class/size, the anti-pattern, the solution-credibility hard ratio (credibility words ≥ algorithm words), no padding pseudocode, the relaxation-bound honesty boundary, and the required Innovations items — is the shared `<comp_optimization_writing>` tag in `_utils/writing_rules.md` (single source for comp-paper-en / comp-paper-en-docx / comp-paper-zh-docx). Load before writing any model/solution section:
 
-**⛔ Optimization models** (applies when the model contains $\min$/$\max$ or the problem asks for
-something optimal; statistical models — index systems / DEA / PCA / regression / forecasting — keep
-the "theory → formulas → parameters" order): decision variables, objective, constraints and domains
-must stay clearly distinguishable. State five things per decision variable (symbol, meaning, type,
-index range, **why that type**); give the objective its own display quoted from the problem statement
-and matched to the objective-traceability table in `MODELING_REPORT.md`; introduce constraints with
-`s.t.`, number each one and give every one its real-world meaning; state the problem class (LP/ILP/
-MILP/NLP/multi-objective/DP), the size computed from index ranges, and why this solver. Linearization
-tricks (big-M, piecewise, abs-value, max→constraints) must be explained, with $M$ derived from a data
-upper bound — never 99999. Checklist for constraint gaps: coverage / budget / per-site capacity /
-fixed total / at-most-or-at-least-k / mutual exclusion / big-M linking / time windows / flow balance /
-degree and subtour elimination.
-
-**⛔ Solution sections**: what belongs there is **why the solution is credible**, not how the
-algorithm works — name each algorithm, one clause, cite it; no pseudocode or complexity analysis to
-pad (parameters go to an appendix table). Evidence: agreement across independently-motivated methods
-(with relative spread), bound or baseline comparison, constraint-by-constraint verification,
-constraint tightness and slack. A relaxation bound is **not** a feasible solution and its gap is not
-"room for improvement". Hard ratio: credibility words ≥ algorithm words.
-
-**⛔ Innovations are required, findable somewhere** (own subsection, folded into Strengths, or in the
-conclusion): 2-4 items, each "conventional approach → what this paper does → what difference it
-makes", at the modeling level. If a claim would hold for any other problem ("we used ML", "we ran
-sensitivity analysis"), cut it — two substantive items beat five hollow ones.
+```bash
+RULES=_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=../_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=skills/_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=academic-toolkit/skills/_utils/writing_rules.md
+for t in comp_optimization_writing; do
+  awk -v s="<$t>" -v e="</$t>" '$0==s{f=1} $0==e{f=0} f' "$RULES"
+done
+```
 
 ### Step 3: Writing discipline
 
@@ -1003,77 +982,17 @@ The Summary Sheet is the most important page. Read RESULTS.md and all body chapt
 
 
 
-⛔⛔ **Bold the key content in the Summary Sheet (use `**bold**` markdown, Summary Sheet body only)**: judges skim the summary; bolding the core method and result is a plus. **Bold ONLY these three "conclusion anchors":**
+⛔⛔ Summary Sheet bold & paragraphing discipline: load and follow the `<comp_abstract_discipline>` tag in `_utils/writing_rules.md` — the shared contract across comp-paper-en / comp-paper-en-docx / comp-paper-zh-docx (bold only the three conclusion anchors — key result numbers / core method names / the single critical noun; 1~3 bolds per paragraph, ≤12 total; never bold whole sentences/background/connectives; per-problem paragraphs separated by blank lines, never cram two "For Sub-problem X" into one paragraph; per-paragraph content criteria; numbers must match `paper/main.md` body text exactly). This skill is the docx variant: bold with markdown `**...**` only (never `\textbf{}` — it renders as literal garbage in docx), openers "For Sub-problem X". Load before writing the Summary Sheet:
 
-1. **Key result numbers** (final answers): e.g. `**2376.8**`, `**98.7%**`, `**<3%**`, `**12.4 km**`
-
-2. **Core method/model names**: e.g. `**NSGA-II**`, `**XGBoost**`, `**genetic algorithm**` — bold each name only at its first/conclusion appearance, not every mention
-
-3. **The single most critical noun** in a conclusion sentence
-
-
-
-⛔ **Bold discipline (avoid over-bolding — less is more):**
-
-- **1~3 bolds per paragraph, ≤ 12 total**. More than that is wrong.
-
-- **Never** bold: whole sentences, background, connectives, or the same method name repeatedly.
-
-- ⛔ Use `**xxx**` only (markdown), **NOT `\textbf{}`** (that is LaTeX; it would show as literal garbage in docx).
-
-- ⛔ Do **not** touch the `**Keywords**:` line — that bold is the label itself.
-
-- ⛔ Bold only wraps the text in `**`; numbers must still be pulled truthfully from the body, never changed or fabricated for emphasis.
-
-
-
-Example: `We build an **NSGA-II** multi-objective model, achieving optimal cost **$2376.8k**, a **12.3%** reduction over baseline.`
-
-
-
-⛔ Each sub-problem must have its specific result in the Summary Sheet (e.g., "For Sub-problem 1, we apply genetic algorithm achieving fitness 0.917 with 9.4s solve time"). Numbers must match body text exactly.
-
-
-
-⛔⛔ **Each "For Sub-problem X" must be its own paragraph, separated by a blank line — never cram two or more into one paragraph.** Examples:
-
-
-
-```markdown
-
-(correct ✅ — blank line between each sub-problem)
-
-This paper addresses ... by building ... models.
-
-
-
-For Sub-problem 1, we apply ...; the optimal solution is ..., fitness 0.917.
-
-
-
-For Sub-problem 2, we construct ...; MAPE drops from 29.48% to 14.93%.
-
-
-
-For Sub-problem 3, ...; predicted values are 952.8, 1570.5, 11030.9.
-
-
-
-Model evaluation: strengths ...; weaknesses ....
-
+```bash
+RULES=_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=../_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=skills/_utils/writing_rules.md
+[ -f "$RULES" ] || RULES=academic-toolkit/skills/_utils/writing_rules.md
+for t in comp_abstract_discipline; do
+  awk -v s="<$t>" -v e="</$t>" '$0==s{f=1} $0==e{f=0} f' "$RULES"
+done
 ```
-
-
-
-```markdown
-
-(wrong ❌ — Word export turns this into a wall of text)
-
-For Sub-problem 2, MAPE 14.93%. For Sub-problem 3, predicted values are 952.8, 1570.5.
-
-```
-
-
 
 ⛔ **Run the paragraph self-check (detect → fix → recheck loop; use `python`, not `python3`):**
 

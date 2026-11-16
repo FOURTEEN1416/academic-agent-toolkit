@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/maturity-acceptance-protocol-v2.schema.json",
+  "title": "PaperSpine preregistered maturity acceptance protocol v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract", "contract_version", "protocol_id", "status", "frozen_at",
+    "authority", "supersedes_protocol_sha256", "target_profile_catalog",
+    "required_entry_modes", "consecutive_runs_per_entry",
+    "minimum_distinct_fixture_families", "coverage_strategy", "coverage_requirements", "thresholds",
+    "evaluator_requirements",
+    "samples", "aggregation", "threshold_change_policy",
+    "external_action_authorized", "protocol_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.maturity-acceptance-protocol"},
+    "contract_version": {"const": "2.0"},
+    "protocol_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$"},
+    "status": {"enum": ["draft_unfrozen", "design_frozen"]},
+    "frozen_at": {"type": ["string", "null"], "format": "date-time"},
+    "authority": {"const": "paperspine5-product-acceptance"},
+    "supersedes_protocol_sha256": {"$ref": "#/$defs/sha256"},
+    "target_profile_catalog": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "required_entry_modes": {
+      "type": "array", "minItems": 2, "maxItems": 2, "uniqueItems": true,
+      "items": {"enum": ["natural_language", "explicit_paper_spine"]}
+    },
+    "consecutive_runs_per_entry": {"const": 2},
+    "minimum_distinct_fixture_families": {"type": "integer", "minimum": 6},
+    "coverage_strategy": {"const": "pairwise_all_registered_dimensions"},
+    "coverage_requirements": {
+      "type": "object", "additionalProperties": false,
+      "required": ["workflows", "languages", "material_forms", "figure_modes", "literature_modes", "author_fact_modes", "target_templates", "publication_cycles", "recovery_modes"],
+      "properties": {
+        "workflows": {"$ref": "#/$defs/nonEmptyUniqueStrings"},
+        "languages": {"$ref": "#/$defs/nonEmptyUniqueStrings"},
+        "material_forms": {"$ref": "#/$defs/nonEmptyUniqueStrings"},
+        "figure_modes": {"$ref": "#/$defs/nonEmptyUniqueStrings"},
+        "literature_modes": {"$ref": "#/$defs/nonEmptyUniqueStrings"},
+        "author_fact_modes": {"$ref": "#/$defs/nonEmptyUniqueStrings"},
+        "target_templates": {"$ref": "#/$defs/nonEmptyUniqueStrings"},
+        "publication_cycles": {"$ref": "#/$defs/nonEmptyUniqueStrings"},
+        "recovery_modes": {"$ref": "#/$defs/nonEmptyUniqueStrings"}
+      }
+    },
+    "thresholds": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "material_coverage_min", "required_section_roles", "figure_source_coverage_min",
+        "citation_destructive_changes_max", "citation_unsupported_claims_max",
+        "pdf_openable_required", "docx_openable_required", "word_blank_figure_frames_max",
+        "target_hard_obligation_satisfaction_min", "target_independent_review_required",
+        "readiness_surface_parity_required", "manuscript_ready_required", "delivery_ready_required",
+        "max_total_user_interactions", "max_unplanned_human_interactions",
+        "recovery_exact_hash_equivalence_required", "max_agent_log_bytes",
+        "max_screenshot_bytes", "max_reviewer_record_bytes"
+      ],
+      "properties": {
+        "material_coverage_min": {"type": "number", "minimum": 1, "maximum": 1},
+        "required_section_roles": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"enum": ["methods", "results"]}},
+        "figure_source_coverage_min": {"type": "number", "minimum": 1, "maximum": 1},
+        "citation_destructive_changes_max": {"const": 0},
+        "citation_unsupported_claims_max": {"const": 0},
+        "pdf_openable_required": {"const": true},
+        "docx_openable_required": {"const": true},
+        "word_blank_figure_frames_max": {"const": 0},
+        "target_hard_obligation_satisfaction_min": {"type": "number", "minimum": 1, "maximum": 1},
+        "target_independent_review_required": {"const": true},
+        "readiness_surface_parity_required": {"const": true},
+        "manuscript_ready_required": {"const": true},
+        "delivery_ready_required": {"const": true},
+        "max_total_user_interactions": {"type": "integer", "minimum": 0, "maximum": 1},
+        "max_unplanned_human_interactions": {"const": 0},
+        "recovery_exact_hash_equivalence_required": {"const": true},
+        "max_agent_log_bytes": {"type": "integer", "minimum": 1, "maximum": 2097152},
+        "max_screenshot_bytes": {"type": "integer", "minimum": 1, "maximum": 524288},
+        "max_reviewer_record_bytes": {"type": "integer", "minimum": 1, "maximum": 65536}
+      }
+    },
+    "evaluator_requirements": {
+      "type": "object", "additionalProperties": false,
+      "required": ["evaluator_identity", "producer_identity_must_differ", "evaluator_code_sha256", "evaluator_schema_sha256", "protocol_schema_sha256", "target_review_schema_sha256", "canonical_surface_adapter_sha256", "surface_receipt_schema_sha256", "required_evidence_types", "conditional_required_evidence_types"],
+      "properties": {
+        "evaluator_identity": {"const": "paperspine5-independent-maturity-evaluator-v2"},
+        "producer_identity_must_differ": {"const": true},
+        "evaluator_code_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "evaluator_schema_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "protocol_schema_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "target_review_schema_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "canonical_surface_adapter_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "surface_receipt_schema_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "required_evidence_types": {
+          "type": "array", "uniqueItems": true,
+          "prefixItems": [
+            {"const": "task_snapshot"}, {"const": "artifact_ledger"}, {"const": "package_manifest"},
+            {"const": "pdf"}, {"const": "docx"}, {"const": "render_receipt"},
+            {"const": "citation_receipt"}, {"const": "target_review_receipt"},
+            {"const": "readiness_receipt"}, {"const": "recovery_or_install_receipt"},
+            {"const": "pdf_figure_receipt"}, {"const": "fixture_freeze_receipt"},
+            {"const": "bibliography_source_receipt"}
+          ],
+          "items": false, "minItems": 13, "maxItems": 13
+        },
+        "conditional_required_evidence_types": {
+          "type": "object", "additionalProperties": false,
+          "required": ["identity_conflict"],
+          "properties": {
+            "identity_conflict": {
+              "type": "array",
+              "prefixItems": [{"const": "figure_identity_receipt"}],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            }
+          }
+        }
+      }
+    },
+    "samples": {
+      "type": "array", "minItems": 6,
+      "items": {"$ref": "#/$defs/sample"}
+    },
+    "aggregation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["required_run_pass_rate", "all_samples_required", "all_strata_required", "any_failed_run_verdict", "missing_run_verdict", "maturity_pass_label"],
+      "properties": {
+        "required_run_pass_rate": {"type": "number", "minimum": 1, "maximum": 1},
+        "all_samples_required": {"const": true},
+        "all_strata_required": {"const": true},
+        "any_failed_run_verdict": {"const": "FAIL"},
+        "missing_run_verdict": {"const": "INCOMPLETE"},
+        "maturity_pass_label": {"const": "multi-sample-source-acceptance"}
+      }
+    },
+    "threshold_change_policy": {"const": "new_protocol_id_and_hash_before_any_new_results"},
+    "external_action_authorized": {"const": false},
+    "protocol_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "draft_unfrozen"}}},
+      "then": {
+        "properties": {
+          "frozen_at": {"const": null},
+          "protocol_sha256": {"const": null},
+          "evaluator_requirements": {
+            "properties": {
+              "evaluator_code_sha256": {"const": null},
+              "evaluator_schema_sha256": {"const": null},
+              "protocol_schema_sha256": {"const": null},
+              "target_review_schema_sha256": {"const": null},
+              "canonical_surface_adapter_sha256": {"const": null},
+              "surface_receipt_schema_sha256": {"const": null}
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "frozen_at": {"type": "string", "format": "date-time"},
+          "protocol_sha256": {"$ref": "#/$defs/sha256"},
+          "evaluator_requirements": {
+            "properties": {
+              "evaluator_code_sha256": {"$ref": "#/$defs/sha256"},
+              "evaluator_schema_sha256": {"$ref": "#/$defs/sha256"},
+              "protocol_schema_sha256": {"$ref": "#/$defs/sha256"},
+              "target_review_schema_sha256": {"$ref": "#/$defs/sha256"},
+              "canonical_surface_adapter_sha256": {"$ref": "#/$defs/sha256"},
+              "surface_receipt_schema_sha256": {"$ref": "#/$defs/sha256"}
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nonEmptyUniqueStrings": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "sample": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sample_id", "fixture_family_id", "fixture_binding_status", "fixture_provenance", "benchmark_lineage", "entry_mode", "workflow", "language", "material_form", "figure_mode", "literature_mode", "author_facts", "target_template", "publication_cycle", "recovery_mode", "target_obligation_ids", "simple_entry_request_class"],
+      "properties": {
+        "sample_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$"},
+        "fixture_family_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$"},
+        "fixture_binding_status": {"const": "fixture_tree_hash_required_before_run"},
+        "fixture_provenance": {"enum": ["anonymized_real", "versioned_synthetic_scientific"]},
+        "benchmark_lineage": {"enum": ["carbon_oup", "non_carbon"]},
+        "entry_mode": {"enum": ["natural_language", "explicit_paper_spine"]},
+        "workflow": {"enum": ["rewrite_existing", "build_from_materials"]},
+        "language": {"enum": ["en", "zh"]},
+        "material_form": {"enum": ["manuscript", "mixed_materials", "formula_dense", "word_source"]},
+        "figure_mode": {"enum": ["no_figures", "multi_figure", "identity_conflict"]},
+        "literature_mode": {"enum": ["closed_corpus", "open_literature", "provider_outage"]},
+        "author_facts": {"enum": ["complete", "missing"]},
+        "target_template": {"enum": ["oup", "ieee", "generic_latex", "word_heavy"]},
+        "publication_cycle": {"enum": ["local_submission", "local_revision", "local_transfer"]},
+        "recovery_mode": {"enum": ["uninterrupted_control", "forced_interrupt", "fresh_install"]},
+        "target_obligation_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^target-rule:[A-Za-z0-9._-]+$"}},
+        "simple_entry_request_class": {"const": "make-my-paper-once"}
+      }
+    }
+  }
+}

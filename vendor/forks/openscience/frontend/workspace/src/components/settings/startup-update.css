@@ -9,11 +9,11 @@
   align-items: center;
   gap: 10px;
   padding: 8px 8px 8px 10px;
-  border: 1px solid var(--border-base);
-  border-radius: 15px;
-  background: color-mix(in srgb, var(--surface-raised-stronger-non-alpha) 94%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-surface-solid) 94%, transparent);
   box-shadow: var(--atlas-shadow-md, var(--shadow-lg));
-  color: var(--text-base);
+  color: var(--color-text-secondary);
   translate: -50% 0;
   backdrop-filter: blur(20px) saturate(1.08);
   -webkit-backdrop-filter: blur(20px) saturate(1.08);
@@ -25,13 +25,14 @@
   height: 32px;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: 10px;
-  background: var(--surface-interactive-weak);
-  color: var(--text-interactive-base);
+  border-radius: var(--radius-sm);
+  background: var(--color-interactive-muted);
+  color: var(--color-text-interactive);
 }
 
 .startup-update__copy {
   display: grid;
+  gap: 3px;
   min-width: 0;
   flex: 1;
   line-height: 1.25;
@@ -39,37 +40,55 @@
 
 .startup-update__copy strong {
   overflow: hidden;
-  color: var(--text-strong);
-  font-size: 13px;
-  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  font-size: var(--font-size-medium);
+  font-weight: var(--font-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .startup-update__copy small {
   overflow: hidden;
-  color: var(--text-weak);
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
+  font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.startup-update__copy progress {
+  width: min(360px, 100%);
+  height: 3px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  accent-color: var(--color-text-interactive);
+}
+
+.startup-update__copy progress::-webkit-progress-bar {
+  background: var(--color-interactive-muted);
+}
+
+.startup-update__copy progress::-webkit-progress-value {
+  background: var(--color-text-interactive);
+}
+
 .startup-update__dismiss {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   flex: 0 0 auto;
   place-items: center;
   border: 0;
-  border-radius: 9px;
+  border-radius: var(--radius-xs);
   background: transparent;
-  color: var(--text-weak);
+  color: var(--color-text-muted);
 }
 
 .startup-update__dismiss:hover,
 .startup-update__dismiss:focus-visible {
-  background: var(--surface-base-hover);
-  color: var(--text-base);
+  background: var(--color-hover);
+  color: var(--color-text-secondary);
 }
 
 @media (max-width: 640px) {
@@ -80,5 +99,12 @@
 
   .startup-update__copy {
     flex-basis: calc(100% - 84px);
+  }
+
+  .startup-update__copy strong,
+  .startup-update__copy small {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
   }
 }

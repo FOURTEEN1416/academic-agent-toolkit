@@ -13,7 +13,7 @@ The CASPArS method (Ohata, Martin & Ison, *J. Chem. Educ.*, 2025) calibrates wri
 
 **R1 — Recalibration**: Align word usage with field standards.
 - Compare your Round 1 draft against all 3 journal papers for each key term
-- Does this word appear with the same frequency? Example: if journal papers use "demonstrate" 15× and "show" 2×, recalibrate toward "demonstrate"
+- Compare each term in its actual scientific context. Corpus frequency may suggest a usage pattern, but never replace "show" with "demonstrate" or otherwise strengthen a claim unless the present evidence supports that meaning.
 - Check: verb+noun pairs, adjective+noun pairs, preposition choices
 
 **R2 — Replacement**: Choose context-appropriate alternatives.
@@ -30,7 +30,7 @@ The CASPArS method (Ohata, Martin & Ison, *J. Chem. Educ.*, 2025) calibrates wri
 
 | R | Target Word/Pattern | Our Usage | Journal Consensus | Action |
 |---|---------------------|-----------|-------------------|--------|
-| R1 | "show" vs "demonstrate" | "show" 25× | "demonstrate" 15×, "show" 2× | Replace most "show" → "demonstrate" |
+| R1 | "show" vs "demonstrate" | Observed uses in this draft | Actual exemplar contexts, with source locations | Choose the verb that accurately represents the present evidence; do not replace by frequency |
 | R2 | "important" | 20× | varied: "critical", "essential" | Diversify |
 | R3 | sentence rhythm | avg 28 words/sentence | avg 22 words/sentence | Split longer sentences |
 
@@ -45,9 +45,9 @@ From the 3 journal papers' Pass 2 and Pass 3 outputs, build a specific checklist
 
 ### Structural
 - [ ] Section order matches journal convention [specify]
-- [ ] Section length ratios within ±10% of journal averages [list targets]
+- [ ] Section functions and development fit this study; exemplar proportions inform judgment, and actual official limits are respected
 - [ ] Abstract format: [structured/unstructured, N words max]
-- [ ] Introduction length: [N words target]
+- [ ] Introduction develops the actual problem, progress, gap and supported contribution at the needed depth
 
 ### Openings/Closings
 - [ ] Abstract opens like journal consensus: [pattern]
@@ -56,15 +56,15 @@ From the 3 journal papers' Pass 2 and Pass 3 outputs, build a specific checklist
 - [ ] Each section closes like journal consensus: [pattern]
 
 ### Claims
-- [ ] Claim strength distribution matches journal averages (Strong: N%, Moderate: N%, Tentative: N%)
-- [ ] Hedging phrases match Template JS-3 consensus
+- [ ] Each claim's strength matches this study's evidence, not a corpus percentage
+- [ ] Necessary uncertainty is preserved; avoid redundant hedging without strengthening unsupported claims
 
 ### Terminology
-- [ ] All terms from Template JS-6 switched to journal consensus
-- [ ] No terms used that are absent from journal papers
+- [ ] Domain terminology is accurate and consistent; apply relevant corpus usage only when meaning is preserved
+- [ ] New or study-specific terms are explained when needed, even if absent from the exemplar sample
 
 ### Citations
-- [ ] Citation density within journal range (N-N cites/page)
+- [ ] Relevant claim support and the configured reference breadth are met without padding
 - [ ] Citation placement matches journal convention
 - [ ] Reference format matches journal's bst/style
 

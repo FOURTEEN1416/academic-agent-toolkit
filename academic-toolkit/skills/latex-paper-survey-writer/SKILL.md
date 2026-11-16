@@ -25,7 +25,7 @@ description: "Writes ML/AI review and survey papers for arXiv using the IEEEtran
 
 ## Role in the Paper Stack
 - This skill is the **review-paper executor** in the broader paper stack.
-- Use ../paper-from-zero/SKILL.md as the default front door when the topic is known but the paper mode is not yet decided.
+- Use ../latex-paper-from-zero/SKILL.md as the default front door when the topic is known but the paper mode is not yet decided.
 - Use this skill directly only when the deliverable is clearly a review/survey-style paper or when an existing LaTeX review project needs citation validation/repair.
 
 ## Inputs
@@ -151,7 +151,7 @@ For each writing issue in the CSV:
 - Before QA or after a batch of edits, run `python3 scripts/issue_workflow.py --project-dir <paper_dir> audit --issues <issues.csv>` to check section-path consistency, citation counts, placeholders, and lightweight figure/page signals.
 
 ### Phase 2.5: Rhythm Refinement
-After all writing issues are `DONE`, refine prose section-by-section using the `latex-rhythm-refiner` skill. This step varies sentence/paragraph lengths and removes filler phrases while preserving all citations.
+After all writing issues are `DONE`, refine prose section-by-section using the `latex-paper-prose-rhythm` skill. This step varies sentence/paragraph lengths and removes filler phrases while preserving all citations.
 
 ### Phase 3: QA Gate
 1. Run internal QA checklist (see `references/quality-report.md`).
@@ -223,7 +223,7 @@ Fix `Overfull \hbox` warnings before marking issues `DONE`:
 |-------|--------|
 | Research | Rx: discovery, scaffolding, framework, viz planning |
 | Writing | Wx: each section with `Section_Path`, `Source_Policy`, target citations, and visualization |
-| Refinement | RFx: apply `latex-rhythm-refiner` skill (after all Wx DONE) |
+| Refinement | RFx: apply `latex-paper-prose-rhythm` skill (after all Wx DONE) |
 | QA | Qx: citation verification, QA checklist, compilation, final review |
 
 Status: `TODO` -> `DOING` -> `DONE`. Schema validated by `validate_paper_issues.py`.

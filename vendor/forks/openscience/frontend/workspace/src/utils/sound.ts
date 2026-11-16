@@ -92,8 +92,8 @@ export const SOUND_OPTIONS = [
   { id: "yup-06", label: "sound.option.yup06", src: yup06 },
 ] as const
 
-export type SoundOption = (typeof SOUND_OPTIONS)[number]
-export type SoundID = SoundOption["id"]
+type SoundOption = (typeof SOUND_OPTIONS)[number]
+type SoundID = SoundOption["id"]
 
 export const DEFAULT_SOUND_VOLUME = 0.3
 

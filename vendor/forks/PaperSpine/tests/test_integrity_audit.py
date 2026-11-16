@@ -75,13 +75,19 @@ class IntegrityAuditTests(unittest.TestCase):
                 "| 2 | Para 1 | short | short | short |\n"
             ),
         })
-        dim = audit_reasoning_depth(tmp, {})
+        dim = audit_reasoning_depth(tmp, {"review_policy": "strict"})
         self.assertIn(dim.status, ("BLOCKED", "WARNINGS"))
 
     def test_audit_reasoning_depth_missing_matrix(self) -> None:
         tmp = _make_out_dir()
-        dim = audit_reasoning_depth(tmp, {})
+        dim = audit_reasoning_depth(tmp, {"review_policy": "strict"})
         self.assertEqual(dim.status, "BLOCKED")
+
+    def test_balanced_reasoning_depth_does_not_require_or_grade_matrix(self) -> None:
+        tmp = _make_out_dir()
+        dim = audit_reasoning_depth(tmp, {"review_policy": "balanced"})
+        self.assertEqual(dim.status, "CLEAN")
+        self.assertIn("optional", dim.findings[0].what_was_found)
 
     def test_audit_evidence_chain_no_issues(self) -> None:
         tmp = _make_out_dir(**{

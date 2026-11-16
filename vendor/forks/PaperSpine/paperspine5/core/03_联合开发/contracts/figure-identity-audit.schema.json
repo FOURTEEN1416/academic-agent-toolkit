@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/figure-identity-audit.schema.json",
+  "title": "Independent post-render scientific identity audit",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "figure_id", "scientific_identity", "reviewer", "surfaces"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "status": {"const": "PASS"},
+    "figure_id": {"type": "string", "minLength": 1},
+    "scientific_identity": {"type": "object"},
+    "reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "identity"],
+      "properties": {
+        "role": {"const": "scientific_identity_reviewer"},
+        "identity": {"type": "string", "minLength": 1}
+      }
+    },
+    "surfaces": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["final_pixels", "editable_source", "caption", "lineage_receipt"],
+      "properties": {
+        "final_pixels": {"$ref": "#/$defs/fileSurface"},
+        "editable_source": {"$ref": "#/$defs/fileSurface"},
+        "caption": {"$ref": "#/$defs/textSurface"},
+        "lineage_receipt": {"$ref": "#/$defs/fileSurface"}
+      }
+    }
+  },
+  "$defs": {
+    "fileSurface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "canonical_name_consistent", "forbidden_names_absent"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+        "canonical_name_consistent": {"const": true},
+        "forbidden_names_absent": {"const": true}
+      }
+    },
+    "textSurface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "canonical_name_consistent", "forbidden_names_absent"],
+      "properties": {
+        "sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+        "canonical_name_consistent": {"const": true},
+        "forbidden_names_absent": {"const": true}
+      }
+    }
+  }
+}

@@ -4,9 +4,15 @@ description: Comprehensive toolkit for creating, analyzing, and visualizing comp
 category: coding
 license: 3-clause BSD license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/networkx
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Graphs, Networks, Graph Algorithms, Data Structures]
 dependencies: ["networkx>=3.3"]
 ---

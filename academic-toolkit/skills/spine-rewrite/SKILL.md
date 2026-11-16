@@ -60,9 +60,11 @@ Before final prose, create `writing_rationale_matrix.md` and read
 must be ordered by the manuscript's actual writing units, not by a fixed IMRaD
 or journal-paper template.
 
-Use this table:
+Use this table. Column headers are owned by the single source of truth
+`references/writing-rationale-matrix.md` (same file as `spine-build`'s copy);
+repeat them exactly:
 
-| Row ID | Manuscript Unit | Original Problem or Planned Function | Motivation Link | Reference/SOTA Pattern Learned | Target Scene or Venue Norm | User Evidence or Citation Anchor | Planned Change | Final Text Check |
+| Row ID | Manuscript Unit | Current Problem or Planned Function | Motivation Link | Reference/SOTA Pattern Learned | Target Scene or Venue Norm | User Evidence or Citation Anchor | Planned Change/Text Move | Final Text Check |
 |---|---|---|---|---|---|---|---|---|
 
 The first data row must deeply justify the whole-work framework or throughline:
@@ -111,13 +113,30 @@ provides tier-specific writing constraints enforced during all prose generation.
 Before routing output to `spine-latex`, run:
 
 ```bash
-python scripts/integrity_audit.py paper_rewriting_output --markdown --write
-python scripts/structured_review.py paper_rewriting_output --dispatch
+# Resolve scripts from this repository checkout, not the user's project cwd
+# (a bare `python scripts/...` path is the most common reason the gate fails).
+REPO="$(git rev-parse --show-toplevel)"
+python "$REPO/academic-toolkit/skills/spine-rewrite/scripts/integrity_audit.py" paper_rewriting_output --markdown --write
+python "$REPO/academic-toolkit/skills/spine-rewrite/scripts/structured_review.py" paper_rewriting_output --dispatch
 ```
+
+Same-name guard scripts exist in several spine skill directories (registered
+in `academic-toolkit/data/duplicate_assets_registry.json`); use this skill's
+own copies shown above.
 
 `integrity_audit.md` must show no BLOCKED findings. After dispatch, launch
 three parallel review sub-agents per `review_prompts/dispatch.md`. Validate
 independence with `structured_review.py --validate review_prompts`.
+
+Tier the gate by the `tier` field from `paper_spine_config.json`:
+
+- `pro`: run the full gate as described above — integrity audit,
+  structured-review dispatch, three parallel review sub-agents, and
+  independence validation.
+- `flash`: run `integrity_audit.py` only (and still require no BLOCKED
+  findings); skip the `structured_review.py` dispatch and the three parallel
+  sub-agent review. Record the skipped review in the final audit notes so the
+  simplification is visible.
 
 Read `references/writing-rationale-matrix.md`,
 `references/motivation-thread-writing.md`, `references/deep-imitation-protocol.md`,

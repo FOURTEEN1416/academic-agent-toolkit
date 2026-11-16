@@ -415,7 +415,7 @@ def audit_citations(output_dir: Path, no_api: bool, timeout: int, delay: float, 
         config = json.loads(config_path.read_text(encoding="utf-8"))
 
     scene = config.get("scene", "journal")
-    target_count = config.get("citation_target_count", 20)
+    target_count = config.get("citation_target_count", 0)
     report = CitationQualityReport(str(output_dir), scene, target_count)
 
     bank_path = output_dir / "citation_support_bank.md"
@@ -426,7 +426,7 @@ def audit_citations(output_dir: Path, no_api: bool, timeout: int, delay: float, 
     if not records:
         return report
 
-    records = records[:max_dois]
+    api_checks = 0
     for record in records:
         entry = CitationQualityEntry(
             candidate_id=record["candidate_id"],
@@ -444,13 +444,13 @@ def audit_citations(output_dir: Path, no_api: bool, timeout: int, delay: float, 
         if not entry.doi:
             entry.manual_identifier = extract_manual_identifier(record)
             if has_manual_verification(record) and entry.manual_identifier:
-                entry.status = "verified"
-                entry.doi_resolves = True
+                entry.status = "pending"
+                entry.doi_resolves = False
                 entry.resolvability_score = 80
                 entry.teaching_note = (
-                    "Citation verified through a non-DOI channel recorded in the citation bank. "
-                    "This is acceptable for arXiv preprints, official policy pages, proceedings, "
-                    "and publisher/database records when the verification note is specific."
+                    "The bank records a specific non-DOI verification source. This run has not "
+                    "rechecked that source and has not resolved a DOI. Reuse the actual recorded "
+                    "source check when applicable; a flag or identifier alone is not new verification."
                 )
             elif has_manual_verification(record):
                 # Verified flag is set, but no stable identifier (DOI/arXiv/URL)
@@ -494,8 +494,8 @@ def audit_citations(output_dir: Path, no_api: bool, timeout: int, delay: float, 
             # so a properly verified bank can pass structural-only (--no-api) analysis.
             entry.manual_identifier = entry.doi
             if has_manual_verification(record):
-                entry.status = "verified"
-                entry.doi_resolves = True  # structurally verifiable, not network-confirmed
+                entry.status = "pending"
+                entry.doi_resolves = False  # recorded verification is not a live lookup
                 entry.resolvability_score = 80
                 entry.teaching_note = (
                     "Offline mode: DOI present and the bank records Verified=yes with a specific "
@@ -506,14 +506,19 @@ def audit_citations(output_dir: Path, no_api: bool, timeout: int, delay: float, 
             report.entries.append(entry)
             continue
 
+        if api_checks >= max_dois:
+            entry.issues.append("API check limit reached; this entry remains unverified.")
+            report.entries.append(entry)
+            continue
+        api_checks += 1
         crossref = fetch_crossref(entry.doi, timeout)
         time.sleep(delay)
 
         if crossref is None:
-            entry.status = "dead"
+            entry.status = "error"
             entry.resolvability_score = 0
-            entry.issues.append(f"DOI {entry.doi} does not resolve via Crossref")
-            entry.teaching_note = "Dead DOIs suggest the citation was hallucinated or the paper was retracted. Replace with a verified alternative or remove the citation."
+            entry.issues.append(f"Crossref lookup unavailable or returned no usable record for DOI {entry.doi}")
+            entry.teaching_note = "Retry or inspect the publisher/another authoritative index. A Crossref lookup failure does not establish fabrication, retraction or DOI invalidity."
             report.entries.append(entry)
             continue
 
@@ -541,8 +546,9 @@ def audit_citations(output_dir: Path, no_api: bool, timeout: int, delay: float, 
                 entry.issues.append(f"Title similarity {sim:.2f} — likely wrong DOI. Crossref title: '{entry.crossref_title[:100]}'")
                 entry.teaching_note = f"Poor title match ({sim:.0%}). This likely means the DOI points to a different paper than the one you're citing. Verify manually."
         else:
-            entry.status = "verified"
-            entry.resolvability_score = 80
+            entry.status = "pending"
+            entry.resolvability_score = 50
+            entry.issues.append("Resolved record lacks comparable title metadata; identity remains unverified.")
 
         if entry.api_year and entry.year:
             try:
@@ -599,6 +605,7 @@ def to_markdown(report: CitationQualityReport, status: str = "") -> str:
         f"- Scene: {report.scene}",
         f"- Target citation count: {report.target_count}",
         f"- Entries analyzed: {len(report.entries)}",
+        "- Scope: candidate diagnostics, not final cited-reference coverage, source-content support or manuscript readiness; recency/type scores are heuristic.",
         f"- Verified: {report.verified_count} | Mismatched: {report.mismatched_count} | Dead: {report.dead_count}",
         f"- Overall quality score: {report.overall_score}/100",
     ]
@@ -670,10 +677,8 @@ def to_markdown(report: CitationQualityReport, status: str = "") -> str:
     lines.append("")
     lines.append("- **Diversity over density.** A narrow citation pool makes your Introduction read as insular. "
                  "Mix SOTA, foundational, benchmark, survey, and application papers.")
-    lines.append("- **Recency signals engagement.** Most citations should be from the last 3 years. "
-                 "Older citations are fine for foundational work, but they need a reason to be there.")
-    lines.append("- **Verifiability is non-negotiable.** Every DOI must resolve. A dead DOI in your final paper "
-                 "is a credibility failure that reviewers notice immediately.")
+    lines.append("- **Relevant coverage.** Use current competing evidence and the original methods needed by the argument; derive count and age expectations from the selected task and venue, not a universal three-year quota.")
+    lines.append("- **Verify identity and support.** Resolve a stable identifier and compare metadata and source content. An unavailable index is an unresolved lookup, not evidence of fabrication.")
     lines.append("- **Type matters by venue.** Journals expect deep SOTA coverage. Reports expect broad survey coverage. "
                  "Competitions expect benchmark and leaderboard coverage. Match your strategy to your scene.")
     lines.append("")

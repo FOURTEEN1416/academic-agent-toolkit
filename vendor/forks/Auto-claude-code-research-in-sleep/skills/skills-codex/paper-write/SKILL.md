@@ -5,11 +5,23 @@ description: "Draft LaTeX paper section by section from an outline. Use when use
 
 # Paper Write: Section-by-Section LaTeX Generation
 
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Writer selection is separate; follow the
+> writing-worker guidance below when drafting or revising prose.
+
+
 Draft a LaTeX paper based on: **$ARGUMENTS**
 
 ## Constants
 
-- **REVIEWER_MODEL = `gpt-5.6-sol`** — Model used via a secondary Codex agent for section review. Must be an OpenAI model.
+- **REVIEWER_MODEL = `gpt-6-astra`** — Model used via a secondary Codex agent for section review. For `backend=codex`, use an OpenAI model.
 - **TARGET_VENUE = `ICLR`** — Default venue. Supported: `ICLR`, `NeurIPS`, `ICML`, `CVPR` (also ICCV/ECCV), `ACL` (also EMNLP/NAACL), `AAAI`, `ACM` (ACM MM, SIGIR, KDD, CHI, etc.), `IEEE_JOURNAL` (IEEE Transactions / Letters, e.g., T-PAMI, JSAC, TWC, TCOM, TSP, TIP), `IEEE_CONF` (IEEE conferences, e.g., ICC, GLOBECOM, INFOCOM, ICASSP). Determines style file and formatting.
 - **ANONYMOUS = true** — If true, use anonymous author block. Set `false` for camera-ready. Note: most IEEE venues do NOT use anonymous submission — set `false` for IEEE.
 - **MAX_PAGES = 9** — Main body page limit. For ML conferences: counts from first page to end of Conclusion section, references and appendix NOT counted. **For IEEE venues: references ARE counted toward the page limit.** Typical limits: IEEE journal = no strict limit (but 12-14 pages typical for Transactions, 4-5 for Letters), IEEE conference = 5-8 pages including references.
@@ -135,6 +147,8 @@ Create shared math macros based on the paper's notation:
 ```
 
 ### Step 3: Write Each Section
+
+Use the Launch Mindset and Optional Writing Worker guidance in `../shared-references/writing-principles.md` for every section. Root prepares the factual brief from the plan, original sources, results, figures, and verified bibliography; a configured writer drafts substantive prose and handles same-session revisions, otherwise the executor writes. Pass any supplied `writer`, `writer-model`, and `writer-effort` independently of reviewer settings. Root checks technical accuracy and compilation while preserving the writer's good phrasing; the existing section reviews and audits still apply.
 
 Process sections in order. For each section:
 
@@ -315,11 +329,13 @@ First apply the sentence-level clarity rules from `../shared-references/writing-
 
 ### Step 6: Cross-Review with REVIEWER_MODEL
 
-Send the complete draft to GPT-5.6-Sol xhigh:
+Send the complete draft to GPT-6-Astra xhigh:
+
+> Resolve this reviewer slot first; the following is the `backend=codex` example.
 
 ```
 spawn_agent:
-  model: gpt-5.6-sol
+  model: gpt-6-astra
   reasoning_effort: xhigh
   message: |
     Review this [VENUE] paper draft (main body, excluding appendix).
@@ -413,6 +429,36 @@ Before declaring done:
    follows from the insight, each major experiment tests a consequence of it,
    and the conclusion states exactly what the evidence establishes.
    Front-load the contribution; never narrate the drafting or revision process.
+9. The paper is a launch, not a progress report. Organize the narrative
+   around the work's strongest genuine advantage — a new capability, problem,
+   mechanism or viewpoint, wider applicability, lower cost, a better tradeoff.
+   Material that does not form an advantage stays out of the main line. If the
+   results cannot carry the original story, rebuild the story around the
+   strongest evidence instead of defending the original one.
+10. Pick the contest the paper wins. Do not build the narrative on a metric
+    where the method is not ahead; frame the comparison around the task
+    definition, evaluation dimension or constraint that reflects what the
+    method is for, and say explicitly which contest it wins. Unfavorable
+    numbers still appear — tables stay complete. Where the evidence supports
+    it, explain them as a goal difference or a deliberate tradeoff rather
+    than narrating a defeat ("underperforms", "fails to surpass"); where it
+    does not, state the underperformance neutrally, narrow the claim, and
+    keep it in Limitations if it is material. Never elevate a local
+    observation into a verdict on the whole method, and never invent a
+    tradeoff to cover a weakness.
+11. Every experiment has an argumentative duty: it shows the method works,
+    shows the gain comes from the key mechanism, shows value in the target
+    scenario, or rules out the most likely alternative explanation. An
+    experiment carrying none of these is cut, shortened, moved to the
+    appendix, or redesigned. The experiments section is an argument, not a
+    results warehouse.
+12. State the advantage yourself — under which condition it appears, why it
+    appears, what it solves — rather than expecting the reviewer to find it
+    in a table. Abstract and introduction open like a launch: an important
+    unsolved problem, the gap in existing methods, this paper's distinct
+    idea, the heaviest result. The conclusion reinforces what was solved,
+    proposed and proven and why it matters; no new self-negation or widened
+    limitations in the last paragraph.
 
 
 - **Large file handling**: If the Write tool fails due to file size, immediately retry using Bash (`cat << 'EOF' > file`) to write in chunks. Do NOT ask the user for permission — just do it silently.
@@ -423,6 +469,7 @@ Before declaring done:
 - **Every claim must cite evidence** — cross-reference the Claims-Evidence Matrix
 - **Compile-ready** — the output should compile with `latexmk` without errors (modulo missing figures)
 - **Calibrate, don't hedge** — match each claim to its evidence's actual scope and modality, then state it directly; generic caveats live in Limitations only (the CONFIDENT PROSE, HONEST LIMITS block above is the contract)
+- **Launch, not progress report** — organize around the strongest genuine advantage, pick the contest the paper wins, give every experiment an argumentative duty; unfavorable numbers stay in the tables, explained as tradeoffs where the evidence supports that and stated neutrally where it does not — never narrated as defeats, never dressed as a tradeoff they are not (rules 9-12 above)
 - **Venue style matters** — ML conferences (ICLR/NeurIPS/ICML) use `natbib` (`\citep`/`\citet`); **IEEE venues use `cite` package (`\cite{}`, numeric)**. Never mix.
 - **Page limit rules differ by venue** — ML conferences: main body to Conclusion, references/appendix NOT counted. **IEEE: references ARE counted toward the page limit.**
 - **Clean bib** — references.bib must only contain entries that are actually `\cite`d

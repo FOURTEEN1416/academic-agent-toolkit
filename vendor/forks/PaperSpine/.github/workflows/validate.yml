@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install image and DOCX test dependencies
+        run: python -m pip install pillow lxml
       - name: Run script tests
         run: python -m unittest discover -s tests
 
@@ -42,10 +44,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Re-run dist sync from src
-        run: python src/scripts/sync_local_installs.py --dist-only
-      - name: Fail if dist copies drifted from src
-        run: git diff --exit-code
+      - name: Verify committed public Skill projections
+        run: python paperspine5/release_tools/verify_public_skill_sync.py
 
   e2e:
     runs-on: ubuntu-latest

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/maturity-fixture-freeze-receipt-v3.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["contract", "contract_version", "mode", "eligible_for_official_runs", "authority", "sample_id", "fixture_family_id", "fixture_provenance", "benchmark_lineage", "author_facts_are_fixture_only", "protocol_subject_sha256", "protocol_file_sha256", "semantic_diff_receipt_sha256", "canonical_surface_adapter_sha256", "materializer_path", "materializer_sha256", "fixture_root", "entries", "file_count", "total_bytes", "fixture_tree_sha256", "material_snapshot_sha256", "predecessor_fixture_receipt_file_sha256", "predecessor_fixture_receipt_sha256", "predecessor_fixture_tree_sha256", "predecessor_material_snapshot_sha256", "bound_at", "first_run_not_before", "external_action_authorized", "receipt_sha256"],
+  "properties": {
+    "contract": {"const": "paperspine5.maturity-fixture-freeze-v3"}, "contract_version": {"const": "3.0"},
+    "mode": {"enum": ["dry_run", "official"]}, "eligible_for_official_runs": {"type": "boolean"},
+    "authority": {"const": "paperspine5-authenticated-host-fixture-freezer-v3"},
+    "sample_id": {"type": "string", "minLength": 1}, "fixture_family_id": {"type": "string", "minLength": 1},
+    "fixture_provenance": {"enum": ["anonymized_real", "versioned_synthetic_scientific"]}, "benchmark_lineage": {"enum": ["carbon_oup", "non_carbon"]},
+    "author_facts_are_fixture_only": {"const": true}, "protocol_subject_sha256": {"$ref": "#/$defs/sha256"}, "protocol_file_sha256": {"$ref": "#/$defs/sha256"}, "semantic_diff_receipt_sha256": {"$ref": "#/$defs/sha256"}, "canonical_surface_adapter_sha256": {"$ref": "#/$defs/sha256"},
+    "materializer_path": {"type": "string", "minLength": 1}, "materializer_sha256": {"$ref": "#/$defs/sha256"}, "fixture_root": {"type": "string", "minLength": 1},
+    "entries": {"type": "array", "items": {"$ref": "#/$defs/entry"}}, "file_count": {"type": "integer", "minimum": 1}, "total_bytes": {"type": "integer", "minimum": 1}, "fixture_tree_sha256": {"$ref": "#/$defs/sha256"}, "material_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+    "predecessor_fixture_receipt_file_sha256": {"$ref": "#/$defs/sha256"}, "predecessor_fixture_receipt_sha256": {"$ref": "#/$defs/sha256"}, "predecessor_fixture_tree_sha256": {"$ref": "#/$defs/sha256"}, "predecessor_material_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+    "bound_at": {"type": ["string", "null"], "format": "date-time"}, "first_run_not_before": {"type": ["string", "null"], "format": "date-time"},
+    "external_action_authorized": {"const": false}, "receipt_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "allOf": [{"if": {"properties": {"mode": {"const": "dry_run"}}}, "then": {"properties": {"eligible_for_official_runs": {"const": false}, "bound_at": {"type": "null"}, "first_run_not_before": {"type": "null"}}}, "else": {"properties": {"eligible_for_official_runs": {"const": true}, "bound_at": {"type": "string", "format": "date-time"}, "first_run_not_before": {"type": "string", "format": "date-time"}}}}],
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "entry": {"type": "object", "additionalProperties": false, "required": ["relative_path", "size_bytes", "sha256"], "properties": {"relative_path": {"type": "string", "minLength": 1}, "size_bytes": {"type": "integer", "minimum": 0}, "sha256": {"$ref": "#/$defs/sha256"}}}}
+}

@@ -188,14 +188,16 @@ These are structural — they can't be fixed in analysis, only in design.
 2. **List nuisance factors** (batch, day, site, operator, position) — plan to block,
    stratify, or randomize across each.
 3. **Pick the design** using the decision tree and reference files.
-4. **Decide replication** at the correct level (and get n from the
-   **statistical-power** skill for the chosen design).
+4. **Decide replication** at the correct level (and get n via a power analysis for
+   the chosen design — e.g. `statsmodels.stats.power` / `scipy.stats`; 本仓未集成
+   statistical-power 技能，用库直接实现).
 5. **Generate the layout** with `randomization.py` / `doe_designs.py`, seeded.
 6. **Randomize run/processing order** and plate/batch positions.
 7. **Document** the design, seed, and schedule (pre-register if possible) so the
    analysis is confirmatory and the layout is auditable.
 8. **Match the analysis to the design** — blocks, strata, clusters, and nesting must
-   appear in the model (hand off to **statistical-analysis** / **statsmodels**).
+   appear in the model (hand off to the analysis stage; 用 `statsmodels` / `scipy`
+   库直接实现，本仓未集成 statistical-analysis 技能).
 
 ---
 
@@ -221,9 +223,9 @@ These are structural — they can't be fixed in analysis, only in design.
   interim stopping, and adaptive sample-size re-estimation.
 
 ### Related skills
-- **statistical-power** — required sample size / power for the design you've chosen.
-- **statistical-analysis** — running and reporting the analysis after collection.
-- **statsmodels** / **pymc** — fitting the models the design implies.
+- **data-statistics-report** — 学术统计分析与 APA 格式报告（检验选择、假设检查、效应量、功效）。
+- **results-analysis** — 实验后的严格统计证据包分析；**analyze-results** — 轻量数值口径核对。
+- 功效/样本量与模型拟合：本仓未集成 statistical-power / statistical-analysis / statsmodels 技能，用 `statsmodels.stats.power`、`scipy.stats`、`statsmodels` 库直接实现；PyMC 工作流见 **pymc** 技能。
 
 ### Key references
 - Fisher, R. A. (1935). *The Design of Experiments*.

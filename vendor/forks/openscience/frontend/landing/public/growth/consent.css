@@ -1,0 +1,149 @@
+/* The cookie notice: one quiet line in the corner, in the site's own type and colours.
+   The defaults suit a light page such as the OpenScience documentation; each site sets its own below. */
+#growth-consent {
+  --gc-bg: rgb(255 255 255 / 0.94);
+  --gc-text: rgb(88 91 98);
+  --gc-strong: rgb(30 32 36);
+  --gc-chip: rgb(30 32 36 / 0.06);
+  --gc-chip-hover: rgb(30 32 36 / 0.11);
+  --gc-chip-on: rgb(30 32 36 / 0.16);
+  --gc-shadow: 0 1px 2px rgb(30 32 36 / 0.05), 0 6px 22px rgb(30 32 36 / 0.08);
+  --gc-radius: 10px;
+  --gc-chip-radius: 6px;
+
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2147483640;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 6px 6px 6px 14px;
+  border-radius: var(--gc-radius);
+  background: var(--gc-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--gc-shadow);
+  color: var(--gc-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: normal;
+  text-align: left;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+#growth-consent.is-open {
+  opacity: 1;
+  transform: none;
+}
+#growth-consent p {
+  min-width: 0;
+  margin: 0;
+}
+#growth-consent a {
+  color: var(--gc-strong);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 2px;
+}
+#growth-consent a:hover {
+  text-decoration-color: currentColor;
+}
+#growth-consent div {
+  display: flex;
+  flex: none;
+  gap: 4px;
+}
+#growth-consent button {
+  margin: 0;
+  padding: 5px 11px;
+  border: 0;
+  border-radius: var(--gc-chip-radius);
+  background: var(--gc-chip);
+  color: var(--gc-strong);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+#growth-consent button:hover {
+  background: var(--gc-chip-hover);
+}
+#growth-consent button[aria-pressed="true"] {
+  background: var(--gc-chip-on);
+}
+#growth-consent button:focus-visible,
+#growth-consent a:focus-visible {
+  outline: 2px solid var(--gc-strong);
+  outline-offset: 2px;
+}
+[data-cookie-preferences] {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Synthetic Sciences: the paper page. */
+html[data-growth-site="syntheticsciences"] #growth-consent {
+  --gc-bg: rgb(247 245 240 / 0.94);
+  --gc-text: rgb(76 72 65);
+  --gc-strong: rgb(22 21 19);
+  --gc-chip: rgb(22 21 19 / 0.06);
+  --gc-chip-hover: rgb(22 21 19 / 0.11);
+  --gc-chip-on: rgb(22 21 19 / 0.16);
+  --gc-radius: 10px;
+  --gc-chip-radius: 6px;
+}
+
+/* OpenScience: the dark landing page, and the documentation in dark mode. */
+html[data-growth-site="openscience"][data-growth-section="landing"] #growth-consent,
+html[data-growth-site="openscience"].dark #growth-consent {
+  color-scheme: dark;
+  --gc-bg: hsl(0 6% 10% / 0.94);
+  --gc-text: hsl(0 2% 58%);
+  --gc-strong: hsl(0 15% 94%);
+  --gc-chip: hsl(0 15% 94% / 0.07);
+  --gc-chip-hover: hsl(0 15% 94% / 0.12);
+  --gc-chip-on: hsl(0 15% 94% / 0.18);
+  --gc-shadow: 0 8px 28px rgb(0 0 0 / 0.45);
+  --gc-radius: 8px;
+  --gc-chip-radius: 4px;
+}
+
+/* Ascent: the site's own tokens, so both of its themes follow; pill shapes like its buttons. */
+html[data-growth-site="ascent"] #growth-consent {
+  --gc-bg: color-mix(in srgb, var(--card, #1b1913) 94%, transparent);
+  --gc-text: var(--muted, #999896);
+  --gc-strong: var(--ink, #edecec);
+  --gc-chip: color-mix(in srgb, var(--ink, #edecec) 7%, transparent);
+  --gc-chip-hover: color-mix(in srgb, var(--ink, #edecec) 12%, transparent);
+  --gc-chip-on: color-mix(in srgb, var(--ink, #edecec) 18%, transparent);
+  --gc-shadow: 0 8px 28px rgb(0 0 0 / 0.4);
+  --gc-radius: 22px;
+  --gc-chip-radius: 999px;
+  padding-left: 16px;
+}
+html[data-growth-site="ascent"][data-theme="light"] #growth-consent {
+  --gc-shadow: 0 1px 2px rgb(26 25 21 / 0.05), 0 6px 22px rgb(26 25 21 / 0.09);
+}
+
+@media (max-width: 520px) {
+  #growth-consent {
+    right: 12px;
+    left: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    max-width: none;
+    justify-content: space-between;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #growth-consent {
+    transform: none;
+    transition: none;
+  }
+}

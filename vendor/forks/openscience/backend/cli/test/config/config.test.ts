@@ -36,10 +36,10 @@ test("loads config with defaults when no files exist", async () => {
   })
 })
 
-test("legacy compute billing config keeps parsing without controlling compute", () => {
+test("legacy billing values migrate to user-owned routing", () => {
   const config = Config.Info.parse({ billing: { llm: "byok", compute: "managed" } })
 
-  expect(config.billing).toEqual({ llm: "byok", compute: "managed" })
+  expect(config.billing).toEqual({ llm: "byok", compute: "byok" })
 })
 
 test("trusted sandbox defaults to containment while preserving explicit and managed policy", async () => {
@@ -178,14 +178,13 @@ test("handles environment variable substitution", async () => {
   }
 })
 
-test("preserves env variables when adding $schema to config", async () => {
+test("resolves env variables without rewriting the user-owned config", async () => {
   const originalEnv = process.env["PRESERVE_VAR"]
   process.env["PRESERVE_VAR"] = "secret_value"
 
   try {
     await using tmp = await tmpdir({
       init: async (dir) => {
-        // Config without $schema - should trigger auto-add
         await Bun.write(
           path.join(dir, "openscience.json"),
           JSON.stringify({
@@ -200,11 +199,10 @@ test("preserves env variables when adding $schema to config", async () => {
         const config = await Config.get()
         expect(config.theme).toBe("secret_value")
 
-        // Read the file to verify the env variable was preserved
         const content = await Bun.file(path.join(tmp.path, "openscience.json")).text()
         expect(content).toContain("{env:PRESERVE_VAR}")
         expect(content).not.toContain("secret_value")
-        expect(content).toContain("$schema")
+        expect(content).toBe(JSON.stringify({ theme: "{env:PRESERVE_VAR}" }))
       },
     })
   } finally {
@@ -231,6 +229,28 @@ test("handles file inclusion substitution", async () => {
     fn: async () => {
       const config = await Config.get()
       expect(config.theme).toBe("test_theme")
+    },
+  })
+})
+
+test("file inclusion keeps dollar signs in the included text", async () => {
+  // Display math and shell snippets are ordinary prompt content. The included
+  // text must arrive verbatim, not be read as a String.replace pattern.
+  const prompt = "Energy: $$E = mc^2$$\nShell: echo $$ and ${HOME}\nKeep $& and $' and $` as written."
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await Bun.write(path.join(dir, "prompt.md"), prompt)
+      await writeConfig(dir, {
+        $schema: "https://syntheticsciences.ai/config.json",
+        agent: { physicist: { prompt: "{file:prompt.md}" } },
+      })
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const config = await Config.get()
+      expect(config.agent?.["physicist"]?.prompt).toBe(prompt)
     },
   })
 })
@@ -545,6 +565,51 @@ test("update() persists to a project config read path (survives a reload)", asyn
     directory: tmp.path,
     fn: async () => {
       expect((await Config.get()).model).toBe("updated/model")
+    },
+  })
+})
+
+test("a project save survives a reload when openscience.json and openscience.jsonc both exist", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      const provider = (baseURL: string) => ({ local: { name: "Local", options: { baseURL } } })
+      await writeConfig(dir, { model: "stale/jsonc", provider: provider("http://jsonc/v1") }, "openscience.jsonc")
+      await writeConfig(dir, { model: "stale/json", provider: provider("http://json/v1") })
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: () => Config.update({ model: "saved/update" }),
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      expect((await Config.get()).model).toBe("saved/update")
+      await Config.setProvider("local", { name: "Local", options: { baseURL: "http://saved/v1" } }, "project")
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      expect((await Config.get()).provider?.local?.options?.baseURL).toBe("http://saved/v1")
+    },
+  })
+})
+
+test("a project save still goes to openscience.jsonc when it is the only file", async () => {
+  await using tmp = await tmpdir({
+    init: (dir) => Bun.write(path.join(dir, "openscience.jsonc"), '{\n  // keep me\n  "model": "old/model"\n}\n'),
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: () => Config.update({ model: "saved/model" }),
+  })
+  expect(await Bun.file(path.join(tmp.path, "openscience.json")).exists()).toBe(false)
+  expect(await Bun.file(path.join(tmp.path, "openscience.jsonc")).text()).toContain("// keep me")
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      expect((await Config.get()).model).toBe("saved/model")
     },
   })
 })
@@ -1356,10 +1421,12 @@ test("local .openscience config can override MCP from project config", async () 
 test("project config overrides remote well-known config", async () => {
   const originalFetch = globalThis.fetch
   let fetchedUrl: string | undefined
-  const mockFetch = mock((url: string | URL | Request) => {
+  let fetchedInit: RequestInit | undefined
+  const mockFetch = mock((url: string | URL | Request, init?: RequestInit) => {
     const urlStr = url.toString()
     if (urlStr.includes(".well-known/openscience")) {
       fetchedUrl = urlStr
+      fetchedInit = init
       return Promise.resolve(
         new Response(
           JSON.stringify({
@@ -1418,6 +1485,8 @@ test("project config overrides remote well-known config", async () => {
         const config = await Config.get()
         // Verify fetch was called for wellknown config
         expect(fetchedUrl).toBe("https://example.com/.well-known/openscience")
+        // A remote host that never answers must not stall Config.get()
+        expect(fetchedInit?.signal).toBeInstanceOf(AbortSignal)
         // Project config (enabled: true) should override remote (enabled: false)
         expect(config.mcp?.jira?.enabled).toBe(true)
       },
@@ -1742,17 +1811,71 @@ describe("global config writes are visible to the next Config.get()", () => {
       directory: tmp.path,
       fn: async () => {
         const before = await Config.get()
-        expect(before.billing?.llm).toBeUndefined()
+        expect(before.model).toBeUndefined()
 
         // No sleep, no retry, no intervening await besides the write itself
         // - this is the exact race: Instance.disposeAll() used to be fired
         // without being awaited inside Config.updateGlobal, so the very
         // next Config.get() for this SAME already-instantiated directory
         // could still return the pre-write value.
-        await Config.updateGlobal({ billing: { llm: "managed" } })
+        await Config.updateGlobal({ model: "openai/gpt-5" })
 
         const after = await Config.get()
-        expect(after.billing?.llm).toBe("managed")
+        expect(after.model).toBe("openai/gpt-5")
+      },
+    })
+  })
+
+  test("Config.updateGlobal patches a JSONC file as written: scalars, comments and defaults survive", async () => {
+    await using tmp = await tmpdir()
+    const file = path.join(Global.Path.config, "openscience.jsonc")
+    await fs.writeFile(
+      file,
+      [
+        "{",
+        "  // keep me",
+        '  "permission": "allow",',
+        '  "keybinds": { "leader": "ctrl+a" },',
+        '  "agent": { "research": { "model": "x/y", "maxSteps": 40 } }',
+        "}",
+        "",
+      ].join("\n"),
+    )
+    Config.global.reset()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        await Config.updateGlobal({ model: "openai/gpt-5" })
+        const text = await fs.readFile(file, "utf8")
+        expect(text).toContain("// keep me")
+        expect((await Config.get()).model).toBe("openai/gpt-5")
+        // The string form is still a string, the single keybind is still
+        // alone, and the agent did not gain schema defaults.
+        const raw = JSON.parse(text.replace(/^\s*\/\/.*$/m, ""))
+        expect(raw.permission).toBe("allow")
+        expect(raw.keybinds).toEqual({ leader: "ctrl+a" })
+        expect(raw.agent.research).toEqual({ model: "x/y", maxSteps: 40 })
+        expect(raw.model).toBe("openai/gpt-5")
+
+        // A patch whose parsed form is an object still lands on the scalar.
+        await Config.updateGlobal({ permission: { edit: "ask" } } as any)
+        const next = JSON.parse((await fs.readFile(file, "utf8")).replace(/^\s*\/\/.*$/m, ""))
+        expect(next.permission).toEqual({ edit: "ask" })
+      },
+    })
+  })
+
+  test("Config.updateGlobal keeps a JSON file free of schema defaults", async () => {
+    await using tmp = await tmpdir()
+    const file = path.join(Global.Path.config, "openscience.json")
+    await fs.writeFile(file, JSON.stringify({ keybinds: { leader: "ctrl+a" }, permission: "allow" }))
+    Config.global.reset()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        await Config.updateGlobal({ model: "openai/gpt-5" })
+        const raw = JSON.parse(await fs.readFile(file, "utf8"))
+        expect(raw).toEqual({ keybinds: { leader: "ctrl+a" }, permission: "allow", model: "openai/gpt-5" })
       },
     })
   })
@@ -1771,5 +1894,13 @@ describe("global config writes are visible to the next Config.get()", () => {
         expect(after.sandbox?.network).toBe("allow")
       },
     })
+  })
+})
+
+describe("compaction.warn_tokens", () => {
+  test("is no longer part of the schema; a stale value is dropped rather than rejected", () => {
+    expect("warn_tokens" in Config.Info.shape.compaction.unwrap().shape).toBe(false)
+    const parsed = Config.Info.parse({ compaction: { threshold: 0.5, warn_tokens: 80_000 } })
+    expect(parsed.compaction).toEqual({ threshold: 0.5 })
   })
 })

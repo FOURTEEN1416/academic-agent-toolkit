@@ -26,16 +26,21 @@ test("domainAllowed accepts exact domains and subdomains only", () => {
   expect(Network.domainAllowed("badexample.com", ["example.com"])).toBe(false)
 })
 
-test("new installs enforce every curated package and science group", async () => {
+test("new installs approve everything: no domain gate, every curated group on", async () => {
   const file = path.join(Global.Path.data, "settings", "network.json")
   await fs.rm(file, { force: true })
   const state = Network.defaults()
   expect(await Network.get()).toEqual(state)
-  expect(state.allowlistEnabled).toBe(true)
+  expect(state.allowlistEnabled).toBe(false)
   expect(state.enabled).toEqual(Network.CATALOG.map((group) => group.id))
   await Network.set(state)
 
   await expect(Network.assertAllowed("https://files.pythonhosted.org/pkg.whl")).resolves.toBeUndefined()
+  await expect(Network.assertAllowed("https://api.openalex.org/works")).resolves.toBeUndefined()
+  await expect(Network.assertAllowed("https://unknown.example/data")).resolves.toBeUndefined()
+
+  // Turning the gate on starts from the full catalog, so only unknown hosts are refused.
+  await Network.set({ ...state, allowlistEnabled: true })
   await expect(Network.assertAllowed("https://api.openalex.org/works")).resolves.toBeUndefined()
   await expect(Network.assertAllowed("https://unknown.example/data")).rejects.toThrow("allow-list")
 })
@@ -354,6 +359,77 @@ test("policy-aware fetch pins the validated address instead of resolving twice",
   expect(await response.text()).toBe("pinned")
   expect(resolutions).toBe(1)
   expect(connected).toEqual(["8.8.8.8"])
+})
+
+test("public reads fall back to another validated address when the first network route is unavailable", async () => {
+  await Network.set({ allowlistEnabled: false, enabled: [], custom: [] })
+  const connected: string[] = []
+  const response = await Network.fetch(
+    "https://public.example/paper",
+    {},
+    {
+      resolveAddresses: async () => ["2606:4700:4700::1111", "1.1.1.1"],
+      transport: async (_target, _init, address) => {
+        connected.push(address)
+        if (connected.length === 1) throw Object.assign(new Error("no IPv6 route"), { code: "ENETUNREACH" })
+        return new Response("paper")
+      },
+    },
+  )
+  expect(await response.text()).toBe("paper")
+  expect(connected).toEqual(["2606:4700:4700::1111", "1.1.1.1"])
+})
+
+test.each([
+  ["POST", "ENETUNREACH"],
+  ["GET", "CERT_HAS_EXPIRED"],
+  ["GET", "ECONNRESET"],
+])("address fallback does not replay %s after %s", async (method, code) => {
+  await Network.set({ allowlistEnabled: false, enabled: [], custom: [] })
+  const connected: string[] = []
+  await expect(
+    Network.fetch(
+      "https://public.example/paper",
+      { method },
+      {
+        resolveAddresses: async () => ["1.1.1.1", "8.8.8.8"],
+        transport: async (_target, _init, address) => {
+          connected.push(address)
+          throw Object.assign(new Error("transport failed"), { code })
+        },
+      },
+    ),
+  ).rejects.toThrow("transport failed")
+  expect(connected).toHaveLength(1)
+})
+
+test("a mixed public/private DNS response is rejected before any fallback connection", async () => {
+  await Network.set({ allowlistEnabled: false, enabled: [], custom: [] })
+  const connected: string[] = []
+  await expect(
+    Network.fetch(
+      "https://public.example/paper",
+      {},
+      {
+        resolveAddresses: async () => ["1.1.1.1", "127.0.0.1"],
+        transport: async (_target, _init, address) => {
+          connected.push(address)
+          return new Response("unexpected")
+        },
+      },
+    ),
+  ).rejects.toThrow("non-public address")
+  expect(connected).toEqual([])
+})
+
+test("literature defaults include conference archives and respect disabling the group", async () => {
+  await Network.set({ ...Network.defaults(), allowlistEnabled: true })
+  for (const host of ["arxiv.org", "aclanthology.org", "openreview.net", "proceedings.mlr.press", "2027.eacl.org"]) {
+    expect(await Network.blocked(`https://${host}/paper`)).toBeUndefined()
+    expect(await Network.blocked(`https://${host}.example.com/paper`)).toBe(`${host}.example.com`)
+  }
+  await Network.set({ ...Network.defaults(), allowlistEnabled: true, enabled: [] })
+  expect(await Network.blocked("https://aclanthology.org/paper")).toBe("aclanthology.org")
 })
 
 test("policy-aware fetch rejects a declared oversized response before exposing its body", async () => {

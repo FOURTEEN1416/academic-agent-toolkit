@@ -15,6 +15,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -185,6 +186,10 @@ class RunClaudeReviewTests(unittest.TestCase):
             "threadId": "sess-abc",
             "response": "review body text",
             "model": "claude-opus-4-7",
+            "requestedModel": MODULE.DEFAULT_MODEL or None,
+            "modelSource": "cli_result",
+            "reportedModels": ["claude-opus-4-7"],
+            "cwd": str(Path.cwd().resolve()),
             "duration_ms": 8765,
             "stop_reason": "end_turn",
         })
@@ -284,6 +289,99 @@ class RunClaudeReviewTests(unittest.TestCase):
         self.assertIn("First problem", err)
         self.assertIn("Second problem", err)
         self.assertIn(";", err)
+
+
+class ReviewContractRegressionTests(unittest.TestCase):
+    def _run(self, event: dict, **kwargs):
+        with mock.patch.object(MODULE, "find_claude_bin", return_value="/fake/claude"), \
+             mock.patch.object(MODULE.subprocess, "run", return_value=_completed_process(json.dumps(event))):
+            return MODULE.run_claude_review("review", **kwargs)
+
+    def test_requested_alias_is_separate_from_reported_model(self) -> None:
+        event = _result_event()
+        event.pop("model")
+        event["modelUsage"] = {"deepseek-flash": {"inputTokens": 12}}
+        payload, error = self._run(event, model="deepseek-flash[1m]")
+        self.assertIsNone(error)
+        self.assertEqual(payload["requestedModel"], "deepseek-flash[1m]")
+        self.assertEqual(payload["model"], "deepseek-flash")
+        self.assertEqual(payload["modelSource"], "cli_model_usage")
+        self.assertEqual(payload["reportedModels"], ["deepseek-flash"])
+
+    def test_missing_or_multiple_reported_models_never_echo_request(self) -> None:
+        for usage, expected in ((None, []), ({"model-a": {}, "model-b": {}}, ["model-a", "model-b"])):
+            with self.subTest(usage=usage):
+                event = _result_event()
+                event.pop("model")
+                if usage is not None:
+                    event["modelUsage"] = usage
+                payload, error = self._run(event, model="requested-alias")
+                self.assertIsNone(error)
+                self.assertIsNone(payload["model"])
+                self.assertIsNone(payload["modelSource"])
+                self.assertEqual(payload["reportedModels"], expected)
+                self.assertEqual(payload["requestedModel"], "requested-alias")
+
+    def test_init_only_and_empty_result_are_not_success(self) -> None:
+        for event in (_system_init_event(), _result_event(""), _result_event(" \n ")):
+            with self.subTest(event=event):
+                payload, error = self._run(event)
+                self.assertIsNone(payload)
+                self.assertTrue(error)
+
+    def test_explicit_incomplete_stop_reasons_are_not_success(self) -> None:
+        for reason in ("max_tokens", "tool_use", "pause_turn"):
+            with self.subTest(reason=reason):
+                event = _result_event("partial review")
+                event["stop_reason"] = reason
+                payload, error = self._run(event)
+                self.assertIsNone(payload)
+                self.assertIn(reason, error)
+
+    def test_ndjson_trailing_nonresult_event_does_not_hide_result(self) -> None:
+        stdout = "\n".join(map(json.dumps, [_system_init_event(), _result_event("complete"), _rate_limit_event()]))
+        payload, error = MODULE.parse_claude_json(stdout)
+        self.assertIsNone(error)
+        self.assertEqual(payload["result"], "complete")
+
+    def test_sync_cwd_is_passed_to_subprocess(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, \
+             mock.patch.object(MODULE, "find_claude_bin", return_value="/fake/claude"), \
+             mock.patch.object(MODULE.subprocess, "run", return_value=_completed_process(json.dumps(_result_event()))) as run:
+            payload, error = MODULE.run_claude_review("review", cwd=directory)
+            expected = str(Path(directory).resolve())
+            self.assertIsNone(error)
+            self.assertEqual(run.call_args.kwargs["cwd"], expected)
+            self.assertEqual(payload["cwd"], expected)
+
+    def test_invalid_cwd_launches_no_sync_or_async_process(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, \
+             mock.patch.object(MODULE.subprocess, "run") as run, \
+             mock.patch.object(MODULE.subprocess, "Popen") as popen:
+            for function in (MODULE.run_claude_review, MODULE.start_async_review):
+                payload, error = function("review", cwd=str(Path(directory) / "missing"))
+                self.assertIsNone(payload)
+                self.assertIn("existing directory", error)
+            run.assert_not_called()
+            popen.assert_not_called()
+
+    def test_async_job_preserves_cwd_through_worker_and_status(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, \
+             mock.patch.object(MODULE, "JOBS_DIR", Path(directory) / "jobs"), \
+             mock.patch.object(MODULE.subprocess, "Popen", return_value=mock.Mock(pid=12345)):
+            started, error = MODULE.start_async_review("review", cwd=directory)
+            self.assertIsNone(error)
+            job_id = started["jobId"]
+            expected = str(Path(directory).resolve())
+            self.assertEqual(MODULE.read_json(MODULE.job_state_path(job_id))["request"]["cwd"], expected)
+            review = {"threadId": "session", "response": "OK", "cwd": expected, "model": "deepseek-flash"}
+            with mock.patch.object(MODULE, "run_claude_review", return_value=(review, None)) as run:
+                self.assertEqual(MODULE.run_async_job(job_id), 0)
+            self.assertEqual(run.call_args.kwargs["cwd"], expected)
+            status, error = MODULE.get_review_status(job_id)
+            self.assertIsNone(error)
+            self.assertTrue(status["done"])
+            self.assertEqual(status["cwd"], expected)
 
 
 if __name__ == "__main__":

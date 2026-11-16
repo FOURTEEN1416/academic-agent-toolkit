@@ -11,6 +11,7 @@ import { NamedError } from "@synsci/util/error"
 import crypto from "crypto"
 import path from "path"
 import z from "zod"
+import fs from "node:fs/promises"
 import { SessionWorkspace } from "./workspace"
 import { AuthoritySignal } from "@/project/authority-signal"
 import { ToolOutputPath } from "@/tool/tool-output-path"
@@ -31,7 +32,14 @@ export namespace SessionFilesystem {
   export const Scope = z.enum(["once", "session", "project", "installation"])
   export type Scope = z.infer<typeof Scope>
 
-  export const Source = z.enum(["workspace", "permission", "api", "tool", "handoff"])
+  // `project` is the automatic authority over the project's own roots and
+  // `skill` the read access a loaded skill's directory receives. Both are
+  // runtime dependencies, not folders the user connected, and the UI lists
+  // them apart from `permission` and `api` grants.
+  /** `parent`: the lead session's working directory, shared with a delegated
+   * child so its files land where the lead works. It is the one grant allowed
+   * to cross the per-session workspace boundary in both directions. */
+  export const Source = z.enum(["workspace", "project", "skill", "permission", "api", "tool", "handoff", "parent"])
   export type Source = z.infer<typeof Source>
 
   export const Grant = z.object({
@@ -89,6 +97,12 @@ export namespace SessionFilesystem {
   >()
   const bindings = new WeakSet<object>()
 
+  /** Where relative tool paths resolve. Unset means automatic: the connected
+   * read/write folder when the project has one, otherwise session scratch.
+   * "scratch" pins the owned scratch directory even when folders are connected. */
+  export const WorkingRoot = z.union([z.literal("scratch"), z.string().min(1)])
+  export type WorkingRoot = z.infer<typeof WorkingRoot>
+
   export const State = z.object({
     version: z.literal(1),
     revision: z.number().int().positive(),
@@ -96,6 +110,7 @@ export namespace SessionFilesystem {
     projectID: z.string(),
     directory: z.string(),
     grants: Grant.array(),
+    workingRoot: WorkingRoot.optional(),
   })
   export type State = z.infer<typeof State>
 
@@ -104,6 +119,7 @@ export namespace SessionFilesystem {
     revision: z.number().int().positive(),
     projectID: z.string(),
     grants: Grant.extend({ scope: z.literal("project") }).array(),
+    workingRoot: WorkingRoot.optional(),
   })
   export type ProjectState = z.infer<typeof ProjectState>
 
@@ -116,6 +132,8 @@ export namespace SessionFilesystem {
 
   export const Snapshot = State.extend({
     workspace: SessionWorkspace.Info,
+    /** The directory relative tool paths resolve against right now. */
+    toolDirectory: z.string(),
     enforcement: z.object({
       broker: z.literal("enforced"),
       processWrite: z.literal("grant_only"),
@@ -124,12 +142,19 @@ export namespace SessionFilesystem {
   })
   export type Snapshot = z.infer<typeof Snapshot>
 
+  export const ProjectSnapshot = ProjectState.extend({
+    directory: z.string(),
+    toolDirectory: z.string().optional(),
+    enforcement: Snapshot.shape.enforcement,
+  })
+
   export const DeniedError = NamedError.create(
     "SessionFilesystemDeniedError",
     z.object({
       sessionID: z.string(),
       path: z.string(),
       access: Access,
+      message: z.string().optional(),
     }),
   )
 
@@ -148,6 +173,7 @@ export namespace SessionFilesystem {
         sessionID: z.string(),
         projectID: z.string(),
         grant: Grant,
+        narrowing: z.boolean().optional(),
       }),
     ),
   }
@@ -157,14 +183,46 @@ export namespace SessionFilesystem {
   const installationKey = ["installation_filesystem"]
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-  async function changed(sessionID: string, projectID: string, grant: Grant) {
+  /** Internal owner for direct UI file operations. It is never persisted as a
+   * conversation and cannot be supplied to session-addressed HTTP routes. */
+  export const projectActor = () => `project:${Instance.project.id}`
+
+  async function brokerState(sessionID: string): Promise<State> {
+    if (sessionID !== projectActor()) return state(sessionID)
+    const shared = await project(sessionID)
+    const roots = [...new Set([Instance.directory, ...(Instance.project.vcs === "git" ? [Instance.worktree] : [])])]
+    return {
+      ...shared,
+      sessionID,
+      directory: Instance.directory,
+      grants: [
+        ...shared.grants,
+        ...roots.map((root): Grant => ({
+          id: `fsg_project_${crypto.createHash("sha256").update(`${Instance.project.id}:${root}`).digest("hex")}`,
+          path: Project.canonicalize(root),
+          access: "write",
+          scope: "project",
+          source: "project",
+          time: { created: Instance.project.time.created },
+        })),
+      ],
+    }
+  }
+
+  async function changed(
+    sessionID: string,
+    projectID: string,
+    grant: Grant,
+    narrowing = Boolean(grant.time.revoked || grant.time.consumed),
+  ) {
     const signal = await AuthoritySignal.publish({
       kind: "filesystem",
       projectID,
       sessionID,
       scope: grant.scope,
+      narrowing,
     })
-    await Bus.publish(Event.Changed, { sessionID, projectID, grant })
+    await Bus.publish(Event.Changed, { sessionID, projectID, grant, narrowing })
     await AuthoritySignal.settle(signal.revision)
   }
 
@@ -253,27 +311,52 @@ export namespace SessionFilesystem {
     return { root, workspace: grant.path }
   }
 
+  /** The refusal a model reads. A bare class name once sent a worker back into
+   * seven minutes of thought and the same denied write; the message names the
+   * places this session can use and, for a lead's folder, how to hand files
+   * back instead. */
+  function denial(record: State, target: string, access: Access) {
+    const live = record.grants.filter((grant) => !grant.time.revoked && grant.scope !== "once")
+    const usable = [
+      ...new Set(
+        live.filter((grant) => (access === "write" ? grant.access === "write" : true)).map((grant) => grant.path),
+      ),
+    ]
+    const lead = live.find((grant) => grant.source === "handoff" && Filesystem.contains(grant.path, target))
+    const handoff = lead
+      ? ` ${lead.path} belongs to the lead session and is read-only here: write under this session's own workspace and hand files back with artifact(action="save_file", path=...).`
+      : ""
+    const where = usable.length ? ` This session can ${access} under: ${usable.join(", ")}.` : ""
+    return new DeniedError({
+      sessionID: record.sessionID,
+      path: target,
+      access,
+      message: `No ${access} access to ${target} from this session.${handoff}${where}`,
+    })
+  }
+
   function assertPrivate(record: State, target: string, access: Access) {
+    if (
+      record.sessionID === projectActor() &&
+      Filesystem.contains(Project.canonicalize(path.join(Global.Path.data, "workspaces")), target)
+    ) {
+      throw denial(record, target, access)
+    }
     const boundary = isolated(record)
     if (!boundary) return
     if (!Filesystem.contains(boundary.root, target) || Filesystem.contains(boundary.workspace, target)) return
     if (
-      access === "read" &&
       record.grants.some(
         (grant) =>
-          grant.source === "handoff" &&
           grant.scope === "session" &&
           !grant.time.consumed &&
           !grant.time.revoked &&
-          Filesystem.contains(grant.path, target),
+          Filesystem.contains(grant.path, target) &&
+          (grant.source === "parent" ? permits(grant, access) : grant.source === "handoff" && access === "read"),
       )
     )
       return
-    throw new DeniedError({
-      sessionID: record.sessionID,
-      path: target,
-      access,
-    })
+    throw denial(record, target, access)
   }
 
   async function read(sessionID: string): Promise<State> {
@@ -297,6 +380,132 @@ export namespace SessionFilesystem {
       path: Project.canonicalize(Instance.directory),
       access: "read",
     })
+  }
+
+  /** Connected read/write folders of the current project, newest first: the
+   * choices a new session can work in before it exists. */
+  export async function projectWorkingRoots() {
+    const record = await Storage.read<ProjectState>(projectKey()).catch((error) => {
+      if (Storage.NotFoundError.isInstance(error)) return
+      throw error
+    })
+    if (!record) return []
+    const current = assertProject(`project:${Instance.project.id}`, ProjectState.parse(record))
+    return workingRootCandidates(current).toSorted(
+      (left, right) => Number(right.path === current.workingRoot) - Number(left.path === current.workingRoot),
+    )
+  }
+
+  export async function projectSnapshot() {
+    const record = await project(`project:${Instance.project.id}`)
+    const selected = resolveToolDirectory(record, "scratch")
+    return ProjectSnapshot.parse({
+      ...record,
+      directory: Instance.directory,
+      toolDirectory: selected === "scratch" ? undefined : selected,
+      enforcement: {
+        broker: "enforced",
+        processWrite: "grant_only",
+        processRead: Sandbox.describe().readIsolation === "grant_only" ? "grant_only" : "policy_only",
+      },
+    })
+  }
+
+  async function folderPath(value: string) {
+    if (!path.isAbsolute(value)) throw new InvalidPathError({ path: value, message: "Choose an absolute folder path." })
+    const root = await canonical(value)
+    await assertNotToolOutput(root)
+    if (Filesystem.overlaps(Project.canonicalize(path.join(Global.Path.data, "workspaces")), root)) {
+      throw new InvalidPathError({ path: value, message: "Session scratch cannot be connected as a project folder." })
+    }
+    const stat = await fs.stat(root).catch(() => undefined)
+    if (!stat?.isDirectory()) {
+      throw new InvalidPathError({ path: value, message: "This folder does not exist or is not accessible." })
+    }
+    return root
+  }
+
+  /** Project connections exist independently of conversations. Replacing an
+   * access level retires the old capability so in-flight writes fail closed. */
+  export async function connectProject(input: { path: string; access: Access }) {
+    const root = await folderPath(input.path)
+    return AuthoritySignal.exclusive(async () => {
+      const current = await project(projectActor())
+      const matches = current.grants.filter((item) => !item.time.revoked && item.path === root)
+      if (matches.length === 1 && matches[0].access === input.access) return matches[0]
+      const grant: Grant & { scope: "project" } = {
+        id: `fsg_${crypto.randomUUID()}`,
+        path: root,
+        access: input.access,
+        scope: "project",
+        source: "api",
+        time: { created: Date.now() },
+      }
+      const record = await Storage.update<ProjectState>(projectKey(), (draft) => {
+        assertProject(`project:${Instance.project.id}`, ProjectState.parse(draft))
+        const matches = draft.grants.filter((item) => !item.time.revoked && item.path === root)
+        for (const item of matches) item.time.revoked = Date.now()
+        draft.grants.push(grant)
+        draft.revision++
+      })
+      const stored = record.grants.find((item) => item.id === grant.id)!
+      // Replacements retire the old capability. Project write additions can
+      // also change a session's automatic or previously revoked working root.
+      await changed(
+        `project:${Instance.project.id}`,
+        Instance.project.id,
+        stored,
+        matches.length > 0 || input.access === "write",
+      )
+      return stored
+    })
+  }
+
+  export async function revokeProject(grantID: string) {
+    return AuthoritySignal.exclusive(async () => {
+      await project(`project:${Instance.project.id}`)
+      const record = await Storage.update<ProjectState>(projectKey(), (draft) => {
+        assertProject(`project:${Instance.project.id}`, ProjectState.parse(draft))
+        const grant = draft.grants.find((item) => item.id === grantID)
+        if (!grant) throw new Storage.NotFoundError({ message: `Filesystem grant not found: ${grantID}` })
+        grant.time.revoked = Date.now()
+        draft.revision++
+      })
+      const grant = record.grants.find((item) => item.id === grantID)!
+      await changed(`project:${Instance.project.id}`, Instance.project.id, grant)
+      return grant
+    })
+  }
+
+  export async function setProjectWorkingRoot(value: WorkingRoot | null) {
+    return AuthoritySignal.exclusive(async () => {
+      const current = await project(`project:${Instance.project.id}`)
+      const next = value === null || value === "scratch" ? value : await canonical(value)
+      if (next === (current.workingRoot ?? null)) return projectSnapshot()
+      if (next && next !== "scratch" && !workingRootCandidates(current).some((grant) => grant.path === next)) {
+        throw new InvalidPathError({ path: next, message: "The working folder must have Read & write access." })
+      }
+      await Storage.update<ProjectState>(projectKey(), (draft) => {
+        if (next === null) delete draft.workingRoot
+        else draft.workingRoot = next
+        draft.revision++
+      })
+      const signal = await AuthoritySignal.publish({
+        kind: "filesystem",
+        projectID: Instance.project.id,
+        sessionID: `project:${Instance.project.id}`,
+        scope: "project",
+      })
+      await AuthoritySignal.settle(signal.revision)
+      await Bus.publish(Project.Event.Updated, Instance.project)
+      return projectSnapshot()
+    })
+  }
+
+  /** Used only by project-addressed UI file operations, never as a substitute
+   * for a session's own grant checks or private scratch boundary. */
+  export async function authorizeProject(file: string, access: Access) {
+    return authorize({ sessionID: projectActor(), path: file, access })
   }
 
   async function project(sessionID: string) {
@@ -362,11 +571,12 @@ export namespace SessionFilesystem {
     }
 
     // Lazily upgrade sessions created before filesystem grants shipped.
-    const session = await Storage.read<{ id: string; projectID: string; directory: string }>([
-      "session",
-      Instance.project.id,
-      sessionID,
-    ])
+    const session = await Storage.read<{
+      id: string
+      projectID: string
+      directory: string
+      workspace?: "isolated" | "project"
+    }>(["session", Instance.project.id, sessionID])
     if (
       session.projectID !== Instance.project.id ||
       Project.canonicalize(session.directory) !== Project.canonicalize(Instance.directory)
@@ -377,11 +587,15 @@ export namespace SessionFilesystem {
         access: "read",
       })
     }
-    await initialize(sessionID, session.directory)
+    await initialize(sessionID, session.directory, { workspace: session.workspace })
     return assert(State.parse(await read(sessionID)))
   }
 
-  export async function initialize(sessionID: string, directory: string, options: { revokeExisting?: boolean } = {}) {
+  export async function initialize(
+    sessionID: string,
+    directory: string,
+    options: { revokeExisting?: boolean; workspace?: "isolated" | "project"; workingRoot?: WorkingRoot } = {},
+  ) {
     const root = await canonical(directory)
     const worktree = await canonical(Instance.worktree)
     // A broad legacy project such as the user's home directory may contain the
@@ -397,7 +611,9 @@ export namespace SessionFilesystem {
     const workspace = await SessionWorkspace.create({
       sessionID,
       directory: root,
-      mode: "isolated",
+      // Legacy workspaces already encode non-ownership: trash and purge must
+      // never rename or remove a caller's existing project directory.
+      mode: options.workspace === "project" ? "legacy" : "isolated",
     })
     const canonicalWorkspace = await canonical(workspace.scratchRoot)
     const grants: Grant[] = [
@@ -410,16 +626,14 @@ export namespace SessionFilesystem {
         time: { created: Date.now() },
       },
       ...(roots.length
-        ? roots.map(
-            (value): Grant => ({
-              id: `fsg_${crypto.randomUUID()}`,
-              path: value,
-              access: "write",
-              scope: "session",
-              source: "api",
-              time: { created: Date.now() },
-            }),
-          )
+        ? roots.map((value): Grant => ({
+            id: `fsg_${crypto.randomUUID()}`,
+            path: value,
+            access: "write",
+            scope: "session",
+            source: "project",
+            time: { created: Date.now() },
+          }))
         : []),
     ]
     const record: State = {
@@ -429,6 +643,7 @@ export namespace SessionFilesystem {
       projectID: Instance.project.id,
       directory: root,
       grants,
+      ...(options.workingRoot ? { workingRoot: options.workingRoot } : {}),
     }
     let inserted = false
     const stored = await Storage.upsert<State>(key(sessionID), (current) => {
@@ -440,7 +655,7 @@ export namespace SessionFilesystem {
     await project(sessionID)
     if (options.revokeExisting !== false) {
       for (const grant of grants) {
-        await changed(sessionID, Instance.project.id, grant)
+        await changed(sessionID, Instance.project.id, grant, true)
       }
     }
     return grants[0]
@@ -454,11 +669,7 @@ export namespace SessionFilesystem {
   export async function seedProject(input: { projectID: string; grants: Array<{ path: string; access: Access }> }) {
     const roots = await Promise.all(
       input.grants.map(async (grant) => {
-        if (!path.isAbsolute(grant.path)) throw new InvalidPathError({ path: grant.path })
-        const root = await Filesystem.canonical(grant.path)
-        if (!root) throw new InvalidPathError({ path: grant.path })
-        await assertNotToolOutput(Project.canonicalize(root))
-        return { path: Project.canonicalize(root), access: grant.access }
+        return { path: await folderPath(grant.path), access: grant.access }
       }),
     )
     if (roots.length === 0) return
@@ -489,7 +700,9 @@ export namespace SessionFilesystem {
       if (!additions.length) return record
       return { ...record, revision: record.revision + 1, grants: [...record.grants, ...additions] }
     })
-    for (const grant of additions) await changed(`project:${input.projectID}`, input.projectID, grant)
+    for (const grant of additions) {
+      await changed(`project:${input.projectID}`, input.projectID, grant, grant.access === "write")
+    }
   }
 
   export async function grant(input: {
@@ -502,7 +715,9 @@ export namespace SessionFilesystem {
     if (input.source === "tool" || input.source === "handoff") {
       throw new InvalidPathError({ path: input.path })
     }
-    return insert(input)
+    // Every project holds only its own folder access. The widest scope a
+    // caller can request is therefore the project that made the request.
+    return insert({ ...input, scope: input.scope === "installation" ? "project" : input.scope })
   }
 
   /**
@@ -562,7 +777,107 @@ export namespace SessionFilesystem {
     return stored
   }
 
+  /**
+   * The lead reads what its worker left in the worker's own scratch. A
+   * delegated child keeps side outputs (staged inputs, rendered pages, tool
+   * output files) in its isolated workspace; without this grant the parent's
+   * transcript shows those files but cannot open them. Read only, session
+   * scoped, and only from a direct child in the same project.
+   */
+  export async function shareWorkerScratch(input: { parentSessionID: string; childSessionID: string }) {
+    const [parent, child] = await Promise.all([ensure(input.parentSessionID), ensure(input.childSessionID)])
+    const source = isolated(child)
+    const target = isolated(parent)
+    if (
+      !source ||
+      !target ||
+      source.root !== target.root ||
+      source.workspace === target.workspace ||
+      path.basename(source.workspace) !== input.childSessionID ||
+      path.basename(target.workspace) !== input.parentSessionID ||
+      parent.projectID !== child.projectID ||
+      parent.directory !== child.directory
+    ) {
+      return
+    }
+    const grant: Grant = {
+      id: `fsg_${crypto.randomUUID()}`,
+      path: source.workspace,
+      access: "read",
+      scope: "session",
+      source: "handoff",
+      time: { created: Date.now() },
+    }
+    const result = await Storage.update<State>(key(input.parentSessionID), (draft) => {
+      const duplicate = draft.grants.find(
+        (item) =>
+          item.source === "handoff" &&
+          item.path === source.workspace &&
+          item.access === "read" &&
+          item.scope === "session" &&
+          !item.time.revoked,
+      )
+      if (duplicate) {
+        grant.id = duplicate.id
+        grant.time = duplicate.time
+        return
+      }
+      draft.grants.push(grant)
+      draft.revision++
+    })
+    const stored = result.grants.find((item) => item.id === grant.id) ?? grant
+    await changed(input.parentSessionID, Instance.project.id, stored)
+    return stored
+  }
+
   /** Internal exact-file capability for app-managed truncated tool output. */
+  /**
+   * A delegated child works in its parent's directory: the same tool working
+   * directory, read and write, so the files it produces are the parent's
+   * deliverables without a handoff step. Only a direct child in the same
+   * project can receive the grant, and only for the parent's current working
+   * directory; no other session or external path can be named.
+   */
+  export async function shareWorkingDirectory(input: { parentSessionID: string; childSessionID: string }) {
+    const [parent, child] = await Promise.all([ensure(input.parentSessionID), ensure(input.childSessionID)])
+    if (parent.projectID !== child.projectID || parent.directory !== child.directory) {
+      throw new DeniedError({ sessionID: input.childSessionID, path: parent.directory, access: "write" })
+    }
+    const target = await toolDirectory(input.parentSessionID)
+    if (target === (await toolDirectory(input.childSessionID))) return
+    const grant: Grant = {
+      id: `fsg_${crypto.randomUUID()}`,
+      path: target,
+      access: "write",
+      scope: "session",
+      source: "parent",
+      time: { created: Date.now() },
+    }
+    const result = await Storage.update<State>(key(input.childSessionID), (draft) => {
+      // A project-root grant on the same path cannot be the working root and
+      // cannot cross into the lead's private scratch, so add ours beside it.
+      const duplicate = draft.grants.find(
+        (item) =>
+          item.source === "parent" &&
+          item.path === target &&
+          item.access === "write" &&
+          item.scope === "session" &&
+          !item.time.revoked,
+      )
+      if (duplicate) {
+        grant.id = duplicate.id
+        grant.time = duplicate.time
+      } else {
+        draft.grants.push(grant)
+      }
+      draft.workingRoot = target
+      draft.revision++
+    })
+    const stored = result.grants.find((item) => item.id === grant.id) ?? grant
+    await changed(input.childSessionID, Instance.project.id, stored, true)
+    return stored
+  }
+
   export async function grantToolOutput(input: { sessionID: string; path: string }) {
     const state = await ensure(input.sessionID)
     const root = await canonical(input.path)
@@ -649,9 +964,14 @@ export namespace SessionFilesystem {
         draft.revision++
       })
       const stored = result.grants.find((item) => item.id === grant.id) ?? grant
-      await changed(input.sessionID, Instance.project.id, stored)
+      await changed(input.sessionID, Instance.project.id, stored, input.access === "write")
       return stored
     }
+    const shared = await project(input.sessionID)
+    const effective = (record: State) => ({
+      grants: [...record.grants, ...shared.grants],
+      workingRoot: record.workingRoot ?? shared.workingRoot,
+    })
     const result = await Storage.update<State>(key(input.sessionID), (draft) => {
       const duplicate = draft.grants.find(
         (item) =>
@@ -670,7 +990,12 @@ export namespace SessionFilesystem {
       draft.revision++
     })
     const stored = result.grants.find((item) => item.id === grant.id) ?? grant
-    await changed(input.sessionID, Instance.project.id, stored)
+    await changed(
+      input.sessionID,
+      Instance.project.id,
+      stored,
+      resolveToolDirectory(effective(state), "") !== resolveToolDirectory(effective(result), ""),
+    )
     return stored
   }
 
@@ -686,7 +1011,7 @@ export namespace SessionFilesystem {
    * from being reused for the actual I/O.
    */
   export async function authorize(input: { sessionID: string; path: string; access: Access }): Promise<Authorized> {
-    const record = await state(input.sessionID)
+    const record = await brokerState(input.sessionID)
     const target = await canonical(input.path, workspaceGrant(record)?.path ?? record.directory)
     assertPrivate(record, target, input.access)
     const enclave = await managedToolOutput(target)
@@ -702,13 +1027,7 @@ export namespace SessionFilesystem {
         return b.path.length - a.path.length
       })
     const grant = matches[0]
-    if (!grant) {
-      throw new DeniedError({
-        sessionID: input.sessionID,
-        path: target,
-        access: input.access,
-      })
-    }
+    if (!grant) throw denial(record, target, input.access)
     if (grant.scope === "once") {
       const consumed = Date.now()
       await Storage.update<State>(key(input.sessionID), (draft) => {
@@ -759,7 +1078,7 @@ export namespace SessionFilesystem {
         access: input.access,
       })
     }
-    const record = await state(input.sessionID)
+    const record = await brokerState(input.sessionID)
     const grant = record.grants
       .filter(
         (candidate) =>
@@ -823,7 +1142,7 @@ export namespace SessionFilesystem {
     if (!bindings.has(binding)) throw denied()
     if (access === "write" && binding.access !== "write") throw denied()
 
-    const record = await state(binding.sessionID)
+    const record = await brokerState(binding.sessionID)
     const target = await canonical(requested, workspaceGrant(record)?.path ?? record.directory).catch(() => undefined)
     if (!target) throw denied()
     assertPrivate(record, target, access)
@@ -886,6 +1205,18 @@ export namespace SessionFilesystem {
     return !grants.some((grant) => permits(grant, "write"))
   }
 
+  /** Old project sessions may predate project grants altogether. That absence
+   * is distinct from a user's explicit read-only, consumed, or revoked grant:
+   * a compatibility fallback must never turn a recorded restriction into write
+   * authority. Call again inside the mutation lease to observe later changes. */
+  export async function allowsLegacyProjectWrite(input: { sessionID: string; path: string }) {
+    const record = await state(input.sessionID)
+    const target = await canonical(input.path, workspaceGrant(record)?.path ?? record.directory)
+    assertPrivate(record, target, "write")
+    if (!(await Instance.containsCanonicalPath(target))) return false
+    return !record.grants.some((grant) => Filesystem.contains(grant.path, target))
+  }
+
   /**
    * An exact app-managed tool output belongs to the session that produced it.
    * This is deliberately narrower than a normal filesystem grant: callers may
@@ -907,11 +1238,15 @@ export namespace SessionFilesystem {
 
   export async function state(sessionID: string) {
     const record = await ensure(sessionID)
-    const [shared, global] = await Promise.all([project(sessionID), installation()])
+    // Filesystem authority stops at the project: a folder approved while
+    // working in one project never becomes reachable from another. Older
+    // installation-wide records stay on disk but no longer apply anywhere.
+    const shared = await project(sessionID)
     const result = State.parse({
       ...record,
-      revision: record.revision + shared.revision + global.revision - 2,
-      grants: [...record.grants, ...shared.grants, ...global.grants],
+      revision: record.revision + shared.revision - 1,
+      grants: [...record.grants, ...shared.grants],
+      workingRoot: record.workingRoot ?? shared.workingRoot,
     })
     await SessionWorkspace.revise(sessionID, result.revision)
     return result
@@ -926,6 +1261,7 @@ export namespace SessionFilesystem {
     return {
       ...filesystem,
       workspace,
+      toolDirectory: resolveToolDirectory(filesystem, workspace.scratchRoot),
       enforcement: {
         broker: "enforced",
         processWrite: "grant_only",
@@ -947,10 +1283,21 @@ export namespace SessionFilesystem {
             !grant.time.consumed &&
             !grant.time.revoked &&
             grant.scope !== "once" &&
-            (grant.source === "permission" || grant.source === "api"),
+            (grant.source === "permission" ||
+              grant.source === "api" ||
+              grant.source === "project" ||
+              grant.source === "parent"),
         )
         .map((grant) => grant.path),
     ])
+  }
+
+  export async function watchProject(current?: z.infer<typeof ProjectSnapshot>) {
+    const snapshot = current ?? (await projectSnapshot())
+    return FileWatcher.watchSession(
+      `project:${Instance.project.id}`,
+      snapshot.grants.filter((grant) => permits(grant, "read")).map((grant) => grant.path),
+    )
   }
 
   /** Persistent explicit read roots for newly launched processes. One-shot
@@ -968,9 +1315,75 @@ export namespace SessionFilesystem {
     return record.grants.filter((grant) => grant.scope !== "once" && permits(grant, "write")).map((grant) => grant.path)
   }
 
+  /** The session's owned scratch directory: caches, staged downloads, tool
+   * side outputs. Never a user folder, so callers may create files freely. */
   export async function workspace(sessionID: string) {
     const record = await ensure(sessionID)
     return SessionWorkspace.touch(sessionID).then((value) => value.scratchRoot)
+  }
+
+  /** Connected folders the user can work in directly: durable read/write roots
+   * they attached, newest first. Project-owned and scratch grants are not
+   * candidates; the former is an opaque managed root for app projects. */
+  export function workingRootCandidates(record: Pick<State, "grants">) {
+    return record.grants
+      .filter(
+        (grant) =>
+          (grant.source === "api" || grant.source === "permission" || grant.source === "parent") &&
+          grant.scope !== "once" &&
+          permits(grant, "write"),
+      )
+      .toSorted((left, right) => right.time.created - left.time.created)
+  }
+
+  /**
+   * Where relative tool paths resolve. An explicit choice wins while its grant
+   * stays active and falls back to scratch once revoked, never to a folder the
+   * user did not choose. Without a choice, the single connected read/write
+   * folder is the working directory (the newest one when several are
+   * connected), and scratch remains the default for projects with none.
+   */
+  export function resolveToolDirectory(record: Pick<State, "grants" | "workingRoot">, scratch: string) {
+    const candidates = workingRootCandidates(record)
+    if (record.workingRoot === "scratch") return scratch
+    if (record.workingRoot) {
+      const chosen = candidates.find((grant) => grant.path === record.workingRoot)
+      return chosen ? chosen.path : scratch
+    }
+    return candidates[0]?.path ?? scratch
+  }
+
+  /** The directory relative tool paths resolve against: the working folder
+   * when there is one, otherwise scratch. Storage-only callers keep using
+   * `workspace()`, which never points at a user folder. */
+  export async function toolDirectory(sessionID: string) {
+    const record = await state(sessionID)
+    const scratch = await SessionWorkspace.touch(sessionID).then((value) => value.scratchRoot)
+    return resolveToolDirectory(record, scratch)
+  }
+
+  /** Pin or release the session's working directory. A path must name an
+   * active connected read/write folder; `null` returns to automatic. */
+  export async function setWorkingRoot(sessionID: string, value: WorkingRoot | null) {
+    const current = await state(sessionID)
+    const next = value === null || value === "scratch" ? value : await canonical(value)
+    if (typeof next === "string" && next !== "scratch") {
+      const allowed = workingRootCandidates(current).some((grant) => grant.path === next)
+      if (!allowed) throw new DeniedError({ sessionID, path: next, access: "write" })
+    }
+    await Storage.update<State>(key(sessionID), (draft) => {
+      if (next === null) delete draft.workingRoot
+      else draft.workingRoot = next
+      draft.revision++
+    })
+    const signal = await AuthoritySignal.publish({
+      kind: "filesystem",
+      projectID: current.projectID,
+      sessionID,
+      scope: "session",
+    })
+    await AuthoritySignal.settle(signal.revision)
+    return snapshot(sessionID)
   }
 
   export async function revoke(sessionID: string, grantID: string) {

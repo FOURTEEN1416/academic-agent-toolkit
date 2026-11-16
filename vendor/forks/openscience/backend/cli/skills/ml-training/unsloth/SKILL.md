@@ -7,6 +7,14 @@ author: Synthetic Sciences
 license: MIT
 tags: [Fine-Tuning, Unsloth, LoRA, QLoRA, GRPO, RL, Vision, TTS, GGUF, Ollama, vLLM, Fast Training, Memory-Efficient]
 dependencies: [unsloth, torch>=2.1.0, transformers>=4.45.0, trl>=0.15.0, datasets, peft, xformers]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: unsloth
+  upstream-license: MIT
+  upstream-relationship: adapted and rewritten
+  skill-author: Synthetic Sciences
+  adapted-by: Synthetic Sciences
 ---
 
 # Unsloth - Fast LLM Fine-Tuning

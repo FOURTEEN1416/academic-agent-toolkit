@@ -1,0 +1,696 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/paperspine-domain-commands.schema.json",
+  "title": "PaperSpine domain command envelope",
+  "x-contract-status": "frozen-p0-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "command_id",
+    "task_id",
+    "expected_version",
+    "command_type",
+    "actor",
+    "payload",
+    "external_action_authorized"
+  ],
+  "properties": {
+    "contract": {
+      "const": "paperspine.domain-command"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "command_id": {
+      "$ref": "#/$defs/safeId"
+    },
+    "task_id": {
+      "$ref": "#/$defs/safeId"
+    },
+    "expected_version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "command_type": {
+      "enum": [
+        "OpenTask",
+        "AuthorizeMaterials",
+        "CommitMilestone",
+        "BindEvidence",
+        "PublishArtifact",
+        "RequestDecision",
+        "ResolveDecision",
+        "SubmitReview",
+        "ResolveFinding",
+        "PrepareDelivery"
+      ]
+    },
+    "actor": {
+      "$ref": "#/$defs/actor"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "external_action_authorized": {
+      "const": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "OpenTask"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/openTask"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "AuthorizeMaterials"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/authorizeMaterials"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "CommitMilestone"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/commitMilestone"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "BindEvidence"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/bindEvidence"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "PublishArtifact"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/publishArtifact"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "RequestDecision"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/requestDecision"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "ResolveDecision"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "actor": {
+            "properties": {
+              "surface": {
+                "const": "business"
+              },
+              "authority": {
+                "const": "authenticated_user"
+              }
+            }
+          },
+          "payload": {
+            "$ref": "#/$defs/resolveDecision"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "SubmitReview"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/submitReview"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "ResolveFinding"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/resolveFinding"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "PrepareDelivery"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/prepareDelivery"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "safeId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "stage": {
+      "enum": [
+        "intake",
+        "research",
+        "contribution",
+        "evidence",
+        "draft",
+        "figure",
+        "review",
+        "delivery"
+      ]
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actor_id",
+        "surface",
+        "authority"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "surface": {
+          "enum": [
+            "agent",
+            "business",
+            "reviewer",
+            "system"
+          ]
+        },
+        "authority": {
+          "enum": [
+            "host_agent",
+            "authenticated_user",
+            "independent_reviewer",
+            "system"
+          ]
+        },
+        "session_id": {
+          "$ref": "#/$defs/safeId"
+        }
+      }
+    },
+    "openTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "open",
+            "resume"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "requested_task_id": {
+          "$ref": "#/$defs/safeId"
+        }
+      }
+    },
+    "authorizeMaterials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grants"
+      ],
+      "properties": {
+        "grants": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "grant_id",
+              "uri",
+              "scope"
+            ],
+            "properties": {
+              "grant_id": {
+                "$ref": "#/$defs/safeId"
+              },
+              "uri": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scope": {
+                "const": "read_only"
+              }
+            }
+          }
+        }
+      }
+    },
+    "commitMilestone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage",
+        "summary",
+        "artifact_ids"
+      ],
+      "properties": {
+        "stage": {
+          "$ref": "#/$defs/stage"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/safeId"
+          }
+        }
+      }
+    },
+    "bindEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "evidence_id",
+        "relation"
+      ],
+      "properties": {
+        "claim_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "evidence_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "relation": {
+          "enum": [
+            "supports",
+            "limits",
+            "challenges",
+            "visualizes"
+          ]
+        },
+        "locator": {
+          "type": "string"
+        }
+      }
+    },
+    "publishArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "artifact_type",
+        "stage"
+      ],
+      "properties": {
+        "artifact_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "artifact_type": {
+          "enum": [
+            "research_note",
+            "evidence_graph",
+            "manuscript_source",
+            "figure",
+            "pdf",
+            "docx",
+            "tex",
+            "bibliography",
+            "review_packet",
+            "delivery_package"
+          ]
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stage": {
+          "$ref": "#/$defs/stage"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "relative_path"
+          ],
+          "properties": {
+            "grant_id": {
+              "$ref": "#/$defs/safeId"
+            },
+            "relative_path": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "Relative to this task workspace when grant_id is omitted; otherwise relative to the named authorized material root. Never another task or an arbitrary absolute path."
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "source"
+          ]
+        },
+        {
+          "required": [
+            "sha256",
+            "media_type"
+          ]
+        }
+      ],
+      "description": "Publish an already registered artifact, or import a regular file relative to a committed read-only material grant of this task. The core computes and validates content metadata. No absolute paths, parent traversal, links, cross-task data or external action."
+    },
+    "requestDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "task_version",
+        "decision_type",
+        "prompt",
+        "allowed_decisions",
+        "scope_refs",
+        "requested_by_command_id",
+        "expires_at"
+      ],
+      "properties": {
+        "decision_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "task_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "decision_type": {
+          "enum": [
+            "contribution",
+            "motivation",
+            "figure",
+            "author_fact",
+            "target_boundary"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "allowed_decisions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "option_id",
+              "label"
+            ],
+            "properties": {
+              "option_id": {
+                "$ref": "#/$defs/safeId"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "risk": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "files": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "Task-relative figure files to show with this choice."
+              }
+            }
+          }
+        },
+        "scope_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/safeId"
+          }
+        },
+        "requested_by_command_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "expires_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "resolveDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "option_id",
+        "confirmed_at",
+        "reason"
+      ],
+      "description": "The stable decision_id is sufficient for recovery; internal continuation references and Runner tokens are never exposed.",
+      "properties": {
+        "decision_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "option_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "confirmed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "submitReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_id",
+        "reviewed_artifact_ids",
+        "reviewer_id",
+        "findings"
+      ],
+      "properties": {
+        "review_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "reviewed_artifact_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/safeId"
+          }
+        },
+        "reviewer_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "finding_id",
+              "severity",
+              "message"
+            ],
+            "properties": {
+              "finding_id": {
+                "$ref": "#/$defs/safeId"
+              },
+              "severity": {
+                "enum": [
+                  "blocking",
+                  "major",
+                  "minor"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "resolveFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "resolution_artifact_ids",
+        "explanation"
+      ],
+      "properties": {
+        "finding_id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "resolution_artifact_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/safeId"
+          }
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "prepareDelivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "required_formats"
+      ],
+      "properties": {
+        "scope": {
+          "enum": [
+            "manuscript",
+            "local_delivery",
+            "submission_package"
+          ]
+        },
+        "required_formats": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "pdf",
+              "docx",
+              "tex",
+              "figures",
+              "bibliography"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

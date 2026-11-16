@@ -1,6 +1,6 @@
 import { afterAll, afterEach, describe, expect, test } from "bun:test"
 import { fileURLToPath } from "node:url"
-import { createServer } from "vite"
+import { createTestServer as createServer } from "../../../test/vite"
 import solid from "vite-plugin-solid"
 import type { JSX } from "solid-js"
 
@@ -71,5 +71,45 @@ describe("SettingsPanelStack", () => {
     expect(harness.mounts).toEqual({ models: 1, network: 1 })
     expect(modelFilter.value).toBe("remember me")
     expect(host.querySelector(".settings-panel-loading")).toBeNull()
+  })
+
+  const settle = () => new Promise((done) => setTimeout(done, 0))
+
+  test("a steady resource keeps the panel on screen while it refetches", async () => {
+    const harness = fixture.createRefreshingPanelFixture({ steady: true })
+    const host = mount(harness.view)
+    const loading = host.querySelector(".settings-panel-loading")
+    expect(loading).not.toBeNull()
+    expect(loading?.getAttribute("role")).toBe("status")
+    expect(loading?.querySelector("synsci-loader")?.getAttribute("caption")).toBe("Loading settings")
+    expect(loading?.textContent).toContain("Loading settings")
+
+    harness.resolve(["ollama"])
+    await settle()
+    const list = host.querySelector<HTMLElement>('[aria-label="Runtimes"]')!
+    expect(list.textContent).toBe("ollama")
+
+    harness.refetch()
+    await settle()
+    expect(host.querySelector(".settings-panel-loading")).toBeNull()
+    expect(host.querySelector('[aria-label="Runtimes"]')).toBe(list)
+
+    harness.resolve(["ollama", "lmstudio"])
+    await settle()
+    expect(list.textContent).toBe("ollamalmstudio")
+  })
+
+  test("a plain resource swaps the panel for its skeleton on refetch", async () => {
+    const harness = fixture.createRefreshingPanelFixture({ steady: false })
+    const host = mount(harness.view)
+    harness.resolve(["ollama"])
+    await settle()
+    expect(host.querySelector('[aria-label="Runtimes"]')).not.toBeNull()
+
+    harness.refetch()
+    await settle()
+    expect(host.querySelector(".settings-panel-loading")).not.toBeNull()
+    expect(host.querySelector('[aria-label="Runtimes"]')).toBeNull()
+    harness.resolve([])
   })
 })

@@ -3,6 +3,7 @@ import path from "node:path"
 import { Global } from "@/global"
 import { Installation } from "@/installation"
 import { Filesystem } from "@/util/filesystem"
+import { FileLease } from "@/util/file-lease"
 import { Log } from "@/util/log"
 import { directoryDigest } from "./bundle-format"
 
@@ -21,58 +22,72 @@ export namespace BundledSkills {
     return import("./bundled.generated").catch(() => undefined)
   }
 
-  export async function materialize(input: {
-    archive: string
-    digest: string
-    files: number
-    skills: number
-    cache?: string
-  }): Promise<string> {
-    if (!/^[a-f0-9]{64}$/.test(input.digest)) throw new Error("Invalid bundled skill digest")
+  type Materialize = { archive: string; digest: string; files: number; skills: number; cache?: string }
+
+  // Project instances share one extraction; the lease also coordinates processes.
+  const inflight = new Map<string, Promise<string>>()
+
+  export function materialize(input: Materialize): Promise<string> {
+    if (!/^[a-f0-9]{64}$/.test(input.digest)) return Promise.reject(new Error("Invalid bundled skill digest"))
     const base = input.cache ?? path.join(Global.Path.cache, "bundled-skills")
+    const key = path.join(base, input.digest)
+    const pending = inflight.get(key)
+    if (pending) return pending
+    const task = extract(input, base).finally(() => inflight.delete(key))
+    inflight.set(key, task)
+    return task
+  }
+
+  async function verified(marker: string, input: Materialize) {
+    return Bun.file(marker)
+      .json()
+      .then((value) => value?.digest === input.digest && value?.files === input.files && value?.skills === input.skills)
+      .catch(() => false)
+  }
+
+  async function extract(input: Materialize, base: string): Promise<string> {
     const root = path.join(base, input.digest)
     const marker = path.join(root, ".openscience-bundle.json")
-    const ready = await Bun.file(marker)
-      .json()
-      .then((value) => value?.digest === input.digest && value?.files === input.files && value?.skills === input.skills)
-      .catch(() => false)
-    if (ready) return root
+    if (await verified(marker, input)) return root
 
-    const tmp = path.join(base, `.${input.digest}.${process.pid}.${Date.now()}`)
-    await fs.mkdir(base, { recursive: true })
-    await fs.rm(tmp, { recursive: true, force: true })
-    const bytes = await Bun.file(input.archive).bytes()
-    const count = await new Bun.Archive(bytes).extract(tmp)
-    if (count < input.files) {
-      await fs.rm(tmp, { recursive: true, force: true })
-      throw new Error(`Bundled skill archive is incomplete: expected ${input.files} files, extracted ${count}`)
-    }
-    const digest = await directoryDigest(tmp)
-    if (digest !== input.digest) {
-      await fs.rm(tmp, { recursive: true, force: true })
-      throw new Error(`Bundled skill archive failed verification: expected ${input.digest}, got ${digest}`)
-    }
+    // Multiple project instances and processes share this content-addressed cache.
+    await using lease = await FileLease.acquire(path.join(base, `${input.digest}.lock`), 60_000)
+    if (await verified(marker, input)) return root
+    const tmp = await fs.mkdtemp(path.join(base, `.${input.digest}.`))
+    try {
+      const bytes = await Bun.file(input.archive).bytes()
+      const count = await new Bun.Archive(bytes).extract(tmp)
+      if (count < input.files) {
+        throw new Error(`Bundled skill archive is incomplete: expected ${input.files} files, extracted ${count}`)
+      }
+      const digest = await directoryDigest(tmp)
+      if (digest !== input.digest) {
+        throw new Error(`Bundled skill archive failed verification: expected ${input.digest}, got ${digest}`)
+      }
 
-    for await (const script of new Bun.Glob("**/*.{py,sh,js,ts}").scan({ cwd: tmp, absolute: true, onlyFiles: true })) {
-      await fs.chmod(script, 0o755).catch(() => {})
-    }
-    await Bun.write(
-      path.join(tmp, ".openscience-bundle.json"),
-      JSON.stringify({ digest: input.digest, files: input.files, skills: input.skills }),
-    )
+      for await (const script of new Bun.Glob("**/*.{py,sh,js,ts}").scan({
+        cwd: tmp,
+        absolute: true,
+        onlyFiles: true,
+      })) {
+        await fs.chmod(script, 0o755).catch(() => {})
+      }
+      await Bun.write(
+        path.join(tmp, ".openscience-bundle.json"),
+        JSON.stringify({ digest: input.digest, files: input.files, skills: input.skills }),
+      )
 
-    const raced = await Bun.file(marker)
-      .json()
-      .then((value) => value?.digest === input.digest && value?.files === input.files && value?.skills === input.skills)
-      .catch(() => false)
-    if (raced) {
-      await fs.rm(tmp, { recursive: true, force: true })
+      // An older app may still publish the same bundle without taking the lease.
+      if (await verified(marker, input)) return root
+      await fs.rm(root, { recursive: true, force: true })
+      await fs.rename(tmp, root).catch(async (error) => {
+        if (await verified(marker, input)) return
+        throw error
+      })
       return root
+    } finally {
+      await fs.rm(tmp, { recursive: true, force: true })
     }
-
-    await fs.rm(root, { recursive: true, force: true })
-    await fs.rename(tmp, root)
-    return root
   }
 
   export async function root(): Promise<string | undefined> {

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/migration-receipt.schema.json",
+  "title": "PaperSpine5 pre-migration snapshot receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "migration_id", "task_id", "source", "snapshot_root", "target", "source_mutated", "created_at"],
+  "properties": {
+    "contract": {"const": "paperspine5.migration-receipt"},
+    "schema_version": {"const": "1.0"},
+    "migration_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "source": {"type": "object"},
+    "snapshot_root": {"type": "string", "minLength": 1},
+    "target": {"type": "object"},
+    "source_mutated": {"const": false},
+    "created_at": {"type": "string", "minLength": 1}
+  }
+}

@@ -12,7 +12,7 @@ Systematically review academic figures and flag common issues that hurt readabil
 
 - "check my figures", "critique figures", "review figures before submission"
 - Before submitting a paper to a journal or conference
-- Called by the `presubmit-checks` skill as one of its checks (future)
+- No automated caller in this repo yet; invoke it manually before paper submission (automatic presubmission wiring is future work)
 
 ## Workflow
 

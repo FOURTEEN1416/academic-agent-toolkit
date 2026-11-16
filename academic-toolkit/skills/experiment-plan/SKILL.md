@@ -223,20 +223,8 @@ Tracker file: refine-logs/EXPERIMENT_TRACKER.md
 ⛔ **File writing strategy (prevent both failure modes):**
 - For short content (<150 lines): use the **Write tool** directly (atomic, reliable)
 - For long content (>150 lines): use **Write** for the first section (ensures file exists on disk), then append remaining sections with `cat << 'EOF' >> refine-logs/EXPERIMENT_PLAN.md`
-- **NEVER `end_turn` without producing `refine-logs/EXPERIMENT_PLAN.md`** — even if upstream steps had issues, write what you have
 
-⛔ **MUST run output verification before ending**:
-```bash
-PASS=true
-[ -f refine-logs/EXPERIMENT_PLAN.md ] && SZ=$(wc -c < refine-logs/EXPERIMENT_PLAN.md) || SZ=0
-if [ "$SZ" -ge 500 ]; then
-    echo "✅ refine-logs/EXPERIMENT_PLAN.md ($SZ bytes)"
-else
-    echo "❌ refine-logs/EXPERIMENT_PLAN.md missing or too small ($SZ bytes) — write it NOW before ending"
-    PASS=false
-fi
-[ "$PASS" != true ] && echo "⛔ Verification failed — must produce output before ending step"
-```
+产出存在性与最低完整性由 `finish` 按模板 `output_contract` 自动核验；上游步骤有缺口时如实写入已有内容，缺项按 finish 返回的问题逐项补齐，不复制执行验证脚本。
 
 - **Every experiment must defend a claim.** If it does not change a reviewer belief, cut it.
 - **Prefer a compact paper story.** Design the main table first, then add only the ablations that defend it.

@@ -9,16 +9,19 @@ import re
 import sys
 from collections import Counter
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _paper_spine_utils import markdown_tables, year_from_row
 
-CURRENT_YEAR = 2026
-DEFAULT_TARGET_COUNT = 20
-DEFAULT_MULTIPLIER = 3
-DEFAULT_RECENT_RATIO = 0.80
+CURRENT_YEAR = date.today().year
+# No venue-independent bibliography target, discovery multiplier or age quota.
+# Explicit legacy caller arguments still select their requested structural check.
+DEFAULT_TARGET_COUNT = 0
+DEFAULT_MULTIPLIER = 1
+DEFAULT_RECENT_RATIO = 0.0
 
 
 @dataclass
@@ -41,7 +44,8 @@ class CitationBankResult:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate PaperSpine citation support bank.")
     parser.add_argument("path", nargs="?", default="paper_rewriting_output/citation_support_bank.md")
-    parser.add_argument("--target-count", type=int, default=DEFAULT_TARGET_COUNT)
+    parser.add_argument("--target-count", type=int, default=DEFAULT_TARGET_COUNT,
+                        help="Resolved task bibliography target; omitted means coverage not assessed. This checks the candidate bank, not the final manuscript.")
     parser.add_argument("--multiplier", type=int, default=DEFAULT_MULTIPLIER)
     parser.add_argument("--recent-years", type=int, default=3)
     parser.add_argument("--recent-ratio", type=float, default=DEFAULT_RECENT_RATIO)
@@ -99,16 +103,9 @@ def source_identity(header: list[str], row: list[str]) -> str:
     """Return a stable, quota-safe identity for one bibliographic source.
 
     Claim-use rows may legitimately repeat a paper, but repeated uses must never
-    inflate source coverage or recency quotas. Prefer explicit Source ID, DOI,
-    arXiv ID, BibTeX key, then URL; only then fall back to normalized reference
-    text.
+    inflate source coverage or recency quotas. Prefer a bibliographic identifier
+    over the agent's local Source ID so relabeling one paper cannot inflate coverage.
     """
-    source_id_index = _column_index(header, "source id")
-    if source_id_index is not None and source_id_index < len(row):
-        value = row[source_id_index].strip().lower()
-        if value and value not in {"-", "n/a", "na", "unknown"}:
-            return f"source:{value}"
-
     reference_index = _column_index(header, "reference", "bibtex", "citation")
     reference = row[reference_index] if reference_index is not None and reference_index < len(row) else " ".join(row)
     lowered = reference.lower()
@@ -119,12 +116,21 @@ def source_identity(header: list[str], row: list[str]) -> str:
     arxiv = re.search(r"(?:arxiv\s*:\s*|arxiv\.org/(?:abs|pdf)/)([a-z-]+/\d{7}|\d{4}\.\d{4,5})(?:v\d+)?", lowered)
     if arxiv:
         return f"arxiv:{arxiv.group(1)}"
+    pmid = re.search(r"(?:pmid\s*:?\s*|pubmed\.ncbi\.nlm\.nih\.gov/)(\d+)", lowered)
+    if pmid:
+        return f"pmid:{pmid.group(1)}"
     bibtex = re.search(r"@\w+\s*\{\s*([^,\s]+)", reference)
     if bibtex:
         return f"bib:{bibtex.group(1).strip().lower()}"
     url = re.search(r"https?://[^\s|}]+", lowered)
     if url:
         return f"url:{url.group(0).rstrip('.,;)}]')}"
+
+    source_id_index = _column_index(header, "source id")
+    if source_id_index is not None and source_id_index < len(row):
+        value = row[source_id_index].strip().lower()
+        if value and value not in {"-", "n/a", "na", "unknown"}:
+            return f"source:{value}"
 
     normalized = re.sub(r"\s+", " ", re.sub(r"[^a-z0-9\u4e00-\u9fff]+", " ", lowered)).strip()
     return f"text:{normalized}"
@@ -143,6 +149,10 @@ def validate(
     required_recent_count = int(required_candidates * recent_ratio + 0.999)
     findings: list[str] = []
     warnings: list[str] = []
+    if target_count < 0 or multiplier < 1 or recent_years < 0 or not 0 <= recent_ratio <= 1:
+        raise ValueError("target-count and recent-years must be nonnegative, multiplier >= 1, and recent-ratio between 0 and 1")
+    if target_count == 0:
+        warnings.append("Bibliography target not supplied: coverage is not assessed. Use the saved custom target or the observed venue-sample mean; bank PASS does not prove final cited-reference coverage.")
     if not path.exists():
         return CitationBankResult(
             str(path), False, target_count, required_candidates, 0, 0, 0, 0,
@@ -161,6 +171,8 @@ def validate(
             findings.append(f"citation_support_bank.md table should include a `{required}` column.")
 
     nonempty_rows = [row for row in rows if any(cell.strip() for cell in row)]
+    if not nonempty_rows:
+        findings.append("citation support bank has no source rows")
     identities = [source_identity(header, row) for row in nonempty_rows]
     source_counts = Counter(identities)
     unique_source_count = len(source_counts)
@@ -198,7 +210,7 @@ def validate(
             )
 
     weak_rows = []
-    for index, row in enumerate(nonempty_rows[:required_candidates], start=1):
+    for index, row in enumerate(nonempty_rows, start=1):
         if not has_claim_sentence(row) or not has_reference_format(row):
             weak_rows.append(index)
     if weak_rows:
@@ -229,6 +241,7 @@ def to_markdown(result: CitationBankResult) -> str:
         "# Citation Bank Check",
         "",
         f"- Path: `{result.path}`",
+        "- Scope: candidate-bank structure and source identities; not citation truth, final cited-reference coverage or manuscript readiness.",
         f"- Status: {'PASS' if result.ok else 'FAIL'}",
         f"- Literature scope: {result.scope}",
         f"- Target citation count: {result.target_count}",

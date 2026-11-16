@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/author-voice-profile.schema.json",
+  "title": "PaperSpine authorized author-voice profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "profile_id", "status", "output_language", "authorized_sources", "protected_terms"],
+  "properties": {
+    "contract": {"const": "paperspine.author-voice-profile"},
+    "schema_version": {"const": "1.0"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["available", "unavailable"]},
+    "output_language": {"type": "string", "minLength": 1, "description": "The actual language tag of this output. Evaluate each requested language separately; unsupported assessment must be reported explicitly rather than silently mapped to English."},
+    "authorized_sources": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {"$ref": "#/$defs/file"},
+          {
+            "type": "object",
+            "required": ["authorization", "source_kind"],
+            "properties": {
+              "authorization": {"enum": ["author_owned", "explicitly_authorized"]},
+              "source_kind": {"enum": ["prior_paper", "proposal", "review_response", "research_note", "other"]}
+            }
+          }
+        ]
+      }
+    },
+    "protected_terms": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "first_person_policy": {"enum": ["preserve_source_pattern", "allow", "avoid", "not_profiled"]},
+    "unavailable_reason": {"type": "string"},
+    "notes": {"type": "array", "items": {"type": "string"}}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "available"}}},
+      "then": {"properties": {"authorized_sources": {"minItems": 1}}}
+    },
+    {
+      "if": {"properties": {"status": {"const": "unavailable"}}},
+      "then": {
+        "required": ["unavailable_reason"],
+        "properties": {"authorized_sources": {"maxItems": 0}, "unavailable_reason": {"minLength": 1}}
+      }
+    }
+  ],
+  "$defs": {
+    "file": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$"}
+      }
+    }
+  }
+}
+

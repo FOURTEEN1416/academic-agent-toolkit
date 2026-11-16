@@ -3,10 +3,18 @@ name: verl-rl-training
 description: Provides guidance for training LLMs with reinforcement learning using verl (Volcano Engine RL). Use when implementing RLHF, GRPO, PPO, or other RL algorithms for LLM post-training at scale with flexible infrastructure backends.
 category: ml-training
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Reinforcement Learning, RLHF, GRPO, PPO, Post-Training, Distributed Training]
 dependencies: [verl>=0.3.0, torch>=2.0.0, ray>=2.41.0, vllm>=0.8.2, transformers>=4.40.0]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 06-post-training/verl
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # verl: Volcano Engine Reinforcement Learning for LLMs
@@ -354,8 +362,6 @@ pip install vllm>=0.8.5,<=0.12.0
 ## Advanced Topics
 
 ### Multi-Turn Tool Calling
-
-See [references/multi-turn.md](references/multi-turn.md) for agentic workflows with tool use.
 
 ### Vision-Language Models
 

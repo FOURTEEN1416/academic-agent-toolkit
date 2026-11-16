@@ -1,6 +1,6 @@
 ---
 name: run-experiment
-description: "Deploy and run ML experiments on local or remote GPU servers. Use when user says ”run experiment”, ”deploy to server”, or ”start training”."
+description: "Deploy and run ML experiments on local or remote GPU servers. Use when user says 'run experiment', 'deploy to server', or 'start training'."
 argument-hint: [experiment-description]
 allowed-tools: Bash(*), Read, Grep, Glob, Edit, Write, Agent
 ---
@@ -53,8 +53,10 @@ rsync -avz --include='*.py' --exclude='*' <local_src>/ <server>:<remote_dst>/
 
 Push local changes to remote repo, then pull on the server:
 ```bash
-# 1. Push from local
-git add -A && git commit -m "sync: experiment deployment" && git push
+# 1. Push from local — add explicit paths only (code, scripts, configs you changed).
+#    Follow the git governance rules of the repo you are working in: in repos with
+#    L1 audit hooks (e.g. academic-toolkit), `git add .` / `-A` / `--all` are denied (exit 2).
+git add src/ scripts/ train.py && git commit -m "sync: experiment deployment" && git push
 
 # 2. Pull on server
 ssh <server> "cd <remote_dst> && git pull"
@@ -138,7 +140,7 @@ Check process is running and GPU is allocated.
 
 ### Step 6: Feishu Notification (if configured)
 
-After deployment is verified, 检查 `~/.acat/feishu.json`:
+After deployment is verified, check the project's notification configuration (e.g., the Feishu/webhook config file agreed in the project's `AGENTS.md`, if any):
 - Send `experiment_done` notification: which experiments launched, which GPUs, estimated time
 - If config absent or mode `"off"`: skip entirely (no-op)
 

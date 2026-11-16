@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import path from "path"
 import { existsSync } from "node:fs"
 import { SessionCompaction } from "../../src/session/compaction"
+import { Config } from "../../src/config/config"
 import { Token } from "../../src/util/token"
 import { Instance } from "../../src/project/instance"
 import { Log } from "../../src/util/log"
@@ -145,7 +146,7 @@ describe("session.compaction.isOverflow", () => {
       directory: tmp.path,
       fn: async () => {
         const model = createModel({ context: 400_000, input: 272_000, output: 128_000 })
-        // count = 150_000 + 20_000 + 10_000 = 180_000; 0.75 * 272_000 = 204_000 → false
+        // Count 180k is below the 272k input cap minus the automatic 20k reserve.
         const tokens = { input: 150_000, output: 20_000, reasoning: 0, cache: { read: 10_000, write: 0 } }
         expect(await SessionCompaction.isOverflow({ tokens, model })).toBe(false)
       },
@@ -170,7 +171,7 @@ describe("session.compaction.isOverflow", () => {
       directory: tmp.path,
       fn: async () => {
         const model = createModel({ context: 0, output: 32_000 })
-        // fallback usable = 128_000 - 32_000 = 96_000; count = 110_000 > 0.75 * 96_000 = 72_000 → true
+        // Fallback usable = 128_000 - 32_000 = 96_000; count = 110_000.
         const tokens = { input: 100_000, output: 10_000, reasoning: 0, cache: { read: 0, write: 0 } }
         expect(await SessionCompaction.isOverflow({ tokens, model })).toBe(true)
       },
@@ -183,7 +184,7 @@ describe("session.compaction.isOverflow", () => {
       directory: tmp.path,
       fn: async () => {
         const model = createModel({ context: 0, output: 32_000 })
-        // fallback usable = 96_000; count = 35_000 < 0.75 * 96_000 = 72_000 → false
+        // Fallback usable = 96_000; count = 35_000.
         const tokens = { input: 30_000, output: 5_000, reasoning: 0, cache: { read: 0, write: 0 } }
         expect(await SessionCompaction.isOverflow({ tokens, model })).toBe(false)
       },
@@ -211,7 +212,7 @@ describe("session.compaction.isOverflow", () => {
     })
   })
 
-  test("respects config.compaction.threshold override", async () => {
+  test("ignores a saved percentage and keeps context until the automatic budget is reached", async () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Bun.write(path.join(dir, "openscience.json"), JSON.stringify({ compaction: { threshold: 0.5 } }))
@@ -221,9 +222,156 @@ describe("session.compaction.isOverflow", () => {
       directory: tmp.path,
       fn: async () => {
         const model = createModel({ context: 100_000, output: 32_000 })
-        // usable = 68_000; count = 40_000. Over 0.5*68_000=34_000 (true) but under default 0.75*68_000=51_000.
+        // The old 50% preference and 75% default would both compact at 60k.
+        const tokens = { input: 55_000, output: 5_000, reasoning: 0, cache: { read: 0, write: 0 } }
+        expect(await SessionCompaction.isOverflow({ tokens, model })).toBe(false)
+        expect(await SessionCompaction.isOverflow({ tokens: { ...tokens, input: 63_000 }, model })).toBe(true)
+      },
+    })
+  })
+
+  test("reserves response capacity for separate input limits and small models", () => {
+    expect(
+      SessionCompaction.usableContext(createModel({ context: 400_000, input: 272_000, output: 128_000 }), {}),
+    ).toEqual({
+      context: 400_000,
+      usable: 252_000,
+    })
+    expect(
+      SessionCompaction.usableContext(createModel({ context: 100_000, input: 90_000, output: 8_000 }), {}),
+    ).toEqual({
+      context: 100_000,
+      usable: 82_000,
+    })
+    expect(SessionCompaction.usableContext(createModel({ context: 8_000, input: 4_000, output: 32_000 }), {})).toEqual({
+      context: 8_000,
+      usable: 2_000,
+    })
+  })
+
+  test("counts cache writes once and compacts exactly at the automatic capacity", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const model = createModel({ context: 100_000, output: 32_000 })
+        const tokens = { input: 40_000, output: 5_000, reasoning: 4_000, cache: { read: 10_000, write: 12_999 } }
+        expect(await SessionCompaction.isOverflow({ tokens, model })).toBe(false)
+        expect(
+          await SessionCompaction.isOverflow({ tokens: { ...tokens, cache: { read: 10_000, write: 13_000 } }, model }),
+        ).toBe(true)
+      },
+    })
+  })
+
+  test("a caller-selected smaller context remains the automatic compaction boundary", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const model = createModel({ context: 200_000, output: 32_000 })
+        const tokens = { input: 63_000, output: 5_000, reasoning: 0, cache: { read: 0, write: 0 } }
+        expect(await SessionCompaction.isOverflow({ tokens, model })).toBe(false)
+        expect(await SessionCompaction.isOverflow({ tokens, model, context: 100_000 })).toBe(true)
+        expect(SessionCompaction.usableContext(model, {}, 100_000)).toEqual({ context: 100_000, usable: 68_000 })
+        expect(SessionCompaction.usableContext(model, {}, 400_000)).toEqual({ context: 200_000, usable: 168_000 })
+      },
+    })
+  })
+
+  test("a model priced in tiers budgets its context at the first boundary unless the turn names the window", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const astra = createModel({
+          context: 1_050_000,
+          input: 922_000,
+          output: 128_000,
+          cost: {
+            input: 10,
+            output: 50,
+            cache: { read: 1, write: 12.5 },
+            tiers: [{ threshold: 272_000, input: 20, output: 75, cache: { read: 2, write: 25 } }],
+          },
+        })
+        // The default budget stops at the boundary; the window itself is still
+        // what one request may hold.
+        expect(SessionCompaction.usableContext(astra, {}).context).toBe(272_000)
+        expect(SessionCompaction.usableContext(astra, {}, undefined, { tiers: false }).context).toBe(1_050_000)
+        // Naming the full window, or any cap, is honoured as before.
+        expect(SessionCompaction.usableContext(astra, {}, 1_050_000).context).toBe(1_050_000)
+        expect(SessionCompaction.usableContext(astra, {}, 100_000).context).toBe(100_000)
+        // Compaction fires a little before the boundary, not at the window.
+        const tokens = { input: 250_000, output: 5_000, reasoning: 0, cache: { read: 0, write: 0 } }
+        expect(await SessionCompaction.isOverflow({ tokens, model: astra })).toBe(true)
+        expect(await SessionCompaction.isOverflow({ tokens, model: astra, context: 1_050_000 })).toBe(false)
+        // A tier that is not dearer is no boundary; a flat catalog keeps its window.
+        const flat = createModel({ context: 1_050_000, output: 128_000 })
+        expect(SessionCompaction.usableContext(flat, {}).context).toBe(1_050_000)
+        const same = createModel({
+          context: 1_050_000,
+          output: 128_000,
+          cost: {
+            input: 10,
+            output: 50,
+            cache: { read: 1, write: 12.5 },
+            tiers: [{ threshold: 272_000, input: 10, output: 50, cache: { read: 1, write: 12.5 } }],
+          },
+        })
+        expect(SessionCompaction.usableContext(same, {}).context).toBe(1_050_000)
+      },
+    })
+  })
+
+  test("usable capacity stays positive and within known and selected limits", () => {
+    for (const context of [1, 2, 8_000, 128_000, 1_000_000]) {
+      for (const output of [0, 1, 4_096, 32_000, 128_000]) {
+        for (const input of [undefined, 1, 4_000, context, context * 2]) {
+          for (const requested of [undefined, 1, 8_000, context * 2]) {
+            const budget = SessionCompaction.usableContext(createModel({ context, input, output }), {}, requested)
+            expect(budget.usable).toBeGreaterThan(0)
+            expect(budget.usable).toBeLessThanOrEqual(Math.min(context, input ?? context, requested ?? context))
+          }
+        }
+      }
+    }
+  })
+
+  test("invalid provider limits use safe defaults and invalid caller context is rejected", () => {
+    for (const invalid of [-1, 0, 0.5, NaN, Infinity]) {
+      expect(SessionCompaction.usableContext(createModel({ context: 128_000, output: invalid }), {})).toEqual({
+        context: 128_000,
+        usable: 96_000,
+      })
+      expect(SessionCompaction.usableContext(createModel({ context: invalid, output: 32_000 }), {})).toEqual({
+        context: 128_000,
+        usable: 96_000,
+      })
+      expect(
+        SessionCompaction.usableContext(createModel({ context: 128_000, input: invalid, output: 32_000 }), {}),
+      ).toEqual({ context: 128_000, usable: 96_000 })
+      expect(() =>
+        SessionCompaction.usableContext(createModel({ context: 128_000, output: 32_000 }), {}, invalid),
+      ).toThrow("positive whole number")
+    }
+  })
+
+  test("a stale config.compaction.warn_tokens is ignored and never changes the overflow trigger", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await Bun.write(path.join(dir, "openscience.json"), JSON.stringify({ compaction: { warn_tokens: 1_000 } }))
+      },
+    })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const model = createModel({ context: 100_000, output: 32_000 })
+        // Usable = 68_000; count = 40_000 stays within the automatic budget even
+        // though the retired key names a far smaller number.
         const tokens = { input: 35_000, output: 5_000, reasoning: 0, cache: { read: 0, write: 0 } }
-        expect(await SessionCompaction.isOverflow({ tokens, model })).toBe(true)
+        expect(await SessionCompaction.isOverflow({ tokens, model })).toBe(false)
+        expect((await Config.get()).compaction).not.toHaveProperty("warn_tokens")
       },
     })
   })
@@ -237,9 +385,9 @@ describe("session.compaction.isOverflow", () => {
     await Instance.provide({
       directory: tmp.path,
       fn: async () => {
-        // context 0 → fallback 8_000; output reserve = min(2_000, 32_000) = 2_000; usable = 6_000; trigger = 0.75*6_000 = 4_500
+        // Context 0 uses fallback 8_000 minus output reserve 2_000 = usable 6_000.
         const model = createModel({ context: 0, output: 2_000 })
-        const over = { input: 5_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
+        const over = { input: 6_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
         expect(await SessionCompaction.isOverflow({ tokens: over, model })).toBe(true)
         const under = { input: 3_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
         expect(await SessionCompaction.isOverflow({ tokens: under, model })).toBe(false)
@@ -255,7 +403,7 @@ describe("session.compaction.isOverflow", () => {
         // context 8k, output limit 0 → the 32k default output cap would exceed the
         // whole window, making `context - output` negative and isOverflow true for
         // ANY count (compact every turn). The reserve is capped at half (4k) → usable
-        // 4k, trigger 0.75*4k = 3k.
+        // 4k, and the automatic trigger is 4k.
         const model = createModel({ context: 8_000, output: 0 })
         const small = { input: 500, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
         expect(await SessionCompaction.isOverflow({ tokens: small, model })).toBe(false)
@@ -577,6 +725,94 @@ describe("session.compaction.buildHandoffPrompt", () => {
     expect(SessionCompaction.buildHandoffPrompt({ focus: "the deploy" })).toContain("the deploy")
     expect(SessionCompaction.buildHandoffPrompt({ previousSummary: "x", focus: "the deploy" })).toContain("the deploy")
   })
+  test("the requests the head never reaches are quoted, the newest named as the Objective, in both branches", () => {
+    const fresh = SessionCompaction.buildHandoffPrompt({ requests: ["Train the best churn model."] })
+    expect(fresh).toContain("<newest-request>\nTrain the best churn model.\n</newest-request>")
+    expect(fresh).toContain("the Objective IS the newest request")
+    expect(fresh.indexOf("<newest-request>")).toBeLessThan(fresh.indexOf("## Objective"))
+    const update = SessionCompaction.buildHandoffPrompt({
+      previousSummary: "PRIOR",
+      requests: ["Train the best churn model."],
+    })
+    expect(update).toContain("<previous-summary>")
+    expect(update).toContain("replace any earlier Objective with it")
+    // Prompts queued during one provider turn are all still waiting.
+    const queued = SessionCompaction.buildHandoffPrompt({ requests: ["First ask.", "Second ask."] })
+    expect(queued).toContain("2 newest requests")
+    expect(queued.indexOf("First ask.")).toBeLessThan(queued.indexOf("Second ask."))
+    expect(SessionCompaction.buildHandoffPrompt({ requests: ["  "] })).not.toContain("<newest-request>")
+    expect(SessionCompaction.buildHandoffPrompt({})).not.toContain("<newest-request>")
+  })
+  test("a quoted request is an excerpt: the opening ask and the closing lines, never an attached dataset", () => {
+    const message = {
+      info: { id: "u", role: "user" },
+      parts: [
+        {
+          id: "p1",
+          messageID: "u",
+          sessionID: "s",
+          type: "text",
+          text: `Fit the model.\n${"x".repeat(50_000)}\nReport AP.`,
+        },
+        { id: "p2", messageID: "u", sessionID: "s", type: "text", text: "ignored", ignored: true },
+        { id: "p3", messageID: "u", sessionID: "s", type: "text", text: "synthetic", synthetic: true },
+      ],
+    } as unknown as MessageV2.WithParts
+    const excerpt = SessionCompaction.requestText(message)
+    expect(excerpt.length).toBeLessThan(SessionCompaction.REQUEST_EXCERPT_CHARS + 100)
+    expect(excerpt.startsWith("Fit the model.")).toBe(true)
+    expect(excerpt.endsWith("Report AP.")).toBe(true)
+    expect(excerpt).toContain("characters omitted")
+    expect(excerpt).not.toContain("ignored")
+    expect(excerpt).not.toContain("synthetic")
+    expect(SessionCompaction.requestText({ ...message, parts: message.parts.slice(1) })).toBe("")
+  })
+  test("the omitted count is the characters the excerpt really drops, tail and trimmed whitespace included", () => {
+    // The excerpt is the kept head, a marker line, and the kept tail. Whatever the
+    // marker line reports plus whatever the excerpt still quotes has to add back up
+    // to the request: the count is the summarizer's only evidence of the request size.
+    const quoted = (request: string, max?: number) => {
+      const excerpt = SessionCompaction.requestText(
+        { info: { id: "u", role: "user" }, parts: [{ type: "text", text: request }] } as unknown as MessageV2.WithParts,
+        max,
+      )
+      const lines = excerpt.split("\n")
+      const marker = lines.findIndex((line) => line.includes("characters omitted"))
+      // The newlines around the marker belong to the excerpt, not to the request.
+      const kept = lines.slice(0, marker).join("\n") + lines.slice(marker + 1).join("\n")
+      const omitted = Number(lines[marker].match(/([\d,]+) characters omitted/)?.[1].replace(/,/g, ""))
+      return { omitted, total: kept.length + omitted, request: request.length }
+    }
+    // Both cuts land inside a run of x, so the trims drop nothing and the count is
+    // the whole request less the head and the tail, not less the head alone.
+    const plain = `Fit the model.\n${"x".repeat(50_000)}\nReport AP.`
+    expect(quoted(plain)).toEqual({ omitted: 48_026, total: 50_026, request: 50_026 })
+    // Whitespace lands on both cut boundaries, so the honest count is neither the
+    // request less max nor the request less the head: trimEnd drops 4 at the head
+    // and trimStart drops 200 at the tail, on top of the tail itself.
+    const padded = `${"H".repeat(1496)}    ${"b".repeat(50_000)}${" ".repeat(600)}${"T".repeat(300)}`
+    expect(quoted(padded)).toEqual({ omitted: 50_604, total: 52_400, request: 52_400 })
+    // A request that fits is quoted whole, with no marker to miscount.
+    expect(
+      SessionCompaction.requestText({
+        info: { id: "u", role: "user" },
+        parts: [{ type: "text", text: "Train the model." }],
+      } as unknown as MessageV2.WithParts),
+    ).toBe("Train the model.")
+  })
+})
+
+test("a tiny request excerpt keeps only the requested characters", () => {
+  const message = {
+    info: { id: "u", role: "user" },
+    parts: [{ type: "text", text: "abcdef" }],
+  } as unknown as MessageV2.WithParts
+  expect(SessionCompaction.requestText(message, 0)).toBe("")
+  for (const max of [1, 2, 3]) {
+    expect(SessionCompaction.requestText(message, max)).toBe(
+      `${"abcdef".slice(0, max)}\n[… ${6 - max} characters omitted …]\n`,
+    )
+  }
 })
 
 describe("session.compaction.persistHandoff", () => {
@@ -594,6 +830,7 @@ describe("session.compaction.persistHandoff", () => {
         tools: { task: false },
         delegation: false,
         variant: "careful",
+        context: 128_000,
       })
       await Session.updatePart({
         id: Identifier.ascending("part"),
@@ -630,6 +867,7 @@ describe("session.compaction.persistHandoff", () => {
       expect(carrier.info.effort).toBe("ultra")
       expect(carrier.info.delegation).toBe(true)
       expect(carrier.info.variant).toBe("careful")
+      expect(carrier.info.context).toBe(128_000)
     })
   })
 
@@ -750,6 +988,7 @@ describe("session.compaction durable finalization", () => {
         agent: "research",
         model,
         effort: "normal",
+        context: 128_000,
         internal: SessionLoopState.prompt(sourceID),
       })
       await Session.updatePart({
@@ -851,6 +1090,7 @@ describe("session.compaction durable finalization", () => {
           message.info.internal.kind === "compaction",
       )
       expect(continuations).toHaveLength(1)
+      expect(continuations[0]?.info.role === "user" && continuations[0].info.context).toBe(128_000)
       expect(continuations[0]?.parts).toEqual([
         expect.objectContaining({
           id: SessionLoopState.partID(continuations[0]!.info.id, "continuation"),
@@ -1082,8 +1322,9 @@ describe("session.compaction.selectTail", () => {
     expect(SessionCompaction.messageTokens(a("a1", "x".repeat(40)))).toBe(10)
   })
 
-  test("messageTokens counts a non-image file (PDF) by payload size, not 0", () => {
-    // toModelMessages ships the full base64; the tail budget must not see a big PDF as ~0.
+  test("messageTokens counts a non-image file (PDF) by page count, not 0", () => {
+    // toModelMessages ships the full base64, but providers bill pages; the
+    // tail budget must neither see a big PDF as ~0 nor as its transport bytes.
     const url = "data:application/pdf;base64," + "A".repeat(4000)
     const pdf = {
       info: {
@@ -1098,7 +1339,8 @@ describe("session.compaction.selectTail", () => {
         { id: "u1f", sessionID: "s", messageID: "u1", type: "file", mime: "application/pdf", filename: "x.pdf", url },
       ],
     } as unknown as MessageV2.WithParts
-    expect(SessionCompaction.messageTokens(pdf)).toBeGreaterThan(900)
+    expect(SessionCompaction.messageTokens(pdf)).toBe(MessageV2.PDF_PAGE_TOKENS)
+    expect(SessionCompaction.messageTokens(pdf)).toBe(MessageV2.composition([pdf]).document)
   })
 
   test("messageTokens scores a compacted tool call as its 1-line summary, not the cleared body", () => {
@@ -1160,6 +1402,43 @@ describe("session.compaction.selectTail", () => {
     expect(tailStartId).toBe("u2") // the last REAL turn, not the empty carrier
   })
 
+  test.each(["local", "local-error", "provider-executed", "interrupted", "cancelled"])(
+    "protected context classifies a %s stop result consistently with the loop",
+    (mode) => {
+      const response = a("a1", "Before tool settlement")
+      const failed = ["local-error", "interrupted", "cancelled"].includes(mode)
+      response.parts.push({
+        id: "p1",
+        sessionID: "s",
+        messageID: "a1",
+        type: "tool",
+        tool: "fixture",
+        callID: "call_fixture",
+        ...(mode === "provider-executed" ? { metadata: { providerExecuted: true } } : {}),
+        state: failed
+          ? {
+              status: "error",
+              input: {},
+              error: "Tool failure",
+              metadata: { [mode]: true },
+              time: { start: 1, end: 2 },
+            }
+          : {
+              status: "completed",
+              input: {},
+              output: "Tool result",
+              title: "Fixture",
+              metadata: {},
+              time: { start: 1, end: 2 },
+            },
+      })
+      const messages = [u("u1"), response, u("u2", "New request")]
+      expect(SessionCompaction.protectedContext(messages, "u2").map((message) => message.info.id)).toEqual(
+        mode === "local" || mode === "local-error" ? ["u1", "a1", "u2"] : ["u2"],
+      )
+    },
+  )
+
   test("keeps every queued unanswered user turn verbatim beyond the configured tail limit", () => {
     const carrier = {
       info: {
@@ -1178,5 +1457,454 @@ describe("session.compaction.selectTail", () => {
 
     expect(tailStartId).toBe("u2")
     expect(SessionCompaction.protectedContext(msgs, "cc").map((message) => message.info.id)).toEqual(["u2", "u3", "cc"])
+  })
+
+  test("runtime continuations extend the turn before them instead of counting as verbatim turns", () => {
+    const carrier = {
+      info: {
+        id: "cc",
+        sessionID: "s",
+        role: "user",
+        time: { created: 0 },
+        agent: "a",
+        model: { providerID: "p", modelID: "m" },
+        internal: { type: "compaction", auto: true, epoch: "u2", transaction: "cc" },
+      },
+      parts: [{ id: "ccp", sessionID: "s", messageID: "cc", type: "compaction", auto: true }],
+    } as unknown as MessageV2.WithParts
+    const reminder = (id: string) =>
+      ({
+        info: {
+          id,
+          sessionID: "s",
+          role: "user",
+          time: { created: 0 },
+          agent: "a",
+          model: { providerID: "p", modelID: "m" },
+          internal: { type: "continuation", kind: "harness", text: "Study update", epoch: "u2", transaction: id },
+        },
+        parts: [{ id: `${id}p`, sessionID: "s", messageID: id, type: "text", text: "Study update", synthetic: true }],
+      }) as unknown as MessageV2.WithParts
+    const reply = (id: string, parentID: string, text: string) => {
+      const message = a(id, text)
+      ;(message.info as MessageV2.Assistant).parentID = parentID
+      return message
+    }
+    // Two typed turns; the second drew two study reminders. With tailTurns 2
+    // the tail is both typed turns, not the last two reminders.
+    const msgs = [
+      u("u1", "Run the EDA."),
+      reply("a1", "u1", "EDA done."),
+      u("u2", "Train the model."),
+      reply("a2", "u2", "Baseline trained."),
+      reminder("h1"),
+      reply("a3", "h1", "Recorded run 1."),
+      reminder("h2"),
+      reply("a4", "h2", "Recorded run 2."),
+      carrier,
+    ]
+    expect(SessionCompaction.selectTail(msgs, { tailTurns: 2, tailTokens: 10_000 })).toEqual({})
+    expect(SessionCompaction.selectTail(msgs, { tailTurns: 1, tailTokens: 10_000 }).tailStartId).toBe("u2")
+    // The typed requests in that tail are what the summarizer is told about;
+    // the reminders and the carrier are not requests.
+    expect(SessionCompaction.tailRequests(msgs, "u2").map((m) => m.info.id)).toEqual(["u2"])
+    expect(SessionCompaction.tailRequests(msgs, "u1").map((m) => m.info.id)).toEqual(["u1", "u2"])
+    expect(SessionCompaction.tailRequests(msgs, "h1")).toEqual([])
+    expect(SessionCompaction.tailRequests(msgs, undefined)).toEqual([])
+    expect(SessionCompaction.requestText(msgs[2])).toBe("Train the model.")
+    expect(SessionCompaction.rootUser(msgs)?.info.id).toBe("u2")
+    // A request too large to ride ahead of every summary pins nothing, and
+    // never an older instruction in its place.
+    const oversized = [...msgs.slice(0, 2), u("u2", "z".repeat(4 * SessionCompaction.PIN_TOKENS_MAX + 400)), carrier]
+    expect(SessionCompaction.rootUser(oversized)).toBeUndefined()
+  })
+
+  test("a recovery continuation after a request rejected for size starts the tail, so that request is summarized", () => {
+    const rejected = u("u2", "x".repeat(400_000))
+    const rejection = a("a2", "")
+    ;(rejection.info as MessageV2.Assistant).error = { name: "MessageContextWindowError", data: {} } as never
+    ;(rejection.info as MessageV2.Assistant).finish = undefined
+    const recovery = {
+      info: {
+        id: "r1",
+        sessionID: "s",
+        role: "user",
+        time: { created: 0 },
+        agent: "a",
+        model: { providerID: "p", modelID: "m" },
+        internal: { type: "continuation", kind: "context", text: "not sent", epoch: "u2", transaction: "r1" },
+      },
+      parts: [{ id: "r1p", sessionID: "s", messageID: "r1", type: "text", text: "not sent", synthetic: true }],
+    } as unknown as MessageV2.WithParts
+    const carrier = {
+      info: {
+        id: "cc",
+        sessionID: "s",
+        role: "user",
+        time: { created: 0 },
+        agent: "a",
+        model: { providerID: "p", modelID: "m" },
+        internal: { type: "compaction", auto: true, epoch: "u2", transaction: "cc" },
+      },
+      parts: [{ id: "ccp", sessionID: "s", messageID: "cc", type: "compaction", auto: true }],
+    } as unknown as MessageV2.WithParts
+    const msgs = [u("u1"), a("a1", "hi"), rejected, rejection, recovery, carrier]
+    expect(SessionCompaction.selectTail(msgs, { tailTurns: 2, tailTokens: 8_000 }).tailStartId).toBe("r1")
+    expect(SessionCompaction.tailRequests(msgs, "r1")).toEqual([])
+  })
+})
+
+describe("compaction.recentImages", () => {
+  test("is a config knob whose default keeps one inline image", () => {
+    expect(SessionCompaction.KEEP_RECENT_IMAGES).toBe(20)
+    expect(SessionCompaction.recentImages({})).toBe(20)
+    expect(SessionCompaction.recentImages({ compaction: {} })).toBe(20)
+    expect(SessionCompaction.recentImages({ compaction: { recentImages: 4 } })).toBe(4)
+    expect(SessionCompaction.recentImages({ compaction: { recentImages: 0 } })).toBe(0)
+    expect(Config.Info.parse({ compaction: { recentImages: 3 } }).compaction?.recentImages).toBe(3)
+    expect(() => Config.Info.parse({ compaction: { recentImages: -1 } })).toThrow()
+    expect(() => Config.Info.parse({ compaction: { recentImages: 1.5 } })).toThrow()
+  })
+})
+
+describe("session.compaction pinned root instruction", () => {
+  test("the carrier pins the newest typed request and compacted views present it verbatim before the summary", async () => {
+    await using tmp = await tmpdir()
+    await withSession(tmp.path, async (session) => {
+      const assistantBase = {
+        role: "assistant" as const,
+        sessionID: session.id,
+        modelID: "test-model",
+        providerID: "test",
+        mode: "research",
+        agent: "research",
+        path: { cwd: tmp.path, root: tmp.path },
+        cost: 0,
+        tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+      }
+      // Every typed prompt carries the loop's turn identity, as SessionPrompt
+      // records it; a predicate that only matched messages without it would
+      // never match production and pin nothing.
+      const typed = async (text: string, created: number) => {
+        const id = await MessageV2.nextMessageID(session.id)
+        const user = await Session.updateMessage({
+          id,
+          sessionID: session.id,
+          role: "user",
+          time: { created },
+          agent: "research",
+          model: { providerID: "test", modelID: "test-model" },
+          effort: "normal",
+          internal: SessionLoopState.prompt(id),
+        })
+        await Session.updatePart({
+          id: Identifier.ascending("part"),
+          messageID: user.id,
+          sessionID: session.id,
+          type: "text",
+          text,
+        })
+        return user
+      }
+      const first = await typed("Run the EDA and write results/report.md.", 1)
+      const reply = await Session.updateMessage({
+        ...assistantBase,
+        id: await MessageV2.nextMessageID(session.id),
+        parentID: first.id,
+        finish: "stop",
+        time: { created: 2, completed: 2 },
+      })
+      await Session.updatePart({
+        id: Identifier.ascending("part"),
+        messageID: reply.id,
+        sessionID: session.id,
+        type: "text",
+        text: "EDA done.",
+      })
+      // The newest request is the task the current turn works from; a worker
+      // wake-up after it is runtime text, not a request.
+      const root = await typed("Now write results/summary.csv with columns id,score.", 3)
+      const wake = await Session.updateMessage({
+        id: await MessageV2.nextMessageID(session.id),
+        sessionID: session.id,
+        role: "user",
+        time: { created: 4 },
+        agent: "research",
+        model: { providerID: "test", modelID: "test-model" },
+        effort: "normal",
+        internal: SessionLoopState.prompt(root.id),
+      })
+      await Session.updatePart({
+        id: Identifier.ascending("part"),
+        messageID: wake.id,
+        sessionID: session.id,
+        type: "text",
+        synthetic: true,
+        text: '<task id="ses_w" state="completed"><task_result>done</task_result></task>',
+      })
+      for (let turn = 0; turn < 3; turn++) {
+        const assistant = await Session.updateMessage({
+          ...assistantBase,
+          id: await MessageV2.nextMessageID(session.id),
+          parentID: turn === 0 ? root.id : wake.id,
+          finish: "tool-calls",
+          time: { created: 5 + turn, completed: 5 + turn },
+        })
+        await Session.updatePart({
+          id: Identifier.ascending("part"),
+          messageID: assistant.id,
+          sessionID: session.id,
+          type: "text",
+          text: `progress ${turn}`,
+        })
+      }
+      await SessionCompaction.create({
+        sessionID: session.id,
+        agent: "research",
+        model: { providerID: "test", modelID: "test-model" },
+        auto: true,
+        trigger: "proactive",
+      })
+      const messages = await Session.messages({ sessionID: session.id })
+      const carrier = messages.find((message) => message.parts.some((part) => part.type === "compaction"))!
+      const marker = carrier.parts.find((part) => part.type === "compaction")
+      expect(marker?.type === "compaction" && marker.rootID).toBe(root.id)
+      expect(SessionCompaction.rootUser(messages)?.info.id).toBe(root.id)
+
+      // A completed summary answering the carrier.
+      const summary = await Session.updateMessage({
+        ...assistantBase,
+        id: await MessageV2.nextMessageID(session.id),
+        parentID: carrier.info.id,
+        summary: true,
+        finish: "stop",
+        time: { created: 20, completed: 21 },
+      })
+      await Session.updatePart({
+        id: Identifier.ascending("part"),
+        messageID: summary.id,
+        sessionID: session.id,
+        type: "text",
+        text: "## Objective\n- summarized",
+      })
+      await Session.flushPendingParts(session.id)
+      const view = await MessageV2.filterCompacted(MessageV2.stream(session.id))
+      expect(view[0].info.id).toBe(root.id)
+      expect(view[0].parts.some((part) => part.type === "text" && part.text.includes("results/summary.csv"))).toBe(true)
+      expect(view[1].info.id).toBe(carrier.info.id)
+      expect(view[2].info.id).toBe(summary.id)
+      // The summarized turns are gone; the pinned request appears exactly once
+      // and the older request is history for the handoff to record.
+      expect(view.filter((message) => message.info.id === root.id)).toHaveLength(1)
+      expect(view.some((message) => message.info.id === first.id)).toBe(false)
+      expect(view.some((message) => message.parts.some((p) => p.type === "text" && p.text === "progress 1"))).toBe(
+        false,
+      )
+    })
+  })
+
+  test("the handoff template keeps deliverables verbatim and findings with numbers, in order", () => {
+    const prompt = SessionCompaction.buildHandoffPrompt({})
+    const order = [
+      "## Objective",
+      "## Deliverables (verbatim)",
+      "## Constraints & Decisions",
+      "## Findings so far",
+      "## Work State",
+      "## Next Move",
+      "## Key Files & Artifacts",
+    ].map((heading) => prompt.indexOf(heading))
+    expect(order.every((index) => index >= 0)).toBe(true)
+    expect([...order].sort((a, b) => a - b)).toEqual(order)
+  })
+})
+
+describe("session.compaction.prune protections", () => {
+  test("todowrite results survive pruning alongside skill loads and Results", async () => {
+    await using tmp = await tmpdir()
+    await withSession(tmp.path, async (session) => {
+      const user = await Session.updateMessage({
+        id: await MessageV2.nextMessageID(session.id),
+        sessionID: session.id,
+        role: "user",
+        time: { created: 1 },
+        agent: "research",
+        model: { providerID: "test", modelID: "test-model" },
+        effort: "normal",
+      })
+      const assistant = await Session.updateMessage({
+        id: await MessageV2.nextMessageID(session.id),
+        sessionID: session.id,
+        role: "assistant",
+        parentID: user.id,
+        modelID: "test-model",
+        providerID: "test",
+        mode: "research",
+        agent: "research",
+        path: { cwd: tmp.path, root: tmp.path },
+        cost: 0,
+        tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+        finish: "tool-calls",
+        time: { created: 2, completed: 3 },
+      })
+      const tool = (name: string, output: string, id: string): MessageV2.ToolPart => ({
+        id,
+        sessionID: session.id,
+        messageID: assistant.id,
+        type: "tool",
+        tool: name,
+        callID: `call_${id}`,
+        state: { status: "completed", input: {}, title: name, output, metadata: {}, time: { start: 1, end: 2 } },
+      })
+      // A large body of old bash output, then a small checklist newer than nothing.
+      const bulk = "x".repeat(4 * (SessionCompaction.PRUNE_PROTECT + SessionCompaction.PRUNE_MINIMUM) * 2)
+      await Session.updatePart(tool("todowrite", "[ ] results/summary.csv", "prt_todo"))
+      await Session.updatePart(tool("bash", bulk, "prt_bash_old"))
+      await Session.updatePart(tool("bash", bulk, "prt_bash_new"))
+      await Session.flushPendingParts(session.id)
+      const reclaimed = await SessionCompaction.prune({ sessionID: session.id })
+      expect(reclaimed).toBeGreaterThan(0)
+      const parts = (await Session.messages({ sessionID: session.id }))
+        .flatMap((message) => message.parts)
+        .filter((part): part is MessageV2.ToolPart => part.type === "tool")
+      const compacted = (id: string) => {
+        const part = parts.find((candidate) => candidate.id === id)
+        return part?.state.status === "completed" ? part.state.time.compacted !== undefined : undefined
+      }
+      expect(compacted("prt_bash_old")).toBe(true)
+      expect(compacted("prt_todo")).toBe(false)
+    })
+  })
+
+  test("a targeted prune clears only the shortfall, newest-eligible first, so the cached prefix stays long", async () => {
+    await using tmp = await tmpdir()
+    await withSession(tmp.path, async (session) => {
+      const user = await Session.updateMessage({
+        id: await MessageV2.nextMessageID(session.id),
+        sessionID: session.id,
+        role: "user",
+        time: { created: 1 },
+        agent: "research",
+        model: { providerID: "test", modelID: "test-model" },
+        effort: "normal",
+      })
+      const assistant = await Session.updateMessage({
+        id: await MessageV2.nextMessageID(session.id),
+        sessionID: session.id,
+        role: "assistant",
+        parentID: user.id,
+        modelID: "test-model",
+        providerID: "test",
+        mode: "research",
+        agent: "research",
+        path: { cwd: tmp.path, root: tmp.path },
+        cost: 0,
+        tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+        finish: "tool-calls",
+        time: { created: 2, completed: 3 },
+      })
+      // Six equal results of 25k tokens each, oldest first. The newest result
+      // sits inside the protected 40k; the one before it crosses that line
+      // and is the first eligible; a total prune would clear all five.
+      const chunk = "y".repeat(4 * 25_000)
+      const ids = ["prt_a", "prt_b", "prt_c", "prt_d", "prt_e", "prt_f"]
+      for (const id of ids) {
+        await Session.updatePart({
+          id,
+          sessionID: session.id,
+          messageID: assistant.id,
+          type: "tool",
+          tool: "bash",
+          callID: `call_${id}`,
+          state: {
+            status: "completed",
+            input: {},
+            title: "bash",
+            output: chunk,
+            metadata: {},
+            time: { start: 1, end: 2 },
+          },
+        })
+      }
+      await Session.flushPendingParts(session.id)
+      // The budget needs 30k back: the two newest eligible results cover it;
+      // the three older ones stay, and with them the cached prefix up to there.
+      const reclaimed = await SessionCompaction.prune({ sessionID: session.id, target: 30_000 })
+      expect(reclaimed).toBe(50_000)
+      const parts = (await Session.messages({ sessionID: session.id }))
+        .flatMap((message) => message.parts)
+        .filter((part): part is MessageV2.ToolPart => part.type === "tool")
+      const compacted = (id: string) => {
+        const part = parts.find((candidate) => candidate.id === id)
+        return part?.state.status === "completed" ? part.state.time.compacted !== undefined : undefined
+      }
+      expect(ids.map(compacted)).toEqual([false, false, false, true, true, false])
+    })
+  })
+
+  test("a routine prune mid-turn waits until the clearable output is worth the rewrite", async () => {
+    await using tmp = await tmpdir()
+    await withSession(tmp.path, async (session) => {
+      const user = await Session.updateMessage({
+        id: await MessageV2.nextMessageID(session.id),
+        sessionID: session.id,
+        role: "user",
+        time: { created: 1 },
+        agent: "research",
+        model: { providerID: "test", modelID: "test-model" },
+        effort: "normal",
+      })
+      const assistant = await Session.updateMessage({
+        id: await MessageV2.nextMessageID(session.id),
+        sessionID: session.id,
+        role: "assistant",
+        parentID: user.id,
+        modelID: "test-model",
+        providerID: "test",
+        mode: "research",
+        agent: "research",
+        path: { cwd: tmp.path, root: tmp.path },
+        cost: 0,
+        tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+        finish: "tool-calls",
+        time: { created: 2, completed: 3 },
+      })
+      // Four results of 25k tokens: the newest sits inside the protected 40k,
+      // the one before it crosses the line, so 75k is clearable.
+      const chunk = "y".repeat(4 * 25_000)
+      const ids = ["prt_a", "prt_b", "prt_c", "prt_d"]
+      for (const id of ids) {
+        await Session.updatePart({
+          id,
+          sessionID: session.id,
+          messageID: assistant.id,
+          type: "tool",
+          tool: "bash",
+          callID: `call_${id}`,
+          state: {
+            status: "completed",
+            input: {},
+            title: "bash",
+            output: chunk,
+            metadata: {},
+            time: { start: 1, end: 2 },
+          },
+        })
+      }
+      await Session.flushPendingParts(session.id)
+      const compacted = async () =>
+        (await Session.messages({ sessionID: session.id }))
+          .flatMap((message) => message.parts)
+          .filter((part): part is MessageV2.ToolPart => part.type === "tool")
+          .map((part) => (part.state.status === "completed" ? part.state.time.compacted !== undefined : undefined))
+      // A context of 300k: a third is 100k, and 75k clearable does not pay for
+      // rewriting the rest, so nothing is touched and the cached prefix stays.
+      expect(await SessionCompaction.prune({ sessionID: session.id, floor: 100_000 })).toBe(0)
+      expect(await compacted()).toEqual([false, false, false, false])
+      // A context of 150k: a third is 50k, 75k clears it.
+      expect(await SessionCompaction.prune({ sessionID: session.id, floor: 50_000 })).toBe(75_000)
+      expect(await compacted()).toEqual([true, true, true, false])
+      expect(SessionCompaction.PRUNE_SHARE).toBeCloseTo(1 / 3)
+    })
   })
 })

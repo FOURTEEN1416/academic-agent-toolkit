@@ -61,7 +61,13 @@ CAP=$?   # 0=结构合格 1=结构非法/漏拆子问题(必修) 2=无清单
 
 产出结构、存在性和最低完整性由 `finish` 按模板中的 `output_contract` 自动核验；修复返回的具体问题，不复制执行验证脚本。
 
-### ⛔ 参数密集型题目额外门槛（题面参数 ≥ 20 时必跑）
+### ⛔ 参数密集型题目额外门槛（题面参数 ≥ 10 建议建档，≥ 20 强制必跑）
+
+题面参数区间处置口径（2026-11-16 补齐 10–19 区间，与触发线 ≥20、豁免线 <10 衔接）：
+
+- **参数 < 10**：豁免，可跳过 `PROBLEM_FACTS.json`（仍建议在 PROBLEM_ANALYSIS.md 里设"参数登记表"小节）；
+- **参数 10–19**：**建议建档**——按本节流程产出 `PROBLEM_FACTS.json` + `PARAMS_RAW.md` 并跑 OCR 比对；若团队判断参数简单不易抄错，可降级为 PROBLEM_ANALYSIS.md 内"参数登记表"，但须在报告中写明降级理由；
+- **参数 ≥ 20**：**强制**，必须产出 `PROBLEM_FACTS.json` + `PARAMS_RAW.md`，并**在结束本步骤前**跑 OCR 客观比对。
 
 若题面参数 ≥ 20（武器性能 / 距离 / 时间 / 概率 / 规则等可量化条目），本步骤必须产出 `PROBLEM_FACTS.json` + `PARAMS_RAW.md`，并**在结束本步骤前**跑 OCR 客观比对：
 
@@ -471,360 +477,44 @@ ls _utils/figure_recipes_*.md 2>/dev/null || ls skills/shared-scripts/figure_rec
 
 ```
 
-**5 个配方库供参考**（不强制按编号生成，根据数据形态自主选择）：
+**⛔ MANDATORY: 在 PROBLEM_ANALYSIS.md 中输出结构化的图表预规划清单。** 后续 `paper-figure` / `paper-figure-drawio` / `workflow_engine.py` 都按这个清单逐项生成和对账。
 
-- `basic`：12 张基础图（柱状/散点/折线 + 渐变填充 / KDE 背景 / Rain Cloud / Lollipop）
+图表预规划契约（规划方法/配方编号铁律/硬规则/TikZ 边界/门面图/custom 图/组合图政策/DrawIO-TikZ-GPT Image 路由表/输出模板/FIGURE_MANIFEST 格式）的**唯一真源**在 `_utils/figure_plan_contract.md`（与 `skills/shared-scripts/figure_plan_contract.md` 同源双副本），本技能正文不再复制，按 tag 按需加载：
 
-- `advanced`：17 张高 SCI 影响因子图（SHAP / Kaplan-Meier / Forest plot / Sankey）
+```bash
 
-- `empirical`：16 张计量/统计图（DID / 工具变量 / 分位数回归）
-
-- `competition`：23 张竞赛常用图（收敛曲线 / Pareto / 重心迁移 / Bubble+KDE）
-
-- `academic`：12 张 AI/CS 图（ablation / t-SNE / training curves）
-
-> **配方编号是建议起点**：在 FIGURE_MANIFEST 列每张图时，可以在图名后注明配方编号（如 `fig_q2_pareto  // competition#8`），paper-figure 步骤用 `python3 _utils/get_recipe.py competition 8` 提取代码模板作为起点，再适配实际数据。不写编号也行，paper-figure 会自己根据数据形态选。
-
-**图表规划方法（按分析步骤推导，不要套模板）：**
-
-先读 `figure_exemplars.md` 中的"按研究方法的图表套餐"：
-
-- 匹配套餐（A-F）→ 以必选项为基础，根据具体选题增减
-
-- 不匹配 → 用下面的"数据形态推导法"
-
-再读 `figure_style_guide.md` 的 "By data shape" 决策表，对每个分析步骤做推导：
-
-| 分析步骤输出 | 数据形态 | 推荐图表 |
-
-|------------|---------|---------|
-
-| 多变量时间趋势 | 时间×值 | 折线图 basic #3 |
-
-| 变量相关系数矩阵 | N×N 矩阵 | 聚类热力图 advanced #14 |
-
-| 多模型多指标数值 | 方法×指标矩阵 | 分组柱状图 basic #1 或 方法对比热力图 advanced #16 |
-
-| 系数±标准误 | 系数+CI | 森林图 empirical #1 |
-
-| 正负方向效应值 | 正负差值 | 发散柱状图 advanced #20 |
-
-| 多组分布形态 | 多组连续值 | Ridgeline advanced #23 或 Grouped Violin advanced #24 |
-
-| 地理空间数据 | 地理×值 | 地图热力图 competition #7 |
-
-| 排名数据 | 名称×单一数值 | 棒棒糖图 advanced #1 |
-
-| 模块增量贡献 | 步骤×增量 | Waterfall advanced #6 |
-
-**⛔ 每张图必须写明配方编号和选择理由**，格式：
-
-`fig_xxx — 发散柱状图 (advanced #20) — 效应分解有正有负，发散柱状图能直观展示方向 — 章节: 实证结果`
-
-**⛔ 配方编号是必填项！** 格式为 `(类别 #编号)`，如 `(advanced #1)`、`(basic #3)`、`(empirical #1)`、`(competition #7)`。系统会根据配方编号自动把对应代码模板注入执行 Agent 的上下文。如果不写配方编号，执行 Agent 将无法获得配方代码，只能从零写图表脚本，质量无法保证。如果图表类型不在配方库中，写 `(custom)` 标注。
-
-配方库是"菜单"不是"菜谱"——知道有哪些图表可用，但根据你的数据和选题自主决定。如果你认为某种不在配方库里的图表更适合，也可以用。
-
-**硬规则（只有这几条必须遵守）：**
-
-- 同一种图表类型不超过 3 次（如已有 3 个柱状图，下一个对比换别的类型）
-
-- 每张图必须指定具体类型（不能写"对比图"，要写"分组柱状图"或"发散柱状图"或"雷达图"）
-
-- 至少 1 张 DrawIO 技术路线图（放问题重述章节末尾 `1_restatement.tex`）
-
-- 如果涉及空间数据，必须有空间分布可视化（地图热力图/LISA图）
-
-- 如果涉及模型对比（≥3个模型），至少用 2 种不同的对比图表类型
-
-- 如果涉及前后/分组对比，考虑发散柱状图、Back-to-Back Bar、配对点图等方向性图表
-
-- ⛔ **逐个子问题评估 TikZ 高级图**：对每一问，检查其核心方法是否命中 `figure_exemplars.md`「TikZ 不止架构图」触发表（线性规划→可行域图、微分方程→相平面图、物理力学→受力分析、几何→几何示意、光学→光路图、神经网络→架构图、PINN→PINNs 图等）。命中就为该问规划一张 `tikz_xxx`（如问题二用线性规划 → `tikz_feasible_q2`），写进 FIGURE_MANIFEST 的 TIKZ 类。这类图精确渲染公式+几何，是体现专业度的加分项；只在内容真正匹配时加，不要硬塞。
-
-  - ⛔⛔ **TIKZ 类的严格边界（规划=产物的硬约束，务必遵守）**：**只有上面触发表里的「真几何结构图」才能进 TIKZ 类**——即需要按真实坐标画点/线/角度/向量场/区域的图（可行域、相平面、受力分解、几何示意、光路、网络拓扑架构、PINN 结构等）。**下列一律归 DATA 类（`fig_` 前缀），严禁列进 TIKZ 类**：函数曲线（含分段函数、风险函数 $w(t)$、损失曲线）、统计分布、时序趋势、对比柱状/折线、热力图、散点、ROC/KM 曲线等——这些是数据可视化，用 matplotlib 画更清晰。**判据**：这张图画的是「按坐标定义的几何结构」还是「一条/几条数据曲线」？后者一律 `fig_`。
-
-  - ⛔ **一旦写进 TIKZ 类，就是对下游的硬合同**：`paper-figure` / `paper-figure-html` 步骤会按 manifest 的 TIKZ 清单逐个产出真 TikZ PDF（`tikz_<name>.pdf`），**不允许下游用数据图替代或跳过**。所以规划时不要把"其实是函数曲线"的图误标成 `tikz_`（否则要么逼下游用 TikZ 画本该 matplotlib 的曲线、要么造成"规划了 tikz 却没同名产物"的对账缺口）。**不确定时一律归 DATA 类**。
-
-- ⛔ **感知/重构类任务必须规划定性"门面图"**：若赛题产出本身可视（图像增强/去雾/去噪/超分/分割/检测/重构/生成、信号/音频处理、三维重建等），对照 `figure_exemplars.md`「领域特定门面图」触发表，**每个相关子问题必须规划一张 `fig_<问>_visual_cmp` 真实样本前后/方法并排对比图（含关键区域局部放大），归入 FIGURE_MANIFEST 的 DATA 类，且优先级排在所有指标图之前**。所有客观指标（PSNR/NIQE/CII/边缘强度/mIoU 等）都是为佐证肉眼效果而生——只规划了指标图却漏掉真实图像对比图，是本末倒置的致命缺陷。用真实数据集样本，不要用 AI 生成的想象图。
-
-- ⛔ **先按赛题领域想"标志图"，再去配方库找；允许自由设计 custom 图**：规划每张图前先问两件事——①这道题属于什么领域、评委最期待看到什么图（对照 `figure_exemplars.md`「按赛题领域的标志图」触发表：地理/选址→流向图+覆盖图、图论网络→拓扑图、动力学→仓室流图+相轨迹、物理场→云图/矢量场、博弈→收益矩阵/博弈树、信号→时频图、元胞/仿真→时空快照序列…）；②这一步算出了什么、什么视觉形式最能让人一眼信服。**配方库是灵感菜单不是限制清单**——库里没有但更贴合本题的图，大胆标 `(custom)` 自己用 matplotlib/TikZ 设计（地图叠加、嵌套放大 inset、时空序列、3D 渲染等都欢迎）。但守住底线：数据必须真实(严禁画图脚本硬编码编造数字)、图表类型匹配数据语义(排序用排序条形非发散柱、越小越好的指标进雷达前先反向归一化)、要素完整(轴标题/单位/图例/必要的误差棒)、最终清单零 TODO。
-
-- ⛔ **组合图（Subfigure）按必要性自决**：每张图先自问"是单值/单维"还是"多值对比/多维并陈"：
-
-  🟢 **适合组合**（panel ≤ 4，每 panel 宽度 ≥ `0.48\textwidth`）：
-
-  - 残差诊断 4 联图（Q-Q / 残差-拟合 / 直方图 / 残差-时间）—— 单张孤立看意义不全
-
-  - 方法/算法对比（A vs B 同坐标系）—— 优劣一目了然
-
-  - 灵敏度 2-4 参数小图 —— 看哪个最敏感
-
-  - 感知/重构类门面图（处理前 ‖ 处理后 + 局部放大）
-
-  - 同一物理量多视角/多时间快照
-
-  🔴 **不要组合**（拼图凑数）：
-
-  - 两张内容无关的图硬塞一行
-
-  - panel > 4 → 拆成两个 figure 反而清楚
-
-  - 单 panel < `0.45\textwidth` → 太挤
-
-  - 单图本身就复杂（满版热力图、地理图、3D、网络图）→ 独占一行才能看清细节
-
-  **FIGURE_MANIFEST 显式标注**：`[2-panel]` / `[4-panel]` / `[single]`，默认 `[single]` 可省略。
-
-  示例：`fig_q2_residual_diag [4-panel] — 残差诊断 — basic #5 — 章节: 问题二模型验证`
-
-  详细判据 + 排版规范见 `_utils/writing_rules.md` 第 4 条。**AI 自己判断是否组合，不强求数量，但鼓励"信息密度高于占页数"的设计**。
-
-**在 PROBLEM_ANALYSIS.md 中输出图表预规划清单：**
-
-```markdown
-
-## 图表预规划
-
-### 数据图表清单
-
-对每张图写明：文件名 — 具体图表类型 (配方编号) — 展示什么数据/传达什么信息 — 放在哪个章节
-
-示例（根据实际选题自由发挥，每张图必须带配方编号）：
-
-- fig_xxx — 棒棒糖图 (advanced #1) — 方法排名对比 — 章节: 模型对比
-
-- fig_yyy — 森林图 (empirical #1) — 回归系数及置信区间 — 章节: 实证结果
-
-- fig_zzz — 可行域图 (competition #28) — 约束条件与最优解 — 章节: 模型求解
-
-- TABLE_xxx — [表格描述] — [章节位置]
-
-### DrawIO 架构图清单
-
-对每张 DrawIO 图写明：编号 — 图类型 — 展示什么内容 — 放在哪个章节。
-
-**⛔ 语言规则：DrawIO 图中的所有文字（节点标签、箭头标注、分组框标题）必须与论文语言一致。**
-
-- 中文赛题（国赛/数维杯中文/MathorCup/长三角/五一/华为杯等）→ 图中文字用中文
-
-- 英文赛题（MCM/ICM/APMCM/数维杯英文/认证杯英文等）→ 图中文字用英文
-
-必须规划（所有赛题）：
-
-- DrawIO-1: 技术路线图 — 整体求解思路 → 问题重述章节末尾 (1_restatement.tex)
-
-竞赛多问题赛题额外规划（每个子问题都需要求解流程图）：
-
-- DrawIO-2: 问题一求解流程图 → fig_flow_q1.drawio → 问题一章节开头
-
-- DrawIO-3: 问题二求解流程图 → fig_flow_q2.drawio → 问题二章节开头
-
-- DrawIO-4: 问题三求解流程图 → fig_flow_q3.drawio → 问题三章节开头
-
-- ...（有几个子问题就规划几张，一一对应）
-
-**⛔ 上游改判**：子问题求解流程图（`fig_flow_q1/q2/…`）**默认不规划**。整体求解思路已由技术路线图承载；再给每问各配一张流程图会让论文塞进 N 张结构相似的"读数据→建模→求解"框图，占版面、同质化、拉低观感。**默认时清单里不要出现任何 `fig_flow_q*`。** 仅当项目指令文件（AGENTS.md 或本地配置）显式声明"每个问题都画流程图"（如含 `FLOW_PER_PROBLEM=on` 标记，可用 `grep -q 'FLOW_PER_PROBLEM=on' AGENTS.md` 判断；文件不存在即视为默认关闭）时，才按上一段逐问规划，有几个子问题就规划几张、一一对应。本仓 14 步管线中若引擎步骤参数另行要求逐问流程图，以引擎参数为准。
-
-按需规划（根据赛题特征判断，写明理由）：
-
-- DrawIO-N: [模型架构图/变量关系图/算法流程图/Pipeline图/概念框架图] — [展示什么] → [章节位置] — 理由: [为什么需要这张图]
-
-### 图表多样性检查
-
-[列出每种图表类型的使用次数，确认无重复超过 3 次]
-
-总计: ~X 数据图 + ~Y 表 + Z DrawIO + P TikZ + W GPT Image
+CONTRACT=_utils/figure_plan_contract.md
+[ -f "$CONTRACT" ] || CONTRACT=../_utils/figure_plan_contract.md
+[ -f "$CONTRACT" ] || CONTRACT=skills/_utils/figure_plan_contract.md
+[ -f "$CONTRACT" ] || CONTRACT=academic-toolkit/skills/_utils/figure_plan_contract.md
+awk '/^<[a-z_]+>$/ {print NR": "$0}' "$CONTRACT"   # tag 目录；行号随改版漂移，以实跑输出为准
 
 ```
 
-#### GPT Image / DrawIO 图预规划
+| tag | 何时读 |
+|---|---|
+| `<figure_planning_method>` | 开始规划图表（套餐匹配 + 数据形态推导法） |
+| `<recipe_number_rule>` | 给每张图写配方编号前 |
+| `<hard_rules>` | 规划清单定稿前 |
+| `<tikz_boundary>` | 考虑用 TikZ 画图时 |
+| `<facade_figure>` | 感知/重构类赛题 |
+| `<custom_figure>` | 配方库不满足、想自定义图时 |
+| `<subfigure_policy>` | 考虑组合图（Subfigure）时 |
+| `<drawio_tikz_routing>` | 规划 DrawIO/TikZ/GPT Image 清单时 |
+| `<output_format_math>` | 输出 PROBLEM_ANALYSIS.md 图表预规划模板时 |
+| `<figure_manifest_format>` | 输出 FIGURE_MANIFEST 前（必读） |
 
-**GPT Image 只用于场景示意图**（物理/工程类赛题的问题背景图）。技术路线图、求解流程图、架构图等结构化图表使用 DrawIO。
+```bash
 
-**GPT Image 场景示意图（按需，仅物理/工程类赛题）：**
+# 本步必读的两个 tag：
 
-- 仅当赛题有具体的物理/工程空间场景时才规划（光学、无人机、传感器网络、交通流、热传导、管道网络等）
-
-- 纯数据/统计类赛题（蔬菜定价、人口预测等）不需要
-
-- 最多 1-2 张，放在问题重述章节（`1_restatement.tex`）的问题背景描述之后
-
-**DrawIO / TikZ / GPT Image 图类型与适用场景（按赛题特征选择）：**
-
-| 图类型 | 推荐工具 | 适用场景 | 放置位置 | 是否必须 |
-
-|--------|---------|---------|---------|---------|
-
-| 技术路线图 | DrawIO | 所有赛题 | 问题重述章节末尾（`1_restatement.tex`），国赛/竞赛没有单独问题分析章节时放问题重述 | ✅ 必须（1张） |
-
-| 子问题求解流程图 | DrawIO | 竞赛多问题赛题，每个子问题一张 | 各子问题章节开头 | ⚠️ 默认不规划，仅当用户/引擎显式开启逐问流程图时逐问一张 |
-
-| 数据处理 Pipeline | DrawIO | 涉及多阶段数据清洗/特征工程 | 数据预处理章节 | 按需 |
-
-| 概念框架图（简单分层） | DrawIO | 涉及理论模型/研究框架构建（无复杂连线） | 引言或理论分析章节 | 按需 |
-
-| 指标体系层次图 | DrawIO | 涉及 AHP/熵权法/TOPSIS/模糊综合评价等评价类问题 | 模型构建章节 | 评价类必须 |
-
-| 模型选择决策树 | DrawIO | 涉及多种候选模型需要对比选择 | 模型构建章节 | 按需（≥3候选模型时推荐） |
-
-| 甘特图/调度方案图 | DrawIO | 涉及排程/调度/资源分配/时间规划 | 求解结果章节 | 调度类必须 |
-
-| 网络拓扑图（≤15节点） | DrawIO | 涉及图论/物流网络/社交网络 | 问题描述或求解结果章节 | 图论类必须 |
-
-| 方法对比矩阵图 | DrawIO | 涉及多方法优缺点对比 | 模型构建章节 | 按需 |
-
-| 模型架构图 | TikZ | 涉及神经网络/深度学习/集成模型 | 模型构建章节 | 按需 |
-
-| 变量关系/因果路径图 | TikZ | 涉及因果推断/中介效应/SEM | 理论框架或模型设定章节 | 按需 |
-
-| 算法流程图（带公式） | TikZ | 涉及自定义算法/迭代优化/启发式搜索 | 算法描述章节 | 按需 |
-
-| 几何示意图（2D 平面） | TikZ | 涉及平面几何关系（三角形、圆、角度标注、坐标系） | 问题描述章节 | 按需 |
-
-| 几何示意图（3D 空间） | GPT Image | 涉及 3D 空间几何（圆柱体、球面、反射/折射、空间坐标系） | 问题描述章节 | 按需 |
-
-| 概念框架图（复杂连线） | TikZ | 有跨层箭头+标注系数的理论框架 | 理论框架章节 | 按需 |
-
-| 网络拓扑/路径图（>15节点或需标注路径） | TikZ/matplotlib | 节点多或需要精确标注最优路径+权重 | 求解结果章节 | 按需 |
-
-| 场景示意图 | GPT Image | 涉及物理/工程空间场景（无人机/传感器/交通等） | 问题重述章节 | 按需（仅物理/工程类） |
-
-**速查：需要公式→TikZ，需要精确连线→TikZ，需要写实渲染→GPT Image，其余→DrawIO**
-
-**⛔ TikZ vs GPT Image 判断（几何示意图必须过这条规则）：**
-
-- 图中有圆柱体、球体、锥体、曲面等 3D 立体 → **GPT Image**（TikZ 画 3D 透视会变形、标注重叠）
-
-- 图中有反射/折射光线在 3D 空间中传播 → **GPT Image**
-
-- 图中只有 2D 平面元素（圆、三角形、直线、角度标注、坐标轴）→ **TikZ**
-
-- 不确定时 → **GPT Image**（比 TikZ 画 3D 安全得多）
-
-**⛔ 按赛题特征自动判断（规划时必须逐条过一遍，符合条件的必须规划）：**
-
-一、所有赛题必须：
-
-- 技术路线图（1张）— 展示整体求解思路
-
-二、按赛题类型触发（逐条检查，符合就加）：
-
-- 赛题有多个子问题 → 每个子问题都必须有一张求解流程图，放在对应章节开头。简单问题的流程图可以简化（3-4 个节点），但不能省略。**⛔ 本条受上文"上游改判"约束：默认不为每问规划流程图（同质化伤观感），仅项目指令文件含 `FLOW_PER_PROBLEM=on` 标记或引擎参数另行要求时才逐问规划。**
-
-- 赛题涉及评价/排名/打分（AHP/熵权法/TOPSIS/模糊综合评价/灰色关联） → 加指标体系层次图（目标层→准则层→指标层）
-
-- 赛题涉及深度学习/集成学习/多模型融合 → 加模型架构图（TikZ）
-
-- 赛题涉及因果推断/路径分析/中介效应/SEM → 加变量关系图（TikZ）
-
-- 赛题涉及自定义迭代算法（遗传算法/模拟退火/强化学习/粒子群/蚁群） → 加算法流程图（TikZ，带公式）
-
-- 赛题涉及复杂多阶段数据预处理（爬虫→清洗→特征工程→建模） → 加 Pipeline 图
-
-- 赛题需要构建理论框架（经管/社科类，有假设推导） → 加概念框架图
-
-- 赛题涉及图论/网络优化/物流配送/社交网络 → 加网络拓扑图或路径图
-
-- 赛题涉及排程/调度/资源分配/生产计划 → 加甘特图
-
-- 赛题涉及物理/工程空间场景（光学/无人机/传感器/交通/热传导） → 加场景示意图（GPT Image）或几何示意图（TikZ）
-
-- 赛题有 ≥3 种候选模型需要对比选择 → 加模型选择决策树（展示选模型的逻辑）
-
-- 赛题涉及空间数据/地理分布 → 加空间分布示意图（可用 matplotlib 地图热力图代替）
-
-**⛔ 每张 DrawIO 图必须在清单中写明文件名**，格式为 `fig_xxx.drawio`，`流程与架构图绘制` 步骤会按此清单逐条生成并校验。
-
-**在 PROBLEM_ANALYSIS.md 中输出：**
+for t in output_format_math figure_manifest_format; do
+  awk -v s="<$t>" -v e="</$t>" '$0==s{f=1} $0==e{f=0} f' "$CONTRACT"
+done
 
 ```
 
-### GPT Image / DrawIO / TikZ 图清单
-
-**语言: [中文/English]**（与论文语言一致，图中所有文字使用此语言）
-
-DrawIO 图（技术路线图/流程图/Pipeline/指标体系/决策树/甘特图/网络图）：
-
-- DrawIO-1: 技术路线图 → fig_roadmap.drawio → 问题重述章节末尾 (1_restatement.tex) [必须]
-
-- DrawIO-2: 问题一求解流程图 → fig_flow_q1.drawio → 问题一章节开头 [按需]
-
-- DrawIO-3: 指标体系层次图 → fig_index_hierarchy.drawio → 模型构建章节 [评价类必须]
-
-- DrawIO-4: 数据处理Pipeline → fig_pipeline.drawio → 数据预处理章节 [按需]
-
-- DrawIO-5: 模型选择决策树 → fig_model_decision.drawio → 模型构建章节 [按需]
-
-- DrawIO-6: 甘特图/调度方案 → fig_gantt.drawio → 求解结果章节 [调度类必须]
-
-- DrawIO-7: 网络拓扑/路径图 → fig_network.drawio → 问题描述或结果章节 [图论类必须]
-
-- DrawIO-8: 概念框架图 → fig_framework.drawio → 理论分析章节 [按需]
-
-TikZ 图（模型架构图/变量关系图/算法流程图/几何示意图，需要精确连线或公式）：
-
-- TikZ-1: [图类型] → tikz_diagrams.tex → [章节位置] [按需]
-
-GPT Image 场景示意图（仅物理/工程类赛题）：
-
-- GPTIMG-1: {场景名}示意图 → fig_scene.png → 问题重述章节 (1_restatement.tex) [按需]
-
-总计: N 张 DrawIO + P 张 TikZ + M 张 GPT Image
-
-```
-
-### ⛔⛔⛔ FIGURE_MANIFEST（机器可读对账清单，必须输出）
-
-**写完上面三类图清单（数据图 + DrawIO + TikZ + GPT Image）后，在 PROBLEM_ANALYSIS.md **最后**追加一个机器可读的清单区块，下游 paper-figure / paper-figure-drawio 会按此清单逐条对账。少一张就报错。**
-
-**格式严格按此输出（不要漏 `<!-- BEGIN/END FIGURE_MANIFEST -->` 锚点）：**
-
-```markdown
-
-<!-- BEGIN FIGURE_MANIFEST -->
-
-## 图表清单（FIGURE_MANIFEST）
-
-**数据图（matplotlib gen_fig_*.py，paper-figure 产出 .png/.pdf）：**
-
-- fig_xxx
-
-- fig_yyy
-
-- fig_zzz
-
-**DrawIO 流程/架构图（paper-figure-drawio 产出 .drawio + .png/.pdf）：**
-
-- fig_roadmap
-
-- fig_flow_q1
-
-- fig_flow_q2
-
-**TikZ 图（paper-figure 产出 tikz_*.pdf）：**
-
-- tikz_model_arch
-
-**GPT Image 场景图（paper-illustration 产出 .png）：**
-
-- fig_scene
-
-**总数：DATA=3, DRAWIO=3, TIKZ=1, GPTIMG=1, ALL=8**
-
-<!-- END FIGURE_MANIFEST -->
-
-```
-
-⛔ **铁律：**
-
-- **每条只写文件名主干**（不带 `.py` / `.drawio` / `.png` / `.pdf` 后缀），让下游能用同一个名字校验多种产物
-
-- **⛔⛔ 图名必须以 `fig_` 或 `tikz_` 前缀开头**（问题「规划了图却没生成」的根因）：数据图/流程图/架构图/场景图一律 `fig_xxx`，TikZ 几何图一律 `tikz_xxx`。**严禁用 `image2`、`图2`、`chart1`、`示意图` 这类没有前缀的名字**——下游对账脚本（paper-figure / paper-figure-drawio / workflow_engine.py）按 `fig_`/`tikz_` 前缀在 manifest 章节里抓图名，不带前缀的会被**直接漏掉、既不计数也不报警**，导致该图静默不生成（用户就会看到"赛题分析规划了 image2 但没画出来"）。图名用小写英文+下划线，见名知意（如 `fig_q1_turbidity_trend`、`fig_flow_q2`）。
-
-- **数量必须跟上面三类图清单完全一致**（一一对应）
-
-写完后格式对齐由程序负责：引擎在 `finish` 按 `output_contract.figure_manifest` 合同校验（区块完整、图名 `fig_`/`tikz_` 前缀合规、ALL 计数与条目一致，违规即验收失败并列出具体问题）。模型不复制 shell 自检脚本，修 `finish` 返回的具体问题即可。
-
+**本场景（数模竞赛）场景参数**：技术路线图放问题重述章节末尾 `1_restatement.tex`；GPT Image 仅物理/工程类赛题按需（最多 1-2 张，放问题背景描述之后）；逐问流程图默认不规划（仅 `FLOW_PER_PROBLEM=on` 或引擎参数要求时逐问规划）。
 ### Step 5.6: ⛔ 赛题分析自检协议（逐句扫描，通用防遗漏）
 
 **核心问题：赛题分析遗漏一个关键句子，后续建模/编码/论文全部基于错误前提，不可逆地传播到最终结果。**
@@ -1147,7 +837,7 @@ cat << 'EOF' >> PROBLEM_ANALYSIS.md
 
 详见 `_utils/error_prevention.md` 第十四章「题面参数保真度」。
 
-**触发条件**：当题面参数 ≥ 20 个（含距离 / 时间 / 概率 / 容量 / 规则等所有可量化条目），**必须**在 PROBLEM_ANALYSIS.md 同目录下产出 `PROBLEM_FACTS.json`，作为下游 comp-code / paper-analysis / 写稿阶段的唯一数字权威源。
+**触发条件**：题面参数 **≥ 20 个**（含距离 / 时间 / 概率 / 容量 / 规则等所有可量化条目）时**必须**在 PROBLEM_ANALYSIS.md 同目录下产出 `PROBLEM_FACTS.json`，作为下游 comp-code / paper-analysis / 写稿阶段的唯一数字权威源；**10–19 个**时建议同样建档（若降级为正文"参数登记表"须写明理由）；**< 10 个**时豁免（见下文"罕见情形兜底"）。
 
 **强制要求**：
 
@@ -1187,7 +877,7 @@ cat << 'EOF' >> PROBLEM_ANALYSIS.md
 
 ```
 
-**罕见情形兜底**：参数 < 10 个的简单题（如纯回归 / 纯描述统计），可以跳过 PROBLEM_FACTS.json，但仍建议在 PROBLEM_ANALYSIS.md 里有"参数登记表"小节。
+**罕见情形兜底**：参数 < 10 个的简单题（如纯回归 / 纯描述统计），可以跳过 PROBLEM_FACTS.json，但仍建议在 PROBLEM_ANALYSIS.md 里有"参数登记表"小节。参数 10–19 个时按上文区间口径**建议建档**（不属豁免区）。
 
 ### 防自抄自审循环：双源对比要求
 

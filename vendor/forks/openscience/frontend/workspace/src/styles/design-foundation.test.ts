@@ -52,7 +52,9 @@ describe("workspace design foundation", () => {
     expect(compute).not.toContain(".kernel-card__stop")
     expect(compute).toMatch(/\.compute-row\s*\{[^}]*min-height:\s*48px[^}]*display:\s*grid/s)
     expect(compute).toMatch(/\.compute-row__telemetry\s*\{[^}]*display:\s*flex[^}]*color:\s*var\(--color-text-muted\)/s)
-    expect(terminal).toMatch(/\.terminal-surface__search button\s*\{[^}]*height:\s*32px[^}]*font-size:\s*12px/s)
+    expect(terminal).toMatch(
+      /\.terminal-surface__search button\s*\{[^}]*height:\s*32px[^}]*font-size:\s*(?:12px|var\(--font-size-small\))/s,
+    )
     expect(terminal).toMatch(/\.terminal-surface__tab,\s*\.terminal-surface__close\s*\{[^}]*height:\s*32px/s)
     expect(atlas).not.toContain(".terminal-surface")
     expect(settings).toMatch(/--settings-type-helper:\s*12px/)
@@ -150,8 +152,11 @@ describe("workspace design foundation", () => {
     expect(css).toMatch(/\[data-size="large"\]\s*\{[^}]*--icon-size:\s*24px/s)
 
     expect(registry).not.toMatch(/id: "specialists"/)
-    expect(registry).toMatch(/id: "skills",[\s\S]*?icon: "flask"/)
-    expect(registry).toMatch(/id: "network",[\s\S]*?icon: "server"/)
+    // The rail speaks in one glyph set: playbooks read as a book, tools as a
+    // flask, the network as a globe, permissions as a shield.
+    expect(registry).toMatch(/id: "skills",[\s\S]*?icon: "book-open"/)
+    expect(registry).toMatch(/id: "scientific-tools",[\s\S]*?icon: "flask"/)
+    expect(registry).toMatch(/id: "network",[\s\S]*?icon: "globe"/)
     expect(registry).toMatch(/id: "permissions",[\s\S]*?icon: "shield"/)
     expect(agentIcon).toContain("<IconResearch")
     expect(agentIcon).not.toContain("<svg")

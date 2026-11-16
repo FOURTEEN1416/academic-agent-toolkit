@@ -7,6 +7,24 @@ import { Session } from "../../src/session"
 import { tmpdir } from "../fixture/fixture"
 
 describe("file content routes", () => {
+  test("reports project-boundary denial as 403 without exposing an external file", async () => {
+    await using external = await tmpdir({
+      init: (directory) => Bun.write(path.join(directory, "private.txt"), "external secret"),
+    })
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const query = new URLSearchParams({ path: path.join(external.path, "private.txt") })
+        for (const endpoint of ["content", "raw", "inspect", "provenance"]) {
+          const response = await FileRoutes().request(`/file/${endpoint}?${query}`)
+          expect(response.status).toBe(403)
+          expect(await response.text()).not.toContain("external secret")
+        }
+      },
+    })
+  })
+
   test("reports missing reads as 404 while explicit writes still create files", async () => {
     await using tmp = await tmpdir()
 
@@ -88,6 +106,38 @@ describe("file content routes", () => {
           headers: { Range: "bytes=0-1,4-5" },
         })
         expect(multipart.status).toBe(416)
+      },
+    })
+  })
+
+  test("ignores a Range header that names an unknown range unit", async () => {
+    await using tmp = await tmpdir({
+      init: (directory) => Bun.write(path.join(directory, "large.pdf"), "0123456789"),
+    })
+
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        // RFC 9110 section 14.2 requires an origin server to ignore a Range
+        // field whose range unit it does not understand, not to reject it.
+        const unknown = await FileRoutes().request("/file/raw?path=large.pdf", {
+          headers: { Range: "items=0-10" },
+        })
+        expect(unknown.status).toBe(200)
+        expect(unknown.headers.get("content-length")).toBe("10")
+        expect(unknown.headers.get("content-range")).toBeNull()
+        expect(await unknown.text()).toBe("0123456789")
+
+        const uppercase = await FileRoutes().request("/file/raw?path=large.pdf", {
+          headers: { Range: "BYTES=1-3" },
+        })
+        expect(uppercase.status).toBe(206)
+        expect(await uppercase.text()).toBe("123")
+
+        const unsatisfiable = await FileRoutes().request("/file/raw?path=large.pdf", {
+          headers: { Range: "bytes=20-30" },
+        })
+        expect(unsatisfiable.status).toBe(416)
       },
     })
   })

@@ -1,10 +1,13 @@
 import { describe, expect, test } from "bun:test"
+import z from "zod"
+import { NamedError } from "@synsci/util/error"
 import { Identifier } from "../../src/id/id"
 import { Instance } from "../../src/project/instance"
 import { Session } from "../../src/session"
 import { MessageV2 } from "../../src/session/message-v2"
 import { SessionProcessor } from "../../src/session/processor"
 import { ToolRetryGuard } from "../../src/session/tool-retry-guard"
+import { observableToolStatus } from "../../src/session/tool-outcome"
 import { BashTool } from "../../src/tool/bash"
 import type { Tool } from "../../src/tool/tool"
 import { executionSession, tmpdir } from "../fixture/fixture"
@@ -45,6 +48,41 @@ function fixture() {
 }
 
 describe("SessionProcessor tool outcome correlation", () => {
+  test("a NamedError thrown by a tool reaches the model with its facts, not its class name", async () => {
+    const { coordinator, updates } = fixture()
+    const Denied = NamedError.create(
+      "FixtureDeniedError",
+      z.object({
+        path: z.string(),
+        access: z.string(),
+        remediation: z.object({ code: z.string(), message: z.string() }),
+        detail: z.string().optional(),
+      }),
+    )
+    const error = new Denied({
+      path: "/lead/titanic_eda.py",
+      access: "write",
+      remediation: { code: "trust_project_required", message: "Trust the project first." },
+    })
+    expect(error.message).toBe("FixtureDeniedError")
+    expect(SessionProcessor.errorText(error)).toBe(
+      "FixtureDeniedError: path: /lead/titanic_eda.py; access: write; remediation: Trust the project first.",
+    )
+    // An error that already speaks for itself is left alone, as is a plain string.
+    expect(SessionProcessor.errorText(new Error("disk full"))).toBe("disk full")
+    expect(SessionProcessor.errorText("boom")).toBe("boom")
+
+    await coordinator.running(running("call_denied", { filePath: "/lead/titanic_eda.py" }))
+    await coordinator
+      .execute("call_denied", { filePath: "/lead/titanic_eda.py" }, async () => {
+        throw error
+      })
+      .catch(() => undefined)
+    expect(updates.at(-1)).toMatchObject({
+      state: { status: "error", error: expect.stringContaining("path: /lead/titanic_eda.py; access: write") },
+    })
+  })
+
   test("persists raw streamed tool input through the terminal state", async () => {
     const { coordinator, updates } = fixture()
     coordinator.pending({
@@ -114,6 +152,51 @@ describe("SessionProcessor tool outcome correlation", () => {
         await Session.remove(session.id)
       },
     })
+  })
+
+  test("keeps one part when execute starts while the streamed placeholder is still being written", async () => {
+    // Single-chunk tool calls (local models, small arguments) deliver
+    // tool-input-start and the SDK's execute() almost together. The pending
+    // write for the placeholder is still in flight when execute registers the
+    // running receipt, and the running part must not get a second identity.
+    const updates: MessageV2.ToolPart[] = []
+    const gate = Promise.withResolvers<void>()
+    const coordinator = SessionProcessor.createToolOutcomeCoordinator({
+      abort: new AbortController().signal,
+      identity: { messageID: "msg_tool_correlation", sessionID: "ses_tool_correlation" },
+      async updatePart(part) {
+        updates.push(part)
+      },
+    })
+    const placeholder: MessageV2.ToolPart = {
+      id: "part_call_race",
+      sessionID: "ses_tool_correlation",
+      messageID: "msg_tool_correlation",
+      type: "tool",
+      callID: "call_race",
+      tool: "webfetch",
+      state: { status: "pending", input: {}, raw: "" },
+    }
+    const persisted = coordinator.pending(placeholder, async () => {
+      await gate.promise
+      updates.push(placeholder)
+    })
+    expect(persisted).toBeDefined()
+    const execution = coordinator.execute(
+      "call_race",
+      { url: "https://example.com" },
+      async () => ({ title: "Fetch", output: "ok", metadata: {} }),
+      "webfetch",
+    )
+    gate.resolve()
+    await persisted
+    await execution
+
+    expect(updates.map((part) => part.id)).toEqual(["part_call_race", "part_call_race", "part_call_race"])
+    expect(updates.map((part) => part.state.status)).toEqual(["pending", "running", "completed"])
+    // A late tool-input-start for the settled call must not reopen it either.
+    expect(coordinator.pending({ ...placeholder, id: "part_call_race_late" })).toBeUndefined()
+    expect(coordinator.part("call_race")).toBeUndefined()
   })
 
   test("uses execution timing when a fast tool settles before its streamed call arrives", async () => {
@@ -223,6 +306,171 @@ describe("SessionProcessor tool outcome correlation", () => {
       callID: "call_late",
       state: { status: "completed", output: "retained", metadata: { source: "execute" } },
     })
+  })
+
+  test("drains an abort-aware Task receipt after cancellation without replaying the call", async () => {
+    const updates: MessageV2.ToolPart[] = []
+    const abort = new AbortController()
+    const coordinator = SessionProcessor.createToolOutcomeCoordinator({
+      abort: abort.signal,
+      async updatePart(part) {
+        updates.push(part)
+      },
+    })
+    const gate = Promise.withResolvers<{
+      title: string
+      output: string
+      metadata: { outcome: "partial"; stopReason: "cancelled"; sessionId: string }
+    }>()
+    await coordinator.running({ ...running("call_cancelled_task"), tool: "task" })
+    let executions = 0
+    const first = coordinator.execute("call_cancelled_task", {}, async () => {
+      executions++
+      return gate.promise
+    })
+    const replay = coordinator.execute("call_cancelled_task", {}, async () => {
+      executions++
+      return {
+        title: "Wrong replay",
+        output: "must not run",
+        metadata: { outcome: "partial" as const, stopReason: "cancelled" as const, sessionId: "ses_wrong" },
+      }
+    })
+
+    let drained = false
+    const drain = coordinator.drain().then(() => {
+      drained = true
+    })
+    abort.abort(new DOMException("Parent stopped", "AbortError"))
+    await Bun.sleep(5)
+    expect(drained).toBeFalse()
+
+    gate.resolve({
+      title: "Cancelled child",
+      output: "Completed file changes: 4 unique files across 2 successful mutation calls.",
+      metadata: { outcome: "partial", stopReason: "cancelled", sessionId: "ses_child" },
+    })
+    await Promise.all([first, replay, drain])
+
+    expect(executions).toBe(1)
+    expect(updates).toHaveLength(1)
+    const retained = updates[0]
+    expect(retained).toMatchObject({
+      callID: "call_cancelled_task",
+      state: {
+        status: "completed",
+        output: expect.stringContaining("4 unique files"),
+        metadata: { outcome: "partial", stopReason: "cancelled", sessionId: "ses_child" },
+      },
+    })
+    expect(observableToolStatus(retained)).toBe("partial")
+    expect(JSON.stringify(retained)).not.toContain("Wrong replay")
+    expect(JSON.stringify(retained)).not.toContain("Tool execution aborted")
+  })
+
+  test("registers and retains a cancelled Task that starts before its stream events", async () => {
+    const updates: MessageV2.ToolPart[] = []
+    const abort = new AbortController()
+    const coordinator = SessionProcessor.createToolOutcomeCoordinator({
+      abort: abort.signal,
+      identity: { messageID: "msg_execute_first", sessionID: "ses_execute_first" },
+      async updatePart(part) {
+        updates.push(part)
+      },
+    })
+    const gate = Promise.withResolvers<{
+      title: string
+      output: string
+      metadata: { outcome: "partial"; stopReason: "cancelled"; sessionId: string }
+    }>()
+    const execution = coordinator.execute("call_execute_first", {}, () => gate.promise, "task")
+
+    abort.abort(new DOMException("Parent stopped", "AbortError"))
+    let drained = false
+    const drain = coordinator.drain().then(() => {
+      drained = true
+    })
+    await Bun.sleep(5)
+    expect(drained).toBeFalse()
+
+    gate.resolve({
+      title: "Cancelled child",
+      output: "Completed file changes: 4 unique files across 2 successful mutation calls.",
+      metadata: { outcome: "partial", stopReason: "cancelled", sessionId: "ses_child" },
+    })
+    await Promise.all([execution, drain])
+
+    expect(updates[0]).toMatchObject({
+      callID: "call_execute_first",
+      tool: "task",
+      state: { status: "running", input: {} },
+    })
+    expect(updates.at(-1)).toMatchObject({
+      callID: "call_execute_first",
+      tool: "task",
+      state: {
+        status: "completed",
+        output: expect.stringContaining("4 unique files"),
+        metadata: { outcome: "partial", stopReason: "cancelled", sessionId: "ses_child" },
+      },
+    })
+    expect(JSON.stringify(updates)).not.toContain("Tool execution aborted")
+  })
+
+  test("repairs a late stream update instead of regressing a completed tool to running", async () => {
+    const updates: MessageV2.ToolPart[] = []
+    const coordinator = SessionProcessor.createToolOutcomeCoordinator({
+      abort: new AbortController().signal,
+      identity: { messageID: "msg_fast_registered", sessionID: "ses_fast_registered" },
+      async updatePart(part) {
+        updates.push(part)
+      },
+    })
+    await coordinator.execute(
+      "call_fast_registered",
+      { query: "done" },
+      async () => ({ title: "Fast task", output: "retained", metadata: { outcome: "completed" } }),
+      "task",
+    )
+    expect(coordinator.closed("call_fast_registered")).toBeTrue()
+    expect(updates.at(-1)?.state.status).toBe("completed")
+
+    const late = {
+      ...running("call_fast_registered", { query: "done" }),
+      tool: "task",
+      messageID: "msg_fast_registered",
+      sessionID: "ses_fast_registered",
+    }
+    // Models the stream write racing immediately after its closed() check.
+    updates.push(late)
+    await coordinator.running(late)
+
+    expect(updates.at(-1)).toMatchObject({
+      callID: "call_fast_registered",
+      state: { status: "completed", output: "retained", metadata: { outcome: "completed" } },
+    })
+  })
+
+  test("does not let a non-cooperative ordinary tool hold cancellation open", async () => {
+    const abort = new AbortController()
+    const updates: MessageV2.ToolPart[] = []
+    const coordinator = SessionProcessor.createToolOutcomeCoordinator({
+      abort: abort.signal,
+      async updatePart(part) {
+        updates.push(part)
+      },
+    })
+    const gate = Promise.withResolvers<{ title: string; output: string; metadata: Record<string, never> }>()
+    await coordinator.running(running("call_stuck"))
+    const execution = coordinator.execute("call_stuck", {}, () => gate.promise)
+
+    abort.abort(new DOMException("Parent stopped", "AbortError"))
+    await coordinator.drain()
+    coordinator.abandon("call_stuck")
+    gate.resolve({ title: "Too late", output: "ignored", metadata: {} })
+    await execution
+
+    expect(updates).toHaveLength(0)
   })
 
   test("executes one provider tool call ID only once for canonically equivalent input", async () => {

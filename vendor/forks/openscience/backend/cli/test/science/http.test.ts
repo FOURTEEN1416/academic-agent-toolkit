@@ -3,9 +3,11 @@ import {
   getJSON as getJSONRaw,
   getText as getTextRaw,
   request as requestRaw,
+  backoffMs,
   clearCache,
   resetRateLimits,
-  orFallback,
+  orNotFound,
+  HttpStatusError,
   type HttpOptions,
 } from "../../src/science/connectors/http"
 import { Network } from "../../src/settings/network"
@@ -60,6 +62,34 @@ describe("http retry / backoff", () => {
     expect(calls).toBe(3) // 1 initial attempt + 2 retries
   })
 
+  test("preserves server cooldowns including HTTP dates", () => {
+    const limited = (retryAfter: string) => new Response("", { status: 429, headers: { "Retry-After": retryAfter } })
+    // Long cooldowns are surfaced to the caller without an early retry.
+    expect(backoffMs(limited("120"), 0)).toBe(120_000)
+    expect(backoffMs(limited("3600"), 2)).toBe(3_600_000)
+    // Short and zero waits are still taken literally; negative values never underflow.
+    expect(backoffMs(limited("2"), 0)).toBe(2_000)
+    expect(backoffMs(limited("0"), 3)).toBe(0)
+    expect(backoffMs(limited("-5"), 0)).toBe(0)
+    // Without a usable header the exponential path applies, with the same ceiling.
+    expect(backoffMs(limited("Wed, 21 Oct 2015 07:28:00 GMT"), 0)).toBeLessThan(1_250)
+    expect(backoffMs(undefined, 10)).toBeLessThan(15_250)
+    expect(backoffMs(undefined, 10)).toBeGreaterThanOrEqual(15_000)
+  })
+
+  test.each(["120", new Date(Date.now() + 120_000).toUTCString()])(
+    "returns a long cooldown without retrying: %s",
+    async (header) => {
+      let calls = 0
+      globalThis.fetch = (async () => {
+        calls++
+        return new Response("busy", { status: 429, headers: { "Retry-After": header } })
+      }) as unknown as typeof fetch
+      await expect(getText("https://cooldown.test/a")).rejects.toThrow("no automatic retry")
+      expect(calls).toBe(1)
+    },
+  )
+
   test("does not retry a non-retryable 4xx", async () => {
     let calls = 0
     globalThis.fetch = (async () => {
@@ -101,7 +131,7 @@ describe("http caching", () => {
     let calls = 0
     globalThis.fetch = (async () => {
       calls++
-      return new Response("<html>not json</html>", { status: 200 })
+      return new Response("valid text that does not match the caller cache gate", { status: 200 })
     }) as unknown as typeof fetch
 
     const looksValid = (body: string) => body.trimStart().startsWith("{")
@@ -183,52 +213,38 @@ describe("http per-host throttle", () => {
   })
 })
 
-describe("orFallback (abort-preserving fallback)", () => {
-  test("returns the fallback when the promise rejects and the signal is not aborted", async () => {
-    const result = await orFallback(
-      Promise.reject(new Error("source down")),
-      { hits: [] },
-      new AbortController().signal,
-    )
-    expect(result).toEqual({ hits: [] })
+describe("documented missing-record fallback", () => {
+  test("only HTTP 404 is a missing record", async () => {
+    expect(await orNotFound(Promise.reject(new HttpStatusError(404, "missing")), [])).toEqual([])
+    for (const error of [
+      new Error("source down"),
+      new HttpStatusError(401, "unauthorized"),
+      new HttpStatusError(429, "limited"),
+      new DOMException("aborted", "AbortError"),
+    ]) {
+      await expect(orNotFound(Promise.reject(error), [])).rejects.toThrow()
+    }
   })
-
-  test("returns the resolved value on success, ignoring the fallback", async () => {
-    const result = await orFallback(Promise.resolve("real"), "fallback", new AbortController().signal)
-    expect(result).toBe("real")
+  test("preserves a successful value", async () => {
+    expect(await orNotFound(Promise.resolve("record"), "missing")).toBe("record")
   })
+})
 
-  test("rethrows (does NOT fall back) when the caller's signal is aborted", async () => {
-    const controller = new AbortController()
-    controller.abort()
-    const err = new DOMException("The operation was aborted.", "AbortError")
-    await expect(orFallback(Promise.reject(err), "fallback", controller.signal)).rejects.toThrow(/aborted/)
+describe("scientific text and JSON content contracts", () => {
+  test("bracketed SDF titles remain plain text", async () => {
+    const body = "[Na+]\nRDKit fixture\n\n  1  0  0  0  0  0            999 V2000\nM  END\n$$$$\n"
+    globalThis.fetch = (async () =>
+      new Response(body, { headers: { "content-type": "chemical/x-mdl-sdfile" } })) as unknown as typeof fetch
+    expect(await getText("https://fixture.test/bracketed.sdf")).toBe(body)
   })
-
-  test("falls back when no signal is supplied", async () => {
-    const result = await orFallback(Promise.reject(new Error("nope")), 42)
-    expect(result).toBe(42)
-  })
-
-  test("a real search cancellation propagates through request() and orFallback", async () => {
-    const controller = new AbortController()
-    // Model real fetch: reject with an AbortError as soon as the signal is
-    // aborted — including when it is already aborted by the time fetch runs.
-    globalThis.fetch = ((_url: string, init?: RequestInit) =>
-      new Promise((_resolve, reject) => {
-        const sig = init?.signal
-        const fail = () => reject(new DOMException("aborted", "AbortError"))
-        if (sig?.aborted) return fail()
-        sig?.addEventListener("abort", fail, { once: true })
-      })) as unknown as typeof fetch
-
-    const search = orFallback(
-      getJSON("https://slow.test/q", { signal: controller.signal }),
-      { hits: [] },
-      controller.signal,
-    )
-    controller.abort()
-    // The cancellation surfaces instead of being masked as an empty result.
-    await expect(search).rejects.toThrow()
+  test("malformed requested JSON is rejected before caching", async () => {
+    let calls = 0
+    globalThis.fetch = (async () => {
+      calls++
+      return new Response(calls === 1 ? "{malformed" : "{}")
+    }) as unknown as typeof fetch
+    await expect(getJSON("https://fixture.test/record")).rejects.toThrow()
+    expect(await getJSON("https://fixture.test/record")).toEqual({})
+    expect(calls).toBe(2)
   })
 })

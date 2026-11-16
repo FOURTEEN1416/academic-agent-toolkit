@@ -1,0 +1,114 @@
+---
+title: "Connectors and MCP"
+description: "Add external tools and services to your research workflow."
+---
+
+Connectors let OpenScience use tools, resources, and prompts supplied by another service. Open **Customize → Connectors** to inspect the catalog and manage configured connections.
+
+Built-in scientific database search is covered separately in [Databases](/openscience/databases).
+
+## Add a connection
+
+Choose a catalog entry or add a custom connection. Review the endpoint, account, and tools it exposes. Complete browser authorization or enter the required credentials when prompted.
+
+Some presets are saved with the connection off until you review and enable them. A saved configuration is not necessarily an active connection.
+
+After connecting, inspect its available tools and try a small read-only request before using actions that publish, modify, or spend.
+
+## Remote MCP server
+
+MCP is the Model Context Protocol, a way for tools to connect to an agent. For a remote server, use the HTTPS endpoint supplied by its operator.
+
+```json
+{
+  "mcp": {
+    "lab-docs": {
+      "type": "remote",
+      "url": "https://mcp.example.org/mcp",
+      "enabled": false
+    }
+  }
+}
+```
+
+Replace the example URL with your server's actual endpoint. Enable the connection after reviewing it. If the server requires sign-in, use the offered authorization flow.
+
+For a service that documents token authentication, add its required header through the form or an environment reference. Do not put private credentials in a URL. Query parameters that select tools or options, such as `https://mcp.exa.ai/mcp?tools=web_search_exa,web_fetch_exa`, are kept as written. A parameter named like a credential (`api_key`, `token`, `secret`, `Authorization`, and similar) is refused with its name, so send that value as a header instead.
+
+## Local MCP server
+
+A local connection starts a command on your machine:
+
+```json
+{
+  "mcp": {
+    "lab-tools": {
+      "type": "local",
+      "command": ["python", "/absolute/path/to/lab_mcp_server.py"],
+      "enabled": false
+    }
+  }
+}
+```
+
+Replace the example command with an installed MCP server that supports the expected transport. Use separate array entries for the executable and each argument.
+
+The required language runtime and dependencies must be available. A local server is software you choose to run; review it before enabling it.
+
+A local server starts inside the execution sandbox. On a machine without a sandbox backend, such as Windows, OpenScience does not start it while **Customize → Sandbox → Sandbox agent commands** is on and **Fallback behavior** is **Refuse**, and the connector reports why. Use the server's remote MCP URL if it offers one, or choose **Warn & run** to start local servers without isolation. The project's **Action approval** mode does not change this.
+
+## CLI commands
+
+```bash
+openscience mcp add
+openscience mcp list
+openscience mcp auth <name>
+openscience mcp auth list
+openscience mcp logout <name>
+openscience mcp remove <name>
+```
+
+`openscience tools` is another name for `openscience mcp`. `mcp debug <name>` provides authorization troubleshooting when a connection fails.
+
+Logout removes authorization while keeping configuration. Remove deletes the configured connection. Neither deletes the external service account.
+
+## Understand access and cost
+
+A connector can offer read and write tools with different consequences. A connection alone does not authorize every action you might ask it to perform. Check the tool request and selected account before publishing or changing external records.
+
+A catalog listing does not mean every feature of that service is supported. Use the capability details shown for the active connection.
+
+Services can require subscriptions, paid API usage, or organization approval. Their terms are separate from OpenScience's workbench license and Ace model access.
+
+## Troubleshooting
+
+For a remote connection, check the endpoint, authorization, and account access. For a local connection, run its documented startup command in a terminal to check installation errors.
+
+If a connection is saved but off, enable it. If it is connected but has no relevant tool, inspect the service's actual capabilities rather than assuming the missing action exists.
+
+## Search MCP examples
+
+For [Exa's official MCP](https://github.com/exa-labs/exa-mcp-server), add a **Remote** connection with URL `https://mcp.exa.ai/mcp?tools=web_search_exa,web_fetch_exa`. Set authentication to **Off** when supplying your own API key header, then enter Headers as a JSON object:
+
+`{"x-api-key": "YOUR_EXA_API_KEY"}`
+
+Keep the tool-selection query you need; the server's current Tools list is authoritative. Do not put the key in an `exaApiKey` query parameter.
+
+For [Tavily's official MCP](https://github.com/tavily-ai/tavily-mcp), use `https://mcp.tavily.com/mcp`, authentication **Off**, and a header:
+
+`{"Authorization": "Bearer YOUR_TAVILY_API_KEY"}`
+
+Replace these placeholders in the form, save, inspect the server's Tools list, then request one small search. A connection or successful tool listing does not verify search quota. A 401 or invalid-key error means reconnect or replace the credential; a 403 means check account/tool permissions; a 429 or usage-limit error means check that service's quota, billing, and retry guidance. Changing the model API key does not repair an external search account.
+
+### Parallel Search
+
+The optional **Parallel Search** catalog preset saves
+`https://search.parallel.ai/mcp` disabled with authentication **Off**. Enable it
+when you want to use Parallel's anonymous public-web `web_search` and
+`web_fetch` tools, then inspect its current Tools list. Saving the preset does
+not connect, search, or replace an existing connection with the same name.
+
+Requested queries and page URLs go to Parallel. Anonymous use has lower service
+rate limits; model inference costs remain separate. An optional authenticated
+connection can be configured manually if you need a different quota. See
+[Parallel's Search MCP documentation](https://docs.parallel.ai/integrations/mcp/search-mcp).

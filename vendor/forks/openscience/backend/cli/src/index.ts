@@ -1,8 +1,5 @@
-// MUST be first import — side-effect-loads last-known synced env vars
-// from disk synchronously, so provider SDKs (Anthropic, OpenAI,
-// @ai-sdk/google) see ANTHROPIC_BASE_URL / ANTHROPIC_API_KEY / etc. at
-// their own module-init time. Without this, the SDK constructs at
-// import time with empty env (sync only catches up later in middleware).
+// MUST be first: removes ambient project dotenv authority before provider
+// SDKs snapshot their process environment.
 import "./openscience/preload-env"
 
 import yargs from "yargs"
@@ -24,7 +21,6 @@ import { ServeCommand } from "./cli/cmd/serve"
 import { DebugCommand } from "./cli/cmd/debug"
 import { StatsCommand } from "./cli/cmd/stats"
 import { McpCommand } from "./cli/cmd/mcp"
-import { GithubCommand } from "./cli/cmd/github"
 import { ExportCommand } from "./cli/cmd/export"
 import { ImportCommand } from "./cli/cmd/import"
 import { AcpCommand } from "./cli/cmd/acp"
@@ -32,14 +28,12 @@ import { EOL } from "os"
 import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
 import { SessionCommand } from "./cli/cmd/session"
-import { LoginCommand, LogoutCommand, StatusCommand, SyncCommand, DevicesCommand } from "./cli/cmd/connect"
-import { ProjectCommand } from "./cli/cmd/project"
+import { DevicesCommand, LoginCommand, LogoutCommand, StatusCommand, SyncCommand } from "./cli/cmd/connect"
 import { WalletCommand } from "./cli/cmd/billing"
 import { KeysCommand, ConnectCommand, DisconnectCommand } from "./cli/cmd/auth"
 import { LocalCommand } from "./cli/cmd/local"
 import { SandboxCommand } from "./cli/cmd/sandbox"
 import { InitCommand, DoctorCommand } from "./cli/onboard"
-import { OpenScience } from "./openscience"
 import { GROUP_LAUNCHER_ARG, run as runMcpGroupLauncher } from "./mcp/group-launcher"
 import { WINDOWS_JOB_LAUNCHER_ARG, WindowsJobLauncher } from "./process/windows-job-launcher"
 import {
@@ -48,10 +42,20 @@ import {
 } from "./process/darwin-responsibility-launcher"
 import { Global } from "./global"
 import { disposeDataRootOperation, runDataRootMiddleware } from "./cli/cmd/cmd"
-import { ACCOUNT_REQUIRED_MESSAGE, requiresOpenScienceAccount } from "./cli/account-gate"
-import { OutboundTelemetry } from "./telemetry/outbound"
 import { purgeRetiredAtlasAgentInstall } from "./skill/retired-install"
 import { SELF_RESTART_ARG, SelfRestart } from "./process/self-restart"
+import { DARWIN_UPDATE_SWAP_ARG, DarwinUpdateSwap } from "./process/darwin-update-swap"
+import { GracefulShutdown } from "./process/graceful-shutdown"
+import { UsageLogging } from "./session/usage-logging"
+
+if (process.argv[2] === DARWIN_UPDATE_SWAP_ARG) {
+  try {
+    process.exit(await DarwinUpdateSwap.run(process.argv[3] ?? ""))
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error))
+    process.exit(1)
+  }
+}
 
 if (process.argv[2] === SELF_RESTART_ARG) {
   try {
@@ -129,6 +133,7 @@ const cli = yargs(hideBin(process.argv))
   })
   .middleware(async (opts) => {
     const initialize = async () => {
+      const capabilityCanary = command === "debug" && opts._[1] === "capability-canary"
       await Log.init({
         print: process.argv.includes("--print-logs"),
         dev: Installation.isLocal(),
@@ -138,8 +143,6 @@ const cli = yargs(hideBin(process.argv))
           return "INFO"
         })(),
       })
-      OpenScience.reportApiBaseOverride()
-
       process.env.AGENT = "1"
       process.env.OPENSCIENCE = "1"
 
@@ -152,41 +155,51 @@ const cli = yargs(hideBin(process.argv))
         Log.Default.warn("failed to purge retired Atlas agent install", { error: retiredAgentInstallCleanupError })
       }
 
-      // A consent change may have been saved while offline. Retry it on every
-      // startup before the account gate can exit. Opt-out is prospective and
-      // never turns into an implicit deletion request.
-      await OutboundTelemetry.initializeAccount().catch(() => undefined)
-
-      if (requiresOpenScienceAccount(command, process.argv.slice(2)) && !(await OpenScience.isAuthenticated())) {
-        throw new Error(ACCOUNT_REQUIRED_MESSAGE)
-      }
-
-      // Cheap /sync/version probe (10s TTL). When the server-side version
-      // has changed, a full /api/cli/sync runs in the background so the new
-      // env applies to the NEXT command — the current one uses whatever is
-      // already cached on disk. Replaces a blocking 5s Promise.race that
-      // ran on every invocation regardless of staleness.
-      await OpenScience.refreshIfStale().catch(() => {})
-
       // Inject decrypted service credentials (settings ▸ Credentials) into the
       // process env so skills/tools/connectors actually use them. Dynamic import
       // keeps the credential route module out of every command's static graph.
-      await import("./server/routes/settings/credentials").then((m) => m.applyCredentialEnv()).catch(() => {})
-
-      // Legacy skill-based compute providers still consume their enabled keys
-      // from subprocess environments. Modal remains adapter-only.
-      await import("./server/routes/settings/compute").then((m) => m.ComputeSettings.applyComputeEnv()).catch(() => {})
+      if (!capabilityCanary) {
+        UsageLogging.start()
+        await import("./server/routes/settings/credentials").then((m) => m.applyCredentialEnv()).catch(() => {})
+        void import("./openscience").then((m) => {
+          m.OpenScience.startCredentialSync()
+        })
+        // Open the managed gateway connection now and keep it usable until the
+        // first message (a no-op unless OPENSCIENCE_MANAGED_H2 is switched on).
+        // The gateway URL comes from credential sync, so it is read per check.
+        // Like the managed provider: a saved Ace session means the managed
+        // gateway at managedOpenRouterBaseURL().
+        void Promise.all([
+          import("./provider/managed-h2"),
+          import("./openscience/synced-env-policy"),
+          import("./openscience"),
+          import("./auth"),
+        ]).then(([{ ManagedH2 }, policy, { OpenScience }, { Auth }]) =>
+          ManagedH2.keepWarm(async () => {
+            const session = await OpenScience.getSession().catch(() => null)
+            return session?.api_key && Auth.isAtlasApiKey(session.api_key)
+              ? policy.managedOpenRouterBaseURL()
+              : undefined
+          }),
+        )
+      }
 
       // First authenticated startup quietly provisions the app-owned Python
       // and R starters. The command does not wait for package resolution; the
       // first kernel request joins the same lease-backed setup if it is still
       // running. OpenScience never modifies the user's Python, R, or Conda.
-      await import("./science/kernel/environment-manager")
-        .then((m) => m.ManagedEnvironments.startInBackground())
-        .catch(() => {})
-
-      // Retry any failed usage reports from previous sessions
-      OpenScience.flushPendingUsage().catch(() => {})
+      if (!capabilityCanary) {
+        const start = () =>
+          import("./science/kernel/environment-manager")
+            .then((m) => m.ManagedEnvironments.startInBackground())
+            .catch(() => {})
+        // The long-lived server commands (bare `openscience`, `web`, `serve`)
+        // defer the interpreter probes so they do not compete with workspace
+        // startup for CPU and disk; short-lived commands keep starting at once.
+        const server = !command || command === "web" || command === "serve"
+        if (server) setTimeout(start, 10_000).unref()
+        if (!server) await start()
+      }
     }
 
     const command = typeof opts._[0] === "string" ? opts._[0] : undefined
@@ -212,19 +225,17 @@ const cli = yargs(hideBin(process.argv))
   .command(StatsCommand)
   .command(ExportCommand)
   .command(ImportCommand)
-  .command(GithubCommand)
   .command(PrCommand)
   .command(SessionCommand)
   .command(InitCommand)
   .command(LoginCommand)
+  .command(SyncCommand)
   .command(LogoutCommand)
   .command(StatusCommand)
-  .command(SyncCommand)
   .command(DevicesCommand)
   .command(KeysCommand)
   .command(WalletCommand)
   .command(DoctorCommand)
-  .command(ProjectCommand)
   .command(ConnectCommand)
   .command(DisconnectCommand)
   .fail((msg, err) => {
@@ -286,7 +297,8 @@ async function run() {
     // Most notably, some docker-container-based MCP servers don't handle such signals unless
     // run using `docker run --init`.
     // Explicitly exit to avoid any hanging subprocesses.
-    await OutboundTelemetry.drain({ timeoutMs: 2_000 }).catch(() => undefined)
+    await GracefulShutdown.final({ timeoutMs: 8_000 }).catch(() => undefined)
+    await UsageLogging.drain().catch(() => undefined)
     await disposeDataRootOperation().catch(() => undefined)
     await Log.flush().catch(() => undefined)
     process.exit()

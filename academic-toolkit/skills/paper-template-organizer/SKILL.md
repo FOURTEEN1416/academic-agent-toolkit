@@ -6,6 +6,8 @@ version: 0.1.0
 
 # LaTeX Conference Template Organizer
 
+> **来源说明**：本技能为外部收编技能（来路待考/外部收编，2026-11-16 写作族治理批补注），本仓未附其上游仓库溯源侧件；如后续定位到上游，按先 fork 后集成惯例补建上游溯源台账（UPSTREAM 侧件）。
+
 ## Overview
 
 Transform messy conference LaTeX template .zip files into clean, Overleaf-ready submission templates. Official conference templates often contain excessive example content, instructional comments, and disorganized file structures. This skill converts them into templates ready for writing.

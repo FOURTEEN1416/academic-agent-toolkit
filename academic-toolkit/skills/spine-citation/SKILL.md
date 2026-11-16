@@ -75,8 +75,15 @@ Read `references/citation-support-bank.md` when detailed rules are needed.
 ## Check
 
 ```bash
-python scripts/citation_bank_check.py paper_rewriting_output/citation_support_bank.md --target-count 20 --markdown
-python scripts/citation_quality_audit.py paper_rewriting_output --write
+# Resolve scripts from this repository checkout, not the user's project cwd
+# (a bare `python scripts/...` path is the most common reason the command fails).
+REPO="$(git rev-parse --show-toplevel)"
+python "$REPO/academic-toolkit/skills/spine-citation/scripts/citation_bank_check.py" paper_rewriting_output/citation_support_bank.md --target-count 20 --markdown
+python "$REPO/academic-toolkit/skills/spine-citation/scripts/citation_quality_audit.py" paper_rewriting_output --write
 ```
+
+Same-name guard scripts exist in several spine skill directories (registered
+in `academic-toolkit/data/duplicate_assets_registry.json`); use this skill's
+own copies shown above.
 
 If the config has a different `citation_target_count`, use that value.

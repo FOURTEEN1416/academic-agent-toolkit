@@ -4,9 +4,15 @@ description: Bayesian modeling with PyMC. Build hierarchical models, MCMC (NUTS)
 category: coding
 license: Apache License, Version 2.0
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/pymc
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 version: 1.0.0
-author: Synthetic Sciences
+author: K-Dense Inc.
 tags: [Bayesian, MCMC, Probabilistic Programming, Statistics]
 dependencies: ["pymc>=5.10.0", "arviz>=0.17.0", "numpy>=1.25.0"]
 ---

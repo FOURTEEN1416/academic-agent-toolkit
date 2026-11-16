@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/evidence-review.schema.json",
+  "title": "PaperSpine evidence-grounded review",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "review_id",
+    "policy",
+    "literature_scope",
+    "manuscript",
+    "reviewers",
+    "findings",
+    "tool_receipts",
+    "synthesis"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "review_id": {"type": "string", "minLength": 1},
+    "policy": {"enum": ["balanced", "strict"]},
+    "literature_scope": {"enum": ["closed_corpus", "open_literature"]},
+    "manuscript": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": true
+    },
+    "reviewers": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/reviewer"}},
+    "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "tool_receipts": {"type": "array", "items": {"$ref": "#/$defs/toolReceipt"}},
+    "synthesis": {
+      "type": "object",
+      "required": ["status", "blocker_finding_ids"],
+      "properties": {
+        "status": {"enum": ["PASS", "BLOCKED"]},
+        "blocker_finding_ids": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "reviewer": {
+      "type": "object",
+      "required": ["reviewer_id", "persona_id", "role", "independent_pass", "receipt_id"],
+      "properties": {
+        "reviewer_id": {"type": "string", "minLength": 1},
+        "persona_id": {"type": "string", "minLength": 1},
+        "role": {"type": "string", "minLength": 1},
+        "independent_pass": {"type": "boolean"},
+        "receipt_id": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "paperEvidence": {
+      "type": "object",
+      "required": ["kind", "locator", "source_sha256"],
+      "properties": {
+        "kind": {"enum": ["quote", "figure", "table", "equation", "absence_scan"]},
+        "locator": {"type": "string", "minLength": 1},
+        "quote": {"type": "string"},
+        "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "search_scope": {"type": "string"},
+        "search_terms": {"type": "array", "items": {"type": "string"}},
+        "receipt_id": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "finding": {
+      "type": "object",
+      "required": [
+        "finding_id", "reviewer_id", "criterion", "severity", "summary",
+        "recommendation", "confidence", "disposition", "paper_evidence",
+        "external_evidence", "tool_receipt_ids"
+      ],
+      "properties": {
+        "finding_id": {"type": "string", "minLength": 1},
+        "reviewer_id": {"type": "string", "minLength": 1},
+        "criterion": {"type": "string", "minLength": 1},
+        "severity": {"enum": ["CRITICAL", "MAJOR", "MINOR", "OBSERVATION"]},
+        "summary": {"type": "string", "minLength": 1},
+        "recommendation": {"type": "string", "minLength": 1},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "disposition": {"enum": ["open", "resolved", "advisory", "dismissed", "needs_author"]},
+        "paper_evidence": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/paperEvidence"}},
+        "external_evidence": {"type": "array", "items": {"type": "object"}},
+        "tool_receipt_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "toolReceipt": {
+      "type": "object",
+      "required": ["receipt_id", "action", "status", "usage"],
+      "properties": {
+        "receipt_id": {"type": "string", "minLength": 1},
+        "action": {"type": "string", "minLength": 1},
+        "status": {"enum": ["completed", "partial", "no_hit", "provider_failure", "not_started"]},
+        "usage": {
+          "type": "object",
+          "properties": {
+            "input_tokens": {"type": "integer", "minimum": 0},
+            "output_tokens": {"type": "integer", "minimum": 0},
+            "wall_seconds": {"type": "number", "minimum": 0}
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

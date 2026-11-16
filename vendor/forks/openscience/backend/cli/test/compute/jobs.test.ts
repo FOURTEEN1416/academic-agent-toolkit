@@ -1,7 +1,8 @@
-import { describe, expect, test } from "bun:test"
+import { describe, expect, spyOn, test } from "bun:test"
 import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
+import { Global } from "../../src/global"
 import { ComputeJobs, ComputeJobsCorruptError } from "../../src/compute/jobs"
 import { SshAdapter } from "../../src/compute/ssh/adapter"
 import { ModalAdapter } from "../../src/compute/modal/adapter"
@@ -13,6 +14,7 @@ import { Sandbox } from "../../src/sandbox/sandbox"
 import { ExecutionAuthority } from "../../src/project/execution"
 import { ArtifactStore } from "../../src/artifact/store"
 import { CredentialProcessLedger } from "../../src/credentials/process-ledger"
+import { CapabilityRegistry } from "../../src/science/capability/registry"
 import { sandboxedExecution, tmpdir, trustProject } from "../fixture/fixture"
 
 type StartOptions = NonNullable<Parameters<typeof ComputeJobs.start>[1]>
@@ -38,7 +40,13 @@ function modalProvider(overrides: Partial<ComputeJobs.ModalProvider> = {}): Comp
   }
 }
 
-async function start(input: ComputeJobs.Input, options: StartOptions) {
+async function start(
+  input: ComputeJobs.Input & {
+    capability?: ComputeJobs.CapabilityBinding
+    capability_execution?: ComputeJobs.CapabilityExecution
+  },
+  options: StartOptions,
+) {
   if (!options.workspace) throw new Error("Compute test start requires an explicit workspace")
   const projectDirectory = options.workspace
   return Instance.provide({
@@ -121,7 +129,17 @@ describe("ComputeJobs command adapters", () => {
       host,
     )
 
-    expect(command.argv.slice(0, 7)).toEqual(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", "-p", "2222"])
+    expect(command.argv.slice(0, 9)).toEqual([
+      "ssh",
+      "-F",
+      "/dev/null",
+      "-o",
+      "BatchMode=yes",
+      "-o",
+      "ConnectTimeout=8",
+      "-p",
+      "2222",
+    ])
     expect(command.argv).toContain("researcher@hpc.example.org")
     expect(command.argv.at(-1)).toContain("sbatch --wait --parsable")
     expect(command.argv.at(-1)).toContain("--cpus-per-task=8")
@@ -163,11 +181,72 @@ describe("ComputeJobs command adapters", () => {
       scheduler: "none",
       concurrency: 4,
     })
-    const argv = SshAdapter.argv(imported, "/tmp/known-hosts", "true")
+    const argv = SshAdapter.argv(imported, "/tmp/known-hosts", "true", "/trusted/ssh")
 
-    expect(argv).toContain("/dev/null")
+    expect(argv).toContain("/tmp/known-hosts.ssh_config")
     expect(argv).toContain("researcher@login.cluster.example")
     expect(argv).not.toContain("lab")
+  })
+
+  test("passes only validated IdentityFile and ProxyJump options to the fixed SSH adapter", () => {
+    const identity = path.join(os.homedir(), ".ssh", "lab_ed25519")
+    const imported = ComputeJobs.Host.parse({
+      id: "private-lab",
+      label: "Private lab",
+      host: "login.private.example",
+      user: "researcher",
+      identity_file: identity,
+      proxy_jump: "jump@bastion.example.org:2200",
+      scheduler: "none",
+      concurrency: 2,
+    })
+    const argv = SshAdapter.argv(imported, "/tmp/known-hosts", "true", "/trusted/ssh")
+
+    expect(argv).toContain("IdentitiesOnly=yes")
+    expect(argv).toContain(identity)
+    expect(argv).toContain("jump@bastion.example.org:2200")
+    expect(argv).not.toContain("ProxyCommand")
+    expect(() => ComputeJobs.Host.parse({ ...imported, proxy_jump: "bad; touch /tmp/owned" })).toThrow("SSH ProxyJump")
+    expect(() => ComputeJobs.Host.parse({ ...imported, proxy_jump: "researcher@-oProxyCommand=bad" })).toThrow(
+      "SSH ProxyJump",
+    )
+  })
+
+  test("writes a broker-owned SSH config so ProxyJump children use the pinned host-key file", async () => {
+    if (!Bun.which("ssh-keygen")) return
+    await using tmp = await tmpdir()
+    const fixture = path.join(tmp.path, "fixture-host-key")
+    const generated = Bun.spawn(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", fixture], {
+      stdout: "ignore",
+      stderr: "pipe",
+    })
+    expect(await generated.exited).toBe(0)
+    const [algorithm, key] = (await Bun.file(`${fixture}.pub`).text()).trim().split(/\s+/)
+    const identified = Bun.spawn(["ssh-keygen", "-lf", `${fixture}.pub`, "-E", "sha256"], {
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+    const fingerprint = (await new Response(identified.stdout).text()).trim().split(/\s+/)[1]
+    expect(await identified.exited).toBe(0)
+    const pinned = ComputeJobs.Host.parse({
+      id: "private-lab",
+      label: "Private lab",
+      host: "login.private.example",
+      scheduler: "none",
+      concurrency: 2,
+      fingerprint,
+      host_key: `login.private.example ${algorithm} ${key}`,
+      proxy_jump: "jump@bastion.example.org:2200",
+      proxy_jump_host_keys: [`[bastion.example.org]:2200 ${algorithm} ${key}`],
+    })
+
+    const known = await SshAdapter.known(pinned, tmp.path)
+    const config = await Bun.file(`${known}.ssh_config`).text()
+    expect(await Bun.file(known).text()).toContain(`[bastion.example.org]:2200 ${algorithm}`)
+    expect(config).toContain(`UserKnownHostsFile \"${known}\"`)
+    expect(config).toContain("StrictHostKeyChecking yes")
+    expect(config).not.toContain("ProxyCommand")
+    expect(SshAdapter.argv(pinned, known, "true", "/trusted/ssh")).toContain(`${known}.ssh_config`)
   })
 
   test("binds SSH resources, modules, and container into the approved digest", async () => {
@@ -179,6 +258,8 @@ describe("ComputeJobs command adapters", () => {
       notes: "Use the research partition; installations belong under /scratch/team/envs.",
       fingerprint: `SHA256:${"a".repeat(43)}`,
       host_key: `hpc.example.org ssh-ed25519 ${Buffer.from("test-key").toString("base64")}`,
+      proxy_jump: "jump@bastion.example.org:2200",
+      proxy_jump_host_keys: [`bastion.example.org ssh-ed25519 ${Buffer.from("jump-test-key").toString("base64")}`],
     })
     await Instance.provide({
       directory: tmp.path,
@@ -215,6 +296,12 @@ describe("ComputeJobs command adapters", () => {
           { ...pinned, port: 2200 },
           { ...pinned, workdir: "/different/base" },
           { ...pinned, notes: "Use a different partition." },
+          {
+            ...pinned,
+            proxy_jump_host_keys: [
+              `bastion.example.org ssh-ed25519 ${Buffer.from("different-jump-key").toString("base64")}`,
+            ],
+          },
         ]) {
           await expect(
             ComputeJobs.start({ ...request, approval: approved.digest }, { root, workspace, hosts: [changed] }),
@@ -262,6 +349,10 @@ printf '%s\\n' '{"exists":true}'
     await fs.chmod(path.join(bin, "ssh"), 0o700)
 
     const previousPath = process.env.PATH
+    const nativeExecutable = SshAdapter.executable
+    const executable = spyOn(SshAdapter, "executable").mockImplementation((name) =>
+      name === "ssh" ? Promise.resolve(path.join(bin, "ssh")) : nativeExecutable(name),
+    )
     process.env.PATH = `${bin}${path.delimiter}${previousPath ?? ""}`
     try {
       await Instance.provide({
@@ -311,9 +402,29 @@ printf '%s\\n' '{"exists":true}'
         },
       })
     } finally {
+      executable.mockRestore()
       process.env.PATH = previousPath
     }
   }, 15_000)
+
+  test("never selects a workspace SSH shim from ambient PATH", async () => {
+    if (process.platform === "win32") return
+    await using tmp = await tmpdir()
+    const bin = path.join(tmp.path, "bin")
+    const shim = path.join(bin, "ssh")
+    const previousPath = process.env.PATH
+    await fs.mkdir(bin)
+    await fs.writeFile(shim, "#!/bin/sh\nexit 0\n", { mode: 0o700 })
+    process.env.PATH = `${bin}${path.delimiter}${previousPath ?? ""}`
+    try {
+      const resolved = await SshAdapter.executable("ssh")
+      expect(resolved).not.toBe(await fs.realpath(shim))
+      expect(path.isAbsolute(resolved)).toBe(true)
+    } finally {
+      if (previousPath === undefined) delete process.env.PATH
+      else process.env.PATH = previousPath
+    }
+  })
 
   test("bounds SSH control output and reaps every owned transport process", async () => {
     if (process.platform === "win32") return
@@ -341,6 +452,10 @@ time.sleep(60)'
       { mode: 0o700 },
     )
     const previousPath = process.env.PATH
+    const nativeExecutable = SshAdapter.executable
+    const executable = spyOn(SshAdapter, "executable").mockImplementation((name) =>
+      name === "ssh" ? Promise.resolve(path.join(bin, "ssh")) : nativeExecutable(name),
+    )
     process.env.PATH = `${bin}${path.delimiter}${previousPath ?? ""}`
     try {
       await Instance.provide({
@@ -394,6 +509,7 @@ time.sleep(60)'
         }
       }
     } finally {
+      executable.mockRestore()
       process.env.PATH = previousPath
     }
   }, 45_000)
@@ -429,32 +545,22 @@ time.sleep(60)'
         { mode: 0o700 },
       ),
     ])
-    const module = path.resolve(import.meta.dir, "../../src/compute/jobs.ts")
-    const script = `
-import { ComputeJobs } from ${JSON.stringify(module)}
-const result = await ComputeJobs.probe({
-  id: "bounded-probe",
-  label: "Bounded probe",
-  host: "probe.example.org",
-  scheduler: "none",
-  concurrency: 1,
-})
-console.log(JSON.stringify(result))
-`
+    const binaries = {
+      ssh: path.join(bin, "ssh"),
+      "ssh-keygen": path.join(bin, "ssh-keygen"),
+      "ssh-keyscan": path.join(bin, "ssh-keyscan"),
+    }
     try {
-      const child = Bun.spawn([process.execPath, "-e", script], {
-        cwd: path.resolve(import.meta.dir, "../.."),
-        env: { ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH ?? ""}` },
-        stdout: "pipe",
-        stderr: "pipe",
-      })
-      const [code, stdout, stderr] = await Promise.all([
-        child.exited,
-        new Response(child.stdout).text(),
-        new Response(child.stderr).text(),
-      ])
-      if (code !== 0) throw new Error(stderr)
-      const result = ComputeJobs.Probe.parse(JSON.parse(stdout.trim().split("\n").at(-1)!))
+      const result = await ComputeJobs.probe(
+        {
+          id: "bounded-probe",
+          label: "Bounded probe",
+          host: "probe.example.org",
+          scheduler: "none",
+          concurrency: 1,
+        },
+        binaries,
+      )
       expect(result.ok).toBe(false)
       expect(result.error).toBe("SSH operation stdout exceeded 65536 bytes")
       const pid = Number(await Bun.file(pidfile).text())
@@ -544,6 +650,99 @@ sleep 30
       else process.env.OPENSCIENCE_SSH_TEST_REGISTRATION_FAILURE = previousFailure
     }
   }, 15_000)
+
+  test("settles an SSH record without submission authority instead of retrying it", async () => {
+    await using tmp = await tmpdir()
+    const root = path.join(tmp.path, "state")
+    const pinned = ComputeJobs.Host.parse({
+      ...host,
+      fingerprint: "SHA256:Qhi22lbcPTt1frRtqU56iDRQ6YjdwJU8EDmi0QCdnbc",
+      host_key: "hpc.example.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAUsmADCYwCBoe8869NDLxsh3Vvnsd3raFGoMF1h8fXB",
+    })
+    const record = (id: string, value: Partial<ComputeJobs.Job>) =>
+      ComputeJobs.Job.parse({
+        id,
+        name: id,
+        command: "python3 train.py",
+        cwd: tmp.path,
+        target: { kind: "ssh", host_id: pinned.id },
+        target_label: pinned.label,
+        scheduler: pinned.scheduler,
+        created_at: new Date(Date.now() - 60_000).toISOString(),
+        started_at: new Date(Date.now() - 59_000).toISOString(),
+        remote_id: `slurm:${id}`,
+        ssh: {
+          protocol: 1,
+          host: pinned,
+          root: `/scratch/team project/${id}`,
+          cwd: `/scratch/team project/${id}/workspace`,
+          fingerprint: pinned.fingerprint,
+          uploads: [],
+          upload_bytes: 0,
+          approval: "a".repeat(64),
+        },
+        ...value,
+      })
+    // Neither record carries an authority, so nothing can reach its host again.
+    const running = record("orphaned-running", {
+      status: "running",
+      lifecycle: { execution: "running", delivery: "none", resource: "active", recoverable: false },
+    })
+    const pending = record("orphaned-pending", {
+      status: "succeeded",
+      completed_at: new Date(Date.now() - 1_000).toISOString(),
+      exit_code: 0,
+      lifecycle: { execution: "succeeded", delivery: "pending", resource: "active", recoverable: false },
+    })
+    await fs.mkdir(root, { recursive: true })
+    await Bun.write(path.join(root, "jobs.json"), JSON.stringify([running, pending]))
+    const options = { root, workspace: tmp.path, hosts: [pinned] }
+    const events = (id: string) =>
+      Bun.file(path.join(root, "jobs", `${id}.events.log`))
+        .text()
+        .catch(() => "")
+    const message = (id: string) =>
+      `SSH job ${id} has no submission authority; release /scratch/team project/${id} by hand`
+
+    await ComputeJobs.list(options)
+    const settled = await (async function poll(attempts = 100): Promise<ComputeJobs.Job[]> {
+      const jobs = await Promise.all([running, pending].map((job) => ComputeJobs.get(job.id, options)))
+      const closed = jobs.filter((job): job is ComputeJobs.Job => job?.lifecycle?.resource === "closed")
+      if (closed.length === jobs.length) return closed
+      if (!attempts) throw new Error("Timed out waiting for orphaned SSH records to settle")
+      await Bun.sleep(20)
+      return poll(attempts - 1)
+    })()
+
+    expect(settled[0]).toMatchObject({
+      status: "failed",
+      error: message(running.id),
+      cleanup_error: message(running.id),
+      lifecycle: { execution: "failed", delivery: "none", resource: "closed", recoverable: false },
+    })
+    // A delivered-nothing terminal record keeps its outcome and abandons the
+    // outputs it can no longer harvest.
+    expect(settled[1]).toMatchObject({
+      status: "succeeded",
+      cleanup_error: message(pending.id),
+      lifecycle: { execution: "succeeded", delivery: "failed", resource: "closed", recoverable: false },
+    })
+    expect(settled[1]!.error).toBeUndefined()
+    for (const job of settled) {
+      expect(job.recovery_attempts).toBeUndefined()
+      expect(job.recovery_retry_at).toBeUndefined()
+      expect((await events(job.id)).match(/no submission authority/g)).toHaveLength(1)
+    }
+
+    // Later syncs leave the settled records alone: no retry, no repeated event.
+    await Bun.sleep(20)
+    await ComputeJobs.list(options)
+    await Bun.sleep(20)
+    for (const job of settled) {
+      expect((await events(job.id)).match(/no submission authority/g)).toHaveLength(1)
+      expect(await ComputeJobs.get(job.id, options)).toEqual(job)
+    }
+  })
 })
 
 describe("ComputeJobs persistence", () => {
@@ -637,6 +836,177 @@ describe("ComputeJobs persistence", () => {
 })
 
 describe("ComputeJobs local lifecycle", () => {
+  test("persists an internal capability binding in the job and provenance envelope", async () => {
+    await using tmp = await tmpdir()
+    const root = path.join(tmp.path, "state")
+    const workspace = path.join(tmp.path, "project")
+    const runtime = path.join(tmp.path, "runtime")
+    await fs.mkdir(workspace, { recursive: true })
+    await fs.mkdir(runtime, { recursive: true })
+    const marker = path.join(runtime, "lock-marker")
+    await fs.writeFile(marker, "verified")
+    const capability = ComputeJobs.CapabilityBinding.parse({
+      id: "scipy",
+      version: "2.0.0",
+      manifest_sha256: "a".repeat(64),
+      profile: "smoke",
+      runtime_digest: "b".repeat(64),
+    })
+    const capabilityExecution = ComputeJobs.CapabilityExecution.parse({
+      network: "none",
+      lock_digest: "c".repeat(64),
+      pip_requirements: "scipy==1.18.1 --hash=sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      runtime_binary: path.join(runtime, "bin", "python"),
+      runtime_root: runtime,
+    })
+    const reattest = spyOn(CapabilityRegistry, "reattest").mockImplementation(async (binding, execution) => ({
+      binding,
+      execution,
+    }))
+    try {
+      if (!Sandbox.available()) {
+        await expect(
+          start(
+            {
+              name: "capability provenance",
+              command: `test "$(cat '${path.join(runtime, "lock-marker")}')" = verified`,
+              target: { kind: "local" },
+              capability,
+              capability_execution: capabilityExecution,
+            },
+            { root, workspace },
+          ),
+        ).rejects.toThrow("requires an enforced host sandbox")
+        return
+      }
+      const job = await start(
+        {
+          name: "capability provenance",
+          command: [
+            `test "$(cat ${JSON.stringify(marker)})" = verified`,
+            `if (printf tampered > ${JSON.stringify(marker)}) 2>/dev/null; then exit 17; fi`,
+            `test "$(cat ${JSON.stringify(marker)})" = verified`,
+          ].join("; "),
+          target: { kind: "local" },
+          capability,
+          capability_execution: capabilityExecution,
+        },
+        { root, workspace },
+      )
+      const finished = await ComputeJobs.wait(job.id, { root, workspace, timeout: 5_000 })
+      const restarted = await ComputeJobs.get(job.id, { root, workspace })
+      const log = await ComputeJobs.log(job.id, { root, workspace })
+
+      expect({ status: finished.status, error: finished.error, log }).toEqual({
+        status: "succeeded",
+        error: undefined,
+        log: "",
+      })
+      expect(await Bun.file(marker).text()).toBe("verified")
+      expect(reattest).toHaveBeenCalledTimes(2)
+      expect(finished.sandbox).toMatchObject({ requested: true, enforced: true, network: "deny" })
+      expect(restarted?.capability).toEqual(capability)
+      expect(restarted?.capability_execution).toEqual(capabilityExecution)
+      // Capability identity comes from its exact attested binding. No extra
+      // version command runs outside the workload; absent measurement must
+      // not fall back to an unrelated host Python version.
+      expect(restarted?.reproducibility?.python).toBeUndefined()
+      expect(restarted?.reproducibility?.execution_environment).toMatchObject({
+        target: "local",
+        profile: "scipy:smoke",
+        python: { role: "capability", executable: capabilityExecution.runtime_binary },
+      })
+      expect(restarted?.reproducibility?.execution_environment?.python?.version).toBeUndefined()
+      expect(restarted?.provenance?.scientific_capability).toEqual({
+        ...capability,
+        execution_network: "none",
+        lock_digest: capabilityExecution.lock_digest,
+      })
+
+      const nestedRuntime = path.join(workspace, ".data", "conda", "envs", "exact")
+      const nestedMarker = path.join(nestedRuntime, "lock-marker")
+      const spawned = path.join(workspace, "unsafe-spawned")
+      await fs.mkdir(nestedRuntime, { recursive: true })
+      await fs.writeFile(nestedMarker, "verified")
+      const nestedExecution = ComputeJobs.CapabilityExecution.parse({
+        ...capabilityExecution,
+        runtime_binary: path.join(nestedRuntime, "bin", "python"),
+        runtime_root: nestedRuntime,
+      })
+      await expect(
+        start(
+          {
+            name: "nested capability runtime",
+            command: `touch ${JSON.stringify(spawned)}`,
+            target: { kind: "local" },
+            capability,
+            capability_execution: nestedExecution,
+          },
+          { root, workspace },
+        ),
+      ).rejects.toThrow("must be outside every writable sandbox root")
+      expect(await Bun.file(nestedMarker).text()).toBe("verified")
+      expect(await Bun.file(spawned).exists()).toBe(false)
+
+      const policyRoot = path.join(tmp.path, "machine-writable")
+      const policyRuntime = path.join(policyRoot, "conda", "envs", "exact")
+      const policyMarker = path.join(policyRuntime, "lock-marker")
+      const policySpawned = path.join(workspace, "policy-unsafe-spawned")
+      await fs.mkdir(policyRuntime, { recursive: true })
+      await fs.writeFile(policyMarker, "verified")
+      const policyExecution = ComputeJobs.CapabilityExecution.parse({
+        ...capabilityExecution,
+        runtime_binary: path.join(policyRuntime, "bin", "python"),
+        runtime_root: policyRuntime,
+      })
+      const originalRequire = ExecutionAuthority.require
+      const authority = spyOn(ExecutionAuthority, "require").mockImplementation(async (input) => {
+        const decision = await originalRequire(input)
+        return ExecutionAuthority.Decision.parse({
+          ...decision,
+          sandbox: { ...decision.sandbox, allowWrite: [policyRoot] },
+        })
+      })
+      try {
+        await expect(
+          start(
+            {
+              name: "policy-nested capability runtime",
+              command: `touch ${JSON.stringify(policySpawned)}`,
+              target: { kind: "local" },
+              capability,
+              capability_execution: policyExecution,
+            },
+            { root, workspace },
+          ),
+        ).rejects.toThrow("must be outside every writable sandbox root")
+      } finally {
+        authority.mockRestore()
+      }
+      expect(await Bun.file(policyMarker).text()).toBe("verified")
+      expect(await Bun.file(policySpawned).exists()).toBe(false)
+    } finally {
+      reattest.mockRestore()
+    }
+  })
+
+  test("rejects capability identity without its execution policy", () => {
+    const base = {
+      name: "invalid capability binding",
+      command: "true",
+      target: { kind: "local" as const },
+      sessionID: "ses_fixture",
+    }
+    const capability = {
+      id: "scipy",
+      version: "2.0.0",
+      manifest_sha256: "a".repeat(64),
+      profile: "smoke" as const,
+      runtime_digest: "b".repeat(64),
+    }
+    expect(() => ComputeJobs.Request.parse({ ...base, capability })).toThrow("supplied together")
+  })
+
   test("rejects a missing working directory before recording a job", async () => {
     await using tmp = await tmpdir()
     const root = path.join(tmp.path, "state")
@@ -702,6 +1072,17 @@ describe("ComputeJobs local lifecycle", () => {
       recoverable: false,
     })
     expect(await ComputeJobs.log(job.id, { root, workspace: tmp.path })).toContain("alpha\nbeta")
+    // A bounded read returns whole trailing lines without decoding the file in
+    // full, and a window shorter than the last line still returns its tail.
+    expect(await ComputeJobs.log(job.id, { root, workspace: tmp.path, bytes: 5 })).toBe("beta\n")
+    expect(await ComputeJobs.log(job.id, { root, workspace: tmp.path, bytes: 3 })).toBe("ta\n")
+    // A window with no line boundary that opens inside a multi-byte character
+    // (or whose extra byte leads one) returns only whole characters, and one
+    // opening exactly on the line start keeps that line whole.
+    await fs.appendFile(path.join(root, "jobs", `${job.id}.log`), "😀ok")
+    expect(await ComputeJobs.log(job.id, { root, workspace: tmp.path, bytes: 4 })).toBe("ok")
+    expect(await ComputeJobs.log(job.id, { root, workspace: tmp.path, bytes: 5 })).toBe("ok")
+    expect(await ComputeJobs.log(job.id, { root, workspace: tmp.path, bytes: 6 })).toBe("😀ok")
     expect(finished.reproducibility).toMatchObject({
       platform: process.platform,
       arch: process.arch,
@@ -822,7 +1203,7 @@ describe("ComputeJobs local lifecycle", () => {
       sha256: expect.stringMatching(/^[a-f0-9]{64}$/),
     })
     expect(await Bun.file(path.join(job.cwd!, "result.txt")).exists()).toBe(true)
-  })
+  }, 15_000)
 
   test("bounds repository-controlled metadata while retaining dirty-state truth", async () => {
     await using tmp = await tmpdir({ git: true })
@@ -962,6 +1343,25 @@ describe("ComputeJobs local lifecycle", () => {
 
     expect(await ComputeJobs.cancelCredentialProcesses()).toBe(1)
     expect((await ComputeJobs.wait(job.id, { root, workspace: tmp.path, timeout: 5_000 })).status).toBe("cancelled")
+  })
+
+  test("credential teardown skips a history it cannot read instead of failing the barrier", async () => {
+    // One project's unreadable jobs.json (an older record shape, a torn write)
+    // used to reject cancelCredentialProcesses, and the credential lifecycle
+    // then refused every launch and every request on the server.
+    const projects = path.join(Global.Path.data, "compute", "projects")
+    const root = path.join(projects, `corrupt-history-${process.pid}`)
+    const filepath = path.join(root, "jobs.json")
+    const bytes = '[{"id":"historic","authority":{}}]'
+    await fs.mkdir(root, { recursive: true })
+    await fs.writeFile(filepath, bytes, { mode: 0o600 })
+    try {
+      await expect(ComputeJobs.cancelCredentialProcesses()).resolves.toBeGreaterThanOrEqual(0)
+      expect(await Bun.file(filepath).text()).toBe(bytes)
+      expect(await Bun.file(`${filepath}.corrupt-${process.pid}`).text()).toBe(bytes)
+    } finally {
+      await fs.rm(root, { recursive: true, force: true })
+    }
   })
 
   const posixTest = process.platform === "win32" ? test.skip : test
@@ -1121,6 +1521,56 @@ describe("ComputeJobs local lifecycle", () => {
 })
 
 describe("ComputeJobs Modal governance", () => {
+  test("binds scientific wheel locks and no-network execution into the Modal approval", async () => {
+    await using tmp = await tmpdir()
+    const root = path.join(tmp.path, "state")
+    const capability = ComputeJobs.CapabilityBinding.parse({
+      id: "scipy",
+      version: "2.0.0",
+      manifest_sha256: "a".repeat(64),
+      profile: "smoke",
+      runtime_digest: "b".repeat(64),
+    })
+    const capability_execution = ComputeJobs.CapabilityExecution.parse({
+      network: "none",
+      lock_digest: "c".repeat(64),
+      pip_requirements: `scipy==1.18.1 --hash=sha256:${"d".repeat(64)}`,
+    })
+    const plan = await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        await trustProject()
+        const session = await Session.create({})
+        return ComputeJobs.plan(
+          {
+            sessionID: session.id,
+            name: "locked scientific Modal smoke",
+            command: "python -I smoke.py",
+            target: { kind: "modal" },
+            image: "python:3.12-slim@sha256:" + "e".repeat(64),
+            packages: ["scipy==1.18.1"],
+            gpu: "none",
+            uploads: [],
+            capability,
+            capability_execution,
+          },
+          { root, workspace: tmp.path, modal: { ...modal, network: "unrestricted" } },
+        )
+      },
+    })
+
+    expect(plan).toMatchObject({
+      provider: "modal",
+      network: "none",
+      package_lock: {
+        digest: capability_execution.lock_digest,
+        requirements: capability_execution.pip_requirements,
+      },
+      uploads: [],
+      upload_bytes: 0,
+    })
+  })
+
   test("returns the approved dispatch before the remote workload finishes", async () => {
     await using tmp = await tmpdir()
     const root = path.join(tmp.path, "state")
@@ -1167,8 +1617,17 @@ describe("ComputeJobs Modal governance", () => {
     expect((await ComputeJobs.get(job.id, { root, workspace: tmp.path }))?.status).toBe("running")
 
     gate.resolve()
-    expect((await ComputeJobs.wait(job.id, { root, workspace: tmp.path, timeout: 5_000 })).status).toBe("succeeded")
-  })
+    const finished = await ComputeJobs.wait(job.id, { root, workspace: tmp.path, timeout: 5_000 })
+    expect(finished.status).toBe("succeeded")
+    expect(finished.reproducibility).toMatchObject({
+      capture_scope: "submitter",
+      execution_environment: { target: "modal" },
+    })
+    expect(finished.reproducibility?.python).toBeUndefined()
+    expect(finished.reproducibility?.execution_environment?.python).toBeUndefined()
+    expect(finished.reproducibility?.execution_environment?.cwd).toBeUndefined()
+    expect(finished.provenance?.environment.host).toEqual({ status: "unavailable", reason: "remote_unverified" })
+  }, 15_000)
 
   test("records a Modal sandbox timeout as a terminal timed-out job", async () => {
     await using tmp = await tmpdir()
@@ -1221,6 +1680,7 @@ describe("ComputeJobs Modal governance", () => {
     await using tmp = await tmpdir()
     const root = path.join(tmp.path, "state")
     const gate = Promise.withResolvers<void>()
+    const releases = { count: 0 }
     const provider = modalProvider({
       run: async (_context, spec, hooks) => {
         await hooks.created(`sandbox-${spec.id}`)
@@ -1228,6 +1688,9 @@ describe("ComputeJobs Modal governance", () => {
         return { code: 0, outputs: [] }
       },
       close: async () => gate.resolve(),
+      release: async () => {
+        releases.count++
+      },
     })
     const request = {
       name: "held modal job",
@@ -1283,6 +1746,12 @@ describe("ComputeJobs Modal governance", () => {
     expect((refused[0] as PromiseRejectedResult).reason.message).toContain("Modal concurrency limit reached")
     const first = (started[0] as PromiseFulfilledResult<ComputeJobs.Job>).value
     expect(first.modal?.volume).toStartWith("test-")
+    const startedRelease = Date.now()
+    await expect(ComputeJobs.release(first.id, { root, workspace: tmp.path, credentials, provider })).rejects.toThrow(
+      `Cancel compute job ${first.id} before releasing its resources`,
+    )
+    expect(Date.now() - startedRelease).toBeLessThan(1_000)
+    expect(releases.count).toBe(0)
 
     await ComputeJobs.cancel(first.id, { root, workspace: tmp.path, credentials, provider })
   })
@@ -1479,39 +1948,31 @@ describe("ComputeJobs Modal governance", () => {
     expect(released.error).toBeUndefined()
   })
 
-  test("retries delivery from the durable Modal resource without rerunning the command", async () => {
+  test("release waits for the exact Modal job lease before checking active recovery", async () => {
     await using tmp = await tmpdir()
     const root = path.join(tmp.path, "state")
-    const entered = Promise.withResolvers<void>()
-    const finish = Promise.withResolvers<void>()
-    const calls = { run: 0, recover: 0, release: 0 }
-    const provider = modalProvider({
-      run: async (_context, spec, hooks) => {
-        calls.run++
-        await hooks.created(`sandbox-${spec.id}`)
-        entered.resolve()
-        await finish.promise
-        return { code: 0, outputs: [{ path: "../escape", staging: tmp.path, size: 0 }] }
+    const blocked = Promise.withResolvers<void>()
+    const deactivating = Promise.withResolvers<void>()
+    const calls = { release: 0 }
+    await using _testing = ComputeJobs.testing({
+      beforeModalDeactivate: async () => {
+        deactivating.resolve()
+        await blocked.promise
       },
-      recover: async (_context, spec, id, hooks) => {
-        calls.recover++
-        expect(id).toBe(`sandbox-${spec.id}`)
-        expect(await ComputeJobs.log(spec.id, { root, workspace: tmp.path })).toBe("last visible output\n")
-        await hooks.output("recovered output\n")
-        const staging = path.join(tmp.path, "recovered", "result.txt")
-        await Bun.write(staging, "recovered")
-        return { code: 0, outputs: [{ path: "result.txt", staging, size: 9 }] }
+    })
+    const provider = modalProvider({
+      run: async () => {
+        throw new Error("synthetic Modal launch failure")
       },
       release: async () => {
         calls.release++
       },
     })
     const request = {
-      name: "recover output",
-      command: "printf recovered > result.txt",
+      name: "failed Modal handoff",
+      command: "true",
       target: { kind: "modal" as const },
       gpu: "none",
-      artifacts: ["result.txt"],
     }
     const prepared = await Instance.provide({
       directory: tmp.path,
@@ -1530,11 +1991,108 @@ describe("ComputeJobs Modal governance", () => {
           { root, workspace: tmp.path, modal, credentials, provider },
         ),
     })
+    await deactivating.promise
+    expect((await ComputeJobs.get(job.id, { root, workspace: tmp.path }))?.status).toBe("failed")
+    const releasing = ComputeJobs.release(job.id, { root, workspace: tmp.path, credentials, provider }).then(
+      (value) => ({ ok: true as const, value }),
+      (error: unknown) => ({ ok: false as const, error }),
+    )
+
+    try {
+      const pending = await Promise.race([releasing.then(() => false), Bun.sleep(25).then(() => true)])
+      expect(pending).toBe(true)
+      expect(calls.release).toBe(0)
+    } finally {
+      blocked.resolve()
+    }
+
+    const result = await releasing
+    expect(result.ok).toBe(true)
+    if (!result.ok) throw result.error
+    expect(result.value.status).toBe("failed")
+    expect(result.value.lifecycle?.resource).toBe("closed")
+    expect(calls.release).toBe(1)
+  }, 15_000)
+
+  test("retries delivery from the durable Modal resource without rerunning the command", async () => {
+    await using tmp = await tmpdir()
+    const root = path.join(tmp.path, "state")
+    const entered = Promise.withResolvers<void>()
+    const finish = Promise.withResolvers<void>()
+    const calls = { run: 0, recover: 0, release: 0 }
+    const executionNetworks: ModalAdapter.Context["network"][] = []
+    const unrestrictedCredentials = { ...credentials, network: "unrestricted" as const }
+    const capability = ComputeJobs.CapabilityBinding.parse({
+      id: "scipy",
+      version: "2.0.0",
+      manifest_sha256: "a".repeat(64),
+      profile: "smoke",
+      runtime_digest: "b".repeat(64),
+    })
+    const capability_execution = ComputeJobs.CapabilityExecution.parse({
+      network: "none",
+      lock_digest: "c".repeat(64),
+      pip_requirements: `scipy==1.18.1 --hash=sha256:${"d".repeat(64)}`,
+    })
+    const provider = modalProvider({
+      run: async (context, spec, hooks) => {
+        calls.run++
+        executionNetworks.push(context.network)
+        await hooks.created(`sandbox-${spec.id}`)
+        entered.resolve()
+        await finish.promise
+        return { code: 0, outputs: [{ path: "../escape", staging: tmp.path, size: 0 }] }
+      },
+      recover: async (context, spec, id, hooks) => {
+        calls.recover++
+        executionNetworks.push(context.network)
+        expect(id).toBe(`sandbox-${spec.id}`)
+        expect(await ComputeJobs.log(spec.id, { root, workspace: tmp.path })).toBe("last visible output\n")
+        await hooks.output("recovered output\n")
+        const staging = path.join(tmp.path, "recovered", "result.txt")
+        await Bun.write(staging, "recovered")
+        return { code: 0, outputs: [{ path: "result.txt", staging, size: 9 }] }
+      },
+      release: async () => {
+        calls.release++
+      },
+    })
+    const request = {
+      name: "recover output",
+      command: "printf recovered > result.txt",
+      target: { kind: "modal" as const },
+      gpu: "none",
+      artifacts: ["result.txt"],
+      capability,
+      capability_execution,
+    }
+    const prepared = await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        await trustProject()
+        const session = await Session.create({})
+        const plan = await ComputeJobs.plan({ ...request, sessionID: session.id }, { root, workspace: tmp.path, modal })
+        return { session, plan }
+      },
+    })
+    const job = await Instance.provide({
+      directory: tmp.path,
+      fn: () =>
+        ComputeJobs.start(
+          { ...request, sessionID: prepared.session.id, approval: prepared.plan.digest },
+          { root, workspace: tmp.path, modal, credentials: unrestrictedCredentials, provider },
+        ),
+    })
     await entered.promise
     expect(calls).toEqual({ run: 1, recover: 0, release: 0 })
 
     await Bun.write(path.join(root, "jobs", `${job.id}.log`), "last visible output\n")
-    const retry = ComputeJobs.retry(job.id, { root, workspace: tmp.path, credentials, provider })
+    const retry = ComputeJobs.retry(job.id, {
+      root,
+      workspace: tmp.path,
+      credentials: unrestrictedCredentials,
+      provider,
+    })
     const beforeFinish = await Promise.race([
       retry.then(
         () => "settled" as const,
@@ -1559,6 +2117,7 @@ describe("ComputeJobs Modal governance", () => {
     expect(await ComputeJobs.log(job.id, { root, workspace: tmp.path })).toBe("recovered output\n")
     expect(await Bun.file(path.join(job.cwd!, "result.txt")).text()).toBe("recovered")
     expect(calls).toEqual({ run: 1, recover: 1, release: 1 })
+    expect(executionNetworks).toEqual(["none", "none"])
   })
 
   test("retains a completed Modal Volume when its first control-plane download fails", async () => {

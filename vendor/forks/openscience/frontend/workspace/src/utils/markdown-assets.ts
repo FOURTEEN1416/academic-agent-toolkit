@@ -3,6 +3,8 @@
 // both project-relative and absolute filesystem paths through the authenticated
 // backend while leaving genuine web, email, and embedded URLs untouched.
 
+import { localFilePath } from "@synsci/util/path"
+
 const external = /^(?:https?:|mailto:|tel:|data:|blob:|\/\/|#)/i
 const scheme = /^[a-z][a-z0-9+.-]*:/i
 const windows = /^[A-Za-z]:[\\/]/
@@ -61,18 +63,6 @@ export function resolvePath(base: string, reference: string): string {
   return rooted ? `/${resolved}` : resolved
 }
 
-function localFileUrl(value: string): string | undefined {
-  if (!/^file:/i.test(value)) return
-  try {
-    const url = new URL(value)
-    if (url.hostname && url.hostname !== "localhost") return
-    const pathname = decode(url.pathname)
-    return /^\/[A-Za-z]:\//.test(pathname) ? pathname.slice(1) : pathname
-  } catch {
-    return
-  }
-}
-
 /**
  * Turn a Markdown reference into a filesystem path, or return undefined when
  * the reference belongs to the browser (http(s), mailto, data, blob, etc.).
@@ -81,10 +71,11 @@ function localFileUrl(value: string): string | undefined {
 export function localAssetPath(src: string, base = ""): string | undefined {
   const value = src.trim()
   if (!value || external.test(value)) return
-  const file = localFileUrl(value)
-  if (/^file:/i.test(value)) return file ? resolvePath("", file) : undefined
+  const file = localFilePath(value)
+  if (/^(?:file|sandbox):/i.test(value))
+    return file ? resolvePath("", file.replace(/^\/([A-Za-z]:\/)/, "$1")) : undefined
   if (scheme.test(value) && !windows.test(value)) return
-  const target = decode(value.replace(/[?#].*$/, ""))
+  const target = decode(value.replace(/[?#].*$/, "")).replace(/^\/([A-Za-z]:\/)/, "$1")
   if (!target) return
   return resolvePath(base, target)
 }
@@ -103,6 +94,57 @@ export function workspaceAssetPath(src: string, root: string, base = ""): string
   const owner = insensitive ? project.toLowerCase() : project
   const candidate = insensitive ? target.toLowerCase() : target
   if (candidate === owner || candidate.startsWith(`${owner}/`)) return target
+}
+
+/** The served-file route the UI itself uses for images. A model that echoes
+ * one of those URLs back into prose is still pointing at a file. */
+function rawRoutePath(value: string, origin?: string): string | undefined {
+  const candidate = (() => {
+    if (value.startsWith("/file/raw?")) return new URL(value, "http://raw.invalid")
+    if (!/^https?:\/\//i.test(value)) return
+    try {
+      const url = new URL(value)
+      const page = origin ? new URL(origin) : undefined
+      const sameOrigin = page ? url.origin === page.origin : false
+      if (!sameOrigin && !loopback.has(url.hostname)) return
+      return url
+    } catch {
+      return
+    }
+  })()
+  if (!candidate || !candidate.pathname.endsWith("/file/raw")) return
+  const path = candidate.searchParams.get("path")
+  return path || undefined
+}
+
+/**
+ * Resolve a link in the conversation to a file the Files tab can show.
+ *
+ * Agents write into session scratch and connected folders as well as the
+ * project, and they link those results with absolute paths. Left as ordinary
+ * anchors, such links resolve against the app origin and open a broken
+ * `localhost` page (in the desktop shell, in an external browser). Opening
+ * them in the Files tab is not a grant: the viewer keeps its session and the
+ * backend authorizes the read, exactly as for tool-card receipts.
+ */
+export function chatFilePath(src: string, root: string, origin?: string): string | undefined {
+  const value = src.trim()
+  const raw = rawRoutePath(value, origin)
+  if (raw) return raw
+  const inside = workspaceAssetPath(value, root)
+  if (inside) return inside
+  const resolved = localAssetPath(value)
+  if (!resolved) return
+  return resolved.startsWith("/") || windows.test(resolved) ? resolved : undefined
+}
+
+/** Exact runtime file receipts may target session scratch or a connected
+ * directory, just like tool-card links. This is a path-shape check, not a
+ * permission grant: the viewer keeps its session and the backend authorizes
+ * the read. Never URL-decode a filesystem receipt or strip legal #/? bytes. */
+export function workspaceReceiptPath(path: string): string | undefined {
+  if (path.includes("\0") || !(path.startsWith("/") || windows.test(path))) return
+  return path
 }
 
 /**

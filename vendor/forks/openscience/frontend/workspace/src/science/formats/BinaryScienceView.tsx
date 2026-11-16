@@ -1,6 +1,6 @@
 import { For, Match, Show, Switch, createResource, type JSX } from "solid-js"
 import { useSDK } from "@/context/sdk"
-import { FONT_CODE, FONT_MONO, FONT_SANS } from "@/styles/tokens"
+import { FONT_CODE, FONT_SANS } from "@/styles/tokens"
 import {
   formatBytes,
   embedding as parseEmbedding,
@@ -119,7 +119,7 @@ function Header(props: { file: BinaryInspection }): JSX.Element {
             "border-radius": "7px",
             background: "color-mix(in srgb, var(--color-accent) 11%, transparent)",
             color: "var(--color-accent)",
-            "font-family": FONT_MONO,
+            "font-family": FONT_SANS,
             "font-size": "10px",
             "font-weight": "var(--font-weight-emphasis)",
           }}
@@ -368,7 +368,7 @@ function EmbeddingPlot(props: { value: Embedding }): JSX.Element {
               </circle>
             )}
           </For>
-          <text x="690" y="350" fill="var(--color-text-faint)" font-size="10" font-family={FONT_MONO}>
+          <text x="690" y="350" fill="var(--color-text-faint)" font-size="10" font-family={FONT_SANS}>
             {props.value.name} 1
           </text>
           <text
@@ -376,7 +376,7 @@ function EmbeddingPlot(props: { value: Embedding }): JSX.Element {
             y="28"
             fill="var(--color-text-faint)"
             font-size="10"
-            font-family={FONT_MONO}
+            font-family={FONT_SANS}
             transform="rotate(-90 12 28)"
           >
             {props.value.name} 2
@@ -393,7 +393,7 @@ function EmbeddingPlot(props: { value: Embedding }): JSX.Element {
                     "grid-template-columns": "7px minmax(0, 1fr) auto",
                     gap: "6px",
                     "align-items": "center",
-                    "font-family": FONT_MONO,
+                    "font-family": FONT_SANS,
                     "font-size": "9px",
                     color: "var(--color-text-muted)",
                   }}
@@ -631,7 +631,7 @@ function Fallback(props: { title: string; body: string }): JSX.Element {
           "border-radius": "50%",
           background: "var(--color-bg-subtle)",
           color: "var(--color-text-faint)",
-          "font-family": FONT_MONO,
+          "font-family": FONT_SANS,
         }}
       >
         01
@@ -651,7 +651,7 @@ function Status(props: { ok: boolean; label: string }): JSX.Element {
         border: `1px solid ${props.ok ? "color-mix(in srgb, #4ca56a 45%, var(--color-border))" : "var(--color-border)"}`,
         background: props.ok ? "color-mix(in srgb, #4ca56a 9%, transparent)" : "var(--color-bg-subtle)",
         color: props.ok ? "#418c59" : "var(--color-text-faint)",
-        "font-family": FONT_MONO,
+        "font-family": FONT_SANS,
         "font-size": "9px",
         "white-space": "nowrap",
       }}
@@ -703,7 +703,7 @@ function head(): JSX.CSSProperties {
     border: "0",
     "border-bottom": "1px solid var(--color-border)",
     color: "var(--color-text-faint)",
-    "font-family": FONT_MONO,
+    "font-family": FONT_SANS,
     "font-size": "9px",
     "font-weight": "var(--font-weight-medium)",
     "text-align": "left",
@@ -734,7 +734,7 @@ function card(): JSX.CSSProperties {
 }
 
 function muted(): JSX.CSSProperties {
-  return { "font-family": FONT_MONO, "font-size": "9px", color: "var(--color-text-faint)" }
+  return { "font-family": FONT_SANS, "font-size": "9px", color: "var(--color-text-faint)" }
 }
 
 function title(): JSX.CSSProperties {
@@ -765,5 +765,3 @@ function button(): JSX.CSSProperties {
     cursor: "pointer",
   }
 }
-
-export default BinaryScienceView

@@ -2,18 +2,18 @@ import path from "path"
 import { Global } from "../global"
 import { JsonStore } from "../util/jsonstore"
 import z from "zod"
-import { Config } from "../config/config"
-import { Log } from "../util/log"
 import { CredentialLifecycle } from "../credentials/lifecycle"
 import { isAtlasManagedKey } from "../credentials/managed-key"
+import { Config } from "../config/config"
+import { Log } from "../util/log"
+import { WorkspaceCredentials } from "../openscience/workspace-credentials"
 
 export const OAUTH_DUMMY_KEY = "synsc-oauth-dummy-key"
-
 const log = Log.create({ service: "auth" })
 
 export namespace Auth {
-  /** A managed Atlas wallet credential (`thk_*`), as opposed to a user-owned
-   *  (BYOK) key. Canonical home: `auth/index.ts` is a near-leaf module (only
+  /** Detect Ace account credentials so they cannot escape into direct provider calls.
+   *  Canonical home: `auth/index.ts` is a near-leaf module (only
    *  path/global/jsonstore/zod besides this file's own Config import), so
    *  `provider.ts` - which already imports Auth - depends on this instead of
    *  Auth duplicating or importing from Provider (a much heavier module: all
@@ -33,6 +33,7 @@ export namespace Auth {
       enterpriseUrl: z.string().optional(),
     })
     .meta({ ref: "OAuth" })
+  export type Oauth = z.infer<typeof Oauth>
 
   export const Api = z
     .object({
@@ -59,68 +60,143 @@ export namespace Auth {
     return auth[providerID]
   }
 
+  export interface Resolved {
+    auth: Record<string, Info>
+    /** Providers whose entry came from the synchronized workspace overlay
+     * rather than this device's auth.json, and the workspace that granted it.
+     * A subprocess that receives one of these keys inherits that overlay. */
+    overlay?: { organization: string; providers: ReadonlySet<string> }
+  }
+
   export async function all(): Promise<Record<string, Info>> {
+    return (await resolve()).auth
+  }
+
+  export async function resolve(): Promise<Resolved> {
     const data = await JsonStore.read(filepath)
-    return Object.entries(data).reduce(
+    const workspace = await WorkspaceCredentials.read()
+    // Synced model keys stay in the encrypted overlay, never process.env.
+    // These reviewed provider env names therefore belong to the local user,
+    // not the separately allowlisted cloud service env. Compare provenance,
+    // not secret values: even an equal local key remains locally owned.
+    const synced = Object.fromEntries(
+      Object.entries(workspace?.auth ?? {}).filter(
+        ([id]) =>
+          !WorkspaceCredentials.providerEnv(id).some((name) => {
+            const key = process.env[name]
+            return key && !isAtlasApiKey(key)
+          }),
+      ),
+    )
+    // This device's own entries, kept apart from the synced ones: provenance
+    // is decided by which store an id came from, never by object identity on
+    // a shared accumulator (seeding the reduce with `synced` made every id
+    // look synced, so children holding only device-owned keys were stamped).
+    const local = Object.entries(data).reduce(
       (acc, [key, value]) => {
         const parsed = Info.safeParse(value)
         if (!parsed.success) return acc
+        if (parsed.data.type === "api" && isAtlasApiKey(parsed.data.key)) return acc
         acc[key] = parsed.data
         return acc
       },
       {} as Record<string, Info>,
     )
+    // A local auth.json entry replaces the synced one under the same id, so
+    // only synced ids without a local entry came from the overlay.
+    const auth = { ...synced, ...local }
+    const providers = new Set(Object.keys(synced).filter((id) => !Object.hasOwn(local, id)))
+    if (!workspace || !providers.size) return { auth }
+    return { auth, overlay: { organization: workspace.organization_id, providers } }
   }
 
   export async function set(key: string, info: Info) {
-    await CredentialLifecycle.mutate(`provider-auth.set:${key}`, () =>
-      JsonStore.update(filepath, (data) => ({ ...data, [key]: info })),
-    )
-
-    // Adding a real (non-Atlas) OpenRouter key while Managed spend is on
-    // means the user is bringing their own key - flip the toggle to Own
-    // keys so the added key actually wins routing immediately, instead of
-    // sitting unused behind the managed route until the user finds the
-    // Settings toggle. This is the ONE choke point both `openscience auth
-    // login` (CLI - calls Auth.set directly, see cli/cmd/auth.ts) and the
-    // Settings UI (PUT /auth/:providerID -> Auth.set) go through, so it
-    // belongs here rather than in the HTTP route. A `thk_` Atlas token is
-    // never "own key" material and must not flip the mode; other providers
-    // and OAuth credentials are untouched.
-    if (key === "openrouter" && info.type === "api" && !isAtlasApiKey(info.key)) {
-      try {
-        // Reads the GLOBAL config specifically (not the merged project+global
-        // Config.get(), which requires an active Instance/project context that
-        // most Auth.set callers - including every CLI auth command - don't
-        // have). billing.llm can also be set at project scope; a project-level
-        // override is invisible to this check, same asymmetry the byok guard
-        // in provider.ts lives with when read outside a project context.
-        const cfg = await Config.getGlobal()
-        if (cfg.billing?.llm === "managed") {
-          await Config.updateGlobal({ billing: { llm: "byok" } })
-        }
-      } catch (e) {
-        // A malformed global config (a hand-edited openscience.jsonc with a
-        // trailing comma, say) makes Config.getGlobal()/updateGlobal() throw.
-        // That must not take down Auth.set - the credential above is already
-        // persisted, and Auth.set has 11 call sites, at least one with no
-        // try/catch of its own (the CLI's "paste the code" OAuth branch,
-        // cli/cmd/auth.ts:143-170). Degrade to "key saved, mode not flipped"
-        // rather than losing the key the user just added - but log it at
-        // warn: silently swallowing would leave the user's mode silently
-        // disagreeing with the key they just added, with no signal at all.
-        log.warn("failed to flip billing.llm to byok after adding an OpenRouter key", {
-          error: e instanceof Error ? e.message : String(e),
-        })
-      }
+    if (info.type === "api" && isAtlasApiKey(info.key)) {
+      throw new Error(
+        "Ace workspace credentials belong to OpenScience sign-in, not provider keys. Sign in to Ace or add a provider key you control.",
+      )
     }
+    const selectsByok = key === "openrouter" && info.type === "api" && !isAtlasApiKey(info.key)
+    await CredentialLifecycle.mutate(`provider-auth.set:${key}`, async () => {
+      if (!selectsByok) {
+        await JsonStore.update(filepath, (data) => ({ ...data, [key]: info }))
+        return
+      }
+      const previous = await JsonStore.read(filepath)
+      const previousMode = (await Config.getGlobal()).billing?.llm ?? null
+      try {
+        await JsonStore.update(filepath, (data) => ({ ...data, [key]: info }))
+        const config = await Config.getGlobal()
+        if (config.billing?.llm === "managed") {
+          await Config.updateGlobal({ billing: { llm: "byok" } }, { preserveInstances: true })
+        }
+      } catch (cause) {
+        let credentialRollback: unknown
+        let modeRollback: unknown
+        try {
+          await JsonStore.update(filepath, () => previous)
+        } catch (error) {
+          credentialRollback = error
+        }
+        try {
+          await Config.updateGlobal({ billing: { llm: previousMode } }, { preserveInstances: true })
+        } catch (error) {
+          modeRollback = error
+        }
+        log.warn("OpenRouter BYOK handoff failed; compensation attempted", {
+          error: cause instanceof Error ? cause.message : String(cause),
+          credentialRollback: credentialRollback instanceof Error ? credentialRollback.message : credentialRollback,
+          modeRollback: modeRollback instanceof Error ? modeRollback.message : modeRollback,
+        })
+        if (credentialRollback || modeRollback) {
+          throw new AggregateError(
+            [cause, ...(credentialRollback ? [credentialRollback] : []), ...(modeRollback ? [modeRollback] : [])],
+            "OpenRouter setup failed and could not be fully restored. Review Customize → Models before retrying.",
+          )
+        }
+        throw cause
+      }
+    })
+  }
+
+  /** Persist a trusted OAuth refresh response only while its source pair is
+   * still current. Interactive sign-in must use set, even for the same account. */
+  export async function renew(key: string, previous: Oauth, info: Oauth): Promise<boolean> {
+    const next = Oauth.parse(info)
+    if (
+      (previous.accountId !== undefined && previous.accountId !== next.accountId) ||
+      previous.enterpriseUrl !== next.enterpriseUrl
+    ) {
+      throw new Error("OAuth refresh changed the connected account; reconnect the provider.")
+    }
+    const result = await CredentialLifecycle.update(async () => {
+      const current = Oauth.safeParse((await JsonStore.read(filepath))[key])
+      if (
+        !current.success ||
+        current.data.refresh !== previous.refresh ||
+        current.data.access !== previous.access ||
+        current.data.expires !== previous.expires ||
+        current.data.accountId !== previous.accountId ||
+        current.data.enterpriseUrl !== previous.enterpriseUrl
+      )
+        return
+      return {
+        reason: `provider-auth.renew:${key}`,
+        action: () => JsonStore.update(filepath, (data) => ({ ...data, [key]: next })),
+      }
+    })
+    return result.applied
   }
 
   export async function remove(key: string) {
-    await CredentialLifecycle.mutate(`provider-auth.remove:${key}`, () =>
-      JsonStore.update(filepath, (data) => {
+    await CredentialLifecycle.mutate(`provider-auth.remove:${key}`, async () => {
+      const local = await JsonStore.read(filepath)
+      if (!local[key] && (await WorkspaceCredentials.read())?.auth[key]) {
+        throw new Error("Manage this synced provider key in your workspace on app.syntheticsciences.ai.")
+      }
+      await JsonStore.update(filepath, (data) => {
         delete data[key]
-      }),
-    )
+      })
+    })
   }
 }

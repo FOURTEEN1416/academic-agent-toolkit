@@ -2,7 +2,7 @@ import z from "zod"
 import * as path from "path"
 import { Tool } from "./tool"
 import { LSP } from "../lsp"
-import { createTwoFilesPatch } from "diff"
+import { createTwoFilesPatch, diffLines } from "diff"
 import DESCRIPTION from "./write.txt"
 import { Bus } from "../bus"
 import { File } from "../file"
@@ -14,6 +14,7 @@ import { trimDiff } from "./edit"
 import { assertExternalDirectory, sessionToolDirectory } from "./external-directory"
 import { SafeFileIO } from "@/file/safe-io"
 import { AuthoritySignal } from "@/project/authority-signal"
+import { PayloadIntegrity } from "./payload-integrity"
 
 const MAX_DIAGNOSTICS_PER_FILE = 20
 const MAX_PROJECT_DIAGNOSTICS_FILES = 5
@@ -34,8 +35,14 @@ export const WriteTool = Tool.define("write", {
     const exists = !!approved
     const contentOld = approved?.bytes.toString("utf8") ?? ""
     if (exists) await FileTime.assert(ctx.sessionID, filepath)
+    PayloadIntegrity.assert({ content: params.content, before: contentOld, messages: ctx.messages })
 
     const diff = trimDiff(createTwoFilesPatch(filepath, filepath, contentOld, params.content))
+    const filediff = { file: filepath, additions: 0, deletions: 0 }
+    for (const change of diffLines(contentOld, params.content)) {
+      if (change.added) filediff.additions += change.count ?? 0
+      if (change.removed) filediff.deletions += change.count ?? 0
+    }
     await ctx.ask({
       permission: "edit",
       patterns: [path.relative(Instance.worktree, filepath)],
@@ -86,6 +93,7 @@ export const WriteTool = Tool.define("write", {
         diagnostics,
         filepath,
         exists: exists,
+        filediff,
       },
       output,
     }

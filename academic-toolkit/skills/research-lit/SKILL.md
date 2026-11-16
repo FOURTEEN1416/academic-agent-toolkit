@@ -126,14 +126,24 @@ Before searching online, check if the user already has relevant papers locally:
 
 ### Step 1: Search (external)
 
-**⛔ 优先使用 `$SCHOLAR_SCRIPT` 搜索（自动调用 AMiner + Semantic Scholar + DBLP + CrossRef，返回真实论文）：**
+**⛔ 检索通道按序尝试（`$SCHOLAR_SCRIPT` 为可选加速通道，本仓默认不注入该变量）：**
+
+1. **若环境已注入 `$SCHOLAR_SCRIPT`**（自动调用 AMiner + Semantic Scholar + DBLP + CrossRef，返回真实论文）；
+2. **`$SCHOLAR_SCRIPT` 未设置或调用失败时（本仓默认情形），回退仓内检索器 `academic-toolkit/tools/scholar_fetch.py`**（同一套 `bibtex` 子命令，内置 AMiner + Semantic Scholar + CrossRef + DBLP 四级 fallback）；
+3. **仓内工具也不可用时，用执行侧 WebSearch / arXiv API** 补充检索。
 
 ```bash
-PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
-# 搜索论文 + 获取 BibTeX（推荐，一次调用完成所有工作）
-$PYTHON "$SCHOLAR_SCRIPT" bibtex "RESEARCH_TOPIC_KEYWORDS" --max 10
-# 中文主题同样支持（AMiner 自动返回中文标题 + 作者 + 年份 + DOI）
-$PYTHON "$SCHOLAR_SCRIPT" bibtex "中文研究主题" --max 10
+PYTHON=""; for _c in python python3; do if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+if [ -n "$SCHOLAR_SCRIPT" ]; then
+  # 首选：宿主注入的检索脚本（推荐，一次调用完成所有工作）
+  $PYTHON "$SCHOLAR_SCRIPT" bibtex "RESEARCH_TOPIC_KEYWORDS" --max 10
+  # 中文主题同样支持（AMiner 自动返回中文标题 + 作者 + 年份 + DOI）
+  $PYTHON "$SCHOLAR_SCRIPT" bibtex "中文研究主题" --max 10
+else
+  # 本仓默认：$SCHOLAR_SCRIPT 未设置，回退仓内检索器
+  $PYTHON academic-toolkit/tools/scholar_fetch.py bibtex "RESEARCH_TOPIC_KEYWORDS" --max 10
+  $PYTHON academic-toolkit/tools/scholar_fetch.py bibtex "中文研究主题" --max 10
+fi
 ```
 
 - 中文 query → AMiner 免费搜索（返回真实中文论文，不会出现假文献）
@@ -146,7 +156,7 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "中文研究主题" --max 10
 2. `match_score < 0.3` is unreliable; do not blindly trust.
 3. `bibtex_source="auto"` entries need DOI verification before being used.
 
-**补充搜索**：如果 `$SCHOLAR_SCRIPT` 结果不足或大部分 `match_label="low"`，再用以下方式补充：
+**补充搜索**：如果以上检索结果不足或大部分 `match_label="low"`，再用以下方式补充：
 - Use WebSearch to find recent papers on the topic
 - Check arXiv, Google Scholar
 - Focus on papers from last 2 years unless studying foundational work
@@ -155,13 +165,13 @@ $PYTHON "$SCHOLAR_SCRIPT" bibtex "中文研究主题" --max 10
 
 Locate the fetch script and search arXiv directly:
 ```bash
-# Try to find arxiv_fetch.py
-SCRIPT=$(find tools/ -name "arxiv_fetch.py" 2>/dev/null | head -1)
+# Try to find arxiv_fetch.py (repo-root relative first, then CWD-relative)
+SCRIPT=$(find academic-toolkit/tools tools/ -name "arxiv_fetch.py" 2>/dev/null | head -1)
 
 # Search arXiv API for structured results (title, abstract, authors, categories)
 # Use python3 or python depending on what's available
-PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
-$PYTHON "$SCRIPT" search "QUERY" --max 10
+PYTHON=""; for _c in python python3; do if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
+[ -n "$SCRIPT" ] && $PYTHON "$SCRIPT" search "QUERY" --max 10
 ```
 
 If `arxiv_fetch.py` is not found, fall back to WebSearch for arXiv (same as before).

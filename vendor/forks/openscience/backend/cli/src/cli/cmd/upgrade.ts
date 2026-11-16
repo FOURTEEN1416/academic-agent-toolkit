@@ -2,7 +2,20 @@ import type { Argv } from "yargs"
 import { UI } from "../ui"
 import * as prompts from "@clack/prompts"
 import { Installation } from "../../installation"
+import { Reason } from "../../util/reason"
 import { cmd } from "./cmd"
+
+const DOWNLOAD = "https://openscience.sh/download"
+
+/** What `openscience upgrade` can do with the copy it is running from. The
+ *  desktop app's sidecar can only reach the app's signed updater while the app
+ *  started it; run from a terminal, the same executable has nothing to drive
+ *  and must point at the app instead of reporting a dev install. */
+export function upgradeAction(input: { method: Installation.Method; desktopUpdates: boolean }) {
+  if (input.method === "desktop" && !input.desktopUpdates) return "desktop-app" as const
+  if (input.method === "unknown") return "manual" as const
+  return "upgrade" as const
+}
 
 export const UpgradeCommand = cmd({
   command: "upgrade [target]",
@@ -17,7 +30,7 @@ export const UpgradeCommand = cmd({
         alias: "m",
         describe: "installation method to use",
         type: "string",
-        choices: ["curl", "npm", "pnpm", "bun", "brew", "choco", "scoop"],
+        choices: ["curl", "npm", "pnpm", "bun", "choco", "scoop"],
       })
   },
   handler: async (args: { target?: string; method?: string }) => {
@@ -42,7 +55,19 @@ export const UpgradeCommand = cmd({
       prompts.outro("Done")
       return
     }
-    if (method === "unknown") {
+    const action = upgradeAction({ method, desktopUpdates: Installation.desktopUpdateAvailable() })
+    if (action === "desktop-app") {
+      prompts.log.info(
+        [
+          `This copy of openscience is the OpenScience desktop app's command-line sidecar (${Installation.VERSION} → ${target}).`,
+          "Update it from the app: Customize → General → Check for updates.",
+          `Or download the latest release: ${DOWNLOAD}`,
+        ].join("\n"),
+      )
+      prompts.outro("Done")
+      return
+    }
+    if (action === "manual") {
       prompts.log.info("Manual or dev install detected, skipping upgrade")
       prompts.outro("Done")
       return
@@ -52,8 +77,9 @@ export const UpgradeCommand = cmd({
     prompts.log.info(`From ${Installation.VERSION} → ${target}`)
     const spinner = prompts.spinner()
     spinner.start("Upgrading...")
-    const err = await Installation.upgrade(method, target).catch((err) => err)
-    if (err) {
+    const result = await Reason.capture(Installation.upgrade(method, target))
+    if (!result.ok) {
+      const err = result.error
       spinner.stop("Upgrade failed", 1)
       if (err instanceof Installation.UpgradeFailedError) {
         // necessary because choco only allows install/upgrade in elevated terminals
@@ -62,7 +88,9 @@ export const UpgradeCommand = cmd({
         } else {
           prompts.log.error(err.data.stderr)
         }
-      } else if (err instanceof Error) prompts.log.error(err.message)
+      } else {
+        prompts.log.error(Reason.of(err))
+      }
       prompts.outro("Done")
       return
     }

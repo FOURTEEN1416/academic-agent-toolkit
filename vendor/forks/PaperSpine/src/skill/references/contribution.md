@@ -4,11 +4,14 @@ This is the keystone of PaperSpine V4. A paper is accepted or rejected on its **
 
 ## The Contribution-First Hard Rule
 
-> **No `confirmed_contribution.md`, no substantive writing. Motivation supports the contribution, not replaces it.**
+> **Before substantive drafting, identify the supported contribution and its boundary from the same task's saved choice or existing manuscript. Reuse a valid choice; request a decision only when one is actually needed. Audit and review assess the supplied work directly. Motivation supports the contribution, not replaces it.**
 
 Concretely:
 
-- `paper_rewriting_output/confirmed_contribution.md` must exist and pass `contribution_check.py` **before** any section drafting, blueprinting, or rewriting begins.
+- Use the same task's actual confirmed contribution or an evidence-bound choice
+  within the user's delegation. Reuse a valid choice and ask only for a genuinely
+  unresolved decision. A legacy contribution filename/checker is not an
+  additional prerequisite for current-host drafting or review.
 - `confirmed_motivation.md` answers "why does this problem matter?"; `confirmed_contribution.md` answers "what does *this paper* establish that did not exist before, and how strongly can we claim it?" A motivation with no contribution is a literature review; a contribution with no motivation is a result nobody asked for. You need both, and the contribution governs.
 - Every later artifact (section blueprints, writing-rationale matrix, the manuscript itself) must trace back to the single Core contribution statement here. If a paragraph does not advance, support, or bound that statement, it does not belong.
 
@@ -16,7 +19,8 @@ WHY this is a hard gate: the most common failure mode in generated papers is flu
 
 ## The Artifact: `confirmed_contribution.md`
 
-Save at `paper_rewriting_output/confirmed_contribution.md`. It has **four required sections**. Each row exists to force a specific decision; the "WHY" tells you what goes wrong if the cell is vague or empty. Do not leave cells as `TODO`, `TBD`, `...`, or template placeholders — `contribution_check.py` treats those as failures, because an unfilled cell means the decision was never actually made.
+Keep this reasoning in the current contribution choice or existing notes. The
+legacy `confirmed_contribution.md` helper represents it with four sections. Each row exists to force a specific decision; the "WHY" tells you what goes wrong if the cell is vague or empty. Do not leave cells as `TODO`, `TBD`, `...`, or template placeholders — `contribution_check.py` treats those as failures, because an unfilled cell means the decision was never actually made.
 
 ```markdown
 # Confirmed Contribution
@@ -109,15 +113,17 @@ This subsection tests the contribution promise that [promise] by showing [eviden
 Discussion converts results into *understanding*. A weak discussion restates numbers; a strong one explains the mechanism and places the contribution.
 
 - [ ] Restate the answer (the contribution), not the procedure.
-- [ ] Explain the **mechanism**: *why* the design response produced the result — the insight, not just the outcome.
-- [ ] Attribute the effect: what each key design choice contributed (ties back to Method credibility).
+- [ ] Explain supported mechanisms or plausible interpretations, distinguishing
+  established relationships from hypotheses and alternative explanations.
+- [ ] Attribute effects to components only when the actual controls support that
+  inference; a complete-method gain does not isolate a component's contribution.
 - [ ] Position against prior work named in `Why prior work leaves it unresolved` — show the gap is now closed.
 - [ ] State limitations from `Evidence missing` / `Claim boundary` without dissolving the central claim.
 - [ ] Close on `Significance risk` answered: the field-level implication, not a generic "this is useful".
 
 ### CHECKLIST — Abstract contribution contract (5 steps)
 
-The abstract is a contract: it promises exactly the contribution the paper delivers, in order. Five sentences, five jobs.
+The abstract promises the contribution the paper actually delivers. Cover the relevant problem, gap, contribution, evidence and payoff within the target article's abstract structure and length; these are functions, not a five-sentence quota.
 
 1. **Problem + stakes** — the field problem and why it matters (`Field problem`).
 2. **Gap** — the specific unresolved gap (`Specific gap` + why prior work falls short).
@@ -131,7 +137,10 @@ WHY a contract: if the abstract promises more than `Strong claims allowed`, the 
 
 ## How To Use It
 
-1. Draft `confirmed_contribution.md` filling all four sections; resolve `Evidence missing` honestly before locking the Core statement.
-2. Run `python src/scripts/contribution_check.py paper_rewriting_output` until it passes (exit 0).
-3. Only then proceed to motivation thread, section blueprints, and writing — each tracing back to the Core contribution.
-4. Re-run the check whenever the claim or evidence changes; a shifted contribution invalidates downstream sections.
+Read the current choice first. Develop materially different alternatives only
+when a decision remains open, using actual evidence and closest prior work.
+Continue with the selected contribution and aligned motivation; keep claim
+boundaries clear without copying their planning fields into the manuscript.
+If new evidence changes the claim, revisit only the affected choice and prose.
+The legacy checker validates its named form, not scientific novelty or user
+authority.

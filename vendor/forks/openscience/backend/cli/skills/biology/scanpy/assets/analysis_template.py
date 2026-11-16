@@ -144,13 +144,17 @@ print("\n" + "=" * 80)
 print("NORMALIZATION")
 print("=" * 80)
 
+# Preserve raw counts before normalization
+adata.layers['counts'] = adata.X.copy()
+
 # Normalize to 10,000 counts per cell
 sc.pp.normalize_total(adata, target_sum=1e4)
 
 # Log-transform
 sc.pp.log1p(adata)
 
-# Store normalized data
+# Keep log-normalized values for every gene: feature selection below subsets
+# adata to highly variable genes, and marker plots still need the rest
 adata.raw = adata
 
 # ============================================================================

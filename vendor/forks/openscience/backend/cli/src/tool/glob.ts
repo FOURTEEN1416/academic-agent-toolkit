@@ -1,9 +1,9 @@
 import z from "zod"
 import path from "path"
 import { Tool } from "./tool"
+import { displayPath } from "./display-path"
 import DESCRIPTION from "./glob.txt"
 import { Ripgrep } from "../file/ripgrep"
-import { Instance } from "../project/instance"
 import { assertExternalDirectory, sessionToolDirectory } from "./external-directory"
 
 export const GlobTool = Tool.define("glob", {
@@ -57,7 +57,10 @@ export const GlobTool = Tool.define("glob", {
         mtime: stats,
       })
     }
-    files.sort((a, b) => b.mtime - a.mtime)
+    // One checkout or one write burst gives every match the same mtime, so
+    // without a tiebreak the order came from filesystem enumeration and two
+    // identical calls could return the same files in a different sequence.
+    files.sort((a, b) => b.mtime - a.mtime || a.path.localeCompare(b.path))
 
     const output = []
     if (files.length === 0) output.push("No files found")
@@ -70,7 +73,7 @@ export const GlobTool = Tool.define("glob", {
     }
 
     return {
-      title: path.relative(Instance.worktree, search),
+      title: await displayPath(search, ctx.sessionID),
       metadata: {
         count: files.length,
         truncated,

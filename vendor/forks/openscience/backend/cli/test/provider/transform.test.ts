@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test"
+import { APICallError, type ModelMessage } from "ai"
 import { ProviderTransform } from "../../src/provider/transform"
+import { managedOpenRouterBaseURL } from "../../src/openscience/synced-env-policy"
+import type { Provider } from "../../src/provider/provider"
 
 const OUTPUT_TOKEN_MAX = 32000
 
@@ -84,6 +87,36 @@ describe("ProviderTransform.options - setCacheKey", () => {
     expect(result.promptCacheKey).toBe(sessionID)
   })
 
+  test("an OpenRouter request carries the session as its sticky-routing and cache key", () => {
+    const openrouter = (id: string) => ({
+      ...mockModel,
+      id,
+      providerID: "openrouter",
+      api: { id, url: "https://openrouter.ai/api/v1", npm: "@openrouter/ai-sdk-provider" },
+    })
+    const astra = ProviderTransform.options({ model: openrouter("openai/gpt-6-astra"), sessionID, providerOptions: {} })
+    expect(astra.session_id).toBe(sessionID)
+    expect(astra.prompt_cache_key).toBe(sessionID)
+    // Only OpenAI reads prompt_cache_key; every upstream benefits from the sticky session.
+    const claude = ProviderTransform.options({
+      model: openrouter("anthropic/claude-opus-5"),
+      sessionID,
+      providerOptions: {},
+    })
+    expect(claude.session_id).toBe(sessionID)
+    expect(claude.prompt_cache_key).toBeUndefined()
+    // The managed gateway refuses request options it does not know (422
+    // unsupported_managed_request_option): neither key travels on that route.
+    const managed = ProviderTransform.options({
+      model: openrouter("openai/gpt-6-astra"),
+      sessionID,
+      providerOptions: { baseURL: managedOpenRouterBaseURL() },
+    })
+    expect(managed.session_id).toBeUndefined()
+    expect(managed.prompt_cache_key).toBeUndefined()
+    expect(managed.usage).toEqual({ include: true })
+  })
+
   test("should set store=false for openai provider", () => {
     const openaiModel = {
       ...mockModel,
@@ -118,6 +151,7 @@ describe("ProviderTransform.options - setCacheKey", () => {
           reasoning: true,
           interleaved: { field: "reasoning_details" },
         },
+        reasoningOptions: [{ type: "effort", values: ["low", "medium", "high"], default: "medium" }],
       },
       sessionID,
       providerOptions: {},
@@ -205,6 +239,29 @@ describe("ProviderTransform.variants - exact catalog efforts", () => {
         reasoningOptions: [],
       }),
     ).toEqual({})
+  })
+})
+
+describe("ProviderTransform.fitThinking", () => {
+  test("rewrites only an enabled Anthropic thinking budget and leaves the caller's options untouched", () => {
+    const options = { thinking: { type: "enabled", budgetTokens: 16000 }, other: 1 }
+    const fitted = ProviderTransform.fitThinking("@ai-sdk/anthropic", options, 4500)
+    expect(fitted).toEqual({ thinking: { type: "enabled", budgetTokens: 4500 }, other: 1 })
+    expect(options.thinking.budgetTokens).toBe(16000)
+    expect(ProviderTransform.fitThinking("@ai-sdk/anthropic", options, 16000)).toBe(options)
+    expect(ProviderTransform.fitThinking("@ai-sdk/openai", options, 4500)).toBe(options)
+    expect(ProviderTransform.fitThinking("@ai-sdk/anthropic", options, undefined)).toBe(options)
+  })
+})
+
+describe("ProviderTransform.thinkingTokens", () => {
+  test("reports the Anthropic thinking budget the SDK adds to max_tokens", () => {
+    const enabled = { thinking: { type: "enabled", budgetTokens: 16000 } }
+    expect(ProviderTransform.thinkingTokens("@ai-sdk/anthropic", enabled)).toBe(16000)
+    expect(ProviderTransform.thinkingTokens("@ai-sdk/google-vertex/anthropic", enabled)).toBe(16000)
+    expect(ProviderTransform.thinkingTokens("@ai-sdk/anthropic", { thinking: { type: "adaptive" } })).toBe(0)
+    expect(ProviderTransform.thinkingTokens("@ai-sdk/anthropic", {})).toBe(0)
+    expect(ProviderTransform.thinkingTokens("@ai-sdk/openai", enabled)).toBe(0)
   })
 })
 
@@ -465,6 +522,152 @@ describe("ProviderTransform.message - DeepSeek reasoning content", () => {
     ])
     expect(result[0].providerOptions?.openaiCompatible?.reasoning_content).toBeUndefined()
   })
+
+  test("OpenRouter models flagged interleaved keep their signed reasoning parts for the SDK to replay", () => {
+    const signed = [{ type: "reasoning.encrypted", id: "rs_1", data: "opaque-signature", format: "google-gemini-v1" }]
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "thinking...", providerOptions: { openrouter: { reasoning_details: signed } } },
+          { type: "tool-call", toolCallId: "call_1", toolName: "read", input: { filePath: "notes.md" } },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(
+      msgs,
+      {
+        id: "google/gemini-3.1-pro-preview",
+        providerID: "openrouter",
+        api: {
+          id: "google/gemini-3.1-pro-preview",
+          url: "https://openrouter.ai/api/v1",
+          npm: "@openrouter/ai-sdk-provider",
+        },
+        name: "Gemini 3.1 Pro",
+        capabilities: {
+          temperature: true,
+          reasoning: true,
+          attachment: true,
+          toolcall: true,
+          input: { text: true, audio: false, image: true, video: false, pdf: true },
+          output: { text: true, audio: false, image: false, video: false, pdf: false },
+          interleaved: { field: "reasoning_details" },
+        },
+        cost: { input: 0.002, output: 0.012, cache: { read: 0.0002, write: 0.0002 } },
+        limit: { context: 1_000_000, output: 65_536 },
+        status: "active",
+        options: {},
+        headers: {},
+        release_date: "2026-01-01",
+      },
+      {},
+    )
+
+    expect(result[0].content).toEqual(msgs[0].content)
+    expect(result[0].providerOptions?.openaiCompatible).toBeUndefined()
+  })
+})
+
+describe("ProviderTransform.message - Mistral tool call IDs", () => {
+  const model = {
+    id: "mistral/mistral-large",
+    providerID: "mistral",
+    api: { id: "mistral-large-latest", url: "https://api.mistral.ai", npm: "@ai-sdk/mistral" },
+    name: "Mistral Large",
+    capabilities: {
+      temperature: true,
+      reasoning: false,
+      attachment: false,
+      toolcall: true,
+      input: { text: true, audio: false, image: false, video: false, pdf: false },
+      output: { text: true, audio: false, image: false, video: false, pdf: false },
+      interleaved: false,
+    },
+    cost: { input: 0, output: 0, cache: { read: 0, write: 0 } },
+    limit: { context: 128_000, output: 8_192 },
+    status: "active",
+    options: {},
+    headers: {},
+    release_date: "2024-01-01",
+  } satisfies Provider.Model
+
+  const toolIDs = (message: ModelMessage) => {
+    if (!Array.isArray(message.content)) return []
+    return message.content.flatMap((part) =>
+      (part.type === "tool-call" || part.type === "tool-result") && "toolCallId" in part ? [part.toolCallId] : [],
+    )
+  }
+
+  test("parallel calls remain distinct and each result keeps its call's mapped ID", () => {
+    const first = "shared-prefix-call-alpha"
+    const second = "shared-prefix-call-beta"
+    const messages: ModelMessage[] = [
+      {
+        role: "assistant",
+        content: [
+          { type: "tool-call", toolCallId: first, toolName: "read", input: {} },
+          { type: "tool-call", toolCallId: second, toolName: "read", input: {} },
+        ],
+      },
+      {
+        role: "tool",
+        content: [
+          { type: "tool-result", toolCallId: second, toolName: "read", output: { type: "text", value: "b" } },
+          { type: "tool-result", toolCallId: first, toolName: "read", output: { type: "text", value: "a" } },
+        ],
+      },
+    ]
+    const result = ProviderTransform.message(messages, model, {})
+
+    const calls = toolIDs(result[0]!)
+    const results = toolIDs(result[1]!)
+    expect(calls[0]).not.toBe(calls[1])
+    expect(results).toEqual([calls[1], calls[0]])
+    expect(calls.every((id) => /^[a-zA-Z0-9]{9}$/.test(id))).toBe(true)
+  })
+
+  test("malformed source IDs still become exactly nine alphanumeric characters", () => {
+    const messages: ModelMessage[] = [
+      {
+        role: "assistant",
+        content: [{ type: "tool-call", toolCallId: "!@#$%^&*()", toolName: "read", input: {} }],
+      },
+    ]
+    const result = ProviderTransform.message(messages, model, {})
+    expect(toolIDs(result[0]!)[0]).toMatch(/^[a-zA-Z0-9]{9}$/)
+  })
+
+  test("maps IDs for an aliased model routed through the Mistral SDK", () => {
+    const alias = {
+      ...model,
+      id: "custom/research-model",
+      providerID: "private-gateway",
+      api: { ...model.api, id: "research-model-v1" },
+    } satisfies Provider.Model
+    const source = "call_with_more_than_nine_characters"
+    const messages: ModelMessage[] = [
+      {
+        role: "assistant",
+        content: [{ type: "tool-call", toolCallId: source, toolName: "read", input: {} }],
+      },
+    ]
+
+    const result = ProviderTransform.message(messages, alias, {})
+    expect(toolIDs(result[0]!)[0]).toMatch(/^[a-zA-Z0-9]{9}$/)
+    expect(toolIDs(result[0]!)[0]).not.toBe(source)
+  })
+
+  test("deterministically retries a digest collision", () => {
+    const ids = ProviderTransform.mistralToolIDs(["first", "second", "first"], (value) =>
+      value.includes("\0") ? "bbbbbbbbb" : "aaaaaaaaa",
+    )
+    expect([...ids.entries()]).toEqual([
+      ["first", "aaaaaaaaa"],
+      ["second", "bbbbbbbbb"],
+    ])
+  })
 })
 
 describe("ProviderTransform.message - empty image handling", () => {
@@ -653,6 +856,31 @@ describe("ProviderTransform.message - anthropic empty content filtering", () => 
     expect(result).toHaveLength(1)
     expect(result[0].content).toHaveLength(1)
     expect(result[0].content[0]).toEqual({ type: "text", text: "Answer" })
+  })
+
+  test("keeps signed and redacted thinking blocks whose text is empty", () => {
+    // `display: "omitted"` thinking arrives as a signature with no text, and
+    // redacted_thinking never has text; both must replay verbatim or the next
+    // turn of the tool loop is rejected.
+    const msgs = [
+      {
+        role: "assistant",
+        content: [
+          { type: "reasoning", text: "", providerOptions: { anthropic: { signature: "sig_abc" } } },
+          { type: "reasoning", text: "", providerOptions: { anthropic: { redactedData: "EmwKAhgB…" } } },
+          { type: "reasoning", text: "" },
+          { type: "tool-call", toolCallId: "call_1", toolName: "read", input: {} },
+        ],
+      },
+    ] as any[]
+
+    const result = ProviderTransform.message(msgs, anthropicModel, {})
+
+    expect(result[0].content).toEqual([
+      { type: "reasoning", text: "", providerOptions: { anthropic: { signature: "sig_abc" } } },
+      { type: "reasoning", text: "", providerOptions: { anthropic: { redactedData: "EmwKAhgB…" } } },
+      { type: "tool-call", toolCallId: "call_1", toolName: "read", input: {} },
+    ])
   })
 
   test("removes entire message when all parts are empty", () => {
@@ -1462,6 +1690,33 @@ describe("ProviderTransform.variants", () => {
     expect(result).toEqual({})
   })
 
+  test("Ace Muse uses OpenRouter reasoning for ordinary and small requests", () => {
+    const model = createMockModel({
+      id: "meta/muse-spark-1.2",
+      providerID: "openrouter",
+      api: { id: "meta/muse-spark-1.2", npm: "@openrouter/ai-sdk-provider" },
+    })
+    expect(ProviderTransform.variants(model).xhigh).toEqual({ reasoning: { effort: "xhigh" } })
+    expect(ProviderTransform.smallOptions(model)).toEqual({ reasoning: { effort: "minimal" } })
+    expect(ProviderTransform.options({ model, sessionID: "fixture" })).not.toHaveProperty("include")
+  })
+
+  test("Ace Gemini 3.7 emits only supported native thinking and sampling controls", () => {
+    const model = createMockModel({
+      id: "google/gemini-3.7-flash",
+      providerID: "openrouter",
+      api: { id: "gemini-3.7-flash", npm: "@ai-sdk/google" },
+    })
+    expect(Object.keys(ProviderTransform.variants(model))).toEqual(["low", "medium", "high"])
+    expect(ProviderTransform.options({ model, sessionID: "fixture" })).toEqual({
+      thinkingConfig: { includeThoughts: true, thinkingLevel: "medium" },
+    })
+    expect(ProviderTransform.smallOptions(model)).toEqual({ thinkingConfig: { thinkingLevel: "low" } })
+    expect(ProviderTransform.temperature(model)).toBeUndefined()
+    expect(ProviderTransform.topP(model)).toBeUndefined()
+    expect(ProviderTransform.topK(model)).toBeUndefined()
+  })
+
   test("deepseek returns empty object", () => {
     const model = createMockModel({
       id: "deepseek/deepseek-chat",
@@ -1528,6 +1783,7 @@ describe("ProviderTransform.variants", () => {
           url: "https://openrouter.ai",
           npm: "@openrouter/ai-sdk-provider",
         },
+        reasoningOptions: [{ type: "effort", values: ["low", "medium", "high"] }],
       })
       const result = ProviderTransform.variants(model)
       expect(result).toEqual({
@@ -1609,6 +1865,7 @@ describe("ProviderTransform.variants", () => {
           url: "https://openrouter.ai",
           npm: "@openrouter/ai-sdk-provider",
         },
+        reasoningOptions: [{ type: "effort", values: ["low", "medium", "high"] }],
       })
       const result = ProviderTransform.variants(model)
       // Gemini exposes low/medium/high reasoning levels — not OpenAI's
@@ -1793,6 +2050,7 @@ describe("ProviderTransform.variants", () => {
           url: "https://api.cerebras.ai",
           npm: "@ai-sdk/cerebras",
         },
+        reasoningOptions: [{ type: "effort", values: ["low", "medium", "high"] }],
       })
       const result = ProviderTransform.variants(model)
       expect(Object.keys(result)).toEqual(["low", "medium", "high"])
@@ -1811,6 +2069,7 @@ describe("ProviderTransform.variants", () => {
           url: "https://api.togetherai.com",
           npm: "@ai-sdk/togetherai",
         },
+        reasoningOptions: [{ type: "effort", values: ["low", "medium", "high"] }],
       })
       const result = ProviderTransform.variants(model)
       expect(Object.keys(result)).toEqual(["low", "medium", "high"])
@@ -1884,6 +2143,7 @@ describe("ProviderTransform.variants", () => {
           url: "https://api.deepinfra.com",
           npm: "@ai-sdk/deepinfra",
         },
+        reasoningOptions: [{ type: "effort", values: ["low", "medium", "high"] }],
       })
       const result = ProviderTransform.variants(model)
       expect(Object.keys(result)).toEqual(["low", "medium", "high"])
@@ -1902,6 +2162,7 @@ describe("ProviderTransform.variants", () => {
           url: "https://api.custom.com",
           npm: "@ai-sdk/openai-compatible",
         },
+        reasoningOptions: [{ type: "effort", values: ["low", "medium", "high"] }],
       })
       const result = ProviderTransform.variants(model)
       expect(Object.keys(result)).toEqual(["low", "medium", "high"])
@@ -2004,7 +2265,7 @@ describe("ProviderTransform.variants", () => {
       expect(Object.keys(result)).toEqual(["minimal", "low", "medium", "high"])
       expect(result.low).toEqual({
         reasoningEffort: "low",
-        reasoningSummary: "auto",
+        reasoningSummary: "detailed",
         include: ["reasoning.encrypted_content"],
       })
     })
@@ -2121,7 +2382,14 @@ describe("ProviderTransform.variants", () => {
         api: { id, url: "https://api.anthropic.com", npm: "@ai-sdk/anthropic" },
       })
 
-    const EFFORT_MODELS = ["claude-opus-4-7", "claude-opus-4-8", "claude-opus-5", "claude-sonnet-5", "claude-mythos-5"]
+    const EFFORT_MODELS = [
+      "claude-opus-4-7",
+      "claude-opus-4-8",
+      "claude-opus-5",
+      "claude-sonnet-5",
+      "claude-mythos-5",
+      "claude-fable-5",
+    ]
     for (const id of EFFORT_MODELS) {
       test(`${id} exposes the full low→max effort ladder including xhigh`, () => {
         const result = ProviderTransform.variants(anthropicModel(id))
@@ -2131,6 +2399,17 @@ describe("ProviderTransform.variants", () => {
         expect(result.max).toEqual({ thinking: { type: "adaptive" }, effort: "max" })
       })
     }
+
+    test("Ace canonical model IDs still use native adaptive thinking", () => {
+      const model = { ...anthropicModel("claude-fable-5"), id: "anthropic/claude-fable-5", providerID: "openrouter" }
+      expect(ProviderTransform.variants(model).low).toEqual({ thinking: { type: "adaptive" }, effort: "low" })
+      expect(ProviderTransform.options({ model, sessionID: "fixture" })).toEqual({
+        thinking: { type: "adaptive" },
+        effort: "high",
+      })
+      expect(ProviderTransform.smallOptions(model)).toEqual({ thinking: { type: "adaptive" }, effort: "low" })
+      expect(ProviderTransform.providerOptions(model, { effort: "max" })).toEqual({ anthropic: { effort: "max" } })
+    })
 
     // Regression guard: Mythos is NOT opus/sonnet/haiku, so a naive regex
     // drops them to the classic path where manual thinking 400s.
@@ -2155,6 +2434,53 @@ describe("ProviderTransform.variants", () => {
         expect((result.low as { effort?: string }).effort).toBeUndefined()
       })
     }
+
+    // Without `thinking` in the default request these models answer without
+    // reasoning at all; the variant ladder above only applies when a user
+    // picks an explicit effort.
+    test.each(["claude-opus-4-7", "claude-opus-4-8", "claude-opus-4.8"])(
+      "%s requests adaptive thinking at high effort by default",
+      (id) => {
+        expect(ProviderTransform.options({ model: anthropicModel(id), sessionID: "fixture" })).toMatchObject({
+          thinking: { type: "adaptive" },
+          effort: "high",
+        })
+      },
+    )
+
+    test.each(["claude-opus-4-6", "claude-sonnet-4-6", "claude-opus-4.6", "claude-sonnet-4.6"])(
+      "%s requests adaptive thinking with neither effort nor a budget by default",
+      (id) => {
+        const options = ProviderTransform.options({ model: anthropicModel(id), sessionID: "fixture" })
+        expect(options.thinking).toEqual({ type: "adaptive" })
+        expect(options).not.toHaveProperty("effort")
+        expect(options.thinking).not.toHaveProperty("budgetTokens")
+      },
+    )
+
+    test.each(["claude-opus-4-5", "claude-sonnet-4-5", "claude-haiku-4-5", "claude-3-7-sonnet"])(
+      "%s keeps its default request free of a thinking block",
+      (id) => {
+        expect(ProviderTransform.options({ model: anthropicModel(id), sessionID: "fixture" })).not.toHaveProperty(
+          "thinking",
+        )
+      },
+    )
+
+    test("recognizes a publisher-prefixed Vertex id for the 4.6 default", () => {
+      const model = createMockModel({
+        id: "google-vertex-anthropic/claude-sonnet-4-6",
+        providerID: "google-vertex-anthropic",
+        api: {
+          id: "anthropic/claude-sonnet-4-6",
+          url: "https://us-east5-aiplatform.googleapis.com",
+          npm: "@ai-sdk/google-vertex/anthropic",
+        },
+      })
+      const options = ProviderTransform.options({ model, sessionID: "fixture" })
+      expect(options.thinking).toEqual({ type: "adaptive" })
+      expect(options).not.toHaveProperty("effort")
+    })
   })
 
   describe("@ai-sdk/amazon-bedrock", () => {
@@ -2329,5 +2655,280 @@ describe("ProviderTransform.variants", () => {
       const result = ProviderTransform.variants(model)
       expect(result).toEqual({})
     })
+  })
+})
+
+describe("ProviderTransform.error for the managed gateway's edge proxy", () => {
+  const router = (url: string, headers?: Record<string, string>) =>
+    new APICallError({
+      message:
+        "Bad Gateway: An error occurred with this application.\n\nROUTER_EXTERNAL_TARGET_CONNECTION_ERROR_CD8\n\nsin1::6rmpm",
+      url,
+      requestBodyValues: {},
+      statusCode: 502,
+      responseHeaders: headers,
+      responseBody:
+        "An error occurred with this application.\n\nROUTER_EXTERNAL_TARGET_CONNECTION_ERROR_CD8\n\nsin1::6rmpm\n",
+      isRetryable: true,
+    })
+
+  test("a router code from the managed proxy names the likely cause and what to do", () => {
+    const text = ProviderTransform.error(
+      "openrouter",
+      router(`${managedOpenRouterBaseURL()}/chat/completions`, {
+        "x-vercel-error": "ROUTER_EXTERNAL_TARGET_CONNECTION_ERROR_CD8",
+      }),
+    )
+    expect(text).toStartWith("Ace's gateway could not deliver this request to the model service. ")
+    // The code closes the message as a detail rather than interrupting the sentence.
+    expect(text).toEndWith("Gateway code ROUTER_EXTERNAL_TARGET_CONNECTION_ERROR_CD8.")
+    expect(text).toContain("several images")
+    expect(text).not.toContain("An error occurred with this application")
+  })
+
+  test("the code is read from the body when the header is missing; other 502s keep their message", () => {
+    expect(ProviderTransform.error("openrouter", router(`${managedOpenRouterBaseURL()}/chat/completions`))).toContain(
+      "ROUTER_EXTERNAL_TARGET_CONNECTION_ERROR_CD8",
+    )
+    expect(ProviderTransform.error("openrouter", router("https://openrouter.ai/api/v1/chat/completions"))).toContain(
+      "Bad Gateway",
+    )
+  })
+})
+
+describe("ProviderTransform.error for the managed gateway's payment-required contract", () => {
+  const managed = (body: Record<string, unknown>, url = `${managedOpenRouterBaseURL()}/chat/completions`) =>
+    new APICallError({
+      message: "Payment Required",
+      url,
+      requestBodyValues: {},
+      statusCode: 402,
+      responseBody: JSON.stringify(body),
+      isRetryable: false,
+    })
+
+  test("a personal Wallet that cannot fund the request says what is left and where to add funds", () => {
+    const text = ProviderTransform.error(
+      "openrouter",
+      managed({
+        error: "insufficient_balance",
+        required_cents: 50,
+        available_cents: 12,
+        recovery: { kind: "ace_reload", retryable: false, action: "turn_on_ace_or_add_wallet_funds" },
+      }),
+    )
+    expect(text).toContain("Ace is paused")
+    expect(text).toContain("Available: $0.12")
+    expect(text).toContain("reserves $0.50")
+    expect(text).toContain("/billing")
+    expect(text).not.toContain("insufficient_balance")
+  })
+
+  test("an empty Wallet without Ace (FastAPI detail envelope, ace_required) says to add funds", () => {
+    // Ace answers this 402 as HTTPException detail: {"detail": {"error": "ace_required", ...}}.
+    const text = ProviderTransform.error(
+      "openrouter",
+      managed({
+        detail: {
+          error: "ace_required",
+          message: "Add Wallet funds or turn on Ace to use managed models.",
+          billing_url: "https://app.syntheticsciences.ai/billing",
+        },
+      }),
+    )
+    expect(text).toContain("Ace is paused")
+    expect(text).toContain("no available balance")
+    expect(text).toContain("/billing")
+    expect(text).not.toContain("ace_required")
+    expect(text).not.toContain("detail")
+  })
+
+  test("a shared Wallet points at the billing manager; a pending reload says to retry", () => {
+    expect(
+      ProviderTransform.error(
+        "openrouter",
+        managed({
+          error: "insufficient_balance",
+          recovery: { kind: "organization_wallet", retryable: false, action: "contact_organization_billing_manager" },
+        }),
+      ),
+    ).toContain("Ask a billing manager")
+    expect(
+      ProviderTransform.error(
+        "openrouter",
+        managed({
+          error: "insufficient_balance",
+          recovery: { kind: "ace_reload", retryable: true, retry_after_seconds: 5, action: "retry_after_reload" },
+        }),
+      ),
+    ).toContain("automatic reload")
+  })
+
+  test("funds reserved by the Wallet's own requests in flight: says so, and the error is retryable", () => {
+    const error = managed({
+      error: "insufficient_balance",
+      required_cents: 401,
+      available_cents: 0,
+      balance_cents: 1200,
+      held_cents: 1200,
+      recovery: {
+        kind: "inflight_holds",
+        retryable: true,
+        retry_after_seconds: 15,
+        action: "retry_after_inflight_requests",
+      },
+    })
+    const text = ProviderTransform.error("openrouter", error)
+    expect(text).toContain("requests in flight")
+    expect(text).not.toContain("Auto reload did not run")
+    expect(text).toContain("Available: $0.00 of $12.00")
+    expect(text).toContain("$12.00 reserved by requests in flight")
+    expect(text).toContain("reserves $4.01")
+    expect(text).not.toContain("Add funds")
+    expect(ProviderTransform.managedRetryable(error)).toBe(true)
+    expect(
+      ProviderTransform.managedRetryable(
+        managed({
+          error: "insufficient_balance",
+          recovery: { kind: "ace_reload", retryable: false, action: "turn_on_ace_or_add_wallet_funds" },
+        }),
+      ),
+    ).toBe(false)
+  })
+
+  test("the refusal says why auto reload did not run, or that one is on its way", () => {
+    const base = {
+      error: "insufficient_balance",
+      required_cents: 401,
+      available_cents: 0,
+      balance_cents: 1200,
+      held_cents: 1200,
+    }
+    const blocked = ProviderTransform.error(
+      "openrouter",
+      managed({
+        ...base,
+        recovery: {
+          kind: "inflight_holds",
+          retryable: true,
+          retry_after_seconds: 15,
+          action: "retry_after_inflight_requests",
+          ace_reload: {
+            state: "available",
+            pending: false,
+            attempt_state: null,
+            blocked_reason: "monthly_cap_reached",
+          },
+        },
+      }),
+    )
+    expect(blocked).toContain("Auto reload did not run: this month's reload cap is reached.")
+    const pending = ProviderTransform.error(
+      "openrouter",
+      managed({
+        ...base,
+        recovery: {
+          kind: "inflight_holds",
+          retryable: true,
+          retry_after_seconds: 15,
+          action: "retry_after_inflight_requests",
+          ace_reload: { state: "available", pending: true, attempt_state: "pending", blocked_reason: null },
+        },
+      }),
+    )
+    expect(pending).toContain("A Wallet reload is on its way.")
+    const failed = ProviderTransform.error(
+      "openrouter",
+      managed({
+        ...base,
+        held_cents: 0,
+        recovery: {
+          kind: "ace_reload",
+          retryable: false,
+          action: "add_wallet_funds_or_update_payment_method",
+          ace_reload: { state: "available", pending: false, attempt_state: "failed", error_class: "card_declined" },
+        },
+      }),
+    )
+    expect(failed).toContain("The last automatic reload failed (card_declined).")
+    // The gateway's own word for a decline, as a finished attempt or as the
+    // reason a new one is waiting, names the repair: update the card.
+    for (const reload of [
+      { state: "available", pending: false, attempt_state: "failed", error_class: "payment_failed" },
+      { state: "available", pending: false, attempt_state: null, blocked_reason: "card_declined" },
+    ]) {
+      const declined = ProviderTransform.error(
+        "openrouter",
+        managed({
+          ...base,
+          held_cents: 0,
+          recovery: {
+            kind: "ace_reload",
+            retryable: false,
+            action: "add_wallet_funds_or_update_payment_method",
+            ace_reload: reload,
+          },
+        }),
+      )
+      expect(declined).toContain("The card on file was declined; auto reload runs again as soon as the card is updated")
+    }
+  })
+
+  test("a monthly usage limit names the limit and the spend", () => {
+    const text = ProviderTransform.error(
+      "openrouter",
+      managed({
+        error: "monthly_usage_limit",
+        limit_cents: 10_000,
+        spent_cents: 10_020,
+        recovery: { kind: "monthly_usage_limit", retryable: false, action: "increase_monthly_limit" },
+      }),
+    )
+    expect(text).toContain("monthly usage limit of $100.00")
+    expect(text).toContain("$100.20 spent")
+  })
+
+  test("a 402 from a provider the person connected directly is left alone", () => {
+    const direct = managed({ error: "insufficient_balance" }, "https://openrouter.ai/api/v1/chat/completions")
+    expect(ProviderTransform.error("openrouter", direct)).toBe("Payment Required")
+  })
+})
+
+describe("ProviderTransform.error when Ace has no upstream for the model's provider", () => {
+  const unavailable = (detail: Record<string, unknown>, url = `${managedOpenRouterBaseURL()}/chat/completions`) =>
+    new APICallError({
+      message: "Service Unavailable",
+      url,
+      requestBodyValues: {},
+      statusCode: 503,
+      responseBody: JSON.stringify({ detail }),
+      isRetryable: true,
+    })
+
+  test("a missing provider key reads as that provider being down, with another model or BYOK as the way on", () => {
+    const text = ProviderTransform.error("openrouter", unavailable({ error: "anthropic_not_configured" }))
+    expect(text).toContain("Anthropic (Claude models) is unavailable on Ace right now")
+    expect(text).toContain("another provider")
+    expect(text).toContain("Keys & subscriptions")
+    expect(text).not.toContain("not_configured")
+    expect(text).not.toContain("detail")
+    expect(ProviderTransform.error("openrouter", unavailable({ error: "gemini_not_configured" }))).toContain(
+      "Google (Gemini models) is unavailable",
+    )
+    expect(ProviderTransform.error("openrouter", unavailable({ error: "invalid_ace_openai_upstream" }))).toContain(
+      "OpenAI (GPT models) is unavailable",
+    )
+    expect(
+      ProviderTransform.error("openrouter", unavailable({ error: "managed_not_configured", provider: "openrouter" })),
+    ).toStartWith("This model's provider is unavailable on Ace right now")
+  })
+
+  test("only Ace's own codes are rewritten; other 503s keep their message", () => {
+    expect(ProviderTransform.managedProviderUnavailable(unavailable({ error: "overloaded" }))).toBeUndefined()
+    expect(
+      ProviderTransform.managedProviderUnavailable(
+        unavailable({ error: "anthropic_not_configured" }, "https://openrouter.ai/api/v1/chat/completions"),
+      ),
+    ).toBeUndefined()
   })
 })

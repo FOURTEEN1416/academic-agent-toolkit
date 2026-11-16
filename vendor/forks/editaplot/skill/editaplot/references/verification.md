@@ -42,12 +42,21 @@ prove that every template is available. Apply the selected template's capability
   correctly mapped `layer -x` values, raw bridge values when available, and
   `bridge_geometry_consistent`. Accept a stale bridge only when the two native LabTalk paths agree
   and still match the registered contract; otherwise fail closed.
+- Read physical page centimetres from documented printer dots divided by the actual positive
+  `page.resx/resy`, then multiply by 2.54. Record COM page dimensions as diagnostics; never substitute
+  a guessed DPI or widen the page-size tolerance to hide a mismatch. A failed physical-size check
+  may report only its check ID, measured value, expected value and tolerance.
 - Confirm required axes, titles, label tables, scale direction, tick visibility, text sizes and font codes,
   plot widths, frame widths, and special plot labels where applicable.
 - Confirm the X and Y tick-label font codes are identical to the registered profile after any
   dataset-backed label binding. Confirm Y-axis typography independently; do not infer it from X.
 - Confirm legends, direct labels, notes, heatmap cell text, and colorbar labels have their own
   point-size and font readback whenever those objects exist.
+- For ordinary heatmaps, verify the page row labels against frozen source indices/text after export:
+  no duplicate automatic Y labels; literal text mode (`link=0`), correct font/size, attachment and rotation; no clipping,
+  vertical overlap or invasion of the data frame. Read actual bounding boxes and the positive
+  physical frame gap, not only a label count. For renderer regression, repeat these checks after
+  independently reopening the saved OPJU and verify every matrix value and row/column order.
 - Treat missing readback as a rendering failure even if exports exist.
 - For Rietveld figures, confirm Observed/Calculated/optional Background/Difference source bindings,
   that Publication `Diff` uses identity display values, and that every phase-tick plot reads its X

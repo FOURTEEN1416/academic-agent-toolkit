@@ -9,11 +9,21 @@ allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent, Skill
 
 Autonomously iterate: review → implement fixes → re-review, until the independent reviewer (any isolated context, or current-agent adversarial self-review fallback) gives a positive assessment or MAX_ROUNDS is reached.
 
+## 路由分工（区别与选择）
+
+| 需求 | 用哪个技能 |
+|---|---|
+| 研究内容迭代（要跑实验、补分析、改代码后复审） | 本技能 `auto-review-loop` |
+| 仅论文文稿润色（不改研究内容，只改写作与编译） | `auto-paper-improvement-loop` |
+| 单次独立评审（不迭代、不跑实验） | `research-review` |
+
 ## Context: $ARGUMENTS
 
 ## ⛔ Output Mode (read first, before anything else)
 
 The orchestrator may inject one of two notice blocks into `AGENTS.md`:
+
+> **本仓引擎下如何声明模式**：本仓由引擎/驱动 Agent 在派发本技能时把模式块写入项目 `AGENTS.md`（或以等价任务指令显式给出 output mode：docx / pdf / markdown）；两块都不存在时按 markdown 默认模式执行，不得自行猜测。
 
 | Block name | Output mode | LaTeX compile? | Final artefact |
 |---|---|---|---|
@@ -177,7 +187,7 @@ Wait for the user's response. Parse their input:
 
 #### Feishu Notification (if configured)
 
-After parsing the score, 检查 `~/.acat/feishu.json` 存在且 mode 不为 `"off"`:
+After parsing the score, 检查飞书通知配置是否存在且 mode 不为 `"off"`（本仓不预设宿主路径；以当前运行环境实际的配置文件或环境变量为准，配置缺失即视为关闭）:
 - Send a `review_scored` notification: "Round N: X/10 — [verdict]" with top 3 weaknesses
 - If **HUMAN_CHECKPOINT=true** and verdict is "almost": send as checkpoint and wait for explicit user reply; non-interactive mode preserves the pending checkpoint.
 - If config absent or mode off: skip entirely (no-op)

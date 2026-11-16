@@ -46,6 +46,10 @@ export namespace RuntimeEvents {
 
   export const RETAINED_EVENTS = 2_048
 
+  /** The event types that terminalize a run. `terminal` records exactly one of
+   * these per run and treats a later matching call as idempotent. */
+  const TERMINAL_TYPES = new Set(["runtime.completed", "runtime.failed", "runtime.cancelled"])
+
   export class ActiveRunError extends Error {
     constructor(readonly sessionID: string) {
       super(`Session ${sessionID} already has an active runtime run`)
@@ -82,17 +86,19 @@ export namespace RuntimeEvents {
   type ProgressInput = {
     sessionID: string
     runID: string
-    type: "message.part.updated"
-    properties: Record<string, unknown> & {
-      part: Record<string, unknown>
-      delta: string
-    }
+    type: string
+    properties: Record<string, unknown>
   }
+
+  /** How a captured event joins the pending batch: a text delta appends to the
+   * delta already waiting for the same part, a progress heartbeat replaces the
+   * one waiting for the same request, anything else is its own entry. */
+  type Merge = "delta" | "replace" | "none"
 
   type ProgressEntry = {
     key: string
+    merge: Merge
     input: ProgressInput
-    waiters: Array<{ resolve: () => void; reject: (error: unknown) => void }>
   }
 
   type Progress = {
@@ -103,16 +109,67 @@ export namespace RuntimeEvents {
     timer?: ReturnType<typeof setTimeout>
   }
 
-  /** Keep durable public progress responsive without rewriting the full replay
-   * journal for every provider token. The regular UI bus still receives each
-   * original delta after its durable batch commits. */
+  /** Keep the durable replay journal responsive without rewriting it for every
+   * provider token or tool state change: everything a run emits inside this
+   * window lands in one write. The UI bus receives each original event as it
+   * happens; the journal catches up in order behind it. */
   export const PROGRESS_INTERVAL_MS = 50
 
   const state = Instance.state(() => ({
     active: new Map<string, string>(),
     subscriptions: new Map<string, Set<Subscriber>>(),
     progress: new Map<string, Progress>(),
+    // A session's parent is immutable, so one lookup per session suffices.
+    parents: new Map<string, string | undefined>(),
   }))
+
+  // Every session that emits while some run is active lands in the parent
+  // cache; a cache this size costs one extra record read per entry to rebuild.
+  const PARENT_CACHE_LIMIT = 4_096
+
+  /** The parent of a session, read once. A session record is written before
+   * the session is announced or produces events, so a missing record means a
+   * root or foreign session rather than a not-yet-created child. */
+  async function parent(sessionID: string): Promise<string | undefined> {
+    const parents = state().parents
+    if (parents.has(sessionID)) return parents.get(sessionID)
+    const session = await Storage.read<{ parentID?: unknown }>(["session", Instance.project.id, sessionID]).catch(
+      () => undefined,
+    )
+    if (parents.size >= PARENT_CACHE_LIMIT) parents.clear()
+    const value = typeof session?.parentID === "string" ? session.parentID : undefined
+    parents.set(sessionID, value)
+    return value
+  }
+
+  /** Ancestor chain of a session, nearest first. */
+  async function ancestors(sessionID: string): Promise<string[]> {
+    const chain: string[] = []
+    let current: string | undefined = sessionID
+    while (current && !chain.includes(current)) {
+      chain.push(current)
+      current = await parent(current)
+    }
+    return chain
+  }
+
+  /** True when `sessionID` is `rootID` or one of its delegated descendants. */
+  export async function belongs(rootID: string, sessionID: string) {
+    if (rootID === sessionID) return true
+    return (await ancestors(sessionID)).includes(rootID)
+  }
+
+  /** The nearest active ancestor's run. Delegated children work under the
+   * parent's run, so their tool prompts and progress belong to the same
+   * public journal. */
+  async function inherited(sessionID: string) {
+    const active = state().active
+    if (!active.size) return
+    for (const ancestor of await ancestors(sessionID)) {
+      const runID = active.get(ancestor)
+      if (runID) return { sessionID: ancestor, runID }
+    }
+  }
 
   function key(sessionID: string) {
     return ["runtime_event", Instance.project.id, sessionID]
@@ -252,56 +309,49 @@ export namespace RuntimeEvents {
     if (!stream) return
     if (stream.timer) clearTimeout(stream.timer)
     stream.timer = undefined
+    // Leave progress mergeable until the preceding durable write finishes.
+    // A slow stream must not create a separate queued snapshot every 50 ms.
+    await stream.tail
     const entries = stream.pending.splice(0)
     if (!entries.length) return stream.tail
-    return queue(stream, async () => {
-      try {
-        await appendProgress({ sessionID, runID: stream.runID, entries })
-        for (const entry of entries) {
-          for (const waiter of entry.waiters) waiter.resolve()
-        }
-      } catch (error) {
-        for (const entry of entries) {
-          for (const waiter of entry.waiters) waiter.reject(error)
-        }
-        throw error
-      }
-    })
+    return queue(stream, () => appendProgress({ sessionID, runID: stream.runID, entries }))
   }
 
-  function scheduleProgress(input: ProgressInput) {
+  /** Place a captured event in its stream: the first event of a run is written
+   * at once so the run is visible immediately; the rest wait for the batch
+   * window. The write happens on the stream's own queue, so scheduling never
+   * waits for the journal. */
+  function scheduleProgress(input: ProgressInput, merge: Merge, key: string) {
     const stream = progress(input.sessionID, input.runID)
     if (stream.first) {
       stream.first = false
-      return queue(stream, async () => {
-        await append({ ...input, requireActive: true })
-      })
+      void queue(stream, () => append({ ...input, requireActive: true })).catch((error) =>
+        log.error("failed to journal the first runtime event", { sessionID: input.sessionID, error }),
+      )
+      return
     }
-    return new Promise<void>((resolve, reject) => {
-      const part = input.properties.part
-      const key = [part.messageID, part.id, part.type].join(":")
-      const prior = stream.pending.at(-1)
-      if (prior?.key === key) {
-        prior.input = {
-          ...input,
-          properties: {
-            ...input.properties,
-            delta: prior.input.properties.delta + input.properties.delta,
-          },
-        }
-        prior.waiters.push({ resolve, reject })
-      } else {
-        stream.pending.push({ key, input, waiters: [{ resolve, reject }] })
+    const prior = stream.pending.at(-1)
+    if (merge === "delta" && prior?.key === key && prior.merge === "delta") {
+      prior.input = {
+        ...input,
+        properties: {
+          ...input.properties,
+          delta: String(prior.input.properties.delta) + String(input.properties.delta),
+        },
       }
-      if (stream.timer) return
-      stream.timer = setTimeout(() => {
-        stream.timer = undefined
-        void flushProgress(input.sessionID).catch((error) =>
-          log.error("failed to flush runtime progress", { sessionID: input.sessionID, runID: input.runID, error }),
-        )
-      }, PROGRESS_INTERVAL_MS)
-      ;(stream.timer as { unref?: () => void }).unref?.()
-    })
+    } else if (merge === "replace" && prior?.key === key && prior.merge === "replace") {
+      prior.input = input
+    } else {
+      stream.pending.push({ key, merge, input })
+    }
+    if (stream.timer) return
+    stream.timer = setTimeout(() => {
+      stream.timer = undefined
+      void flushProgress(input.sessionID).catch((error) =>
+        log.error("failed to flush runtime progress", { sessionID: input.sessionID, runID: input.runID, error }),
+      )
+    }, PROGRESS_INTERVAL_MS)
+    ;(stream.timer as { unref?: () => void }).unref?.()
   }
 
   function progressInput(input: {
@@ -325,6 +375,23 @@ export namespace RuntimeEvents {
         delta: input.properties.delta,
       },
     }
+  }
+
+  export async function isActive(sessionID: string) {
+    return (await activeRun(sessionID)) !== undefined
+  }
+
+  /** The run that owns the session right now, if a live process still runs it. */
+  export async function activeRun(sessionID: string) {
+    const journal = await read(sessionID)
+    if (state().active.has(sessionID) && journal.activeRunID) return journal.activeRunID
+    if (
+      journal.activeRunID &&
+      journal.activeOwner &&
+      (await ProcessIdentity.owns(journal.activeOwner.pid, journal.activeOwner.identity))
+    )
+      return journal.activeRunID
+    return undefined
   }
 
   export async function begin(input: {
@@ -493,11 +560,13 @@ export namespace RuntimeEvents {
   export async function requestCancel(input: {
     sessionID: string
     source: "user" | "runner_timeout"
+    runID?: string
   }): Promise<CancelResult> {
     const active = state().active.get(input.sessionID)
     const current = await read(input.sessionID)
     const runID = active ?? current.activeRunID
     if (!runID || current.activeRunID !== runID) return { status: "inactive" }
+    if (input.runID && input.runID !== runID) return { status: "inactive" }
 
     const identity = await ProcessIdentity.capture(process.pid)
     if (!identity) throw new Error("Could not capture the runtime server process identity")
@@ -574,12 +643,23 @@ export namespace RuntimeEvents {
     expectedOwner?: Journal["activeOwner"]
     onTerminal?: () => void
   }) {
+    await settled()
     await flushProgress(input.sessionID)
     let event: Event | undefined
+    let idempotent = false
     await Storage.upsert<Journal>(key(input.sessionID), (current) => {
       const journal = current ? Journal.parse(current) : empty()
       if (journal.activeRunID !== input.runID) {
-        throw new ActiveRunError(input.sessionID)
+        // The run is no longer active. If the other finalization path already
+        // recorded a terminal event for this exact run, return that event
+        // instead of failing: normal settlement and a cancellation request can
+        // race the same run, and both must succeed. A different active run, or
+        // no recorded terminal for this run at all, is still a real conflict.
+        const recorded = journal.events.findLast((item) => item.runID === input.runID && TERMINAL_TYPES.has(item.type))
+        if (!recorded) throw new ActiveRunError(input.sessionID)
+        event = recorded
+        idempotent = true
+        return journal
       }
       if (
         input.verifyOwner &&
@@ -609,13 +689,23 @@ export namespace RuntimeEvents {
       }
     })
     if (!event) throw new Error("Runtime completion did not produce an event")
+    // An idempotent replay returns the already-recorded (and already-notified)
+    // terminal event without re-running teardown or re-delivering it.
+    if (idempotent) return event
     if (state().active.get(input.sessionID) === input.runID) state().active.delete(input.sessionID)
     state().progress.delete(input.sessionID)
     input.onTerminal?.()
     return notify(event)
   }
 
-  /** Capture an internal event only while a public runtime run owns the session. */
+  /** The run this process currently owns for a session, if any. Cancellation
+   * coordination uses it to ignore a request whose run is no longer active. */
+  export function activeRunID(sessionID: string) {
+    return state().active.get(sessionID)
+  }
+
+  /** Capture an internal event only while a public runtime run owns the
+   * session or one of its ancestors. */
   function captureSessionID(type: string, properties: Record<string, unknown>) {
     const direct = properties.sessionID
     if (typeof direct === "string") return direct
@@ -633,24 +723,56 @@ export namespace RuntimeEvents {
     if (!properties || typeof properties !== "object" || Array.isArray(properties)) return
     const sessionID = captureSessionID(payload.type, properties as Record<string, unknown>)
     if (!sessionID) return
-    const runID = state().active.get(sessionID)
-    if (!runID) return
+    // A root session's streamed progress must be scheduled in the same
+    // event-loop turn as its bus delivery, or its deltas reorder around the
+    // run's completion; only a delegated child pays for the ancestor walk.
+    const direct = state().active.get(sessionID)
+    const run = direct ? { sessionID, runID: direct } : await inherited(sessionID)
+    if (!run) return
+    // The journal belongs to the run's root session; the event properties keep
+    // naming the child session that produced them.
     const input = {
-      sessionID,
-      runID,
+      sessionID: run.sessionID,
+      runID: run.runID,
       type: payload.type,
       properties: properties as Record<string, unknown>,
     }
     const streaming = progressInput(input)
-    if (streaming) return scheduleProgress(streaming)
-    const stream = progress(sessionID, runID)
-    await flushProgress(sessionID)
-    await queue(stream, async () => {
-      await append({ ...input, requireActive: true })
+    if (streaming) {
+      const part = streaming.properties.part as Record<string, unknown>
+      return scheduleProgress(streaming, "delta", [part.messageID, part.id, part.type].join(":"))
+    }
+    if (input.type === "session.request.progress") {
+      const messageID = (properties as Record<string, unknown>).messageID
+      return scheduleProgress(input, "replace", `progress:${String(messageID)}`)
+    }
+    return scheduleProgress(input, "none", `${input.type}:${Date.now()}:${Math.random()}`)
+  }
+
+  let journaling: Promise<void> = Promise.resolve()
+
+  /** Journal a bus event without holding up its delivery. Captures are placed
+   * one after another in publish order, so the replay journal keeps the bus's
+   * sequence, and a rewrite of a large journal never stalls the stream every
+   * consumer is watching. `capture` resolves once the event sits in its
+   * stream's batch; the write itself runs on that stream's queue. */
+  export function enqueue(payload: { type: string; properties: unknown }) {
+    const next = journaling.then(() => capture(payload))
+    journaling = next.catch((error) => {
+      log.error("runtime event capture failed", { type: payload.type, error })
     })
+    return journaling
+  }
+
+  /** Every capture enqueued so far has been placed in its stream; a flush of
+   * that stream then makes it replayable. */
+  export function settled() {
+    return journaling
   }
 
   export async function replay(sessionID: string, afterSequence?: number) {
+    // A cursor taken after a live event must find that event replayable.
+    await settled()
     await flushProgress(sessionID)
     const journal = await read(sessionID)
     const oldestSequence = journal.events[0]?.sequence ?? journal.nextSequence

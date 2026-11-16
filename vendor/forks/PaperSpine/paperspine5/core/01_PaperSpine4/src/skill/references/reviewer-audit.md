@@ -7,12 +7,13 @@ handling editor. The goal is not to add more prose, but to surface, *before*
 submission, the exact objections a reviewer will raise and to attach a concrete
 preemptive fix to each one.
 
-This is a pre-LaTeX integrity artifact, not a last-minute submission extra.
-Create it after drafting and the three structured reviewer passes, resolve its
-CRITICAL/MAJOR objections, and pass `reviewer_audit_check.py` before assembly.
-Final audit re-runs the check only as defense in depth.
+Use this perspective during drafting and on the actual rendered revision under
+review-policy.md. Resolve located scientific/editorial defects and recheck the
+affected files. Rendering is necessary input to format review, so do not require
+a pre-LaTeX review receipt before assembling the paper.
 
-This playbook produces ONE file with THREE tables:
+The following three views can share the existing review note. Tables are useful
+when they clarify findings, not mandatory forms:
 
 1. **Reviewer Value Map** — what each evaluation criterion buys you, and where
    our manuscript is currently weak on it.
@@ -32,11 +33,10 @@ matters so the audit teaches, not just grades.
 
 ## How to populate the Objection Register
 
-Do **not** invent objections from scratch. Reuse the existing three-reviewer
-`structured_review` machinery — the same Methods/Reproducibility, Contribution,
-and Clarity personas that drive `structured_review.py`. Run (or read the output
-of) those three agents, then fold their CRITICAL/MAJOR findings into the
-Objection Register. The mapping is direct:
+Use the independent reviewer's actual, precisely located findings. Apply
+review-policy.md for scope and severity in both policies. Existing review notes
+suffice; legacy JSON validation applies only to an invoked legacy review tool.
+Retain real evidence and unresolved findings without inventing objections. The core mapping is direct:
 
 - **Methods & Reproducibility Reviewer** → objections about technical soundness,
   evidence sufficiency, reproducibility, missing ablations/baselines.
@@ -46,8 +46,10 @@ Objection Register. The mapping is direct:
   figure/table legibility, venue-convention violations.
 
 This keeps the audit grounded in the project's existing review agents instead of
-producing a second, unanchored opinion. Each register row should trace back to a
-specific reviewer finding so the editor synthesis stays consistent.
+producing a second, unanchored opinion. Each register row must trace to a finding
+ID, precise manuscript locator, and reviewer/tool receipt so the editor
+synthesis stays consistent. A literature-provider failure cannot become a
+novelty objection; retain it as degraded-coverage advisory evidence.
 
 ## Output location
 
@@ -57,10 +59,7 @@ Write:
 paper_rewriting_output/reviewer_audit.md
 ```
 
-It is validated by `reviewer_audit_check.py`, which requires all three sections
-present and non-empty: the value map must carry the six criterion rows, the
-objection register must have at least one row with a Severity and a Preemptive
-fix, and the editorial fit block must be present.
+The three views should be substantive: state the applicable reviewer criteria and manuscript evidence, list only actual located objections, and assess editorial fit. A zero-objection review is valid when it records what was examined and why no actionable issue was found; never invent an objection to satisfy a row count.
 
 ---
 
@@ -74,10 +73,9 @@ every cell. Keep the teaching column (`What reviewers/editors want` /
 
 Why each row: a reviewer scores the paper against these six axes. For every axis,
 name what they actually want, point at the evidence we already have, state where
-we are thin, and commit to one revision action. The six rows are fixed —
-Novelty, Significance, Technical soundness, Evidence sufficiency, Clarity, and
-Venue fit — because they are the criteria nearly every venue's review form asks
-about.
+we are thin, and commit to one revision action. Novelty, Significance, Technical soundness, Evidence sufficiency, Clarity, and
+Venue fit are useful perspectives; apply those relevant to the current study and
+actual venue. A valid area may need no revision action.
 
 | Reviewer criterion | What reviewers/editors want | Our manuscript evidence | Current weakness | Revision action |
 |---|---|---|---|---|
@@ -93,17 +91,18 @@ about.
 Why each row: this is the adversarial core. Each row is a concrete attack a
 reviewer is likely to make, written in *their* voice, plus the preemptive fix and
 a status you can close before submission. Severity uses the same scale as
-`structured_review` (CRITICAL / MAJOR / MINOR). Populate these rows from the
-three reviewer agents above — every row should trace to a Methods, Contribution,
-or Clarity finding.
+`structured_review` (CRITICAL / MAJOR / MINOR). Populate these rows from
+validated findings — every row should trace to its finding ID, precise locator,
+reviewer/persona, and receipt. Core rows normally come from Methods,
+Contribution, or Clarity; trigger-selected roles may add evidence-backed rows.
 
-| Likely objection | Where triggered | Severity | What the reviewer may say | Preemptive fix | Status |
-|---|---|---|---|---|---|
-| Contribution overlaps existing work | Sec. 1 / Related Work | CRITICAL | "This is incremental over [X]; the novel part is unclear." | Add explicit delta sentence + a comparison row in Table 1. | OPEN |
-| Missing baseline / ablation | Sec. 4 Experiments | MAJOR | "Why no comparison against [standard baseline]?" | Add the baseline, or scope it out with a one-line justification. | OPEN |
-| Unjustified assumption | Sec. 3 Method | MAJOR | "The i.i.d. assumption is unrealistic for this data." | State the assumption, justify it, note failure modes. | OPEN |
-| Claim stronger than evidence | Abstract / Sec. 5 | MAJOR | "The abstract claims generality the experiments don't show." | Soften the claim to match the evidence, or add the evidence. | OPEN |
-| Hard-to-read figure/table | Figures 2–3 | MINOR | "Figure 2 is unreadable; axes/units missing." | Re-export at higher DPI; add axis labels and a self-contained caption. | OPEN |
+| Finding ID / likely objection | Exact manuscript locator | Reviewer / receipt | Severity | What the reviewer may say | Preemptive fix | Status |
+|---|---|---|---|---|---|---|
+| CON-001 — Contribution overlaps existing work | p. 2, lines 41–48 / Related Work | contribution / receipt-contribution | CRITICAL | "This is incremental over [X]; the novel part is unclear." | Add explicit delta sentence + a comparison row in Table 1. | OPEN |
+| MET-002 — Missing baseline / ablation | p. 7, Table 2 | methods / receipt-methods | MAJOR | "Why no comparison against [standard baseline]?" | Add the baseline, or scope it out with a one-line justification. | OPEN |
+| MET-003 — Unjustified assumption | p. 4, lines 112–118 / Method | methods / receipt-methods | MAJOR | "The i.i.d. assumption is unrealistic for this data." | State the assumption, justify it, note failure modes. | OPEN |
+| CON-004 — Claim stronger than evidence | p. 1, Abstract, lines 12–16 | contribution / receipt-contribution | MAJOR | "The abstract claims generality the experiments don't show." | Soften the claim to match the evidence, or add the evidence. | OPEN |
+| CLR-005 — Hard-to-read figure/table | p. 6, Figure 2 | clarity / receipt-clarity | MINOR | "Figure 2 is unreadable; axes/units missing." | Repair final-size lettering/placement and missing labels; inspect the actual render. DPI alone cannot enlarge lettering. | OPEN |
 
 ### 3. Editorial Fit Map
 

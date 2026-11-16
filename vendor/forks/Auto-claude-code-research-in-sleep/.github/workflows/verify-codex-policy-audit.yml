@@ -1,0 +1,57 @@
+name: Verify Codex policy audit
+
+on:
+  pull_request:
+    paths:
+      - 'tools/*codex*invocation*'
+      - 'tools/requirements-codex-policy-audit.txt'
+      - 'tests/test_*codex_invocation.py'
+      - 'skills/skills-codex/**'
+      - 'docs/CODEX_POLICY_AUDIT.md'
+      - '.github/workflows/verify-codex-policy-audit.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/*codex*invocation*'
+      - 'tools/requirements-codex-policy-audit.txt'
+      - 'tests/test_*codex_invocation.py'
+      - 'skills/skills-codex/**'
+      - 'docs/CODEX_POLICY_AUDIT.md'
+      - '.github/workflows/verify-codex-policy-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  policy-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -r tools/requirements-codex-policy-audit.txt
+      - run: python tools/audit_codex_invocation.py --root skills/skills-codex > codex-policy-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: codex-policy-report
+          path: codex-policy-report.json
+
+  codex-runtime-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex@0.163.0
+      - name: Probe implicit skill catalog filtering (no model call)
+        run: python3 tools/probe_codex_invocation.py

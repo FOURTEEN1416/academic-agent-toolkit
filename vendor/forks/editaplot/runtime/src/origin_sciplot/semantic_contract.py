@@ -16,6 +16,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TypeAlias
 
+from .scientific_context import ScientificContextError, normalize_scientific_context
+
 JsonScalar: TypeAlias = str | int | float | bool | None
 
 SEMANTIC_PROPOSAL_VERSION = "1.0"
@@ -35,6 +37,9 @@ ALLOWED_DERIVED_OPERATIONS = frozenset(
         "fraction_of_group_total",
         "normalize_within_category_minmax",
         "deterministic_binned_symmetric_offset",
+        "phasor_reference_semicircle",
+        "signal_amplitude_ruler",
+        "source_order_trial_ordinal",
     }
 )
 
@@ -421,6 +426,48 @@ class DerivedDataItem:
                 )
         for value in self.evidence_codes:
             _require_stable_text(value, "derived evidence code")
+        if self.operation_id == "phasor_reference_semicircle":
+            expected = {
+                "center_g": 0.5, "center_s": 0.0, "radius": 0.5, "point_count": 181,
+                "reference_kind": "mathematical_reference_not_experimental_data",
+                "lineage_kind": "coordinate_definition_not_value_derivation",
+            }
+            parameters = dict(self.parameters)
+            if (
+                parameters != expected or len(self.input_item_ids) != 2
+                or type(parameters.get("point_count")) is not int
+                or any(isinstance(parameters.get(key), bool) for key in ("center_g", "center_s", "radius"))
+            ):
+                raise SemanticContractError(
+                    "semantic_phasor_reference_invalid",
+                    "The phasor semicircle requires fixed mathematical geometry and two coordinate inputs.",
+                )
+        if self.operation_id == "signal_amplitude_ruler":
+            parameters = dict(self.parameters)
+            length = parameters.get("length")
+            if (set(parameters) != {"length", "unit", "reference_kind", "rule"}
+                    or isinstance(length, bool) or not isinstance(length, (int, float)) or length <= 0
+                    or not isinstance(parameters["unit"], str) or not parameters["unit"].strip()
+                    or parameters["reference_kind"] != "display_unit_length_not_statistical_estimate"
+                    or parameters["rule"] != "nice_125_global_span_quarter"):
+                raise SemanticContractError("semantic_signal_ruler_invalid", "The amplitude ruler requires an explicit display-unit length and rule.")
+        if self.operation_id == "source_order_trial_ordinal":
+            parameters = dict(self.parameters)
+            counts = ("trial_count", "event_count", "inventory_row_count", "empty_trial_count")
+            expected_keys = {*counts, "order_rule", "index_origin", "inventory_semantics"}
+            valid = (
+                set(parameters) == expected_keys and len(self.input_item_ids) == 3
+                and parameters.get("order_rule") == "first_source_appearance"
+                and type(parameters.get("index_origin")) is int and parameters["index_origin"] == 1
+                and parameters.get("inventory_semantics") == "blank_time_declares_trial_not_event"
+                and all(type(parameters.get(key)) is int for key in counts)
+            )
+            if valid:
+                valid = (1 <= parameters["trial_count"] <= 200 and parameters["event_count"] >= 1
+                         and 0 <= parameters["empty_trial_count"] <= parameters["inventory_row_count"]
+                         <= parameters["trial_count"])
+            if not valid:
+                raise SemanticContractError("semantic_trial_ordinal_invalid", "Trial ordinals must preserve source order and blank inventory without creating events.")
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -780,6 +827,7 @@ class SemanticProposal:
     ambiguities: tuple[SemanticAmbiguity, ...] = ()
     source_adapter_hint: str | None = None
     proposal_version: str = SEMANTIC_PROPOSAL_VERSION
+    scientific_context: tuple[tuple[str, JsonScalar], ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "source_columns", _normalise_strings(self.source_columns))
@@ -788,6 +836,18 @@ class SemanticProposal:
         object.__setattr__(self, "figure_elements", tuple(self.figure_elements))
         object.__setattr__(self, "ambiguities", tuple(self.ambiguities))
         object.__setattr__(self, "domain_confidence", float(self.domain_confidence))
+        try:
+            scientific_context = normalize_scientific_context(
+                self.domain_family, self.scientific_context, require_complete=False,
+            )
+        except ScientificContextError as exc:
+            raise _payload_error(
+                str(exc),
+                field="$.scientific_context",
+                scientific_context_code=exc.code,
+                scientific_context_details=exc.details,
+            ) from exc
+        object.__setattr__(self, "scientific_context", scientific_context)
 
     def validate(self) -> None:
         if self.proposal_version != SEMANTIC_PROPOSAL_VERSION:
@@ -875,7 +935,7 @@ class SemanticProposal:
         )
 
     def _payload(self) -> dict[str, object]:
-        return {
+        payload: dict[str, object] = {
             "proposal_version": self.proposal_version,
             "source_sha256": self.source_sha256.lower(),
             "source_columns": list(self.source_columns),
@@ -890,6 +950,9 @@ class SemanticProposal:
             "figure_elements": [element.to_dict() for element in self.figure_elements],
             "ambiguities": [ambiguity.to_dict() for ambiguity in self.ambiguities],
         }
+        if self.scientific_context:
+            payload["scientific_context"] = dict(self.scientific_context)
+        return payload
 
     @property
     def proposal_hash(self) -> str:
@@ -1111,7 +1174,7 @@ _PROPOSAL_REQUIRED_FIELDS = frozenset(
         "ambiguities",
     }
 )
-_PROPOSAL_OPTIONAL_FIELDS = frozenset({"proposal_hash"})
+_PROPOSAL_OPTIONAL_FIELDS = frozenset({"proposal_hash", "scientific_context"})
 _DOMAIN_FIELDS = frozenset(
     {
         "family",
@@ -1127,7 +1190,7 @@ _CONTRACT_REQUIRED_FIELDS = _PROPOSAL_REQUIRED_FIELDS | frozenset(
         "confirmation",
     }
 )
-_CONTRACT_OPTIONAL_FIELDS = frozenset({"proposal_hash", "contract_hash"})
+_CONTRACT_OPTIONAL_FIELDS = _PROPOSAL_OPTIONAL_FIELDS | frozenset({"contract_hash"})
 _CONFIRMATION_FIELDS = frozenset(
     {
         "approved_derived_item_ids",
@@ -1203,6 +1266,12 @@ def _parse_semantic_proposal_fields(
         proposal_version=_strict_text(
             payload["proposal_version"],
             "$.proposal_version",
+        ),
+        scientific_context=(
+            tuple(_strict_string_key_object(
+                payload["scientific_context"], field="$.scientific_context",
+            ).items())
+            if "scientific_context" in payload else ()
         ),
     )
     proposal.validate()

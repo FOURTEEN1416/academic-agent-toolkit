@@ -3,10 +3,18 @@ name: constitutional-ai
 description: Anthropic's method for training harmless AI through self-improvement. Two-phase approach - supervised learning with self-critique/revision, then RLAIF (RL from AI Feedback). Use for safety alignment, reducing harmful outputs without human labels. Powers Claude's safety system.
 category: llm-tools
 version: 1.0.0
-author: Synthetic Sciences
+author: Orchestra Research
 license: MIT
 tags: [Safety Alignment, Constitutional AI, RLAIF, Self-Critique, Harmlessness, Anthropic, AI Safety, RL From AI Feedback, Claude]
 dependencies: [transformers, torch, trl]
+metadata:
+  upstream: Orchestra-Research/AI-Research-SKILLs
+  upstream-url: https://github.com/Orchestra-Research/AI-Research-SKILLs
+  upstream-path: 07-safety-alignment/constitutional-ai
+  upstream-license: MIT
+  upstream-relationship: derived
+  skill-author: Orchestra Research
+  adapted-by: Synthetic Sciences
 ---
 
 # Constitutional AI - Harmlessness from AI Feedback
@@ -260,12 +268,6 @@ final_preference = majority_vote(prefs_1, prefs_2, prefs_3)
 
 ## Advanced topics
 
-**Constitution design**: See [references/constitution-design.md](references/constitution-design.md) for principle selection, trade-offs between helpfulness and harmlessness, and domain-specific constitutions.
-
-**RLAIF vs RLHF**: See [references/rlaif-comparison.md](references/rlaif-comparison.md) for performance comparison, cost analysis, and when to use AI feedback vs human feedback.
-
-**Chain-of-thought reasoning**: See [references/cot-critique.md](references/cot-critique.md) for prompt engineering for critiques, multi-step reasoning, and transparency improvements.
-
 ## Hardware requirements
 
 - **GPU**: NVIDIA A100/H100 recommended
@@ -286,6 +288,4 @@ final_preference = majority_vote(prefs_1, prefs_2, prefs_3)
 - Anthropic blog: https://www.anthropic.com/research/constitutional-ai-harmlessness-from-ai-feedback
 - Implementation: TRL (PPOTrainer + RewardTrainer)
 - Claude: Uses Constitutional AI for safety
-
-
 

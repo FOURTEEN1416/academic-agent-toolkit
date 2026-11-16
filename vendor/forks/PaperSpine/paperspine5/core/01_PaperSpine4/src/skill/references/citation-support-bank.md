@@ -7,16 +7,13 @@ Discussion, limitations, applications, and background.
 
 ## Scope-Aware Counts
 
-- `citation_target_count` defaults to `20`.
-- In `open_literature`, generate about `citation_target_count * 3` unique
-  bibliographic sources before final selection. The default pool is `60`.
+- Use the saved `literature.reference_count_mode` and `literature.reference_count`. In `venue_average` mode, use the actually counted target-venue sample and the current journal-learning guidance rather than a fixed default of 20.
+- In open literature, build a deduplicated candidate pool broad enough to cover the actual claims, closest work, methods and relevant alternatives. Expand it when a concrete coverage gap remains; a fixed multiple of the final citation count is not a completion requirement.
 - In `closed_corpus`, enumerate and deduplicate the supplied bibliography. Aim
   to cover the final citation target, but use `CLOSED_CORPUS_EXHAUSTIVE` when the
   complete corpus is smaller. Corpus size and age are disclosures, not reasons
   to fabricate sources or stop an otherwise supportable rewrite.
-- For open literature, about 80% of unique sources should be recent. Use:
-  `recent_threshold = current_year - 3`; in 2026, papers from 2023 onward are
-  recent.
+- Include current work where recency matters and retain relevant foundational or longitudinal evidence regardless of age. Explain material coverage gaps; do not impose a universal recent-source percentage or rolling window across fields.
 
 ## Paper Types To Search
 
@@ -32,9 +29,10 @@ Discussion usually need a mix of:
 - application or domain-impact papers,
 - limitation, robustness, reproducibility, or ethics papers where relevant.
 
-## Required Table
+## Optional table for the legacy checker
 
-Use this Markdown table. `Source ID` is the bibliographic identity; `Claim Use
+The current task may keep these scientific links in existing bibliography notes.
+Use this Markdown table when invoking the legacy checker. `Source ID` is the bibliographic identity; `Claim Use
 ID` is one place the source supports. The last three columns — `Source Channel`,
 `Verified`, and `Verification Note` — are what let `citation_quality_audit.py`
 and `artifact_check.py` accept non-DOI sources without inflating their score:
@@ -60,9 +58,7 @@ Rules:
   and `Verification Note` must record a **stable identifier** (DOI, arXiv ID, or
   URL) plus how it was checked. A `Verified=yes` flag with no identifier is
   treated as self-attestation only and will not reach `verified` status.
-- Mark uncertain sources as `[VERIFY]` and do not use them in final writing
-  until verified. Do not use `[VERIFY]`, `TODO`, `TBD`, `pending`, or empty
-  verification values for external-source rows.
+- Keep uncertain candidates explicitly marked `[VERIFY]` or `pending`, with the unresolved point. Do not use an unverified candidate to support a final claim. Final adopted external-source rows must record a stable identifier and the actual identity and claim-support checks.
 - During drafting, select only the subset needed for coherent Introduction and
   Discussion paragraphs. Do not dump all candidates into the final paper.
 - Deduplicate by DOI, PMID, arXiv ID, BibTeX key, URL, or normalized citation.
@@ -79,5 +75,7 @@ Write:
 paper_rewriting_output/citation_support_bank.md
 ```
 
-The bank is required before final writing in both `rewrite_existing` and
-`build_from_materials`.
+Before using a citation, establish its identity and what it supports. Existing
+verified notes suffice; a separately named bank is not a writing prerequisite.
+Reconcile the final cited entries with the saved target as described in
+[citation.md](citation.md); a large candidate bank cannot substitute for that.

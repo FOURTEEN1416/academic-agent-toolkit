@@ -161,8 +161,8 @@ an MCP-style review tool, or `tools/reviewer_client.py`), passing:
 
 ```
 reviewer call (host-neutral):
-  model: gpt-5.6-sol
-  config: {"model_reasoning_effort": "xhigh"}
+  model: 由宿主评审通道配置注入（本仓不预设具体模型名）
+  config: 由宿主评审通道配置注入（如 reasoning effort 档位）
   prompt: |
     Review this SVG figure for a technical paper (architecture / workflow diagram).
 
@@ -177,7 +177,7 @@ reviewer call (host-neutral):
     Score each axis 1-10 and list specific issues to fix.
 ```
 
-Iterate until all three axes ≥ 7/10. The ARIS tech report figures went through 5 rounds of this loop to reach C:7/R:7/S:8.
+Iterate until all three axes ≥ 7/10.
 
 ## Schema Quick Reference
 

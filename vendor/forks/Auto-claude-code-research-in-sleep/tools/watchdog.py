@@ -32,6 +32,11 @@ Directory structure:
 """
 
 import argparse
+import contextlib
+try:
+    import fcntl
+except ImportError:  # Windows: keep the previous best-effort behaviour
+    fcntl = None
 import json
 import os
 import signal
@@ -58,6 +63,17 @@ def get_paths(base_dir):
 
 
 # ── Task registration ────────────────────────────────────────────
+
+
+@contextlib.contextmanager
+def tasks_lock(paths):
+    """Serialize the tasks.json read-modify-write across processes (#407)."""
+    if fcntl is None:
+        yield
+        return
+    with open(paths["base"] / ".tasks.lock", "w") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        yield
 
 
 def register_task(base_dir, task_json):
@@ -97,20 +113,21 @@ def register_task(base_dir, task_json):
         # Default session_type for session-backed tasks: fallback to screen
         task["session_type"] = "screen"
 
-    tasks = []
-    if paths["tasks"].exists():
-        try:
-            tasks = json.loads(paths["tasks"].read_text())
-        except (json.JSONDecodeError, OSError):
-            tasks = []
+    with tasks_lock(paths):
+        tasks = []
+        if paths["tasks"].exists():
+            try:
+                tasks = json.loads(paths["tasks"].read_text())
+            except (json.JSONDecodeError, OSError):
+                tasks = []
 
-    # Deduplicate: replace existing task with same name
-    tasks = [t for t in tasks if t["name"] != task["name"]]
-    task["registered_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
-    task["registered_epoch"] = time.time()  # tz-free grace anchor (loop PENDING→MISSING)
-    tasks.append(task)
+        # Deduplicate: replace existing task with same name
+        tasks = [t for t in tasks if t["name"] != task["name"]]
+        task["registered_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+        task["registered_epoch"] = time.time()  # tz-free grace anchor (loop PENDING→MISSING)
+        tasks.append(task)
 
-    paths["tasks"].write_text(json.dumps(tasks, indent=2))
+        paths["tasks"].write_text(json.dumps(tasks, indent=2))
     detail = f"stale_after={task['stale_after_seconds']}s" if ttype == "loop" else task["session_type"]
     print(f"registered: {task['name']} ({ttype}, {detail})")
 
@@ -120,12 +137,13 @@ def unregister_task(base_dir, name):
     if not paths["tasks"].exists():
         print(f"no tasks file found")
         return
-    try:
-        tasks = json.loads(paths["tasks"].read_text())
-    except (json.JSONDecodeError, OSError):
-        return
-    tasks = [t for t in tasks if t["name"] != name]
-    paths["tasks"].write_text(json.dumps(tasks, indent=2))
+    with tasks_lock(paths):
+        try:
+            tasks = json.loads(paths["tasks"].read_text())
+        except (json.JSONDecodeError, OSError):
+            return
+        tasks = [t for t in tasks if t["name"] != name]
+        paths["tasks"].write_text(json.dumps(tasks, indent=2))
     status_file = paths["status"] / f"{name}.json"
     if status_file.exists():
         status_file.unlink()

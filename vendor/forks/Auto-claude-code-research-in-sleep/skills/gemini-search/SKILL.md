@@ -86,14 +86,14 @@ claude mcp add gemini-cli -- npx -y gemini-mcp-tool
 
 ### Authentication
 
-Gemini CLI uses your Google account or an API key. Add to `.claude/.env`:
+Gemini CLI uses your Google account or an API key. Reuse an existing Google account login, or set an API key in the same shell **before starting Claude Code** so the MCP process inherits it:
 
 ```bash
-# .claude/.env
-GEMINI_API_KEY=your-key-here
+export GEMINI_API_KEY='your-key-here'
+claude
 ```
 
-Claude Code automatically loads `.claude/.env` as environment variables.
+A separate tool-shell `export` does not update an already running host or MCP process. If you keep credentials in an environment file, load it explicitly before starting the host rather than relying on automatic `.env` loading.
 
 - Free key from [Google AI Studio](https://aistudio.google.com/apikey)
 - Flash model (`gemini-2.5-flash`) has a generous free tier (500 req/min)

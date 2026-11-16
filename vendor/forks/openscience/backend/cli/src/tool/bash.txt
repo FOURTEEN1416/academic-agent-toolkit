@@ -2,10 +2,14 @@ Run a shell command in the session workspace. Set `workdir` instead of changing 
 
 Use Bash for builds, tests, packages, Git, utilities, and scripts. Prefer file tools for reading, searching, creating, or editing files; do not write through shell redirection when a file tool fits.
 
-Use research_search or webfetch for internet retrieval, not curl or wget. Use `compute_job` action `wait` for detached compute instead of shell polling or sleep.
+Use the web and literature tools for internet retrieval, not curl or wget.
+
+All Bash children stop when the call ends; `&`, `nohup`, `disown`, and `setsid` are not durable. A call stops after 20 minutes unless you give `timeout`; the output so far comes back with the fact. For work that must outlive the call, use the durable job tool when it is offered (start a local job, then wait for it); never poll with Bash.
 
 Do not emit timestamp, marker, no-op, or repeated readiness commands. Before a long run, use at most one bounded preflight that checks all necessary inputs together, then launch immediately when it passes.
 
 Quote paths containing spaces. Output beyond ${maxLines} lines or ${maxBytes} bytes is saved automatically. Run independent calls together; join dependent commands only when later work must stop after failure.
 
 Commit, push, or open one PR only when requested. Inspect status and diff, stage only intended paths, never bypass hooks or force-push, and never amend a pushed commit or push directly to `main`/`master`.
+
+Network commands (`git push`/`fetch`, `gh`, `hf`, installs, `curl`) ask for approval per host, then run with the network and this computer's GitHub and Hugging Face logins. Before long work that ends in a push or upload, check access with one quick command. Never ask for a token in chat; point to Customize → Credentials.

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/runner-successor-migration-receipt.schema.json",
+  "title": "PaperSpine5 same-task runner successor migration receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract", "schema_version", "migration_id", "command_id", "task_id",
+    "active_run_id", "revision", "source", "target",
+    "installed_suite_authority", "academic_rebind", "preservation", "recovery",
+    "recorded_at", "external_action_authorized", "receipt_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.runner-successor-migration-receipt"},
+    "schema_version": {"const": "1.0"},
+    "migration_id": {"type": "string", "minLength": 1},
+    "command_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "active_run_id": {"type": "string", "minLength": 1},
+    "revision": {"type": "integer", "minimum": 0},
+    "source": {
+      "type": "object",
+      "required": ["build_id", "runner_version", "core_root", "identity"],
+      "properties": {
+        "build_id": {"type": "string", "minLength": 1},
+        "runner_version": {"enum": ["0.1.0", "0.2.0"]},
+        "core_root": {"type": "string", "minLength": 1},
+        "identity": {"type": "object"}
+      }
+    },
+    "target": {
+      "type": "object",
+      "required": ["build_id", "runner_version", "core_root", "product_manifest_sha256", "task_state_sha256"],
+      "properties": {
+        "build_id": {"type": "string", "minLength": 1},
+        "runner_version": {"const": "0.2.0"},
+        "core_root": {"type": "string", "minLength": 1},
+        "product_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "task_state_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "installed_suite_authority": {"type": "object"},
+    "academic_rebind": {"type": ["object", "null"]},
+    "preservation": {"type": "object"},
+    "recovery": {"type": "object"},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "external_action_authorized": {"const": false},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

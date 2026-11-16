@@ -25,11 +25,14 @@ Generate a paper-quality figure by picking a style template and filling it with 
 | `scatter_pareto_frontier` | 散点图 | `scripts/scatter_break.py` | Pareto 前沿星标 + 淡背景散点云 |
 | `table_heatmap_numeric` | 数值表 | `scripts/table_classwise_iou.py` | 无轴数值表 + 胜格红色热力底纹 |
 
-## Style Samples（examples/，仅本地）
+## Style Samples（examples/）
 
 `examples/` 收录 20 张风格样例（10 原图 + 10 复现图），来自只读 vendor 快照
-`vendor/forks/paper-plot-skills/{originals,repro}/`。**红线：样例仅本地使用、
-不再分发**，本技能整体 gitignored，样例与卡片不得进入任何将公开分发的产物。
+`vendor/forks/paper-plot-skills/{originals,repro}/`。**分发状态勘误（2026-11-16）**：
+本目录当前实际被 git 跟踪（`git ls-files` 实测 44 个文件，含 `examples/*.png` 20 张
+样例图），旧表述「样例仅本地使用、不再分发，本技能整体 gitignored」与实况不符——
+公开仓 clone 即会分发样例。样例公开分发授权须 owner 复核裁决（见 DEF-21）；裁决前
+对外产物不得引用或携带这些样例。
 2026-09-22 风格卡扩编批（V3）新增上表后 5 张卡片。
 
 ## Workflow

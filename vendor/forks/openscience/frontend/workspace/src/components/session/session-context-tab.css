@@ -1,0 +1,343 @@
+/* Keep usage totals visible; fold the per-call audit into details. */
+
+.context-panel {
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 4px 24px 40px;
+  font-family: var(--font-family-sans);
+}
+
+.context-panel::-webkit-scrollbar {
+  display: none;
+}
+
+.context-panel__headline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 20px;
+}
+
+.context-panel__tokens {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-medium);
+  line-height: 20px;
+}
+
+.context-panel__tokens strong {
+  color: var(--color-text);
+  font-size: 28px;
+  font-weight: var(--font-weight-medium);
+  line-height: 32px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.context-panel__percent {
+  margin-left: auto;
+  color: var(--color-text);
+  font-size: var(--font-size-medium);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.context-panel__percent[data-level="high"] {
+  color: var(--syntax-warning);
+}
+
+.context-panel__percent[data-level="full"] {
+  color: var(--syntax-critical);
+}
+
+.context-panel__bar {
+  height: 8px;
+  display: flex;
+  gap: 2px;
+  padding: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text) 6%, transparent);
+}
+
+.context-panel__bar > span {
+  flex: none;
+  height: 100%;
+  min-width: 0;
+  border-radius: 999px;
+  transition: width 240ms var(--ease-standard, ease);
+}
+
+.context-panel__subline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  color: var(--color-text-faint);
+  font-size: var(--font-size-small);
+  line-height: 16px;
+}
+
+.context-panel__subline > span + span::before {
+  content: "·";
+  margin: 0 6px;
+}
+
+.context-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 0;
+  border-top: 1px solid var(--color-border-weak, var(--color-border));
+}
+
+/* Section labels read as quiet eyebrows, not headings in the wall of text. */
+.context-panel__title {
+  margin: 0;
+  color: var(--color-text-faint);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+  letter-spacing: 0.02em;
+}
+
+.context-panel__legend {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2px 40px;
+}
+
+.context-panel__legend li {
+  min-width: 0;
+  min-height: 28px;
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-medium);
+  line-height: 20px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 4%, transparent);
+}
+
+.context-panel__legend li:last-child {
+  border-bottom: none;
+}
+
+.context-panel__legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.context-panel__legend li[data-empty] {
+  color: var(--color-text-faint);
+}
+
+.context-panel__legend li[data-empty] i {
+  background: var(--color-bg-subtle, var(--color-surface-raised-hover)) !important;
+}
+
+.context-panel__legend .label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.context-panel__legend .value {
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.context-panel__legend .share {
+  min-width: 42px;
+  color: var(--color-text-faint);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.context-panel__note {
+  margin: 6px 0 0;
+  max-width: 62ch;
+  color: var(--color-text-faint);
+  font-size: var(--font-size-x-small, 11px);
+  line-height: 16px;
+}
+
+.context-panel__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  padding: 20px 0;
+  border-top: 1px solid var(--color-border-weak, var(--color-border));
+}
+
+.context-panel__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border: 1px solid var(--color-border-weak, var(--color-border));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-text) 2.5%, transparent);
+}
+
+.context-panel__card dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 16px;
+  font-size: var(--font-size-medium);
+  line-height: 20px;
+}
+
+.context-panel__card dt {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.context-panel__card dd {
+  margin: 0;
+  color: var(--color-text);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.context-panel__card dd small {
+  margin-left: 6px;
+  color: var(--color-text-faint);
+  font-size: inherit;
+}
+
+.context-panel__details {
+  border-top: 1px solid var(--color-border-weak, var(--color-border));
+}
+
+.context-panel__details > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-medium);
+  line-height: 18px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.context-panel__details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.context-panel__details > summary::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin: 0 3px;
+  border-right: 1.5px solid var(--color-text-faint);
+  border-bottom: 1.5px solid var(--color-text-faint);
+  transform: rotate(-45deg);
+  transition: transform 140ms var(--ease-standard);
+}
+
+.context-panel__details[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+.context-panel__details > summary small {
+  color: var(--color-text-faint);
+  font-size: var(--font-size-small);
+}
+
+.context-panel__details > :not(summary) {
+  padding-bottom: 16px;
+}
+
+.context-panel__instructions {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-weak, var(--color-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-text) 2.5%, transparent);
+}
+
+.context-panel__calls {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.context-panel__calls th,
+.context-panel__calls td {
+  padding: 8px;
+  border-bottom: 1px solid var(--color-border-weak, var(--color-border));
+  text-align: left;
+  vertical-align: top;
+}
+
+.context-panel__calls td:last-child {
+  white-space: nowrap;
+}
+
+.context-panel__calls td:first-child {
+  overflow-wrap: anywhere;
+}
+
+.context-panel__call-details {
+  margin-top: 6px;
+}
+
+.context-panel__call-details summary {
+  color: var(--color-text-faint);
+  cursor: pointer;
+}
+
+.context-panel__call-details dl {
+  margin: 8px 0 0;
+}
+
+.context-panel__call-details dt {
+  margin-top: 6px;
+  color: var(--color-text-faint);
+}
+
+.context-panel__call-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Wallet cost: headline amount, quiet status line, audit trail folded away. */
+.receipts__status {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  color: var(--color-text-faint);
+  font-size: var(--font-size-x-small, 11px);
+  line-height: 16px;
+}
+
+.receipts__status > span + span::before {
+  content: "·";
+  margin: 0 6px;
+}
+
+.receipts__status [data-tone="warning"] {
+  color: var(--color-warning);
+}
+
+.receipts__models {
+  grid-template-columns: 1fr;
+}
+
+.receipts__models li {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}

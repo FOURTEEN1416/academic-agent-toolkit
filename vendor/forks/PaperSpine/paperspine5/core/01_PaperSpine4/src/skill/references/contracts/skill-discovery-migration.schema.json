@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PaperSpine Skill discovery migration receipt",
+  "type": "object",
+  "required": [
+    "contract",
+    "schema_version",
+    "operation",
+    "operation_id",
+    "request_sha256",
+    "created_at",
+    "canonical_skill",
+    "skills_roots",
+    "archive_root",
+    "status",
+    "items",
+    "blockers",
+    "rollback_performed",
+    "restores_receipt",
+    "external_action_authorized",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine.skill-discovery-migration-receipt"},
+    "schema_version": {"const": "1.0"},
+    "operation": {"enum": ["migrate", "restore"]},
+    "operation_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "request_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "created_at": {"type": "string", "minLength": 1},
+    "canonical_skill": {"const": "paper-spine"},
+    "skills_roots": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "string", "minLength": 1}
+    },
+    "archive_root": {"type": "string", "minLength": 1},
+    "status": {"enum": ["committed", "noop", "blocked", "rolled_back", "rollback_failed"]},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "host",
+          "source",
+          "target",
+          "name",
+          "source_relative_path",
+          "files",
+          "file_count",
+          "total_bytes",
+          "tree_sha256"
+        ],
+        "properties": {
+          "host": {"type": "string", "minLength": 1},
+          "source": {"type": "string", "minLength": 1},
+          "target": {"type": "string", "minLength": 1},
+          "name": {"type": "string", "minLength": 1},
+          "source_relative_path": {"type": "string", "minLength": 1},
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["path", "size_bytes", "sha256"],
+              "properties": {
+                "path": {"type": "string", "minLength": 1},
+                "size_bytes": {"type": "integer", "minimum": 0},
+                "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+              },
+              "additionalProperties": false
+            }
+          },
+          "file_count": {"type": "integer", "minimum": 0},
+          "total_bytes": {"type": "integer", "minimum": 0},
+          "tree_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "blockers": {"type": "array", "items": {"type": "object"}},
+    "rollback_performed": {"type": "boolean"},
+    "restores_receipt": {"type": ["string", "null"]},
+    "external_action_authorized": {"const": false},
+    "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": false
+}

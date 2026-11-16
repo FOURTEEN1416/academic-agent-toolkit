@@ -1,6 +1,6 @@
 # CUMCM 竞赛技能全库地图（CONTEST_SKILL_MAP）
 
-> **定位**：全库 259 个技能（含 SKILL.md 的目录；tracked 259）× comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
+> **定位**：全库 261 个技能（含 SKILL.md 的目录；tracked 261）× comp_cumcm 14 步工作流的推荐地图。引擎 StepAction 的
 > `companion_skills` 字段每步主动给出本步推荐；本文件是全量真源，
 > 含"情境可用"、"外域不接入"与"未接入库"的完整分类账——**任何一个技能都不允许处于"无人知晓"状态**。
 > 维护纪律：新增技能入库时必须归入下列五类之一并同步本文件与引擎
@@ -68,6 +68,8 @@
 `pymc`（贝叶斯校准与不确定性量化：MCMC/变分推断/后验检验，C 赛道参数校准与 UQ）、
 `experimental-design`（实验设计 DOE：因子/部分因子/响应面/序贯设计，仿真与数据采集前的方案设计）。
 
+**公式录入（1 个）**——`latex-equation-from-image`（**公式/表格图片→LaTeX 转写**——把题面、文献或手稿截图里的公式/表格转成可编辑 LaTeX：具备视觉能力的驱动侧模型转写 → `scripts/verify_latex.py` 做 sympy 数值自检（eval 求值对账 / check 采样比对 / 回代残差）→ 带 high/medium/needs-review 置信度标记交付；题面公式录入与文献公式摘录时按需加载，驱动侧无视觉能力时如实停止，样例与留痕见其 `examples/transcription_log.md`）。
+
 **配色资产（1 个）**——`paper-figure-palette`（**统一配色体系（多场景）**——先按数据类型选分类/顺序/发散，再按场景（竞赛/期刊投稿/学位与课程/幻灯海报/Office 内嵌）落地；真源 `assets/palette_registry.json`（9 套色板）+ `references/scenarios.md`（三步选色法/10 条规范/禁用清单），机检 `palette_kit.py registry-verify`；本地 8 色板「夏日海滩」同源，与 `palette-health-check` 配套；与上述仿真引擎簇同属按需加载资产，绘图/视觉审查按需加载）。
 
 **§二修剪移入（39 个）**——被步骤推荐清单移出的结构性冗余/低频技能，
@@ -119,7 +121,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 | 域 | 技能 | 不接入理由 |
 |----|------|-----------|
 | 科研套件（20） | paper-writing-pipeline, paper-peer-review-simulation, research-pipeline, dev-adversarial-code-review, meta-agent-harness, dev-ai-security, meta-premortem, dev-code-review, meta-deep-research, meta-entity-dossier, meta-experiment-design, grant-nih, lit-orientation, doc-notebooklm-control, ip-patent-search, meta-topic-pulse, meta-research-router, meta-research-summarizer, data-statistics-analyst, course-syllabus-reading-list | 科研立项/申报/专利管线，非数模赛时 |
-| 期刊套件（12） | paper-citation-verify, paper-data-availability, paper-figure-nature, paper-figure-planner, paper-manuscript-optimize, paper-project-bootstrap, paper-workflow-router, paper-journal-selection, paper-rebuttal-nature, paper-results-revision, paper-writing-scientific, paper-submission-audit | 期刊投稿口径，与国赛格式/审稿逻辑不符 |
+| 期刊套件（13） | paper-citation-verify, paper-data-availability, paper-figure-nature, paper-figure-planner, paper-manuscript-optimize, paper-project-bootstrap, paper-workflow-router, paper-journal-selection, paper-rebuttal-nature, paper-results-revision, paper-writing-scientific, paper-submission-audit, paper-cover-letter | 期刊投稿口径，与国赛格式/审稿逻辑不符（paper-cover-letter 为投稿信配套件，2026-11-16 新增） |
 | spine-*（12） | spine 及其 11 个内部子技能 | 自媒体长文管线 |
 | latex-paper-*（8） | latex-paper-survey-writer 等 | arXiv/合作论文管线 |
 | meta-*（18） | meta-skill-* / meta-planning-files / meta-research-* 等 | 智能体配置与技能开发元域（2026-10-27 退役 4 件插件教学技能） |
@@ -155,9 +157,9 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 
 **机检对账口径**（词边界 + 斜杠缩写展开 + 前缀域 fnmatch，与 `tools/check_asset_utilization.py` 的
 `load_map_coverage` 完全同口径）：§一主链 / §二推荐 / §三情境 / §四外域 / §五未接入库五段合并覆盖全库，
-`python tools/check_asset_utilization.py --strict` 实跑 **实存 259 技能 / 覆盖 259 / 漏网 0（前缀域 12 个）**，
+`python tools/check_asset_utilization.py --strict` 实跑 **实存 261 技能 / 覆盖 261 / 漏网 0（前缀域 12 个）**，
 与 skills/ 下含 SKILL.md 的目录实测数（259）逐一相符：零幽灵名、零漏网。
-（2026-10-16 仿真建模赛补齐批 +7：`comp-simulation`、`figure-craft` 与仿真引擎簇 `simpy`/`pymoo`/`stable-baselines3`/`pymc`/`experimental-design`，均归 §三 情境可用。）
+（2026-10-16 仿真建模赛补齐批 +7：`comp-simulation`、`figure-craft` 与仿真引擎簇 `simpy`/`pymoo`/`stable-baselines3`/`pymc`/`experimental-design`，均归 §三 情境可用。2026-11-16 生态对标补强批 +2：`latex-equation-from-image` 归 §三 情境可用、`paper-cover-letter` 归 §四 期刊套件。）
 口径说明（避免读者对不上数）：§三/§四 不钉总条目数（§四 域列为前缀全量口径）——技能增删/改名会让分节计数漂移，精确数一律以机检实跑为准；
 `paper-figure-palette` 首现于 §二 step5 必用位，按首匹配归 §二；§四 的前缀域
 （`spine-*`/`latex-paper-*`/`dev-*`/`meta-*`/`lit-*`/`doc-*`/`fig-*`/`paper-*`）
@@ -175,7 +177,7 @@ S11/S12/S13/S14 分别声明 `mandatory: [fig-spec]`/`[anti-defensive-writing]`/
 （如 `copyright-build/draft/source-materials`），未接入库 = §五具名。
 **零漏网对账已固化为机检**（词边界+斜杠展开+前缀 fnmatch）：
 `python tools/check_asset_utilization.py --strict` + `tests/test_asset_utilization.py::test_real_map_covers_all_skills_zero_missing`。
-全库技能 259（实存 259 / tracked 259；`scholar-critique-manuscript` 已并入 `paper-self-review`）；
+全库技能 261（实存 261 / tracked 261；`scholar-critique-manuscript` 已并入 `paper-self-review`）；
 计数以本机 `check_asset_utilization` 机检为准。
 ——任何改动本文件的维护者必须跑过机检后方可保留本节统计行。
 

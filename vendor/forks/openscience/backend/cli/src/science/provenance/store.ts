@@ -14,6 +14,7 @@ import fs from "node:fs/promises"
 import { realpathSync } from "node:fs"
 import { randomUUID } from "node:crypto"
 import { Global } from "@/global"
+import { Filesystem } from "@/util/filesystem"
 import { FileLease } from "@/util/file-lease"
 import { OpenScience } from "@/openscience"
 import { ProjectLegacy } from "@/project/legacy"
@@ -118,7 +119,7 @@ async function sha256(input: string): Promise<string> {
 }
 
 /** Deterministic content id from a node's identifying payload. */
-export async function contentId(payload: unknown): Promise<string> {
+async function contentId(payload: unknown): Promise<string> {
   const canonical = JSON.stringify(stable(payload))
   return (await sha256(canonical)).slice(0, 16)
 }
@@ -234,8 +235,7 @@ function canonical(input: string) {
       return resolved
     }
   })()
-  if (real.length > 1 && real.endsWith(path.sep)) return real.slice(0, -1)
-  return real
+  return Filesystem.trimSeparator(real)
 }
 
 function scoped(input: ProjectScope): ProjectScope {

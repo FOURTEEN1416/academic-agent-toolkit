@@ -1,7 +1,7 @@
 import { afterAll, afterEach, describe, expect, test } from "bun:test"
 import { fileURLToPath } from "node:url"
 import type { JSX } from "solid-js"
-import { createServer } from "vite"
+import { createTestServer as createServer } from "../../../test/vite"
 import solid from "vite-plugin-solid"
 
 const server = await createServer({
@@ -32,6 +32,17 @@ const mount = (view: () => JSX.Element) => {
 }
 
 const settle = (ms = 40) => new Promise((resolve) => setTimeout(resolve, ms))
+
+// FileReader completion depends on the event loop, not a fixed render delay.
+const waitFor = async <T>(read: () => T | null | undefined, timeout = 2_000) => {
+  const until = Date.now() + timeout
+  for (;;) {
+    const value = read()
+    if (value) return value
+    if (Date.now() > until) return undefined
+    await settle(25)
+  }
+}
 
 let unique = 0
 const props = (over: Record<string, unknown> = {}) => ({
@@ -79,9 +90,9 @@ describe("remote file view", () => {
         }) as never,
       ),
     )
-    await settle()
+    const image = await waitFor(() => host.querySelector("[data-remote-image]"))
 
-    expect(host.querySelector("[data-remote-image]")?.getAttribute("src")).toStartWith("data:image/png")
+    expect(image?.getAttribute("src")).toStartWith("data:image/png")
   })
 
   // frame-src does allow blob:, so a PDF keeps it -- but the bytes arrive as

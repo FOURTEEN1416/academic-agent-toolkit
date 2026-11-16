@@ -1,385 +1,835 @@
-import { For, Show, createMemo, createSignal, onMount, type ParentProps } from "solid-js"
+import {
+  For,
+  Match,
+  Show,
+  Switch,
+  createEffect,
+  createSignal,
+  onCleanup,
+  onMount,
+  untrack,
+  type ParentProps,
+} from "solid-js"
+import { createStore } from "solid-js/store"
+import { AtomLoader } from "@synsci/ui/atom-loader"
 import { Button } from "@synsci/ui/button"
 import { TextField } from "@synsci/ui/text-field"
+import { ProviderIcon } from "@synsci/ui/provider-icon"
+import { ProviderLogo } from "@/components/settings/ProviderLogo"
 import { settingsApi } from "@/components/settings/api"
+import { LOGIN_APPROVAL_EVENT, LoginApproval } from "@/components/settings/LoginApproval"
+import { ACCOUNT_DEADLINE_MS, withAccountDeadline } from "@/components/settings/account-deadline"
 import { URLS } from "@/config/urls"
 import { usePlatform } from "@/context/platform"
+import type { Platform } from "@/context/platform"
 import { useServer } from "@/context/server"
-import { canUseManaged, type ManagedWallet } from "./desktop-onboarding-access"
+import { createOpenScienceClient } from "@synsci/sdk/v2/client"
 import "./DesktopOnboarding.css"
 
-type Route = "ace" | "api" | "local" | "chatgpt"
-type AccessGroup = "ace" | "own"
+/** The setup revision every install sees once. Mirrors ONBOARDING_VERSION on the server. */
+export const ONBOARDING_VERSION = 2
 
-type Account = {
-  session?: boolean
-  user?: { email?: string; name?: string }
-  balance_usd?: number | null
+type OnboardingStep = "account" | "ace" | "connect" | "done"
+const STEPS: OnboardingStep[] = ["account", "ace", "connect", "done"]
+
+type Preferences = {
+  desktop_onboarding_version: number
+  desktop_onboarding_step?: OnboardingStep
 }
 
-type Wallet = ManagedWallet
-
-type AccountState = "loading" | "ready" | "error"
-
-const ownRoutes: Array<{ id: Exclude<Route, "ace">; title: string; detail: string }> = [
-  { id: "chatgpt", title: "ChatGPT / Codex", detail: "Use an eligible ChatGPT subscription." },
-  { id: "api", title: "Provider key", detail: "OpenAI, Anthropic, or OpenRouter." },
-  { id: "local", title: "Local models", detail: "Ollama or LM Studio on this computer." },
-]
-
-const providers = [
-  { id: "anthropic", label: "Anthropic" },
-  { id: "openai", label: "OpenAI" },
-  { id: "openrouter", label: "OpenRouter" },
-]
-
-const formatBalance = (value: number | null | undefined) => {
-  if (value === null || value === undefined) return "Balance unavailable"
-  return `${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value)} balance`
+type Wallet = {
+  signedIn: boolean
+  balanceUsd: number | null
+  availableUsd?: number | null
+  accessVerified?: boolean
+  managedSupported: boolean
+  managedUnlocked: boolean
+  aceEnabled: boolean
+  aceContract?: { reloadThresholdUsd: number; reloadAmountUsd: number }
+  workspace?: { organizationId: string; personal: boolean }
+  error?: string
 }
 
-export function DesktopOnboarding(props: ParentProps) {
-  const desktop = new URLSearchParams(window.location.search).get("desktop") === "1"
-  const [complete, setComplete] = createSignal(!desktop)
-  const [ready, setReady] = createSignal(!desktop)
-  const [step, setStep] = createSignal<1 | 2>(1)
-  const [accessGroup, setAccessGroup] = createSignal<AccessGroup>("ace")
-  const [route, setRoute] = createSignal<Route>("ace")
-  const [provider, setProvider] = createSignal("anthropic")
-  const [key, setKey] = createSignal("")
-  const [account, setAccount] = createSignal<Account>()
-  const [wallet, setWallet] = createSignal<Wallet>()
-  const [accountState, setAccountState] = createSignal<AccountState>("loading")
-  const [busy, setBusy] = createSignal(false)
+/** The part of `GET /provider` this step reads. */
+type Providers = {
+  all: Array<{ id: string; source?: string }>
+  connected: string[]
+}
+
+/** Both ready states require verified managed access; activation alone is not funding. */
+type AceAccess = "on" | "funded" | "off"
+
+type Connection = {
+  id: string
+  logo: string
+  name: string
+  kind: "oauth" | "key" | "credential" | "detect"
+  placeholder?: string
+}
+
+const CONNECTIONS: Connection[] = [
+  { id: "openai-codex", logo: "openai-codex", name: "ChatGPT / Codex", kind: "oauth" },
+  { id: "anthropic", logo: "anthropic", name: "Anthropic", kind: "key", placeholder: "sk-ant-…" },
+  { id: "openai", logo: "openai", name: "OpenAI", kind: "key", placeholder: "sk-…" },
+  { id: "openrouter", logo: "openrouter", name: "OpenRouter", kind: "key", placeholder: "sk-or-…" },
+  { id: "google", logo: "google", name: "Google", kind: "key", placeholder: "AIza…" },
+  { id: "firecrawl", logo: "firecrawl", name: "Firecrawl", kind: "credential", placeholder: "fc-…" },
+  { id: "modal", logo: "modal", name: "Modal", kind: "detect" },
+]
+
+const VERSION_KEY = "openscience.desktop_onboarding_version"
+/** How long the window waits for the browser sign-in to finish before it lets
+ * the user try again. */
+const SIGN_IN_DEADLINE_MS = 5 * 60_000
+/** How long Ace activation is polled after the billing page opens. */
+const ACE_WAIT_MS = 10 * 60_000
+const ACE_POLL_MS = 4_000
+
+function cachedVersion() {
+  try {
+    return Number(localStorage.getItem(VERSION_KEY)) || 0
+  } catch {
+    return 0
+  }
+}
+
+function rememberVersion(version: number) {
+  try {
+    localStorage.setItem(VERSION_KEY, String(version))
+  } catch {}
+}
+
+function later(a: OnboardingStep, b: OnboardingStep): OnboardingStep {
+  return STEPS.indexOf(a) >= STEPS.indexOf(b) ? a : b
+}
+
+function money(value: number | null | undefined) {
+  if (typeof value !== "number") return undefined
+  return `$${value.toFixed(2)}`
+}
+
+function reason(cause: unknown) {
+  return cause instanceof Error ? cause.message : String(cause)
+}
+
+function DesktopOnboardingLoading() {
+  return (
+    <main class="desktop-onboarding desktop-onboarding--loading" aria-label="Loading desktop setup">
+      <div class="desktop-onboarding__loading" role="status" aria-live="polite">
+        <AtomLoader size={180} caption="Preparing your workspace" />
+      </div>
+    </main>
+  )
+}
+
+/**
+ * Relay the sign-in page the server tried to open (its `account.login` event)
+ * to the window, as the workspace's global sync does once it is mounted. Setup
+ * runs before that subscription exists, so it listens on its own for as long
+ * as a browser sign-in is pending; the stream ends with the signal.
+ */
+async function approvalPage(base: string, fetchFn: typeof fetch, signal: AbortSignal) {
+  const client = createOpenScienceClient({ baseUrl: base, fetch: fetchFn, signal })
+  const events = await client.global.event()
+  for await (const event of events.stream) {
+    if (signal.aborted) return
+    if (event.payload.type !== "account.login") continue
+    window.dispatchEvent(new CustomEvent(LOGIN_APPROVAL_EVENT, { detail: event.payload.properties.approval_url }))
+  }
+}
+
+type ServerProjects = ReturnType<typeof useServer>["projects"]
+type OnboardingServer = {
+  url: string
+  projects: Pick<ServerProjects, "open" | "touch">
+}
+
+export function DesktopOnboardingController(
+  props: ParentProps & {
+    server: OnboardingServer
+    platform: Platform
+    desktop?: boolean
+    signInDeadlineMs?: number
+    acePollMs?: number
+  },
+) {
+  const desktop = props.desktop ?? new URLSearchParams(window.location.search).get("desktop") === "1"
+  // A completed setup is remembered on this device so the shell paints before
+  // the preferences round trip; the fetch still verifies it below and brings
+  // setup back if the server says it is incomplete.
+  const seen = desktop && cachedVersion() > 0
+  const [complete, setComplete] = createSignal(!desktop || seen)
+  const [ready, setReady] = createSignal(!desktop || seen)
+  const [step, setStep] = createSignal<OnboardingStep>("account")
   const [error, setError] = createSignal<string>()
-  const server = useServer()
-  const platform = usePlatform()
+  const [account, setAccount] = createStore({ connected: false, pending: false, keyEntry: false, key: "" })
+  const [ace, setAce] = createStore({
+    status: "idle" as "idle" | "checking" | "waiting" | "on" | "unavailable",
+    enabled: false,
+    // Purchased or promotional credit the Wallet can already spend, with no
+    // card or reload rule behind it.
+    funded: false,
+    balance: undefined as number | null | undefined,
+    note: undefined as string | undefined,
+    contract: undefined as Wallet["aceContract"],
+    workspace: undefined as Wallet["workspace"],
+  })
+  const [connect, setConnect] = createStore({
+    open: undefined as string | undefined,
+    busy: undefined as string | undefined,
+    drafts: {} as Record<string, string>,
+    connected: {} as Record<string, string>,
+    // Providers the runtime already reaches without this step: environment
+    // keys, keys stored earlier, local endpoints.
+    runtime: [] as string[],
+  })
+  const lifetime = new AbortController()
+  let errorElement: HTMLParagraphElement | undefined
+  let title: HTMLHeadingElement | undefined
+  let aceWait: ReturnType<typeof setTimeout> | undefined
+  const server = props.server
+  const platform = props.platform
   const fetcher = () => platform.fetch ?? fetch
+  const api = <T,>(path: string, init?: RequestInit) => settingsApi<T>(server.url, fetcher(), path, init)
 
-  const loadAccount = async () => {
-    setAccountState("loading")
-    const [accountResult, walletResult] = await Promise.allSettled([
-      settingsApi<Account>(server.url, fetcher(), "/account"),
-      settingsApi<Wallet>(server.url, fetcher(), "/settings/wallet"),
-    ])
-    if (accountResult.status !== "fulfilled" || walletResult.status !== "fulfilled") {
-      setAccountState("error")
-      return false
-    }
-    setAccount(accountResult.value)
-    setWallet(walletResult.value)
-    setAccountState("ready")
-    return true
+  onCleanup(() => {
+    lifetime.abort()
+    if (aceWait) clearTimeout(aceWait)
+  })
+
+  const remember = (next: OnboardingStep) => {
+    setStep(next)
+    setError(undefined)
+    void api("/settings/preferences", {
+      method: "PATCH",
+      body: JSON.stringify({ desktop_onboarding_step: next }),
+    }).catch(() => undefined)
   }
 
   onMount(() => {
     if (!desktop) return
-    void settingsApi<{ desktop_onboarding_version: number }>(server.url, fetcher(), "/settings/preferences")
-      .then((value) => setComplete(value.desktop_onboarding_version >= 1))
-      .catch((cause) => setError(cause instanceof Error ? cause.message : String(cause)))
-      .finally(() => setReady(true))
-    // Account profile and wallet sync may cross the network. They enrich the
-    // selected Ace card but must never delay the first useful screen.
-    void loadAccount()
+    void withAccountDeadline(async (deadline) => {
+      const signal = AbortSignal.any([deadline, lifetime.signal])
+      const value = await api<Preferences>("/settings/preferences", { signal })
+      if (signal.aborted) return
+      rememberVersion(value.desktop_onboarding_version)
+      if (value.desktop_onboarding_version > 0) {
+        setComplete(true)
+        return
+      }
+      setReady(false)
+      setComplete(false)
+      const session = await api<{ session: boolean }>("/account/session", { signal })
+      if (signal.aborted) return
+      setAccount("connected", session.session)
+      // Account state is authoritative; the stored step only decides how far
+      // past it a signed-in user had already gone.
+      const stored = value.desktop_onboarding_step ?? "account"
+      setStep(session.session ? later(stored, "ace") : "account")
+    }, ACCOUNT_DEADLINE_MS)
+      .catch((cause) => {
+        if (!lifetime.signal.aborted) setError(reason(cause))
+      })
+      .finally(() => {
+        if (!lifetime.signal.aborted) setReady(true)
+      })
   })
 
-  const chooseGroup = (value: AccessGroup) => {
-    if (value === "ace") setKey("")
-    setAccessGroup(value)
-    setRoute(value === "ace" ? "ace" : route() === "ace" ? "chatgpt" : route())
-    setError(undefined)
+  createEffect(() => {
+    if (!error()) return
+    queueMicrotask(() => errorElement?.focus())
+  })
+
+  createEffect(() => {
+    step()
+    if (!ready() || complete()) return
+    queueMicrotask(() => title?.focus())
+  })
+
+  // Ace: learn the current state once the account exists, so a resumed setup
+  // on a later step still knows whether Ace is on. The read mutates the same
+  // store it inspects, so it must not become a dependency here.
+  createEffect(() => {
+    if (!ready() || complete() || step() === "account") return
+    untrack(() => {
+      if (step() === "ace" || ace.status === "idle") void readWallet(true)
+    })
+  })
+
+  createEffect(() => {
+    if (!ready() || complete() || step() !== "connect") return
+    void readProviders()
+  })
+
+  const readProviders = async () => {
+    const list = await api<Providers>("/provider", { signal: lifetime.signal }).catch(() => undefined)
+    if (!list || lifetime.signal.aborted) return
+    // The managed route is what Ace pays for; the Ace step already answers for it.
+    const managed = new Set(list.all.filter((item) => item.source === "managed").map((item) => item.id))
+    setConnect(
+      "runtime",
+      list.connected.filter((id) => !managed.has(id)),
+    )
   }
 
-  const canContinue = createMemo(() => {
-    if (route() === "ace") return accountState() === "ready" && canUseManaged(wallet())
-    return route() !== "api" || Boolean(key().trim())
-  })
-  const connectedIdentity = createMemo(
-    () => account()?.user?.email ?? account()?.user?.name ?? "Synthetic Sciences account connected",
-  )
+  const readWallet = async (summary: boolean): Promise<AceAccess> => {
+    if (ace.status === "idle") setAce("status", "checking")
+    const wallet = await api<Wallet>(`/settings/wallet${summary ? "?summary=true" : ""}`, {
+      signal: lifetime.signal,
+    }).catch((cause): Wallet => ({
+      signedIn: true,
+      balanceUsd: null,
+      managedSupported: true,
+      managedUnlocked: false,
+      aceEnabled: false,
+      error: reason(cause),
+    }))
+    if (lifetime.signal.aborted) return "off"
+    const usable =
+      wallet.signedIn && wallet.accessVerified === true && wallet.managedSupported && wallet.managedUnlocked
+    setAce({
+      contract: wallet.aceContract,
+      workspace: wallet.workspace,
+      enabled: wallet.aceEnabled,
+      funded: usable,
+      balance: wallet.availableUsd ?? wallet.balanceUsd,
+    })
+    const access: AceAccess = usable ? (wallet.aceEnabled ? "on" : "funded") : "off"
+    if (access !== "off") {
+      // The Wallet is the funding source now; the model list follows the billing mode.
+      await api("/settings/billing", { method: "PUT", body: JSON.stringify({ llm: "managed" }) }).catch(() => undefined)
+      setAce("note", undefined)
+    }
+    if (access === "on") {
+      setAce("status", "on")
+      return access
+    }
+    if (ace.status === "checking" || ace.status === "on") {
+      setAce("status", wallet.error && access === "off" ? "unavailable" : "idle")
+    }
+    if (wallet.error && access === "off") setAce("note", wallet.error)
+    return access
+  }
+
+  // Funds and the reload rule belong to the workspace the credential is billed
+  // to; the bare /billing page is the browser account's Personal wallet.
+  const billingURL = () =>
+    ace.workspace && !ace.workspace.personal
+      ? URLS.workspaceBilling(ace.workspace.organizationId)
+      : URLS.dashboardBilling
+
+  const NOT_ON = "Ace is not ready to use yet. Check access and available credit in Wallet, then check again."
+
+  const turnOnAce = () => {
+    platform.openLink(billingURL())
+    setAce({ status: "waiting", note: undefined })
+    const started = Date.now()
+    const poll = async () => {
+      if (lifetime.signal.aborted || ace.status !== "waiting") return
+      const access = await readWallet(false)
+      if (access === "on" || ace.status !== "waiting") return
+      if (access === "funded") {
+        setAce("status", "idle")
+        return
+      }
+      if (Date.now() - started > ACE_WAIT_MS) {
+        setAce({ status: "idle", note: NOT_ON })
+        return
+      }
+      aceWait = setTimeout(() => void poll(), props.acePollMs ?? ACE_POLL_MS)
+    }
+    aceWait = setTimeout(() => void poll(), props.acePollMs ?? ACE_POLL_MS)
+  }
+
+  const checkAce = async () => {
+    if (aceWait) clearTimeout(aceWait)
+    setAce("status", "checking")
+    const access = await readWallet(false)
+    if (access !== "on" && !lifetime.signal.aborted) setAce("note", (note) => note ?? NOT_ON)
+  }
+
+  const leaveAce = () => {
+    if (aceWait) clearTimeout(aceWait)
+    if (ace.status !== "on") setAce({ status: "idle", note: undefined })
+    remember("connect")
+  }
+
+  const login = async () => {
+    if (account.pending) return
+    setAccount("pending", true)
+    setError(undefined)
+    let expired = false
+    // The workspace's own event subscription mounts after setup, so setup
+    // listens for the approval page itself while the sign-in is pending and
+    // the line under the button offers it in case no browser appeared.
+    const watch = new AbortController()
+    void approvalPage(server.url, fetcher(), AbortSignal.any([watch.signal, lifetime.signal])).catch(() => undefined)
+    try {
+      const result = await withAccountDeadline(async (deadline) => {
+        // The helper aborts its signal on every outcome; only an abort that
+        // arrives before the request settled is the deadline.
+        let settled = false
+        deadline.addEventListener("abort", () => (expired = !settled), { once: true })
+        return api<{ ok: boolean; error?: string }>("/account/login-browser", {
+          method: "POST",
+          signal: AbortSignal.any([deadline, lifetime.signal]),
+        }).finally(() => (settled = true))
+      }, props.signInDeadlineMs ?? SIGN_IN_DEADLINE_MS)
+      if (lifetime.signal.aborted) return
+      if (!result.ok) throw new Error(result.error || "Sign in did not complete. Try again.")
+      setAccount({ connected: true, keyEntry: false, key: "" })
+      window.dispatchEvent(new Event("openscience:account-changed"))
+      remember("ace")
+    } catch (cause) {
+      if (!lifetime.signal.aborted && step() === "account") {
+        setError(expired ? "Sign-in did not complete in time. Try again." : reason(cause))
+      }
+    } finally {
+      watch.abort()
+      if (!lifetime.signal.aborted) setAccount("pending", false)
+    }
+  }
+
+  const loginWithKey = async () => {
+    const key = account.key.trim()
+    if (!key || account.pending) return
+    setAccount("pending", true)
+    setError(undefined)
+    try {
+      const result = await api<{ ok: boolean; error?: string }>("/account/login-key", {
+        method: "POST",
+        body: JSON.stringify({ key }),
+        signal: lifetime.signal,
+      })
+      if (lifetime.signal.aborted) return
+      if (!result.ok) throw new Error(result.error || "That key was not accepted.")
+      setAccount({ connected: true, keyEntry: false, key: "" })
+      window.dispatchEvent(new Event("openscience:account-changed"))
+      remember("ace")
+    } catch (cause) {
+      if (!lifetime.signal.aborted) setError(reason(cause))
+    } finally {
+      if (!lifetime.signal.aborted) setAccount("pending", false)
+    }
+  }
+
+  const run = async (id: string, action: () => Promise<string>) => {
+    if (connect.busy) return
+    setConnect("busy", id)
+    setError(undefined)
+    try {
+      const label = await action()
+      if (lifetime.signal.aborted) return
+      setConnect("connected", id, label)
+      setConnect("drafts", id, "")
+      setConnect("open", undefined)
+    } catch (cause) {
+      if (!lifetime.signal.aborted) setError(reason(cause))
+    } finally {
+      if (!lifetime.signal.aborted) setConnect("busy", undefined)
+    }
+  }
+
+  const connectItem = (item: Connection) => {
+    const draft = (connect.drafts[item.id] ?? "").trim()
+    if (item.kind === "oauth") {
+      return run(item.id, async () => {
+        const result = await api<{ url?: string } | undefined>(`/provider/${item.id}/oauth/authorize`, {
+          method: "POST",
+          body: JSON.stringify({ method: 0 }),
+          signal: lifetime.signal,
+        })
+        if (result?.url) platform.openLink(result.url)
+        await api(`/provider/${item.id}/oauth/callback`, {
+          method: "POST",
+          body: JSON.stringify({ method: 0 }),
+          signal: lifetime.signal,
+        })
+        return "Signed in"
+      })
+    }
+    if (item.kind === "detect") {
+      return run(item.id, async () => {
+        await api("/settings/compute/modal/configure", { method: "POST", signal: lifetime.signal })
+        return "Connected"
+      })
+    }
+    if (!draft) return
+    if (item.kind === "credential") {
+      return run(item.id, async () => {
+        await api(`/settings/credentials/${item.id}`, {
+          method: "PUT",
+          body: JSON.stringify({ fields: { api_key: draft } }),
+          signal: lifetime.signal,
+        })
+        return "Key saved"
+      })
+    }
+    return run(item.id, async () => {
+      // The local server owns the snapshot and compensation so a previous key
+      // never has to cross back through the browser to be restored.
+      const result = await api<{ verified?: boolean }>(`/auth/${encodeURIComponent(item.id)}/onboarding`, {
+        method: "PUT",
+        body: JSON.stringify({ type: "api", key: draft }),
+        signal: lifetime.signal,
+      })
+      return result.verified === false ? "Key saved · could not be checked" : "Key saved"
+    })
+  }
 
   const finish = async () => {
-    if (busy()) return
-    setBusy(true)
     setError(undefined)
-    await (async () => {
-      if (route() === "ace") {
-        const known = await loadAccount()
-        if (!known) throw new Error("Couldn't verify your Ace access. Check the connection and retry.")
-        if (!canUseManaged(wallet())) {
-          platform.openLink(URLS.dashboardBilling)
-          throw new Error("Turn on supported Ace access at app.syntheticsciences.ai, then return here to continue.")
-        }
-      }
-      await settingsApi(server.url, fetcher(), "/account/billing-mode", {
-        method: "POST",
-        body: JSON.stringify({ mode: route() === "ace" ? "managed" : "byok" }),
-      })
-      if (route() === "api") {
-        if (!key().trim()) throw new Error("Enter the provider API key to continue.")
-        await settingsApi(server.url, fetcher(), `/auth/${encodeURIComponent(provider())}`, {
-          method: "PUT",
-          body: JSON.stringify({ type: "api", key: key().trim() }),
-        })
-        setKey("")
-      }
-      await settingsApi(server.url, fetcher(), "/settings/preferences", {
+    try {
+      await api("/settings/preferences", {
         method: "PATCH",
-        body: JSON.stringify({ desktop_onboarding_version: 1 }),
+        body: JSON.stringify({ desktop_onboarding_version: ONBOARDING_VERSION, desktop_onboarding_step: "done" }),
+        signal: lifetime.signal,
       })
+      if (lifetime.signal.aborted) return
+      rememberVersion(ONBOARDING_VERSION)
       setComplete(true)
-    })().catch((cause) => setError(cause instanceof Error ? cause.message : String(cause)))
-    setBusy(false)
+    } catch (cause) {
+      if (!lifetime.signal.aborted) setError(reason(cause))
+    }
   }
 
-  const skip = async () => {
-    if (busy()) return
-    setBusy(true)
-    setError(undefined)
-    await settingsApi(server.url, fetcher(), "/settings/preferences", {
-      method: "PATCH",
-      body: JSON.stringify({ desktop_onboarding_version: 1 }),
-    })
-      .then(() => setComplete(true))
-      .catch((cause) => setError(cause instanceof Error ? cause.message : String(cause)))
-    setBusy(false)
-  }
+  const dollars = (value: number) => (Number.isInteger(value) ? `$${value}` : money(value))
+  const reloadRule = () =>
+    ace.contract
+      ? `Optional auto-reload adds ${dollars(ace.contract.reloadAmountUsd)} below ${dollars(ace.contract.reloadThresholdUsd)} with separate consent and a saved card. Turning on Ace does not enable it.`
+      : "Auto-reload is optional and requires separate consent and a saved card. Turning on Ace does not enable it."
+  const model = (item: Connection) => item.kind === "oauth" || item.kind === "key"
+  const status = (item: Connection) =>
+    connect.connected[item.id] ?? (model(item) && connect.runtime.includes(item.id) ? "Connected" : undefined)
+  const modelSource = () =>
+    ace.funded || connect.runtime.length > 0 || CONNECTIONS.some((item) => model(item) && connect.connected[item.id])
+  const errorNote = () => (
+    <Show when={error()}>
+      <p ref={errorElement} class="desktop-onboarding__error" role="alert" tabindex="-1">
+        {error()}
+      </p>
+    </Show>
+  )
+  const back = (): OnboardingStep | undefined =>
+    step() === "connect" ? "ace" : step() === "done" ? "connect" : undefined
 
   return (
-    <Show when={ready()} fallback={<main class="desktop-onboarding" aria-label="Loading desktop setup" />}>
+    <Show when={ready()} fallback={<DesktopOnboardingLoading />}>
       <Show
         when={complete()}
         fallback={
-          <main class="desktop-onboarding" aria-labelledby="desktop-onboarding-title">
-            <section class="desktop-onboarding__shell">
-              <header class="desktop-onboarding__header">
-                <div class="desktop-onboarding__brand">
-                  <span class="desktop-onboarding__mark" aria-hidden="true">
-                    OS
-                  </span>
-                  <span>OpenScience</span>
-                </div>
-                <div class="desktop-onboarding__progress" aria-label={`Setup step ${step()} of 2`}>
-                  <span data-active="true" />
-                  <span data-active={step() === 2} />
-                  <small>{step()} of 2</small>
-                </div>
+          <main class="desktop-onboarding" aria-labelledby="desktop-onboarding-title" aria-busy={Boolean(connect.busy)}>
+            <section class="desktop-onboarding__card" data-step={step()}>
+              <header class="desktop-onboarding__top">
+                <ProviderIcon id="synsci" class="desktop-onboarding__logo" aria-hidden="true" />
+                <span
+                  class="desktop-onboarding__count"
+                  aria-label={`Step ${STEPS.indexOf(step()) + 1} of ${STEPS.length}`}
+                >
+                  {STEPS.indexOf(step()) + 1} / {STEPS.length}
+                </span>
               </header>
 
-              <Show
-                when={step() === 1}
-                fallback={
-                  <div class="desktop-onboarding__content desktop-onboarding__content--ready">
-                    <div class="desktop-onboarding__intro">
-                      <p>Ready</p>
-                      <h1 id="desktop-onboarding-title">Start with a real research question</h1>
-                      <span>
-                        Open or create a project, then describe the outcome you want. OpenScience keeps durable work in
-                        the project and scratch work in the session.
-                      </span>
-                    </div>
-
-                    <div class="desktop-onboarding__ready-card">
-                      <div>
-                        <span class="desktop-onboarding__ready-index">1</span>
-                        <div>
-                          <strong>Open a project</strong>
-                          <span>Choose an existing folder or create a focused workspace.</span>
-                        </div>
-                      </div>
-                      <div>
-                        <span class="desktop-onboarding__ready-index">2</span>
-                        <div>
-                          <strong>Describe the result</strong>
-                          <span>Ask for an analysis, literature review, experiment, or scientific report.</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="desktop-onboarding__summary" aria-label="Selected model access">
-                      <span>Model access</span>
-                      <strong>
-                        {route() === "ace"
-                          ? "OpenScience Ace"
-                          : (ownRoutes.find((item) => item.id === route())?.title ?? "Existing access")}
-                      </strong>
-                      <small>Remote compute can be connected later from Customize → Compute.</small>
-                    </div>
-                  </div>
-                }
-              >
-                <div class="desktop-onboarding__content">
-                  <div class="desktop-onboarding__intro">
-                    <p>Model access</p>
-                    <h1 id="desktop-onboarding-title">How should OpenScience run models?</h1>
-                    <span>Your account is connected. Choose a path now, or set up models later from Customize.</span>
-                  </div>
-
-                  <div class="desktop-onboarding__choices" role="group" aria-label="Model access">
-                    <button
-                      type="button"
-                      aria-pressed={accessGroup() === "ace"}
-                      data-selected={accessGroup() === "ace"}
-                      onClick={() => chooseGroup("ace")}
+              <Switch>
+                <Match when={step() === "account"}>
+                  <h1 ref={title} id="desktop-onboarding-title" tabindex="-1">
+                    Welcome to OpenScience
+                  </h1>
+                  <p class="desktop-onboarding__body">Sign in or create an account to continue.</p>
+                  <div class="desktop-onboarding__actions">
+                    <Show
+                      when={account.keyEntry}
+                      fallback={
+                        <>
+                          <Button
+                            variant="primary"
+                            size="large"
+                            disabled={account.pending}
+                            onClick={() => void login()}
+                          >
+                            {account.pending ? "Waiting for your browser…" : "Continue with Synthetic Sciences"}
+                          </Button>
+                          <Show when={account.pending}>
+                            <p class="desktop-onboarding__note" role="status" aria-live="polite">
+                              Finish signing in in your browser. This window continues on its own.
+                            </p>
+                          </Show>
+                          <LoginApproval
+                            active={account.pending}
+                            class="desktop-onboarding__note"
+                            linkClass="desktop-onboarding__link"
+                            openLink={(url) => platform.openLink(url)}
+                          />
+                          <button
+                            type="button"
+                            class="desktop-onboarding__link"
+                            disabled={account.pending}
+                            onClick={() => setAccount("keyEntry", true)}
+                          >
+                            Use a sign-in key
+                          </button>
+                        </>
+                      }
                     >
-                      <span class="desktop-onboarding__choice-topline">
-                        <strong>OpenScience Ace</strong>
-                        <em>Recommended</em>
-                      </span>
-                      <span>Managed models and enhanced research search, billed to your Ace balance.</span>
-                    </button>
-                    <button
-                      type="button"
-                      aria-pressed={accessGroup() === "own"}
-                      data-selected={accessGroup() === "own"}
-                      onClick={() => chooseGroup("own")}
-                    >
-                      <span class="desktop-onboarding__choice-topline">
-                        <strong>Use my own access</strong>
-                      </span>
-                      <span>Connect a subscription, provider key, or local model runtime.</span>
-                    </button>
+                      <div class="desktop-onboarding__inline">
+                        <TextField
+                          hideLabel
+                          label="Sign-in key"
+                          type="password"
+                          value={account.key}
+                          disabled={account.pending}
+                          onChange={(value: string) => setAccount("key", value)}
+                          placeholder="Sign-in key"
+                          autocomplete="off"
+                          onKeyDown={(event: KeyboardEvent) => {
+                            if (event.key !== "Enter") return
+                            event.preventDefault()
+                            void loginWithKey()
+                          }}
+                        />
+                        <Button
+                          variant="primary"
+                          disabled={account.pending || !account.key.trim()}
+                          onClick={() => void loginWithKey()}
+                        >
+                          {account.pending ? "Signing in…" : "Sign in"}
+                        </Button>
+                      </div>
+                      <button
+                        type="button"
+                        class="desktop-onboarding__link"
+                        disabled={account.pending}
+                        onClick={() => setAccount({ keyEntry: false, key: "" })}
+                      >
+                        Back to browser sign-in
+                      </button>
+                    </Show>
+                    {errorNote()}
                   </div>
+                </Match>
 
-                  <Show
-                    when={accessGroup() === "ace"}
-                    fallback={
-                      <div class="desktop-onboarding__detail">
-                        <div class="desktop-onboarding__route-list" role="group" aria-label="Existing model access">
-                          <For each={ownRoutes}>
-                            {(item) => (
-                              <button
-                                type="button"
-                                aria-pressed={route() === item.id}
-                                data-selected={route() === item.id}
-                                onClick={() => {
-                                  if (item.id !== "api") setKey("")
-                                  setRoute(item.id)
-                                  setError(undefined)
-                                }}
-                              >
-                                <strong>{item.title}</strong>
-                                <span>{item.detail}</span>
-                              </button>
-                            )}
-                          </For>
-                        </div>
-                        <Show when={route() === "api"}>
-                          <div class="desktop-onboarding__credentials">
-                            <label>
-                              <span>Provider</span>
-                              <select value={provider()} onChange={(event) => setProvider(event.currentTarget.value)}>
-                                <For each={providers}>{(item) => <option value={item.id}>{item.label}</option>}</For>
-                              </select>
-                            </label>
-                            <label class="desktop-onboarding__field">
-                              <span>
-                                API key <small>required</small>
-                              </span>
-                              <TextField
-                                hideLabel
-                                type="password"
-                                value={key()}
-                                onChange={setKey}
-                                placeholder="Paste provider key"
-                                autocomplete="off"
-                              />
-                            </label>
-                          </div>
-                        </Show>
-                        <Show when={route() === "chatgpt" || route() === "local"}>
-                          <p class="desktop-onboarding__note">
-                            Open the workspace now, then finish this connection from Customize → Models. No terminal is
-                            required.
+                <Match when={step() === "ace"}>
+                  <h1 ref={title} id="desktop-onboarding-title" tabindex="-1">
+                    {ace.enabled ? "Set up Ace" : "Turn on Ace"}
+                  </h1>
+                  <p class="desktop-onboarding__body">
+                    Managed models, literature search through Firecrawl, schematics and image generation, and one team
+                    wallet. Pay as you go, $0 to start.
+                  </p>
+                  <p class="desktop-onboarding__note">{reloadRule()}</p>
+                  <div class="desktop-onboarding__actions">
+                    <Switch>
+                      <Match when={ace.status === "on"}>
+                        <p class="desktop-onboarding__done" role="status" aria-live="polite">
+                          Ace is on{money(ace.balance) ? ` · ${money(ace.balance)} available` : ""}
+                        </p>
+                        <Button variant="primary" size="large" onClick={() => remember("connect")}>
+                          Continue
+                        </Button>
+                      </Match>
+                      <Match when={ace.status === "waiting" || ace.status === "checking"}>
+                        <Button variant="primary" size="large" disabled>
+                          {ace.status === "checking" ? "Checking…" : "Waiting for Ace…"}
+                        </Button>
+                        <p class="desktop-onboarding__note" role="status" aria-live="polite">
+                          {ace.status === "checking" ? "Reading your wallet." : "Finish in your browser."}
+                        </p>
+                        <button type="button" class="desktop-onboarding__link" onClick={() => void checkAce()}>
+                          Check again
+                        </button>
+                        <button type="button" class="desktop-onboarding__link" onClick={leaveAce}>
+                          {ace.funded ? "Continue with your Wallet" : "Skip for now"}
+                        </button>
+                      </Match>
+                      <Match when={ace.funded}>
+                        <p class="desktop-onboarding__done" role="status" aria-live="polite">
+                          Managed models are ready
+                          {money(ace.balance) ? ` · ${money(ace.balance)} available, no card needed` : ""}
+                        </p>
+                        <Button variant="primary" size="large" onClick={leaveAce}>
+                          Continue
+                        </Button>
+                        <Show when={ace.note}>
+                          <p class="desktop-onboarding__note" role="status" aria-live="polite">
+                            {ace.note}
                           </p>
                         </Show>
-                      </div>
-                    }
-                  >
-                    <div class="desktop-onboarding__detail desktop-onboarding__account">
-                      <div class="desktop-onboarding__account-copy">
-                        <span
-                          class="desktop-onboarding__status"
-                          data-ready={accountState() === "ready" && canUseManaged(wallet())}
+                        <button
+                          type="button"
+                          class="desktop-onboarding__link"
+                          onClick={() => platform.openLink(billingURL())}
                         >
-                          <i aria-hidden="true" />
-                          {accountState() === "loading"
-                            ? "Checking account"
-                            : accountState() === "error"
-                              ? "Account check failed"
-                              : canUseManaged(wallet())
-                                ? wallet()?.aceEnabled
-                                  ? "Ace ready"
-                                  : "Wallet ready"
-                                : "Ace setup required"}
-                        </span>
-                        <strong>{connectedIdentity()}</strong>
-                        <small>
-                          {wallet()?.aceEnabled
-                            ? `${formatBalance(wallet()?.balanceUsd)} · Ace is ready`
-                            : wallet()?.managedSupported
-                              ? `${formatBalance(wallet()?.balanceUsd)} · Auto reload is off`
-                              : "Ace is managed at app.syntheticsciences.ai"}
-                        </small>
-                      </div>
-                      <Button
-                        variant="secondary"
-                        size="small"
-                        disabled={accountState() === "loading"}
-                        onClick={() => {
-                          if (accountState() === "error") {
-                            void loadAccount()
-                            return
-                          }
-                          platform.openLink(URLS.dashboardBilling)
-                        }}
-                      >
-                        {accountState() === "error"
-                          ? "Retry"
-                          : canUseManaged(wallet())
-                            ? "Manage Wallet"
-                            : "Set up Ace"}
-                      </Button>
-                    </div>
-                  </Show>
-                </div>
-              </Show>
+                          Manage Wallet
+                        </button>
+                      </Match>
+                      <Match when={true}>
+                        <Button variant="primary" size="large" onClick={turnOnAce}>
+                          {ace.enabled ? "Add funds for Ace" : "Turn on Ace"}
+                        </Button>
+                        <Show when={ace.note}>
+                          <p class="desktop-onboarding__note" role="status" aria-live="polite">
+                            {ace.note}
+                          </p>
+                        </Show>
+                        <button type="button" class="desktop-onboarding__link" onClick={leaveAce}>
+                          Skip for now
+                        </button>
+                      </Match>
+                    </Switch>
+                    {errorNote()}
+                  </div>
+                </Match>
 
-              <Show when={error()}>
-                <p class="desktop-onboarding__error" role="alert">
-                  {error()}
-                </p>
-              </Show>
-
-              <footer class="desktop-onboarding__footer">
-                <Show
-                  when={step() === 1}
-                  fallback={
-                    <Button variant="secondary" size="small" disabled={busy()} onClick={() => setStep(1)}>
-                      Back
+                <Match when={step() === "connect"}>
+                  <h1 ref={title} id="desktop-onboarding-title" tabindex="-1">
+                    Connect your models
+                  </h1>
+                  <p class="desktop-onboarding__body">
+                    {ace.status === "on"
+                      ? "Optional. Anything you add is used alongside Ace."
+                      : ace.funded
+                        ? "Optional. Anything you add is used alongside your Wallet."
+                        : "Optional. Keys stay on this device."}
+                  </p>
+                  <ul class="desktop-onboarding__rows" aria-label="Connections">
+                    <For each={CONNECTIONS}>
+                      {(item) => {
+                        const open = () => connect.open === item.id
+                        const done = () => status(item)
+                        const busy = () => connect.busy === item.id
+                        const expandable = () => item.kind === "key" || item.kind === "credential"
+                        return (
+                          <li data-open={open() ? "true" : undefined}>
+                            <div class="desktop-onboarding__row">
+                              <ProviderLogo id={item.logo} label={item.name} size="small" />
+                              <span class="desktop-onboarding__row-name">{item.name}</span>
+                              <Show
+                                when={!done()}
+                                fallback={<span class="desktop-onboarding__row-done">{done()}</span>}
+                              >
+                                <Show
+                                  when={expandable()}
+                                  fallback={
+                                    <Button
+                                      variant="secondary"
+                                      size="small"
+                                      disabled={Boolean(connect.busy)}
+                                      onClick={() => void connectItem(item)}
+                                    >
+                                      {busy() ? "Waiting…" : item.kind === "oauth" ? "Connect" : "Detect"}
+                                    </Button>
+                                  }
+                                >
+                                  <Button
+                                    variant="secondary"
+                                    size="small"
+                                    disabled={Boolean(connect.busy)}
+                                    aria-expanded={open()}
+                                    onClick={() => setConnect("open", open() ? undefined : item.id)}
+                                  >
+                                    {open() ? "Cancel" : "Add key"}
+                                  </Button>
+                                </Show>
+                              </Show>
+                            </div>
+                            <Show when={open() && expandable() && !done()}>
+                              <div class="desktop-onboarding__inline">
+                                <TextField
+                                  hideLabel
+                                  label={`${item.name} API key`}
+                                  type="password"
+                                  value={connect.drafts[item.id] ?? ""}
+                                  disabled={Boolean(connect.busy)}
+                                  onChange={(value: string) => setConnect("drafts", item.id, value)}
+                                  placeholder={item.placeholder ?? "API key"}
+                                  autocomplete="off"
+                                  onKeyDown={(event: KeyboardEvent) => {
+                                    if (event.key !== "Enter") return
+                                    event.preventDefault()
+                                    void connectItem(item)
+                                  }}
+                                />
+                                <Button
+                                  variant="primary"
+                                  size="small"
+                                  disabled={Boolean(connect.busy) || !(connect.drafts[item.id] ?? "").trim()}
+                                  onClick={() => void connectItem(item)}
+                                >
+                                  {busy() ? "Saving…" : "Save"}
+                                </Button>
+                              </div>
+                            </Show>
+                          </li>
+                        )
+                      }}
+                    </For>
+                  </ul>
+                  <div class="desktop-onboarding__actions">
+                    <Button
+                      variant="primary"
+                      size="large"
+                      disabled={Boolean(connect.busy)}
+                      onClick={() => remember("done")}
+                    >
+                      Continue
                     </Button>
-                  }
-                >
-                  <Button variant="secondary" size="small" disabled={busy()} onClick={() => void skip()}>
-                    Set up models later
-                  </Button>
-                </Show>
-                <Button
-                  variant="primary"
-                  size="small"
-                  disabled={busy() || (step() === 1 && !canContinue())}
-                  onClick={() => {
-                    if (step() === 1) {
-                      setError(undefined)
-                      setStep(2)
-                      return
-                    }
-                    void finish()
-                  }}
-                >
-                  {busy() ? "Saving…" : step() === 1 ? "Continue" : "Open workspace"}
-                </Button>
-              </footer>
+                    <Show when={!modelSource()}>
+                      <p class="desktop-onboarding__note" role="status">
+                        No model connected yet. Add one later in Customize → Models.
+                      </p>
+                    </Show>
+                    {errorNote()}
+                  </div>
+                </Match>
+
+                <Match when={step() === "done"}>
+                  <h1 ref={title} id="desktop-onboarding-title" tabindex="-1">
+                    You're set
+                  </h1>
+                  <dl class="desktop-onboarding__summary">
+                    <div>
+                      <dt>Account</dt>
+                      <dd>Signed in</dd>
+                    </div>
+                    <div>
+                      <dt>Ace</dt>
+                      <dd>
+                        {ace.enabled
+                          ? ace.funded
+                            ? `On${money(ace.balance) ? ` · ${money(ace.balance)}` : ""}`
+                            : "On · not ready to use"
+                          : ace.funded
+                            ? `Wallet${money(ace.balance) ? ` ${money(ace.balance)}` : ""} funds managed models`
+                            : "Off"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Connected</dt>
+                      <dd>
+                        {CONNECTIONS.filter(status)
+                          .map((item) => item.name)
+                          .join(", ") || "Nothing yet"}
+                      </dd>
+                    </div>
+                  </dl>
+                  <div class="desktop-onboarding__actions">
+                    <Button variant="primary" size="large" onClick={() => void finish()}>
+                      Open workspace
+                    </Button>
+                    {errorNote()}
+                  </div>
+                </Match>
+              </Switch>
+
+              <Show when={back()}>
+                {(previous) => (
+                  <footer class="desktop-onboarding__foot">
+                    <button type="button" class="desktop-onboarding__link" onClick={() => remember(previous())}>
+                      Back
+                    </button>
+                  </footer>
+                )}
+              </Show>
             </section>
           </main>
         }
@@ -387,5 +837,15 @@ export function DesktopOnboarding(props: ParentProps) {
         {props.children}
       </Show>
     </Show>
+  )
+}
+
+export function DesktopOnboarding(props: ParentProps) {
+  const server = useServer()
+  const platform = usePlatform()
+  return (
+    <DesktopOnboardingController server={server} platform={platform}>
+      {props.children}
+    </DesktopOnboardingController>
   )
 }

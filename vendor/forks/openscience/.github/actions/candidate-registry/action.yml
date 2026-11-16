@@ -1,0 +1,63 @@
+name: "Candidate registry"
+description: >-
+  Download the packed npm candidate and serve it as a registry on localhost for
+  the rest of the job, so `npm install` of the exact candidate version runs the
+  real resolver against the tarballs this workflow built instead of waiting for
+  registry.npmjs.org to commit fifteen uploads.
+inputs:
+  version:
+    description: "Candidate version; names the workflow artifact npm-candidate-<version>"
+    required: true
+  port:
+    description: "Port to serve on"
+    required: false
+    default: "4873"
+outputs:
+  registry:
+    description: "Registry URL the job's npm now uses"
+    value: ${{ steps.serve.outputs.registry }}
+  directory:
+    description: "Directory holding manifest.json and the candidate tarballs"
+    value: ${{ steps.serve.outputs.directory }}
+runs:
+  using: "composite"
+  steps:
+    - name: Download the packed candidate
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      with:
+        name: npm-candidate-${{ inputs.version }}
+        path: ${{ runner.temp }}/npm-candidate
+
+    - name: Serve the candidate on localhost
+      id: serve
+      shell: bash
+      env:
+        PORT: ${{ inputs.port }}
+        DIRECTORY: ${{ runner.temp }}/npm-candidate
+      run: |
+        set -euo pipefail
+        script="$GITHUB_WORKSPACE/tooling/repo/candidate-registry.ts"
+        log="$RUNNER_TEMP/candidate-registry.log"
+        bun "$script" inspect --dir "$DIRECTORY"
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          # A process started from Git Bash with & does not reliably outlive
+          # the step on Windows; PowerShell's Start-Process does.
+          powershell -NoProfile -Command "Start-Process -FilePath bun -ArgumentList @('$(cygpath -w "$script")', 'serve', '--dir', '$(cygpath -w "$DIRECTORY")', '--port', '$PORT') -WindowStyle Hidden -RedirectStandardOutput '$(cygpath -w "$log")' -RedirectStandardError '$(cygpath -w "$log.err")'"
+        else
+          nohup bun "$script" serve --dir "$DIRECTORY" --port "$PORT" > "$log" 2>&1 &
+        fi
+        registry="http://127.0.0.1:$PORT/"
+        for _ in $(seq 1 60); do
+          if curl -fsS "${registry}-/ping" > /dev/null 2>&1; then break; fi
+          sleep 0.5
+        done
+        curl -fsS "${registry}-/candidate" || { echo "::error::candidate registry did not start"; cat "$log" "$log.err" 2>/dev/null || true; exit 1; }
+        echo
+        {
+          echo "NPM_CONFIG_REGISTRY=$registry"
+          echo "NPM_CONFIG_AUDIT=false"
+          echo "NPM_CONFIG_FUND=false"
+          echo "NPM_CONFIG_UPDATE_NOTIFIER=false"
+        } >> "$GITHUB_ENV"
+        echo "registry=$registry" >> "$GITHUB_OUTPUT"
+        echo "directory=$DIRECTORY" >> "$GITHUB_OUTPUT"

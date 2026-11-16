@@ -135,8 +135,11 @@ def test_real_all_templates_steps_bound():
 def test_main_trace_missing_is_rejected(tmp_path):
     outcome, _ = _run_step(tmp_path, {"skill_binding": {"main_required": True}})
     assert outcome.status == "failed"
-    assert "技能绑定不合规" in outcome.message
+    # ENG-3 消息码化：用户视图为「错误码 + 一行原因」；完整教学文案在 diagnostics。
+    assert "EVIDENCE_BINDING" in outcome.message
     assert "主技能" in outcome.message
+    full_reason = outcome.diagnostics["checks"]["binding"]["reason"]
+    assert "技能绑定不合规" in full_reason
 
 
 def test_main_trace_via_skill_name_in_command_passes(tmp_path):

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PaperSpine5 · 论文工作区</title>
-  <link rel="stylesheet" href="/styles.css?v=20260823-publication-cycle">
+  <link rel="stylesheet" href="/styles.css?v=20260823-manuscript-issues">
 </head>
 <body>
   <!--
@@ -104,12 +104,12 @@
                 <label class="field"><span>引用目标数</span><input name="citation_target_count" type="number" min="1" max="500" value="20"></label>
                 <label class="field"><span>最终语言</span><select name="output_language"><option value="zh">中文</option><option value="en">英文</option></select></label>
                 <label class="field"><span>Word 版本</span><select name="word_output"><option value="docx">生成 DOCX</option><option value="none">不生成</option></select></label>
-                <label class="field"><span>降 AI 痕迹</span><select name="humanize_tier"><option value="none">不处理</option><option value="light">轻度</option><option value="medium" selected>中度</option><option value="heavy">强度</option></select></label>
+                <label class="field"><span>作者声音恢复</span><select name="author_voice_restoration"><option value="off" selected>关闭</option><option value="standard">标准：最小改写 + 语义审计</option><option value="strict">严格：独立审计 + 作者确认</option></select></label>
               </div>
               <details class="advanced-config">
                 <summary>展开高级设置</summary>
                 <div class="field-grid two-columns advanced-grid">
-                  <label class="field"><span>目标检测平台</span><select name="detection_platform"><option value="general">通用</option><option value="cnki">知网</option><option value="weipu">维普</option></select></label>
+                  <div class="field"><span>能力边界</span><p class="hint">恢复作者本人的学术表达；不判断作者身份，不承诺检测器通过。</p></div>
                   <label class="field"><span>中文翻译包</span><select name="translation_package"><option value="none">不生成</option><option value="zh">生成</option></select></label>
                   <label class="field wide"><span>参考路径（每行一个）</span><textarea name="reference_paths" rows="2">.</textarea></label>
                   <label class="field wide"><span>官方链接（每行一个）</span><textarea name="official_urls" rows="2"></textarea></label>
@@ -173,6 +173,32 @@
             <section class="package-summary"><span>交付定义</span><h2>打开文件夹，就能找到投稿需要的全部成品。</h2><ul><li>论文主稿与可提交版本</li><li>已确认科研图及可编辑导出</li><li>图件装配清单与来源记录</li><li>最终检查和审计报告</li></ul></section>
             <section class="file-manifest"><header><div><span>文件清单</span><h2 id="file-count">0 个文件</h2></div><small>来自真实目录</small></header><div id="deliverable-files" class="deliverable-files"><p class="muted">工作流完成后自动读取，不展示虚构文件。</p></div></section>
           </div>
+          <section id="manuscript-workbench" class="manuscript-workbench hidden" aria-labelledby="manuscript-title">
+            <header class="manuscript-heading">
+              <div><p class="eyebrow">SOURCE-CONTROLLED REVISION</p><h2 id="manuscript-title">稿件编辑与重建确认</h2><p>PDF 仅用于逐页预览；编辑始终落在规范主稿的章节真源，保存后重新生成 PDF/Word。</p></div>
+              <span id="manuscript-status" class="review-mode">等待规范主稿</span>
+            </header>
+            <div class="manuscript-grid">
+              <section class="pdf-review-panel">
+                <div class="pdf-toolbar"><button id="pdf-prev" type="button">上一页</button><strong id="pdf-page">0 / 0</strong><button id="pdf-next" type="button">下一页</button></div>
+                <iframe id="pdf-preview" title="规范主稿 PDF 逐页预览"></iframe>
+              </section>
+              <section class="source-editor-panel">
+                <label class="field"><span>Front matter（可选）</span><textarea id="front-matter" rows="6"></textarea></label>
+                <div class="section-editor-heading"><div><span>章节真源</span><strong id="section-count">0 个章节</strong></div><button id="add-section" type="button">增加章节</button></div>
+                <div id="manuscript-sections" class="manuscript-sections"></div>
+                <div class="manuscript-actions">
+                  <button id="save-revision" class="primary-action" type="button">保存修订并重建 PDF/Word</button>
+                  <button id="confirm-revision" class="secondary-action" type="button">确认当前修订版</button>
+                  <button id="restore-revision" class="secondary-action" type="button">恢复上一个备份</button>
+                </div>
+              </section>
+            </div>
+            <div class="revision-evidence-grid">
+              <section><span>哈希变化</span><pre id="manuscript-hashes">尚无修订信息。</pre></section>
+              <section><span>门禁变化</span><pre id="manuscript-gates">尚无门禁信息。</pre></section>
+            </div>
+          </section>
         </article>
       </section>
 
@@ -242,6 +268,19 @@
       <p id="message" class="global-message" role="status" aria-live="polite"></p>
     </aside>
   </div>
-  <script src="/app.js?v=20260823-publication-cycle" defer></script>
+
+  <div id="issue-modal" class="issue-modal hidden" role="dialog" aria-modal="true" aria-labelledby="issue-question">
+    <div class="issue-dialog">
+      <header><span>NEEDS USER INPUT</span><strong id="issue-position">1 / 1</strong></header>
+      <h2 id="issue-question">需要补充信息</h2>
+      <p id="issue-details"></p>
+      <div id="issue-missing" class="issue-missing"></div>
+      <label class="field"><span>回答 / 说明</span><textarea id="issue-answer" rows="4"></textarea></label>
+      <label class="field"><span>已提供材料路径（每行一个，必须位于 project_root 内且真实存在）</span><textarea id="issue-materials" rows="3"></textarea></label>
+      <div id="issue-actions" class="issue-actions"></div>
+      <p id="issue-error" role="alert"></p>
+    </div>
+  </div>
+  <script src="/app.js?v=20260823-manuscript-issues" defer></script>
 </body>
 </html>

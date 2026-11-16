@@ -9,7 +9,7 @@ description: "Use when choosing among Nature, Nature Methods, or Nature Biotechn
 
 Use this skill when the venue decision itself is still live, or when a manuscript already targets `Nature`, `Nature Methods`, or `Nature Biotechnology` and needs venue-specific framing before a heavy revision pass.
 
-This skill is about fit and policy. It does not replace `scientific-writing`, `manuscript-optimizer`, or `submission-audit`.
+This skill is about fit and policy. It does not replace `paper-writing-scientific`, `paper-manuscript-optimize`, or `paper-submission-audit`.
 
 ## When To Use
 
@@ -22,7 +22,7 @@ Use this skill when:
 Do not use this skill when:
 - the task is generic sentence-level editing
 - the venue is a conference or a non-Nature journal
-- the manuscript structure itself is still unstable and needs `manuscript-optimizer` first
+- the manuscript structure itself is still unstable and needs `paper-manuscript-optimize` first
 
 ## Venue Routing
 

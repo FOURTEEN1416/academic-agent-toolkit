@@ -2,57 +2,13 @@ import path from "path"
 import z from "zod"
 import { Tool } from "./tool"
 import { Skill } from "../skill"
-import { ConfigMarkdown } from "../config/markdown"
+import { createHash } from "node:crypto"
 import { ComputePrompt } from "@/compute/prompt"
 import { SkillCatalog } from "@/skill/catalog"
 import { SessionFilesystem } from "@/session/filesystem"
 
-const stopWords = new Set([
-  "about",
-  "after",
-  "against",
-  "from",
-  "including",
-  "into",
-  "only",
-  "that",
-  "their",
-  "then",
-  "this",
-  "using",
-  "with",
-])
-
-function terms(value: string) {
-  return new Set(
-    value
-      .toLowerCase()
-      .split(/[^a-z0-9]+/)
-      .filter((term) => term.length >= 3 && !stopWords.has(term)),
-  )
-}
-
-export function searchSkills(query: string, skills: Skill.Info[], limit = 8) {
-  const wanted = terms(query)
-  return skills
-    .map((skill) => {
-      const name = terms(skill.name)
-      const description = terms(skill.description)
-      const category = terms(skill.category ?? "")
-      let score = skill.name.toLowerCase() === query.toLowerCase() ? 100 : 0
-      if (skill.name.toLowerCase().includes(query.toLowerCase())) score += 30
-      for (const term of wanted) {
-        if (name.has(term)) score += 8
-        if (description.has(term)) score += 2
-        if (category.has(term)) score += 1
-      }
-      return { skill, score }
-    })
-    .filter((entry) => entry.score > 0)
-    .toSorted((a, b) => b.score - a.score || a.skill.name.localeCompare(b.skill.name))
-    .slice(0, limit)
-    .map((entry) => entry.skill)
-}
+import { searchSkills } from "../skill/search"
+export { searchSkills } from "../skill/search"
 
 // Lightweight fuzzy score: rewards substring containment + shared bigrams.
 // Returns 0..1. No external deps needed for a "did you mean?" hint.
@@ -74,12 +30,41 @@ function fuzzyScore(query: string, target: string): number {
   return (2 * shared) / (qb.size + tb.size)
 }
 
+// SKILL.md files call sibling skills by their source-tree path
+// (`skills/<category>/<dir>/scripts/x.py`, or the older `skills/<dir>/...`
+// without the category). Compiled releases materialize the library under a
+// digest-named cache directory, so that prefix only resolves from a source
+// checkout. Point every reference that names a known skill at that skill's
+// real directory; anything else (including `.claude/skills/...` and URLs, which
+// carry a `/` before `skills`) is left untouched.
+function resolveSkillPaths(content: string, skills: Iterable<Pick<Skill.Info, "location">>): string {
+  const dirs = new Map<string, string>()
+  for (const skill of skills) {
+    const dir = path.dirname(skill.location)
+    dirs.set(path.basename(dir), dir)
+    dirs.set(`${path.basename(path.dirname(dir))}/${path.basename(dir)}`, dir)
+  }
+  if (dirs.size === 0) return content
+  const segment = "[A-Za-z0-9_-]+(?:\\.[A-Za-z0-9_-]+)*"
+  return content.replace(
+    new RegExp(`(?<![\\w./-])skills/(${segment})(?:/(${segment}))?`, "g"),
+    (token: string, first: string, second: string | undefined) => {
+      const nested = second ? dirs.get(`${first}/${second}`) : undefined
+      if (nested) return nested
+      const flat = dirs.get(first)
+      if (flat) return second ? `${flat}/${second}` : flat
+      return token
+    },
+  )
+}
+
 export const SkillTool = Tool.define("skill", async (ctx) => {
   // Loading a skill still passes through the normal permission check in
   // execute(). Avoid evaluating every catalog entry here: this initializer is
   // rebuilt for every model step, and a 311-entry permission scan created
   // thousands of redundant log records during long research runs.
-  const accessibleSkills = await Skill.all()
+  const ctxPermission = ctx?.agent?.permission ?? []
+  const accessibleSkills = (await Skill.catalog(ctxPermission)).allowed
 
   // Group skills by category for the description
   const categories: Record<string, Skill.Info[]> = {}
@@ -104,32 +89,64 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
   const description =
     accessibleSkills.length === 0
       ? "Load a skill to get detailed instructions for a specific task. No skills are currently available."
-      : `Load specialized instructions before work when their procedure applies. Use name for an exact known skill; otherwise use one focused query to rank relevant skills. Browse a category only when the category itself matters. Available categories: ${catalog}. Call this tool silently and apply its guidance; a user /skill invocation requests immediate use, not narration.`
-
-  const examples = accessibleSkills
-    .slice(0, 3)
-    .map((skill) => `'${skill.name}'`)
-    .join(", ")
-  const hint = examples.length > 0 ? ` (e.g., ${examples}, ...)` : ""
+      : `Discover or load specialized instructions when their procedure applies. Load with name only when the exact available name is known; do not invent a name from the task. Otherwise omit name and use one focused query, then load an exact name returned by discovery. Search and category results contain metadata, not instructions. If an unknown name accompanies a query, only discovery runs. Browse a category only when the category itself matters. Available categories: ${catalog}. Call this tool silently and apply its guidance; a user /skill invocation requests immediate use, not narration.`
 
   const parameters = z.object({
-    name: z.string().optional().describe(`The skill name to load directly${hint}`),
+    name: z
+      .string()
+      .trim()
+      .min(1)
+      .optional()
+      .describe(
+        "Exact available skill name to load, copied from the available skills or discovery results. Omit to search.",
+      ),
     query: z
       .string()
+      .trim()
+      .min(1)
       .optional()
-      .describe("Search names and descriptions for a focused task, such as 'geospatial NetCDF analysis'"),
+      .describe(
+        "Search names, descriptions, tags and capabilities for a focused task, such as 'geospatial NetCDF analysis'",
+      ),
     category: z
       .string()
+      .trim()
+      .min(1)
       .optional()
-      .describe("Browse skills in a category (e.g., 'physics', 'chemistry', 'ml-training')"),
+      .describe("Browse a category, or restrict query results to it (e.g., 'physics', 'chemistry', 'ml-training')"),
+    offset: z
+      .number()
+      .int()
+      .nonnegative()
+      .optional()
+      .describe("Category browse offset for the next page; ignored when searching or loading"),
   })
 
   return {
     description,
     parameters,
     async execute(params: z.infer<typeof parameters>, ctx) {
-      if (params.query && !params.name) {
-        const matched = searchSkills(params.query, accessibleSkills)
+      // Selection can change after the model saw this tool's description.
+      // Re-check before search and direct loading, not only at initialization.
+      const accessibleSkills = (await Skill.catalog(ctxPermission)).allowed
+      const accessibleByName = new Map(accessibleSkills.map((skill) => [skill.name, skill]))
+      const available = [...new Set(accessibleSkills.map((skill) => skill.category ?? "other"))].toSorted().join(", ")
+      const candidates = params.category
+        ? accessibleSkills.filter(
+            (skill) => (skill.category ?? "other").toLowerCase() === params.category!.toLowerCase(),
+          )
+        : accessibleSkills
+      // An installed skill that happens to carry a retired name wins over the
+      // alias; the alias only rescues names that no longer exist.
+      const selected = params.name
+        ? (accessibleByName.get(params.name) ?? accessibleByName.get(SkillCatalog.resolve(params.name)))
+        : undefined
+      if (params.query && !selected) {
+        // searchSkills caps at 8 by default, and a bare list of 8 reads as
+        // "these are the matches" rather than "the best 8 of many". Rank the
+        // whole candidate set so the note can say how many were dropped.
+        const ranked = searchSkills(params.query, candidates, candidates.length)
+        const matched = ranked.slice(0, 8)
         if (matched.length === 0) {
           throw new Error(`No skills matched "${params.query}". Continue without a skill or try a narrower capability.`)
         }
@@ -139,21 +156,28 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
               `- **${skill.name}** (${skill.category ?? "other"}): ${skill.description.slice(0, 180)}${skill.description.length > 180 ? "..." : ""}`,
           )
           .join("\n")
+        const dropped = ranked.length - matched.length
         return {
           title: `Skill matches: ${params.query}`,
-          output: `## Ranked skill matches\n\nLoad only the instructions that materially apply.\n\n${listing}`,
-          metadata: { name: params.query, dir: "", matches: matched.map((skill) => skill.name) },
+          output: `## Ranked skill matches\n\n${params.name ? `Skill "${params.name}" is unavailable. Searched the provided query instead. ` : ""}No skill instructions have been loaded. Load an applicable result by calling this tool with its exact name.${dropped ? ` Showing ${matched.length} of ${ranked.length} matches; narrow the query to see the rest.` : ""}\n\n${listing}`,
+          metadata: {
+            name: params.query,
+            dir: "",
+            matches: matched.map((skill) => skill.name),
+            ...(params.name ? { unavailableName: params.name } : {}),
+          },
         }
       }
 
       // Category browse mode: return list of skills in the category
       if (params.category && !params.name) {
         const cat = params.category.toLowerCase()
-        const matched = accessibleSkills.filter((s) => (s.category ?? "other") === cat)
+        const matched = candidates.slice(params.offset ?? 0, (params.offset ?? 0) + 40)
 
         if (matched.length === 0) {
-          const available = Object.keys(categories).join(", ")
-          throw new Error(`No skills in category "${params.category}". Available categories: ${available}`)
+          throw new Error(
+            `No skills at this offset in category "${params.category}". Available categories: ${available}`,
+          )
         }
 
         const listing = matched
@@ -161,8 +185,8 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
           .join("\n")
 
         return {
-          title: `Skills in category: ${cat} (${matched.length})`,
-          output: `## Category: ${cat}\n\n${matched.length} skills available. Load one by calling this tool with its name.\n\n${listing}`,
+          title: `Skills in category: ${cat} (${candidates.length})`,
+          output: `## Category: ${cat}\n\n${candidates.length} skills available. Showing ${matched.length} from offset ${params.offset ?? 0}. Load one by calling this tool with its name.${(params.offset ?? 0) + matched.length < candidates.length ? ` Browse the next page with offset ${(params.offset ?? 0) + matched.length}, or use a focused query.` : ""}\n\n${listing}`,
           metadata: { name: cat, dir: "", matches: matched.map((skill) => skill.name) },
         }
       }
@@ -170,7 +194,6 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
       // Direct load mode: load a specific skill
       const name = params.name
       if (!name) {
-        const available = Object.keys(categories).join(", ")
         return {
           title: "Skill categories",
           output: `Provide an exact skill \`name\`, a focused \`query\`, or a \`category\` to browse. Available categories: ${available}`,
@@ -178,10 +201,7 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
         }
       }
 
-      const resolvedName = SkillCatalog.resolve(name)
-      const skill = await Skill.get(resolvedName)
-
-      if (!skill) {
+      if (!selected) {
         const ranked = searchSkills(name, accessibleSkills, 5)
         const scored = accessibleSkills
           .map((candidate) => ({ name: candidate.name, score: fuzzyScore(name, candidate.name) }))
@@ -197,10 +217,22 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
 
       await ctx.ask({
         permission: "skill",
-        patterns: [skill.name],
-        always: [skill.name],
+        patterns: [selected.name],
+        always: [selected.name],
         metadata: {},
       })
+
+      ctx.abort.throwIfAborted()
+      const current = (await Skill.catalog(ctxPermission)).allowed.find((skill) => skill.name === selected.name)
+      if (!current) {
+        throw new Error(`Skill "${selected.name}" is no longer active. Enable it in Skills before loading it.`)
+      }
+      if (current.location !== selected.location || current.origin !== selected.origin) {
+        throw new Error(`Skill "${selected.name}" changed while awaiting permission. Select it again.`)
+      }
+      const loaded = await Skill.load(current)
+      const skill = loaded.info
+      ctx.abort.throwIfAborted()
 
       const dir = path.dirname(skill.location)
       // A skill's references and scripts are part of the instructions the user
@@ -213,15 +245,51 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
           path: dir,
           access: "read",
           scope: "session",
-          source: "permission",
+          source: "skill",
         })
       }
-      const parsed = await ConfigMarkdown.parse(skill.location)
-      let content = parsed.content
+      let content = loaded.content
 
       // Sanitize skill content: strip known prompt injection patterns
       content = content.replace(/^.*(?:always run this skill|must always run).*$/gim, "").trim()
+      // Only same-origin siblings resolve: a project skill directory must not
+      // be able to redirect a bundled skill's script invocations to itself.
+      const siblings = (await Skill.all({ includeDisabled: true })).filter((entry) => entry.origin === skill.origin)
+      content = resolveSkillPaths(content, siblings)
       content = await ComputePrompt.skill(skill.name, content)
+
+      const contentHash = createHash("sha256").update(content).digest("hex")
+      // The same skill loaded twice in one turn (a session that runs for a day
+      // reaches for /autoresearch again) put the whole document in the
+      // context a second time. When the earlier load is still in the
+      // transcript with the same bytes, a receipt names it instead.
+      const earlier = ctx.messages
+        .flatMap((message) => message.parts)
+        .find(
+          (part) =>
+            part.type === "tool" &&
+            part.tool === "skill" &&
+            part.state.status === "completed" &&
+            !part.state.time.compacted &&
+            (part.state.metadata as { name?: string; contentHash?: string } | undefined)?.name === skill.name &&
+            (part.state.metadata as { contentHash?: string } | undefined)?.contentHash === contentHash,
+        )
+      if (earlier) {
+        return {
+          title: `Skill already loaded: ${skill.name}`,
+          output: `## Skill: ${skill.name}\n\nAlready loaded in this conversation with the same content (${content.length.toLocaleString()} characters; base directory ${dir}). Its instructions are in the earlier skill result above and still apply; they are not repeated here.`,
+          metadata: {
+            name: skill.name,
+            origin: skill.origin,
+            contentHash,
+            alreadyLoaded: true,
+            ...(skill.capability ? { capability: skill.capability } : {}),
+            ...(skill.allowed_tools?.length ? { allowedTools: skill.allowed_tools } : {}),
+            dir,
+            matches: [],
+          },
+        }
+      }
 
       // Format output similar to plugin pattern
       const output = [`## Skill: ${skill.name}`, "", `**Base directory**: ${dir}`, "", content].join("\n")
@@ -231,6 +299,8 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
         output,
         metadata: {
           name: skill.name,
+          origin: skill.origin,
+          contentHash,
           ...(skill.capability ? { capability: skill.capability } : {}),
           ...(skill.allowed_tools?.length ? { allowedTools: skill.allowed_tools } : {}),
           dir,

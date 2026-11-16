@@ -1,0 +1,34 @@
+.scientific-tools-panel {
+  min-width: 0;
+}
+
+/* The list is a settings card and every tool is a grammar row: title, one
+   muted line, plain status text, one button. The card and row recipes come
+   from the dialog stylesheet; only the tone of a status is set here. */
+.scientific-tool-status[data-tone="warning"] {
+  color: var(--color-text-warning);
+}
+
+.scientific-tool-status[data-tone="danger"] {
+  color: var(--color-text-danger);
+}
+
+.settings-dialog .scientific-tools-panel [data-component="button"].scientific-tool-action {
+  min-width: 62px;
+}
+
+.scientific-tools-notice {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
+  text-wrap: pretty;
+}
+
+.scientific-tools-footnote {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
+  text-wrap: pretty;
+}

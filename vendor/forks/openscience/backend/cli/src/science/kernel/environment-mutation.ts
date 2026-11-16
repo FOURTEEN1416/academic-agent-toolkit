@@ -1,4 +1,5 @@
 import { Global } from "@/global"
+import { OpenScience } from "@/openscience"
 import { Instance } from "@/project/instance"
 import { ManagedEnvironments } from "@/science/kernel/environment-manager"
 import { pythonEnvironment } from "@/science/kernel/interpreter"
@@ -91,19 +92,65 @@ async function pythonProbe(binary: string): Promise<PythonProbe | undefined> {
   return parsed.data
 }
 
+export async function selectPython(candidates: string[]): Promise<string | undefined> {
+  // Executable permission does not prove a binary can start: stale framework
+  // installs and scripts with missing interpreters must not poison the cache
+  // or prevent a healthy candidate from serving every local tool.
+  const probes = await Promise.all(candidates.map((binary) => pythonProbe(binary).catch(() => undefined)))
+  return rankPython(probes.filter((probe): probe is PythonProbe => !!probe))
+}
+
 async function hostPython() {
-  const select = async () => {
-    const candidates = await pythonCandidates()
-    const probes = await Promise.all(candidates.map(pythonProbe))
-    return rankPython(probes.filter((probe): probe is PythonProbe => !!probe)) ?? candidates[0]
-  }
-  const pending = pythonCache.value ?? select()
+  const pending = pythonCache.value ?? pythonCandidates().then(selectPython)
   pythonCache.value = pending
   return pending
 }
 
 export namespace KernelEnvironmentMutation {
   export type Language = "python" | "r"
+
+  export const SubprocessEnvironment = z.object({
+    target: z.enum(["local", "ssh", "modal"]),
+    cwd: z.string().optional(),
+    profile: z.string().optional(),
+    python: z
+      .object({
+        role: z.enum(["selected_default", "capability"]),
+        executable: z.string().optional(),
+        version: z.string().optional(),
+      })
+      .optional()
+      .describe("Selected runtime, not proof that arbitrary shell code used Python. Missing fields were not measured."),
+  })
+  export type SubprocessEnvironment = z.infer<typeof SubprocessEnvironment>
+
+  export function subprocessIdentity(runtime: KernelStartOptions, cwd: string): SubprocessEnvironment {
+    return {
+      target: "local",
+      cwd,
+      profile: runtime.environmentName ?? "python",
+      python: { role: "selected_default", ...(runtime.binary ? { executable: runtime.binary } : {}) },
+    }
+  }
+
+  /** Restore only resolver-owned Python paths after the ordinary subprocess
+   * filter. Reuse this final overlay for both the launched command and its
+   * runtime-version probe; arbitrary ambient PYTHONPATH remains excluded. */
+  export function subprocessEnv(runtime: Awaited<ReturnType<typeof pythonSubprocessRuntime>>, env: NodeJS.ProcessEnv) {
+    return {
+      // Python run by the agent is headless and should leave no trace in the
+      // person's project: bytecode goes to OpenScience's cache instead of a
+      // __pycache__ beside every script, and plots render off-screen rather
+      // than opening windows or reading a stray interactive matplotlibrc.
+      PYTHONPYCACHEPREFIX: env.PYTHONPYCACHEPREFIX ?? path.join(Global.Path.cache, "pycache"),
+      MPLBACKEND: env.MPLBACKEND ?? "Agg",
+      ...OpenScience.filterEnvForSubprocess({ ...env, ...runtime.env }),
+      PYTHONPATH: runtime.env.PYTHONPATH,
+      GIT_CONFIG_NOSYSTEM: env.GIT_CONFIG_NOSYSTEM,
+      GIT_CONFIG_GLOBAL: env.GIT_CONFIG_GLOBAL,
+      GIT_TERMINAL_PROMPT: env.GIT_TERMINAL_PROMPT,
+    }
+  }
 
   export type Plan = {
     language: Language
@@ -112,6 +159,8 @@ export namespace KernelEnvironmentMutation {
     manager: string
     digest: string
     restart: true
+    /** The package names the command names, best effort, for the card. */
+    packages?: string[]
   }
 
   function normalized(code: string) {
@@ -192,6 +241,7 @@ export namespace KernelEnvironmentMutation {
     const digest = createHash("sha256")
       .update(JSON.stringify({ language: input.language, environment: input.environment, operation, code: input.code }))
       .digest("hex")
+    const packages = named(code, operation)
     return {
       language: input.language,
       environment: input.environment,
@@ -199,7 +249,39 @@ export namespace KernelEnvironmentMutation {
       manager,
       digest,
       restart: true,
+      ...(packages.length ? { packages } : {}),
     }
+  }
+
+  /** The package names after the install/remove verb, up to eight, without
+   * flags, paths or R quoting: enough to say "Install pymupdf, pdfplumber". */
+  function named(code: string, operation: Plan["operation"]) {
+    if (operation === "environment_update") return []
+    const tokens = code.split(" ")
+    const verbs = new Set([
+      "install",
+      "download",
+      "uninstall",
+      "add",
+      "remove",
+      "install.packages",
+      "pkg_install",
+      "pkg_remove",
+      "remove.packages",
+    ])
+    const at = tokens.findIndex((token) => verbs.has(token.replace(/^.*::/, "")))
+    if (at < 0) return []
+    const names: string[] = []
+    for (const token of tokens.slice(at + 1)) {
+      if (token.startsWith("-") || /^[a-z]+:\/\//.test(token)) continue
+      const name = token.replace(/^c\(|\)$/g, "").replace(/^["']|["']$/g, "")
+      if (!/^[a-z0-9][a-z0-9_.+-]*(?:\[[a-z0-9_,-]+\])?(?:[=<>!~]=?[a-z0-9_.*-]+)?$/i.test(name)) continue
+      if (["python", "python3", "sys.executable", "-m", "pip", "uv", "conda", "mamba", "poetry"].includes(name))
+        continue
+      names.push(name)
+      if (names.length === 8) break
+    }
+    return names
   }
 
   /** Stable, app-managed package root used when no project interpreter owns a
@@ -256,12 +338,28 @@ export namespace KernelEnvironmentMutation {
     return {
       ...managed,
       binary,
+      extraReadable: [...(managed.extraReadable ?? []), packages],
       env: {
         ...(managed.env ?? {}),
         PIP_TARGET: packages,
         PYTHONPATH: [packages, managed.env?.PYTHONPATH, process.env.PYTHONPATH].filter(Boolean).join(path.delimiter),
       },
       ...(allowMutation ? { extraWritable: [packages], sandboxNetwork: "allow" as const } : {}),
+    }
+  }
+
+  /** Shells share the selected interpreter and project package directory, but
+   * must not inherit arbitrary Python import paths from the server environment.
+   * Keep this separate from kernel compatibility overlays: callers restore only
+   * this derived path after their ordinary credential/environment filtering. */
+  export async function pythonSubprocessRuntime(): Promise<
+    KernelStartOptions & { env: Record<string, string> & { PYTHONPATH: string } }
+  > {
+    const runtime = await pythonRuntime("python")
+    const packages = path.join(managedRoot("python", "python"), "site-packages")
+    return {
+      ...runtime,
+      env: { ...(runtime.env ?? {}), PYTHONPATH: packages },
     }
   }
 
@@ -294,6 +392,7 @@ export namespace KernelEnvironmentMutation {
           manager: plan.manager,
           plan_digest: plan.digest,
           restart: plan.restart,
+          ...(plan.packages?.length ? { packages: plan.packages } : {}),
           warning:
             "This may contact package repositories and changes packages in the selected environment. The affected runtime restarts after a successful change, so in-memory variables are cleared.",
         },

@@ -48,7 +48,7 @@
 
 ## Pass 2: Structured Deep Extraction (per paper)
 
-**Goal**: Fill detailed extraction templates. Do NOT summarize — fill fields.
+**Goal**: Extract the scientific and rhetorical details needed for the current manuscript, using the templates as observation prompts. Retain source locations and a concrete synthesis; do not fill irrelevant fields merely to complete a form.
 
 ### Template A: Terminology Glossary
 
@@ -153,7 +153,7 @@ Deconstruct the abstract sentence by sentence. **Record information granularity*
 | Discussion | Mostly no | Yes | semi-quantitative | [...] |
 
 **After filling:**
-- **Where do specific numerical metrics appear?** [Typically ONLY Results/Discussion]
+- **Where do specific numerical metrics appear, and what function do they serve?** Check Abstract, Methods, Results and Discussion as applicable; retain numbers needed to report the current study accurately.
 - **What is the Abstract's information ceiling across all 3 papers?**
 - **What information type is in Results but ABSENT from Abstract?**
 
@@ -189,7 +189,7 @@ Map every paragraph to its rhetorical move. This is the core of deep reading.
 | **M11**: Addressing limitations | Acknowledging limitations → Proposing future directions | |
 
 **After filling each section, answer:**
-1. Which moves are OBLIGATORY? (all 3 papers)
+1. Which moves recur in all examined papers, and which are actually required by the current venue or scientific argument?
 2. Which moves are OPTIONAL? (1-2 papers)
 3. What is the move SEQUENCE?
 4. Where does our draft DEVIATE from the consensus?
@@ -235,11 +235,11 @@ For each section, fill:
 
 ### 5. NON-NEGOTIABLE RULES
 
-List every convention shared by ALL 3 papers. These are hard constraints. **Each rule must be traceable to a specific observation in the tables above.**
+List conventions shared by the examined papers with their exact observations. Treat them as sample-supported design choices, not universal constraints. Current official requirements, the user's scope, and this study's evidence govern any necessary deviation.
 
 ### 6. Section Information Ceilings
 
-Derived strictly from the most information-dense of the 3 papers:
+Use the most information-dense exemplar to compare how each section selects evidence, not to cap the current manuscript's necessary detail:
 - **Abstract ceiling**: most specific claim in any abstract
 - **Introduction ceiling**: most specific claim in any introduction
 - **Results floor**: minimum specificity in any Results section

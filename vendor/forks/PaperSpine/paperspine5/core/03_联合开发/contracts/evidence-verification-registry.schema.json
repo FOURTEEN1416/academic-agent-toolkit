@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/evidence-verification-registry.schema.json",
+  "title": "Typed evidence verifier registry and receipts",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "subject", "subject_producers", "claim_inventory_sha256", "scope_receipt", "required_evidence_ids", "adapters", "evidence"],
+  "properties": {
+    "contract": {"const": "paperspine5.evidence-verification-registry"},
+    "subject": {"type": "object"},
+    "subject_producers": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "claim_inventory_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scope_receipt": {"type": "object"},
+    "required_evidence_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "adapters": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": true,
+        "required": ["adapter_id", "evidence_types", "status", "fail_closed", "protocol_sha256"],
+        "properties": {
+          "adapter_id": {"type": "string", "minLength": 1},
+          "evidence_types": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["data", "code", "statistics", "qualitative", "theoretical"]}},
+          "status": {"const": "active"},
+          "fail_closed": {"const": true},
+          "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "evidence": {"type": "array", "minItems": 1, "items": {"type": "object"}}
+  }
+}

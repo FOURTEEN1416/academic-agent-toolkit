@@ -1,0 +1,455 @@
+import { expect, test } from "bun:test"
+import { Provider } from "../../src/provider/provider"
+import { CallLink } from "../../src/provider/call-link"
+import { ModelCallTrace } from "../../src/session/model-call-trace"
+import { SessionTraceStore } from "../../src/session/trace-store"
+import { Storage } from "../../src/storage/storage"
+import { Agent } from "../../src/agent/agent"
+import { Instance } from "../../src/project/instance"
+import { tmpdir, trustProject } from "../fixture/fixture"
+import { stressProviderConfig } from "../fixture/stress-provider"
+import { SubagentBudget } from "../../src/session/subagent-budget"
+
+function tracker() {
+  const sessionID = `ses_attempt_${crypto.randomUUID()}`
+  return {
+    sessionID,
+    trace: ModelCallTrace.create({
+      context: { sessionID, messageID: "msg_attempt", attempt: 1 },
+      route: "byok",
+      provider: "openai",
+      model: "fixture",
+    }),
+  }
+}
+function request(trace: ReturnType<typeof ModelCallTrace.create>, url: string, signal?: AbortSignal) {
+  return Provider.withRequestContext(trace.context, () =>
+    Provider.fetchWithIdleWatchdog(
+      fetch,
+      url,
+      { method: "POST", body: JSON.stringify({ model: "fixture" }), signal },
+      { providerID: "openai", modelID: "fixture", connectTimeout: 1000, idleTimeout: false },
+    ),
+  )
+}
+
+test("the durable attempt exists before dispatch and receives exact provider fields after completion", async () => {
+  const item = tracker()
+  using server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    async fetch() {
+      const state = await SessionTraceStore.read(item.sessionID)
+      expect(state.modelCalls).toHaveLength(1)
+      expect(state.modelCalls[0]).toMatchObject({ outcome: "pending", attempt: 1 })
+      expect(state.modelCalls[0]!.reported).toBeUndefined()
+      return new Response("ok")
+    },
+  })
+  const response = await request(item.trace, server.url.toString())
+  await response.text()
+  const call = CallLink.fromResponse(Object.fromEntries(response.headers), "provider_receipt")
+  await item.trace.complete(call, { inputTokens: 0, outputTokens: 3, totalTokens: 3 })
+  expect((await SessionTraceStore.read(item.sessionID)).modelCalls).toMatchObject([
+    {
+      id: call!.id,
+      outcome: "completed",
+      httpStatus: 200,
+      providerRequest: "provider_receipt",
+      reported: {
+        input_tokens: 0,
+        output_tokens: 3,
+        total_tokens: 3,
+        reasoning_tokens: null,
+        cached_input_tokens: null,
+        cache_creation_input_tokens: null,
+      },
+      reportedCostUSD: null,
+    },
+  ])
+  await SessionTraceStore.remove(item.sessionID)
+})
+
+test("a refused connection leaves a failed call without inventing usage or charges", async () => {
+  const item = tracker()
+  const probe = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: () => new Response("unused") })
+  const url = probe.url.toString()
+  await probe.stop(true)
+  await expect(request(item.trace, url)).rejects.toBeInstanceOf(Provider.TransportError)
+  const calls = (await SessionTraceStore.read(item.sessionID)).modelCalls
+  expect(calls).toHaveLength(1)
+  expect(calls[0]).toMatchObject({ outcome: "failed", provider: "openai", model: "fixture" })
+  expect(calls[0]!.reported).toBeUndefined()
+  expect(calls[0]!.reportedCostUSD).toBeUndefined()
+  await SessionTraceStore.remove(item.sessionID)
+})
+
+test("body cancellation retains the original call identity and explicit cancelled outcome", async () => {
+  const item = tracker()
+  using server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch: () =>
+      new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode("partial"))
+          },
+        }),
+      ),
+  })
+  const response = await request(item.trace, server.url.toString())
+  const id = response.headers.get(CallLink.CALL_HEADER)
+  const reader = response.body!.getReader()
+  expect((await reader.read()).done).toBe(false)
+  await reader.cancel("fixture cancellation")
+  expect((await SessionTraceStore.read(item.sessionID)).modelCalls).toMatchObject([
+    { id, outcome: "cancelled", httpStatus: 200 },
+  ])
+  await SessionTraceStore.remove(item.sessionID)
+})
+
+test("HTTP failures and retries retain separate attempt identities", async () => {
+  const item = tracker()
+  using server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch: () => new Response("unavailable", { status: 503 }),
+  })
+  for (let index = 0; index < 2; index++) await (await request(item.trace, server.url.toString())).text()
+  const calls = (await SessionTraceStore.read(item.sessionID)).modelCalls
+  expect(calls).toHaveLength(2)
+  expect(calls[0]!.id).not.toBe(calls[1]!.id)
+  expect(calls.every((call) => call.outcome === "failed" && call.httpStatus === 503)).toBe(true)
+  await SessionTraceStore.remove(item.sessionID)
+})
+
+test.each([400, 401, 403, 413, 422, 429])(
+  "rejected HTTP %i attempts return their unused reservation",
+  async (status) => {
+    using server = Bun.serve({
+      hostname: "127.0.0.1",
+      port: 0,
+      fetch: () => Response.json({ error: "rejected" }, { status }),
+    })
+    await using tmp = await tmpdir({ git: true, config: stressProviderConfig(`${server.url}v1`) })
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const model = await Provider.getModel("stress", "fixture-model")
+        const child = `ses_rejected_${crypto.randomUUID()}`
+        await SubagentBudget.open({
+          rootSessionID: "root",
+          parentSessionID: "root",
+          sessionID: child,
+          assignmentID: "rejections",
+          objective: "Read evidence",
+          expectedOutput: "Report",
+          model: { providerID: model.providerID, modelID: model.id },
+          route: "local",
+          unit: "tokens",
+          allocation: 10000,
+          settings: { tokens: 40000 },
+        })
+        const trace = ModelCallTrace.create({
+          context: { sessionID: child, messageID: "msg_rejected", attempt: 1 },
+          route: "local",
+          provider: model.providerID,
+          model: model.id,
+          pricingModel: model,
+          outputBound: 1000,
+        })
+        for (let index = 0; index < 5; index++) {
+          await (await request(trace, server.url.toString())).text()
+          const state = (await SubagentBudget.read(child))!
+          expect(SubagentBudget.spendable(state.pool, child)).toBe(10000)
+          expect(state.worker.spent).toBe(0)
+          expect(state.worker.stopReason).toBeUndefined()
+        }
+        const state = (await SubagentBudget.read(child))!
+        expect(Object.values(state.worker.calls)).toHaveLength(5)
+        expect(Object.values(state.worker.calls).every((call) => call.state === "settled" && call.consumed === 0)).toBe(
+          true,
+        )
+      },
+    })
+  },
+)
+
+test.each([408, 409, 500, 502, 503])("ambiguous HTTP %i responses keep their reservation", async (status) => {
+  using server = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: () => new Response(null, { status }) })
+  await using tmp = await tmpdir({ git: true, config: stressProviderConfig(`${server.url}v1`) })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const model = await Provider.getModel("stress", "fixture-model")
+      const child = `ses_unknown_${crypto.randomUUID()}`
+      await SubagentBudget.open({
+        rootSessionID: "root",
+        parentSessionID: "root",
+        sessionID: child,
+        assignmentID: "unknown",
+        objective: "Read evidence",
+        expectedOutput: "Report",
+        model: { providerID: model.providerID, modelID: model.id },
+        route: "local",
+        unit: "tokens",
+        allocation: 10000,
+        settings: { tokens: 40000 },
+      })
+      const trace = ModelCallTrace.create({
+        context: { sessionID: child, messageID: "msg_unknown", attempt: 1 },
+        route: "local",
+        provider: model.providerID,
+        model: model.id,
+        pricingModel: model,
+        outputBound: 1000,
+      })
+      await (await request(trace, server.url.toString())).text()
+      const state = (await SubagentBudget.read(child))!
+      expect(state.worker.spent).toBe(0)
+      expect(Object.values(state.worker.calls)).toHaveLength(1)
+      expect(Object.values(state.worker.calls)[0]!.state).toBe("pending")
+      expect(SubagentBudget.spendable(state.pool, child)).toBeLessThan(10000)
+    },
+  })
+})
+
+test("repeated paid rate-limit rejections leave the USD grant available", async () => {
+  using server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch: () => Response.json({ error: "rate_limit" }, { status: 429 }),
+  })
+  await using tmp = await tmpdir({ git: true, config: stressProviderConfig(`${server.url}v1`) })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const base = await Provider.getModel("stress", "fixture-model")
+      const model = { ...base, cost: { ...base.cost, input: 1, output: 2 } }
+      const child = `ses_paid_rejected_${crypto.randomUUID()}`
+      await SubagentBudget.open({
+        rootSessionID: "root",
+        parentSessionID: "root",
+        sessionID: child,
+        assignmentID: "paid-rejections",
+        objective: "Read evidence",
+        expectedOutput: "Report",
+        model: { providerID: model.providerID, modelID: model.id },
+        route: "byok",
+        unit: "usd",
+        allocation: 100000000,
+        settings: { usd: 1 },
+      })
+      const trace = ModelCallTrace.create({
+        context: { sessionID: child, messageID: "msg_paid_rejected", attempt: 1 },
+        route: "byok",
+        provider: model.providerID,
+        model: model.id,
+        pricingModel: model,
+        outputBound: 1000,
+      })
+      for (let index = 0; index < 5; index++) {
+        await (await request(trace, server.url.toString())).text()
+        const state = (await SubagentBudget.read(child))!
+        expect(SubagentBudget.spendable(state.pool, child)).toBe(100000000)
+        expect(state.worker.spent).toBe(0)
+      }
+    },
+  })
+})
+
+test("a known rejection returns its reservation even when the error body is cancelled", async () => {
+  using server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch: () =>
+      new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode("rejected"))
+          },
+        }),
+        { status: 429 },
+      ),
+  })
+  await using tmp = await tmpdir({ git: true, config: stressProviderConfig(`${server.url}v1`) })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const model = await Provider.getModel("stress", "fixture-model")
+      const child = `ses_rejected_body_${crypto.randomUUID()}`
+      await SubagentBudget.open({
+        rootSessionID: "root",
+        parentSessionID: "root",
+        sessionID: child,
+        assignmentID: "rejected-body",
+        objective: "Read evidence",
+        expectedOutput: "Report",
+        model: { providerID: model.providerID, modelID: model.id },
+        route: "local",
+        unit: "tokens",
+        allocation: 10000,
+        settings: { tokens: 40000 },
+      })
+      const trace = ModelCallTrace.create({
+        context: { sessionID: child, messageID: "msg_rejected_body", attempt: 1 },
+        route: "local",
+        provider: model.providerID,
+        model: model.id,
+        pricingModel: model,
+        outputBound: 1000,
+      })
+      const response = await request(trace, server.url.toString())
+      const reader = response.body!.getReader()
+      await reader.read()
+      await reader.cancel()
+      const state = (await SubagentBudget.read(child))!
+      expect(state.worker.spent).toBe(0)
+      expect(SubagentBudget.spendable(state.pool, child)).toBe(10000)
+    },
+  })
+})
+
+test.each([true, false])("structured configuration calls use the same trace path, valid output %s", async (valid) => {
+  const before = await (
+    await Storage.research()
+  ).query((db) =>
+    db
+      .query<{ session_id: string }, []>(
+        "SELECT DISTINCT session_id FROM model_call WHERE session_id LIKE 'agent-config:%'",
+      )
+      .all(),
+  )
+  using server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch: () =>
+      Response.json({
+        id: "chatcmpl_configuration",
+        object: "chat.completion",
+        created: 1,
+        model: "fixture-model",
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "assistant",
+              content: valid
+                ? JSON.stringify({
+                    identifier: "configuration_fixture",
+                    whenToUse: "fixture only",
+                    systemPrompt: "Read and explain.",
+                  })
+                : "not valid JSON",
+            },
+            finish_reason: "stop",
+          },
+        ],
+        usage: { prompt_tokens: 20, completion_tokens: 7, total_tokens: 27 },
+      }),
+  })
+  await using tmp = await tmpdir({ git: true, config: stressProviderConfig(`${server.url}v1`) })
+  await Instance.provide({
+    directory: tmp.path,
+    init: async () => {
+      await trustProject()
+      await Provider.invalidate()
+    },
+    fn: async () => {
+      const operation = Agent.generate({
+        description: "Local configuration trace fixture",
+        model: { providerID: "stress", modelID: "fixture-model" },
+      })
+      if (valid) expect(await operation).toMatchObject({ identifier: "configuration_fixture" })
+      else await expect(operation).rejects.toThrow()
+    },
+  })
+  const known = new Set(before.map((item) => item.session_id))
+  const ids = await (
+    await Storage.research()
+  ).query((db) =>
+    db
+      .query<{ session_id: string }, []>(
+        "SELECT DISTINCT session_id FROM model_call WHERE session_id LIKE 'agent-config:%'",
+      )
+      .all(),
+  )
+  const id = ids.find((item) => !known.has(item.session_id))!.session_id
+  const calls = (await SessionTraceStore.read(id)).modelCalls
+  expect(calls).toHaveLength(1)
+  expect(calls[0]).toMatchObject({
+    outcome: valid ? "completed" : "failed",
+    providerRequest: "chatcmpl_configuration",
+    reported: { input_tokens: 20, output_tokens: 7, total_tokens: 27, reasoning_tokens: null },
+    reportedCostUSD: null,
+  })
+  await SessionTraceStore.remove(id)
+})
+
+test("trace bookkeeping after the write-ahead runs once the request is sent, and before the response is used", async () => {
+  const order: string[] = []
+  let seen!: () => void
+  const requested = new Promise<void>((resolve) => (seen = resolve))
+  using server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch() {
+      order.push("server")
+      seen()
+      return new Response("ok")
+    },
+  })
+  const context: Provider.RequestContext = {
+    sessionID: "ses_late",
+    messageID: "msg_late",
+    attempt: 1,
+    callTrace: {
+      async start() {
+        order.push("write-ahead")
+        // Waits for the request to reach the server: awaiting this before
+        // dispatch would deadlock the call.
+        return async () => {
+          await requested
+          order.push("late")
+        }
+      },
+      async finish() {
+        order.push("finish")
+      },
+    },
+  }
+  const response = await Provider.withRequestContext(context, () =>
+    Provider.fetchWithIdleWatchdog(
+      fetch,
+      server.url.toString(),
+      { method: "POST", body: "{}" },
+      { providerID: "openai", modelID: "fixture", connectTimeout: 2000, idleTimeout: false },
+    ),
+  )
+  order.push("response")
+  await response.text()
+  expect(order.slice(0, 4)).toEqual(["write-ahead", "server", "late", "response"])
+})
+
+test("model.request is recorded after dispatch without the caller awaiting the body parse", async () => {
+  const late = await ModelCallTrace.create({
+    context: { sessionID: `ses_${crypto.randomUUID()}`, messageID: "msg", attempt: 1 },
+    route: "byok",
+    provider: "openai",
+    model: "fixture",
+  }).context.callTrace!.start(
+    {
+      requestID: "call_late",
+      sessionID: "ses",
+      messageID: "msg",
+      providerID: "openai",
+      modelID: "fixture",
+      startedAt: Date.now(),
+      attempt: 1,
+    } as never,
+    "{}",
+  )
+  // Without a usage binding there is nothing to defer.
+  expect(late).toBeUndefined()
+})

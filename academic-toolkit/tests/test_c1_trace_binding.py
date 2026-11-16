@@ -99,9 +99,12 @@ def test_used_without_trace_rejected_with_teaching(tmp_path):
     )
     assert result.status == "failed"
     assert "零使用痕迹" in result.message
-    # 教学①：如实补记 consult 命令；教学②：改报 skipped+理由
-    assert "evidence.commands" in result.message
-    assert "skipped" in result.message
+    # ENG-3 消息码化：错误码 + 一行原因进用户视图；教学①（如实补记 consult 命令
+    # 记入 evidence.commands）与教学②（改报 skipped+理由）完整保留在 diagnostics。
+    assert "EVIDENCE_COMPANION" in result.message
+    full_reason = result.diagnostics["checks"]["companion"]["reason"]
+    assert "evidence.commands" in full_reason
+    assert "skipped" in result.message and "skipped" in full_reason
 
 
 def test_used_without_trace_block_is_recorded_as_failed_step(tmp_path):
@@ -140,7 +143,10 @@ def test_double_brace_escape_residue_fixed(tmp_path):
     )
     assert result.status == "failed"
     assert '{{' not in result.message
-    assert '{"used": ["技能名"]' in result.message
+    # ENG-3 消息码化：格式教学移至 diagnostics 完整文案，且仍须单花括号渲染
+    full_reason = result.diagnostics["checks"]["companion"]["reason"]
+    assert '{{' not in full_reason
+    assert '{"used": ["技能名"]' in full_reason
 
 
 def test_missing_declaration_key_rejected_as_failed(tmp_path):

@@ -8,17 +8,12 @@ import path from "path"
 import os from "os"
 import { Config } from "../../config/config"
 import { Global } from "../../global"
-import { managedApiBase } from "../../endpoints"
 import { Plugin } from "../../plugin"
 import { Instance } from "../../project/instance"
-import { OpenScience } from "../../openscience"
-import { Log } from "../../util/log"
 import { runLocalModelSetup } from "./local"
 import type { Hooks } from "@synsci/plugin"
 import z from "zod"
 import { WellKnownAuthCommand } from "../../auth/wellknown-command"
-
-const log = Log.create({ service: "cmd.logout" })
 
 type PluginAuth = NonNullable<Hooks["auth"]>
 
@@ -55,7 +50,7 @@ export class WellKnownAuthApprovalRequired extends Error {
   }
 }
 
-export class WellKnownAuthDeclined extends Error {
+class WellKnownAuthDeclined extends Error {
   constructor() {
     super("The well-known auth command was not approved")
     this.name = "WellKnownAuthDeclined"
@@ -128,7 +123,7 @@ export async function fetchWellKnownAuth(
 
 /** Require a fresh local decision for the exact argv. Non-interactive callers
  * fail closed: piping input or running in CI is never treated as consent. */
-export async function approveWellKnownAuthCommand(
+async function approveWellKnownAuthCommand(
   command: string[],
   options: {
     interactive?: boolean
@@ -351,7 +346,7 @@ export const KeysCommand = cmd({
   async handler() {},
 })
 
-export const AuthListCommand = cmd({
+const AuthListCommand = cmd({
   command: "list",
   aliases: ["ls"],
   describe: "list providers",
@@ -556,7 +551,7 @@ export const AuthLoginCommand = cmd({
                   label: x.name,
                   value: x.id,
                   hint: {
-                    anthropic: "Claude Max or API key",
+                    anthropic: "API key (sk-ant-…)",
                     openai: "API key (to sign in with Codex/ChatGPT, use the option above)",
                   }[x.id],
                 })),
@@ -645,7 +640,7 @@ export const AuthLoginCommand = cmd({
 
         if (["cloudflare", "cloudflare-ai-gateway"].includes(provider)) {
           prompts.log.info(
-            "Cloudflare AI Gateway can be configured with CLOUDFLARE_GATEWAY_ID, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_API_TOKEN environment variables. Read more: https://syntheticsciences.ai/docs/providers/#cloudflare-ai-gateway",
+            "Cloudflare AI Gateway can be configured with CLOUDFLARE_GATEWAY_ID, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_API_TOKEN environment variables.",
           )
         }
 
@@ -665,35 +660,10 @@ export const AuthLoginCommand = cmd({
   },
 })
 
-/** Probe Atlas backend for whether the user's Codex OAuth is registered.
- *  Returns null when no Atlas session exists (caller treats it as unknown).
- *  Returns true|false when the backend gave a definitive answer.
- *
- *  The CLI's local Auth.get("openai-codex") and the Atlas backend can
- *  diverge — disconnecting Codex from the web UI doesn't notify the CLI.
- *  We check both before showing the "Already signed in" prompt so the
- *  flow stays robust under that drift. */
-async function backendHasCodex(): Promise<boolean | null> {
-  const session = await OpenScience.getSession?.()
-  const thkToken = session?.api_key
-  if (!thkToken) return null
-  const atlasBase = managedApiBase()
-  try {
-    const res = await fetch(`${atlasBase}/api/keys/openai-codex/status`, {
-      headers: { Authorization: `Bearer ${thkToken}` },
-    })
-    if (!res.ok) return null
-    const body = (await res.json()) as { connected?: boolean }
-    return !!body.connected
-  } catch {
-    return null
-  }
-}
-
 /** Run the Codex (ChatGPT subscription) OAuth flow. Shared by `keys signin` and
  *  the ChatGPT branch of `keys add` so both reach the exact same flow. Returns
  *  true when the flow ran, false when the codex auth plugin is unavailable. */
-async function runCodexAuthFlow(): Promise<boolean> {
+export async function runCodexAuthFlow(): Promise<boolean> {
   const plugin = await Plugin.list().then((x) => x.find((p) => p.auth?.provider === "openai-codex"))
   if (!plugin || !plugin.auth) {
     prompts.log.error("Codex auth plugin not available")
@@ -705,7 +675,7 @@ async function runCodexAuthFlow(): Promise<boolean> {
   return true
 }
 
-export const AuthCodexCommand = cmd({
+const AuthCodexCommand = cmd({
   command: ["signin", "codex"],
   describe: "sign in with ChatGPT / Codex (Plus/Pro/Business subscription)",
   async handler() {
@@ -717,31 +687,13 @@ export const AuthCodexCommand = cmd({
 
         const existing = await Auth.get("openai-codex")
         if (existing?.type === "oauth") {
-          // Local has tokens. Check the backend before assuming "already
-          // signed in" — the user may have disconnected from the web UI
-          // (which only clears the backend, not local CLI state).
-          const backend = await backendHasCodex()
-
-          if (backend === false) {
-            // Backend says disconnected (user clicked Disconnect on the
-            // web). Honor that: wipe the stale local credential and fall
-            // through to a fresh OAuth flow. The user expects logging out
-            // from the web to clear their CLI session too.
-            await Auth.remove("openai-codex")
-            prompts.log.info("Codex was disconnected on the web — starting a fresh login.")
-            // fall through to the OAuth flow below
-          } else {
-            // backend === true (or null/unknown — treat as connected).
-            // Ask if the user wants a fresh OAuth despite already being
-            // signed in.
-            const again = await prompts.confirm({
-              message: "Already signed in to Codex. Sign in again?",
-              initialValue: false,
-            })
-            if (prompts.isCancel(again) || !again) {
-              prompts.outro("Done")
-              return
-            }
+          const again = await prompts.confirm({
+            message: "Already signed in to Codex on this device. Sign in again?",
+            initialValue: false,
+          })
+          if (prompts.isCancel(again) || !again) {
+            prompts.outro("Done")
+            return
           }
         }
         const handled = await runCodexAuthFlow()
@@ -750,24 +702,6 @@ export const AuthCodexCommand = cmd({
     })
   },
 })
-
-/** Best-effort server-side disconnect of the Codex credential, mirroring
- *  pushTokensToBackend's POST. Runs BEFORE the local removal so the thk_ key can
- *  still authenticate the call. Never throws — the local Auth.remove is what
- *  actually signs the CLI out. */
-async function disconnectCodexBackend(): Promise<void> {
-  const session = await OpenScience.getSession?.()
-  const thkToken = session?.api_key
-  if (!thkToken) return
-  try {
-    await fetch(`${managedApiBase()}/api/keys/openai-codex`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${thkToken}` },
-    })
-  } catch {
-    /* best-effort — local removal below is the source of truth */
-  }
-}
 
 /** `openscience connect [codex]` — sign in with a ChatGPT (Codex) subscription.
  *  The connect/disconnect verb pair is Codex's; Atlas uses login/logout. */
@@ -794,8 +728,7 @@ export const ConnectCommand = cmd({
   },
 })
 
-/** `openscience disconnect [codex]` — sign out of ChatGPT (Codex): clears the
- *  local OAuth credential and best-effort revokes it server-side. */
+/** `openscience disconnect [codex]` — remove the local ChatGPT credential. */
 export const DisconnectCommand = cmd({
   command: "disconnect [service]",
   describe: "disconnect your ChatGPT subscription (Codex)",
@@ -814,16 +747,12 @@ export const DisconnectCommand = cmd({
         prompts.intro("Disconnect ChatGPT (Codex)")
 
         const existing = await Auth.get("openai-codex")
-        const backend = await backendHasCodex()
-        if (!existing && backend !== true) {
+        if (!existing) {
           prompts.log.warn("ChatGPT (Codex) isn't connected.")
           prompts.outro("Done")
           return
         }
 
-        // Revoke server-side while the thk_ key can still authenticate, then
-        // drop the local credential (the part that actually signs the CLI out).
-        await disconnectCodexBackend()
         await Auth.remove("openai-codex")
         prompts.log.success("Disconnected ChatGPT (Codex)")
         prompts.outro("Done")
@@ -832,7 +761,7 @@ export const DisconnectCommand = cmd({
   },
 })
 
-export const AuthLogoutCommand = cmd({
+const AuthLogoutCommand = cmd({
   command: ["remove", "rm", "logout"],
   describe: "remove a saved provider key",
   async handler() {
@@ -853,34 +782,6 @@ export const AuthLogoutCommand = cmd({
     })
     if (prompts.isCancel(providerID)) throw new UI.CancelledError()
     await Auth.remove(providerID)
-    // Removing Codex must also revoke it on the Atlas backend and re-sync so
-    // the provider list drops openai-codex/* immediately — otherwise the CLI
-    // and backend drift (local removed, backend still connected).
-    if (providerID === "openai-codex") {
-      await revokeCodexOnBackend()
-      await OpenScience.syncServices?.().catch(() => {})
-    }
     prompts.outro("Logout successful")
   },
 })
-
-async function revokeCodexOnBackend(): Promise<void> {
-  const atlasBase = managedApiBase()
-  const session = await OpenScience.getSession?.()
-  const thkToken = session?.api_key
-  if (!thkToken) {
-    log.warn("no managed account session; skipping backend codex revoke")
-    return
-  }
-  try {
-    const res = await fetch(`${atlasBase}/api/keys/openai-codex`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${thkToken}` },
-    })
-    if (!res.ok && res.status !== 404) {
-      log.warn("backend codex revoke failed", { status: res.status })
-    }
-  } catch (e) {
-    log.warn("backend codex revoke errored", { error: String(e) })
-  }
-}

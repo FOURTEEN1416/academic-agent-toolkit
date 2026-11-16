@@ -4,7 +4,7 @@ import path from "path"
 import z from "zod"
 import { Installation } from "../installation"
 import { Flag } from "../flag/flag"
-import { lazy } from "@/util/lazy"
+import { lazy } from "@synsci/util/lazy"
 
 // Try to import bundled snapshot (generated at build time)
 // Falls back to undefined in dev mode when snapshot doesn't exist
@@ -53,6 +53,8 @@ export namespace ModelsDev {
     name: z.string(),
     family: z.string().optional(),
     release_date: z.string(),
+    /** Training-data cutoff as the catalog reports it (YYYY-MM or YYYY-MM-DD). */
+    knowledge: z.string().optional(),
     attachment: z.boolean(),
     reasoning: z.boolean(),
     reasoning_options: z.array(ReasoningOption).optional(),
@@ -74,6 +76,17 @@ export namespace ModelsDev {
         output: z.number(),
         cache_read: z.number().optional(),
         cache_write: z.number().optional(),
+        tiers: z
+          .array(
+            z.object({
+              input: z.number(),
+              output: z.number(),
+              cache_read: z.number().optional(),
+              cache_write: z.number().optional(),
+              tier: z.object({ type: z.literal("context"), size: z.number().positive() }),
+            }),
+          )
+          .optional(),
         context_over_200k: z
           .object({
             input: z.number(),
@@ -128,8 +141,9 @@ export namespace ModelsDev {
 
   function hasCurrentFrontier(data: Record<string, any> | undefined) {
     // A well-formed catalog with the major providers populated is good enough to
-    // serve synchronously; actual freshness is guaranteed by the startup + hourly
-    // refresh() below, which always refetches live from models.dev. We deliberately
+    // serve synchronously; actual freshness is guaranteed by the startup (once the
+    // cache is a day old) + hourly refresh() below, which refetches live from
+    // models.dev. We deliberately
     // do NOT hardcode specific frontier model ids here — they churn (a provider
     // renaming its flagship would wrongly reject an otherwise-current catalog and
     // pin stale data). Just require the catalog to be structurally valid.
@@ -177,29 +191,49 @@ export namespace ModelsDev {
     return result as Record<string, Provider>
   }
 
+  /** Whether the on-disk catalog was refreshed within the last day. */
+  export async function fresh() {
+    const stat = await Bun.file(filepath)
+      .stat()
+      .catch(() => undefined)
+    return !!stat && Date.now() - stat.mtime.getTime() < 24 * 60 * 60 * 1000
+  }
+
   export async function refresh() {
     const file = Bun.file(filepath)
     const result = await fetchLive()
-    if (result) {
-      await Bun.write(file, JSON.stringify(result))
-      ModelsDev.Data.reset()
-      // Drop the memoized provider state so a long-running session picks up the
-      // refreshed catalog (new/renamed/removed models) instead of serving the
-      // snapshot captured at first build. Dynamic import avoids a static cycle
-      // (provider.ts imports ModelsDev). Best-effort.
-      try {
-        const { Provider } = await import("./provider")
-        Provider.invalidate()
-      } catch {}
-    }
+    if (!result) return
+    const serialized = JSON.stringify(result)
+    const cached = await file.text().catch(() => undefined)
+    await Bun.write(file, serialized)
+    // Only a changed catalog is worth rebuilding provider state for. A
+    // byte-identical refresh would otherwise discard the memoized state (and
+    // resend the whole catalog) right as the workspace is loading it.
+    if (cached === serialized) return
+    ModelsDev.Data.reset()
+    // Drop the memoized provider state so a long-running session picks up the
+    // refreshed catalog (new/renamed/removed models) instead of serving the
+    // snapshot captured at first build. Dynamic import avoids a static cycle
+    // (provider.ts imports ModelsDev). Best-effort.
+    try {
+      const { Provider } = await import("./provider")
+      Provider.invalidate()
+    } catch {}
   }
 }
 
 if (!Flag.OPENSCIENCE_DISABLE_MODELS_FETCH) {
-  ModelsDev.refresh()
+  // A cache younger than a day is served as-is at boot so startup never races
+  // a live fetch; the hourly interval keeps a long-running server current.
+  // Cache writes can fail even when the network refresh succeeds.
+  const reportRefreshFailure = (error: unknown) =>
+    Log.create({ service: "models.dev" }).error("Failed to refresh the models.dev catalog", { error })
+  ModelsDev.fresh()
+    .then((fresh) => (fresh ? undefined : ModelsDev.refresh()))
+    .catch(reportRefreshFailure)
   setInterval(
     async () => {
-      await ModelsDev.refresh()
+      await ModelsDev.refresh().catch(reportRefreshFailure)
     },
     60 * 1000 * 60,
   ).unref()

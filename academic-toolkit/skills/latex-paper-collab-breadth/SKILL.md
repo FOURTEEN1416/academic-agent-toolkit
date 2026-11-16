@@ -23,6 +23,7 @@ and supports multi-turn sessions via `SESSION_ID`.
 > constraint, fallback code-collaboration mode, safety guardrails, and
 > collaboration state capsule format).  Only Gemini-specific additions
 > are listed below.
+> <!--ACAT-GOVERNANCE: `../../_shared/collaboration-base.md` 未随本仓库集成（资产缺口已登记于本技能 ASSET-GAP.md），共享基线文件缺失。降级执行口径：无共享基线时按本页要点执行——候选产出仅作输入不直写工件（Candidates-Only）、协作者不可用即跳过并由当前 Agent 自审降级、不生成/不覆写 `ref.bib`、协作输出须经验证后方可采纳。-->
 
 ## When to Use
 - paper-from-zero needs to expand the candidate literature pool.
@@ -108,6 +109,6 @@ Each template specifies its input sources, output artifact mappings, and constra
 - Smoke-test the bridge: `python3 <gemini-bridge-script> --help`
 
 ## References
-- `../../_shared/collaboration-base.md` (shared rules)
+- `../../_shared/collaboration-base.md` (shared rules) <!--ACAT-GOVERNANCE: 该共享基线文件未随本仓库集成（见本技能 ASSET-GAP.md）；缺失时按上方 Shared rules 降级口径执行-->
 - `assets/prompt-template.md` (prompt patterns)
 - `references/shell-quoting.md` (shell quoting/backticks)

@@ -4,7 +4,13 @@ description: Use this skill when working with symbolic mathematics in Python. Th
 category: coding
 license: https://github.com/sympy/sympy/blob/master/LICENSE
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/sympy
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # SymPy - Symbolic Mathematics in Python

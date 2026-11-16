@@ -12,7 +12,7 @@ Systematically review LaTeX documents and identify issues that need attention.
 
 - "check my latex", "clean up the paper", "review formatting"
 - After editing a LaTeX document
-- Called by the `presubmit-checks` skill as one of its checks
+- Called by the `paper-presubmit-checks` skill as one of its checks
 
 ## Workflow
 

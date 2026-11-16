@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/paperspine-capabilities.schema.json",
+  "title": "PaperSpine capability document",
+  "x-contract-status": "frozen-p0-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "protocol_version", "schema_versions", "commands", "resources", "event_types", "features"],
+  "properties": {
+    "contract": {"const": "paperspine.capabilities"},
+    "protocol_version": {"const": "1.0"},
+    "schema_versions": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "commands": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "resources": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "event_types": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "features": {"type": "object", "additionalProperties": {"type": "boolean"}, "required": ["sse_resume", "persistent_decisions", "external_actions"]}
+  }
+}

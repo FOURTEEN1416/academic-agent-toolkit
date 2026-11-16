@@ -5,10 +5,18 @@ import { Ripgrep } from "../file/ripgrep"
 import DESCRIPTION from "./grep.txt"
 import { Instance } from "../project/instance"
 import path from "path"
+import fs from "node:fs/promises"
 import { assertExternalDirectory, sessionToolDirectory } from "./external-directory"
 
 const MAX_LINE_LENGTH = 2000
 const MAX_MATCHES = 100
+
+/** `--no-messages` silences stderr for exactly the failures this branch exists
+ *  to explain, so an empty detail still has to reach the generic text: `??` only
+ *  falls through on null and undefined, never on an empty string. */
+export function searchFailure(missing: string | undefined, detail: string) {
+  return `Search failed: ${missing ?? (detail || "Some paths could not be searched.")}`
+}
 
 async function output(proc: { stdout: ReadableStream<Uint8Array>; kill(): void }, abort: AbortSignal) {
   const reader = proc.stdout.getReader()
@@ -71,6 +79,8 @@ export const GrepTool = Tool.define("grep", {
     const args = [
       "-nH",
       "--hidden",
+      // Stabilize traversal before the bounded reader chooses the result set.
+      "--sort=path",
       "--no-messages",
       "--max-columns",
       String(MAX_LINE_LENGTH),
@@ -85,6 +95,7 @@ export const GrepTool = Tool.define("grep", {
     searchPath = (await authorized?.revalidate()) ?? searchPath
     args.push(searchPath)
 
+    ctx.abort.throwIfAborted()
     const proc = Bun.spawn([rgPath, ...args], {
       stdout: "pipe",
       stderr: "pipe",
@@ -94,15 +105,28 @@ export const GrepTool = Tool.define("grep", {
     const error = new Response(proc.stderr).text()
     const collected = await output(proc, ctx.abort)
     const [errorOutput, exitCode] = await Promise.all([error, proc.exited])
+    ctx.abort.throwIfAborted()
 
     // Exit codes: 0 = matches found, 1 = no matches, 2 = errors (but may still have matches)
     // With --no-messages, we suppress error output but still get exit code 2 for broken symlinks etc.
-    // Only fail if exit code is 2 AND no output was produced
-    if (exitCode === 1 || (exitCode === 2 && collected.lines.length === 0)) {
+    // Invalid patterns and inaccessible roots are failures, not proof that no
+    // files exist. A valid content search can also find files but no matching
+    // lines; keep that distinct from a filename search.
+    if (exitCode === 2 && collected.lines.length === 0) {
+      // "Some paths could not be searched" sent leads hunting for a permission
+      // problem when the path simply was not there, and one of them rebuilt by
+      // hand what the missing directory would have told it. Say which it is.
+      const missing = await fs
+        .stat(searchPath)
+        .then(() => undefined)
+        .catch(() => `No such file or directory: ${searchPath}`)
+      throw new Error(searchFailure(missing, errorOutput.trim()))
+    }
+    if (exitCode === 1) {
       return {
         title: params.pattern,
         metadata: { matches: 0, truncated: false },
-        output: "No files found",
+        output: "No matching content found",
       }
     }
 
@@ -134,7 +158,7 @@ export const GrepTool = Tool.define("grep", {
       })
     }
 
-    matches.sort((a, b) => b.modTime - a.modTime)
+    matches.sort((a, b) => b.modTime - a.modTime || a.path.localeCompare(b.path) || a.lineNum - b.lineNum)
 
     const truncated = collected.stopped || matches.length > MAX_MATCHES
     const finalMatches = truncated ? matches.slice(0, MAX_MATCHES) : matches
@@ -143,7 +167,7 @@ export const GrepTool = Tool.define("grep", {
       return {
         title: params.pattern,
         metadata: { matches: 0, truncated: false },
-        output: "No files found",
+        output: "No matching content found",
       }
     }
 

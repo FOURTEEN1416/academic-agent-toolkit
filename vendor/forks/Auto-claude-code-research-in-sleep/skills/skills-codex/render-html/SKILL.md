@@ -2,10 +2,21 @@
 name: render-html
 description: "Render an ARIS Markdown / JSON artifact (IDEA_REPORT, AUTO_REVIEW, KILL_ARGUMENT, PAPER_PLAN, research-wiki state, etc.) into a single-file HTML view designed for human reading. Use when the user says \"渲染 HTML\", \"出一份 HTML 报告\", \"render html\", \"make this readable\", \"export to html\", or wants a polished web-rendered view of a Markdown artifact."
 argument-hint: "<input.md> [--template academic|dashboard] [--out <path>] [--title ...] [--state <state.json>] [--json <sidecar.json>] [--offline] [--review|--no-review]"
-allowed-tools: Bash(*), Read, Write, spawn_agent
+allowed-tools: Bash(*), Read, Write, spawn_agent, mcp__antigravity__antigravity, mcp__antigravity__antigravity-reply, mcp__grok__grok, mcp__grok__grok-reply, mcp__claude-review__review, mcp__claude-review__review_reply, mcp__claude-review__review_start, mcp__claude-review__review_reply_start, mcp__claude-review__review_status
 ---
 
 # /render-html: Markdown → single-file HTML for human reading
+
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Codex default (fresh native reviewer)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
 
 > **Markdown is for writers. HTML is for readers.** ARIS workflow nodes write Markdown (canonical, audit-trail-friendly, machine-parseable). `/render-html` turns *selected* artifacts into a polished single-file HTML view for the human who actually has to read them. The Markdown stays the source of truth.
 
@@ -31,7 +42,7 @@ allowed-tools: Bash(*), Read, Write, spawn_agent
 ## Core invariants
 
 - **MD / JSON is canonical, HTML is generated view.** Edit the source, then re-render. Do not hand-edit the HTML.
-- **Fresh review at the artifact boundary.** Academic-template HTML is reviewed by a fresh Codex `spawn_agent`. In the base mirror this is same-family and the result is provisional; an overlay may provide cross-family accepted review. Dashboard HTML skips review by default but accepts `--review`.
+- **Fresh review at the artifact boundary.** Academic-template HTML uses the selected reviewer in a fresh context. With the default native Codex reviewer the result is same-family provisional; a completed positive selected review with known different model families may provide accepted review. Dashboard HTML skips review by default but accepts `--review`.
 - **Drift detection.** Every rendered HTML embeds the source path, SHA256, and generation timestamp in `<meta>` tags AND in the visible page header. If the HTML and source diverge, the meta tells you which version of the source produced it.
 - **Single-file output.** No build system, no separate CSS, no `node_modules`. Just one `.html`.
 - **CDN-friendly default, `--offline` fallback.** MathJax 3 and highlight.js load from `cdn.jsdelivr.net` by default. Pass `--offline` to skip both — math will appear as raw `$x$`, code blocks won't get syntax highlighting, but everything stays readable.
@@ -127,10 +138,10 @@ Use the resolver above to get `$RENDER_HTML`, then invoke. The script writes the
 
 ### Step 4: HTML Review Gate (same-family provisional by default)
 
-**Decide whether to run review.** Academic-template HTML is reviewed by a fresh
-Codex agent with no author context before being claimed as reviewed. The base
-route records `review_independence: same-family` and
-`acceptance_status: provisional`; an overlay records cross-family accepted.
+**Decide whether to run review.** Academic-template HTML is reviewed by the selected reviewer in a fresh
+context with no author history before being claimed as reviewed. The default
+native Codex route records `review_independence: same-family` and
+`acceptance_status: provisional`; a completed positive selected review with known different model families records cross-family accepted.
 Resolution:
 
 ```
@@ -144,7 +155,7 @@ So:
 - `--template dashboard` → no review by default. Force with `--review`.
 - Phase 2 workflow auto-emit (planned) follows the same rule.
 
-**If `should_review` is true**, fire a fresh `spawn_agent` call (NEVER `send_input`; pin `model: gpt-5.6-sol` + `reasoning_effort: xhigh` per `../shared-references/reviewer-routing.md`) with the prompt below. The reviewer reads the source MD + generated HTML directly; it does **not** see this skill's intermediate state.
+**If `should_review` is true**, fire a fresh `spawn_agent` call (NEVER `send_input`; pin `model: gpt-6-astra` + `reasoning_effort: xhigh` per `../shared-references/reviewer-routing.md`) with the prompt below. The reviewer reads the source MD + generated HTML directly; it does **not** see this skill's intermediate state.
 
 **Scope of review (narrow on purpose).** The HTML reviewer audits **render fidelity / safety / structure only** — not claim truthfulness. Claim audit belongs upstream (`/paper-claim-audit`, `/research-review`, `/result-to-claim`). Specifically the reviewer checks:
 
@@ -187,8 +198,8 @@ Return STRICT JSON first, then a short prose note:
 
 {
   "verdict": "PASS|WARN|FAIL|ERROR",
-  "review_independence": "same-family",
-  "acceptance_status": "provisional",
+  "review_independence": "<actual family comparison>",
+  "acceptance_status": "<actual acceptance status>",
   "checks": {
     "source_hash_match": "pass|warn|fail|unknown",
     "information_fidelity": "pass|warn|fail",
@@ -231,7 +242,7 @@ Verdict rules:
 
 **If `verdict == WARN`**: deliver the HTML but surface the warning list. User decides whether to fix or accept.
 
-**If `spawn_agent` is not available** (e.g., user runs `/render-html` on a Codex-CLI-only setup where Codex MCP isn't wired): emit `verdict: REVIEW_UNAVAILABLE` to the sidecar, do not fabricate `PASS`, and tell the user the HTML was generated but **not** independently reviewed. The user can manually invoke `/research-review` on the source MD or re-run with Codex MCP available.
+**If the selected reviewer route is unavailable**: emit `verdict: REVIEW_UNAVAILABLE` to the sidecar, do not fabricate `PASS`, and tell the user the HTML was generated but **not** independently reviewed. The user can manually invoke `/research-review` on the source MD or re-run when the selected reviewer is available.
 
 ### Step 5: (Optional) Verify in browser
 

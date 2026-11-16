@@ -50,11 +50,7 @@ numbers. A respectful disagreement is better than a fabricated concession.
 - **Minor revision:** revalidate every PaperSpine readiness dimension and mark
   an actually unaffected dimension `not_affected`. Changed artifacts still need
   real receipts.
-- **Major revision / reject-and-resubmit:** scientific identity, Results,
-  figures, citations, metadata, and portable artifacts may all have changed.
-  Re-run all five dimensions and require `passed`; do not reuse prior final
-  receipts. Re-run integrated editorial review and the final publication
-  surface check before packaging.
+- **Major revision / reject-and-resubmit:** assess the actual effects on scientific identity, Results, figures, citations, metadata and portable files. Recheck changed inputs and all affected conclusions, including integrated editorial quality, while reusing still-valid evidence for unchanged work. A decision label alone does not invalidate every prior check.
 
 New or changed experiments must return to the evidence ledger, Results
 validation, figure story/body contract, citations, and final renders. A response

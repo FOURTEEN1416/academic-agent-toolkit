@@ -1,0 +1,138 @@
+import { expect, test } from "bun:test"
+import {
+  loadedSkillNamesThisTurn,
+  recordRecentSkill,
+  setSkillPinned,
+  skillCatalogSnapshot,
+  skillPreferences,
+} from "./skill-permissions"
+
+const skills = [
+  { name: "recommended", recommended: true, permission_action: "allow" as const },
+  { name: "recent", permission_action: "ask" as const },
+  { name: "pinned", permission_action: "allow" as const },
+  { name: "denied", recommended: true, permission_action: "deny" as const },
+  { name: "helper", entry: false, permission_action: "allow" as const },
+]
+
+test("catalog snapshot keeps Library separate from Allowed and a bounded compact shortlist", () => {
+  const snapshot = skillCatalogSnapshot(skills, {
+    pinned: ["pinned", "denied"],
+    recent: ["recent", "pinned"],
+    loadedThisTurn: ["recent"],
+    shortlistLimit: 3,
+  })
+
+  expect(snapshot.library.map((skill) => skill.name)).toEqual(["recommended", "recent", "pinned", "denied"])
+  expect(snapshot.allowed.map((skill) => skill.name)).toEqual(["recommended", "recent", "pinned"])
+  expect(snapshot.shortlist.map((skill) => skill.name)).toEqual(["pinned", "recent", "recommended"])
+  expect(snapshot.loadedThisTurn.map((skill) => skill.name)).toEqual(["recent"])
+  expect(snapshot.action("denied")).toBe("deny")
+})
+
+test("local permission edits override the server snapshot without exposing denied rows", () => {
+  const snapshot = skillCatalogSnapshot(skills, {
+    permission: { skill: { denied: "allow", recent: "deny" } },
+  })
+  expect(snapshot.allowed.map((skill) => skill.name)).toEqual(["recommended", "pinned", "denied"])
+  expect(snapshot.action("recent")).toBe("deny")
+  expect(snapshot.action("denied")).toBe("allow")
+})
+
+test("recent and pinned preferences are deduplicated and bounded", () => {
+  const values = new Map<string, string>()
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+  }
+
+  recordRecentSkill("one", storage, 2)
+  recordRecentSkill("two", storage, 2)
+  recordRecentSkill("one", storage, 2)
+  setSkillPinned("one", true, storage)
+  setSkillPinned("two", true, storage)
+  setSkillPinned("one", false, storage)
+
+  expect(skillPreferences(storage)).toEqual({ pinned: ["two"], recent: ["one", "two"] })
+})
+
+test("loaded-this-turn state starts at the latest user turn and requires a completed Skill call", () => {
+  const messages = [
+    { id: "usr_old", role: "user" },
+    { id: "asst_old", role: "assistant" },
+    { id: "usr_new", role: "user" },
+    { id: "asst_new", role: "assistant" },
+  ]
+  const parts = {
+    asst_old: [
+      { type: "tool", tool: "skill", state: { status: "completed", input: { name: "old-skill" }, metadata: {} } },
+    ],
+    asst_new: [
+      { type: "tool", tool: "skill", state: { status: "running", input: { name: "not-loaded" } } },
+      {
+        type: "tool",
+        tool: "skill",
+        state: {
+          status: "completed",
+          title: "Loaded skill: loaded-skill",
+          input: { name: "fallback", query: "find an analysis skill" },
+          metadata: { name: "loaded-skill" },
+        },
+      },
+    ],
+  }
+
+  expect(loadedSkillNamesThisTurn(messages, parts)).toEqual(["loaded-skill"])
+})
+
+test("discovery and failed calls never mark a skill loaded, even when the query is its exact name", () => {
+  const messages = [
+    { id: "user", role: "user" },
+    { id: "assistant", role: "assistant" },
+  ]
+  const result = (title: string, metadata: Record<string, unknown>, status = "completed") => ({
+    type: "tool",
+    tool: "skill",
+    state: { status, title, input: { name: "guessed-name", query: "matplotlib" }, metadata },
+  })
+  expect(
+    loadedSkillNamesThisTurn(messages, {
+      assistant: [
+        result("Skill matches: matplotlib", { name: "matplotlib", matches: ["matplotlib"], dir: "" }),
+        result("Skills in category: visualization", { name: "visualization", matches: ["matplotlib"], dir: "" }),
+        result("Loaded skill: matplotlib", { name: "matplotlib" }, "error"),
+        result("Loaded skill: matplotlib", { name: "matplotlib" }, "running"),
+        result("Loaded skill: matplotlib", { name: "matplotlib", ok: false }),
+        result("Loaded skill: ", { name: "matplotlib" }),
+      ],
+    }),
+  ).toEqual([])
+  expect(
+    loadedSkillNamesThisTurn(messages, {
+      assistant: [result("Loaded skill: matplotlib", {}), result("Loaded skill: matplotlib", { name: "matplotlib" })],
+    }),
+  ).toEqual(["matplotlib"])
+})
+
+test("a load is recognised from its recorded metadata, with the title only as a fallback", () => {
+  const messages = [
+    { id: "user", role: "user" },
+    { id: "assistant", role: "assistant" },
+  ]
+  const load = (title: string, metadata: Record<string, unknown>) => ({
+    type: "tool",
+    tool: "skill",
+    state: { status: "completed", title, input: { name: "requested" }, metadata },
+  })
+  expect(
+    loadedSkillNamesThisTurn(messages, {
+      assistant: [
+        load("Skill: matplotlib", { name: "matplotlib", dir: "/skills/matplotlib", contentHash: "a".repeat(64) }),
+        load("Skill matches: seaborn", { name: "seaborn", dir: "", matches: ["seaborn"] }),
+        load("Loaded skill: legacy-title", {}),
+        load("Loaded skill: renamed", { name: "recorded-name", dir: "/skills/recorded-name" }),
+        load("Skill: denied", { name: "denied", dir: "/skills/denied", ok: false }),
+      ],
+    }),
+  ).toEqual(["matplotlib", "legacy-title", "recorded-name"])
+})

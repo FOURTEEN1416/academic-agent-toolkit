@@ -1,6 +1,6 @@
 # Exemplar Learning Dossier
 
-Use this when the user asks the skill to learn from excellent papers. The dossier is the main learning artifact. It should be produced before `paragraph_function_templates.md`, `result_narrative_templates.md`, `style_profile.md`, `section_blueprints.md`, or manuscript writing.
+Use this when the user asks the skill to learn from excellent papers. Use existing task notes to retain the source observations and their effect on the manuscript. The dossier and templates below are optional working formats; learning is demonstrated by justified writing choices, not a sequence of new files.
 
 ## Goal
 
@@ -16,9 +16,9 @@ Do not merely summarize each paper. The dossier must answer:
 - How does Discussion close the loop opened in the Introduction?
 - What should our paper imitate, avoid, or adapt?
 
-## Required Output
+## Optional Working Format
 
-Save as `paper_rewriting_output/exemplar_learning_dossier.md`.
+If a separate dossier is useful, save it as `paper_rewriting_output/exemplar_learning_dossier.md`.
 
 ```markdown
 # Exemplar Learning Dossier
@@ -79,7 +79,7 @@ Use skeletons, not copied wording.
 |---|---|---|
 ```
 
-Also save:
+When useful, organize transferable patterns as:
 
 - `paper_rewriting_output/paragraph_function_templates.md`
 - `paper_rewriting_output/result_narrative_templates.md`
@@ -97,6 +97,12 @@ For each exemplar:
 5. In Results, mark the sequence: setup -> metric/figure -> comparison -> interpretation -> transition.
 6. In Discussion, map each paragraph to: summary, mechanism/significance, limitations, future/closure.
 7. Extract reusable sentence skeletons with slots.
+
+Then adapt the learned function to an actual paragraph or Results passage using
+this study's evidence, and compare the original exemplar, prior draft (when
+present) and revised passage. Keep locators for the source observation and its
+application in the working notes. The optional tables do not make original-text
+reading, function analysis, actual application or this comparison optional.
 
 ## Paragraph Function Template
 
@@ -157,17 +163,17 @@ Save as `paper_rewriting_output/result_narrative_templates.md`.
 |---|---|---|
 ```
 
-For each Results subsection in the user's manuscript, the later rewrite matrix must cite one template row.
+Use the relevant result-narrative pattern in the actual section. Keep its source
+locator in existing notes; no template-row citation is required to begin writing.
 
 ## Completion Test
 
 The dossier is incomplete if it cannot tell the writer:
 
-- how many paragraphs the Introduction should have,
+- how the Introduction develops the specific question and supported increment,
 - what each paragraph should do,
 - which Results subsection should come first and why,
 - what the first Discussion paragraph must resolve,
 - what tone and claim strength fit the venue,
 - what content from the original draft should be deleted or moved,
-- which paragraph-function template each major rewritten paragraph will follow,
-- which result-narrative template each Results subsection will follow.
+- which actual paragraph/Results weakness the observed pattern repairs.

@@ -26,10 +26,7 @@ named the destination. Return `SUBMIT`, `RESHAPE`, or `REDIRECT` with concrete
 reasons and tradeoffs; do not produce acceptance probabilities from
 unsupported data.
 
-Publisher transfer offers can reduce administrative work, but they do not
-guarantee acceptance and do not select a destination for the author. The user
-must confirm the destination before files are rebuilt or an external transfer
-is accepted.
+Publisher transfer offers may reduce administrative work but do not guarantee acceptance. Reuse a destination already selected or explicitly delegated by the user; seek a decision only for a genuinely unresolved destination or material change in scope. External transfer remains a separate authorized action.
 
 ## 3. Create destination profile and request
 
@@ -56,9 +53,7 @@ The delta always reopens three surfaces:
 
 1. **Format:** template, file types, limits, anonymity, references,
    figures/tables, supplements, and rendering.
-2. **Five-part narrative:** front matter, introduction, methods/approach,
-   results/analysis, and discussion/conclusion are rebuilt from the destination
-   profile even when headings look similar.
+2. **Five-part narrative:** assess front matter, introduction, methods/approach, results/analysis and discussion/conclusion against the destination profile. Revise the parts with an actual mismatch and retain valid unaffected writing.
 3. **Delivery package:** target-specific letters, title/blinded pages,
    declarations, attachments, source archive, and upload names are regenerated
    or revalidated according to the destination requirement.

@@ -1,0 +1,6 @@
+{
+  "protocol": "paperspine-updater/1",
+  "product": "paperspine",
+  "adapter": "release/stable_update_adapter.py",
+  "python_min": [3, 12]
+}

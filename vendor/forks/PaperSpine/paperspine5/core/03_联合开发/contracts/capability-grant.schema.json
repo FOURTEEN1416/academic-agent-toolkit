@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/capability-grant.schema.json",
+  "title": "PaperSpine5 path capability grant",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "grant_id", "capability", "root", "canonical_target", "filesystem_identity", "permissions", "read_only", "created_at", "revoked_at"],
+  "properties": {
+    "contract": {"const": "paperspine5.capability-grant"},
+    "schema_version": {"const": "1.1"},
+    "grant_id": {"type": "string", "minLength": 1},
+    "capability": {"const": "materials.read"},
+    "root": {"type": "string", "minLength": 1},
+    "canonical_target": {"type": "string", "minLength": 1},
+    "filesystem_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["st_dev", "st_ino", "st_mode"],
+      "properties": {
+        "st_dev": {"type": "integer"},
+        "st_ino": {"type": "integer"},
+        "st_mode": {"type": "integer"}
+      }
+    },
+    "permissions": {"type": "array", "items": {"enum": ["enumerate", "read"]}, "uniqueItems": true},
+    "read_only": {"const": true},
+    "created_at": {"type": "string", "minLength": 1},
+    "revoked_at": {"type": ["string", "null"]}
+  }
+}

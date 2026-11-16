@@ -132,6 +132,7 @@ Default route: freeze target -> local proof -> local correctness audit -> exposi
    - Copy stable, directly relevant snapshots into `sources/` when the original may change or cannot be referred to reliably.
    - Keep private run materials in the run directory, never in the skill package.
 3. Attempt the proof locally.
+   - Use [`/lean-formalize`](../lean-formalize/SKILL.md) for requested Lean work or a concrete obligation whose formal implementation would help this attempt. Reuse this run's target and continuation record; record the Lean entry point, checked scope and next unresolved obligation here. Lean is an available proof route, not a prerequisite for every proof or GPT Pro handoff.
    - Try to complete the actual proof, disproof, counterexample, or diagnosis; do not stop at a difficulty probe.
    - Check definitions, boundary cases, domains, support, topology, quantifiers, and imported theorem hypotheses.
    - Write `local-proof.md` with the conclusion, proof attempt, dependencies, and any unresolved gap.

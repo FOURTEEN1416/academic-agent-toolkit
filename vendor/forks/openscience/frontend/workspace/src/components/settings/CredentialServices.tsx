@@ -6,29 +6,10 @@ import { confirmDialog } from "@/atlas/dialogs"
 import { useGlobalSDK } from "@/context/global-sdk"
 import { usePlatform } from "@/context/platform"
 import { settingsApi } from "./api"
-import { ProviderLogo } from "./ProviderLogo"
 import { customCredentialIdentity } from "./custom-credential"
-
-type Field = {
-  name: string
-  label: string
-  type: "password" | "text" | "textarea"
-  optional: boolean
-  placeholder?: string
-}
-
-type Service = {
-  id: string
-  label: string
-  description: string
-  category?: "compute" | "integration"
-  custom: boolean
-  fields: Field[]
-  connected: boolean
-  set_fields: string[]
-  updated_at: string | null
-  source: "local" | "account" | null
-}
+import { invalidateCredentials, loadCredentials, type Service } from "./credential-loader"
+import { invalidateScientificTools } from "./scientific-tools-loader"
+import { ProviderLogo } from "./ProviderLogo"
 
 export const CredentialServices: Component<{
   category: "compute" | "integration"
@@ -49,28 +30,65 @@ export const CredentialServices: Component<{
   const [name, setName] = createSignal("")
   const [field, setField] = createSignal("api_key")
   const [secret, setSecret] = createSignal("")
+  // Logins this computer already holds (gh, hf): offered as a one-click import
+  // so publishing never needs a token pasted into a chat.
+  type HostCredential = { service: "github" | "huggingface"; available: boolean; source?: string }
+  const [host, setHost] = createSignal<HostCredential[]>([])
+  const hostSource = (id: string) => {
+    const match = host().find((item) => item.service === id && item.available)
+    if (!match) return undefined
+    return match.source === "gh"
+      ? "the gh CLI login"
+      : match.source === "huggingface-cli"
+        ? "the hf CLI login"
+        : match.source === "token-file"
+          ? "the Hugging Face token file"
+          : "the shell environment"
+  }
+  const importHost = async (service: Service) => {
+    if (saving()) return
+    setSaving(true)
+    setError(undefined)
+    const result = await settingsApi<{ services: Service[] }>(
+      sdk.url,
+      platform.fetch ?? fetch,
+      "/settings/credentials/host/import",
+      { method: "POST", body: JSON.stringify({ service: service.id }) },
+    ).catch((cause) => {
+      setError(cause instanceof Error ? cause.message : String(cause))
+      return undefined
+    })
+    setSaving(false)
+    if (!result) return
+    invalidateCredentials(sdk.url)
+    invalidateScientificTools(sdk.url)
+    setServices(result.services)
+  }
   const category = (service: Service) => {
     if (service.category) return service.category
-    if (["aws", "gcp", "azure", "nvidia"].includes(service.id)) return "compute"
+    if (["aws", "gcp", "azure"].includes(service.id)) return "compute"
     if (service.id === "modal") return undefined
     return "integration"
   }
   const items = createMemo(() => services().filter((service) => category(service) === props.category))
   const count = createMemo(() => items().filter((service) => service.connected).length)
 
-  const load = async () => {
+  const load = async (refresh = false) => {
     setLoading(true)
     setError(undefined)
-    const result = await settingsApi<{ services: Service[] }>(
-      sdk.url,
-      platform.fetch ?? fetch,
-      "/settings/credentials",
-    ).catch((cause) => {
+    const result = await loadCredentials(sdk.url, platform.fetch ?? fetch, refresh).catch((cause) => {
       setError(cause instanceof Error ? cause.message : String(cause))
       return undefined
     })
     if (result) setServices(result.services)
     setLoading(false)
+    if (props.category !== "integration") return
+    const found = await settingsApi<HostCredential[]>(
+      sdk.url,
+      platform.fetch ?? fetch,
+      "/settings/credentials/host",
+    ).catch(() => undefined)
+    if (found) setHost(found)
   }
 
   onMount(() => void load())
@@ -84,9 +102,17 @@ export const CredentialServices: Component<{
   const ready = (service: Service) => {
     const required = service.fields.filter((item) => !item.optional)
     if (required.length) {
-      return required.every((item) => service.set_fields.includes(item.name) || Boolean(values()[item.name]?.trim()))
+      return required.every(
+        (item) =>
+          (service.source !== "account" && service.set_fields.includes(item.name)) ||
+          Boolean(values()[item.name]?.trim()),
+      )
     }
-    return service.fields.some((item) => service.set_fields.includes(item.name) || Boolean(values()[item.name]?.trim()))
+    return service.fields.some(
+      (item) =>
+        (service.source !== "account" && service.set_fields.includes(item.name)) ||
+        Boolean(values()[item.name]?.trim()),
+    )
   }
 
   const save = async (id: string, fields = values(), label?: string) => {
@@ -107,6 +133,8 @@ export const CredentialServices: Component<{
     })
     setSaving(false)
     if (!result) return false
+    invalidateCredentials(sdk.url)
+    invalidateScientificTools(sdk.url)
     setServices(result.services)
     setEditing(undefined)
     setValues({})
@@ -117,7 +145,7 @@ export const CredentialServices: Component<{
     if (saving()) return
     const confirmed = await confirmDialog(dialog, {
       title: `Remove ${service.label} credentials?`,
-      message: "This removes the saved credentials from this machine. You can connect the service again at any time.",
+      message: "This removes the saved credentials from this machine. It does not change external cloud resources.",
       confirmLabel: "Remove credentials",
       danger: true,
     })
@@ -135,6 +163,8 @@ export const CredentialServices: Component<{
         return undefined
       })
       if (result) {
+        invalidateCredentials(sdk.url)
+        invalidateScientificTools(sdk.url)
         setServices(result.services)
         if (editing() === service.id) setEditing(undefined)
       }
@@ -163,30 +193,35 @@ export const CredentialServices: Component<{
       <div class="settings-section-heading flex-wrap">
         <div class="min-w-0 flex-1 basis-[240px]">
           <h3>{props.title}</h3>
-          <p>{props.description}</p>
+          <p>
+            {props.description}
+            <Show when={!loading()}> {count() === 0 ? "Nothing saved yet." : `${count()} saved.`}</Show>
+          </p>
         </div>
-        <span class="ml-auto shrink-0">{loading() ? "Loading…" : `${count()} saved`}</span>
       </div>
 
       <Show when={error()}>
         <div class="settings-alert" data-tone="critical" role="alert">
           <span>{error()}</span>
-          <button
-            type="button"
-            class="settings-inline-action"
+          <Button
+            size="small"
+            variant="secondary"
+            class="settings-panel-action"
             disabled={loading() || saving()}
-            onClick={() => void load()}
+            onClick={() => void load(true)}
           >
             Retry
-          </button>
+          </Button>
         </div>
       </Show>
 
       <Show
         when={!loading()}
         fallback={
-          <div class="settings-card">
-            <div class="settings-row text-12-regular text-text-weak">Loading services…</div>
+          <div class="settings-panel-loading__rows" role="status" aria-label="Loading services">
+            <span />
+            <span />
+            <span />
           </div>
         }
       >
@@ -194,10 +229,9 @@ export const CredentialServices: Component<{
           when={items().length > 0}
           fallback={
             <div class="settings-card">
-              <div class="settings-row">
-                <Icon name="providers" size="small" class="shrink-0 text-icon-weak-base" />
-                <span class="text-12-regular text-text-weak">No services are available from this server.</span>
-              </div>
+              <p class="settings-card-empty" role="status">
+                No services are available from this server.
+              </p>
             </div>
           }
         >
@@ -206,37 +240,70 @@ export const CredentialServices: Component<{
               {(service) => (
                 <div class="settings-list-item">
                   <div class="settings-list-row">
-                    <ProviderLogo id={service.id} label={service.label} />
+                    <span class="settings-row-logo" aria-hidden="true">
+                      <ProviderLogo id={service.id} label={service.label} size="small" />
+                    </span>
                     <div class="settings-list-copy">
-                      <div class="flex min-w-0 flex-wrap items-center gap-2">
-                        <strong>{service.label}</strong>
-                        <Show when={service.connected}>
-                          <span class="settings-chip">Saved</span>
-                        </Show>
-                      </div>
+                      <strong>{service.label}</strong>
                       <span>
-                        {service.connected
-                          ? service.source === "account"
-                            ? "Synced from your Synthetic Sciences account"
-                            : "Encrypted on this machine"
-                          : service.description}
+                        {service.description}
+                        <Show when={!service.connected && hostSource(service.id)}>
+                          {" "}
+                          Found on this computer via {hostSource(service.id)}.
+                        </Show>
                       </span>
                     </div>
-                    <div class="settings-list-actions ml-auto max-w-full flex-wrap justify-end">
-                      <Show when={service.connected}>
-                        <button
-                          type="button"
-                          class="settings-icon-action"
+                    <Show when={service.connected}>
+                      <span class="settings-row-status">
+                        {service.source === "account" ? "Synced from your workspace" : "Saved on this device"}
+                        {service.set_fields.length > 1 ? ` · ${service.set_fields.length} fields` : ""}
+                      </span>
+                    </Show>
+                    <div class="settings-list-actions max-w-full flex-wrap justify-end">
+                      <Show when={!service.connected && hostSource(service.id)}>
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          disabled={saving()}
+                          onClick={() => void importHost(service)}
+                        >
+                          Use this computer's login
+                        </Button>
+                      </Show>
+                      <Show when={service.connected && service.source !== "account"}>
+                        <Button
+                          size="small"
+                          variant="secondary"
                           disabled={saving()}
                           aria-label={`Remove ${service.label} credentials`}
-                          title="Remove credentials"
                           onClick={() => void remove(service)}
                         >
-                          <Icon name="trash" size="small" />
-                        </button>
+                          Remove
+                        </Button>
+                      </Show>
+                      <Show when={service.source === "account"}>
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          onClick={() =>
+                            platform.openLink(
+                              service.organization_id
+                                ? `https://app.syntheticsciences.ai/workspace/${encodeURIComponent(service.organization_id)}/credentials`
+                                : "https://app.syntheticsciences.ai/integrations",
+                            )
+                          }
+                        >
+                          Manage
+                        </Button>
                       </Show>
                       <Button size="small" variant="secondary" disabled={saving()} onClick={() => open(service.id)}>
-                        {editing() === service.id ? "Cancel" : service.connected ? "Update" : "Connect"}
+                        {editing() === service.id
+                          ? "Cancel"
+                          : service.source === "account"
+                            ? "Use local key"
+                            : service.connected
+                              ? "Update"
+                              : "Add credential"}
                       </Button>
                     </div>
                   </div>

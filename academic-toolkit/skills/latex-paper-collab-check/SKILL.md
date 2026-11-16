@@ -56,7 +56,7 @@ where gemini
 ```
 
 **Pass**: command exits 0 and outputs a path.
-**Fail**: command not found — suggest: `npm install -g @anthropic-ai/gemini-cli` or see https://github.com/google-gemini/gemini-cli
+**Fail**: command not found — suggest: `npm install -g @google/gemini-cli` or see https://github.com/google-gemini/gemini-cli
 
 #### 2. Version
 

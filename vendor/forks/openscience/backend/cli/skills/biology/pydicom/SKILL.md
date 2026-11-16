@@ -4,7 +4,13 @@ description: Python library for working with DICOM (Digital Imaging and Communic
 category: biology
 license: https://github.com/pydicom/pydicom/blob/main/LICENSE
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: skills/pydicom
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # Pydicom

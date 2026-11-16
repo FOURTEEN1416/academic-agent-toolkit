@@ -586,14 +586,14 @@ Check items:
 
 echo "=== 图宽合规自检（禁凑页压图）==="
 
-# 只看 includegraphics 的 width 系数；<0.70 视为被凑页压小。合规域 0.70~0.98 内一律不误报：
-# 正则兼容一位/两位小数（fig_include_size.py 以 %g 写出 0.7/0.8/0.9 一位小数形态，其密度感知
-# 推荐域 0.80~0.98；drawio 窄图 0.7 同域）——0.7/0.8/0.9/0.85/0.98 等全部放行，仅抓 <0.70 的压图值
+# 只看 includegraphics 的 width 系数；<0.80 视为被凑页压小（2026-11-16 与英文侧 comp-compile-en 统一为 0.80 口径，原 0.70 口径废弃，取严）。
+# 合规域 0.80~0.98 内一律不误报：正则兼容一位/两位小数（fig_include_size.py 以 %g 写出 0.8/0.9 一位小数形态，其密度感知
+# 推荐域 0.80~0.98；drawio 窄图 0.7 现落入待确认域，会提示人工确认）——0.8/0.9/0.85/0.98 等全部放行，仅抓 <0.80 的压图值
 # （真正并排双栏请写 0.48 并用 subfigure/minipage，本检测会提示、人工确认即可）
 
-BAD_W=$(grep -rhoE 'includegraphics\[[^]]*width=0\.[0-9]+' paper/sections/*.tex paper/main.tex 2>/dev/null | grep -oE 'width=0\.[0-9]+' | grep -vE 'width=0\.(7|8|9)[0-9]*' | wc -l)
+BAD_W=$(grep -rhoE 'includegraphics\[[^]]*width=0\.[0-9]+' paper/sections/*.tex paper/main.tex 2>/dev/null | grep -oE 'width=0\.[0-9]+' | grep -vE 'width=0\.(8|9)[0-9]*' | wc -l)
 
-[ "$BAD_W" -eq 0 ] && echo "OK 无过小图宽" || echo "FAIL 有 $BAD_W 处图宽<0.70（疑似凑页压图，除真正并排双栏外必须改回 0.85）"
+[ "$BAD_W" -eq 0 ] && echo "OK 无过小图宽" || echo "FAIL 有 $BAD_W 处图宽<0.80（疑似凑页压图，除真正并排双栏外必须改回 0.85）"
 
 echo "=== 图高合规自检（禁压小图高凑页）==="
 
@@ -619,699 +619,61 @@ AFTER_DOC=$(awk '/begin\{document\}/,/maketitle/' paper/main.tex 2>/dev/null | g
 
 ### Step 7: ⛔ FINAL QUALITY GATE (must ALL pass before finishing)
 
-Run all checks and verify every item passes. **Do NOT output the report until all CRITICAL items are resolved.**
+旧内联 22 项 bash/Python 门禁已拆分承接（对齐英文侧 paper-compile 口径）：机器可判项由引擎 `paper_final_gate` 与共享检查脚本接管，正文不再内联大段脚本；本步保留「何时跑 + 判据 + 修复动作」。运行方式：
+
+- **finish 自动挂载**：`session finish` 按检查器注册表 `engine/modex-core/checkers/registry.json` 的 `applies_to` 自动运行本步检查器。
+- **竞赛中文模板现状**：若 `paper_final_gate` 的 `applies_to` 尚未覆盖当前竞赛模板（如 `comp_writing_zh`），finish 前必须手动单跑一次；退出码 0=pass、1=fail、3=unknown（unknown 是「未核验」，不是通过）：
 
 ```bash
-
-echo "=========================================="
-
-echo "  FINAL QUALITY GATE"
-
-echo "=========================================="
-
-GATE_FAIL=0
-
-# ⛔⛔ 两阶段执行总则（省重编，必读）：本门 22 项分两类，改完的重编需求完全不同——
-
-#   【源码类】(19项)：只扫 .tex/.json/.md 文本(grep/awk/python)，与已编译 PDF 无关。
-
-#      改完直接 grep 就能重判，【绝不需要重编】。含：#4图嵌入 #8模板完整 #9图对账 #10TikZ
-
-#      #12占位符 #17摘要 #19符号longtable #21babel #22数值一致 #22.4声称↔代码 #22.5方法凭证
-
-#      #22.5太完美 #22.6合理性 #22.8长表格 #23AI列表 #24meta #25过度声称 + #18的writing_check
-
-#      (图注超长/引用格式/figure stacking)。
-
-#   【产物类】(少数)：读 main.log/main.toc/PDF，改完【必须重编】才能重判。含：#16TOC、
-
-#      #5页数、#18的compile_check内部(overfull hbox/vbox、未定义引用)。
-
-#   ⛔ 正确修复顺序见本门末尾指令：先把所有【源码类】❌ 批量改完(期间禁止重编)→ 统一重编
-
-#      一次 → 再判【产物类】。禁止每修一个源码类问题就重编 57 页(那是"卡很久"的根因)。
-
-# 4. No unembedded figures
-
-UNEMBED=0
-
-for pdf in figures/*.pdf; do
-
-    [ -f "$pdf" ] || continue
-
-    bn=$(basename "$pdf")
-
-    grep -rq "$bn" paper/sections/*.tex paper/main.tex 2>/dev/null || UNEMBED=$((UNEMBED+1))
-
-done
-
-[ "$UNEMBED" -eq 0 ] && echo "✅ All figures embedded" || { echo "❌ $UNEMBED figures not embedded in paper"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-# 5. Page count
-
-PAGE_EST=0
-
-for f in paper/sections/*.tex; do [ -f "$f" ] || continue; c=$(wc -c < "$f"); PAGE_EST=$((PAGE_EST + c)); done
-
-PAGE_EST=$((PAGE_EST / 900))
-
-echo "  Page estimate: ~$PAGE_EST pages (ceiling: engine-dispatched competition page limit)"
-
-# 8. Template integrity — compare preamble against original template
-
-echo "--- Template integrity ---"
-
-TMPL=""
-
-# TMPL 用工作区动态探测：真源是 comp-paper-zh 落进 paper/ 的同名原始模板（若用户/流程保存过）与仓库 _templates/*/main.tex；
-# 禁止硬编码单一赛事模板列表（工作区恒不存在 → 检查静默空转）。
-for t in paper/_original_main.tex _templates/*/main.tex _templates/*_main.tex; do
-    [ -f "$t" ] && TMPL="$t" && break
-done
-
-if [ -z "$TMPL" ]; then
-    echo "ℹ 未找到可对比的原始模板 main.tex（paper/_original_main.tex 或 _templates/*/main.tex），跳过 preamble 对比——如需此保护，写作前将官方原模板存一份为 paper/_original_main.tex"
-fi
-
-if [ -n "$TMPL" ] && [ -f paper/main.tex ]; then
-
-    # Extract preamble (before \begin{document}) from both files
-
-    TMPL_PRE=$(sed -n '1,/\\begin{document}/p' "$TMPL" | grep '\\usepackage\|\\documentclass\|\\ctexset\|\\pagestyle\|\\renewcommand.*headrulewidth\|\\listoftables\|\\listoffigures\|\\cline\|\\bibliography' | sort)
-
-    MAIN_PRE=$(sed -n '1,/\\begin{document}/p' paper/main.tex | grep '\\usepackage\|\\documentclass\|\\ctexset\|\\pagestyle\|\\renewcommand.*headrulewidth\|\\listoftables\|\\listoffigures\|\\cline\|\\bibliography' | sort)
-
-    MISSING=$(comm -23 <(echo "$TMPL_PRE") <(echo "$MAIN_PRE") 2>/dev/null | head -5)
-
-    if [ -z "$MISSING" ]; then
-
-        echo "✅ Template preamble intact"
-
-    else
-
-        echo "❌ Template preamble was modified — these lines from template are missing in main.tex:"
-
-        echo "$MISSING" | sed 's/^/    /'
-
-        GATE_FAIL=$((GATE_FAIL+1))
-
-    fi
-
-    # Check cover page structure (if template has one)
-
-    if grep -q '参赛学校\|参赛作品' "$TMPL" 2>/dev/null; then
-
-        grep -q '参赛学校\|参赛作品' paper/main.tex 2>/dev/null && echo "✅ Cover page present" || { echo "❌ Cover page missing/rewritten"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-        grep -q 'cline{2-2}' paper/main.tex 2>/dev/null && echo "✅ Cover underlines (cline)" || { echo "❌ Cover cline missing"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-    fi
-
-    # Check bracket placeholders not remaining
-
-    if grep -q '\[论文标题\]\|\[学校名称\]\|\[队员1\]\|\[指导老师\]\|\[竞赛年份\]\|\[届数\]\|\[中文摘要内容\]' paper/main.tex 2>/dev/null; then
-
-        echo "❌ Unreplaced bracket placeholders in main.tex"; GATE_FAIL=$((GATE_FAIL+1))
-
-    else
-
-        echo "✅ All placeholders replaced"
-
-    fi
-
-    # Check hand-written figure/table list (anti-pattern)
-
-    if grep -P '^(表|图)\d+\.' paper/main.tex 2>/dev/null | head -1 | grep -q '.'; then
-
-        echo "❌ Hand-written figure/table list (use \\listoftables/\\listoffigures)"; GATE_FAIL=$((GATE_FAIL+1))
-
-    fi
-
-else
-
-    echo "  (no template found for comparison, skipping)"
-
-fi
-
-# 9. Figure plan reconciliation (check planning docs)
-
-echo "--- Figure plan check ---"
-
-PLAN_FIGS=0; ACTUAL_FIGS=$(ls figures/*.pdf 2>/dev/null | wc -l)
-
-for plan in TOPIC_PLAN.md PAPER_PLAN.md PROBLEM_ANALYSIS.md; do
-
-    [ -f "$plan" ] || continue
-
-    pf=$(grep -ci 'fig_\|图.*：\|figure.*:' "$plan" 2>/dev/null || echo 0)
-
-    [ "$pf" -gt "$PLAN_FIGS" ] && PLAN_FIGS=$pf
-
-done
-
-if [ "$PLAN_FIGS" -gt 0 ]; then
-
-    echo "  Planned: ~$PLAN_FIGS figures, Actual: $ACTUAL_FIGS PDFs"
-
-    [ "$ACTUAL_FIGS" -ge "$PLAN_FIGS" ] && echo "✅ Figure count meets plan" || { echo "❌ Fewer figures than planned ($ACTUAL_FIGS < $PLAN_FIGS)"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-else
-
-    echo "  No figure plan found, actual: $ACTUAL_FIGS PDFs"
-
-fi
-
-# 10. TikZ 几何/算法/架构图
-
-# TikZ 由 paper-figure-drawio 编译成 figures/tikz_diagrams.pdf, 通过 \includegraphics 嵌入
-
-# (不是 sections 里的裸 tikzpicture 代码)。两种形态都算已嵌入。
-
-TIKZ_IN_PAPER=$(grep -rl 'tikzpicture\|tikz_diagrams\|tikz_' paper/sections/*.tex paper/main.tex 2>/dev/null | wc -l)
-
-# ⛔ 只在"实际生成了 tikz_*.pdf 产物"时才硬核对(避免规划提了但用 DrawIO 替代时误报失败)
-
-TIKZ_PDF_TOTAL=0; TIKZ_PDF_MISSING=0
-
-for tpdf in figures/tikz_diagrams.pdf figures/tikz_diagrams_*.pdf figures/tikz_*.pdf; do
-
-    [ -f "$tpdf" ] || continue
-
-    TIKZ_PDF_TOTAL=$((TIKZ_PDF_TOTAL+1))
-
-    grep -rq "$(basename "$tpdf")" paper/sections/*.tex paper/main.tex 2>/dev/null || TIKZ_PDF_MISSING=$((TIKZ_PDF_MISSING+1))
-
-done
-
-if [ "$TIKZ_PDF_TOTAL" -gt 0 ]; then
-
-    # 有真实 TikZ 产物 → 必须全部嵌入
-
-    if [ "$TIKZ_PDF_MISSING" -gt 0 ]; then
-
-        echo "❌ $TIKZ_PDF_MISSING 张 TikZ PDF 未嵌入任何章节"; GATE_FAIL=$((GATE_FAIL+1))
-
-    else
-
-        echo "✅ TikZ diagrams embedded ($TIKZ_PDF_TOTAL)"
-
-    fi
-
-elif grep -qi 'tikz\|架构\|路线图\|几何示意\|算法流程' PAPER_PLAN.md PROBLEM_ANALYSIS.md 2>/dev/null; then
-
-    # 规划提到 TikZ 但没生成 tikz_*.pdf(可能已用 DrawIO 替代) → 仅提醒, 不判失败
-
-    [ "$TIKZ_IN_PAPER" -gt 0 ] && echo "✅ TikZ embedded" || echo "  ⚠ 规划提到 TikZ 但未发现 tikz_*.pdf(可能已用 DrawIO 替代, 不阻塞)"
-
-else
-
-    [ "$TIKZ_IN_PAPER" -gt 0 ] && echo "✅ TikZ diagrams embedded ($TIKZ_IN_PAPER)" || echo "  (no TikZ planned)"
-
-fi
-
-# 12. No placeholders remaining
-
-PLACEHOLDERS=$(grep -rl 'PLACEHOLDER\|待补充\|TODO\|\[论文标题\]\|\[中文摘要内容\]' paper/sections/*.tex paper/main.tex 2>/dev/null | wc -l)
-
-[ "$PLACEHOLDERS" -eq 0 ] && echo "✅ No placeholders" || { echo "❌ $PLACEHOLDERS files have placeholders"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-# 16. TOC 【产物类】——⛔ 唯一在本门主体内会重编的项，但仅当 main.toc 真空时才触发兜底重编。
-
-#     正常情况 Step 3/4 已编够 3-4 遍、TOC 早已生成，此分支不进、不重编。不要误以为每轮都要走这里。
-
-if grep -q 'tableofcontents' paper/main.tex 2>/dev/null; then
-
-    [ -s paper/main.toc ] && echo "✅ TOC generated" || {
-
-        echo "❌ TOC empty — running extra compile pass..."
-
-        cd paper/
-
-        xelatex -interaction=nonstopmode main.tex > /dev/null 2>&1
-
-        xelatex -interaction=nonstopmode main.tex > /dev/null 2>&1
-
-        cd ..
-
-        [ -s paper/main.toc ] && echo "✅ TOC generated after extra compile" || { echo "❌ TOC still empty"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-    }
-
-fi
-
-# 17. Abstracts (Chinese papers)
-
-if grep -q 'ctex' paper/main.tex 2>/dev/null; then
-
-    grep -rq '摘.*要' paper/sections/*.tex paper/main.tex 2>/dev/null && echo "✅ Chinese abstract" || { echo "❌ No Chinese abstract"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-    grep -rq 'Abstract' paper/sections/*.tex paper/main.tex 2>/dev/null && echo "✅ English abstract" || { echo "❌ No English abstract"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-fi
-
-# 18. Run compile_check.sh + writing_check.sh for full details
-
-echo ""
-
-echo "--- Full check scripts ---"
-
-# ⛔ 必须分别捕获两个脚本的退出码：`WC_EXIT=$?` 只能接到 writing_check 的，
-
-#    compile_check 的退出码会被覆盖丢弃 → 它 506 行的检查白跑、FAIL 不计分。
-
-#    两者都计入 GATE_FAIL 后，本项是「引用格式/未定义引用/hbox/vbox/未用图/
-
-#    图堆叠/模板包冲突…」等一大批检查的权威裁判，手工项不得重复查同一项。
-
-bash _utils/compile_check.sh paper/ 2>/dev/null || bash skills/shared-scripts/compile_check.sh paper/ 2>/dev/null
-
-CC_EXIT=$?
-
-bash _utils/writing_check.sh paper/ 2>/dev/null || bash skills/shared-scripts/writing_check.sh paper/ 2>/dev/null
-
-WC_EXIT=$?
-
-[ "$CC_EXIT" -eq 0 ] && echo "✅ compile_check passed" || { echo "❌ compile_check failed (exit=$CC_EXIT) — 看上方明细逐条修"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-[ "$WC_EXIT" -eq 0 ] && echo "✅ writing_check passed" || { echo "❌ writing_check failed (exit=$WC_EXIT) — 看上方明细逐条修"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-# 19. 符号说明 longtable 检查
-
-echo "--- Symbol table format ---"
-
-for f in paper/sections/*.tex; do
-
-    [ -f "$f" ] || continue
-
-    if grep -q '\\section{符号说明}\|\\section.*符号' "$f" 2>/dev/null; then
-
-        if grep -q '\\begin{longtable}' "$f" 2>/dev/null; then
-
-            echo "✅ 符号说明使用 longtable"
-
-        elif grep -q '\\begin{table}' "$f" 2>/dev/null; then
-
-            echo "❌ 符号说明仍用 table（应转 longtable 防分页）"; GATE_FAIL=$((GATE_FAIL+1))
-
-        fi
-
-    fi
-
-done
-
-# 21. babel[english] 冲突
-
-echo "--- babel check ---"
-
-if grep -q 'ctex\|cumcmthesis\|gmcmthesis' paper/main.tex 2>/dev/null; then
-
-    grep -q 'babel.*english' paper/main.tex 2>/dev/null && { echo "❌ 中文论文有 babel[english]"; GATE_FAIL=$((GATE_FAIL+1)); } || echo "✅ 无 babel 冲突"
-
-fi
-
-# 22. 数值一致性（JSON vs 论文）
-
-echo "--- Numerical consistency ---"
-
-if [ -f figures/all_results.json ]; then
-
-    python3 -c "
-
-import json, re, os
-
-with open('figures/all_results.json','r',encoding='utf-8') as f: results=json.load(f)
-
-def extract(obj,p=''):
-
-    n={}
-
-    if isinstance(obj,dict):
-
-        for k,v in obj.items(): n.update(extract(v,f'{p}.{k}'))
-
-    elif isinstance(obj,(int,float)) and not isinstance(obj,bool):
-
-        if 0.001<abs(obj)<1e10: n[p]=obj
-
-    return n
-
-jn=extract(results); pn=set()
-
-for tf in sorted(os.listdir('paper/sections')):
-
-    if not tf.endswith('.tex'): continue
-
-    with open(f'paper/sections/{tf}','r',encoding='utf-8',errors='ignore') as f: t=f.read()
-
-    for m in re.finditer(r'(?<![a-zA-Z])(\d+\.?\d+)(?![a-zA-Z_{}])',t):
-
-        try: pn.add(float(m.group(1)))
-
-        except: pass
-
-miss=sum(1 for k,v in jn.items() if not any(abs(p-v)<abs(v)*0.01+0.001 for p in pn) and any(w in k.lower() for w in ['rmse','r2','accuracy','f1','objective','optimal','best']))
-
-print(f'❌ {miss} key values missing in paper' if miss else '✅ Key values consistent')
-
-import sys; sys.exit(1 if miss>3 else 0)
-
-" 2>/dev/null
-
-    [ $? -ne 0 ] && GATE_FAIL=$((GATE_FAIL+1))
-
-fi
-
-# 22.4 声称↔代码 确定性静态扫描（⛔ 两个模式都跑，零额度；数值一致 ≠ 结论成立）
-
-# 编译阶段 paper/sections 已存在，这里再跑一次能把"正文声称"也纳入扫描，比 comp-code 阶段更全。
-
-echo "--- 声称↔代码 静态扫描（第 3 道闸）---"
-
-CC_SCRIPT=""
-
-for f in _utils/claim_code_check.py skills/shared-scripts/claim_code_check.py; do
-
-    [ -f "$f" ] && { CC_SCRIPT="$f"; break; }
-
-done
-
-if [ -n "$CC_SCRIPT" ] && [ -d code ]; then
-
-    python "$CC_SCRIPT" --modeling MODELING_REPORT.md --codedir code
-
-    CC=$?
-
-    if [ "$CC" -eq 1 ]; then
-
-        echo "❌ 静态扫描发现'声称的方法代码没实现'（整数规划实为连续 / 仿真实为加噪声等）— 回 comp-code 修"
-
-        GATE_FAIL=$((GATE_FAIL+1))
-
-    fi
-
-    # CC=2（缺文件）不阻断
-
-else
-
-    echo "ℹ 无 claim_code_check.py 或无 code/，跳过静态扫描"
-
-fi
-
-# 22.5 方法实现对账凭证核对（严格模式 comp-code 会写 METHOD_CHECK 凭证）
-
-echo "--- Method-implementation credential（凭证核对）---"
-
-if [ -f RESULTS.md ]; then
-
-    MC=$(grep -oE 'METHOD_CHECK[^>]*' RESULTS.md | tail -1)
-
-    if [ -z "$MC" ]; then
-
-        echo "⚠ RESULTS.md 无 METHOD_CHECK 凭证（应回 comp-code 补方法实现对账）"
-
-    elif echo "$MC" | grep -q 'skipped_anchor=1'; then
-
-        echo "ℹ 锚定式对账快速模式跳过；静态扫描已在上面独立跑过"
-
-    else
-
-        NC=$(echo "$MC" | grep -oE 'n_claims=[0-9]+' | grep -oE '[0-9]+'); NI=$(echo "$MC" | grep -oE 'n_implemented=[0-9]+' | grep -oE '[0-9]+')
-
-        if [ -n "$NC" ] && [ "$NC" = "$NI" ]; then echo "✅ 方法声称全部有代码实现（$NI/$NC）"
-
-        elif [ -n "$NC" ]; then echo "❌ 方法声称未全实现（$NI/$NC）— 回 comp-code 补实现或改正文声称"; GATE_FAIL=$((GATE_FAIL+1)); fi
-
-    fi
-
-fi
-
-# 22.5 "太完美"结果检测（AI 编造或过拟合特征）
-
-echo "--- Unrealistic values check ---"
-
-if [ -f figures/all_results.json ]; then
-
-    python3 -c "
-
-import json
-
-with open('figures/all_results.json','r',encoding='utf-8') as f: data=json.load(f)
-
-suspicious = []
-
-def check(name, val):
-
-    if not isinstance(val,(int,float)) or isinstance(val,bool): return
-
-    key = name.lower()
-
-    if any(w in key for w in ['r2','r_squared','accuracy','acc','precision','recall','f1','auc']) and val > 0.999:
-
-        suspicious.append(f'{name}={val:.4f} 过于完美（>0.999）')
-
-    if any(w in key for w in ['rmse','mae','mse','loss']) and val == 0:
-
-        suspicious.append(f'{name}=0 完美误差')
-
-    if ('p_value' in key or 'pvalue' in key) and val == 0:
-
-        suspicious.append(f'{name}=0 完美显著')
-
-    if any(w in key for w in ['improvement','speedup','gain','提升']) and val > 10:
-
-        suspicious.append(f'{name}={val} 提升过大（{val*100:.0f}%）')
-
-def walk(obj, path=''):
-
-    if isinstance(obj,dict):
-
-        for k,v in obj.items(): walk(v, f'{path}.{k}')
-
-    elif isinstance(obj,list):
-
-        for i,v in enumerate(obj): walk(v, f'{path}[{i}]')
-
-    else: check(path, obj)
-
-walk(data)
-
-if suspicious:
-
-    print(f'🚩 {len(suspicious)} 处可疑的完美结果（可能过拟合或数值编造）:')
-
-    for s in suspicious[:5]: print(f'    {s}')
-
-    print('  需在论文中说明合理性，或回到 comp-code 检查数据泄漏')
-
-else:
-
-    print('✅ 数值合理性通过')
-
-" 2>/dev/null
-
-fi
-
-# 22.6 合理性审查章节是否存在（必须）
-
-echo "--- 合理性审查章节检查 ---"
-
-if [ -f RESULTS.md ]; then
-
-    if grep -q '合理性审查\|数值合理\|背景对照\|sanity.*check' RESULTS.md 2>/dev/null; then
-
-        echo "✅ RESULTS.md 包含合理性审查章节"
-
-    else
-
-        echo "❌ RESULTS.md 缺少合理性审查章节 — 回到 comp-code Step 1.7 补充"
-
-        GATE_FAIL=$((GATE_FAIL+1))
-
-    fi
-
-fi
-
-# 22.7 数据源时间戳一致性（代码 vs 图表 vs 论文）
-
-echo "--- 数据源时间戳一致性 ---"
-
-if [ -f figures/all_results.json ]; then
-
-    JSON_TIME=$(stat -c %Y figures/all_results.json 2>/dev/null || stat -f %m figures/all_results.json 2>/dev/null || echo 0)
-
-    # 检查是否有 PDF 图表比 JSON 旧（说明代码重跑了但图没更新）
-
-    STALE_FIGS=0
-
-    for pdf in figures/*.pdf; do
-
-        [ -f "$pdf" ] || continue
-
-        PDF_TIME=$(stat -c %Y "$pdf" 2>/dev/null || stat -f %m "$pdf" 2>/dev/null || echo 0)
-
-        if [ "$JSON_TIME" -gt "$PDF_TIME" ] && [ "$((JSON_TIME - PDF_TIME))" -gt 60 ]; then
-
-            echo "  ⚠ $(basename $pdf) 比 all_results.json 旧 — 图表数据可能过期"
-
-            STALE_FIGS=$((STALE_FIGS+1))
-
-        fi
-
-    done
-
-    if [ "$STALE_FIGS" -gt 0 ]; then
-
-        echo "  ❌ $STALE_FIGS 张图表可能使用了旧数据（JSON 更新后图表未重新生成）"
-
-        echo "  → 建议重跑 paper-figure 步骤更新图表"
-
-        GATE_FAIL=$((GATE_FAIL+1))
-
-    else
-
-        echo "✅ 数据源时间戳一致"
-
-    fi
-
-fi
-
-# 22.8 正文长表格检测（>12 行的表格不应在正文中完整展开）
-
-echo "--- 正文长表格检测 ---"
-
-LONG_TABLES=0
-
-for f in paper/sections/*.tex; do
-
-    [ -f "$f" ] || continue
-
-    # 跳过附录文件
-
-    echo "$(basename $f)" | grep -qi 'appendix\|附录\|A_code' && continue
-
-    # 统计每个 tabular/longtable 环境内的数据行数（\\ 的数量）
-
-    python3 -c "
-
-import re
-
-with open('$f', 'r', encoding='utf-8', errors='ignore') as fh:
-
-    content = fh.read()
-
-# 找所有 tabular/longtable 环境
-
-for env in ['tabular', 'longtable', 'tabular*']:
-
-    pattern = r'\\\\begin\{' + env + r'[*]?\}.*?\\\\end\{' + env + r'[*]?\}'
-
-    for match in re.finditer(pattern, content, re.DOTALL):
-
-        table_text = match.group()
-
-        row_count = table_text.count('\\\\\\\\') - table_text.count('\\\\hline') // 2
-
-        if row_count > 12:
-
-            print(f'$(basename $f): {env} 有 {row_count} 行（>12）')
-
-" 2>/dev/null | while read line; do
-
-        echo "  ❌ $line — 正文表格超过 12 行，应截断（前3+后3+省略），完整版放附录"
-
-        LONG_TABLES=$((LONG_TABLES+1))
-
-    done
-
-done
-
-[ "$LONG_TABLES" -eq 0 ] && echo "✅ 正文无超长表格" || GATE_FAIL=$((GATE_FAIL+1))
-
-# 22.9 图注超长检测已集中到 writing_check.sh（见第 18 项，其 EXIT_CODE→WC_EXIT→GATE_FAIL），此处不再重复。
-
-# 23. AI 写作痕迹（列表环境）
-
-echo "--- AI writing patterns ---"
-
-AI_LISTS=0
-
-for f in paper/sections/*.tex; do
-
-    [ -f "$f" ] || continue
-
-    echo "$(basename $f)" | grep -qi 'appendix\|A_code' && continue
-
-    c=$(grep -c '\\begin{itemize}\|\\begin{enumerate}' "$f" 2>/dev/null || echo 0)
-
-    AI_LISTS=$((AI_LISTS+c))
-
-done
-
-[ "$AI_LISTS" -le 3 ] && echo "✅ AI patterns: $AI_LISTS lists" || { echo "❌ $AI_LISTS lists in body — convert to prose"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-# 24. 元叙述泄露
-
-echo "--- Meta content leak ---"
-
-META=0
-
-for f in paper/sections/*.tex; do
-
-    [ -f "$f" ] || continue
-
-    l=$(grep -ci 'RESULTS\.md\|AGENTS\.md\|MODELING_REPORT\|PROBLEM_ANALYSIS\|latex_includes' "$f" 2>/dev/null || echo 0)
-
-    META=$((META+l))
-
-done
-
-[ "$META" -eq 0 ] && echo "✅ No meta leaks" || { echo "❌ $META meta content leaks"; GATE_FAIL=$((GATE_FAIL+1)); }
-
-# 25. 过度声称
-
-echo "--- Overclaiming ---"
-
-OC=0
-
-for f in paper/sections/*.tex; do
-
-    [ -f "$f" ] || continue
-
-    for w in "首次提出" "首次发现" "完美" "最优的" "无可比拟" "前所未有" "开创性" "革命性"; do
-
-        c=$(grep -c "$w" "$f" 2>/dev/null || echo 0); OC=$((OC+c))
-
-    done
-
-done
-
-[ "$OC" -eq 0 ] && echo "✅ No overclaiming" || echo "⚠ $OC overclaiming instances"
-
-echo ""
-
-echo "=========================================="
-
-if [ "$GATE_FAIL" -eq 0 ]; then
-
-    echo "  ✅ ALL CRITICAL CHECKS PASSED — ready to submit"
-
-else
-
-    echo "  ❌ $GATE_FAIL CRITICAL FAILURES — MUST FIX before finishing"
-
-    echo "  按下方「省重编修复顺序」修：先批量改完源码类，再统一重编一次。"
-
-fi
-
-echo "=========================================="
-
+cd academic-toolkit && python engine/quality_gates.py gate <工作区> --check paper_final_gate
 ```
 
-**⛔ If GATE_FAIL > 0, you MUST fix every ❌ before finishing. Repeat until GATE_FAIL = 0. 但修复顺序按下面来，别每修一项就重编：**
+- **六类一致性检查（数值一致性/太完美/时间戳/长表格/元叙述/过度声称）由共享脚本承接**（comp-compile-zh / paper-compile-zh 单一实现，双副本同 `shared-scripts/`）：
+
+```bash
+CHK=_utils/contest_consistency_check.py
+[ -f "$CHK" ] || CHK=../_utils/contest_consistency_check.py
+[ -f "$CHK" ] || CHK=skills/_utils/contest_consistency_check.py
+[ -f "$CHK" ] || CHK=academic-toolkit/skills/_utils/contest_consistency_check.py
+python "$CHK" --paper paper --figures figures     # 退出码 0=无硬失败 1=有硬失败 3=输入缺失(unavailable)
+```
+
+- **编译侧脚本闸仍由 Step 6 的 `compile_check.sh` / `writing_check.sh` 承接**（overfull hbox/vbox、未定义引用、TOC、图注超长、AI 列表、封面要素等）。
+
+逐项覆盖映射（原 22 项内联项 → 现承接方）：
+
+| 原内联项 | 现承接方 | 口径说明 |
+|---|---|---|
+| #4 图嵌入 | `paper_final_gate` + `figure_plan_reconciliation` | figures/*.pdf 未被正文引用判 ❌；「规划清单 ∪ figures/ 并集」对账由 figure 步骤检查器承接 |
+| #5 页数 | `paper_final_gate` + 人工 | 页数上限按引擎竞赛配置判；正文页数不足回写稿步扩写，超限允许 |
+| #8 模板完整 | `paper_final_gate` + `compile_check.sh` + 人工 | 引擎比对前言 4 类（usepackage/documentclass/pagestyle/bibliography）；赛事封面/cline/承诺书由 `compile_check.sh` 与人工确认 |
+| #9 图规划对账 | `figure_plan_reconciliation` | FIGURE_MANIFEST 与 figures/ 实际产出对账 |
+| #10 TikZ | `paper_final_gate` + `figure_plan_reconciliation` | tikz_*.pdf 须嵌入正文；计划 TikZ 改用 DrawIO 属合法替代 |
+| #12 占位符 | `paper_final_gate` + 人工 | 引擎查 sections 的 `PLACEHOLDER`/`TODO` 字面；`[论文标题]` 等中文方括号占位符引擎不查，finish 前人工确认清零 |
+| #16 TOC【产物类】 | `compile_check.sh`（Step 6） | main.toc 真空时按原兜底逻辑重编一次 |
+| #17 摘要 | 人工判断 | 各赛事要求不一（仅中文/仅英文/双语），引擎与 `compile_check.sh` 均不做统一摘要检查；编译后人工核对 PDF 首页 |
+| #18 compile_check/writing_check | `compile_check.sh` + `writing_check.sh`（Step 6） | 保留原双脚本闸，退出码非 0 计入失败；退出码 3=检查器不可用记 TOOL_GAP，不判通过也不判论文错 |
+| #19 符号说明 longtable | `paper_final_gate` + 人工 | 符号表格式（longtable/三线）人工核对 |
+| #21 babel[english] 冲突 | `paper_final_gate` + 人工 | 与中文文档的冲突处置人工确认 |
+| #22 数值一致性 | `contest_consistency_check.py`（共享脚本） | all_results.json 关键指标 vs 正文 1% 容差对账，>3 项缺失判 ❌ |
+| #22.4 声称↔代码 | `claim_code_check.py`（既有共享脚本） | 静态扫描第 3 道闸；编译阶段再跑一次把正文声称纳入扫描（CC=1 判 ❌，CC=2 缺文件不阻断） |
+| #22.5 方法凭证 | 人工核对 RESULTS.md 的 METHOD_CHECK | 凭证缺失提示（⚠）；n_claims≠n_implemented 判 ❌，回 comp-code 补实现或改正文声称 |
+| #22.5 太完美 | `contest_consistency_check.py`（advisory） | >0.999/零误差/完美显著/提升>10 倍只提示不阻断；需在论文说明合理性或回 comp-code 查数据泄漏 |
+| #22.6 合理性章节 | `paper_final_gate` + `result_sanity_check` | RESULTS.md 缺合理性审查章节判 ❌ |
+| #22.7 时间戳 | `contest_consistency_check.py` | PDF 图比 results JSON 旧 >60s 判 ❌（重跑 paper-figure 更新图表） |
+| #22.8 长表格 | `contest_consistency_check.py` | 正文表格 >12 行判 ❌（截断前3+后3+省略，完整版放附录） |
+| #22.9 图注超长 | `writing_check.sh`（Step 6） | 已集中到 writing_check，正文不重复 |
+| #23 AI 列表 | `paper_final_gate` | sections 内 `\begin{itemize}`/`enumerate` 计数 >3 判 ❌（转成散文段落） |
+| #24 元叙述泄露 | `contest_consistency_check.py` | 内部文件名（RESULTS.md/AGENTS.md/MODELING_REPORT/PROBLEM_ANALYSIS/latex_includes）出现在正文判 ❌ |
+| #25 过度声称 | `contest_consistency_check.py`（advisory） | 绝对化措辞（首次提出/完美/最优的/前所未有/开创性/革命性等）只提示不阻断，建议温和化 |
+
+人工判断项（引擎与脚本都不做统一判定）：图表版式与视觉美观、摘要语言合规（#17）、模板前言差异属等价改写还是篡改、符号表格式（#19）、babel 冲突处置（#21）、方法凭证缺省时的补账（#22.5）、可疑完美值结合研究背景确认是否真合理。
+
+**⛔ 引擎/脚本判 fail/unknown 时按输出逐项修复后重跑，violations 全部清零前不得 finish。省重编修复顺序见下。
 
 **⛔⛔ 省重编修复顺序（治"编译卡很久"的关键——大多数 ❌ 是源码类，改完不必重编）：**
 
-1. **先批量修完所有【源码类】❌**（见本门开头总则的清单：图注超长 / 引用格式 / 占位符 / meta / AI列表 / 长表格 / 数值一致 / 模板完整 …）。这些只改 `paper/sections/*.tex` 或 `main.tex` 文本，**期间一次都不要重编**——它们和已编译 PDF 的 hbox/页数/TOC 无关，改完直接 grep 就能重判。
+1. **先批量修完所有【源码类】❌**（见上方覆盖映射表中的源码类各项：图注超长 / 引用格式 / 占位符 / meta / AI列表 / 长表格 / 数值一致 / 模板完整 …）。这些只改 `paper/sections/*.tex` 或 `main.tex` 文本，**期间一次都不要重编**——它们和已编译 PDF 的 hbox/页数/TOC 无关，改完直接 grep 就能重判。
 
 2. **所有源码类改完后 → 统一重编一次**：`cd paper/ && xelatex→bibtex→xelatex→xelatex`。
 
@@ -1319,7 +681,7 @@ echo "=========================================="
 
 4. **仅当【产物类】还有 ❌ 时**（通常是页数不足或 hbox），才针对性修 + 再重编一次。
 
-5. **重复直到 GATE_FAIL=0**，但每一轮都遵循"源码类批量改→只重编一次"，**严禁每修一个源码类问题就重编 57 页**。
+5. **重复直到全部检查通过（无 ❌）**，但每一轮都遵循"源码类批量改→只重编一次"，**严禁每修一个源码类问题就重编 57 页**。
 
 > 为什么这样能省时间：一篇 57 页论文 xelatex 单遍就要几十秒，×4 遍一轮就 1-2 分钟。过去把"图注改短""表格内联"这类纯文本修改也各自触发一轮重编，多轮累积就是十几分钟。按上面顺序，源码类问题无论多少个都只在末尾重编一次，重编轮数从"问题分几批就编几轮"压到 1-2 轮。
 

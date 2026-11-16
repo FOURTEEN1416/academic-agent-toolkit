@@ -91,9 +91,8 @@ description: "国赛 LaTeX 写作（Latex Writing for CUMCM）——数模竞赛
 - 附录放程序代码/长表格
 
 ## 调用方式
-```powershell
-# 加载通用 LaTeX 技能
-skill("doc-poster-latex")
-# 加载国赛专用模板
-skill("comp-latex-writing")
-```
+
+本仓中技能由驱动 Agent 直接读 `SKILL.md` 执行，协作技能以「读其 SKILL.md → 按其工作流执行」方式衔接（无 `skill()` 宿主调用）：
+
+- 通用 LaTeX 技能：`academic-toolkit/skills/doc-poster-latex/SKILL.md`
+- 国赛专用模板：本技能 `academic-toolkit/skills/comp-latex-writing/SKILL.md`（模板骨架一律走 `comp-paper-zh` 主线）

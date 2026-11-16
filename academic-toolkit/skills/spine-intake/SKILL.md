@@ -35,7 +35,8 @@ The JSON must contain:
   "translation_package": "none",
   "reference_mode": "local_first",
   "reference_paths": ["."],
-  "citation_target_count": 20
+  "citation_target_count": 20,
+  "humanize_tier": "medium"
 }
 ```
 
@@ -51,6 +52,8 @@ Allowed values:
 - `reference_mode`: `local_first`, `specified_paths`, `web`
 - `reference_paths`: local folders/files to index for references; default `.`
 - `citation_target_count`: final intended citation count; default `20`
+- `humanize_tier`: `none`, `light`, `medium`, `heavy`; default `medium`;
+  consumed by `spine-rewrite`, `spine-build`, and `spine-humanize`
 
 ## Interaction Rules
 
@@ -58,6 +61,11 @@ The command-line wizard is the supported interactive UI. When a real terminal
 is available, route through `spine-config-ui` and use the bundled external
 terminal wizard; do not downgrade to asking the user to hand-write JSON or type
 every option in chat.
+
+One launch of the wizard fulfills both roles at once: it opens the interactive
+window (the `spine-config-ui` responsibility) and collects + writes the config
+files (the `spine-intake` responsibility). Run the wizard once — do not invoke
+`spine-config-ui` and `spine-intake` as two separate wizard runs.
 
 Do not run the intake wizard directly from a hidden agent tool execution
 surface: stdin may not be connected and the command can hang. The UI is a real

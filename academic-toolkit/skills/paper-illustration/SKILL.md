@@ -9,6 +9,22 @@ allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebSearch
 
 Generate publication-quality illustrations using a **multi-stage workflow** with **执行 Agent 作为 STRICT 审校方/reviewer**.
 
+## 本仓运行口径（先读）
+
+- 本技能依赖**图像生成后端**：无后端时按 Step 0 检测闸如实停止，禁止用占位图、假图或纯本地绘图冒充 AI 生成结果。
+- 正文出现的模型名（`gemini-3-pro`、`gemini-3-pro-image-preview`）与密钥变量名（`GEMINI_API_KEY`）均为**上游原文示例**；实际后端与密钥以当前运行环境配置为准，本仓库不预设。
+- 来源与本地适配见 `references/UPSTREAM.md`。
+
+## 路由边界（与同族图表技能分工）
+
+| 需求 | 应走技能 |
+|------|----------|
+| AI 生成式架构图/方法概念图（多阶段 Agent 审校） | 本技能 paper-illustration |
+| 科学示意图/技术路线图/生物机制 schematics | scientific-schematics |
+| 数据-图元叙事信息图 | infographics |
+| 统计图/结果图（代码出图主链） | paper-figure |
+| 机制图/架构图（DrawIO 确定性绘制、可版本化） | paper-figure-drawio |
+
 ## Core Design Philosophy
 
 ```
@@ -63,14 +79,16 @@ Generate publication-quality illustrations using a **multi-stage workflow** with
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Constants
+## Constants（上游原文示例，实际后端以环境为准，仓库不预设）
 
-- **IMAGE_MODEL = `gemini-3-pro-image-preview`** — Paperbanana (Nano Banana Pro) for image rendering
-- **REASONING_MODEL = `gemini-3-pro-preview`** — Gemini for layout optimization and style checking
+> 下列模型名与密钥变量名来自上游原文示例。实际使用的图像生成/推理后端及对应密钥变量以当前运行环境配置为准（如 OpenRouter `OPENROUTER_API_KEY` → 图像生成模型系列，或执行环境原生 `generate_image` 工具后端）；本仓库不预设任何具体后端。
+
+- **IMAGE_MODEL**（图像渲染，上游示例 `gemini-3-pro-image-preview`，即 Paperbanana/Nano Banana Pro）— 以环境配置为准
+- **REASONING_MODEL**（布局优化与风格核验，上游示例 `gemini-3-pro-preview`）— 以环境配置为准
 - **MAX_ITERATIONS = 5** — Maximum refinement rounds
 - **TARGET_SCORE = 9** — Minimum acceptable score (1-10) — RAISED FOR QUALITY
 - **OUTPUT_DIR = `figures/ai_generated/`** — Output directory
-- **API_KEY_ENV = `GEMINI_API_KEY`** — Environment variable
+- **API_KEY_ENV**（上游示例 `GEMINI_API_KEY`）— 实际以所选后端的密钥变量为准
 
 ## CVPR/ICLR/NeurIPS Top-Tier Conference Style Guide
 
@@ -155,18 +173,18 @@ Generate publication-quality illustrations using a **multi-stage workflow** with
 
 ## Workflow: MUST EXECUTE ALL STEPS
 
-### Step 0: Pre-flight Check
+### Step 0: 多模态 LLM 后端检测（强制，不可跳过）
+
+**本技能是"多模态 LLM 专属技能"：没有图像生成后端就无法工作。开工前必须：**
+
+1. 运行环境检测：`python tools/plotting_env_check.py`（本仓库根/academic-toolkit 下）；
+2. 图像**生成**必须具备图像生成模型后端（如 OpenRouter 的 `OPENROUTER_API_KEY` → 图像生成模型系列；或执行环境原生 `generate_image` 工具后端）——下文具体型号均为上游原文示例，实际后端以 env/比赛时配置为准，仓库不预设；
+3. 质量**评审**由执行 Agent 以视觉能力 STRICT 审校（见 Step 5），与产图调用隔离；
+4. **检测不通过时**：停止执行，向用户明确说明"本技能需要多模态 LLM 图像生成后端"，并给出检测器的 `setup_hint` 配置指引。**禁止**用占位图、假图或纯本地绘图冒充 AI 生成结果；
+5. 成本纪律：外部 API 调用须经高风险确认并计入成本。
 
 ```bash
-# Check API key
-if [ -z "$GEMINI_API_KEY" ]; then
-    echo "ERROR: GEMINI_API_KEY not set"
-    echo "Get your key from: https://aistudio.google.com/app/apikey"
-    echo "Set it: export GEMINI_API_KEY='your-key'"
-    exit 1
-fi
-
-# Create output directory
+# 后端检测通过后，创建输出目录（密钥变量名以所选后端为准，仓库不预设）
 mkdir -p figures/ai_generated
 ```
 
@@ -265,7 +283,7 @@ VERIFY: Each arrow must point to the CORRECT target!
 [Any specific requirements from user]
 ```
 
-### Step 2: Gemini Layout Optimization (gemini-3-pro)
+### Step 2: Gemini Layout Optimization（推理后端；上游示例 gemini-3-pro）
 
 **执行 Agent 将初始 prompt 发给 Gemini (gemini-3-pro) for layout optimization.**
 
@@ -282,8 +300,10 @@ PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; i
 OUTPUT_DIR="figures/ai_generated"
 mkdir -p "$OUTPUT_DIR"
 
-API_KEY="${GEMINI_API_KEY}"
-URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent?key=$API_KEY"
+# 后端与密钥以环境为准；下列变量名/模型名仅为上游原文示例，仓库不预设
+API_KEY="${IMAGE_GEN_API_KEY:-${GEMINI_API_KEY:-}}"
+REASONING_MODEL="${REASONING_MODEL:-gemini-3-pro-preview}"
+URL="https://generativelanguage.googleapis.com/v1beta/models/${REASONING_MODEL}:generateContent?key=$API_KEY"
 
 # 执行 Agent 给出的初始 prompt
 INITIAL_PROMPT='[执行 Agent 填入详细 prompt]'
@@ -336,7 +356,7 @@ echo "$LAYOUT_DESCRIPTION"
 echo "$LAYOUT_DESCRIPTION" > "$OUTPUT_DIR/layout_description.txt"
 ```
 
-### Step 3: Gemini Style Verification (gemini-3-pro)
+### Step 3: Gemini Style Verification（推理后端；上游示例 gemini-3-pro）
 
 **执行 Agent 将优化后的布局发给 Gemini for CVPR/NeurIPS style verification.**
 
@@ -347,8 +367,10 @@ echo "$LAYOUT_DESCRIPTION" > "$OUTPUT_DIR/layout_description.txt"
 # Python 解析（与 paper-figure-html 同口径：优先 MH_PYTHON，python3 可能触发 Windows Store 存根）
 PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; if $_c -c "import sys" >/dev/null 2>&1; then PYTHON="$_c"; break; fi; done; [ -z "$PYTHON" ] && PYTHON=python
 
-API_KEY="${GEMINI_API_KEY}"
-URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent?key=$API_KEY"
+# 后端与密钥以环境为准；下列变量名/模型名仅为上游原文示例，仓库不预设
+API_KEY="${IMAGE_GEN_API_KEY:-${GEMINI_API_KEY:-}}"
+REASONING_MODEL="${REASONING_MODEL:-gemini-3-pro-preview}"
+URL="https://generativelanguage.googleapis.com/v1beta/models/${REASONING_MODEL}:generateContent?key=$API_KEY"
 
 # Read layout from previous step
 LAYOUT=$(cat figures/ai_generated/layout_description.txt)
@@ -402,7 +424,7 @@ echo "$STYLE_SPEC"
 echo "$STYLE_SPEC" > "figures/ai_generated/style_spec.txt"
 ```
 
-### Step 4: Paperbanana Image Rendering (gemini-3-pro-image-preview)
+### Step 4: Paperbanana Image Rendering（图像渲染后端；上游示例 gemini-3-pro-image-preview）
 
 **执行 Agent 将优化并经风格核验的规格交给 Paperbanana 渲染。**
 
@@ -420,8 +442,10 @@ PYTHON=""; for _c in "$MH_PYTHON" python python3; do [ -z "$_c" ] && continue; i
 OUTPUT_DIR="figures/ai_generated"
 mkdir -p "$OUTPUT_DIR"
 
-API_KEY="${GEMINI_API_KEY}"
-URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key=$API_KEY"
+# 后端与密钥以环境为准；下列变量名/模型名仅为上游原文示例，仓库不预设
+API_KEY="${IMAGE_GEN_API_KEY:-${GEMINI_API_KEY:-}}"
+IMAGE_MODEL="${IMAGE_MODEL:-gemini-3-pro-image-preview}"
+URL="https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateContent?key=$API_KEY"
 
 # Read the style-enhanced specification from previous step
 STYLE_SPEC=$(cat figures/ai_generated/style_spec.txt)
@@ -685,7 +709,7 @@ When figure is accepted (score ≥ 9):
 9. **VISUAL APPEAL MATTERS** — Plain boring figures = score ≤ 8
 10. **Target score is 9** — Not 8, not "good enough"
 11. **USE MULTI-STAGE WORKFLOW** — 执行 Agent → Gemini 布局 → Gemini 风格 → Paperbanana → Agent 复审
-12. **USE CORRECT MODELS** — gemini-3-pro for reasoning, gemini-3-pro-image-preview for rendering
+12. **USE CORRECT MODELS** — 按当前环境所选后端配置；上游原文示例：gemini-3-pro（推理）、gemini-3-pro-image-preview（渲染），仓库不预设
 
 ## Output Structure
 
@@ -710,3 +734,5 @@ figures/ai_generated/
 | Step 3 | gemini-3-pro | CVPR/NeurIPS style verification |
 | Step 4 | gemini-3-pro-image-preview (Paperbanana) | High-quality image rendering |
 | Step 5 | 执行 Agent | STRICT visual review and scoring |
+
+> 表内模型名均为上游原文示例；实际推理/渲染后端以当前环境配置为准，仓库不预设。

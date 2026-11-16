@@ -1,21 +1,4 @@
-"""Tests for the Neuropixels SpikeInterface scripts.
-
-Almost everything here is a wrapper around SpikeInterface calls that need a real
-recording, but the part that decides which units make it into a published result
-is pure: the curation thresholds and the classification they drive. Those are
-checked against the criteria the skill's own `references/QUALITY_METRICS.md`
-documents -- Allen Visual Coding's `isi_violations_ratio < 0.5`, IBL's tighter
-`< 0.1`, strict single-unit `< 0.01` -- and against the ordering that follows
-from them: strict is at least as strict as IBL, which is at least as strict as
-Allen. A preset whose thresholds drift, or a pair whose names get swapped, is a
-silent scientific error, not a crash.
-
-The rest of the coverage is the boundary behaviour that costs a whole rerun to
-discover: every classification threshold is tested from both sides, an unknown
-curation method must raise rather than quietly drop units, the sorter presets
-must keep preprocessing from being applied twice, and the trace plot must
-subsample a 384-channel probe rather than draw all of it.
-"""
+"""Synthetic recording, curation and sorter-routing regression checks."""
 
 from __future__ import annotations
 
@@ -92,7 +75,7 @@ class CurationLabelTests(unittest.TestCase):
         self.assertNotEqual(self.label("allen", snr=1.5), "noise")
 
     def test_allen_tolerates_refractory_violations_that_ibl_calls_multi_unit(self) -> None:
-        # This is the documented difference between the two standards: Allen
+        # This is the documented difference between the two local presets: Allen
         # accepts isi_violations_ratio < 0.5, IBL only < 0.1.
         self.assertEqual(self.label("allen", isi_violations_ratio=0.3), "good")
         self.assertEqual(self.label("ibl", isi_violations_ratio=0.3), "mua")
@@ -171,7 +154,7 @@ class CurationCriteriaTests(unittest.TestCase):
         expected = {"snr", "isi_violations_ratio", "presence_ratio", "amplitude_cutoff"}
         for name, criteria in compute_metrics.CURATION_CRITERIA.items():
             with self.subTest(preset=name):
-                self.assertEqual(set(criteria), expected)
+                self.assertEqual(set(criteria), expected | ({"firing_rate"} if name == "ibl" else set()))
 
     def test_no_threshold_is_zero_or_none(self) -> None:
         # Same truthiness trap: `if criteria.get('snr')` treats 0.0 and None as
@@ -188,7 +171,7 @@ class CurationCriteriaTests(unittest.TestCase):
         self.assertEqual(allen["presence_ratio"], 0.9)
         self.assertEqual(allen["amplitude_cutoff"], 0.1)
 
-    def test_the_ibl_thresholds_are_the_documented_reproducible_ephys_ones(self) -> None:
+    def test_the_ibl_thresholds_are_the_documented_legacy_local_screen(self) -> None:
         ibl = compute_metrics.CURATION_CRITERIA["ibl"]
         self.assertEqual(ibl["isi_violations_ratio"], 0.1)
         self.assertEqual(ibl["presence_ratio"], 0.9)
@@ -244,10 +227,10 @@ class SorterDefaultTests(unittest.TestCase):
         # removed recording. Letting a sorter filter or re-reference it a second
         # time distorts the waveforms it then tries to cluster.
         defaults = run_sorting.SORTER_DEFAULTS
-        self.assertIs(defaults["kilosort3"]["do_CAR"], False)
+        self.assertIs(defaults["kilosort3"]["car"], False)
         self.assertIs(defaults["spykingcircus2"]["apply_preprocessing"], False)
         self.assertIs(defaults["mountainsort5"]["filter"], False)
-        self.assertIs(defaults["mountainsort5"]["whiten"], False)
+        self.assertIs(defaults["mountainsort5"]["whiten"], True)  # Input is filtered, not whitened.
 
     def test_the_kilosort4_thresholds_are_positive_spike_amplitudes(self) -> None:
         kilosort4 = run_sorting.SORTER_DEFAULTS["kilosort4"]
@@ -262,6 +245,85 @@ class SorterDefaultTests(unittest.TestCase):
         # `SORTER_DEFAULTS.get(sorter, {})` -- a sorter with no entry must fall
         # back to that sorter's own upstream defaults, never to another one's.
         self.assertEqual(run_sorting.SORTER_DEFAULTS.get("tridesclous2", {}), {})
+
+
+class MotionRoutingTests(unittest.TestCase):
+    def test_corrected_input_disables_the_relevant_sorter_motion_stage(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        flags = {
+            "kilosort2_5": "do_correction",
+            "kilosort3": "do_correction",
+            "kilosort4": "do_correction",
+            "spykingcircus2": "apply_motion_correction",
+            "mountainsort5": None,
+        }
+        for sorter, flag in flags.items():
+            for corrected in (True, False):
+                with self.subTest(sorter=sorter, corrected=corrected):
+                    with patch.object(neuropixels_pipeline.si, "run_sorter") as run:
+                        neuropixels_pipeline.run_spike_sorting(
+                            MagicMock(), "output", sorter, motion_corrected=corrected
+                        )
+                    kwargs = run.call_args.kwargs
+                    expected = {flag: False} if corrected and flag else {}
+                    actual = {key: kwargs[key] for key in set(flags.values()) - {None}
+                              if key in kwargs}
+                    self.assertEqual(actual, expected)
+
+    def test_template_disables_motion_for_corrected_sorter_inputs(self) -> None:
+        import ast
+        from unittest.mock import MagicMock
+
+        source = (SKILL_ROOT / "assets" / "analysis_template.py").read_text()
+        main = next(node for node in ast.parse(source).body
+                    if isinstance(node, ast.FunctionDef) and node.name == "main")
+        start = next(i for i, node in enumerate(main.body)
+                     if isinstance(node, ast.Assign)
+                     and any(isinstance(target, ast.Name) and target.id == "sorter_params"
+                             for target in node.targets))
+        routing = ast.Module(body=main.body[start:start + 3], type_ignores=[])
+        flags = {"kilosort3": "do_correction", "kilosort4": "do_correction",
+                 "spykingcircus2": "apply_motion_correction", "mountainsort5": None}
+        for sorter, flag in flags.items():
+            for enabled in (True, False):
+                with self.subTest(sorter=sorter, enabled=enabled):
+                    user_params = {flag: True} if flag else {}
+                    namespace = dict(SORTER=sorter, CORRECT_MOTION=enabled,
+                                     SORTER_PARAMS=user_params, rec=MagicMock(),
+                                     output_path=Path("output"), si=MagicMock())
+                    exec(compile(routing, "analysis_template.py", "exec"), namespace)
+                    kwargs = namespace["si"].run_sorter.call_args.kwargs
+                    expected = {flag: not enabled} if flag else {}
+                    actual = {key: kwargs[key] for key in set(flags.values()) - {None}
+                              if key in kwargs}
+                    self.assertEqual(actual, expected)
+                    self.assertEqual(user_params, {flag: True} if flag else {})
+
+    def test_pipeline_routes_the_actual_correction_state_without_depth_threshold(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        for enabled in (True, False):
+            with self.subTest(enabled=enabled), tempfile.TemporaryDirectory() as output:
+                rec = MagicMock()
+                preprocessed = rec.save.return_value
+                corrected = MagicMock()
+                with patch.multiple(
+                    neuropixels_pipeline,
+                    load_recording=MagicMock(return_value=rec),
+                    preprocess=MagicMock(return_value=(rec, [])),
+                    check_drift=MagicMock(return_value={"peaks": [], "peak_locations": []}),
+                    correct_motion=MagicMock(return_value=corrected),
+                    run_spike_sorting=MagicMock(),
+                    postprocess=MagicMock(return_value=(MagicMock(), metrics_table({}))),
+                    curate_units=MagicMock(return_value={}),
+                    export_results=MagicMock(),
+                ):
+                    neuropixels_pipeline.run_pipeline("input", output, apply_motion_correction=enabled)
+                    run = neuropixels_pipeline.run_spike_sorting
+                    self.assertIs(run.call_args.args[0], corrected if enabled else preprocessed)
+                    self.assertIs(run.call_args.kwargs["motion_corrected"], enabled)
+                    self.assertEqual(neuropixels_pipeline.correct_motion.call_count, int(enabled))
 
 
 class TracePlotTests(unittest.TestCase):

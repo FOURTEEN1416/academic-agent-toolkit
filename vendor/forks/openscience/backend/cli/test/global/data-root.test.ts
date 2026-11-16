@@ -6,6 +6,7 @@ import { DataRoot } from "@/global/data-root"
 import { DataRootBarrier } from "@/global/data-root-barrier"
 import { WindowsJunction } from "@/global/windows-junction"
 import { ProcessIdentity } from "@/process/process-identity"
+import { AtomicRename } from "@/util/atomic-rename"
 
 const roots: string[] = []
 
@@ -84,7 +85,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const active = await DataRootBarrier.enter(path.join(managed.path, "record.json"))
     let exclusive = false
     const switching = DataRootBarrier.exclusive().then(async (lease) => {
@@ -115,7 +116,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const started = Promise.withResolvers<void>()
     const delayed = Promise.withResolvers<void>()
     const request = DataRootBarrier.during(managed.path, async () => {
@@ -155,7 +156,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const intent = path.join(config, "data-root-switch.intent")
     const outerReady = Promise.withResolvers<void>()
     const startChild = Promise.withResolvers<void>()
@@ -210,7 +211,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const operations = path.join(config, "data-root-operations")
     const outerReady = Promise.withResolvers<void>()
     const startChild = Promise.withResolvers<void>()
@@ -284,7 +285,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const start = Promise.withResolvers<void>()
     const entered = Promise.withResolvers<void>()
     const finish = Promise.withResolvers<void>()
@@ -318,7 +319,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const operation = await DataRootBarrier.enter(managed.path, 2_000)
     const start = Promise.withResolvers<void>()
     const entered = Promise.withResolvers<void>()
@@ -362,7 +363,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const firstReady = Promise.withResolvers<void>()
     const secondReady = Promise.withResolvers<void>()
     const releaseFirst = Promise.withResolvers<void>()
@@ -396,7 +397,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const first = await DataRootBarrier.enter(path.join(managed.path, "first.json"), 2_000)
     let switching: Promise<AsyncDisposable> | undefined
     let sibling: Promise<DataRootBarrier.Operation> | undefined
@@ -427,7 +428,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
 
     await DataRootBarrier.during(managed.path, async () => {
       await expect(DataRootBarrier.exclusive()).rejects.toThrow(
@@ -442,7 +443,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const identity = await ProcessIdentity.capture(process.pid)
     if (!identity) throw new Error("Current process identity is unavailable")
     const outer = await DataRootBarrier.enter(managed.path, 2_000)
@@ -496,7 +497,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const parent = await DataRootBarrier.enter(managed.path, 2_000)
     const childReady = Promise.withResolvers<void>()
     const startNested = Promise.withResolvers<void>()
@@ -542,12 +543,127 @@ describe("managed data root", () => {
     }
   })
 
+  test("retries initial Windows marker publication without exposing a partial record", async () => {
+    const base = await root()
+    const config = path.join(base, "config")
+    const managed = await DataRoot.ensure(config, path.join(base, "data"), false)
+    using configuration = DataRootBarrier.configure({ root: managed.path, config })
+    const rename = fs.rename.bind(fs)
+    const replace = AtomicRename.replace
+    using policy = spyOn(AtomicRename, "replace").mockImplementation((source, destination) =>
+      replace(source, destination, true),
+    )
+    const sources: string[] = []
+    const codes = ["EPERM", "EACCES", "EBUSY"]
+    using failures = spyOn(fs, "rename").mockImplementation(async (source, destination) => {
+      if (!String(source).endsWith(".pending")) return rename(source, destination)
+      sources.push(String(source))
+      expect(await operationMarkers(config)).toEqual([])
+      expect(JSON.parse(await fs.readFile(source, "utf8"))).toMatchObject({ pid: process.pid })
+      const code = codes[sources.length - 1]
+      if (code) throw Object.assign(new Error(`injected ${code}`), { code })
+      return rename(source, destination)
+    })
+    const operation = await DataRootBarrier.enter(managed.path, 5_000)
+    try {
+      expect(sources).toHaveLength(4)
+      expect(new Set(sources).size).toBe(1)
+      expect(await operationMarkers(config)).toHaveLength(1)
+      expect((await fs.readdir(config)).filter((entry) => entry.endsWith(".pending"))).toEqual([])
+    } finally {
+      await operation[Symbol.asyncDispose]()
+    }
+    expect(await operationMarkers(config)).toEqual([])
+  })
+
+  test("failed initial Windows marker publication cleans only its own unpublished record", async () => {
+    const base = await root()
+    const config = path.join(base, "config")
+    const managed = await DataRoot.ensure(config, path.join(base, "data"), false)
+    using configuration = DataRootBarrier.configure({ root: managed.path, config })
+    const sibling = path.join(config, ".data-root-operation-unrelated.pending")
+    await fs.writeFile(sibling, "unrelated\n")
+    const rename = fs.rename.bind(fs)
+    const replace = AtomicRename.replace
+    using policy = spyOn(AtomicRename, "replace").mockImplementation((source, destination) =>
+      replace(source, destination, true),
+    )
+    const sources: string[] = []
+    const failure = Object.assign(new Error("injected persistent EPERM"), { code: "EPERM" })
+    using failures = spyOn(fs, "rename").mockImplementation(async (source, destination) => {
+      if (!String(source).endsWith(".pending")) return rename(source, destination)
+      sources.push(String(source))
+      expect(await operationMarkers(config)).toEqual([])
+      throw failure
+    })
+    const started = performance.now()
+    await expect(DataRootBarrier.enter(managed.path, 5_000)).rejects.toBe(failure)
+    expect(performance.now() - started).toBeGreaterThanOrEqual(1_900)
+    expect(performance.now() - started).toBeLessThan(6_000)
+    expect(sources.length).toBeGreaterThan(3)
+    expect(new Set(sources).size).toBe(1)
+    expect(await operationMarkers(config)).toEqual([])
+    expect((await fs.readdir(config)).filter((entry) => entry.endsWith(".pending"))).toEqual([path.basename(sibling)])
+    expect(await fs.readFile(sibling, "utf8")).toBe("unrelated\n")
+    await using exclusive = await DataRootBarrier.exclusive(1_000)
+    void exclusive
+  })
+
+  test("initial Windows publication retries still respect a relocation admitted before the marker", async () => {
+    const base = await root()
+    const config = path.join(base, "config")
+    const managed = await DataRoot.ensure(config, path.join(base, "data"), false)
+    using configuration = DataRootBarrier.configure({ root: managed.path, config })
+    const rename = fs.rename.bind(fs)
+    const replace = AtomicRename.replace
+    using policy = spyOn(AtomicRename, "replace").mockImplementation((source, destination) =>
+      replace(source, destination, true),
+    )
+    const attempted = Promise.withResolvers<void>()
+    const published = Promise.withResolvers<void>()
+    let blocked = true
+    let entered = false
+    using failures = spyOn(fs, "rename").mockImplementation(async (source, destination) => {
+      if (!String(source).endsWith(".pending")) return rename(source, destination)
+      attempted.resolve()
+      if (blocked) throw Object.assign(new Error("injected scanner lock"), { code: "EPERM" })
+      await rename(source, destination)
+      published.resolve()
+    })
+    const pending = DataRootBarrier.enter(managed.path, 5_000).then((operation) => {
+      entered = true
+      return operation
+    })
+    let exclusive: AsyncDisposable | undefined
+    try {
+      await attempted.promise
+      exclusive = await DataRootBarrier.exclusive(5_000)
+      blocked = false
+      await published.promise
+      await Bun.sleep(50)
+      expect(entered).toBe(false)
+      expect(await operationMarkers(config)).toEqual([])
+      await exclusive[Symbol.asyncDispose]()
+      exclusive = undefined
+      const operation = await pending
+      expect(entered).toBe(true)
+      expect(await operationMarkers(config)).toHaveLength(1)
+      await operation[Symbol.asyncDispose]()
+      expect(await operationMarkers(config)).toEqual([])
+    } finally {
+      blocked = false
+      await exclusive?.[Symbol.asyncDispose]()
+      const operation = await pending.catch(() => undefined)
+      await operation?.[Symbol.asyncDispose]()
+    }
+  })
+
   test("retries transient Windows marker locks without dropping physical coverage", async () => {
     const base = await root()
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const identity = await ProcessIdentity.capture(process.pid)
     if (!identity) throw new Error("Current process identity is unavailable")
     const operation = await DataRootBarrier.enter(managed.path, 2_000)
@@ -609,7 +725,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const identity = await ProcessIdentity.capture(process.pid)
     if (!identity) throw new Error("Current process identity is unavailable")
     const operation = await DataRootBarrier.enter(managed.path, 2_000)
@@ -669,7 +785,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const identity = await ProcessIdentity.capture(process.pid)
     if (!identity) throw new Error("Current process identity is unavailable")
     const operation = await DataRootBarrier.enter(managed.path, 2_000)
@@ -715,7 +831,7 @@ describe("managed data root", () => {
     const config = path.join(base, "config")
     const data = path.join(base, "data")
     const managed = await DataRoot.ensure(config, data, false)
-    DataRootBarrier.configure({ root: managed.path, config })
+    using _ = DataRootBarrier.configure({ root: managed.path, config })
     const identity = await ProcessIdentity.capture(process.pid)
     if (!identity) throw new Error("Current process identity is unavailable")
     const startNested = Promise.withResolvers<void>()
@@ -816,7 +932,7 @@ describe("managed data root", () => {
         ].join("\n"),
       )
       const managed = await DataRoot.ensure(config, data, false)
-      DataRootBarrier.configure({ root: managed.path, config })
+      using _ = DataRootBarrier.configure({ root: managed.path, config })
       const owner = Bun.spawn([process.execPath, helper, config, data, ready], {
         stdout: "ignore",
         stderr: "pipe",
@@ -904,4 +1020,39 @@ describe("managed data root", () => {
     },
     20_000,
   )
+})
+
+describe("DataRoot.ensure with a recorded location that is gone", () => {
+  test("refuses to recreate the target of the managed link", async () => {
+    const base = await root()
+    const config = path.join(base, "config")
+    const target = path.join(base, "volume", "openscience")
+    await fs.mkdir(target, { recursive: true })
+    const first = await DataRoot.ensure(config, target, false)
+    expect(first.managed).toBe(true)
+    // The drive is unmounted: the link stays, its target does not.
+    await fs.rm(path.join(base, "volume"), { recursive: true, force: true })
+
+    await expect(DataRoot.ensure(config, path.join(base, "home", ".openscience"), false)).rejects.toBeInstanceOf(
+      DataRoot.UnavailableError,
+    )
+    await expect(DataRoot.ensure(config, target, false)).rejects.toThrow("is not available")
+    expect(await fs.stat(target).catch(() => undefined)).toBeUndefined()
+    expect(await fs.stat(path.join(base, "home")).catch(() => undefined)).toBeUndefined()
+  })
+
+  test("refuses to recreate a root named only by the legacy pointer, but still creates a first root", async () => {
+    const base = await root()
+    const config = path.join(base, "config")
+    const missing = path.join(base, "moved", "openscience")
+    await fs.mkdir(config, { recursive: true })
+    await fs.writeFile(path.join(config, "data-location"), `${missing}\n`)
+    await expect(DataRoot.ensure(config, missing, false)).rejects.toBeInstanceOf(DataRoot.UnavailableError)
+    expect(await fs.stat(missing).catch(() => undefined)).toBeUndefined()
+
+    const fresh = path.join(base, "home", ".openscience")
+    const created = await DataRoot.ensure(config, fresh, false)
+    expect(created.managed).toBe(true)
+    expect((await fs.stat(fresh)).isDirectory()).toBe(true)
+  })
 })

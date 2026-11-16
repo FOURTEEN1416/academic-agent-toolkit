@@ -1,215 +1,159 @@
-# Submission Package
+# Target-Specific Submission Bundle
 
-Use this reference when the user requests submission materials, cover letter,
-highlights, journal submission package, or final files for a target journal.
+Use this mode when the user requests submission materials, a delivery package,
+attachments, figures/tables, source files, or an upload ZIP.
 
-## Output Directory
+## Existing ProductRunner task
 
-Write all submission materials under:
+For the current host workflow, use the existing public task, its saved target and scope, the actual files under `paper/`, and the current publish/prepare-delivery tools. Historical ProductRunner records may inform recovery, but do not route normal packaging back through J10 or create another completion authority. The host owns the scientific work and actual preview/download checks.
 
-```text
-paper_rewriting_output/submission_package/
-```
+`local_delivery` is not an upload-ready submission request. Preserve unknown
+author/ethics facts and submission restrictions without blocking safe local
+work. All applicable non-author local requirements still need genuine evidence;
+neither an archive nor a reader-review PASS establishes full journal compliance.
+Read `publication-target-profile.md` when actual target research/adaptation is
+required, not to repeat unchanged research solely because the stage is J10.
 
-Outputs depend on `output_language` and `translation_package` in
-`paper_spine_config.json` (read from the submission package directory or its
-parent). The default run is English-only, so by default only the `*.en.*`
-files are produced.
+## Build the portable local package
 
-English deliverables (produced unless the run is Chinese-only,
-`output_language: zh`):
+Create a clean package copy from the current semantic source and selected assets.
+Preserve the source-relative directory structure, or deliberately rewrite its
+dependency paths in that copy. Include the bibliography, used class/style/CSL,
+layout filters, editable figures, permitted plotting inputs/scripts and a build
+command with the required working directory and tool versions. Shareable data
+remain limited to the user's authorized scope; original private materials are
+not automatically package dependencies.
 
-- `cover_letter.en.md`
-- `cover_letter.en.docx`
-- `highlights.en.md`
-- `highlights.en.docx`
+Build from the package copy before archiving, then extract the actual ZIP into a
+new temporary directory and run the documented build there. Check that local
+inputs resolve within the extracted package and that no absolute paths, parent
+paths or environment search paths reach back into the working project. TeX
+`-recorder` output can reveal the files the build actually read; installed engine
+packages/fonts are runtime dependencies to document, not private project files
+to collect indiscriminately. Fix missing paths in the producing package and
+compare the rebuilt manuscript with the reviewed source/output. ZIP membership,
+file hashes and the old working directory's successful build do not prove this.
 
-Chinese deliverables (produced only when `output_language: zh` or
-`translation_package: zh`):
+After revision, regenerate the affected PDF/DOCX and both requested packages
+from the same revised source. Reuse unchanged valid assets and checks; a
+metadata/ethics limitation affects submission claims, whereas a broken source
+path is a local deliverability defect to repair. If rebuilding requires an
+unavailable tool, preserve the package and report the precise unverified
+rebuild scope without calling it portable or submission-ready.
 
-- `cover_letter.zh.md`
-- `cover_letter.zh.docx`
-- `highlights.zh.md`
-- `highlights.zh.docx`
+## Historical submission assembler
 
-Plus, in every run:
+The remaining layout and assembler instructions apply to the legacy
+publication-cycle workflow without ProductRunner authority, or to separately
+requested submission-specific artifacts. Read `publication-cycle.md` and
+`publication-target-profile.md` before that workflow. Its upload-ready gates do
+not redefine the existing task's local-delivery scope.
 
-- `submission_check.md` after running `submission_check.py --write`
-
-Do not generate `*.zh.*` files for a default English-only run. `submission_check.py`
-is config-driven: it only demands the files for the configured language(s) and
-will not fail an English-only package for missing Chinese files (any Chinese
-file that *is* present is still validated).
-
-The `.docx` files are the formal user-facing outputs. The `.md` files are
-auditable source drafts for checking and regeneration.
-
-## Source Discipline
-
-Allowed PaperSpine inputs:
-
-- `paper_rewriting_output/final_paper/main.tex`
-- `paper_rewriting_output/confirmed_motivation.md`
-- `paper_rewriting_output/claim_register.md`
-- `paper_rewriting_output/evidence_bank.md`
-- `paper_rewriting_output/research_dossier.md`
-
-Allowed external input:
-
-- any user-provided `.tex`, `.docx`, or `.md` draft path
-
-For an external draft, first extract candidate contribution points, show them
-to the user, and get confirmation before generating submission materials.
-
-Do not invent contributions. Claims must trace to `confirmed_motivation.md`,
-`claim_register.md`, `evidence_bank.md`, or `final_paper/main.tex`.
-
-Do not invent author names, affiliations, email addresses, reviewer names, or
-reviewer contact details. Use explicit placeholders such as:
-
-- `[CORRESPONDING AUTHOR NAME]`
-- `[CORRESPONDING AUTHOR AFFILIATION]`
-- `[CORRESPONDING AUTHOR EMAIL]`
-- `[MANUSCRIPT TITLE]`
-- `[MANUSCRIPT TYPE]`
-- `[JOURNAL NAME]`
-- `[RECOMMENDED REVIEWER NAME]`
-
-End both cover letters with a fill-in checklist listing every remaining
-placeholder.
-
-## Highlights Format
-
-Follow the common Elsevier-style highlights format unless the target journal has
-stricter rules:
-
-- 3 to 5 bullet points.
-- Each bullet no more than 85 characters, including spaces.
-- One finding or implication per bullet.
-- Use present tense where natural.
-- No citations, including `\cite{}`, `[@key]`, or numbered citations like `[1]`.
-- No undefined abbreviations, jargon, TODO markers, or double-bracket
-  placeholders.
-- Submission-facing highlights contain only bullet lines, not rationale notes.
-
-Use this shape:
-
-```markdown
-# Highlights
-
-- Antimicrobial peptides offer alternatives against resistant bacteria.
-- The review maps peptide sources, functions, and mechanisms.
-- Peptide redesign supports future anti-resistance drug discovery.
-```
-
-The Chinese highlights should be a clean bilingual review version, not a
-teaching draft. Keep it concise and citation-free.
-
-## Cover Letter Format
-
-Write `cover_letter.en.md` as a concise one-page letter, normally 250-400 words.
-Use this order:
-
-1. Date line.
-2. Editor salutation.
-3. Submission sentence with manuscript title and manuscript type.
-4. Brief journal-fit paragraph using `research_dossier.md` when available.
-5. Two or three contribution sentences, derived from the same claim sources as
-   the highlights but not copied verbatim.
-6. Originality and not-under-consideration statement.
-7. Conflict of interest statement.
-8. Corresponding author line with placeholders where needed.
-9. Fill-in checklist for unresolved placeholders.
-
-Write `cover_letter.zh.md` with the same functional content in Chinese and the
-same clean one-page structure.
-
-Recommended English statement:
+## Output layout
 
 ```text
-We confirm that this manuscript is original, has not been published previously,
-and is not under consideration by any other journal.
+paper_rewriting_output/publication_cycle/targets/<target-slug>/
+├── publication_target_profile.json
+├── target_profile_check.md
+├── submission_package_plan.json
+└── bundles/<immutable-bundle-id>/
+    ├── target_profile.snapshot.json
+    ├── package_plan.snapshot.json
+    ├── upload/                         # only files intended for the portal
+    ├── bundle_manifest.json
+    ├── bundle_manifest.md
+    ├── submission_bundle.zip           # generated only when READY
+    └── submission_bundle.sha256
 ```
 
-Keep recommended reviewers out of the main letter unless the target journal
-explicitly asks for them there. Put reviewer placeholders in the fill-in
-checklist.
+Never reuse a non-empty bundle directory. A new build gets a new ID so prior
+submissions remain auditable.
 
-## Word Output
+## Workflow
 
-Generate Word files for the deliverables required by the configured language
-(see "Output Directory" above). For a default English-only run that is:
+1. Build/refresh the target profile from the live official guide and recent
+   comparable papers. Complete the nine-area structured rule coverage and run
+   `profile-check`; unresolved official rules remain `pending` and block.
+2. Analyze the canonical manuscript and match every applicable target
+   requirement to a source or generated artifact in
+   `submission_package_plan.json`.
+3. Produce the actual files. Use the target's accepted format, not a generic
+   default. Convert from the canonical source, then render and compare content.
+4. Validate each file with the relevant PaperSpine/PaperFigure/host tool and
+   record receipt path + SHA-256 in the plan.
+5. When the main text relies on supplementary evidence, create
+   `supplement_evidence_index.json` and run `supplement_evidence_index.py`.
+   Each claim-bearing item must link a literal main-text locator, its real
+   supplement caption/section, the publication asset, the upload artifact, and
+   a semantic pixel-review receipt. A valid PDF cannot offset a caption/pixel
+   mismatch. Record journal-required upload surfaces in `submission_inventory`.
+6. Set `compliance_inputs.manuscript_path` to the current project-local `.tex`,
+   `.md`, or `.txt` authority used for deterministic counts, add bibliography
+   paths when references live in separate `.bib` files, and run `rules-check
+   --phase writing` before final formatting.
+7. Obtain explicit confirmation for target selection, author identity/order,
+   declarations, and no simultaneous submission.
+8. Assemble the immutable bundle. The script copies only project-local files,
+   rejects stale profiles/path escape/placeholders/old-target terms, and creates
+   the upload ZIP only when every applicable required item is ready and the
+   final structured journal-rule recheck passes.
 
-```text
-paper_rewriting_output/submission_package/cover_letter.en.docx
-paper_rewriting_output/submission_package/highlights.en.docx
-```
+## Artifact production
 
-When Chinese deliverables are required (`output_language: zh` or
-`translation_package: zh`), also generate:
+- **Manuscript:** regenerate in the required Word/LaTeX/PDF template. Compile or
+  render, then verify sections, citations, equations, figures, tables, and
+  scientific values against the canonical source.
+- **Title/blinded files:** derive both from the same author metadata. The
+  blinded version must remove the target's prohibited identity signals; the
+  full title page preserves them.
+- **Cover letter/highlights:** derive fit and contributions from the target
+  profile and confirmed paper identity. Do not inherit the old journal name or
+  generic Elsevier-style limits when the live target says otherwise.
+- **Figures/tables/graphical abstract:** use the PaperFigure body contract and
+  final pixel receipts. Convert to the target's allowed extension, dimensions,
+  color space, resolution, and file separation. Do not upscale a low-resolution
+  source and call it compliant.
+- **Supplement/checklists/declarations:** include only what the paper and target
+  require. Reporting checklists must point to real manuscript pages/sections.
+  Ethics, consent, funding, conflicts, CRediT, author order, APC/license choices,
+  and AI-use disclosures require author-supplied or author-confirmed facts.
+- **Source archive:** prepare a clean copy, not an in-place destructive cleanup.
+  Remove unused/draft/private files, keep every used class/style/bibliography/
+  figure dependency, compile the copy, and compare its rendered result.
 
-```text
-paper_rewriting_output/submission_package/cover_letter.zh.docx
-paper_rewriting_output/submission_package/highlights.zh.docx
-```
+The legacy `submission_check.py` remains useful for normalized cover-letter and
+highlights drafts, and `word_guard.py`, `latex_guard.py`, visual checks, and
+PaperFigure QA remain file-level validators. The target profile and bundle
+manifest are authoritative for overall package completeness.
 
-Use pandoc from the submission package directory, converting each Markdown
-source that exists:
+## Plan invariants
+
+- `target_profile_sha256` must match the current profile.
+- `compliance_inputs.manuscript_path` must resolve to the current analyzable
+  manuscript source under `project_root`; optional bibliography paths obey the
+  same boundary.
+- All sources and receipts stay inside `project_root`.
+- Every applicable required/conditional requirement has one plan item.
+- `ready` means the file exists, has an accepted extension, has no unresolved
+  placeholders, and has at least one hash-bound validation receipt.
+- `needs_author` prevents claiming readiness for the affected submission requirement. It does not prevent an explicitly limited local manuscript or workspace archive.
+- `not_applicable` is allowed only when the profile condition says so.
+- `forbidden_target_terms` lists previous venues that must not leak into the
+  transferred package.
+
+## Assemble
 
 ```bash
-cd paper_rewriting_output/submission_package
-pandoc cover_letter.en.md -o cover_letter.en.docx
-pandoc highlights.en.md -o highlights.en.docx
-# Only when Chinese deliverables are required:
-pandoc cover_letter.zh.md -o cover_letter.zh.docx
-pandoc highlights.zh.md -o highlights.zh.docx
+python scripts/publication_cycle.py assemble \
+  <target>/publication_target_profile.json \
+  <target>/submission_package_plan.json \
+  <target>/bundles/<immutable-bundle-id> \
+  --markdown
 ```
 
-### LaTeX Command Sanitization Before Pandoc
-
-Before converting Markdown to .docx, ensure the source Markdown is free of raw
-LaTeX commands that pandoc cannot render. Common leaks include:
-
-| Raw LaTeX | Rendered Form | Notes |
-|---|---|---|
-| `\AA{}` / `\AA` | Å | Angstrom symbol (U+00C5) |
-| `\textit{...}` | *italic text* | Use Markdown `*...*` or `_..._` |
-| `\textsubscript{...}` | subscript text | Use HTML `<sub>...</sub>` or pandoc `~...~` |
-| `\textsuperscript{...}` | superscript text | Use HTML `<sup>...</sup>` or pandoc `^...^` |
-| `\%` | % | Literal percent sign |
-| `\$` | $ | Literal dollar sign |
-| `\&` | & | Literal ampersand |
-| `\_` | _ | Literal underscore |
-| `\#` | # | Literal hash |
-| `\{` / `\}` | { / } | Literal braces |
-
-These must be normalized **in the Markdown source** before running pandoc, not
-after. Post-processing .docx files in-place is a last resort for already-generated
-files. The `word_guard.py` script will FAIL any .docx that contains raw LaTeX
-commands; this is intentional and must not be relaxed.
-
-After generation, set Word fonts consistently:
-
-- Chinese / East Asian text: SimSun (宋体).
-- English / Latin text: Times New Roman.
-- Page setup: A4 paper with 1-inch margins.
-
-This font rule applies to both Chinese and English submission files because
-placeholder labels, journal names, and English terms may appear in Chinese
-letters.
-
-If pandoc is unavailable, keep the Markdown source files, record the skipped
-docx generation in the final response or audit notes, and do not claim that the
-Word versions were produced.
-
-## Validation
-
-Run:
-
-```bash
-python scripts/submission_check.py paper_rewriting_output/submission_package --fix-fonts --markdown --write
-```
-
-Fix all FAIL findings before presenting the package. Placeholder warnings are
-allowed, but the cover letters must list them in the fill-in checklist so the
-user knows what to complete manually.
+Deliver as upload-ready only when the command exits 0,
+`bundle_manifest.json status=READY`, the ZIP exists, and the recorded archive
+SHA-256 matches. The immutable directory also contains hash-bound
+`journal_rules_final.json/.md`; any hard rule that is failed, pending, or needs
+author confirmation prevents ZIP creation. Preparing the ZIP does not authorize
+external submission.

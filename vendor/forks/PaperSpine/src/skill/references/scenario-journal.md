@@ -27,4 +27,9 @@ Learn:
 - how the Introduction narrows from field problem to specific gap,
 - how Methods justify design choices,
 - how Results order benchmark, comparison, robustness, and interpretation,
-- how Discussion returns to motivation and limitations.
+- how Discussion returns to motivation, prior work, alternatives, implications,
+  and limitations,
+- how the paper closes its research arc, whether through a separate Conclusion
+  or a clearly concluding final Discussion movement,
+- how venue length and section proportions preserve enough space for Results and
+  Discussion without becoming mechanical quotas.

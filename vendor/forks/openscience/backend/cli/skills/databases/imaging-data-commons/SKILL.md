@@ -4,6 +4,12 @@ description: Query and download public cancer imaging data from NCI Imaging Data
 category: databases
 license: This skill is provided under the MIT License. IDC data itself has individual licensing (mostly CC-BY, some CC-NC) that must be respected when using the data.
 metadata:
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/imaging-data-commons
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
     version: 1.2.0
     skill-author: Andrey Fedorov, @fedorov
     idc-index: "0.11.7"
@@ -255,8 +261,6 @@ tables = client.sql_query("SELECT DISTINCT table_name, column_label FROM clinica
 # Load a specific clinical table as DataFrame
 clinical_df = client.get_clinical_table("table_name")
 ```
-
-See `references/clinical_data_guide.md` for detailed workflows including value mapping patterns and joining clinical data with imaging.
 
 ## Data Access Options
 
@@ -1124,8 +1128,6 @@ client.sql_query("""
     ORDER BY collection_id
 """)
 ```
-
-See `references/clinical_data_guide.md` for complete patterns including value mapping and patient cohort selection.
 
 ## Related Skills
 

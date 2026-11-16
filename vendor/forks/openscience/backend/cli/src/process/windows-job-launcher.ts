@@ -36,6 +36,9 @@ function latchLinuxControl(): LinuxControl {
     // supervisor's sole native watcher without an externally visible gap.
     for (const listener of inherited) process.removeListener(candidate, listener as (...args: unknown[]) => void)
     process.on(candidate, () => {
+      // The interactive shell owns PTY interrupts; the supervisor must stay
+      // alive until the shell exits or the owning server requests teardown.
+      if (candidate === "SIGINT" && process.stdin.isTTY) return
       if (signal) return
       signal = candidate
       request?.(candidate)
@@ -74,7 +77,7 @@ export namespace WindowsJobLauncher {
     if (process.platform === "linux" && input.linuxOwner) pendingLinuxLaunches.add(release)
     const executable = path.basename(process.execPath).toLowerCase()
     const sourceRuntime = executable === "bun" || executable === "bun.exe"
-    const entry = fileURLToPath(new URL("../index.ts", import.meta.url))
+    const entry = fileURLToPath(new URL("../bootstrap.ts", import.meta.url))
     return {
       file: process.execPath,
       args: [
@@ -92,9 +95,10 @@ export namespace WindowsJobLauncher {
 
   /** Bind the trusted server-side spawn handle to a release token minted by
    * wrap(). Project argv cannot forge this process-local WeakSet brand. */
-  export function bind(process: ChildProcess, release?: string): void {
-    if (!release || !pendingLinuxLaunches.delete(release)) return
+  export function bind(process: ChildProcess, release?: string): boolean {
+    if (!release || !pendingLinuxLaunches.delete(release)) return false
     linuxSubreapers.add(process)
+    return true
   }
 
   export function isLinuxSubreaper(process: ChildProcess): boolean {
@@ -112,6 +116,7 @@ export namespace WindowsJobLauncher {
     // Internal launchers enter through index.ts, whose static graph installs
     // the server's signal handlers. Replace those with this supervisor's
     // forwarding contract so a signal is not translated twice.
+    subreaper.blockingOutput()
     const child = spawn(file, commandArgs, {
       cwd: process.cwd(),
       env: process.env,

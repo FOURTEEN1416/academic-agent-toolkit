@@ -11,33 +11,38 @@ test("markdown files render and can toggle their editable source", async ({ page
   // Markdown regions, so assert the preview container instead of assuming one.
   await expect(view(page).locator(".atlas-file-document")).toBeVisible()
   await expect(
-    view(page).getByText("The open-source AI workbench for scientific research", { exact: true }),
+    view(page).getByText("The open-source AI workbench for scientific research.", { exact: true }),
   ).toBeVisible()
   await view(page).getByRole("tab", { name: "Edit", exact: true }).click()
   await expect(view(page).getByRole("tab", { name: "Preview", exact: true })).toBeVisible()
   await expect(view(page).getByRole("textbox", { name: "README.md source", exact: true })).toContainText(
-    "### The open-source AI workbench for scientific research",
+    "**The open-source AI workbench for scientific research.**",
   )
 })
 
 test("image files render their decoded dimensions", async ({ page, openSession }) => {
   await openSession()
-  await openWorkspaceFile(page, "frontend/ui/src/assets/images/social-share.png")
+  await openWorkspaceFile(page, "frontend/workspace/public/social-share.png")
 
   const image = page.getByRole("img", { name: "social-share.png", exact: true })
   await expect(image).toBeVisible()
   await expect
     .poll(() => image.evaluate((node: HTMLImageElement) => [node.naturalWidth, node.naturalHeight, node.src]))
-    .toEqual([1280, 721, expect.stringMatching(/^data:image\/png;base64,/)])
+    .toEqual([512, 512, expect.stringMatching(/^data:image\/png;base64,/)])
 })
 
 test("PDF files rasterize their pages without an error", async ({ page, openSession }) => {
   await openSession()
-  await openWorkspaceFile(page, "backend/cli/skills/writing/ml-paper-writing/templates/icml2026/icml_numpapers.pdf")
+  await openWorkspaceFile(page, "backend/cli/skills/core/ml-paper-writing/assets/templates/icml2026/icml_numpapers.pdf")
 
   const viewer = page.locator('[data-component="science-pdf"]')
   await expect(viewer).toBeVisible()
-  await expect(viewer.locator('[data-slot="pdf-header"]')).toContainText("Page 1 of 1", { timeout: 30_000 })
+  // Inside a file tab the pager and zoom sit in the file's one header line,
+  // not on a second bar of the viewer's own.
+  const header = page.locator('[data-component="file-view"] [data-slot="file-viewer-controls"]')
+  await expect(header).toContainText("Page 1 of 1", { timeout: 30_000 })
+  await expect(header.getByRole("button", { name: /Fit page width/ })).toBeVisible()
+  await expect(viewer.locator('[data-slot="pdf-header"]')).toHaveCount(0)
   const canvas = viewer.locator('[data-slot="pdf-body"] canvas').first()
   await expect(canvas).toBeVisible()
   expect(await canvas.evaluate((node: HTMLCanvasElement) => node.width * node.height)).toBeGreaterThan(0)

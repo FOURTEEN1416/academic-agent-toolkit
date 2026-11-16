@@ -2,10 +2,11 @@
 
 > 上游不可得：galaxy 系技能包未公开发布（GitHub 全网搜索无命中，2026-09-09 溯源），本仓库仅存集成时的 SKILL.md 孤本。以下引用所指资产在可得的任何上游渠道均不存在。
 
-## 缺失资产清单（2 项，2026-09-09 审计）
+## 缺失资产清单（3 项：2026-09-09 审计 2 项 + 2026-11-16 评审族批 C-review-4 补登 1 项）
 
 - `references/deliverable-checklists.md`
 - `references/design-guidelines.md`
+- `examples/post-acceptance-plan.md`（SKILL.md Reference Files 节引用，盘上缺失；examples/ 前缀不在机检范围，靠本清单人工审计豁免）
 
 ## 处置口径
 

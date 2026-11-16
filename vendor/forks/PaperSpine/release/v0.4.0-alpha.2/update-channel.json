@@ -1,0 +1,47 @@
+{
+  "protocol": "paperspine-updater/1",
+  "product": "paperspine",
+  "product_version": "0.4.0-alpha.2",
+  "bundle": {
+    "sha256": "1abf940b6ba75f48a972c89aa9cf59ef85e1310d9c17a997c5cf04cbdc25deee",
+    "bytes": 26463418,
+    "platform": "windows-amd64",
+    "build_id": "w7a-89832cbebea903ce79b4",
+    "url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.2/paperspine5-suite-0.4.0-alpha.2.zip",
+    "product_version": "0.4.0-alpha.2"
+  },
+  "bundles": {
+    "windows-amd64": {
+      "sha256": "1abf940b6ba75f48a972c89aa9cf59ef85e1310d9c17a997c5cf04cbdc25deee",
+      "bytes": 26463418,
+      "platform": "windows-amd64",
+      "build_id": "w7a-89832cbebea903ce79b4",
+      "url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.2/paperspine5-suite-0.4.0-alpha.2.zip",
+      "product_version": "0.4.0-alpha.2"
+    },
+    "linux-x86_64": {
+      "sha256": "36f3ef42cbb8245a775c918b47dd8ce048a5eefd2c66d05b0aecd465110a3fd6",
+      "bytes": 56218667,
+      "platform": "linux-x86_64",
+      "build_id": "w7p-linux-x86_64-3a12feb9dbdc",
+      "url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.2/paperspine5-suite-0.4.0-alpha.2-linux-x86_64.zip",
+      "product_version": "0.4.0-alpha.2"
+    },
+    "macos-arm64": {
+      "sha256": "73b8ae81efd30631aba486c3df43d2e0471e7ae748c4e88697e5e2da7134f597",
+      "bytes": 40572863,
+      "platform": "macos-arm64",
+      "build_id": "w7p-macos-arm64-dc5846a212b5",
+      "url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.2/paperspine5-suite-0.4.0-alpha.2-macos-arm64.zip",
+      "product_version": "0.4.0-alpha.2"
+    },
+    "macos-x86_64": {
+      "sha256": "485ed85d82ce04a5f939c95d93a6027b5eab3b3297432b62a116f655ca724d32",
+      "bytes": 40547382,
+      "platform": "macos-x86_64",
+      "build_id": "w7p-macos-x86_64-db751311c24a",
+      "url": "https://github.com/WUBING2023/PaperSpine/releases/download/v0.4.0-alpha.2/paperspine5-suite-0.4.0-alpha.2-macos-x86_64.zip",
+      "product_version": "0.4.0-alpha.2"
+    }
+  }
+}

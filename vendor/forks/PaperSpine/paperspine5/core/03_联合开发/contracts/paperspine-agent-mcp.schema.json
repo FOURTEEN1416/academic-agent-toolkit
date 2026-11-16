@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/paperspine-agent-mcp.schema.json",
+  "title": "PaperSpine Agent MCP public surface",
+  "x-contract-status": "frozen-p0-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "tools", "resources"],
+  "properties": {
+    "contract": {"const": "paperspine.agent-mcp-surface"},
+    "schema_version": {"const": "1.0"},
+    "tools": {
+      "type": "array", "minItems": 8,
+      "description": "The listed eight tools are the v1 baseline, not a permanent maximum. Clients negotiate capabilities and ignore unknown supported additions.",
+      "items": {"type": "object", "additionalProperties": false, "required": ["name", "operation_kind", "operation", "visibility", "input"], "properties": {"name": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]+$"}, "operation_kind": {"enum": ["command", "query"]}, "operation": {"type": "string", "minLength": 1}, "visibility": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["model", "app"]}}, "input": {"oneOf": [{"$ref": "#/$defs/toolInput"}, {"$ref": "#/$defs/queryInput"}]}}}
+    },
+    "resources": {
+      "type": "array", "minItems": 6,
+      "items": {"type": "object", "additionalProperties": false, "required": ["uri_template", "projection"], "properties": {"uri_template": {"type": "string", "pattern": "^paperspine://tasks/\\{task_id\\}/"}, "projection": {"enum": ["summary", "materials", "evidence", "manuscript", "review", "delivery"]}}}
+    }
+  },
+  "$defs": {
+    "safeId": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "toolInput": {"type": "object", "additionalProperties": false, "required": ["task_id", "command_id", "schema_version", "expected_version", "payload"], "properties": {"task_id": {"$ref": "#/$defs/safeId"}, "command_id": {"$ref": "#/$defs/safeId"}, "schema_version": {"const": "1.0"}, "expected_version": {"type": "integer", "minimum": 0}, "payload": {"type": "object"}, "external_action_authorized": {"const": false, "default": false}}},
+    "queryInput": {"type": "object", "additionalProperties": false, "required": ["task_id", "schema_version", "resource"], "properties": {"task_id": {"$ref": "#/$defs/safeId"}, "schema_version": {"const": "1.0"}, "resource": {"type": "string", "minLength": 1}}}
+  },
+  "examples": [{
+    "contract": "paperspine.agent-mcp-surface", "schema_version": "1.0",
+    "tools": [
+      {"name": "task.open_or_resume", "operation_kind": "command", "operation": "OpenTask", "visibility": ["model"], "input": {"task_id": "task-1", "command_id": "cmd-1", "schema_version": "1.0", "expected_version": 0, "payload": {}}},
+      {"name": "context.read", "operation_kind": "query", "operation": "TaskContext", "visibility": ["model", "app"], "input": {"task_id": "task-1", "schema_version": "1.0", "resource": "summary"}},
+      {"name": "milestone.commit", "operation_kind": "command", "operation": "CommitMilestone", "visibility": ["model"], "input": {"task_id": "task-1", "command_id": "cmd-2", "schema_version": "1.0", "expected_version": 1, "payload": {}}},
+      {"name": "evidence.bind", "operation_kind": "command", "operation": "BindEvidence", "visibility": ["model"], "input": {"task_id": "task-1", "command_id": "cmd-3", "schema_version": "1.0", "expected_version": 2, "payload": {}}},
+      {"name": "artifact.publish", "operation_kind": "command", "operation": "PublishArtifact", "visibility": ["model"], "input": {"task_id": "task-1", "command_id": "cmd-4", "schema_version": "1.0", "expected_version": 3, "payload": {}}},
+      {"name": "decision.request", "operation_kind": "command", "operation": "RequestDecision", "visibility": ["model"], "input": {"task_id": "task-1", "command_id": "cmd-5", "schema_version": "1.0", "expected_version": 4, "payload": {}}},
+      {"name": "review.submit", "operation_kind": "command", "operation": "SubmitReview", "visibility": ["model"], "input": {"task_id": "task-1", "command_id": "cmd-6", "schema_version": "1.0", "expected_version": 5, "payload": {}}},
+      {"name": "delivery.prepare", "operation_kind": "command", "operation": "PrepareDelivery", "visibility": ["model"], "input": {"task_id": "task-1", "command_id": "cmd-7", "schema_version": "1.0", "expected_version": 6, "payload": {}}}
+    ],
+    "resources": [
+      {"uri_template": "paperspine://tasks/{task_id}/summary", "projection": "summary"}, {"uri_template": "paperspine://tasks/{task_id}/materials", "projection": "materials"}, {"uri_template": "paperspine://tasks/{task_id}/evidence", "projection": "evidence"}, {"uri_template": "paperspine://tasks/{task_id}/manuscript", "projection": "manuscript"}, {"uri_template": "paperspine://tasks/{task_id}/review", "projection": "review"}, {"uri_template": "paperspine://tasks/{task_id}/delivery", "projection": "delivery"}
+    ]
+  }]
+}

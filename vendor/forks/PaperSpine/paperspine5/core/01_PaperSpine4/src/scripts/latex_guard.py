@@ -66,6 +66,30 @@ def check_document_markers(text: str) -> list[Finding]:
     return findings
 
 
+def check_serialized_commands(text: str) -> list[Finding]:
+    """Reject JSON/Python-escaped TeX before any renderer sees it.
+
+    A source line beginning with two literal backslashes (for example
+    ``\\\\documentclass``) is serialized command text, not a LaTeX command.
+    Treating it as a manuscript can produce a perfectly valid-looking PDF that
+    merely prints the source, so this is a hard source-generation failure.
+    """
+    pattern = re.compile(
+        r"(?m)^\s*\\\\(?:documentclass|usepackage|RequirePackage|begin|end|section|subsection|title|author|date|maketitle)\b"
+    )
+    findings: list[Finding] = []
+    for match in pattern.finditer(text):
+        findings.append(
+            Finding(
+                "error",
+                "serialized-command",
+                "LaTeX source contains a serialized command with two leading backslashes; regenerate the source with one leading backslash.",
+                line_number(text, match.start()),
+            )
+        )
+    return findings
+
+
 def check_merge_markers(text: str) -> list[Finding]:
     findings: list[Finding] = []
     for marker in ("<<<<<<<", "=======", ">>>>>>>"):
@@ -145,7 +169,13 @@ def check_citations(text: str, bib_keys: set[str], bib_was_provided: bool) -> li
     cite_pattern = re.compile(r"\\cite\w*\*?(?:\[[^\]]*\]){0,2}\{([^{}]+)\}")
     used: set[str] = set()
     for match in cite_pattern.finditer(text):
+        if re.search(r"\\(?:New|Renew|Provide|Declare)DocumentCommand\s*$", text[:match.start()]):
+            continue
         keys = [item.strip() for item in match.group(1).split(",") if item.strip()]
+        # Pandoc citeproc uses ref-<BibTeX key> and emits matching bibitems.
+        # Keep all ordinary citation checks and verify those destinations below.
+        if match.group(0).startswith("\\citeproc{"):
+            keys = [key.removeprefix("ref-") for key in keys]
         used.update(keys)
         if bib_was_provided:
             for key in keys:
@@ -156,6 +186,41 @@ def check_citations(text: str, bib_keys: set[str], bib_was_provided: bool) -> li
     if used and not bib_was_provided:
         findings.append(Finding("warning", "citation", "Citations found, but no --bib file was provided."))
     return findings
+
+
+def check_internal_destinations(text: str) -> list[Finding]:
+    """Validate concrete TeX link destinations, including Pandoc citeproc."""
+    findings: list[Finding] = []
+    bibitems = set(re.findall(r"\\bibitem(?:\[[^\]]*\])?\{([^{}]+)\}", text))
+    hypertargets = set(re.findall(r"\\hypertarget\{([^{}]+)\}", text))
+    for match in re.finditer(r"\\(citeproc|hyperlink)\{([^{}]+)\}", text):
+        if re.search(r"\\(?:New|Renew|Provide|Declare)DocumentCommand\s*$", text[:match.start()]):
+            continue
+        kind, key = match.groups()
+        if "#" in key:  # macro parameters, not document references
+            continue
+        destinations = bibitems if kind == "citeproc" else hypertargets
+        if key not in destinations:
+            findings.append(Finding("error", "link-destination", f"\\{kind} destination `{key}` is missing.", line_number(text, match.start())))
+    for match in re.finditer(r"\b(Figure|Table)(?:~|\s)+\\ref\{((?:fig|tbl):[^{}]+)\}", text):
+        kind, key = match.groups()
+        if not key.startswith("fig:" if kind == "Figure" else "tbl:"):
+            findings.append(Finding("error", "link-destination", f"{kind} reference points to wrong-kind destination `{key}`.", line_number(text, match.start())))
+    return findings
+
+
+def mask_citeproc_text(text: str) -> str:
+    """CSL owns the rendered text inside citeproc, not the legacy numeric rule."""
+    pattern = re.compile(r"\\citeproc\{[^{}]+\}\{")
+    for match in reversed(list(pattern.finditer(text))):
+        depth, end = 1, match.end()
+        while end < len(text) and depth:
+            if text[end] in "{}" and (end == 0 or text[end - 1] != "\\"):
+                depth += 1 if text[end] == "{" else -1
+            end += 1
+        if depth == 0:
+            text = text[:match.start()] + " " * (end - match.start()) + text[end:]
+    return text
 
 
 def graphic_paths(text: str, tex_dir: Path) -> list[Path]:
@@ -234,12 +299,19 @@ def check_title_and_maketitle(text: str) -> list[Finding]:
     return findings
 
 
-def check_citation_format(text: str) -> list[Finding]:
+def check_citation_format(text: str, style: str = "venue") -> list[Finding]:
+    # A raw author-year marker is not evidence that the venue requires brackets.
+    # Linkage and bibliographic checks remain independent of visible style.
+    if style != "numeric-brackets":
+        return []
     findings: list[Finding] = []
     doc_start = text.find("\\begin{document}")
     if doc_start == -1:
         return findings
-    body = text[doc_start:]
+    body = mask_citeproc_text(text[doc_start:])
+    # Pandoc duplicates the caption as plain accessibility alt text. Its
+    # citation spelling is not an additional unlinked prose citation.
+    body = re.sub(r"\\includegraphics\[[^\]]*\]", lambda match: re.sub(r"[^\n]", " ", match.group(0)), body)
 
     # Remove math mode spans so we don't flag brackets inside math.
     body_no_math = re.sub(r"\$\$.*?\$\$", " ", body, flags=re.DOTALL)
@@ -338,22 +410,24 @@ def check_citation_linkage(text: str, bib_keys: set[str]) -> list[Finding]:
     return findings
 
 
-def run_checks(tex_path: Path, bib_path: Path | None) -> list[Finding]:
+def run_checks(tex_path: Path, bib_path: Path | None, citation_style: str = "venue") -> list[Finding]:
     raw = read_text(tex_path)
     text = strip_comments(raw)
     bib_keys = parse_bib_keys(bib_path)
     findings: list[Finding] = []
     findings.extend(check_document_markers(text))
+    findings.extend(check_serialized_commands(text))
     findings.extend(check_merge_markers(text))
     findings.extend(check_braces(text))
     findings.extend(check_environments(text))
     findings.extend(check_labels_and_refs(text))
     findings.extend(check_citations(text, bib_keys, bib_path is not None))
+    findings.extend(check_internal_destinations(text))
     findings.extend(check_graphics(text, tex_path))
     findings.extend(check_placeholders(text))
     findings.extend(check_alignment_tabs(text))
     findings.extend(check_title_and_maketitle(text))
-    findings.extend(check_citation_format(text))
+    findings.extend(check_citation_format(text, citation_style))
     findings.extend(check_citation_linkage(text, bib_keys))
     return findings
 
@@ -384,6 +458,8 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Run structural guard checks for a LaTeX manuscript.")
     parser.add_argument("tex", type=Path, help="Main .tex file.")
     parser.add_argument("--bib", type=Path, help="Optional .bib file for citation-key checks.")
+    parser.add_argument("--citation-style", choices=("venue", "numeric-brackets"), default="venue",
+                        help="Preserve the selected venue's style by default; check bracket-specific formatting only when that convention is verified.")
     parser.add_argument("--json", action="store_true", help="Emit JSON.")
     parser.add_argument("--markdown", action="store_true", help="Emit Markdown (default).")
     args = parser.parse_args(argv)
@@ -395,7 +471,7 @@ def main(argv: list[str]) -> int:
         print(f"BibTeX file not found: {args.bib}", file=sys.stderr)
         return 2
 
-    findings = run_checks(args.tex.resolve(), args.bib.resolve() if args.bib else None)
+    findings = run_checks(args.tex.resolve(), args.bib.resolve() if args.bib else None, args.citation_style)
     if args.json:
         print(json.dumps([asdict(item) for item in findings], indent=2, ensure_ascii=False))
     else:

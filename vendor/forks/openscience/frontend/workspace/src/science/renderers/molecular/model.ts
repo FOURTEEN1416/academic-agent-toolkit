@@ -5,7 +5,7 @@ export interface MolecularSource {
   binary?: boolean
 }
 
-export interface ElementCount {
+interface ElementCount {
   element: string
   count: number
 }

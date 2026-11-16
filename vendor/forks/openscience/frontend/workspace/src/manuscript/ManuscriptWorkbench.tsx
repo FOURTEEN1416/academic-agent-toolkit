@@ -2,9 +2,10 @@ import { For, Show, createMemo, createResource, createSignal, type JSX } from "s
 import { Markdown } from "@synsci/ui/markdown"
 import { useSDK } from "@/context/sdk"
 import { uiStore } from "@/atlas/store/ui"
+import { linkedFileTarget, type FileOpenScope } from "@/atlas/file-viewer"
 import { toast } from "@/atlas/Toast"
 import { IconBookOpen, IconCheckCircle, IconDownload, IconFile, IconSearch } from "@/atlas/shared/Icon"
-import { FONT_CODE, FONT_MONO, FONT_SANS } from "@/styles/tokens"
+import { FONT_CODE, FONT_SANS } from "@/styles/tokens"
 import type { ArtifactInfo } from "@/artifacts/model"
 import { downloadBlob } from "@/artifacts/bytes"
 import { resolveArtifactPath } from "@/artifacts/context"
@@ -23,7 +24,7 @@ import {
   normalizePublicationReview,
   type PublicationReviewReport,
   type PublicationReviewState,
-} from "@/artifacts/inspector"
+} from "./publication-review"
 
 type Panel = "citations" | "figures" | "review" | "publish"
 type PublicationFormat = "html" | "pdf" | "docx" | "latex" | "pptx"
@@ -49,6 +50,7 @@ export function ManuscriptWorkbench(props: {
   path: string
   sessionID?: string
   scope: FileScope
+  openScope?: FileOpenScope
   text: string
   dirty: boolean
   saving: boolean
@@ -159,7 +161,16 @@ export function ManuscriptWorkbench(props: {
     rewritePreviewImages(manuscript().body, props.path, (path) => sdk.request.url("/file/raw", raw(path))),
   )
   const file = (href: string) => localAssetPath(href, props.path)
-  const openFile = (path: string) => uiStore.openFile(props.directory, path, { scope: props.scope })
+  const openFile = (path: string) => {
+    const target = linkedFileTarget({
+      directory: props.directory,
+      path,
+      scope: props.openScope ?? props.scope,
+      resolved: props.scope,
+      sessionID: props.sessionID,
+    })
+    uiStore.openFile(props.directory, target.path, target)
+  }
 
   const toggle = (next: Panel) => setPanel((current) => (current === next ? undefined : next))
   const openPublish = () => {
@@ -301,7 +312,7 @@ export function ManuscriptWorkbench(props: {
     const result = (await response.json()) as PublicationResult
     toast.success(`${format.toUpperCase()} ready`, result.path)
     if (!["docx", "pptx"].includes(result.format)) {
-      uiStore.openFile(props.directory, result.path, { scope: props.scope })
+      openFile(result.path)
       return
     }
     const download = await sdk.request("/file/raw", undefined, raw(result.path, false))
@@ -333,20 +344,20 @@ export function ManuscriptWorkbench(props: {
         }}
       >
         <span style={eyebrow()}>Manuscript</span>
-        <span style={{ flex: 1, "font-family": FONT_MONO, "font-size": "9px", color: "var(--color-text-faint)" }}>
+        <span style={{ flex: 1, "font-family": FONT_SANS, "font-size": "9px", color: "var(--color-text-faint)" }}>
           live source + preview
         </span>
         <button type="button" style={toolButton(panel() === "citations")} onClick={() => toggle("citations")}>
-          <IconBookOpen size={11} /> Citations
+          <IconBookOpen size={12} /> Citations
         </button>
         <button type="button" style={toolButton(panel() === "figures")} onClick={() => toggle("figures")}>
-          <IconFile size={11} /> Figures
+          <IconFile size={12} /> Figures
         </button>
         <button type="button" style={toolButton(panel() === "review")} onClick={toggleReview}>
-          <IconCheckCircle size={11} /> Review
+          <IconCheckCircle size={12} /> Review
         </button>
         <button type="button" style={toolButton(panel() === "publish")} onClick={openPublish}>
-          <IconDownload size={11} /> Publish
+          <IconDownload size={12} /> Publish
         </button>
       </div>
 
@@ -617,7 +628,7 @@ function BrowserShell(props: { component: string; title: string; detail: string;
         <strong style={{ "font-family": FONT_SANS, "font-size": "11px", color: "var(--color-text)" }}>
           {props.title}
         </strong>
-        <span style={{ "font-family": FONT_MONO, "font-size": "9px", color: "var(--color-text-faint)" }}>
+        <span style={{ "font-family": FONT_SANS, "font-size": "9px", color: "var(--color-text-faint)" }}>
           {props.detail}
         </span>
       </div>
@@ -629,7 +640,7 @@ function BrowserShell(props: { component: string; title: string; detail: string;
 function Search(props: { value: string; placeholder: string; onInput: (value: string) => void }): JSX.Element {
   return (
     <label style={{ ...input(), display: "flex", "align-items": "center", gap: "6px" }}>
-      <IconSearch size={11} />
+      <IconSearch size={12} />
       <input
         value={props.value}
         onInput={(event) => props.onInput(event.currentTarget.value)}
@@ -800,7 +811,7 @@ function PaneLabel(props: { label: string; detail: string; active?: boolean }): 
       <span style={{ ...eyebrow(), color: props.active ? "var(--color-warning)" : "var(--color-text-faint)" }}>
         {props.label}
       </span>
-      <span style={{ flex: 1, "font-family": FONT_MONO, "font-size": "9px", color: "var(--color-text-faint)" }}>
+      <span style={{ flex: 1, "font-family": FONT_SANS, "font-size": "9px", color: "var(--color-text-faint)" }}>
         {props.detail}
       </span>
     </div>
@@ -835,7 +846,7 @@ function citationDetail(paths: string[]): string {
 
 function eyebrow(): JSX.CSSProperties {
   return {
-    "font-family": FONT_MONO,
+    "font-family": FONT_SANS,
     "font-size": "9px",
     "font-weight": "var(--font-weight-emphasis)",
     "letter-spacing": "0.08em",
@@ -922,7 +933,7 @@ function keyBadge(): JSX.CSSProperties {
     padding: "2px 5px",
     "border-radius": "3px",
     background: "var(--color-accent-subtle)",
-    "font-family": FONT_MONO,
+    "font-family": FONT_SANS,
     "font-size": "8px",
     color: "var(--color-text-muted)",
     "flex-shrink": 0,
@@ -942,7 +953,7 @@ function exportButton(disabled: boolean): JSX.CSSProperties {
     background: "var(--color-bg)",
     color: "var(--color-text-muted)",
     opacity: disabled ? 0.48 : 1,
-    "font-family": FONT_MONO,
+    "font-family": FONT_SANS,
     "font-size": "9px",
   }
 }
@@ -955,7 +966,7 @@ function reviewButton(): JSX.CSSProperties {
     padding: "4px 8px",
     "border-radius": "4px",
     border: "1px solid var(--color-border)",
-    "font-family": FONT_MONO,
+    "font-family": FONT_SANS,
     "font-size": "9px",
     color: "var(--color-text-muted)",
   }
@@ -988,5 +999,3 @@ function notice(): JSX.CSSProperties {
     color: "var(--color-warning)",
   }
 }
-
-export default ManuscriptWorkbench

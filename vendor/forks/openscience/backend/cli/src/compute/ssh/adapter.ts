@@ -6,6 +6,7 @@ import os from "node:os"
 import path from "node:path"
 import type { Readable } from "node:stream"
 import type { ModalAdapter } from "../modal/adapter"
+import { TrustedExecutable } from "../../process/trusted-executable"
 
 export namespace SshAdapter {
   export type Scheduler = "none" | "slurm" | "pbs"
@@ -16,6 +17,9 @@ export namespace SshAdapter {
     host: string
     user?: string
     port?: number
+    identity_file?: string
+    proxy_jump?: string
+    proxy_jump_host_keys?: string[]
     scheduler: Scheduler
     workdir?: string
     fingerprint?: string
@@ -58,6 +62,7 @@ export namespace SshAdapter {
   export type OperationOptions = {
     signal?: AbortSignal
     timeoutMs?: number
+    executables?: Partial<Record<"ssh" | "ssh-keygen" | "ssh-keyscan", string>>
   }
 
   const STDOUT_BYTES = 256 * 1024
@@ -65,6 +70,16 @@ export namespace SshAdapter {
   const MANIFEST_BYTES = 256 * 1024
   const COMMAND_TIMEOUT = 300_000
   const STOP_GRACE = 1_000
+
+  export async function executable(name: "ssh" | "ssh-keygen" | "ssh-keyscan") {
+    const resolved = await TrustedExecutable.resolve(name, { systemOnly: true })
+    if (!resolved) throw new Error(`The OS-owned OpenSSH executable ${name} is required for remote compute`)
+    return resolved
+  }
+
+  async function operationExecutable(name: "ssh" | "ssh-keygen" | "ssh-keyscan", options: OperationOptions) {
+    return options.executables?.[name] ?? executable(name)
+  }
 
   const BOUNDED_SUBPROCESS = String.raw`
 def bounded(argv, stdout_limit=4 * 1024 * 1024, stderr_limit=64 * 1024, timeout=15):
@@ -1403,13 +1418,19 @@ finally:
     return value
   }
 
-  export function argv(host: Host, known: string, script: string) {
+  function configPath(known: string) {
+    return `${known}.ssh_config`
+  }
+
+  export function argv(host: Host, known: string, script: string, ssh: string) {
     const port = host.port ? ["-p", String(host.port)] : []
+    const identity = host.identity_file ? ["-o", "IdentitiesOnly=yes", "-i", host.identity_file] : []
+    const jump = host.proxy_jump ? ["-J", host.proxy_jump] : []
     return [
-      "ssh",
+      ssh,
       "-T",
       "-F",
-      "/dev/null",
+      configPath(known),
       "-o",
       "BatchMode=yes",
       "-o",
@@ -1434,6 +1455,8 @@ finally:
       "ForwardAgent=no",
       "-o",
       "ClearAllForwardings=yes",
+      ...identity,
+      ...jump,
       ...port,
       "--",
       destination(host),
@@ -1441,40 +1464,137 @@ finally:
     ]
   }
 
-  export async function scan(host: Host, options: OperationOptions = {}) {
-    const keyscan = Bun.which("ssh-keyscan")
-    const keygen = Bun.which("ssh-keygen")
-    if (!keyscan || !keygen) throw new Error("OpenSSH key utilities are required for remote compute")
-    const base = ["-T", "8", ...(host.port ? ["-p", String(host.port)] : []), host.host]
-    const scanned = await collect(
-      spawn(keyscan, ["-t", "ed25519,ecdsa,rsa", ...base], { env: env(), stdio: ["ignore", "pipe", "pipe"] }),
-      { ...options, timeoutMs: options.timeoutMs ?? 12_000 },
-    )
-    if (scanned.code !== 0 || !scanned.stdout.length) {
-      throw new Error(scanned.error || scanned.stderr || "SSH host returned no public key")
-    }
-    const lines = scanned.stdout
-      .toString("utf8")
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith("#"))
-    const line =
+  function preferredKey(lines: string[]) {
+    return (
       lines.find((item) => item.includes(" ssh-ed25519 ")) ??
       lines.find((item) => item.includes(" ecdsa-sha2-nistp256 ")) ??
       lines.find((item) => item.includes(" ecdsa-sha2-nistp384 ")) ??
       lines.find((item) => item.includes(" ecdsa-sha2-nistp521 ")) ??
       lines.find((item) => item.includes(" ssh-rsa ")) ??
       lines[0]
+    )
+  }
+
+  async function cachedKey(keygen: string, hostname: string, port?: number) {
+    const file = path.join(os.homedir(), ".ssh", "known_hosts")
+    if (!(await fs.stat(file).catch(() => undefined))?.isFile()) return undefined
+    const query = port && port !== 22 ? `[${hostname}]:${port}` : hostname
+    const result = await collect(
+      spawn(keygen, ["-F", query, "-f", file], { env: env(), stdio: ["ignore", "pipe", "pipe"] }),
+      {
+        timeoutMs: 5_000,
+        maxStdoutBytes: 128 * 1024,
+      },
+    )
+    if (result.code !== 0) return undefined
+    return preferredKey(
+      result.stdout
+        .toString("utf8")
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("#")),
+    )
+  }
+
+  async function scanEndpoint(
+    keyscan: string,
+    keygen: string,
+    hostname: string,
+    port: number | undefined,
+    options: OperationOptions,
+  ) {
+    const base = ["-T", "8", ...(port ? ["-p", String(port)] : []), hostname]
+    const scanned = await collect(
+      spawn(keyscan, ["-t", "ed25519,ecdsa,rsa", ...base], { env: env(), stdio: ["ignore", "pipe", "pipe"] }),
+      { ...options, timeoutMs: options.timeoutMs ?? 12_000 },
+    )
+    const line =
+      scanned.code === 0 && scanned.stdout.length
+        ? preferredKey(
+            scanned.stdout
+              .toString("utf8")
+              .split("\n")
+              .map((item) => item.trim())
+              .filter((item) => item && !item.startsWith("#")),
+          )
+        : await cachedKey(keygen, hostname, port)
     if (!line || !/^(?:\S+)\s+(?:ssh-(?:ed25519|rsa)|ecdsa-)\S*\s+\S+/.test(line)) {
-      throw new Error("SSH host key response was invalid")
+      throw new Error(
+        scanned.error ||
+          scanned.stderr ||
+          `SSH host ${hostname} returned no public key. For a private ProxyJump target, connect once with OpenSSH so its key is present in ~/.ssh/known_hosts, then retry.`,
+      )
     }
     return { host_key: line, fingerprint: await identify(keygen, line) }
   }
 
-  export async function known(host: Host, root: string) {
+  function jumpEndpoint(value: string) {
+    const withoutUser = value.includes("@") ? value.slice(value.lastIndexOf("@") + 1) : value
+    if (withoutUser.startsWith("[")) {
+      const match = withoutUser.match(/^\[([^\]]+)\](?::([0-9]+))?$/)
+      if (!match) throw new Error(`Invalid SSH ProxyJump hop: ${value}`)
+      return { host: match[1]!, port: match[2] ? Number(match[2]) : undefined }
+    }
+    const split = withoutUser.lastIndexOf(":")
+    if (split > 0) return { host: withoutUser.slice(0, split), port: Number(withoutUser.slice(split + 1)) }
+    return { host: withoutUser, port: undefined }
+  }
+
+  function validKnownKey(line: string) {
+    return /^(?:\S+)\s+(?:ssh-(?:ed25519|rsa)|ecdsa-)\S*\s+\S+$/.test(line)
+  }
+
+  function quoteConfig(value: string) {
+    if (/[\u0000\r\n]/.test(value)) throw new Error("SSH broker paths must contain one line")
+    return `"${value.replaceAll("\\", "\\\\").replaceAll('"', '\\"')}"`
+  }
+
+  async function brokerConfig(host: Host, known: string) {
+    // OpenSSH's implicit ProxyJump child inherits -F, but not destination
+    // command-line -o options. Put only non-executable authentication and
+    // host-key policy in this broker-owned config so every jump is checked
+    // against the same pinned file without evaluating the user's ssh_config.
+    // Do not replace the data-only importer with `ssh -G -F ~/.ssh/config`:
+    // OpenSSH evaluates `Match exec` while resolving effective configuration.
+    // The importer extracts the reviewed literal fields, and this generated
+    // file plus exact argv are the only configuration consumed at runtime.
+    const config = [
+      "Host *",
+      "  BatchMode yes",
+      "  ConnectTimeout 8",
+      "  NumberOfPasswordPrompts 0",
+      "  PasswordAuthentication no",
+      "  KbdInteractiveAuthentication no",
+      "  StrictHostKeyChecking yes",
+      `  UserKnownHostsFile ${quoteConfig(known)}`,
+      "  GlobalKnownHostsFile /dev/null",
+      "  UpdateHostKeys no",
+      "  CheckHostIP no",
+      "  ForwardAgent no",
+      ...(host.identity_file ? ["  IdentitiesOnly yes", `  IdentityFile ${quoteConfig(host.identity_file)}`] : []),
+      "",
+    ].join("\n")
+    await fs.writeFile(configPath(known), config, { mode: 0o600 })
+    await fs.chmod(configPath(known), 0o600)
+  }
+
+  export async function scan(host: Host, options: OperationOptions = {}) {
+    const [keyscan, keygen] = await Promise.all([
+      operationExecutable("ssh-keyscan", options),
+      operationExecutable("ssh-keygen", options),
+    ])
+    const proxy_jump_host_keys: string[] = []
+    for (const hop of host.proxy_jump?.split(",") ?? []) {
+      const endpoint = jumpEndpoint(hop)
+      proxy_jump_host_keys.push((await scanEndpoint(keyscan, keygen, endpoint.host, endpoint.port, options)).host_key)
+    }
+    const target = await scanEndpoint(keyscan, keygen, host.host, host.port, options)
+    return { ...target, proxy_jump_host_keys: proxy_jump_host_keys.length ? proxy_jump_host_keys : undefined }
+  }
+
+  export async function known(host: Host, root: string, options: OperationOptions = {}) {
     if (!host.host_key || !host.fingerprint) throw new Error(`Test ${host.label} once to pin its SSH host key`)
-    const keygen = Bun.which("ssh-keygen")
-    if (!keygen) throw new Error("OpenSSH key utilities are required for remote compute")
+    const keygen = await operationExecutable("ssh-keygen", options)
     const fingerprint = await identify(keygen, host.host_key)
     if (fingerprint !== host.fingerprint) {
       throw new Error(`Pinned SSH host key does not match its saved fingerprint for ${host.label}`)
@@ -1482,8 +1602,15 @@ finally:
     const folder = path.join(root, "ssh-hosts")
     const file = path.join(folder, `${crypto.createHash("sha256").update(host.id).digest("hex")}.known_hosts`)
     await fs.mkdir(folder, { recursive: true })
-    await fs.writeFile(file, `${host.host_key.trim()}\n`, { mode: 0o600 })
+    const keys = [...(host.proxy_jump_host_keys ?? []), host.host_key]
+      .map((line) => line.trim())
+      .filter((line, index, all) => line && all.indexOf(line) === index)
+    if (keys.some((line) => !validKnownKey(line))) {
+      throw new Error(`Saved SSH host-key material is invalid for ${host.label}`)
+    }
+    await fs.writeFile(file, `${keys.join("\n")}\n`, { mode: 0o600 })
     await fs.chmod(file, 0o600)
+    await brokerConfig(host, file)
     return file
   }
 
@@ -1560,7 +1687,21 @@ finally:
   export function parse<T>(buffer: Buffer): T {
     const text = buffer.toString("utf8").trim()
     if (!text) throw new Error("SSH control command returned no response")
-    return JSON.parse(text.split("\n").at(-1)!) as T
+    // A remote interpreter or login shell can print after the response, for
+    // example a DeprecationWarning or a profile echo, so look for the last
+    // line that is JSON rather than trusting the final line to be it.
+    const lines = text.split("\n")
+    for (let index = lines.length - 1; index >= 0; index--) {
+      const line = lines[index]!.trim()
+      if (!line) continue
+      try {
+        const value: unknown = JSON.parse(line)
+        if (value && typeof value === "object" && !Array.isArray(value)) return value as T
+      } catch {
+        continue
+      }
+    }
+    throw new Error("SSH control command returned no response")
   }
 
   export async function slurm(state: string, exit = "1:0"): Promise<Result> {

@@ -15,7 +15,7 @@ export interface BinaryInspection {
   details: Record<string, unknown>
 }
 
-export interface EmbeddingPoint {
+interface EmbeddingPoint {
   x: number
   y: number
   label?: string

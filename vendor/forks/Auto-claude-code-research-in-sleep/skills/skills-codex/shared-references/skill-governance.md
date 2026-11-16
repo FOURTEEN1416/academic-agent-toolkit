@@ -3,8 +3,12 @@
 > **Codex mirror adaptation (normative).** A Codex-authored change reviewed by a
 > fresh Codex agent uses `provenance.py stamp-provisional`. The receipt preserves
 > author/reviewer family, verdict id and content hash but does not make the
-> artifact auto-curatable. Cross-family overlays or deterministic verifiers use
-> strict `stamp` and may grant accepted authorization.
+> artifact auto-curatable. For another route, follow
+> [Selectable Reviewers](reviewer-backends.md): strict `stamp` may record accepted
+> semantic authorization only after a completed positive in-scope review with
+> known different actual author/reviewer model families. An applicable
+> deterministic verifier may authorize only the mechanical obligation it checks;
+> neither backend selection nor a clean pre-check accepts semantic correctness.
 
 When ARIS **auto-writes** a durable artifact — a meta-optimize patch to a SKILL.md,
 an auto-curated research-wiki node, a machine-proposed reviewer prompt — two
@@ -28,7 +32,7 @@ it *is* the authorization to auto-curate.
   automated rewrite/delete. (A loop can author new machine artifacts; it must not
   silently edit human ones.)
 
-- **A provenance record cannot be same-family.** `stamp()` calls
+- **A strict accepted provenance record cannot be same-family.** `stamp()` calls
   `assert_cross_family(author, reviewer)` and **refuses (raises)** if the author and
   the reviewer are the same model family — e.g. `claude`+`sonnet`, or `gpt-5.5`+`codex`,
   or the trap `gpt-5.5`+`oracle-pro` (oracle routes to a GPT-Pro tier, so it is the
@@ -42,7 +46,8 @@ it *is* the authorization to auto-curate.
   `stamp_provisional()` requires the author/reviewer families to match and writes
   `review_independence: same-family`, `acceptance_status: provisional`.
   `is_auto_authored()` remains true as an identity fact, while
-  `is_auto_curatable()` is false. This is the Codex-only review path.
+  `is_auto_curatable()` is false. This is the same-family review path,
+  including the default native Codex reviewer; a bridge name does not change it.
 
 - **A deterministic verifier is a valid reviewer.** A reviewer named
   `deterministic:<verifier>` (e.g. `deterministic:evidence_check`,
@@ -61,7 +66,9 @@ it *is* the authorization to auto-curate.
 
 Strict `stamp(target, author_model, reviewer_model, verdict_id)` writes accepted
 authorization; `stamp_provisional(...)` writes the same receipt shape with
-provisional review metadata.
+provisional review metadata. Before stamping, the caller must verify the actual
+review completed positively and covered the obligation. The family assertion
+alone does not establish completion, scope or the substantive verdict.
 
 ```json
 {
@@ -82,14 +89,16 @@ provisional review metadata.
   review.
 - `content_hash` is tamper-evidence: if the artifact is later edited by hand, the
   hash no longer matches the record, and an accepted re-stamp (= a fresh
-  cross-family or deterministic review) is required before auto-curation may
+  completed positive cross-family review, or applicable mechanical verification)
+  is required before auto-curation may
   treat it as machine-owned again.
 
 ## How skills use it
 
-- **meta-optimize** — when an auto-patch lands (Step 6), `stamp()` the changed
-  SKILL.md with `author_model` = the executor that drafted the patch and
-  `reviewer_model` = the codex/oracle reviewer that scored it (Step 4). The stamp
+- **meta-apply** — when a meta-optimize patch passes the fresh landing review,
+  stamp the changed SKILL.md with `author_model` = the executor that drafted the patch and
+  `reviewer_model` = the actual selected reviewer that completed the landing
+  review (through `/meta-apply`, rather than trusting the producer's pre-screen). The stamp
   *refusing* is the last line of defense: if the patch was never cross-model
   reviewed, there is no valid `verdict_id`/family pair to stamp, so it cannot be
   recorded as authorized.

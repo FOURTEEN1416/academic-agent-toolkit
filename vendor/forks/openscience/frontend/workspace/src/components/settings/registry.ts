@@ -23,24 +23,27 @@ import type { IconProps } from "@synsci/ui/icon"
 // HARD RULE: no dead buttons. A panel either wires to a real backend or omits
 // the control. Placeholder panels below ship with zero interactive controls.
 
-export type SettingsSection = "workspace" | "runtime" | "app"
+export type SettingsSection = "inference" | "capabilities" | "runtime" | "app"
 
 // Source contract for every reachable Settings destination. Keep this list in
 // rail order; the registry contract test verifies that no panel can be added,
 // removed, or left without the shared layout audit silently.
 export const SETTINGS_PANEL_IDS = [
+  "general",
+  "workspaces",
+  "ace",
+  "usage",
   "models",
   "local-models",
   "skills",
+  "scientific-tools",
   "connectors",
-  "research-tools",
+  "credentials",
   "compute",
   "permissions",
   "network",
   "sandbox",
-  "credentials",
   "storage",
-  "general",
 ] as const
 
 export type SettingsPanelId = (typeof SETTINGS_PANEL_IDS)[number]
@@ -54,95 +57,15 @@ export interface SettingsPanel {
   icon: IconProps["name"]
   /** Which rail group the row lives under. */
   section: SettingsSection
-  /** Secondary destination disclosed beneath a primary rail item. */
-  parent?: SettingsPanelId
   /** Lazily-loaded panel body (default export of the file). */
   component: Component & { preload?: () => Promise<unknown> }
 }
 
-// Order here is the render order in the rail (top→bottom within each section).
+// Order here is the render order in the rail (top→bottom within each group).
+// The rail renders groups as spacing, not labels; the labels name the groups
+// for assistive technology.
 export const SETTINGS_PANELS: SettingsPanel[] = [
-  // ── Workspace ──
-  {
-    id: "models",
-    title: "Models",
-    icon: "models",
-    section: "workspace",
-    component: lazy(() => import("./Models")),
-  },
-  {
-    id: "local-models",
-    title: "Local models",
-    icon: "cpu",
-    section: "workspace",
-    parent: "models",
-    component: lazy(() => import("./LocalModels")),
-  },
-  {
-    id: "skills",
-    title: "Skills",
-    icon: "flask",
-    section: "workspace",
-    component: lazy(() => import("./Skills")),
-  },
-  {
-    id: "connectors",
-    title: "Connectors",
-    icon: "mcp",
-    section: "workspace",
-    component: lazy(() => import("./Connectors")),
-  },
-  {
-    id: "research-tools",
-    title: "Research tools",
-    icon: "magnifying-glass",
-    section: "workspace",
-    parent: "connectors",
-    component: lazy(() => import("./ResearchTools")),
-  },
-  // ── Runtime ──
-  {
-    id: "compute",
-    title: "Compute",
-    icon: "cpu",
-    section: "runtime",
-    component: lazy(() => import("./Compute")),
-  },
-  {
-    id: "permissions",
-    title: "Security & access",
-    icon: "shield",
-    section: "runtime",
-    component: lazy(() => import("./Permissions")),
-  },
-  {
-    id: "network",
-    title: "Network",
-    icon: "server",
-    section: "runtime",
-    parent: "permissions",
-    component: lazy(() => import("./Network")),
-  },
-  {
-    id: "sandbox",
-    title: "Sandbox",
-    icon: "code",
-    section: "runtime",
-    parent: "permissions",
-    component: lazy(() => import("./Sandbox")),
-  },
-  {
-    id: "credentials",
-    title: "Credentials",
-    icon: "providers",
-    section: "workspace",
-    parent: "connectors",
-    component: lazy(() => import("./Credentials")),
-  },
-  // ── App ──
-  // Managed inference and its wallet live in Models. Usage stays hidden until
-  // the product can report it reliably; General links to account billing.
-  { id: "storage", title: "Storage", icon: "folder", section: "app", component: lazy(() => import("./Storage")) },
+  // ── Account ──
   {
     id: "general",
     title: "General",
@@ -150,24 +73,109 @@ export const SETTINGS_PANELS: SettingsPanel[] = [
     section: "app",
     component: lazy(() => import("./General")),
   },
+  {
+    id: "workspaces",
+    title: "Workspaces",
+    icon: "folder",
+    section: "app",
+    component: lazy(() => import("./Workspaces")),
+  },
+  {
+    id: "ace",
+    title: "Ace",
+    icon: "sparkles",
+    section: "app",
+    component: lazy(() => import("./Ace")),
+  },
+  {
+    id: "usage",
+    title: "Usage",
+    icon: "activity",
+    section: "app",
+    component: lazy(() => import("./Usage")),
+  },
+  // ── Inference ──
+  {
+    id: "models",
+    title: "Models",
+    icon: "models",
+    section: "inference",
+    component: lazy(() => import("./Models")),
+  },
+  {
+    id: "local-models",
+    title: "Local models",
+    icon: "hard-drive",
+    section: "inference",
+    component: lazy(() => import("./LocalModels")),
+  },
+  // ── Capabilities ──
+  {
+    id: "skills",
+    title: "Skills",
+    icon: "book-open",
+    section: "capabilities",
+    component: lazy(() => import("./Skills")),
+  },
+  {
+    id: "scientific-tools",
+    title: "Tools",
+    icon: "flask",
+    section: "capabilities",
+    component: lazy(() => import("./ScientificTools")),
+  },
+  {
+    id: "connectors",
+    title: "Connectors",
+    icon: "mcp",
+    section: "capabilities",
+    component: lazy(() => import("./Connectors")),
+  },
+  {
+    id: "credentials",
+    title: "Credentials",
+    icon: "providers",
+    section: "capabilities",
+    component: lazy(() => import("./Credentials")),
+  },
+  // ── Runtime ──
+  {
+    id: "compute",
+    title: "Compute",
+    icon: "server",
+    section: "runtime",
+    component: lazy(() => import("./Compute")),
+  },
+  {
+    id: "permissions",
+    title: "Permissions",
+    icon: "shield",
+    section: "runtime",
+    component: lazy(() => import("./Permissions")),
+  },
+  {
+    id: "network",
+    title: "Network",
+    icon: "globe",
+    section: "runtime",
+    component: lazy(() => import("./Network")),
+  },
+  {
+    id: "sandbox",
+    title: "Sandbox",
+    icon: "terminal-square",
+    section: "runtime",
+    component: lazy(() => import("./Sandbox")),
+  },
+  { id: "storage", title: "Storage", icon: "database", section: "runtime", component: lazy(() => import("./Storage")) },
 ]
 
 export const SETTINGS_SECTIONS: { id: SettingsSection; label: string }[] = [
-  { id: "workspace", label: "Workspace" },
-  { id: "runtime", label: "Runtime" },
-  { id: "app", label: "App" },
+  { id: "app", label: "Account" },
+  { id: "inference", label: "Models" },
+  { id: "capabilities", label: "Research" },
+  { id: "runtime", label: "System" },
 ]
-
-export const SETTINGS_PRIMARY_PANELS = SETTINGS_PANELS.filter((panel) => !panel.parent)
-
-export function panelChildren(id: SettingsPanelId): SettingsPanel[] {
-  return SETTINGS_PANELS.filter((panel) => panel.parent === id)
-}
-
-export function panelRoot(id: SettingsPanelId): SettingsPanel {
-  const panel = findPanel(id)
-  return panel.parent ? findPanel(panel.parent) : panel
-}
 
 export function findPanel(id: SettingsPanelId): SettingsPanel {
   return SETTINGS_PANELS.find((p) => p.id === id) ?? SETTINGS_PANELS[0]
@@ -177,4 +185,4 @@ export async function preloadPanel(id: SettingsPanelId): Promise<void> {
   await findPanel(id).component.preload?.()
 }
 
-export const DEFAULT_PANEL: SettingsPanelId = "models"
+export const DEFAULT_PANEL: SettingsPanelId = "general"

@@ -6,6 +6,9 @@ import { ConfigMarkdown } from "../config/markdown"
 import { Instance } from "../project/instance"
 import { Identifier } from "../id/id"
 import PROMPT_INITIALIZE from "./template/initialize.txt"
+import PROMPT_REVIEW from "./template/review.txt"
+import PROMPT_REPRODUCE from "./template/reproduce.txt"
+import PROMPT_LITERATURE from "./template/literature.txt"
 import { MCP } from "../mcp"
 import { State } from "../project/state"
 import { BundledSkills } from "../skill/bundled"
@@ -65,7 +68,10 @@ export namespace Command {
     const result: string[] = []
     const numbered = template.match(/\$\d+/g)
     if (numbered) {
-      for (const match of [...new Set(numbered)].sort()) result.push(match)
+      // The placeholders are text, so ordering them as such reads $10 before
+      // $2 and states the order the arguments are filled in wrongly.
+      const ordered = [...new Set(numbered)].sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)))
+      for (const match of ordered) result.push(match)
     }
     if (template.includes("$ARGUMENTS")) result.push("$ARGUMENTS")
     return result
@@ -75,10 +81,10 @@ export namespace Command {
     INIT: "init",
     PLAN: "plan",
     GOAL: "goal",
-    STATUS: "status",
-    CONTEXT: "context",
+    REVIEW: "review",
+    REPRODUCE: "reproduce",
+    LITERATURE: "literature",
     STOP: "stop",
-    RESUME: "resume",
     COMPACT: "compact",
     HANDOFF: "handoff",
     CHECKPOINT: "checkpoint",
@@ -93,18 +99,20 @@ export namespace Command {
     const result: Record<string, Info> = {
       [Default.INIT]: {
         name: Default.INIT,
-        description: "create/update AGENTS.md",
+        description: "Write this project's AGENTS.md: question, data, conventions, deliverables",
         source: "builtin",
         category: "project",
-        usage: "/init",
+        usage: "/init [notes]",
         get template() {
-          return PROMPT_INITIALIZE.replace("${path}", Instance.worktree)
+          // A function replacement: `$$`, `$&` and friends in a project
+          // directory name are content, not patterns.
+          return PROMPT_INITIALIZE.replace("${path}", () => Instance.worktree)
         },
         hints: hints(PROMPT_INITIALIZE),
       },
       [Default.PLAN]: {
         name: Default.PLAN,
-        description: "enter read-only plan mode and produce a decision-ready plan",
+        description: "Read-only plan mode; produce a decision-ready plan before doing",
         source: "builtin",
         category: "research",
         usage: "/plan [objective]",
@@ -117,14 +125,14 @@ export namespace Command {
       },
       [Default.GOAL]: {
         name: Default.GOAL,
-        description: "set a persistent objective and begin working toward it",
+        description: "Set a persistent objective and work toward it until done",
         source: "builtin",
         category: "research",
         usage: "/goal [objective]",
         get template() {
           return [
             "The user set a persistent goal for this session.",
-            "Treat the durable research contract as the source of truth, begin pursuing the objective now, and continue until it is complete or genuinely blocked.",
+            "Treat it as binding: write the deliverables checklist first with the todo tool, begin now, and continue until every item is complete or genuinely blocked.",
             "Keep the user informed at meaningful milestones and verify the requested outcome before declaring completion.",
             "",
             "Objective:",
@@ -133,33 +141,9 @@ export namespace Command {
         },
         hints: ["$ARGUMENTS"],
       },
-      [Default.STATUS]: {
-        name: Default.STATUS,
-        description: "show live session, plan, artifact, and workspace state",
-        source: "builtin",
-        category: "session",
-        usage: "/status",
-        menu: true,
-        get template() {
-          return ""
-        },
-        hints: [],
-      },
-      [Default.CONTEXT]: {
-        name: Default.CONTEXT,
-        description: "show context composition, capacity, and compaction state",
-        source: "builtin",
-        category: "session",
-        usage: "/context",
-        menu: true,
-        get template() {
-          return ""
-        },
-        hints: [],
-      },
       [Default.STOP]: {
         name: Default.STOP,
-        description: "stop the active turn, compute, or everything in this session",
+        description: "Stop the active turn, compute, or everything in this session",
         source: "builtin",
         category: "session",
         usage: "/stop [turn|compute|all]",
@@ -169,27 +153,44 @@ export namespace Command {
         },
         hints: [],
       },
-      [Default.RESUME]: {
-        name: Default.RESUME,
-        description: "resume an exhausted research contract from its current checkpoints",
+      [Default.REVIEW]: {
+        name: Default.REVIEW,
+        description: "Referee the current deliverables with the peer-review skill",
+        source: "builtin",
+        category: "evidence",
+        usage: "/review [focus]",
+        get template() {
+          return PROMPT_REVIEW
+        },
+        hints: hints(PROMPT_REVIEW),
+      },
+      [Default.REPRODUCE]: {
+        name: Default.REPRODUCE,
+        description: "Reproduce a stated result with the reproduce skill",
         source: "builtin",
         category: "research",
-        usage: "/resume",
-        menu: true,
+        usage: "/reproduce [claim, paper or result]",
         get template() {
-          return [
-            "The user explicitly authorized a fresh bounded runtime epoch for the existing research contract.",
-            "Continue from the preserved stages, evidence, Results, and checkpoints without repeating completed work.",
-            "Finish the genuine next incomplete gate, or return a clear verified partial result if the new bound is reached.",
-          ].join("\n")
+          return PROMPT_REPRODUCE
         },
-        hints: [],
+        hints: hints(PROMPT_REPRODUCE),
+      },
+      [Default.LITERATURE]: {
+        name: Default.LITERATURE,
+        description: "Focused literature review with the literature-review skill",
+        source: "builtin",
+        category: "research",
+        usage: "/literature [question]",
+        get template() {
+          return PROMPT_LITERATURE
+        },
+        hints: hints(PROMPT_LITERATURE),
       },
       // Action command, not a prompt template — SessionPrompt.command intercepts
       // it and runs SessionCompaction directly. The empty template is never used.
       [Default.COMPACT]: {
         name: Default.COMPACT,
-        description: "summarize the conversation so far to free up context",
+        description: "Summarize the conversation so far to free up context",
         source: "builtin",
         category: "session",
         usage: "/compact [focus]",
@@ -201,7 +202,7 @@ export namespace Command {
       },
       [Default.HANDOFF]: {
         name: Default.HANDOFF,
-        description: "write a self-contained handoff.md for another agent, then compact",
+        description: "Write a self-contained handoff.md for another agent, then compact",
         source: "builtin",
         category: "session",
         usage: "/handoff [project-relative path]",
@@ -213,7 +214,7 @@ export namespace Command {
       },
       [Default.CHECKPOINT]: {
         name: Default.CHECKPOINT,
-        description: "capture a local recovery packet from durable session state",
+        description: "Capture a local recovery packet from the session state",
         source: "builtin",
         category: "session",
         usage: "/checkpoint [label]",

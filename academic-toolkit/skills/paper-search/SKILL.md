@@ -6,9 +6,8 @@ description: "Search for academic papers by keyword, or look up a specific paper
 Search for academic papers and get details including title, authors, citation count, DOI, abstract, and open access links.
 
 Steps:
-1. Find the scripts directory: 优先本技能自带 `scripts/search.sh`；否则 `find ~/.acat -name "search.sh" -path "*/paper-search/*" 2>/dev/null | sort -V | tail -1`
-   - This finds the script whether installed via plugin or manual setup
-   - The `paper.sh` script is in the same directory
+1. Find the scripts directory: 本技能自带 `scripts/`（`search.sh` 与 `paper.sh` 同目录；从本技能目录或以仓库根相对路径调用）。
+   - 脚本缺失时，改用 `openalex-search` 技能（`academic-toolkit/skills/openalex-search/`）做等效检索/查询。
 2. To search for papers by keyword:
    ```
    <scripts-dir>/search.sh "your search query" [limit] [sort] [page]

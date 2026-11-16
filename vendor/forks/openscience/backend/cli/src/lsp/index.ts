@@ -97,7 +97,7 @@ export namespace LSP {
       if (cfg.lsp === false) {
         log.info("all LSPs are disabled")
         return {
-          broken: new Set<string>(),
+          broken: new Map<string, Status>(),
           servers,
           clients,
           spawning: new Map<string, Promise<LSPClient.Info | undefined>>(),
@@ -162,7 +162,7 @@ export namespace LSP {
       })
 
       return {
-        broken: new Set<string>(),
+        broken: new Map<string, Status>(),
         servers,
         clients,
         spawning: new Map<string, Promise<LSPClient.Info | undefined>>(),
@@ -207,6 +207,10 @@ export namespace LSP {
     const results = await Promise.allSettled(clients.map((client) => client.shutdown()))
     const failures = results.flatMap((result) => (result.status === "rejected" ? [result.reason] : []))
     if (failures.length) log.warn("Language-server client cleanup failed after durable revocation", { failures })
+    // An explicit project/config reset permits one fresh startup attempt.
+    // Ordinary file touches and status reads never retry a broken server.
+    current.broken.clear()
+    await Bus.publish(Event.Updated, {})
   }
 
   export const Status = z
@@ -223,7 +227,7 @@ export namespace LSP {
 
   export async function status() {
     return state().then((x) => {
-      const result: Status[] = []
+      const result: Status[] = [...x.broken.values()]
       for (const client of x.clients) {
         result.push({
           id: client.serverID,
@@ -256,6 +260,18 @@ export namespace LSP {
 
     async function schedule(server: LSPServer.Info, root: string, key: string) {
       const generation = s.generation
+      async function failed() {
+        if (generation !== s.generation) return
+        // Do not expose command lines, environment values, stderr, or raw
+        // exceptions through the public status response.
+        s.broken.set(key, {
+          id: server.id,
+          name: server.id,
+          root: path.relative(Instance.directory, root),
+          status: "error",
+        })
+        await Bus.publish(Event.Updated, {})
+      }
       // Even a globally installed LSP can execute project-owned config,
       // plugins, hooks, or code merely by starting in the project root.
       // Binary location is therefore not a safe trust classifier.
@@ -297,16 +313,16 @@ export namespace LSP {
             () => server.spawn(root),
           ),
         )
-        .then((value) => {
-          if (!value) s.broken.add(key)
+        .then(async (value) => {
+          if (!value) await failed()
           return value
         })
-        .catch((err) => {
+        .catch(async (err) => {
           if (ProjectTrust.DeniedError.isInstance(err)) {
             log.warn(`Project trust denied LSP server ${server.id}`, { error: err })
             return undefined
           }
-          s.broken.add(key)
+          await failed()
           log.error(`Failed to spawn LSP server ${server.id}`, { error: err })
           return undefined
         })
@@ -330,8 +346,8 @@ export namespace LSP {
         serverID: server.id,
         server: handle,
         root,
-      }).catch((err) => {
-        s.broken.add(key)
+      }).catch(async (err) => {
+        await failed()
         handle.process.kill()
         log.error(`Failed to initialize LSP client ${server.id}`, { error: err })
         return undefined

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/stage-artifact-descriptor.schema.json",
+  "title": "Pure J4-J6 output awaiting same-revision kernel persistence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "artifact_id", "artifact_type", "subject", "payload", "payload_sha256", "size_bytes", "authority", "metadata", "external_action_authorized"],
+  "properties": {
+    "contract": {"const": "paperspine5.stage-artifact-descriptor"},
+    "schema_version": {"const": "1.0"},
+    "artifact_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "artifact_type": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"},
+    "subject": {"$ref": "quality-subject.schema.json"},
+    "payload": {"type": "object"},
+    "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "size_bytes": {"type": "integer", "minimum": 1},
+    "requires_quality_recording": {"type": "boolean"},
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "producer_id"],
+      "properties": {
+        "kind": {"enum": ["research-argument-service", "academic-stage-orchestrator"]},
+        "producer_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["product_build_id", "stage", "encoding", "service_version"],
+      "properties": {
+        "product_build_id": {"type": "string", "minLength": 1},
+        "stage": {"enum": ["J4", "J5", "J6", "J7", "J8", "J9", "J10-J11"]},
+        "encoding": {"const": "canonical-json-newline.v1"},
+        "service_version": {"const": "1.0"},
+        "source_service": {"type": "string", "minLength": 1}
+      }
+    },
+    "external_action_authorized": {"const": false}
+  }
+}

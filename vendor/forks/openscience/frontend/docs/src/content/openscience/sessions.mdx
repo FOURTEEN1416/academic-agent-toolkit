@@ -1,89 +1,204 @@
 ---
-title: "Sessions & one-shot runs"
-description: "One agent conversation: history, tool calls, and a working directory. Create, resume, attach, and export."
-icon: "layers"
+title: "Sessions and terminal runs"
+description: "Start, continue, export, and import a research conversation."
 ---
 
-A **session** is a single agent conversation: a thread of prompts and replies, the tool calls the agent made, and the working directory those calls ran against. Sessions remain stored on disk. A free account owns the corresponding observable trace; when **Use my data** is on, the full prompt, response, tool, and result trajectory is uploaded with credentials redacted.
+A session is one conversation: your requests, the responses, and the recorded tool activity. OpenScience saves sessions so you can return to a task.
+
+## Local storage
+
+Session headers, messages, tool parts, todos and saved diffs are stored in
+`research.sqlite` under your OpenScience data directory. Existing identifiers
+are preserved, including parent sessions and tool call IDs. The first access
+imports older records atomically; their original `storage/` JSON files remain
+as migration backups. After import, the database is authoritative: editing an
+old JSON file does not edit the conversation, and deleting a conversation does
+not restore it from a backup file.
+
+Close older OpenScience versions before upgrading a shared data directory; they
+still write the legacy files and do not understand the database. Use the session
+export and import commands below to exchange conversations across versions.
+If migration reports a malformed legacy file, repair that original file and
+retry. No partial conversation import is committed. The database is included
+when relocating the application's data directory.
+
+Later data-root rescans can import previously unseen records into the database,
+including while the current server is running. Records already imported or deleted
+are never replaced by a legacy backup.
+
+Early experimental database versions did not retain deletion history. When upgrading
+one of those databases, unseen backups remain pending rather than reappearing as
+conversations. Run `openscience debug legacy-import` to list pending record keys and
+SHA-256 hashes without printing conversation content. To restore selected snapshots,
+pass their exact keys explicitly:
+
+```bash
+openscience debug legacy-import --restore session/PROJECT_ID/SESSION_ID
+```
+
+Multiple keys can follow `--restore`; restoration is atomic. Records deleted by the current database cannot
+be recovered through this command. Original JSON backups remain unchanged.
+
+## Check settled Ace charges
+
+Open the session's context panel from the header and choose **Check settled charges**.
+The Context button is available before the first model response, including when
+the first call fails or is cancelled. OpenScience
+looks up the task's recorded Ace HTTP call IDs, including descendant worker sessions,
+against the signed-in account and current workspace's Wallet ledger. This read-only
+check works independently of session trace sharing and does not send conversation
+content or authorize spending.
+
+The **Settled receipts subtotal** includes only matching settled holds and ledger
+receipts. Amounts retain six decimal places in USD so small charges are visible.
+Pending, unknown or missing, inconsistent, and released or expired calls are listed
+separately. A subtotal with unresolved calls is incomplete; missing evidence is never
+proof that the task was free. Calculated Ace amounts, provider-reported amounts and
+BYOK estimates remain separate in **Model call usage**. Older calls without HTTP IDs
+and older servers without receipt support remain explicit.
+
+Receipt IDs and charge evidence are saved in `research.sqlite`, scoped to the
+account, workspace and server. Changing accounts clears the displayed result. Run
+the check again to read the current workspace; the view does not reuse another
+account's saved charges. New calls or later settlement require another check.
 
 ## Start a session
 
-| Entrypoint | Use |
+Open the workspace with `openscience`, or send a single request from a terminal:
+
+```bash
+openscience run "Review the analysis plan in this project"
+```
+
+Use `--title` to make the session easy to find later:
+
+```bash
+openscience run --title "Sample quality checks" "Inspect data/samples.csv for missing values"
+```
+
+New sessions use an isolated scratch workspace by default. To make relative tool
+paths resolve in the selected project, choose project mode when creating the session:
+
+```bash
+openscience run --workspace project "Analyze the CSV files in this directory"
+```
+
+`--workspace isolated` explicitly selects the default. Continuing a session preserves
+its workspace; an explicit conflicting mode is rejected. Project mode uses the
+existing project directory and does not make OpenScience own or delete that directory
+when the session is removed. It retains the normal filesystem and tool permissions.
+The model receives guidance matching that mode: temporary session scratch in
+isolated mode, or durable shared project files in project mode.
+Check `openscience run --help` for workspace-mode support when using an older runtime.
+
+## Attach files or pipe input
+
+```bash
+openscience run "Explain this protocol and identify missing details" --file methods/protocol.md
+git diff | openscience run "Review this diff for likely bugs"
+```
+
+Repeat `--file` for multiple files. Piped input is appended to your message.
+
+`--file` attaches a file. `--attach` connects to an already running OpenScience server.
+
+## Continue existing work
+
+```bash
+openscience session list
+openscience session list -n 10 --format json
+openscience run --continue "Now create a plot of the missing-value counts"
+openscience run --session <session-id> "Explain the limitations of the analysis"
+```
+
+Replace `<session-id>` with an ID from the session list. `--continue` chooses the latest session; use an explicit ID when several tasks are active.
+
+In the workspace, open the saved conversation in project history. Queued prompts and follow-up messages continue that conversation.
+
+Sending a message follows the latest response. While you read earlier messages,
+incoming activity keeps your reading position; choose **Jump to latest** to follow
+the conversation again. Loading earlier messages preserves your reading position
+and respects a later **Jump to latest** or send, even if the history request is slow.
+Background output checks and compute status updates stay
+inside the conversation without resetting its scroll position.
+
+## Choose model and research settings
+
+| Flag | Purpose |
 | --- | --- |
-| `openscience` | Open the [browser workspace](/openscience/workspace) in the current directory. |
-| `openscience run [message..]` | Send one prompt from the terminal, stream the result, and exit. Good for pipelines, CI, and git hooks. |
-| `openscience serve` | Start a headless server (no browser) for `run --attach` to target. |
+| `--model <provider>/<model>`, `-m` | Select an exact configured model. |
+| `--agent <name>` | Select a primary agent; defaults to Research. |
+| `--variant <tier>` | Select a reasoning tier supported by that model. |
+| `--effort normal` or `--effort ultra` | Choose research breadth. |
+| `--bare` | Answer without tools; useful for testing a model connection. |
+| `--command <name>` | Run a custom command with the message as its arguments. |
+| `--format json` | Write one JSON event per line. |
+| `--workspace project` or `--workspace isolated` | Choose the tool workspace when creating a session. |
 
-The workspace is interactive; `openscience run` is the one to script. Each produces a session you can resume from either surface.
+See [Models](/openscience/models) and [Research controls](/openscience/agents).
 
-## One-shot runs
+## Permissions in terminal runs
 
-```bash
-openscience run "Set up a DFT optimization for this structure" -f data/sample.cif
-git diff | openscience run "Review this diff for race conditions"
-```
+An interactive terminal run can ask for permission. Without a terminal, permission prompts are rejected by default so a pipeline does not wait forever.
 
-Piped stdin is appended to the message. `openscience run` supports:
-
-| Flag | Use |
+| Flag | Behavior |
 | --- | --- |
-| `-c, --continue` | Continue the most recent session. |
-| `-s, --session <id>` | Continue a specific session by id. |
-| `-m, --model <provider/model>` | Model for this run, e.g. `anthropic/claude-opus-4-8`. See [Models](/openscience/models). |
-| `--variant <tier>` | Reasoning-effort tier (`high`, `max`, `minimal`; model-dependent). |
-| `--effort <normal\|ultra>` | Research breadth. Normal is focused; Ultra permits a wider bounded investigation. |
-| `--command <name>` | Run a custom command, with the message as its arguments. |
-| `-f, --file <path>` | Attach a local file to the message (repeatable). |
-| `--title <text>` | Title for the session in `session list`. |
-| `--format <default\|json>` | `json` emits one JSON event per line (`tool_use`, `step_start`, `step_finish`, `text`, `error`), tagged with the session id — pipe it to a file and parse line by line. |
-| `--attach <url>` | Send the prompt to a running server instead of starting one. |
-| `--port <n>` | Port for the throwaway local server (random by default). |
+| `--deny-prompts` | Reject permission requests for this run. |
+| `--auto-approve` | Approve permission requests for this run and disable delegation. |
+| `--dangerously-skip-permissions` | Alias for `--auto-approve`. |
 
-To pick up a file, always use `-f`; `--attach` targets a server, it does not fetch documents.
+The two policies are mutually exclusive. They do not persist as app settings.
 
-## Continue or resume
+Use automatic approval only for a task whose allowed work you have already reviewed. A terminal run cannot conduct an interactive clarification conversation; include the needed assumptions and constraints in its prompt.
 
-```bash
-openscience session list                       # recent sessions (-n 10 to cap, --format json)
-openscience run -c "Now add tests for the refactored module"
-openscience run -s ses_8f2ka91xk "Rerun the sweep with lr=3e-4"
-```
+## Exit codes
 
-`session list` prints a table of ids, titles, and update times (paged through `less` in a terminal). In the workspace, the same sessions appear in the session history pane, where you can also queue prompts and undo from any message.
+| Code | Meaning |
+| --- | --- |
+| `0` | The turn completed. |
+| `1` | The session reported an error. |
+| `2` | A usage or configuration error prevented the request. |
+| `3` | A permission request or question was rejected. |
 
-## Attach to a running server
+A completed turn is not proof that a scientific claim is correct. Inspect the output and run the relevant checks.
 
-Leave `openscience serve` (or the workspace) running and drive it from another terminal:
+## Attach to a running workspace
+
+Start a server in one terminal:
 
 ```bash
-openscience run --attach http://localhost:4096 "Summarize today's results"      # new session on the server
-openscience run --attach http://localhost:4096 -s ses_8f2ka91xk "Continue"      # a specific session (-c: latest)
+openscience serve --port 4096
 ```
 
-The run shares the server's sessions, so work started in the browser continues from the terminal and vice versa.
+Send a request from another:
+
+```bash
+openscience run --attach http://localhost:4096 "Summarize the project"
+openscience run --attach http://localhost:4096 --session <session-id> "Continue the analysis"
+```
+
+Use the server's actual printed URL and the same project context. The server must remain running.
 
 ## Export and import
 
 ```bash
-openscience export ses_8f2ka91xk > session.json   # no id: interactive picker
+openscience export <session-id> > session.json
 openscience import session.json
 ```
 
-`export` writes the full session as JSON to stdout; `import` loads it on another machine. Useful for sharing reproductions or attaching a transcript to an issue.
+An export contains the conversation record. It is not a complete project backup: copy the datasets, source files, and result files separately. Review the transcript before sharing it because it can include private research content.
 
-## What's next
+For recovery during long work, use `/checkpoint` or `/handoff` in the workspace. For machine-readable output and CI, see [Automation and JSON output](/openscience/automation).
 
-<Columns cols={2}>
-  <Card title="Workspace" icon="app-window" href="/openscience/workspace">
-    The browser surface for the same sessions.
-  </Card>
-  <Card title="Models" icon="package-check" href="/openscience/models">
-    Per-run and per-session model choice.
-  </Card>
-  <Card title="Agents" icon="bot" href="/openscience/agents">
-    The Research harness, effort levels, and plan mode.
-  </Card>
-  <Card title="Commands" icon="terminal" href="/openscience/commands">
-    The full command reference.
-  </Card>
-</Columns>
+## Native benchmark runners
+
+The source adapter in `tooling/harbor` targets Harbor **0.22.0**. It requires `run --workspace project` to preserve the native task working directory for relative tool paths, verifies the selected OpenScience binary, and requires a successful final JSON `done` event after collecting remote logs. A binary without the workspace option fails setup. Raw and partial trajectories remain available when a run fails; missing usage is not reported as zero. A successful agent process still needs the native task verifier.
+
+Use a matching Linux [headless build](/openscience/server-hosting) to benchmark local source changes. The adapter guide contains the exact `binary` and `binary_sha256` arguments. Existing runners pinned to a different Harbor version need separate conformance checks; this adapter does not replace their task images, graders, or aggregation.
+
+Harbor defaults disable session and message title generation with
+`agent.title.disable: true`. Research execution and compaction remain enabled;
+interactive sessions keep their normal titles. Trajectory usage covers recorded
+root-agent steps and uses catalog cost estimates. It excludes unrecorded auxiliary
+calls and external tool or compute charges, so whole-trial cost comparisons need
+separate billing evidence.

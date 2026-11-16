@@ -19,10 +19,14 @@ paper_rewriting_output/translation_zh/
   exemplar_learning_dossier.zh.md
   style_profile.zh.md
   sota_gap_map.zh.md
+  contribution_options_after_research.zh.md
   motivation_options_after_research.zh.md
+  confirmed_contribution.zh.md
   confirmed_motivation.zh.md
   section_blueprints.zh.md
   writing_rationale_matrix.zh.md
+  structured_review.zh.md
+  reviewer_audit.zh.md
   final_structure.zh.md
   final_paper.zh.md
   full_paper_translation.zh.md
@@ -30,6 +34,9 @@ paper_rewriting_output/translation_zh/
   final_artifact_manifest.zh.md
   artifact_check.zh.md
 ```
+
+Journal, conference, and competition scenes also require
+`results_validation.zh.md`.
 
 Rewrite workflow also requires:
 
@@ -75,6 +82,10 @@ This especially applies to:
 - `research_dossier.md`
 - `exemplar_learning_dossier.md`
 - `sota_gap_map.md`
+- `contribution_options_after_research.md`
+- `confirmed_contribution.md`
+- `results_validation.md` (evidence-bearing scenes)
+- `reviewer_audit.md`
 - `original_logic_map.md`
 - `rewrite_matrix.md`
 - `source_inventory.md`

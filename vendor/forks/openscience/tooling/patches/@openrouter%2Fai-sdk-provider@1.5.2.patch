@@ -1,7 +1,180 @@
+diff --git a/dist/index.d.mts b/dist/index.d.mts
+index f2edf46e0be21dfa834d514747ac14aeef3f36f2..d8a71f6170d2558d90d86a76b6af6eea41dff2cd 100644
+--- a/dist/index.d.mts
++++ b/dist/index.d.mts
+@@ -246,6 +246,9 @@ type OpenRouterUsageAccounting = {
+     promptTokens: number;
+     promptTokensDetails?: {
+         cachedTokens: number;
++        cacheWriteTokens?: number;
++        cacheWrite5mTokens?: number;
++        cacheWrite1hTokens?: number;
+     };
+     completionTokens: number;
+     completionTokensDetails?: {
+@@ -253,6 +256,9 @@ type OpenRouterUsageAccounting = {
+     };
+     totalTokens: number;
+     cost?: number;
++    calculatedWalletCostMicrousd?: number;
++    hostingProvider?: "openrouter" | "azure" | "openai" | "anthropic" | "gemini" | "xai" | "bedrock";
++    serviceTier?: string;
+     costDetails?: {
+         upstreamInferenceCost: number;
+     };
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+index f2edf46e0be21dfa834d514747ac14aeef3f36f2..d8a71f6170d2558d90d86a76b6af6eea41dff2cd 100644
+--- a/dist/index.d.ts
++++ b/dist/index.d.ts
+@@ -246,6 +246,9 @@ type OpenRouterUsageAccounting = {
+     promptTokens: number;
+     promptTokensDetails?: {
+         cachedTokens: number;
++        cacheWriteTokens?: number;
++        cacheWrite5mTokens?: number;
++        cacheWrite1hTokens?: number;
+     };
+     completionTokens: number;
+     completionTokensDetails?: {
+@@ -253,6 +256,9 @@ type OpenRouterUsageAccounting = {
+     };
+     totalTokens: number;
+     cost?: number;
++    calculatedWalletCostMicrousd?: number;
++    hostingProvider?: "openrouter" | "azure" | "openai" | "anthropic" | "gemini" | "xai" | "bedrock";
++    serviceTier?: string;
+     costDetails?: {
+         upstreamInferenceCost: number;
+     };
 diff --git a/dist/index.js b/dist/index.js
+index 7af01a3f1f2ab0cc2aaf73e2b99ec4cdcf313c7c..13a8d458943d8abcde05744fa8547a2877211706 100644
 --- a/dist/index.js
 +++ b/dist/index.js
-@@ -2245,6 +2245,6 @@ var OpenRouterChatLanguageModel = class {
+@@ -1036,7 +1036,10 @@ var OpenRouterProviderMetadataSchema = import_v43.z.object({
+   usage: import_v43.z.object({
+     promptTokens: import_v43.z.number(),
+     promptTokensDetails: import_v43.z.object({
+-      cachedTokens: import_v43.z.number()
++      cachedTokens: import_v43.z.number(),
++      cacheWriteTokens: import_v43.z.number().optional(),
++      cacheWrite5mTokens: import_v43.z.number().optional(),
++      cacheWrite1hTokens: import_v43.z.number().optional()
+     }).passthrough().optional(),
+     completionTokens: import_v43.z.number(),
+     completionTokensDetails: import_v43.z.object({
+@@ -1044,6 +1047,9 @@ var OpenRouterProviderMetadataSchema = import_v43.z.object({
+     }).passthrough().optional(),
+     totalTokens: import_v43.z.number(),
+     cost: import_v43.z.number().optional(),
++    calculatedWalletCostMicrousd: import_v43.z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
++    hostingProvider: import_v43.z.enum(["openrouter", "azure", "openai", "anthropic", "gemini", "xai", "bedrock"]).optional(),
++    serviceTier: import_v43.z.string().max(32).optional(),
+     costDetails: import_v43.z.object({
+       upstreamInferenceCost: import_v43.z.number()
+     }).passthrough().optional()
+@@ -1452,7 +1458,10 @@ var OpenRouterChatCompletionBaseResponseSchema = import_v46.z.object({
+   usage: import_v46.z.object({
+     prompt_tokens: import_v46.z.number(),
+     prompt_tokens_details: import_v46.z.object({
+-      cached_tokens: import_v46.z.number()
++      cached_tokens: import_v46.z.number().optional(),
++      cache_write_tokens: import_v46.z.number().optional(),
++      cache_write_5m_tokens: import_v46.z.number().optional(),
++      cache_write_1h_tokens: import_v46.z.number().optional()
+     }).passthrough().nullish(),
+     completion_tokens: import_v46.z.number(),
+     completion_tokens_details: import_v46.z.object({
+@@ -1460,6 +1469,9 @@ var OpenRouterChatCompletionBaseResponseSchema = import_v46.z.object({
+     }).passthrough().nullish(),
+     total_tokens: import_v46.z.number(),
+     cost: import_v46.z.number().optional(),
++    calculated_wallet_cost_microusd: import_v46.z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
++    hosting_provider: import_v46.z.enum(["openrouter", "azure", "openai", "anthropic", "gemini", "xai", "bedrock"]).optional(),
++    service_tier: import_v46.z.string().max(32).optional(),
+     cost_details: import_v46.z.object({
+       upstream_inference_cost: import_v46.z.number().nullish()
+     }).passthrough().nullish()
+@@ -1834,6 +1846,12 @@ var OpenRouterChatLanguageModel = class {
+       }
+     ] : [];
+     const content = [];
++    // Private continuation records must not suppress separately supplied text.
++    if (reasoningDetails.length > 0 && choice.message.reasoning && !reasoningDetails.some((detail) =>
++      detail.type === "reasoning.text" && detail.text?.trim() || detail.type === "reasoning.summary" && detail.summary?.trim()
++    )) {
++      reasoning.push({ type: "reasoning", text: choice.message.reasoning });
++    }
+     content.push(...reasoning);
+     if (choice.message.content) {
+       content.push({
+@@ -1906,10 +1924,16 @@ var OpenRouterChatLanguageModel = class {
+             promptTokens: (_n = usageInfo.inputTokens) != null ? _n : 0,
+             completionTokens: (_o = usageInfo.outputTokens) != null ? _o : 0,
+             totalTokens: (_p = usageInfo.totalTokens) != null ? _p : 0,
+-            cost: (_q = response.usage) == null ? void 0 : _q.cost
+-          }, ((_s = (_r = response.usage) == null ? void 0 : _r.prompt_tokens_details) == null ? void 0 : _s.cached_tokens) != null ? {
++            cost: (_q = response.usage) == null ? void 0 : _q.cost,
++            calculatedWalletCostMicrousd: response.usage?.calculated_wallet_cost_microusd,
++            hostingProvider: response.usage?.hosting_provider,
++            serviceTier: response.usage?.service_tier
++          }, ((_r = response.usage) == null ? void 0 : _r.prompt_tokens_details) != null ? {
+             promptTokensDetails: {
+-              cachedTokens: response.usage.prompt_tokens_details.cached_tokens
++              cachedTokens: response.usage.prompt_tokens_details.cached_tokens ?? 0,
++              cacheWriteTokens: response.usage.prompt_tokens_details.cache_write_tokens,
++              cacheWrite5mTokens: response.usage.prompt_tokens_details.cache_write_5m_tokens,
++              cacheWrite1hTokens: response.usage.prompt_tokens_details.cache_write_1h_tokens
+             }
+           } : {}), ((_u = (_t = response.usage) == null ? void 0 : _t.completion_tokens_details) == null ? void 0 : _u.reasoning_tokens) != null ? {
+             completionTokensDetails: {
+@@ -2013,7 +2037,10 @@ var OpenRouterChatLanguageModel = class {
+                 const cachedInputTokens = (_a16 = value.usage.prompt_tokens_details.cached_tokens) != null ? _a16 : 0;
+                 usage.cachedInputTokens = cachedInputTokens;
+                 openrouterUsage.promptTokensDetails = {
+-                  cachedTokens: cachedInputTokens
++                  cachedTokens: cachedInputTokens,
++                  cacheWriteTokens: value.usage.prompt_tokens_details.cache_write_tokens,
++                  cacheWrite5mTokens: value.usage.prompt_tokens_details.cache_write_5m_tokens,
++                  cacheWrite1hTokens: value.usage.prompt_tokens_details.cache_write_1h_tokens
+                 };
+               }
+               openrouterUsage.completionTokens = value.usage.completion_tokens;
+@@ -2025,6 +2052,9 @@ var OpenRouterChatLanguageModel = class {
+                 };
+               }
+               openrouterUsage.cost = value.usage.cost;
++              openrouterUsage.calculatedWalletCostMicrousd = value.usage.calculated_wallet_cost_microusd;
++              openrouterUsage.hostingProvider = value.usage.hosting_provider;
++              openrouterUsage.serviceTier = value.usage.service_tier;
+               openrouterUsage.totalTokens = value.usage.total_tokens;
+               const upstreamInferenceCost = (_c = value.usage.cost_details) == null ? void 0 : _c.upstream_inference_cost;
+               if (upstreamInferenceCost != null) {
+@@ -2062,7 +2092,8 @@ var OpenRouterChatLanguageModel = class {
+               for (const detail of delta.reasoning_details) {
+                 if (detail.type === "reasoning.text" /* Text */) {
+                   const lastDetail = accumulatedReasoningDetails[accumulatedReasoningDetails.length - 1];
+-                  if ((lastDetail == null ? void 0 : lastDetail.type) === "reasoning.text" /* Text */) {
++                  // A signature authenticates one block, never adjacent blocks with different identities.
++                  if ((lastDetail == null ? void 0 : lastDetail.type) === "reasoning.text" /* Text */ && lastDetail.id === detail.id && lastDetail.index === detail.index) {
+                     lastDetail.text = (lastDetail.text || "") + (detail.text || "");
+                     lastDetail.signature = lastDetail.signature || detail.signature;
+                     lastDetail.format = lastDetail.format || detail.format;
+@@ -2104,6 +2135,13 @@ var OpenRouterChatLanguageModel = class {
+                   }
+                 }
+               }
++              // Prefer readable details, but retain the legacy field when the
++              // details contain only opaque state or empty text/summary items.
++              if (delta.reasoning && !delta.reasoning_details.some((detail) =>
++                detail.type === "reasoning.text" && detail.text?.trim() || detail.type === "reasoning.summary" && detail.summary?.trim()
++              )) {
++                emitReasoningChunk(delta.reasoning, reasoningMetadata);
++              }
+             } else if (delta.reasoning) {
+               emitReasoningChunk(delta.reasoning);
+             }
+@@ -2244,7 +2282,7 @@ var OpenRouterChatLanguageModel = class {
+                   id: toolCall.id,
                    delta: (_l = toolCallDelta.function.arguments) != null ? _l : ""
                  });
 -                if (((_m = toolCall.function) == null ? void 0 : _m.name) != null && ((_n = toolCall.function) == null ? void 0 : _n.arguments) != null && isParsableJson(toolCall.function.arguments)) {
@@ -10,9 +183,134 @@ diff --git a/dist/index.js b/dist/index.js
                      type: "tool-call",
                      toolCallId: (_o = toolCall.id) != null ? _o : generateId(),
 diff --git a/dist/index.mjs b/dist/index.mjs
+index 1ed50c68bda3f1a4f7def2dda80bd595d641a08d..5e0749a435811bb363cb792de987c8b2ce788de3 100644
 --- a/dist/index.mjs
 +++ b/dist/index.mjs
-@@ -2208,6 +2208,6 @@ var OpenRouterChatLanguageModel = class {
+@@ -999,7 +999,10 @@ var OpenRouterProviderMetadataSchema = z3.object({
+   usage: z3.object({
+     promptTokens: z3.number(),
+     promptTokensDetails: z3.object({
+-      cachedTokens: z3.number()
++      cachedTokens: z3.number(),
++      cacheWriteTokens: z3.number().optional(),
++      cacheWrite5mTokens: z3.number().optional(),
++      cacheWrite1hTokens: z3.number().optional()
+     }).passthrough().optional(),
+     completionTokens: z3.number(),
+     completionTokensDetails: z3.object({
+@@ -1007,6 +1010,9 @@ var OpenRouterProviderMetadataSchema = z3.object({
+     }).passthrough().optional(),
+     totalTokens: z3.number(),
+     cost: z3.number().optional(),
++    calculatedWalletCostMicrousd: z3.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
++    hostingProvider: z3.enum(["openrouter", "azure", "openai", "anthropic", "gemini", "xai", "bedrock"]).optional(),
++    serviceTier: z3.string().max(32).optional(),
+     costDetails: z3.object({
+       upstreamInferenceCost: z3.number()
+     }).passthrough().optional()
+@@ -1415,7 +1421,10 @@ var OpenRouterChatCompletionBaseResponseSchema = z7.object({
+   usage: z7.object({
+     prompt_tokens: z7.number(),
+     prompt_tokens_details: z7.object({
+-      cached_tokens: z7.number()
++      cached_tokens: z7.number().optional(),
++      cache_write_tokens: z7.number().optional(),
++      cache_write_5m_tokens: z7.number().optional(),
++      cache_write_1h_tokens: z7.number().optional()
+     }).passthrough().nullish(),
+     completion_tokens: z7.number(),
+     completion_tokens_details: z7.object({
+@@ -1423,6 +1432,9 @@ var OpenRouterChatCompletionBaseResponseSchema = z7.object({
+     }).passthrough().nullish(),
+     total_tokens: z7.number(),
+     cost: z7.number().optional(),
++    calculated_wallet_cost_microusd: z7.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
++    hosting_provider: z7.enum(["openrouter", "azure", "openai", "anthropic", "gemini", "xai", "bedrock"]).optional(),
++    service_tier: z7.string().max(32).optional(),
+     cost_details: z7.object({
+       upstream_inference_cost: z7.number().nullish()
+     }).passthrough().nullish()
+@@ -1797,6 +1809,12 @@ var OpenRouterChatLanguageModel = class {
+       }
+     ] : [];
+     const content = [];
++    // Private continuation records must not suppress separately supplied text.
++    if (reasoningDetails.length > 0 && choice.message.reasoning && !reasoningDetails.some((detail) =>
++      detail.type === "reasoning.text" && detail.text?.trim() || detail.type === "reasoning.summary" && detail.summary?.trim()
++    )) {
++      reasoning.push({ type: "reasoning", text: choice.message.reasoning });
++    }
+     content.push(...reasoning);
+     if (choice.message.content) {
+       content.push({
+@@ -1869,10 +1887,16 @@ var OpenRouterChatLanguageModel = class {
+             promptTokens: (_n = usageInfo.inputTokens) != null ? _n : 0,
+             completionTokens: (_o = usageInfo.outputTokens) != null ? _o : 0,
+             totalTokens: (_p = usageInfo.totalTokens) != null ? _p : 0,
+-            cost: (_q = response.usage) == null ? void 0 : _q.cost
+-          }, ((_s = (_r = response.usage) == null ? void 0 : _r.prompt_tokens_details) == null ? void 0 : _s.cached_tokens) != null ? {
++            cost: (_q = response.usage) == null ? void 0 : _q.cost,
++            calculatedWalletCostMicrousd: response.usage?.calculated_wallet_cost_microusd,
++            hostingProvider: response.usage?.hosting_provider,
++            serviceTier: response.usage?.service_tier
++          }, ((_r = response.usage) == null ? void 0 : _r.prompt_tokens_details) != null ? {
+             promptTokensDetails: {
+-              cachedTokens: response.usage.prompt_tokens_details.cached_tokens
++              cachedTokens: response.usage.prompt_tokens_details.cached_tokens ?? 0,
++              cacheWriteTokens: response.usage.prompt_tokens_details.cache_write_tokens,
++              cacheWrite5mTokens: response.usage.prompt_tokens_details.cache_write_5m_tokens,
++              cacheWrite1hTokens: response.usage.prompt_tokens_details.cache_write_1h_tokens
+             }
+           } : {}), ((_u = (_t = response.usage) == null ? void 0 : _t.completion_tokens_details) == null ? void 0 : _u.reasoning_tokens) != null ? {
+             completionTokensDetails: {
+@@ -1976,7 +2000,10 @@ var OpenRouterChatLanguageModel = class {
+                 const cachedInputTokens = (_a16 = value.usage.prompt_tokens_details.cached_tokens) != null ? _a16 : 0;
+                 usage.cachedInputTokens = cachedInputTokens;
+                 openrouterUsage.promptTokensDetails = {
+-                  cachedTokens: cachedInputTokens
++                  cachedTokens: cachedInputTokens,
++                  cacheWriteTokens: value.usage.prompt_tokens_details.cache_write_tokens,
++                  cacheWrite5mTokens: value.usage.prompt_tokens_details.cache_write_5m_tokens,
++                  cacheWrite1hTokens: value.usage.prompt_tokens_details.cache_write_1h_tokens
+                 };
+               }
+               openrouterUsage.completionTokens = value.usage.completion_tokens;
+@@ -1988,6 +2015,9 @@ var OpenRouterChatLanguageModel = class {
+                 };
+               }
+               openrouterUsage.cost = value.usage.cost;
++              openrouterUsage.calculatedWalletCostMicrousd = value.usage.calculated_wallet_cost_microusd;
++              openrouterUsage.hostingProvider = value.usage.hosting_provider;
++              openrouterUsage.serviceTier = value.usage.service_tier;
+               openrouterUsage.totalTokens = value.usage.total_tokens;
+               const upstreamInferenceCost = (_c = value.usage.cost_details) == null ? void 0 : _c.upstream_inference_cost;
+               if (upstreamInferenceCost != null) {
+@@ -2025,7 +2055,8 @@ var OpenRouterChatLanguageModel = class {
+               for (const detail of delta.reasoning_details) {
+                 if (detail.type === "reasoning.text" /* Text */) {
+                   const lastDetail = accumulatedReasoningDetails[accumulatedReasoningDetails.length - 1];
+-                  if ((lastDetail == null ? void 0 : lastDetail.type) === "reasoning.text" /* Text */) {
++                  // A signature authenticates one block, never adjacent blocks with different identities.
++                  if ((lastDetail == null ? void 0 : lastDetail.type) === "reasoning.text" /* Text */ && lastDetail.id === detail.id && lastDetail.index === detail.index) {
+                     lastDetail.text = (lastDetail.text || "") + (detail.text || "");
+                     lastDetail.signature = lastDetail.signature || detail.signature;
+                     lastDetail.format = lastDetail.format || detail.format;
+@@ -2067,6 +2098,13 @@ var OpenRouterChatLanguageModel = class {
+                   }
+                 }
+               }
++              // Prefer readable details, but retain the legacy field when the
++              // details contain only opaque state or empty text/summary items.
++              if (delta.reasoning && !delta.reasoning_details.some((detail) =>
++                detail.type === "reasoning.text" && detail.text?.trim() || detail.type === "reasoning.summary" && detail.summary?.trim()
++              )) {
++                emitReasoningChunk(delta.reasoning, reasoningMetadata);
++              }
+             } else if (delta.reasoning) {
+               emitReasoningChunk(delta.reasoning);
+             }
+@@ -2207,7 +2245,7 @@ var OpenRouterChatLanguageModel = class {
+                   id: toolCall.id,
                    delta: (_l = toolCallDelta.function.arguments) != null ? _l : ""
                  });
 -                if (((_m = toolCall.function) == null ? void 0 : _m.name) != null && ((_n = toolCall.function) == null ? void 0 : _n.arguments) != null && isParsableJson(toolCall.function.arguments)) {

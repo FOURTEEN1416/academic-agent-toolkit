@@ -4,13 +4,14 @@ Use this reference when the user wants the manuscript to imitate excellent paper
 
 ## Goal
 
-Convert a small full-text corpus into a reusable `style_profile.md`. The profile is the source of truth for later rewriting. Do not begin style imitation until the profile exists.
+Convert the examined full-text corpus into concrete, source-located style and argument observations in the existing working notes or a useful profile. Apply them to the current manuscript under its scientific evidence and official venue requirements; a separately named `style_profile.md` is not a prerequisite.
 
 For deep imitation, also read `deep-imitation-protocol.md` after this file.
 
 ## Corpus Selection
 
-Prefer 3-6 full-text papers:
+Use the saved reading-set counts from journal-learning.md (default three
+distinct same-field and three target-venue papers). Select relevant roles:
 
 | Corpus Slot | Purpose | Selection Rule |
 |---|---|---|
@@ -21,7 +22,7 @@ Prefer 3-6 full-text papers:
 | Venue exemplar | learn journal/conference voice | same target venue, recent |
 | User favorite | honor user's taste | user says "write like this" |
 
-If the user has no corpus, ask for PDFs or extracted text first. Use web search only when the user wants help finding papers or the paper list is incomplete.
+Reuse a suitable available corpus. When papers or target-venue PDFs are missing, retrieve lawful public sources within the user's scope; ask only for material or access the host cannot obtain. Do not require a separate permission question merely to read public papers.
 
 ## Preparation
 
@@ -34,11 +35,11 @@ If the user has no corpus, ask for PDFs or extracted text first. Use web search 
 python scripts/style_metrics.py <corpus-folder> --markdown > paper_rewriting_output/style_metrics.md
 ```
 
-5. Read `style_metrics.md` before writing qualitative conclusions.
+5. Read any metrics actually generated alongside the original passages. Base qualitative conclusions on the passages' argument and evidence functions; metric counts alone cannot establish those functions.
 
 ## Style Profile Template
 
-Save as `paper_rewriting_output/style_profile.md`.
+If a separate profile is useful, save it as `paper_rewriting_output/style_profile.md`.
 
 ```markdown
 # Style Profile
@@ -159,7 +160,7 @@ Also create a compact transfer table that links the style profile to the writing
 
 ## Non-Negotiable Rules
 
-List only rules supported by at least two corpus papers, or by the target venue.
+List current official requirements as requirements. List patterns supported by the examined corpus as observations, with scope and reasons for adopting or departing from them.
 ```
 
 ## How to Infer Style
@@ -184,6 +185,13 @@ Always state which level supports each rule.
 
 After rewriting, produce a short check:
 
+Return to the inspected original passages and compare the current manuscript's
+actual paragraph moves, evidence placement and claim strength with the learned
+pattern. Explain departures that the present evidence or venue requires, and
+repair a diagnosed weakness still visible in the prose. Existing notes or the
+table below may carry this comparison; the comparison and actual application
+are the work, independent of the record format.
+
 ```markdown
 ## Style Fit Report
 
@@ -206,10 +214,11 @@ After rewriting, produce a short check:
 
 The style-learning phase is incomplete if:
 
-- no `style_profile.md` was produced,
-- no `style_metrics.md` was produced when analyzable text was available,
+- no source-located observations explain the actual writing/layout choices,
+- quantitative style conclusions are asserted without actually measuring the cited text; descriptive metrics are optional when they do not help the current writing decision,
 - section profiles are generic rather than section-specific,
-- no `paragraph_function_templates.md` exists when section rewriting is requested,
-- no `result_narrative_templates.md` exists when Results rewriting is requested,
+- the revised section does not repair its diagnosed argument weakness,
+- Results still list metrics without their scientific interpretation,
 - the profile does not specify how the user's sections should be rebuilt,
-- the later rewrite matrix cannot point to concrete rules in the profile.
+- actual manuscript passages cannot be related to the learning. File and row
+  names above are optional ways to keep the reasoning, not completion gates.

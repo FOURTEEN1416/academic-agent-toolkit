@@ -74,6 +74,12 @@ function cpuSupportsAvx2(platform, arch, linuxInfo) {
     return flags.toLowerCase().split(/\s+/).includes("avx2")
   }
   if (platform !== "darwin") return undefined
+  // hw.optional.avx2_0 answers 0/1 on every Mac, including x64 Node under
+  // Rosetta where machdep.cpu.leaf7_features is an unknown oid.
+  const optional = childProcess.spawnSync("sysctl", ["-n", "hw.optional.avx2_0"], { encoding: "utf8" })
+  const flag = optional.status === 0 ? String(optional.stdout).trim() : undefined
+  if (flag === "1") return true
+  if (flag === "0") return false
   const result = childProcess.spawnSync("sysctl", ["-n", "machdep.cpu.leaf7_features"], { encoding: "utf8" })
   if (result.status !== 0) return undefined
   return result.stdout.toLowerCase().split(/\s+/).includes("avx2")
@@ -85,8 +91,8 @@ function linuxKernelProblem(platform, release = os.release()) {
   if (!match) return undefined
   const major = Number(match[1])
   const minor = Number(match[2])
-  if (major > 5 || (major === 5 && minor >= 1)) return undefined
-  return `Linux kernel ${release} is unsupported; OpenScience's bundled runtime requires kernel 5.1 or newer`
+  if (major > 3 || (major === 3 && minor >= 10)) return undefined
+  return `Linux kernel ${release} is unsupported; OpenScience's bundled runtime requires kernel 3.10 or newer`
 }
 
 function pageSize(platform) {
@@ -197,7 +203,10 @@ function main() {
     const { platform, arch } = detectPlatformAndArch()
     const kernelProblem = linuxKernelProblem(platform)
     if (kernelProblem) {
-      throw new Error(`${kernelProblem}. CentOS 7's stock 3.10 kernel is not supported.`)
+      throw new Error(
+        `${kernelProblem}. Upgrade the host kernel, or run OpenScience on a newer VM. Kernels from 3.10 to 5.5 run ` +
+          `the bundled runtime with graceful degradation of newer syscalls; 5.6 or newer is recommended.`,
+      )
     }
     const pageSizeProblem = linuxArm64PageSizeProblem(platform, arch, pageSize(platform))
     if (pageSizeProblem) {
@@ -215,14 +224,6 @@ function main() {
   }
 }
 
-export {
-  cpuSupportsAvx2,
-  detectMusl,
-  detectPlatformAndArch,
-  findBinary,
-  linuxArm64PageSizeProblem,
-  linuxKernelProblem,
-  platformPackageNames,
-}
+export { cpuSupportsAvx2, linuxArm64PageSizeProblem, linuxKernelProblem, platformPackageNames }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main()

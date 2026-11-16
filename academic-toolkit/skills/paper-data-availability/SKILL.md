@@ -11,7 +11,7 @@ description: "Use when drafting, auditing, or revising Data Availability stateme
 
 Use this skill to turn manuscript-supporting data into a submission-ready availability package: statement text, repository plan, source-data mapping, and unresolved-risk flags.
 
-This skill is narrower than `submission-audit` and more operational than `scientific-writing`. Use it when the bottleneck is no longer the paper's story, but whether the data-sharing package is specific, durable, and journal-ready.
+This skill is narrower than `paper-submission-audit` and more operational than `paper-writing-scientific`. Use it when the bottleneck is no longer the paper's story, but whether the data-sharing package is specific, durable, and journal-ready.
 
 ## When To Use
 

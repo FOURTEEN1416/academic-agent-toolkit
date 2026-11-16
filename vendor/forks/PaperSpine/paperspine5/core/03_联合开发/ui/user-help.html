@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PaperSpine 使用文档</title>
+  <style>
+    :root{color-scheme:light;--ink:#17243d;--muted:#5c6d86;--blue:#2459a8;--line:#d9e3f1;--paper:#f6f9fd}
+    *{box-sizing:border-box}body{max-width:920px;margin:0 auto;padding:48px 24px 72px;font:16px/1.75 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--paper)}
+    a{color:var(--blue)}header{margin-bottom:28px}h1{margin:8px 0;font-size:34px;letter-spacing:-.03em}h2{margin:0 0 8px;font-size:21px}p{margin:8px 0;color:var(--muted)}.eyebrow{margin:0;color:var(--blue);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+    nav{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;font-size:14px}section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin:14px 0;box-shadow:0 8px 24px rgba(36,89,168,.05)}ol{margin:12px 0 0;padding-left:24px}li{margin:8px 0;color:var(--muted)}strong{color:var(--ink)}code{padding:2px 5px;background:#eef4fb;border-radius:5px;color:var(--ink);font-size:.92em}.note{border-left:3px solid var(--blue);padding-left:14px}
+  </style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">PaperSpine · 使用文档</p>
+    <h1>从材料到可交付论文</h1>
+    <p>这份文档说明如何打开任务、保存配置、阅读图件和审阅结果，以及如何下载和继续返修。</p>
+    <nav aria-label="文档导航"><a href="/">返回工作台</a><a href="https://github.com/WUBING2023/PaperSpine" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="https://github.com/WUBING2023/PaperSpine/releases" target="_blank" rel="noopener noreferrer">公开发布页 ↗</a></nav>
+  </header>
+  <section id="start"><h2>开始一次任务</h2><ol><li>在已安装 <code>paper-spine</code> Skill 的宿主对话中说明论文主题、材料目录、目标期刊和是否需要新增研究分析。</li><li>打开宿主提供的同一任务网页，在配置区保存语言、目标期刊、工作模式、输出格式和材料授权。</li><li>需要研究时，宿主会检索公开论文并将可用来源和结果写入任务；私有材料仍按授权范围处理。</li><li>如果已有任务，从“历史论文任务”打开原任务查看记录；打开不会启动 AI。复制接手指令发给当前宿主，不要新建任务代替恢复。</li></ol></section>
+  <section id="figures"><h2>图件与选择</h2><p>辅助模式下，页面会展示候选动机、参考论文和图件。逐项阅读图注、数据来源和参考对照后保存选择；机制图应先有完整构图，再进入组件优化。自动模式由宿主根据 Skill 选择并记录理由。</p><p>页面中的“已选择”只表示页面确实收到你的提交。它不等于宿主已完成绘图、审阅或最终接纳；这些状态会在后续阶段单独显示。</p></section>
+  <section id="review"><h2>正文、审阅与返修</h2><p>宿主会把研究结果、引用、图表和目标期刊格式组织成主稿，并保留可编辑源文件。独立审阅者检查当前实际稿件、数字、图文一致性和版式；发现问题后，宿主应修改产生问题的源稿或图件并重新检查。</p><p>初稿交付后，可以在任务页面提交具体意见或附件。宿主读取同一任务的反馈，保留旧版本，完成返修并生成新的论文包。</p></section>
+  <section id="download"><h2>下载交付物</h2><ol><li>下载论文精简包，确认 PDF、DOCX 和必要引用文件可以打开。</li><li>下载完整工作区包，确认 LaTeX、BibTeX、图件、编辑源和说明文件齐全。</li><li>核对浏览器实际保存位置和文件版本。下载失败时，先查找已有文件，不要因此重跑论文。</li></ol></section>
+  <section id="recovery"><h2>中断后继续</h2><p>打开原任务网页，复制接手指令给原对话或有本地文件访问权的新宿主。接手依靠同一任务的配置、选择、成果、反馈和必要笔记，不共享原 Agent 的记忆。先核对服务地址、任务 ID 和保存版本；只同步已保存数据，不同步各浏览器的未保存草稿。页面显示“待恢复”时，表示宿主尚未继续，不代表论文仍在后台运行。</p><p class="note">网络、模型或工具中断后，先查看任务目录中已生成的文件和宿主最近输出，再决定是否安全重试。无法确认外部动作是否执行时，不重复提交。</p></section>
+  <section id="privacy"><h2>隐私与边界</h2><p>公开论文检索是 Skill 的正常能力。私有材料上传模型前，必须有明确授权；原始临床材料按本地清洗和授权范围处理。投稿、发布、付费和邮件等外部动作需要作者单独确认。</p></section>
+  <footer><p>文档源文件：<code>docs/USER_GUIDE.md</code>。该路径可随 PaperSpine 公开仓库同步发布。</p></footer>
+</body>
+</html>

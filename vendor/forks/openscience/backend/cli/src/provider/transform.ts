@@ -1,10 +1,13 @@
 import type { APICallError, ModelMessage } from "ai"
+import { createHash } from "node:crypto"
 import { mergeDeep, unique } from "remeda"
 import type { JSONSchema } from "zod/v4/core"
 import type { Provider } from "./provider"
 import type { ModelsDev } from "./models"
 import { normalizeDeepSeekToolSchema } from "./tool-schema"
-import { iife } from "@/util/iife"
+import { isAtlasProxyURL } from "../openscience/synced-env-policy"
+import { BILLING_URL } from "../endpoints"
+import { iife } from "@synsci/util/iife"
 
 type Modality = NonNullable<ModelsDev.Model["modalities"]>["input"][number]
 
@@ -16,7 +19,38 @@ function mimeToModality(mime: string): Modality | undefined {
   return undefined
 }
 
+function signedThinking(options: unknown): boolean {
+  if (!options || typeof options !== "object") return false
+  const anthropic = (options as Record<string, unknown>).anthropic
+  if (!anthropic || typeof anthropic !== "object") return false
+  const block = anthropic as Record<string, unknown>
+  return typeof block.signature === "string" || typeof block.redactedData === "string"
+}
+
 export namespace ProviderTransform {
+  export function mistralToolIDs(
+    ids: Iterable<string>,
+    digest = (value: string) => createHash("sha256").update(value).digest("hex"),
+  ) {
+    const result = new Map<string, string>()
+    const used = new Set<string>()
+    for (const id of ids) {
+      if (result.has(id)) continue
+      for (let nonce = 0; ; nonce++) {
+        const value = nonce ? `${id}\0${nonce}` : id
+        const candidate = digest(value)
+          .replace(/[^a-zA-Z0-9]/g, "")
+          .slice(0, 9)
+          .padEnd(9, "0")
+        if (used.has(candidate)) continue
+        result.set(id, candidate)
+        used.add(candidate)
+        break
+      }
+    }
+    return result
+  }
+
   // Maps npm package to the key the AI SDK expects for providerOptions
   function sdkKey(npm: string): string | undefined {
     switch (npm) {
@@ -38,6 +72,8 @@ export namespace ProviderTransform {
         return "openrouter"
       case "@ai-sdk/deepseek":
         return "deepseek"
+      case "@ai-sdk/xai":
+        return "xai"
     }
     return undefined
   }
@@ -69,9 +105,12 @@ export namespace ProviderTransform {
           }
           if (!Array.isArray(msg.content)) return msg
           const filtered = msg.content.filter((part) => {
-            if (part.type === "text" || part.type === "reasoning") {
-              return part.text !== ""
-            }
+            if (part.type === "text") return part.text !== ""
+            // A signed thinking block whose text the API omitted, and every
+            // redacted_thinking block, replays with empty text. Anthropic
+            // rejects a turn whose thinking sequence was edited or partially
+            // dropped, so only an unsigned empty reasoning part is noise.
+            if (part.type === "reasoning") return part.text !== "" || signedThinking(part.providerOptions)
             return true
           })
           if (filtered.length === 0) return undefined
@@ -96,8 +135,23 @@ export namespace ProviderTransform {
         return msg
       })
     }
-    if (model.providerID === "mistral" || model.api.id.toLowerCase().includes("mistral")) {
+    if (
+      model.api.npm === "@ai-sdk/mistral" ||
+      model.providerID === "mistral" ||
+      model.api.id.toLowerCase().includes("mistral")
+    ) {
       const result: ModelMessage[] = []
+      const ids = ProviderTransform.mistralToolIDs(
+        msgs.flatMap((msg) =>
+          Array.isArray(msg.content)
+            ? msg.content.flatMap((part) =>
+                (part.type === "tool-call" || part.type === "tool-result") && "toolCallId" in part
+                  ? [part.toolCallId]
+                  : [],
+              )
+            : [],
+        ),
+      )
       for (let i = 0; i < msgs.length; i++) {
         const msg = msgs[i]
         const nextMsg = msgs[i + 1]
@@ -105,15 +159,9 @@ export namespace ProviderTransform {
         if ((msg.role === "assistant" || msg.role === "tool") && Array.isArray(msg.content)) {
           msg.content = msg.content.map((part) => {
             if ((part.type === "tool-call" || part.type === "tool-result") && "toolCallId" in part) {
-              // Mistral requires alphanumeric tool call IDs with exactly 9 characters
-              const normalizedId = part.toolCallId
-                .replace(/[^a-zA-Z0-9]/g, "") // Remove non-alphanumeric characters
-                .substring(0, 9) // Take first 9 characters
-                .padEnd(9, "0") // Pad with zeros if less than 9 characters
-
               return {
                 ...part,
-                toolCallId: normalizedId,
+                toolCallId: ids.get(part.toolCallId)!,
               }
             }
             return part
@@ -138,8 +186,13 @@ export namespace ProviderTransform {
       return result
     }
 
+    // The OpenRouter SDK serialises reasoning parts itself, carrying each
+    // part's signed `reasoning_details` back to the gateway. Folding them into
+    // an openaiCompatible field here would drop that signature and replay
+    // nothing the gateway reads.
     if (
       model.api.npm !== "@ai-sdk/deepseek" &&
+      model.api.npm !== "@openrouter/ai-sdk-provider" &&
       typeof model.capabilities.interleaved === "object" &&
       model.capabilities.interleaved.field
     ) {
@@ -262,7 +315,7 @@ export namespace ProviderTransform {
     }
     return {
       type: "text",
-      text: `[Attached file ${name} (${mime}) is binary and can't be shown inline. If its contents are needed, ask the user to paste them or read it from .context/.]`,
+      text: `[Attached file ${name} (${mime}) is binary and can't be shown inline. If its contents are needed, open the saved copy this message names; if no copy is named, ask the user to paste them.]`,
     }
   }
 
@@ -301,14 +354,24 @@ export namespace ProviderTransform {
         // catalog (e.g. the synthetic OpenRouter model) even though the model
         // is flagged attachment-capable. Fall back to the coarse `attachment`
         // capability for image/pdf only — audio/video stay gated on their own
-        // modality flag.
+        // modality flag. The managed gateway's flags are authoritative (its
+        // envelope refuses document parts with 422), so no fallback there.
+        const managed = isAtlasProxyURL(model.api.url)
         if (
           model.capabilities.input[modality] ||
-          (model.capabilities.attachment && (modality === "image" || modality === "pdf"))
+          (!managed && model.capabilities.attachment && (modality === "image" || modality === "pdf"))
         )
           return part
 
         const name = filename ? `"${filename}"` : modality
+        // A document on the managed route is not an error the user must be
+        // told about: the text can still reach the model once it is on disk
+        // (a project file, or a path the user names) through the tools.
+        if (managed && modality === "pdf")
+          return {
+            type: "text" as const,
+            text: `[Attached PDF ${name} cannot be sent to this model as a document. If its contents are needed, read the saved copy this message names with the read tool, which extracts the text; if no copy is named, ask the user for its path or a text export.]`,
+          }
         return {
           type: "text" as const,
           text: `ERROR: Cannot read ${name} (this model does not support ${modality} input). Inform the user.`,
@@ -404,6 +467,7 @@ export namespace ProviderTransform {
 
   export function temperature(model: Provider.Model) {
     const id = model.id.toLowerCase()
+    if (/gemini-3[.-][67]-flash/.test(model.api.id.toLowerCase())) return undefined
     if (id.includes("qwen")) return 0.55
     if (id.includes("claude")) return undefined
     if (id.includes("gemini")) return 1.0
@@ -422,6 +486,7 @@ export namespace ProviderTransform {
 
   export function topP(model: Provider.Model) {
     const id = model.id.toLowerCase()
+    if (/gemini-3[.-][67]-flash/.test(model.api.id.toLowerCase())) return undefined
     if (id.includes("qwen")) return 1
     if (id.includes("minimax-m2") || id.includes("kimi-k2.5") || id.includes("kimi-k2p5") || id.includes("gemini")) {
       return 0.95
@@ -431,6 +496,7 @@ export namespace ProviderTransform {
 
   export function topK(model: Provider.Model) {
     const id = model.id.toLowerCase()
+    if (/gemini-3[.-][67]-flash/.test(model.api.id.toLowerCase())) return undefined
     if (id.includes("minimax-m2")) {
       if (id.includes("m2.1")) return 40
       return 20
@@ -440,6 +506,15 @@ export namespace ProviderTransform {
   }
 
   const WIDELY_SUPPORTED_EFFORTS = ["low", "medium", "high"]
+
+  /** The reasoning summary OpenAI's Responses API returns. `detailed` gives
+   * the readable trace the workspace shows; the o1/o3-mini generation and
+   * unknown models keep `auto`, the widest-compatible request. */
+  export function openaiSummary(id: string): "auto" | "detailed" {
+    const lower = id.toLowerCase()
+    if (/^(?:gpt-5|gpt-6|o3(?!-mini)|o4|codex)/.test(lower) || /gpt-[56][.-]/.test(lower)) return "detailed"
+    return "auto"
+  }
 
   function catalogEfforts(model: Provider.Model) {
     const options = model.reasoningOptions
@@ -466,6 +541,8 @@ export namespace ProviderTransform {
   // of the same date (a pure date gate would misfire on those).
   function openaiEfforts(model: Provider.Model): string[] {
     const id = model.id.toLowerCase()
+    if (!/(^|\/)(gpt-|o[1-9](?:\b|-))/.test(id)) return []
+    if (/(^|\/)gpt-(?:6-astra|6[.-]1-sol)$/.test(id)) return [...WIDELY_SUPPORTED_EFFORTS, "xhigh", "max"]
     // OpenRouter publishes separate GPT-5.6 `-pro` routes, but their effort
     // contract is still the full 5.6 ladder. Check 5.6 before the generic
     // historical Pro handling below.
@@ -486,6 +563,8 @@ export namespace ProviderTransform {
   // ladder in sync with the OAuth model catalog rather than deriving it from a
   // release date or inheriting API-only `none`/`minimal` values.
   function codexOAuthEfforts(id: string): string[] | undefined {
+    if (id === "gpt-6-astra" || id === "gpt-6-sol" || id === "gpt-6.1-sol")
+      return [...WIDELY_SUPPORTED_EFFORTS, "xhigh", "max"]
     if (/^gpt-5[.-]6-(?:sol|terra)$/.test(id)) {
       return [...WIDELY_SUPPORTED_EFFORTS, "xhigh", "max"]
     }
@@ -515,7 +594,7 @@ export namespace ProviderTransform {
           effort,
           {
             reasoningEffort: effort,
-            reasoningSummary: "auto",
+            reasoningSummary: openaiSummary(id),
             include: ["reasoning.encrypted_content"],
           },
         ]),
@@ -543,15 +622,29 @@ export namespace ProviderTransform {
         ]),
       )
 
+    if (budget && model.api.npm === "@openrouter/ai-sdk-provider") {
+      const values = model.reasoningOptions?.find((option) => option.type === "budget_tokens")?.values
+      if (!Array.isArray(values)) return {}
+      return Object.fromEntries(
+        values
+          .filter(
+            (value) => typeof value === "number" && (value === 0 || (value >= 1024 && value < model.limit.output)),
+          )
+          .map((value) =>
+            value === 0
+              ? ["none", { reasoning: { enabled: false } }]
+              : [`${value}-tokens`, { reasoning: { max_tokens: value } }],
+          ),
+      )
+    }
+
+    if (exact && model.api.npm === "@openrouter/ai-sdk-provider") return efforts(exact)
+
     // DeepSeek V4 has three canonical effort values. The native adapter maps
     // these to reasoning_effort and preserves reasoning_content through tool
     // loops; do not surface its accepted compatibility aliases as UI tiers.
-    if (model.api.npm === "@ai-sdk/deepseek") {
-      if (!/deepseek-v[4-9]/.test(id)) return {}
-      const canonical = ["low", "high", "max"]
-      const values = exact?.filter((effort) => canonical.includes(effort)) ?? canonical
-      return efforts(values)
-    }
+    if (/deepseek-v4\b/.test(id) || /glm-5[.-]3\b/.test(id)) return efforts(["low", "high", "max"])
+    if (model.api.npm === "@ai-sdk/deepseek") return {}
 
     // https://www.kimi.com/help/kimi-api/api-model-selection
     if (/kimi-k3\b/.test(id)) return efforts(exact ?? ["low", "high", "max"])
@@ -572,9 +665,9 @@ export namespace ProviderTransform {
     // separate from OpenAI's date-derived GPT ladder: `none` is rejected with
     // HTTP 400, while `minimal` is the lowest supported tier and there is no
     // `max` tier.
-    if (/muse-spark-1[.-]1\b/.test(id)) {
+    if (/muse-spark-1[.-][12]\b/.test(id)) {
       const values = exact ?? ["minimal", ...WIDELY_SUPPORTED_EFFORTS, "xhigh"]
-      return Object.fromEntries(values.map((effort) => [effort, { reasoningEffort: effort }]))
+      return efforts(values)
     }
 
     switch (model.api.npm) {
@@ -592,9 +685,9 @@ export namespace ProviderTransform {
         if (id.includes("kimi") || id.includes("minimax") || id.includes("mistral")) return {}
         if (id.includes("glm") && !/glm-[5-9]/.test(id)) return {} // GLM-4.6 = thinking toggle only
         if (model.id.includes("gpt")) return orEffort(openaiEfforts(model))
-        // DeepSeek-v4 / GLM-5.x carry a native "max" tier above high.
-        if (/deepseek-v[4-9]/.test(id) || /glm-[5-9]/.test(id)) return orEffort([...WIDELY_SUPPORTED_EFFORTS, "max"])
-        return orEffort(WIDELY_SUPPORTED_EFFORTS)
+        // Unknown reasoning models may have only on/off thinking, fixed depth,
+        // or different effort enums. Do not invent a common ladder.
+        return {}
       }
 
       // NOTE: the gateway rejects max_tokens when reasoningEffort is set — the
@@ -633,15 +726,7 @@ export namespace ProviderTransform {
         if (exact) {
           return Object.fromEntries(exact.map((effort) => [effort, { reasoningEffort: effort }]))
         }
-        // DeepSeek-v4 and GLM-5.2+ accept a `max` tier above high; their OpenAI-
-        // compatible provider maps `reasoningEffort` -> body `reasoning_effort`.
-        // Other openai-compatible providers use the widely-supported floor.
-        if (/deepseek-v[4-9]/.test(id) || /glm-[5-9]/.test(id)) {
-          return Object.fromEntries(
-            [...WIDELY_SUPPORTED_EFFORTS, "max"].map((effort) => [effort, { reasoningEffort: effort }]),
-          )
-        }
-        return Object.fromEntries(WIDELY_SUPPORTED_EFFORTS.map((effort) => [effort, { reasoningEffort: effort }]))
+        return {}
 
       case "@ai-sdk/azure":
         // https://v5.ai-sdk.dev/providers/ai-sdk-providers/azure
@@ -655,7 +740,7 @@ export namespace ProviderTransform {
             effort,
             {
               reasoningEffort: effort,
-              reasoningSummary: "auto",
+              reasoningSummary: openaiSummary(id),
               include: ["reasoning.encrypted_content"],
             },
           ]),
@@ -668,7 +753,7 @@ export namespace ProviderTransform {
             effort,
             {
               reasoningEffort: effort,
-              reasoningSummary: "auto",
+              reasoningSummary: openaiSummary(id),
               include: ["reasoning.encrypted_content"],
             },
           ]),
@@ -679,10 +764,24 @@ export namespace ProviderTransform {
       case "@ai-sdk/google-vertex/anthropic": {
         // https://v5.ai-sdk.dev/providers/ai-sdk-providers/google-vertex#anthropic-provider
         const cap = model.limit.output
-        const usesEffort = /^claude-opus-4[.-][78]\b/.test(id) || /^claude-(opus|sonnet|mythos)-[5-9]\b/.test(id)
+        const nativeID = model.api.id.toLowerCase().split("/").pop()!
+        const usesEffort =
+          /^claude-opus-4[.-][78]\b/.test(nativeID) || /^claude-(opus|sonnet|mythos|fable)-[5-9]\b/.test(nativeID)
         if (exact) {
           return Object.fromEntries(
             exact.map((effort) => [effort, usesEffort ? { thinking: { type: "adaptive" }, effort } : { effort }]),
+          )
+        }
+        const budgets = model.reasoningOptions?.find((option) => option.type === "budget_tokens")?.values
+        if (Array.isArray(budgets)) {
+          return Object.fromEntries(
+            budgets
+              .filter((value) => typeof value === "number" && (value === 0 || (value >= 1024 && value < cap)))
+              .map((value) =>
+                value === 0
+                  ? ["none", { thinking: { type: "disabled" } }]
+                  : [`${value}-tokens`, { thinking: { type: "enabled", budgetTokens: value } }],
+              ),
           )
         }
 
@@ -781,6 +880,16 @@ export namespace ProviderTransform {
       // https://v5.ai-sdk.dev/providers/ai-sdk-providers/google-vertex
       case "@ai-sdk/google":
         // https://v5.ai-sdk.dev/providers/ai-sdk-providers/google-generative-ai
+        if (/gemini-3[.-]7-flash/.test(model.api.id.toLowerCase())) {
+          return Object.fromEntries(
+            WIDELY_SUPPORTED_EFFORTS.map((effort) => [
+              effort,
+              {
+                thinkingConfig: { includeThoughts: true, thinkingLevel: effort },
+              },
+            ]),
+          )
+        }
         if (exact) {
           return Object.fromEntries(
             exact.map((effort) => [
@@ -889,25 +998,50 @@ export namespace ProviderTransform {
       result["usage"] = {
         include: true,
       }
+      // OpenRouter picks the upstream endpoint per request. Left to itself it
+      // keys that choice on a hash of the opening messages, which every
+      // OpenScience session shares, so a busy prefix scatters one session's
+      // steps across endpoints and each step re-reads a 200K-token prompt at
+      // full price. `session_id` is OpenRouter's explicit sticky-routing key;
+      // `prompt_cache_key` travels on to OpenAI, whose cache routing uses it
+      // the same way. One key per session, for as long as the session lives.
+      // The managed gateway validates request options against its own list
+      // and refuses unknown ones with 422, so on that route the keys stay off
+      // until the gateway accepts them.
+      const managed = isAtlasProxyURL(input.model.api.url) || isAtlasProxyURL(input.providerOptions?.["baseURL"])
+      if (!managed) {
+        result["session_id"] = input.sessionID
+        if (input.model.api.id.startsWith("openai/")) result["prompt_cache_key"] = input.sessionID
+      }
       // OpenRouter streams reasoning through its unified `reasoning` /
       // `reasoning_details` fields, but ONLY when reasoning is explicitly
       // requested — without a `reasoning` object the upstream reasons silently
       // and OR drops the trace, so every reasoning part lands empty. Request it
       // by default for every reasoning-capable model (a selected effort variant
       // overrides this via mergeDeep in llm.ts). This is the single normalized
-      // reasoning path that all managed wallet inference now flows through.
+      // reasoning path used for user-owned OpenRouter requests.
       //
       if (input.model.capabilities.reasoning) {
         const id = input.model.api.id.toLowerCase()
-        // Grok 4.5's documented default is high and reasoning is mandatory.
+        // Grok 4.5/4.6 default to high and reasoning is mandatory.
         // Preserve that default through OpenRouter instead of replacing it with
         // the generic medium default used by other reasoning models.
-        const effort = id.includes("gemini-3") || /grok-4[.-]5\b/.test(id) ? "high" : "medium"
-        result["reasoning"] = { effort }
+        const documented = input.model.reasoningOptions?.find((option) => option.type === "effort")?.default
+        const effort =
+          typeof documented === "string"
+            ? documented
+            : /glm-5[.-]3\b|kimi-k3\b/.test(id)
+              ? "max"
+              : /deepseek-v4\b|grok-4[.-][56]\b/.test(id)
+                ? "high"
+                : undefined
+        // Omitting an effort preserves the provider's actual default. Request
+        // reasoning output without imposing medium on every unknown model.
+        result["reasoning"] = effort ? { effort } : { enabled: true }
       }
     }
 
-    if (/muse-spark-1[.-]1\b/.test(input.model.api.id.toLowerCase())) {
+    if (input.model.api.npm === "@ai-sdk/openai" && /muse-spark-1[.-][12]\b/.test(input.model.api.id.toLowerCase())) {
       // Meta selects the default depth when effort is omitted. Stateless
       // Responses calls must return the encrypted item so tool loops can replay
       // the model's reasoning state on the next turn.
@@ -942,7 +1076,21 @@ export namespace ProviderTransform {
         includeThoughts: true,
       }
       if (input.model.api.id.includes("gemini-3")) {
-        result["thinkingConfig"]["thinkingLevel"] = "high"
+        result["thinkingConfig"]["thinkingLevel"] = input.model.api.id.includes("gemini-3.7-flash") ? "medium" : "high"
+      }
+    }
+
+    if (input.model.api.npm === "@ai-sdk/anthropic" || input.model.api.npm === "@ai-sdk/google-vertex/anthropic") {
+      const nativeID = input.model.api.id.toLowerCase().split("/").at(-1) ?? ""
+      // Opus 4.7/4.8 and the 5+ generation steer depth through effort. Opus
+      // and Sonnet 4.6 accept adaptive thinking but keep the classic budget
+      // ladder for explicit variants, so their default request names no effort
+      // and no budget. Without `thinking` these models answer without reasoning.
+      if (/^claude-(?:opus|sonnet|fable|mythos)-[5-9]\b/.test(nativeID) || /^claude-opus-4[.-][78]\b/.test(nativeID)) {
+        result["thinking"] = { type: "adaptive" }
+        result["effort"] = "high"
+      } else if (/^claude-(?:opus|sonnet)-4[.-]6\b/.test(nativeID)) {
+        result["thinking"] = { type: "adaptive" }
       }
     }
 
@@ -952,11 +1100,17 @@ export namespace ProviderTransform {
     // are meaningless to OR's /chat/completions and were silently making managed
     // gpt-5 reasoning stream blank — exclude the OR npm here.
     if (
-      input.model.api.id.includes("gpt-5") &&
+      (input.model.api.id.includes("gpt-5") ||
+        input.model.api.id === "gpt-6-astra" ||
+        input.model.api.id === "gpt-6-sol" ||
+        input.model.api.id === "gpt-6.1-sol") &&
       !input.model.api.id.includes("gpt-5-chat") &&
       input.model.api.npm !== "@openrouter/ai-sdk-provider"
     ) {
-      if (!input.model.api.id.includes("gpt-5-pro")) {
+      if (
+        !input.model.api.id.includes("gpt-5-pro") &&
+        (input.model.api.id !== "gpt-6-astra" || input.model.providerID === "openai-codex")
+      ) {
         // Defaults differ by transport and exact model. Sol defaults to low in
         // the live Codex OAuth catalog; the other Codex models default to
         // medium. On the public API GPT-5.4 / 5.4-mini default to none, while
@@ -979,8 +1133,8 @@ export namespace ProviderTransform {
       }
 
       // Request summaries + encrypted content on every OpenAI-Responses path that
-      // can carry them: direct OpenAI API and ChatGPT/Codex. Managed inference
-      // uses OpenRouter's normalized reasoning path above. This mirrors the
+      // can carry them: direct OpenAI API and ChatGPT/Codex. OpenRouter uses
+      // the normalized reasoning path above. This mirrors the
       // per-effort variant options above (the
       // @ai-sdk/openai, azure, and github-copilot cases already ship these exact
       // keys for openai models) — this block just applies the same defaults when no
@@ -992,7 +1146,7 @@ export namespace ProviderTransform {
       if (input.model.providerID === "openai" || input.model.providerID === "openai-codex") {
         result["promptCacheKey"] = input.sessionID
         result["include"] = ["reasoning.encrypted_content"]
-        result["reasoningSummary"] = "auto"
+        result["reasoningSummary"] = openaiSummary(input.model.api.id)
       }
     }
 
@@ -1007,7 +1161,7 @@ export namespace ProviderTransform {
     const mode = tier ? model.modes?.[tier] : undefined
     const body = mode?.provider?.body ?? {}
     const options =
-      model.api?.npm === "@ai-sdk/openai"
+      model.api?.npm === "@ai-sdk/openai" || model.api?.npm === "@ai-sdk/xai"
         ? {
             ...Object.fromEntries(
               Object.entries(body).filter(([key]) => key !== "service_tier" && key !== "reasoning"),
@@ -1025,20 +1179,37 @@ export namespace ProviderTransform {
 
   export function smallOptions(model: Provider.Model) {
     const apiID = model.api.id.toLowerCase()
-    // Grok 4.5 cannot disable reasoning. Use its lowest valid effort for titles,
+    if (/(^|\/)gpt-(?:6-astra|6-sol|6[.-]1-sol)$|(^|\/)claude-(?:fable-5[.-]1|opus-5[.-]5)$/.test(apiID)) {
+      return model.api.npm === "@openrouter/ai-sdk-provider"
+        ? { reasoning: { effort: "low" } }
+        : apiID.includes("claude-")
+          ? { thinking: { type: "adaptive" }, effort: "low" }
+          : { reasoningEffort: "low" }
+    }
+    if (/glm-5[.-]3\b|kimi-k3\b/.test(apiID)) {
+      return model.api.npm === "@openrouter/ai-sdk-provider"
+        ? { reasoning: { effort: "low" } }
+        : { reasoningEffort: "low" }
+    }
+    // Grok 4.5/4.6 cannot disable reasoning. Use its lowest valid effort for titles,
     // summaries, and compaction instead of emitting an invalid/ignored off flag
     // or falling back to the expensive high default.
-    if (/grok-4[.-]5\b/.test(apiID)) {
-      if (model.api.npm === "@openrouter/ai-sdk-provider" || model.providerID === "openrouter") {
+    if (/grok-4[.-][56]\b/.test(apiID)) {
+      if (model.api.npm === "@openrouter/ai-sdk-provider") {
         return { reasoning: { effort: "low" } }
       }
       return { reasoningEffort: "low" }
+    }
+    if (/muse-spark-1[.-][12]\b/.test(apiID)) {
+      return model.api.npm === "@openrouter/ai-sdk-provider"
+        ? { reasoning: { effort: "minimal" } }
+        : { reasoningEffort: "minimal" }
     }
     // OpenRouter first: an OR-routed gpt-5 / gemini model must use OR's unified
     // `reasoning` shape, not the OpenAI/Google keys the branches below emit. OR
     // silently ignores `reasoningEffort`, so without this a small OR call (title
     // / summary / compaction) would still reason and bill. Small = skip it.
-    if (model.api.npm === "@openrouter/ai-sdk-provider" || model.providerID === "openrouter") {
+    if (model.api.npm === "@openrouter/ai-sdk-provider") {
       return { reasoning: { enabled: false } }
     }
     if (model.providerID === "openai" || apiID.includes("gpt-5")) {
@@ -1047,10 +1218,10 @@ export namespace ProviderTransform {
       }
       return { reasoningEffort: "minimal" }
     }
-    if (/muse-spark-1[.-]1\b/.test(model.api.id.toLowerCase())) {
-      return { reasoningEffort: "minimal" }
+    if (model.api.npm === "@ai-sdk/anthropic" && /^claude-(?:fable|opus|sonnet|mythos)-[5-9]\b/.test(apiID)) {
+      return { thinking: { type: "adaptive" }, effort: "low" }
     }
-    if (model.providerID === "google") {
+    if (model.providerID === "google" || model.api.npm === "@ai-sdk/google") {
       // gemini-3 uses thinkingLevel, gemini-2.5 uses thinkingBudget
       if (model.api.id.includes("gemini-3")) {
         return { thinkingConfig: { thinkingLevel: "low" } }
@@ -1066,6 +1237,27 @@ export namespace ProviderTransform {
   export function providerOptions(model: Provider.Model, options: { [x: string]: any }) {
     const key = sdkKey(model.api.npm) ?? model.providerID
     return { [key]: options }
+  }
+
+  /** Output tokens the SDK adds to the wire max_tokens beyond maxOutputTokens (Anthropic thinking). */
+  export function thinkingTokens(npm: string, options: Record<string, unknown>): number {
+    if (npm !== "@ai-sdk/anthropic" && npm !== "@ai-sdk/google-vertex/anthropic") return 0
+    const thinking = options["thinking"]
+    if (!thinking || typeof thinking !== "object") return 0
+    const config = thinking as Record<string, unknown>
+    const budget = typeof config["budgetTokens"] === "number" ? config["budgetTokens"] : 0
+    return config["type"] === "enabled" && budget > 0 ? budget : 0
+  }
+
+  /** Returns options with the Anthropic thinking budget lowered to `tokens`; the input is never mutated. */
+  export function fitThinking<T extends Record<string, unknown>>(
+    npm: string,
+    options: T,
+    tokens: number | undefined,
+  ): T {
+    const current = thinkingTokens(npm, options)
+    if (tokens === undefined || !current || tokens >= current) return options
+    return { ...options, thinking: { ...(options["thinking"] as Record<string, unknown>), budgetTokens: tokens } }
   }
 
   export function maxOutputTokens(
@@ -1168,9 +1360,162 @@ export namespace ProviderTransform {
     return schema
   }
 
+  function managedPaymentBody(error: APICallError) {
+    if (error.statusCode !== 402) return
+    return managedErrorBody(error)
+  }
+
+  /** The managed gateway's error object: a bare `{"error": "code"}` or the
+   * FastAPI envelope `{"detail": {"error": "code", ...}}`. */
+  function managedErrorBody(error: APICallError) {
+    if (!isAtlasProxyURL(error.url)) return
+    const body = iife(() => {
+      try {
+        return JSON.parse(error.responseBody ?? "") as Record<string, unknown>
+      } catch {
+        return undefined
+      }
+    })
+    if (!body) return
+    if (typeof body.error === "string") return body
+    // FastAPI HTTPException envelope: {"detail": {"error": "ace_required", ...}}.
+    const detail = body.detail
+    if (detail && typeof detail === "object" && typeof (detail as Record<string, unknown>).error === "string")
+      return detail as Record<string, unknown>
+    return
+  }
+
+  /** The SDK treats every 402 as final. The managed gateway's says whether
+   * waiting helps: a Wallet reload is in flight, or this Wallet's own
+   * requests in flight reserved the funds this one needs (a lead and its
+   * workers asking at the same moment). Those are retried on the gateway's
+   * retry-after, and the Wallet is never touched twice for one request
+   * because the refused request was never dispatched. */
+  export function managedRetryable(error: APICallError) {
+    const body = managedPaymentBody(error)
+    const recovery = (body?.recovery ?? {}) as Record<string, unknown>
+    return recovery.retryable === true
+  }
+
+  /** The managed gateway's 402 is a machine contract (codes, cents, a
+   * recovery action) with no prose. Say what it means and what to do. */
+  export function managedPaymentRequired(error: APICallError) {
+    const body = managedPaymentBody(error)
+    if (!body) return
+    const recovery = (body.recovery ?? {}) as Record<string, unknown>
+    const dollars = (cents: unknown) =>
+      typeof cents === "number" && Number.isFinite(cents) ? `$${(cents / 100).toFixed(2)}` : undefined
+    const available = dollars(body.available_cents)
+    const required = dollars(body.required_cents)
+    const held = dollars(body.held_cents)
+    const wallet = dollars(body.balance_cents)
+    const balance = [
+      available ? `Available: ${available}${wallet ? ` of ${wallet}` : ""}` : undefined,
+      typeof body.held_cents === "number" && body.held_cents > 0 && held
+        ? `${held} reserved by requests in flight`
+        : undefined,
+      required ? `this request reserves ${required}` : undefined,
+    ]
+      .filter(Boolean)
+      .join("; ")
+    if (body.error === "monthly_usage_limit") {
+      const limit = dollars(body.limit_cents)
+      const spent = dollars(body.spent_cents)
+      return `Ace is paused: this workspace reached its monthly usage limit${limit ? ` of ${limit}` : ""}${spent ? ` (${spent} spent)` : ""}. Raise the limit under Billing at ${BILLING_URL}, or switch model access to Keys & subscriptions.`
+    }
+    if (body.error === "ace_required")
+      return `Ace is paused: your Wallet has no available balance and auto reload is not on. Add funds or turn on auto reload at ${BILLING_URL}, or switch model access to Keys & subscriptions.`
+    if (body.error !== "insufficient_balance") return
+    const detail = balance ? ` ${balance}.` : ""
+    // The reload's own state, when the gateway knows it: on its way, blocked
+    // for a named reason, or failed. Silence here once cost an afternoon.
+    const reload = (recovery.ace_reload ?? undefined) as Record<string, unknown> | undefined
+    const reloadNote = iife(() => {
+      if (!reload || reload.state !== "available") return ""
+      if (reload.pending === true) return " A Wallet reload is on its way."
+      const reason = typeof reload.blocked_reason === "string" ? reload.blocked_reason : ""
+      if (reason === "card_declined" || (reload.attempt_state === "failed" && reload.error_class === "payment_failed"))
+        return ` The card on file was declined; auto reload runs again as soon as the card is updated at ${BILLING_URL}.`
+      if (typeof reload.error_class === "string" && reload.error_class && reload.attempt_state === "failed")
+        return ` The last automatic reload failed (${reload.error_class}).`
+      const reasons: Record<string, string> = {
+        not_enrolled: "auto reload is not set up for this Wallet",
+        stripe_disabled: "payments are unavailable right now",
+        legacy_reload_reconciliation_required: "an older reload is still being reconciled",
+        legacy_wallet_sync_required: "the Wallet's earlier funds are still being migrated",
+        failure_cooldown: "the last charge failed recently",
+        monthly_cap_reached: "this month's reload cap is reached",
+        no_amount: "no reload amount is configured",
+      }
+      return reason && reasons[reason] && reason !== "above_threshold"
+        ? ` Auto reload did not run: ${reasons[reason]}.`
+        : ""
+    })
+    switch (recovery.action) {
+      case "retry_after_inflight_requests":
+        return `Ace is waiting for this Wallet's other requests in flight to settle before sending this one.${detail}${reloadNote} Retrying automatically.`
+      case "contact_organization_billing_manager":
+        return `Ace is paused: this workspace's shared Wallet cannot fund the request.${detail} Ask a billing manager to add funds at ${BILLING_URL}, or switch model access to Keys & subscriptions.`
+      case "retry_after_reload":
+        return `Ace is paused while an automatic reload of your Wallet completes.${detail} Retry in a moment; if the card was declined, update it at ${BILLING_URL}.`
+      case "add_wallet_funds_or_update_payment_method":
+        return `Ace is paused: your Wallet cannot fund the request and auto reload could not top it up.${detail}${reloadNote} Add funds or update the card at ${BILLING_URL}, or switch model access to Keys & subscriptions.`
+      default:
+        return `Ace is paused: your Wallet cannot fund the request.${detail} Add funds or turn on auto reload at ${BILLING_URL}, or switch model access to Keys & subscriptions.`
+    }
+  }
+
+  // Which provider a gateway "not configured" code is about, as people know it.
+  const MANAGED_UPSTREAM_NAMES: Record<string, string> = {
+    anthropic: "Anthropic (Claude models)",
+    bedrock: "Anthropic (Claude models)",
+    gemini: "Google (Gemini models)",
+    google: "Google (Gemini models)",
+    openai: "OpenAI (GPT models)",
+    openai_fast: "OpenAI (GPT models)",
+    azure: "OpenAI (GPT models)",
+    xai: "xAI (Grok models)",
+  }
+
+  /** Ace has no working upstream for the model's provider: its key is not
+   * set, or the deployment names an unknown route. That is Ace's setup, not
+   * something the user can fix or a retry can repair, and the code means
+   * nothing to them. Say the provider is unavailable and what they can do. */
+  export function managedProviderUnavailable(error: APICallError) {
+    if (error.statusCode !== 503) return
+    const code = managedErrorBody(error)?.error
+    if (typeof code !== "string") return
+    const upstream =
+      code.match(/^([a-z_]+)_not_configured$/)?.[1] ?? code.match(/^invalid_ace_([a-z_]+)_upstream$/)?.[1]
+    if (!upstream) return
+    const name = MANAGED_UPSTREAM_NAMES[upstream] ?? "This model's provider"
+    return `${name} is unavailable on Ace right now. Try a model from another provider, or switch model access to Keys & subscriptions to use your own API key.`
+  }
+
+  /** The managed gateway's edge proxy answers a request it could not hand to
+   * the model service with a bare router code. The usual cause is a request
+   * body past what the proxy forwards (several inline images), which no retry
+   * repairs; the other is the service restarting, which one does. */
+  export function managedGatewayUnreachable(error: APICallError) {
+    if (error.statusCode !== 502 || !isAtlasProxyURL(error.url)) return
+    const code = error.responseHeaders?.["x-vercel-error"] ?? error.responseBody?.match(/ROUTER_[A-Z_0-9]+/)?.[0]
+    if (!code) return
+    // The sentence a person reads leads; the router code a support ticket
+    // needs comes last, where the UI sets it apart as a detail.
+    return (
+      `Ace's gateway could not deliver this request to the model service. ` +
+      `This happens when the request is too large for the gateway, most often several images in recent tool results, ` +
+      `or when the service is restarting. Retry; if it fails again, continue without re-reading large images, ` +
+      `or downscale them first. Gateway code ${code}.`
+    )
+  }
+
   export function error(providerID: string, error: APICallError) {
     let message = error.message
     const body = error.responseBody?.toLowerCase() ?? ""
+    const managed =
+      managedPaymentRequired(error) ?? managedGatewayUnreachable(error) ?? managedProviderUnavailable(error)
+    if (managed) return managed
     if (
       providerID === "openrouter" &&
       error.statusCode === 403 &&

@@ -8,10 +8,13 @@ import {
   createResource,
   createSignal,
   onCleanup,
+  onMount,
+  untrack,
   type JSX,
 } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useParams } from "@solidjs/router"
+import { AtomLoader } from "@synsci/ui/atom-loader"
 import { useDialog } from "@synsci/ui/context/dialog"
 import { useSDK } from "@/context/sdk"
 import { useSync } from "@/context/sync"
@@ -21,12 +24,12 @@ import { SourceMenu } from "@/atlas/files/SourceMenu"
 import { ArtifactGrid } from "@/atlas/files/ArtifactGrid"
 import { FileTable, type FileRow } from "@/atlas/files/FileTable"
 import { TrashList, type TrashedFile } from "@/atlas/files/TrashList"
-import { buildSources, type PaneSource } from "@/atlas/files/sources"
+import { buildSources, defaultSource, primarySources, type PaneSource } from "@/atlas/files/sources"
 import { readSource, writeSource } from "@/atlas/files/last-source"
 import { RemoteFileView, type RemoteFile } from "@/atlas/files/RemoteFileView"
 import { remotePreview } from "@/atlas/files/remote-preview"
 import { downloadBlob, requestStoredArtifact } from "@/artifacts/bytes"
-import { createArtifactsResource, restoreStoredArtifact } from "@/artifacts/resource"
+import { loadStoredArtifacts, restoreStoredArtifact } from "@/artifacts/resource"
 import type { StoredArtifact } from "@/artifacts/store"
 import { uiStore } from "@/atlas/store/ui"
 import { FolderPicker } from "@/atlas/FolderPicker"
@@ -35,16 +38,19 @@ import {
   IconChevronRight,
   IconClock,
   IconFolder,
+  IconLink,
   IconRefresh,
   IconSearch,
   IconX,
 } from "@/atlas/shared/Icon"
+import { toast } from "@/atlas/Toast"
 import {
   connectedFilesystemGrants,
   containsFilePath,
   normalizeFilePath,
   parseFilesystemSnapshot,
   sessionFilesystemRoot,
+  workingFilesystemRoot,
   type FilesystemAccess,
   type FilesystemIdentity,
   type FilesystemScope,
@@ -54,8 +60,13 @@ import "@/atlas/files/FilesPane.css"
 import { NativeDirectoryPickerUnavailable } from "@/utils/native-picker"
 import { confirmDialog, promptDialog } from "@/atlas/dialogs"
 import { createFileRequestOwner, isFileRequestCancellation } from "@/atlas/file-viewer"
+import { DialogSettings } from "@/components/dialog-settings"
 
 export type Transport = (path: string, init?: RequestInit, query?: Record<string, string>) => Promise<Response>
+
+/** Everything a listing is addressed by: the walked path, the session whose
+ * capability reads it, and the source and project it belongs to. */
+type ListingKey = readonly [string, string | undefined, PaneSource["kind"], string, string]
 
 /** The durable location handed to the inspector's single work-tab owner. */
 export interface PaneFile {
@@ -121,7 +132,7 @@ async function listingJson(response: Response) {
   throw new ListingResponseError(response.status, concise(body || `Request failed (${response.status})`))
 }
 
-export function fileListingFailure(value: unknown, source = "This folder") {
+function fileListingFailure(value: unknown, source = "This folder") {
   if (value instanceof ListingResponseError) {
     if (value.status === 401 || value.status === 403)
       return `${source} is no longer connected. Reconnect it from the source menu.`
@@ -185,14 +196,12 @@ export function fileListQuery(kind: PaneSource["kind"], target: string, session?
   }
 }
 
-// FileExplorer.tsx:57-77 keeps equivalent readAccess/grantAccess/revokeAccess
-// helpers, but they are private, unexported, and typed against ProjectRequest
-// (which carries a .url this pane's injected transport does not). They are
-// reimplemented here against the same endpoints and the same
-// parseFilesystemSnapshot guard rather than imported. Folding the pair into
-// file-sources.ts is the obvious follow-up.
 async function readAccess(transport: Transport, identity: FilesystemIdentity): Promise<FilesystemSnapshot> {
-  const value = await transport(`/session/${encodeURIComponent(identity.sessionID)}/filesystem`).then(json)
+  const value = await transport(
+    identity.sessionID
+      ? `/session/${encodeURIComponent(identity.sessionID)}/filesystem`
+      : "/project/current/filesystem",
+  ).then(json)
   const snapshot = parseFilesystemSnapshot(value, identity)
   if (snapshot) return snapshot
   throw new Error("Filesystem access belongs to another session or project.")
@@ -216,12 +225,77 @@ const accessNote = (access: FilesystemAccess) => {
   return "Approved tools and sandboxed runtimes can read and write files in this folder."
 }
 
-async function grantAccess(transport: Transport, identity: FilesystemIdentity, input: ConnectInput) {
-  return transport(`/session/${encodeURIComponent(identity.sessionID)}/filesystem`, {
+async function grantAccess(transport: Transport, input: ConnectInput) {
+  return transport("/project/current/filesystem", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify({ path: input.path, access: input.access }),
   }).then(json)
+}
+
+/** The server revokes the grant across its whole scope and stops the kernels
+ * that mounted it, so this is the end of that folder's authority, not just of
+ * this pane's view of it. */
+async function revokeAccess(transport: Transport, identity: FilesystemIdentity, grantID: string) {
+  const route = identity.sessionID
+    ? `/session/${encodeURIComponent(identity.sessionID)}/filesystem`
+    : "/project/current/filesystem"
+  return transport(`${route}/${encodeURIComponent(grantID)}`, {
+    method: "DELETE",
+  }).then(json)
+}
+
+/**
+ * Ending a grant, or the reason it did not end. The request goes to the
+ * session that granted the folder — the caller pins that identity with the
+ * click, because a confirmation can outlive the pane's view of it. With no
+ * identity there is nothing to address, and a confirmation that sends nothing
+ * still has to say so: otherwise the folder stays connected while the person
+ * who confirmed believes it is gone.
+ */
+export async function revokeGrant(input: {
+  transport: Transport
+  owner?: FilesystemIdentity
+  grantID: string
+  /** What the pane can already say about why it cannot act. */
+  reason?: string
+}): Promise<{ ok: true } | { ok: false; detail: string }> {
+  if (!input.owner)
+    return {
+      ok: false,
+      detail: input.reason || "This folder belongs to a session this pane is no longer showing.",
+    }
+  return revokeAccess(input.transport, input.owner, input.grantID).then(
+    () => ({ ok: true }) as const,
+    (value) => ({ ok: false, detail: concise(value) }) as const,
+  )
+}
+
+/** How far a revoke reaches, in the words Customize → Permissions uses for the
+ * same grant ("Every project", "This project", "This session"). A grant
+ * approved installation-wide is not this project's alone to end, and a
+ * confirmation that names only the folder does not say so. A source with no
+ * grant behind it claims nothing rather than guessing the narrowest reach. */
+function revokeReach(scope?: FilesystemScope) {
+  if (scope === "installation") return "Every project loses access to this folder, not only this one."
+  if (scope === "project") return "This project loses access to this folder."
+  if (scope) return "This session loses access to this folder."
+  return ""
+}
+
+/** The confirmation for ending a grant. Exported because the wording is the
+ * disclosure: what is revoked, how far that reaches, and what is left alone. */
+export function revokeConfirmation(source: PaneSource) {
+  return {
+    title: `Revoke access to ${source.name}?`,
+    message: [
+      `OpenScience will no longer ${source.readonly ? "read" : "read or write"} files in ${source.sub}.`,
+      revokeReach(source.scope),
+      "Affected kernels are stopped so the folder cannot stay mounted. Nothing inside it is moved, changed, or deleted.",
+    ]
+      .filter(Boolean)
+      .join(" "),
+  }
 }
 
 /** Rename lives in a dialog because a 150px card is not a text field. */
@@ -268,6 +342,10 @@ export function FilesPane(
   props: {
     request?: Transport
     session?: string
+    /** Standalone seam for the cold path: whether the sync store has placed
+     * `session` in this project yet. Production reads the store itself, and a
+     * standalone mount that says nothing is placed already. */
+    belongs?: () => boolean
     directory?: string
     /** Human project label for standalone embeds/tests. Production uses Project.name. */
     projectName?: string
@@ -282,6 +360,7 @@ export function FilesPane(
     onRenameFile?: (file: FileRow, submit: (name: string) => Promise<unknown>) => void
     onTrashFile?: (file: FileRow, submit: () => Promise<unknown>) => void
     onPurgeFile?: (file: TrashedFile, submit: () => Promise<unknown>) => void
+    onRevokeSource?: (source: PaneSource, submit: () => Promise<unknown>) => void
   } = {},
 ): JSX.Element {
   // The `request` prop is a standalone test seam (see FilesPane.test.ts) that
@@ -289,9 +368,7 @@ export function FilesPane(
   // itself rather than swallowing whatever throws: in production `standalone`
   // is always false, so a missing provider is a real wiring bug and throws
   // loudly instead of quietly degrading into a fake "could not be read".
-  // `session` and `directory` complete that seam: with no router or SDK there
-  // is no session id or project root to read, and without both the grant
-  // snapshot never loads. Production passes neither.
+  // `session` and `directory` supply the route identity in isolated tests.
   const standalone = Boolean(props.request)
   const sdk = standalone ? undefined : useSDK()
   const sync = standalone ? undefined : useSync()
@@ -299,7 +376,7 @@ export function FilesPane(
   const dialog = standalone ? undefined : useDialog()
   const platform = standalone ? undefined : usePlatform()
   const server = standalone ? undefined : useServer()
-  const transport: Transport = props.request ?? sdk!.request
+  const transport: Transport = (path, init, query) => (props.request ?? sdk!.request)(path, init, query)
 
   const projectRoot = () =>
     props.directory ?? (sdk?.directory || sync?.data.path.directory || sync?.project?.worktree || "")
@@ -315,31 +392,73 @@ export function FilesPane(
     return folder || "Project files"
   }
   const routeSessionID = () => props.session ?? (params.id && params.id !== "new" ? params.id : undefined)
-  const sessionID = () => {
-    const candidate = routeSessionID()
-    // A URL can retain the previous project's session during navigation. A
-    // project listing needs no session capability, so omit it until the active
-    // project's sync store proves ownership instead of asking the backend to
-    // reject a stale cross-project id.
-    return filesSessionForProject({
-      candidate,
-      explicit: standalone || Boolean(props.session),
-      belongsToProject: Boolean(candidate && sync?.session.get(candidate)),
-    })
-  }
-  const identity = (): FilesystemIdentity | undefined => {
-    const session = sessionID()
-    if (!session || !projectRoot()) return
+  /**
+   * The session the route names, before anything has proved it is this
+   * project's. The grant snapshot is addressed to it: `GET
+   * /session/:id/filesystem` asserts the session's own directory, and
+   * `parseFilesystemSnapshot` checks the answer against this project's id and
+   * root, so asking is how the question gets answered — and the answer always
+   * comes, which is what keeps the hold below from outlasting it.
+   */
+  const routeIdentity = (): FilesystemIdentity | undefined => {
+    const session = routeSessionID()
+    if (!projectRoot()) return
     return { sessionID: session, projectID: sdk?.projectID, directory: projectRoot() }
   }
+  const routeScope = createMemo(() =>
+    JSON.stringify([sdk?.url ?? "", sdk?.projectID ?? "", projectRoot(), routeSessionID() ?? ""]),
+  )
+  const [snapshot, { refetch: refetchSnapshot }] = createResource(
+    () => routeIdentity() && { scope: routeScope(), identity: routeIdentity()! },
+    async (current) => ({
+      scope: current.scope,
+      value: await readAccess(transport, current.identity).catch(() => undefined),
+    }),
+  )
+  const accessSnapshot = () => (snapshot.latest?.scope === routeScope() ? snapshot.latest.value : undefined)
+  /**
+   * The grant snapshot is what says where the pane opens: until it answers,
+   * "Project files" is a guess, and listing it flashes an empty managed
+   * directory a frame before the working folder replaces it. The wait is held
+   * on the session the route names rather than on a proven one, because the
+   * pane mounts on the first paint of a session and the proof arrives later —
+   * holding on the proof put the project root on screen first and the loader
+   * second. A failed read still answers (with no grants), a session that is
+   * not this project's is refused, and where no snapshot is ever fetched
+   * nothing is held at all.
+   */
+  const resolving = () => Boolean(routeIdentity()) && snapshot.latest?.scope !== routeScope()
+  // A URL can retain the previous project's session during navigation. A
+  // project listing needs no session capability, so the pane omits it until
+  // the session is known to be this project's rather than asking the backend
+  // to reject a stale cross-project id. Two things know: the active project's
+  // sync store, which places the session in it, and a grant snapshot the
+  // server answered for this project — the earlier of the two on the first
+  // paint of a session.
+  const placed = () => {
+    const candidate = routeSessionID()
+    if (!candidate) return false
+    if (props.belongs) return props.belongs()
+    return Boolean(sync?.session.get(candidate))
+  }
+  const sessionID = () =>
+    filesSessionForProject({
+      candidate: routeSessionID(),
+      explicit: !props.belongs && (standalone || Boolean(props.session)),
+      belongsToProject: placed() || Boolean(accessSnapshot()),
+    })
+  const identity = (): FilesystemIdentity | undefined => {
+    const session = sessionID()
+    if (!projectRoot()) return
+    return { sessionID: session, projectID: sdk?.projectID, directory: projectRoot() }
+  }
+  const scope = createMemo(() =>
+    JSON.stringify([sdk?.url ?? "", sdk?.projectID ?? "", projectRoot(), sessionID() ?? ""]),
+  )
+  let mounted = true
+  onCleanup(() => (mounted = false))
 
-  // A grant is minted against a session, and the landing route (/:dir/session)
-  // reaches this pane before one exists. The connect form is still worth
-  // opening there — it says what it needs — but the button that cannot work
-  // must say so rather than swallow the click.
   const blocked = () => {
-    if (!sessionID())
-      return "Send a message first: a folder is connected to a session, and this one has not started yet."
     if (!projectRoot()) return "Open a project first: a folder is connected to the project you are working in."
     return ""
   }
@@ -347,31 +466,31 @@ export function FilesPane(
   // The artifact store is project-scoped through the request headers, so it
   // needs no session identity — only the project root as a refetch key.
   const ask = (path: string, init?: RequestInit) => transport(path, init)
-  const [artifacts, { refetch: refetchArtifacts }] = createArtifactsResource(ask, () => sdk?.directory ?? true)
-  const [trashError, setTrashError] = createSignal("")
-  const [deleted, { refetch: refetchDeleted }] = createResource(
-    () => projectRoot() || true,
-    () =>
-      transport("/file/trash")
-        .then(json)
-        .then((value) => {
-          setTrashError("")
-          return normalizeTrash(value)
-        })
-        .catch((value) => {
-          setTrashError(concise(value))
-          return [] as TrashedFile[]
-        }),
+  const [artifacts, { refetch: refetchArtifacts }] = createResource(scope, async (scope) => ({
+    scope,
+    ...(await loadStoredArtifacts(ask)),
+  }))
+  onMount(() => {
+    const refresh = () => void refetchArtifacts()
+    window.addEventListener("openscience:artifacts-changed", refresh)
+    onCleanup(() => window.removeEventListener("openscience:artifacts-changed", refresh))
+  })
+  const artifactData = () => (artifacts.latest?.scope === scope() ? artifacts.latest : undefined)
+  const [deleted, { refetch: refetchDeleted }] = createResource(scope, (scope) =>
+    transport("/file/trash")
+      .then(json)
+      .then((value) => ({ scope, rows: normalizeTrash(value), error: "" }))
+      .catch((value) => ({ scope, rows: [] as TrashedFile[], error: concise(value) })),
   )
+  const deletedData = () => (deleted.latest?.scope === scope() ? deleted.latest : undefined)
 
-  const [snapshot, { refetch: refetchSnapshot }] = createResource(identity, (current) =>
-    readAccess(transport, current).catch(() => undefined),
-  )
   const filesystemChanged = sdk?.event.on("session.filesystem.changed", (event) => {
-    if (event.properties.sessionID !== sessionID()) return
+    if (event.properties.sessionID !== sessionID() && event.properties.grant.scope !== "project") return
     void refetchSnapshot()
   })
   if (filesystemChanged) onCleanup(filesystemChanged)
+  const projectChanged = sdk?.event.on("project.updated", () => void refetchSnapshot())
+  if (projectChanged) onCleanup(projectChanged)
   // Whether Modal is offered at all. Asking costs a settings read, so it waits
   // until someone opens the picker looking for a source; the Volumes themselves
   // are not listed until that source is actually entered.
@@ -388,6 +507,8 @@ export function FilesPane(
   const [modalReady, setModalReady] = createSignal(false)
   createEffect(() => {
     if (opened() === 0) return
+    scope()
+    setModalReady(false)
     let live = true
     onCleanup(() => (live = false))
     void transport("/settings/compute")
@@ -406,8 +527,8 @@ export function FilesPane(
     buildSources({
       projectRoot: projectRoot(),
       projectName: projectName(),
-      grants: connectedFilesystemGrants(snapshot.latest),
-      sessionRoot: sessionFilesystemRoot(snapshot.latest),
+      grants: connectedFilesystemGrants(accessSnapshot()),
+      sessionRoot: sessionFilesystemRoot(accessSnapshot()),
       modal: modalReady(),
     }),
   )
@@ -426,32 +547,24 @@ export function FilesPane(
     writeSource(id)
   }
 
-  // Project files are the durable working default. A remembered pick only wins
-  // while it still names a source that exists — a revoked grant falls back
-  // rather than leaving the pane on an empty location.
-  const current = createMemo(
-    () =>
-      sources().find((item) => item.id === picked()) ??
-      sources().find((item) => item.kind === "project") ??
-      sources().find((item) => item.kind === "artifacts") ??
-      sources()[0]!,
-  )
-  const primarySources = createMemo(() =>
-    (["project", "session", "artifacts"] as const).flatMap((kind) => {
-      const source = sources().find((item) => item.kind === kind)
-      return source ? [source] : []
-    }),
-  )
-  // Project, session scratch, and Results already have permanent tabs. More is
-  // the overflow for connected folders, remote storage, and recovery only;
-  // repeating the primary destinations in both controls gives one location two
-  // competing owners and makes the workspace model look more complicated than
-  // it is.
+  // A remembered pick only wins while it still names a source that exists — a
+  // revoked grant falls back rather than leaving the pane on a location it can
+  // no longer read.
+  const workingRoot = () => workingFilesystemRoot(accessSnapshot())
+  const current = createMemo(() => defaultSource(sources(), { remembered: picked(), workingRoot: workingRoot() }))
+  const primary = createMemo(() => primarySources(sources(), workingRoot()))
+  // Project files, connected folders, session scratch and Results have tabs.
+  // More is the overflow: everything a tab does not show, plus the connected
+  // rows themselves, which are the only place a grant's path, its access and
+  // its Revoke control can be read together.
   const overflowSources = createMemo(() =>
     sources().filter((source) => !["project", "session", "artifacts"].includes(source.kind)),
   )
-  const primaryActive = () => primarySources().some((source) => source.id === current().id)
-  const [path, setPath] = createSignal<string[]>([])
+  const primaryActive = () => primary().some((source) => source.id === current().id)
+  const place = createMemo(() => JSON.stringify([scope(), current().id, current().kind, current().root]))
+  const [navigation, setNavigation] = createStore({ place: "", parts: [] as string[] })
+  const path = () => (navigation.place === place() ? navigation.parts : [])
+  const setPath = (parts: string[]) => setNavigation({ place: place(), parts })
   const [filter, setFilter] = createSignal("")
   const [error, setError] = createSignal("")
   const [listingError, setListingError] = createSignal("")
@@ -466,6 +579,26 @@ export function FilesPane(
     path: "",
     access: "read" as FilesystemAccess,
     scope: "project" as FilesystemScope,
+  })
+  const operation = createMemo(() => ({ key: JSON.stringify([place(), path()]) }))
+  const owns = (ticket: ReturnType<typeof operation>) => mounted && operation() === ticket
+  createEffect(() => {
+    operation()
+    untrack(() => {
+      setBusy(false)
+      setError("")
+    })
+  })
+  createEffect(() => {
+    place()
+    untrack(() => {
+      setFilter("")
+      setError("")
+      setListingError("")
+      setBusy(false)
+      setRemoteOpen()
+      setConnect({ open: false, path: "", access: "read", scope: "project" })
+    })
   })
 
   const pickSource = (next: PaneSource) => {
@@ -488,29 +621,34 @@ export function FilesPane(
   // moved. Compare the parts instead.
   // The source id joins the key so that switching between two Modal Volumes,
   // which share a kind and an empty root, actually re-lists.
-  const key = createMemo(() => [where(), sessionID(), current().kind, current().id] as const, undefined, {
-    equals: (a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3],
-  })
+  // No key while the snapshot is still in flight: a resource with no source
+  // does not fetch, which is how the first listing waits for the location it
+  // will actually open on instead of spending a request on the project root.
+  const key = createMemo<ListingKey | undefined>(
+    () => (resolving() ? undefined : [where(), sessionID(), current().kind, current().id, scope()]),
+    undefined,
+    { equals: (a, b) => (a && b ? a.every((value, index) => value === b[index]) : a === b) },
+  )
   const listingRequest = createFileRequestOwner()
   const listingRetry = { key: "", count: 0 }
   onCleanup(() => listingRequest.dispose())
-  const [entries, { refetch: refetchEntries }] = createResource<FileRow[], ReturnType<typeof key>>(
+  const [entries, { refetch: refetchEntries }] = createResource<{ key: string; rows: FileRow[] }, ListingKey>(
     key,
     async ([target, session, kind, id], info) => {
-      const ownerKey = [sdk?.projectID ?? "", projectRoot(), session ?? "", kind, id, target].join("\n")
+      const ownerKey = JSON.stringify(key())
       if (listingRetry.key !== ownerKey) {
         listingRetry.key = ownerKey
         listingRetry.count = 0
       }
       const ticket = listingRequest.begin(ownerKey)
-      const previous = (info.value ?? []) as FileRow[]
-      const owns = () => listingRequest.owns(ticket, ownerKey)
+      const previous = info.value?.key === ownerKey ? info.value : { key: ownerKey, rows: [] }
+      const owns = () => listingRequest.owns(ticket, ownerKey) && JSON.stringify(key()) === ownerKey
       const success = (rows: FileRow[]) => {
         if (owns()) {
           listingRetry.count = 0
           setListingError("")
         }
-        return rows
+        return { key: ownerKey, rows }
       }
       const failure = (value: unknown, source = current().name) => {
         if (!owns()) return previous
@@ -544,7 +682,7 @@ export function FilesPane(
           setError("")
           setListingError("")
         }
-        return Promise.resolve([] as FileRow[])
+        return Promise.resolve({ key: ownerKey, rows: [] })
       }
       // A Volume is not on this machine: it lists over Modal's API, and its
       // entries carry a path relative to the volume root rather than to any
@@ -605,20 +743,25 @@ export function FilesPane(
   )
 
   const sourceLoading = createMemo(() => {
+    if (resolving()) return true
     const kind = current().kind
     if (kind === "artifacts") return artifacts.loading
     if (kind === "trash") return artifacts.loading || deleted.loading
     return entries.loading
   })
 
+  /** Naming the location while the pane is still deciding on one would put
+   * "Loading Project files" over a wait that ends somewhere else. */
+  const loadingLabel = () => (resolving() ? "Loading files" : `Loading ${current().name}`)
+
   const sourceError = createMemo(() => {
     const kind = current().kind
     if (kind === "artifacts") {
-      const message = artifacts.latest?.errors.active
+      const message = artifactData()?.errors.active
       return message ? `Results could not be loaded. ${message}` : ""
     }
     if (kind === "trash") {
-      const message = artifacts.latest?.errors.trash ?? trashError()
+      const message = artifactData()?.errors.trash || deletedData()?.error
       return message ? `Trash could not be loaded. ${message}` : ""
     }
     return listingError()
@@ -657,19 +800,23 @@ export function FilesPane(
 
   const rows = createMemo(() => {
     const query = filter().trim().toLowerCase()
-    const list = entries.latest ?? []
+    // No key means no location has been settled on yet, and the rows of the
+    // last one describe somewhere the pane is no longer showing.
+    const listing = key()
+    const list = listing && entries.latest?.key === JSON.stringify(listing) ? entries.latest.rows : []
     return query ? list.filter((row) => row.name.toLowerCase().includes(query)) : list
   })
+  const available = (row: FileRow) => !busy() && !entries.loading && !listingError() && rows().includes(row)
 
   const artifactTrash = createMemo(() => {
     const query = filter().trim().toLowerCase()
-    const list = artifacts.latest?.trash ?? []
+    const list = artifactData()?.trash ?? []
     return query ? list.filter((item) => item.title.toLowerCase().includes(query)) : list
   })
 
   const fileTrash = createMemo(() => {
     const query = filter().trim().toLowerCase()
-    const list = deleted.latest ?? []
+    const list = deletedData()?.rows ?? []
     return query ? list.filter((item) => item.filename.toLowerCase().includes(query)) : list
   })
 
@@ -678,7 +825,7 @@ export function FilesPane(
   // artifact different from a file in a folder.
   const stored = createMemo(() => {
     const query = filter().trim().toLowerCase()
-    const list = artifacts.latest?.active ?? []
+    const list = artifactData()?.active ?? []
     return query ? list.filter((item) => item.title.toLowerCase().includes(query)) : list
   })
 
@@ -735,56 +882,87 @@ export function FilesPane(
   const readArtifact = (artifact: StoredArtifact) =>
     requestStoredArtifact(transport, artifact.id, artifact.current.id).then((response) => response.blob())
 
+  const mutate = async (
+    ticket: ReturnType<typeof operation>,
+    execute: () => Promise<unknown>,
+    refresh: () => unknown,
+    message: string,
+  ) => {
+    // Dialogs can outlive their source, project, session, or server. Never
+    // reinterpret an old selection using the transport's new context.
+    if (!owns(ticket) || busy()) return
+    setBusy(true)
+    try {
+      await execute()
+      if (!owns(ticket)) return
+      await refresh()
+      if (owns(ticket)) setError("")
+    } catch (value) {
+      if (owns(ticket)) setError(`${message} ${concise(value)}`)
+    } finally {
+      if (owns(ticket)) setBusy(false)
+    }
+  }
+
   const downloadArtifact = (artifact: StoredArtifact) => {
-    if (busy()) return
+    if (busy() || !stored().includes(artifact)) return
+    const ticket = operation()
     setBusy(true)
     return requestStoredArtifact(transport, artifact.id, artifact.current.id, true)
       .then((response) => response.blob())
       .then((blob) => {
+        if (!owns(ticket)) return
         if (props.onDownload) return props.onDownload(artifact.current.filename, blob)
         downloadBlob(artifact.current.filename, blob)
       })
-      .then(() => setError(""))
-      .catch((value) => setError(`${artifact.current.filename} could not be downloaded. ${concise(value)}`))
-      .finally(() => setBusy(false))
+      .then(() => owns(ticket) && setError(""))
+      .catch(
+        (value) => owns(ticket) && setError(`${artifact.current.filename} could not be downloaded. ${concise(value)}`),
+      )
+      .finally(() => owns(ticket) && setBusy(false))
   }
 
   const openArtifact = (artifact: StoredArtifact) => {
+    if (!stored().includes(artifact)) return
     if (props.onOpenArtifact) return props.onOpenArtifact(artifact)
     uiStore.openSaved(artifact)
   }
 
   const trashArtifact = async (artifact: StoredArtifact) => {
-    setBusy(true)
-    return transport(`/file/artifact-store/${encodeURIComponent(artifact.id)}`, { method: "DELETE" })
-      .then(json)
-      .then(() => {
+    if (!stored().includes(artifact)) return
+    return mutate(
+      operation(),
+      () => transport(`/file/artifact-store/${encodeURIComponent(artifact.id)}`, { method: "DELETE" }).then(json),
+      () => {
         // The store's own listeners refresh every other artifact surface too,
         // so the grid does not have to know who else is showing this artifact.
         window.dispatchEvent(new CustomEvent("openscience:artifacts-changed"))
         return refetchArtifacts()
-      })
-      .catch((value) => setError(errorMessage(value)))
-      .finally(() => setBusy(false))
+      },
+      "The Result could not be moved to Trash.",
+    )
   }
 
   const renameArtifact = (artifact: StoredArtifact) => {
+    if (!stored().includes(artifact)) return
+    const ticket = operation()
     const submit = async (title: string) => {
       const next = title.trim()
       if (!next || next === artifact.title) return
-      setBusy(true)
-      return transport(`/file/artifact-store/${encodeURIComponent(artifact.id)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: next }),
-      })
-        .then(json)
-        .then(() => {
+      return mutate(
+        ticket,
+        () =>
+          transport(`/file/artifact-store/${encodeURIComponent(artifact.id)}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: next }),
+          }).then(json),
+        () => {
           window.dispatchEvent(new CustomEvent("openscience:artifacts-changed"))
           return refetchArtifacts()
-        })
-        .catch((value) => setError(errorMessage(value)))
-        .finally(() => setBusy(false))
+        },
+        "The Result could not be renamed.",
+      )
     }
     if (props.onRenameArtifact) return props.onRenameArtifact(artifact, submit)
     dialog?.show(() => <RenameArtifact artifact={artifact} onSubmit={submit} onClose={() => dialog.close()} />)
@@ -806,9 +984,9 @@ export function FilesPane(
     return response.blob()
   }
 
-  const downloadRemote = async (row: FileRow) => {
-    const volume = path()[0]
+  const downloadRemote = async (row: FileRow, volume = path()[0]) => {
     if (!volume) return
+    const ticket = operation()
     // Leading slash on purpose. The route resolves the containing directory with
     // path.posix.dirname (routes/settings/compute.ts), and dirname("hello.txt")
     // is ".", which Modal answers with NOT_FOUND -- so a file at a Volume's root
@@ -837,13 +1015,15 @@ export function FilesPane(
       .then(async (response) => {
         if (!response.ok) throw new Error((await response.text()) || `Download failed (${response.status})`)
         const blob = await response.blob()
+        if (!owns(ticket)) return
         props.onDownload?.(row.name, blob)
       })
-      .catch((value) => setError(`${row.name} could not be downloaded. ${concise(value)}`))
-      .finally(() => setBusy(false))
+      .catch((value) => owns(ticket) && setError(`${row.name} could not be downloaded. ${concise(value)}`))
+      .finally(() => owns(ticket) && setBusy(false))
   }
 
   const open = (row: FileRow) => {
+    if (!available(row)) return
     const from = current()
     // A session's relative FileNode.path is relative to its isolated scratch
     // root, even when the picker is browsing the project or a connected
@@ -865,32 +1045,41 @@ export function FilesPane(
   const mutable = createMemo(() => {
     const kind = current().kind
     return Boolean(
-      sessionID() && !current().readonly && (kind === "project" || kind === "session" || kind === "connected"),
+      !busy() &&
+      !entries.loading &&
+      !listingError() &&
+      projectRoot() &&
+      !current().readonly &&
+      (kind === "project" || kind === "session" || kind === "connected"),
     )
   })
 
   const renameFile = (row: FileRow) => {
+    if (!available(row) || !mutable()) return
+    const ticket = operation()
+    const session = sessionID()
+    const from = filePath(row)
+    const parent = where()
     const submit = async (name: string) => {
+      if (!owns(ticket) || !mutable()) return
       const next = name.trim()
       if (!next || next === row.name) return
       if (next === "." || next === ".." || /[\\/\u0000]/u.test(next)) {
         setError("A file name cannot contain a path separator.")
         return
       }
-      const session = sessionID()
-      if (!session) return setError("Start a session before renaming workspace files.")
-      const target = [current().root, ...path(), next].filter(Boolean).join("/")
-      setBusy(true)
-      return transport("/file/rename", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ from: filePath(row), to: target, sessionID: session }),
-      })
-        .then(json)
-        .then(() => refetchEntries())
-        .then(() => setError(""))
-        .catch((value) => setError(`${row.name} could not be renamed. ${concise(value)}`))
-        .finally(() => setBusy(false))
+      const target = [parent, next].filter(Boolean).join("/")
+      return mutate(
+        ticket,
+        () =>
+          transport("/file/rename", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ from, to: target, sessionID: session }),
+          }).then(json),
+        () => refetchEntries(),
+        `${row.name} could not be renamed.`,
+      )
     }
     if (props.onRenameFile) return props.onRenameFile(row, submit)
     if (!dialog) return
@@ -903,20 +1092,23 @@ export function FilesPane(
   }
 
   const trashFile = (row: FileRow) => {
+    if (!available(row) || !mutable()) return
+    const ticket = operation()
+    const session = sessionID()
+    const target = filePath(row)
     const submit = async () => {
-      const session = sessionID()
-      if (!session) return setError("Start a session before changing workspace files.")
-      setBusy(true)
-      return transport("/file/trash", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: filePath(row), sessionID: session }),
-      })
-        .then(json)
-        .then(() => Promise.all([refetchEntries(), refetchDeleted()]))
-        .then(() => setError(""))
-        .catch((value) => setError(`${row.name} could not be moved to Trash. ${concise(value)}`))
-        .finally(() => setBusy(false))
+      if (!owns(ticket) || !mutable()) return
+      return mutate(
+        ticket,
+        () =>
+          transport("/file/trash", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: target, sessionID: session }),
+          }).then(json),
+        () => Promise.all([refetchEntries(), refetchDeleted()]),
+        `${row.name} could not be moved to Trash.`,
+      )
     }
     if (props.onTrashFile) return props.onTrashFile(row, submit)
     if (!dialog) return
@@ -934,26 +1126,31 @@ export function FilesPane(
   // needs the dialog host, so outside a provider the typed path stays the
   // only route in — which is also what keeps this form testable.
   const browse = async () => {
+    const ticket = operation()
     if (platform?.openDirectoryPickerDialog && server?.isLocal()) {
       const result = await platform
         .openDirectoryPickerDialog({ title: "Connect a folder", serverUrl: sdk?.url })
         .catch((error) => {
+          if (!owns(ticket)) return
           if (!(error instanceof NativeDirectoryPickerUnavailable)) {
             setError(`The system folder picker could not open. ${concise(error)}`)
           }
           return undefined
         })
       if (result !== undefined) {
+        if (!owns(ticket)) return
         const picked = Array.isArray(result) ? result[0] : result
         if (picked) setConnect("path", picked)
         return
       }
     }
+    if (!owns(ticket)) return
     dialog?.show(() => (
       <FolderPicker
         kind="folder"
         title="Connect a folder"
         onSelect={(result) => {
+          if (!owns(ticket)) return
           const picked = Array.isArray(result) ? result[0] : result
           if (picked) setConnect("path", picked)
         }}
@@ -972,66 +1169,97 @@ export function FilesPane(
       setError(blocked() || "This folder could not be connected.")
       return
     }
-    setBusy(true)
-    grantAccess(transport, current, { path, access: connect.access, scope: connect.scope })
-      .then(() => refetchSnapshot())
-      .then(() => {
-        setBusy(false)
-        setError("")
-        setConnect({ open: false, path: "", access: "read", scope: "project" })
-      })
-      .catch((cause) => {
-        setBusy(false)
-        setError(errorMessage(cause))
-      })
+    const ticket = operation()
+    const input = { path, access: connect.access, scope: connect.scope }
+    void mutate(
+      ticket,
+      () => grantAccess(transport, input),
+      async () => {
+        await refetchSnapshot()
+        if (owns(ticket)) {
+          setConnect({ open: false, path: "", access: "read", scope: "project" })
+        }
+      },
+      "This folder could not be connected.",
+    )
+  }
+
+  // Ending a grant is the one destructive action in the picker and it reaches
+  // past this pane: the server drops the authority across its whole scope and
+  // stops the kernels that mounted it. So it confirms by name, and the
+  // remembered pick goes with it — reopening on a folder the app can no longer
+  // read is how the same grant looks like a broken pane a week later.
+  const revokeSource = (source: PaneSource) => {
+    // An inherited folder is the lead session's grant, not a connection made
+    // here; the menu offers no control for it and neither does this.
+    if (source.kind !== "connected" || source.inherited) return
+    // Captured with the click, not read inside submit: a dialog can outlive
+    // the session that raised it, and a grant belongs to one session.
+    const owner = identity()
+    const submit = async () => {
+      const result = await revokeGrant({ transport, owner, grantID: source.id, reason: blocked() })
+      if (!result.ok) {
+        toast.error(`Access to ${source.name} could not be revoked`, result.detail)
+        return
+      }
+      if (!mounted) return
+      if (picked() === source.id) choose(undefined)
+      return refetchSnapshot()
+    }
+    if (props.onRevokeSource) return props.onRevokeSource(source, submit)
+    if (!dialog) return
+    const confirmation = revokeConfirmation(source)
+    void confirmDialog(dialog, {
+      title: confirmation.title,
+      message: confirmation.message,
+      confirmLabel: "Revoke folder access",
+      danger: true,
+    }).then((confirmed) => (confirmed ? submit() : undefined))
   }
 
   const restoreArtifact = (artifact: StoredArtifact) => {
-    if (busy()) return
-    setBusy(true)
-    restoreStoredArtifact(ask, artifact.id)
-      .then(() => refetchArtifacts())
-      .then(() => {
-        setBusy(false)
-        setError("")
-      })
-      .catch((cause) => {
-        setBusy(false)
-        setError(errorMessage(cause))
-      })
+    if (!artifactTrash().includes(artifact)) return
+    void mutate(
+      operation(),
+      () => restoreStoredArtifact(ask, artifact.id),
+      () => refetchArtifacts(),
+      "The Result could not be restored.",
+    )
   }
 
   const restoreFile = (file: TrashedFile) => {
     const session = sessionID()
-    if (!session || busy()) return
-    setBusy(true)
-    transport(`/file/trash/${encodeURIComponent(file.id)}/restore`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionID: session }),
-    })
-      .then(json)
-      .then(() => Promise.all([refetchDeleted(), refetchEntries()]))
-      .then(() => setError(""))
-      .catch((value) => setError(`${file.filename} could not be restored. ${concise(value)}`))
-      .finally(() => setBusy(false))
+    if (!projectRoot() || !fileTrash().includes(file)) return
+    void mutate(
+      operation(),
+      () =>
+        transport(`/file/trash/${encodeURIComponent(file.id)}/restore`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionID: session }),
+        }).then(json),
+      () => Promise.all([refetchDeleted(), refetchEntries()]),
+      `${file.filename} could not be restored.`,
+    )
   }
 
   const purgeFile = (file: TrashedFile) => {
+    if (!fileTrash().includes(file)) return
+    const ticket = operation()
+    const session = sessionID()
     const submit = async () => {
-      const session = sessionID()
-      if (!session) return setError("Start a session before changing workspace files.")
-      setBusy(true)
-      return transport(`/file/trash/${encodeURIComponent(file.id)}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionID: session }),
-      })
-        .then(json)
-        .then(() => refetchDeleted())
-        .then(() => setError(""))
-        .catch((value) => setError(`${file.filename} could not be deleted. ${concise(value)}`))
-        .finally(() => setBusy(false))
+      if (!owns(ticket)) return
+      return mutate(
+        ticket,
+        () =>
+          transport(`/file/trash/${encodeURIComponent(file.id)}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionID: session }),
+          }).then(json),
+        () => refetchDeleted(),
+        `${file.filename} could not be deleted.`,
+      )
     }
     if (props.onPurgeFile) return props.onPurgeFile(file, submit)
     if (!dialog) return
@@ -1048,7 +1276,7 @@ export function FilesPane(
       <header class="files-browser__header">
         <div class="files-browser__toolbar">
           <div class="files-workspace-switcher" role="tablist" aria-label="Project file locations">
-            <For each={primarySources()}>
+            <For each={primary()}>
               {(source) => (
                 <button
                   type="button"
@@ -1056,9 +1284,11 @@ export function FilesPane(
                   class="files-workspace-switcher__tab"
                   classList={{ "is-active": source.id === current().id }}
                   data-workspace-source={source.kind}
+                  data-workspace-id={source.id}
                   aria-selected={source.id === current().id}
-                  aria-label={`${source.name}. ${source.detail ?? ""}`.trim()}
-                  title={source.detail}
+                  aria-label={[source.name, source.detail ?? source.sub].filter(Boolean).join(". ")}
+                  title={source.detail ?? source.sub}
+                  style={{ "--files-tab-chars": source.name.length }}
                   onClick={() => pickSource(source)}
                 >
                   <span aria-hidden="true">
@@ -1066,6 +1296,8 @@ export function FilesPane(
                       <IconFolder size={14} strokeWidth={1.5} />
                     ) : source.kind === "session" ? (
                       <IconClock size={14} strokeWidth={1.5} />
+                    ) : source.kind === "connected" ? (
+                      <IconLink size={14} strokeWidth={1.5} />
                     ) : (
                       <IconArchive size={14} strokeWidth={1.5} />
                     )}
@@ -1087,6 +1319,8 @@ export function FilesPane(
               if (identity()) void refetchSnapshot()
             }}
             onPick={pickSource}
+            onRevoke={revokeSource}
+            onManage={dialog ? () => dialog.show(() => <DialogSettings initial="workspaces" />) : undefined}
             onAdd={() => setConnect({ open: true, path: "", access: "read", scope: "project" })}
           />
 
@@ -1110,7 +1344,7 @@ export function FilesPane(
                 aria-label="Clear file search"
                 onClick={() => setFilter("")}
               >
-                <IconX size={12} strokeWidth={1.6} />
+                <IconX size={12} strokeWidth={1.5} />
               </button>
             </Show>
           </div>
@@ -1159,7 +1393,7 @@ export function FilesPane(
                 setFilter("")
               }}
             >
-              <IconFolder size={14} strokeWidth={1.45} />
+              <IconFolder size={14} strokeWidth={1.5} />
             </button>
             <For each={path()}>
               {(part, index) => {
@@ -1196,7 +1430,7 @@ export function FilesPane(
           <div class="files-connect__heading">
             <span>
               <strong>Connect a folder</strong>
-              <small>Add another location to this session.</small>
+              <small>Available to every conversation in this project.</small>
             </span>
             <button
               type="button"
@@ -1204,7 +1438,7 @@ export function FilesPane(
               aria-label="Close folder connection form"
               onClick={() => setConnect("open", false)}
             >
-              <IconX size={13} strokeWidth={1.6} />
+              <IconX size={12} strokeWidth={1.5} />
             </button>
           </div>
           <div class="files-connect__row">
@@ -1270,8 +1504,7 @@ export function FilesPane(
           inside a folder that was never opened. */}
       <Show when={sourceLoading()}>
         <div class="files-loading" role="status" data-files-loading>
-          <span class="files-loading__spark" aria-hidden="true" />
-          Loading {current().name}…
+          <AtomLoader size={120} caption={loadingLabel()} />
         </div>
       </Show>
 
@@ -1328,7 +1561,7 @@ export function FilesPane(
           <FileTable
             rows={rows()}
             depth={path().length}
-            busy={sourceLoading()}
+            busy={sourceLoading() || busy()}
             mutable={mutable()}
             filtered={Boolean(filter().trim())}
             loading={sourceLoading()}
@@ -1343,6 +1576,7 @@ export function FilesPane(
               setFilter("")
             }}
             onOpen={(row) => {
+              if (!available(row)) return
               if (row.type === "directory") {
                 setPath([...path(), row.name])
                 setFilter("")
@@ -1372,7 +1606,9 @@ export function FilesPane(
           <RemoteFileView
             file={file}
             read={remoteBytes}
-            onDownload={(remote) => void downloadRemote({ name: remote.name, type: "file", path: remote.path })}
+            onDownload={(remote) =>
+              void downloadRemote({ name: remote.name, type: "file", path: remote.path }, remote.volume)
+            }
             onClose={() => setRemoteOpen()}
           />
         )}

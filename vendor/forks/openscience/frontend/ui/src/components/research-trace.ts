@@ -1,12 +1,10 @@
-import type { AssistantMessage, Part, ToolPart, ToolStateCompleted } from "@synsci/sdk/v2/client"
-import { reasoningDisplayText, reasoningTopic, skillName } from "./tool-display"
+import type { AssistantMessage, Part } from "@synsci/sdk/v2/client"
+import { loadedSkillName, privateReasoningOnly, reasoningDisplayText } from "./tool-display"
 
 export type ResearchTraceEntry = {
   message: AssistantMessage
   part: Part
   hidden?: boolean
-  /** Adjacent, low-value successful preflights kept behind one disclosure. */
-  group?: ResearchTraceEntry[]
 }
 
 export type TaskActivity = {
@@ -29,7 +27,15 @@ export type TaskActivityGroup = {
 export type TraceFamily = "context" | "sources" | "commands" | "changes" | "images" | "skills" | "other"
 
 const context = new Set(["read", "list", "glob", "grep", "codesearch"])
-const sources = new Set(["webfetch", "websearch", "science_fetch", "science_search", "atlas"])
+const sources = new Set([
+  "webfetch",
+  "websearch",
+  "research_search",
+  "science_fetch",
+  "science_search",
+  "literature",
+  "atlas",
+])
 const commands = new Set(["bash", "python", "r", "notebook", "rkernel", "modal", "compute_job"])
 const changes = new Set(["edit", "write", "multiedit", "apply_patch"])
 const images = new Set(["generate_image"])
@@ -45,18 +51,18 @@ export function traceFamily(tool: string): TraceFamily {
   return "other"
 }
 
-export function traceLabel(family: TraceFamily, count: number) {
-  if (family === "context")
-    return `Reviewed ${count} ${count === 1 ? "file or code search" : "files and code searches"}`
-  if (family === "sources") return `Checked ${count} external ${count === 1 ? "source" : "sources"}`
-  if (family === "commands") return `Ran ${count} build or verification ${count === 1 ? "step" : "steps"}`
-  if (family === "changes") return `Updated ${count} ${count === 1 ? "file" : "files"}`
-  if (family === "images") return `Generated ${count} ${count === 1 ? "image" : "images"}`
-  if (family === "skills") return `Using ${count} ${count === 1 ? "skill" : "skills"}`
-  return `Completed ${count} research ${count === 1 ? "operation" : "operations"}`
+function traceLabel(family: TraceFamily, count: number) {
+  const noun = (one: string, many: string) => `${count} ${count === 1 ? one : many}`
+  if (family === "context") return `Read ${noun("file", "files")}`
+  if (family === "sources") return `Searched ${noun("source", "sources")}`
+  if (family === "commands") return `Ran ${noun("command", "commands")}`
+  if (family === "changes") return `Edited ${noun("file", "files")}`
+  if (family === "images") return `Generated ${noun("image", "images")}`
+  if (family === "skills") return `Loaded ${noun("skill", "skills")}`
+  return `Completed ${noun("operation", "operations")}`
 }
 
-function compact(values: string[], limit = 3) {
+export function compact(values: string[], limit = 3) {
   const unique = [...new Set(values)]
   const visible = unique.slice(0, limit)
   const hidden = unique.length - visible.length
@@ -67,56 +73,67 @@ function lifecycle(part: Part) {
   return part.type === "step-start" || part.type === "step-finish" || part.type === "snapshot" || part.type === "patch"
 }
 
-type CompletedSkillEntry = ResearchTraceEntry & {
-  part: ToolPart & { state: ToolStateCompleted }
+/** Collapsing activity must not bury deliverables, skill load receipts, failures,
+ * or a question the user is still answering. Keep their original IDs mounted. */
+/**
+ * What a finished, answered turn still shows when collapsed: a Result it
+ * saved and a request that is still open. A failure the agent recovered from
+ * is part of the story, not a loose end, and reads in the expanded trace.
+ */
+/** A worker that stopped at its limit or deadline: its card carries the user's continue actions. */
+export function stoppedAtLimit(part: Part) {
+  if (part.type !== "tool" || part.tool !== "task" || part.state.status !== "completed") return false
+  const budget = part.state.metadata?.budget as { stopReason?: unknown } | undefined
+  return ["budget_limit", "token_limit", "deadline"].includes(String(budget?.stopReason ?? ""))
 }
 
-function completedSkillLoad(entry: ResearchTraceEntry): entry is CompletedSkillEntry {
-  if (entry.part.type !== "tool" || entry.part.tool !== "skill" || entry.part.state.status !== "completed") return false
-  return !!skillName({
-    input: (entry.part.state.input ?? {}) as Record<string, unknown>,
-    metadata: (entry.part.state.metadata ?? {}) as Record<string, unknown>,
-    title: entry.part.state.title,
-  })
+export function settledCollapsible(
+  part: Part,
+  pendingRequestCallID?: string,
+  pendingChildRequest?: (sessionID: string) => boolean,
+) {
+  if (part.type !== "tool") return part.type === "reasoning"
+  if (part.callID === pendingRequestCallID) return false
+  if (stoppedAtLimit(part)) return false
+  const child = part.tool === "task" && "metadata" in part.state ? part.state.metadata?.sessionId : undefined
+  if (typeof child === "string" && pendingChildRequest?.(child)) return false
+  if (part.state.status === "completed" && part.state.metadata?.artifact) return false
+  return true
 }
 
-function completedSkillSearch(entry: ResearchTraceEntry): entry is CompletedSkillEntry {
-  if (entry.part.type !== "tool" || entry.part.tool !== "skill" || entry.part.state.status !== "completed") return false
-  const input = (entry.part.state.input ?? {}) as Record<string, unknown>
-  return !completedSkillLoad(entry) && (typeof input.query === "string" || typeof input.category === "string")
-}
-
-function skillMatches(entry: CompletedSkillEntry) {
-  const metadata = (entry.part.state.metadata ?? {}) as Record<string, unknown>
-  return Array.isArray(metadata.matches)
-    ? metadata.matches.filter((name): name is string => typeof name === "string" && !!name)
-    : []
-}
-
-function completedShellPreflight(entry: ResearchTraceEntry) {
-  if (entry.part.type !== "tool" || entry.part.tool !== "bash" || entry.part.state.status !== "completed") return false
-  const input = (entry.part.state.input ?? {}) as Record<string, unknown>
-  const command = typeof input.command === "string" ? input.command.trim() : ""
-  return [
-    /^pwd$/,
-    /^(?:which|command\s+-v)\s+[A-Za-z0-9._+/-]+$/,
-    /^git\s+status(?:\s+(?:--short|--porcelain(?:=v[12])?))?$/,
-    /^git\s+rev-parse\s+(?:--show-toplevel|--is-inside-work-tree|--show-prefix|HEAD)$/,
-    /^[A-Za-z0-9._+/-]+\s+--version$/,
-  ].some((pattern) => pattern.test(command))
+export function collapsibleTracePart(
+  part: Part,
+  pendingRequestCallID?: string,
+  pendingChildRequest?: (sessionID: string) => boolean,
+) {
+  if (part.type === "reasoning") return true
+  if (part.type !== "tool") return false
+  if (part.callID === pendingRequestCallID || part.state.status === "error") return false
+  const child = part.tool === "task" && "metadata" in part.state ? part.state.metadata?.sessionId : undefined
+  if (typeof child === "string" && pendingChildRequest?.(child)) return false
+  if (part.state.status !== "completed") return true
+  if (part.state.metadata?.ok === false) return false
+  if (
+    part.tool === "research_search" &&
+    (part.state.metadata?.stopReason === "search_unavailable" ||
+      part.state.metadata?.stopReason === "search_output_unavailable")
+  )
+    return false
+  const outcome = part.tool === "task" ? part.state.metadata?.outcome : undefined
+  if (outcome === "error" || outcome === "timed_out" || outcome === "partial") return false
+  if (part.state.metadata?.artifact) return false
+  if (part.tool === "bash" && typeof part.state.metadata?.exit === "number" && part.state.metadata.exit !== 0)
+    return false
+  return true
 }
 
 /**
- * Keep the primary activity transcript literal and chronological. Streaming
- * state changes must not replace already-visible rows with aggregate summaries;
- * The sole inline compaction is a run of low-value, successful shell
- * preflights. The original calls remain in `group` so expansion never hides
- * commands or output; errors and substantive work always remain literal.
+ * Keep received prose and tool calls unchanged and chronological. Only
+ * lifecycle markers, empty reasoning, and entries presented elsewhere are omitted; private-only
+ * reasoning keeps an availability notice without exposing provider continuation. Streaming
+ * reconciliation replaces a duplicate part ID without moving its position.
  */
 export function visibleResearchTrace(entries: ResearchTraceEntry[]): ResearchTraceEntry[] {
-  // Streaming reconciliation can briefly surface the same durable part twice
-  // while an insert and update are coalesced. Keep the first chronological
-  // position but render the newest value for that stable part ID.
   const positions = new Map<string, number>()
   const deduped: ResearchTraceEntry[] = []
   for (const entry of entries) {
@@ -128,110 +145,20 @@ export function visibleResearchTrace(entries: ResearchTraceEntry[]): ResearchTra
     }
     deduped[position] = entry
   }
-
-  const visible = deduped.filter((entry) => {
+  return deduped.filter((entry) => {
     if (entry.hidden || lifecycle(entry.part)) return false
-    if (
-      entry.part.type === "reasoning" &&
-      !reasoningDisplayText(entry.part.text ?? "") &&
-      !reasoningTopic(entry.part.text ?? "")
+    return (
+      entry.part.type !== "reasoning" ||
+      !!reasoningDisplayText(entry.part.text ?? "") ||
+      privateReasoningOnly(entry.part.text ?? "")
     )
-      return false
-    return true
   })
-  const result: ResearchTraceEntry[] = []
-  for (let index = 0; index < visible.length; index++) {
-    const first = visible[index]!
-    if (completedSkillSearch(first)) {
-      const group: CompletedSkillEntry[] = [first]
-      while (index + 1 < visible.length) {
-        const next = visible[index + 1]!
-        if (!completedSkillSearch(next)) break
-        group.push(next)
-        index++
-      }
-      if (group.length === 1) {
-        result.push(first)
-        continue
-      }
-      const matches = [...new Set(group.flatMap(skillMatches))]
-      result.push({
-        message: first.message,
-        part: {
-          ...first.part,
-          state: {
-            ...first.part.state,
-            title: "Skill matches",
-            input: { query: "relevant scientific capabilities" },
-            output: matches.map((name) => `- ${name}`).join("\n"),
-            metadata: { matches },
-          },
-        },
-      })
-      continue
-    }
-    if (completedShellPreflight(first)) {
-      const group: ResearchTraceEntry[] = [first]
-      while (index + 1 < visible.length) {
-        const next = visible[index + 1]!
-        if (!completedShellPreflight(next)) break
-        group.push(next)
-        index++
-      }
-      if (group.length > 1) {
-        result.push({ ...first, group })
-        continue
-      }
-    }
-    if (!completedSkillLoad(first)) {
-      result.push(first)
-      continue
-    }
-    const group: CompletedSkillEntry[] = [first]
-    while (index + 1 < visible.length) {
-      const next = visible[index + 1]!
-      if (!completedSkillLoad(next)) break
-      group.push(next)
-      index++
-    }
-    if (group.length === 1) {
-      result.push(first)
-      continue
-    }
-    const names = [
-      ...new Set(
-        group
-          .map((entry) =>
-            skillName({
-              input: (entry.part.state.input ?? {}) as Record<string, unknown>,
-              metadata: (entry.part.state.metadata ?? {}) as Record<string, unknown>,
-              title: entry.part.state.title,
-            }),
-          )
-          .filter((name): name is string => !!name),
-      ),
-    ]
-    result.push({
-      message: first.message,
-      part: {
-        ...first.part,
-        state: {
-          ...first.part.state,
-          title: `Using ${names.length} ${names.length === 1 ? "skill" : "skills"}`,
-          input: {},
-          output: names.map((name) => `- ${name}`).join("\n"),
-          metadata: { names },
-        },
-      },
-    })
-  }
-  return result
 }
 
 export function summarizeTaskActivity(items: TaskActivity[]): TaskActivityGroup[] {
   const groups = new Map<TraceFamily, TaskActivityGroup & { titles: string[] }>()
   for (const item of items) {
-    const directSkill = item.tool === "skill" && item.state.title?.startsWith("Loaded skill: ")
+    const directSkill = item.tool === "skill" && loadedSkillName(item.state)
     if (item.tool === "skill" && !directSkill) continue
     const family = traceFamily(item.tool)
     const previous = groups.get(family)
@@ -259,10 +186,89 @@ export function stripTaskMetadata(value?: string) {
   return (value ?? "").replace(/\s*<task_metadata>[\s\S]*?<\/task_metadata>\s*/g, "").trim()
 }
 
+export type TaskHandoff = {
+  /** Runtime notes about how the worker stopped, without their brackets. */
+  notes: string[]
+  /** The worker's own findings, ready for Markdown. */
+  text: string
+  /** Files the worker saved as immutable Results. */
+  outputs: { filename: string; artifactID?: string }[]
+  /** Whether `text` opens with its own heading, so a caller need not add one. */
+  headed: boolean
+}
+
+const sessionLine = /^Task session ses_\w+: .*Reuse this sessionId to continue the same worker\.$/
+const savedOutput = /^- "((?:[^"\\\u0000-\u001f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*)": artifact_id=(\S+?),/
+const receipts = /^Execution receipts: /
+const envelope = /^<\/?(?:task(?:\s[^>]*)?|task_result|task_error)>$/
+const summaryLine = /^<summary>([\s\S]*?)<\/summary>$/
+const taskID = /^task_id: ses_\w+$/
+
+/**
+ * The Task tool's output is written for the lead model: the `<task>` envelope
+ * with an optional `<summary>` note, the worker's findings, evidence the lead
+ * can act on, and the id to continue the worker. Older transcripts carry a
+ * session line and bracketed notes instead. The card shows only what a reader
+ * needs.
+ */
+export function parseTaskHandoff(value?: string): TaskHandoff {
+  const lines = stripTaskMetadata(value).split("\n")
+  const notes: string[] = []
+  const outputs: TaskHandoff["outputs"] = []
+  const body: string[] = []
+  let leading = true
+  let saved = false
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (leading && trimmed === "") continue
+    if (leading && sessionLine.test(trimmed)) continue
+    if (envelope.test(trimmed) || taskID.test(trimmed)) continue
+    const summary = summaryLine.exec(trimmed)
+    if (leading && summary) {
+      notes.push(summary[1].trim())
+      continue
+    }
+    if (leading && /^\[.*\]$/.test(trimmed)) {
+      notes.push(trimmed.slice(1, -1))
+      continue
+    }
+    leading = false
+    if (trimmed.startsWith("Saved outputs (immutable versions;")) {
+      saved = true
+      continue
+    }
+    if (saved) {
+      const match = savedOutput.exec(trimmed)
+      if (match) {
+        outputs.push({ filename: JSON.parse(`"${match[1]}"`), artifactID: match[2] })
+        continue
+      }
+      saved = false
+    }
+    if (receipts.test(trimmed)) continue
+    body.push(line)
+  }
+  const text = body.join("\n").trim()
+  return { notes, text, outputs, headed: /^#{1,6}\s/.test(text) }
+}
+
+export function pluralize(count: number, noun: string, plural = `${noun}s`) {
+  return `${count} ${count === 1 ? noun : plural}`
+}
+
+/** Whole seconds for a counter that is still ticking. */
+export function elapsedLabel(value: number) {
+  const seconds = Math.max(0, Math.floor(value / 1000))
+  if (seconds < 60) return `${seconds}s`
+  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`
+}
+
 export function formatTaskDuration(value?: number) {
   if (value === undefined) return undefined
   if (value < 1_000) return `${Math.round(value)}ms`
   if (value < 60_000) return `${(value / 1_000).toFixed(value < 10_000 ? 1 : 0)}s`
-  if (value < 3_600_000) return `${Math.floor(value / 60_000)}m ${Math.round((value % 60_000) / 1_000)}s`
-  return `${Math.floor(value / 3_600_000)}h ${Math.round((value % 3_600_000) / 60_000)}m`
+  // Floor both halves. Rounding the remainder reaches 60 and prints a duration
+  // that does not exist, where the ticking counter above floors throughout.
+  if (value < 3_600_000) return `${Math.floor(value / 60_000)}m ${Math.floor((value % 60_000) / 1_000)}s`
+  return `${Math.floor(value / 3_600_000)}h ${Math.floor((value % 3_600_000) / 60_000)}m`
 }

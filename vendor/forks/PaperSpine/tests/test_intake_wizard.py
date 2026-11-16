@@ -15,8 +15,9 @@ def run_wizard(stdin: str, output_dir: Path) -> subprocess.CompletedProcess[str]
     env = os.environ.copy()
     env["PYTHONUTF8"] = "1"
     return subprocess.run(
-        [sys.executable, "src/scripts/intake_wizard.py", "--output-dir", str(output_dir)],
-        cwd=ROOT,
+        [sys.executable, str(ROOT / "src/scripts/intake_wizard.py"), "--output-dir", str(output_dir)],
+        # Auto-discovery must see this paper fixture, not repository release docs.
+        cwd=output_dir,
         env=env,
         text=True,
         encoding="utf-8",

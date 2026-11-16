@@ -2,10 +2,21 @@
 name: paper-illustration-image2
 description: "Generate publication-quality academic illustrations through a local Codex app-server bridge that uses Codex native image generation. This is a separate experimental alternative to `paper-illustration`, intended for Claude Code users who want a GPT-image-style renderer without modifying the original skill."
 argument-hint: "[description-or-method-file]"
-allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, mcp__codex-image2__generate, mcp__codex-image2__generate_start, mcp__codex-image2__generate_status, mcp__codex__codex, mcp__codex__codex-reply
+allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, WebSearch, mcp__codex-image2__generate, mcp__codex-image2__generate_start, mcp__codex-image2__generate_status, mcp__codex__codex, mcp__codex__codex-reply, mcp__antigravity__antigravity, mcp__antigravity__antigravity-reply, mcp__grok__grok, mcp__grok__grok-reply, mcp__claude-review__review, mcp__claude-review__review_reply, mcp__claude-review__review_start, mcp__claude-review__review_reply_start, mcp__claude-review__review_status
 ---
 
 # Paper Illustration Image2
+
+> **Before each reviewer slot**, follow [Selectable Reviewers](../shared-references/reviewer-backends.md):
+> resolve invocation → `.aris/reviewer.json` → Claude Code default (Codex MCP)
+> with `reviewer_route.py` through the canonical helper resolver, preserving this
+> slot's tier, fresh contexts, source/image inputs and deterministic gates.
+> Codex examples/pins below apply only to `backend=codex`; other routes use their
+> own first-call/reply contract. Save the route and actual returned identity;
+> unavailable selections are `REVIEW_UNAVAILABLE`. Classify acceptance from actual
+> families/completion/scope. Forward invocation reviewer/model/effort overrides
+> to reviewer-bearing children. Generation workers are unchanged.
+
 
 Generate publication-quality paper figures using **Claude as the planner/reviewer**
 and a **local Codex app-server MCP bridge** as the raster renderer.
@@ -234,9 +245,8 @@ layout plan:
 - relative module prominence
 - arrow routing and likely collision points
 
-If `mcp__codex__codex` is available, you may ask it for a short second-opinion
-layout critique here, but Claude should still complete this step even without
-Codex.
+If the selected text-review route is available, you may ask it for a short second-opinion
+layout critique here, but the executor should still complete this step without an external critic.
 
 Use Codex layout critique for:
 
@@ -256,7 +266,7 @@ before rendering:
 - the figure will read clearly in grayscale / print
 - no glow, rainbow gradient, or slide-deck decoration slips in
 
-If `mcp__codex__codex` is available, you may ask it for a short text-only
+If the selected text-review route is available, you may ask it for a short text-only
 style audit, but do not block on it.
 
 ## Step 4: Generate Through the Bridge

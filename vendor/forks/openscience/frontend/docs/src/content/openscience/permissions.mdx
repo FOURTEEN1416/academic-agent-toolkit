@@ -1,0 +1,80 @@
+---
+title: "Permissions and control"
+description: "Choose when the agent asks and review consequential actions before they happen."
+---
+
+OpenScience can edit files, run commands, and use connected services. Choose the level of oversight that fits the task from the composer's research controls.
+
+## Choose an approval mode
+
+| Mode | Intended use |
+| --- | --- |
+| Ask always | Review actions that change files, use the network, run compute, or incur provider costs. |
+| Ask risky | Let routine reversible work proceed and review external, costly, or hard-to-reverse actions. |
+| Full access | Run without routine prompts; paid compute asks once per time allowance. |
+
+An organization's policy may restrict the modes available. Use the more interactive option while learning a new project or reviewing unfamiliar inputs.
+
+The mode belongs to the project you set it in. Switching to a wider mode also settles prompts that are already waiting, so cards raised under **Ask risky** disappear once **Full access** covers them.
+
+In **Ask risky**, research searches and WebFetch reads from enabled Network groups or custom allowed domains proceed without another tool approval, including in delegated workers. The literature group includes arXiv, ACL Anthology, OpenReview, and major conference archives. A new destination or redirect outside that list still asks for network approval. **Ask always** still asks, and explicit tool rules remain effective in every mode. Local and private network addresses remain blocked by the retrieval broker.
+
+**Independence** controls how the agent handles decisions and questions. **Tools → Action approval** controls execution permissions; choosing Independent does not change that permission mode.
+
+## Approval scopes
+
+Each request card offers **Allow once**, or **Allow** with a scope: **This conversation**, **This project**, and for network hosts and searches **Allow always** across the installation. Folder access has no installation-wide scope: a folder approved while working in one project is never reachable from another project, and the request card names the exact folder being granted.
+
+Paid compute is bounded by time rather than bound to one job. A Modal job card offers **Allow once** for that exact plan, or **Allow** for this conversation or this project together with a time allowance (four times the job's timeout, rounded to whole hours, between one and eight). Under an allowance, later Modal jobs in that scope run without a card while the sum of their timeouts fits; the card returns when a job would exceed what is left. A study's approval carries an allowance equal to its hour budget for the jobs that follow its runs, such as the final refit and an external baseline. **Full access** does not remove this card; it asks once per allowance. Full access does run package installs and other environment changes in the Python and R kernels without a card, as it already does for the same commands in the shell; **Ask risky** still asks for each exact change. **Customize → Permissions** lists every standing approval by what it covers, with a Revoke action.
+
+## Network commands and publishing
+
+These controls apply to commands run by the research agent. The **Terminal** tab is a user-operated local shell with your operating-system permissions and normal network access. Opening it does not change the agent's sandbox or approval settings.
+
+The sandbox denies network access to shell commands. A command that needs it, such as `git push`, `gh`, `hf upload`, a package install, or `curl`, asks once for its destination host; approving it runs that command with the network and the same file confinement. Approve for **This project** or **Allow always** to stop asking for a host you publish to regularly, and Full access approves automatically.
+
+Approved commands use the credentials this computer already holds: a GitHub login from the `gh` CLI or a saved credential, and the Hugging Face token from its CLI. **Customize → Credentials** offers a one-click import when it finds them, so nothing is pasted into a conversation. When a login is missing, the agent asks for it through a request card that opens Credentials rather than through the chat. Publishing stays with the lead conversation; delegated workers prepare and verify but never push, release, or upload.
+
+## Read an action request
+
+Before approving, check the affected files, external service, requested resources, and expected outcome. If the scope is unclear, ask OpenScience to narrow the action or explain it.
+
+State important constraints at the start:
+
+```text
+Read the source data without changing it. Save outputs in results/.
+Ask before deleting files, publishing anything, or launching paid jobs.
+```
+
+A prompt communicates your intent. Use account controls for spending limits and your normal backups for data recovery.
+
+## Give the task only what it needs
+
+Attach relevant files or open the intended project folder. Connect external services when the task needs them, and check the selected account before an action that writes to that service.
+
+A scientific search result and a third-party skill can contain instructions of their own. Review scripts and consequential actions before running unfamiliar material.
+
+## Configure action rules
+
+For a repeatable setup, use `permission` in configuration:
+
+```json
+{
+  "permission": {
+    "edit": "ask",
+    "bash": "ask"
+  }
+}
+```
+
+This asks before these classes of action. `allow`, `ask`, and `deny` are supported rule values. A particular rule is not a claim that all other actions are blocked.
+
+See [Configuration](/openscience/configuration) for scope and [Sessions](/openscience/sessions) for terminal-run policies.
+
+## Stop, undo, and disconnect
+
+Stop the response when it is going in the wrong direction. Check any external jobs separately, because stopping conversation generation does not prove that every external operation ended.
+
+Use Undo for supported conversation file changes. External payments, published content, and service-side changes need their own recovery process.
+
+Disconnect a service in Customize when you no longer need it. Revoking access in OpenScience does not delete the external account or reverse previous actions.

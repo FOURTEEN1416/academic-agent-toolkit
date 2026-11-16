@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/asset-selection-request.schema.json",
+  "title": "PaperSpine asset selection request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "project_root", "allowed_roots", "selections"],
+  "properties": {
+    "contract": {"const": "paperspine.asset-selection-request"},
+    "schema_version": {"const": "1.0"},
+    "project_root": {"type": "string", "minLength": 1},
+    "allowed_roots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "selections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "scientific_identity", "asset_kind", "candidates"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "scientific_identity": {"type": "string", "minLength": 1},
+          "asset_kind": {"enum": ["data", "figure", "table", "code", "source", "other"]},
+          "explicit_selection": {"type": "string", "minLength": 1},
+          "candidates": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "scientific_identity", "asset_kind"],
+              "properties": {
+                "path": {"type": "string", "minLength": 1},
+                "scientific_identity": {"type": "string", "minLength": 1},
+                "asset_kind": {"enum": ["data", "figure", "table", "code", "source", "other"]}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

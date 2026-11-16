@@ -536,7 +536,7 @@ The paper and code are available at the QR code on screen. I'm happy to take que
   ├── TALK_SCRIPT.md        # Full word-for-word talk script + Q&A
   ├── SLIDES_STATE.json     # State persistence
   ├── generate_pptx.py      # PPTX generation script
-  └── figures/              # Symlinked from paper/figures/
+  └── figures/              # Copied from paper/figures/
 
 Next steps:
 1. Practice with TALK_SCRIPT.md (read aloud, time yourself)
@@ -565,7 +565,7 @@ Next steps:
 - **Do NOT hallucinate citations.** Reference only papers cited in the paper.
 - **Opening hook matters**: Never start with "In this paper, we..." — start with the problem or a provocative question.
 - **Font size minimums**: Title ≥28pt, body ≥20pt, footnotes ≥14pt.
-- **Feishu notifications are optional.** 若 `~/.acat/feishu.json`存在, send notifications. If absent, skip.
+- **Feishu notifications are optional.** 若当前运行环境已配置飞书通知（配置来源以环境为准，本仓不预设路径），send notifications. If absent, skip.
 
 ## Parameter Pass-Through
 

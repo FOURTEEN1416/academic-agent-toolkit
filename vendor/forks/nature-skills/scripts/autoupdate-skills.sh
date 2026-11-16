@@ -41,12 +41,17 @@ DEST="${SKILLS_DEST:-$HOME/.claude/skills}"
 THROTTLE="${SKILLS_THROTTLE:-3600}"
 FORCE=0
 
-usage() { sed -n '2,32p' "$0"; }
+usage() { sed -n '2,33p' "$0"; }
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --dest) DEST="${2:?--dest needs a path}"; shift 2 ;;
-    --dest=*) DEST="${1#*=}"; shift ;;
+    --dest=*)
+      DEST="${1#*=}"
+      # The shell only expands a leading ~ for a word that starts with it, not after "--dest=".
+      case "$DEST" in "~") DEST="$HOME" ;; "~/"*) DEST="$HOME/${DEST#\~/}" ;; esac
+      shift
+      ;;
     --throttle) THROTTLE="${2:?--throttle needs seconds}"; shift 2 ;;
     --throttle=*) THROTTLE="${1#*=}"; shift ;;
     --force) FORCE=1; THROTTLE=0; shift ;;

@@ -781,6 +781,16 @@ Do not edit or delete symlinked skills in place; update upstream or rerun:
 \`bash $ARIS_REPO/tools/install_aris_codex.sh \"$PROJECT_PATH\" --reconcile\`
 For copied Codex installs, use:
 \`bash $ARIS_REPO/tools/smart_update_codex.sh --project \"$PROJECT_PATH\"\`
+
+### Goal Pulse for Codex Goals
+When the user starts or resumes a Goal, or you take over an active Goal, read and enable HERO Goal Pulse for the current thread by default, without another confirmation:
+https://github.com/wanshuiyin/HERO-Anti-OverDefense/tree/main/skills/goal-pulse
+First read the installed \`\${CODEX_HOME:-~/.codex}/skills/goal-pulse/SKILL.md\`; if missing, follow the HERO guide above to prepare the skill and dependencies. Report blockers rather than claim it is enabled.
+Bind only to \`CODEX_THREAD_ID\` or an explicit host-supplied thread ID; never guess the most recent thread.
+Use the installed skill's start/status/stop commands: bilingual reminders every 30 minutes, read-only local polling every 60 seconds, on compatible macOS/Linux Codex app-server setups.
+Honor user disable/pause. Stay silent while paused, waiting for user/approval, blocked, or budget-limited; exit on Goal completion, deletion, or replacement. Never resume a Goal or start a new turn.
+This is an instruction for the main agent, not a native Codex hook. Installing ARIS or ordinary chat does not start a timer; do not extend it to other threads.
+HERO maintains the only implementation. Reviewer and writing-worker selection are unchanged.
 $BLOCK_END"
 
     if printf '%s' "$original" | grep -qF "$BLOCK_BEGIN"; then
@@ -976,7 +986,7 @@ fi
 
 N_CHANGES="$(awk -F'|' '$1=="CREATE"||$1=="UPDATE_TARGET"||$1=="REMOVE"{n++} END{print n+0}' "$PLAN_FILE")"
 if (( N_CHANGES > 0 )); then
-    prompt "Apply these $N_CHANGES changes?" || { log "aborted"; exit 0; }
+    prompt "Apply these $N_CHANGES changes? [y/N]" || { log "aborted"; exit 0; }
 fi
 
 MANIFEST_TMP="$MANIFEST_PATH.tmp.$$"
@@ -997,11 +1007,24 @@ update_agents_doc "$INSTALLED_NAMES"
 
 if ! $DRY_RUN; then
     local_bad=0
+    windows_copy=0
+    windows_bash=false
+    # OSTYPE is lowercase (msys); uname -s is MINGW64_NT-... / CYGWIN_NT-...
+    platform="$(printf '%s' "$(uname -s 2>/dev/null):${OSTYPE:-}" | tr '[:lower:]' '[:upper:]')"
+    case "$platform" in
+        *MINGW*|*MSYS*|*CYGWIN*) windows_bash=true ;;
+    esac
     while IFS=$'\t' read -r kind name source_rel target_rel mode; do
         [[ -z "$name" ]] && continue
         target_path="$PROJECT_PATH/$target_rel"
         expected_target="$ARIS_REPO/$source_rel"
         if [[ ! -L "$target_path" ]]; then
+            # Git Bash ln -s copies the skill directory when it cannot create a symlink.
+            if $windows_bash && [[ -d "$target_path" ]]; then
+                windows_copy=$((windows_copy + 1))
+                local_bad=$((local_bad + 1))
+                continue
+            fi
             warn "verify: missing symlink $target_path"
             local_bad=$((local_bad + 1))
             continue
@@ -1017,6 +1040,9 @@ if ! $DRY_RUN; then
         /^kind\tname\tsource_rel\ttarget_rel\tmode$/ { in_body=1; next }
         in_body && NF==5 { print }
     ' "$MANIFEST_PATH")
+    if (( windows_copy > 0 )); then
+        warn "Windows bash copied $windows_copy skill/support directories instead of creating symlinks. These copies do not track upstream changes; reconcile will report conflicts and uninstall will leave them in place. For a managed Windows install, use tools/install_aris.ps1 -Platform codex in a fresh target directory."
+    fi
     (( local_bad == 0 )) && log "" && log "✓ Codex install complete. $N_CHANGES changes applied."
 fi
 

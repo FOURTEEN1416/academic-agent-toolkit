@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/contracts/figure-master-authority-receipt.schema.json",
+  "title": "PaperSpine trusted figure Master authority receipt",
+  "description": "Runner-owned binding between the current host actor, a persisted identity attestation, and the exact authority-table bytes. It is a trust-channel input to figure plan/mapping validation, not a caller-created signature.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "authority_kind",
+    "principal_id",
+    "session_id",
+    "run_id",
+    "attestation_input_id",
+    "attestation_provenance_sha256",
+    "authority_table_sha256",
+    "source",
+    "actor_surface",
+    "actor_authority_kind",
+    "external_action_authorized",
+    "receipt_sha256"
+  ],
+  "properties": {
+    "contract": {"const": "paperspine5.figure-master-authority-receipt"},
+    "schema_version": {"const": "1.0"},
+    "authority_kind": {"const": "paperspine_master"},
+    "principal_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "session_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "run_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "attestation_input_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "attestation_provenance_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authority_table_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {"const": "runner_current_actor_and_persisted_attestation"},
+    "actor_surface": {"enum": ["codex", "claude-code", "dsh", "standalone-skill", "web", "mcp", "cli"]},
+    "actor_authority_kind": {"enum": ["authenticated_local_user_session", "host_user_message"]},
+    "external_action_authorized": {"const": false},
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Canonical SHA-256 of the exact receipt with receipt_sha256 omitted. Trust comes from the host-only channel and persisted attestation, not this self-hash."
+    }
+  }
+}

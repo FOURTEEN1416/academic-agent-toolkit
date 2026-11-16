@@ -3,6 +3,7 @@ import path from "path"
 import { BusEvent } from "@/bus/bus-event"
 import { Bus } from "@/bus"
 import { Decimal } from "decimal.js"
+import { SubagentBudget } from "./subagent-budget"
 import z from "zod"
 import { type LanguageModelUsage, type ProviderMetadata } from "ai"
 import { Identifier } from "../id/id"
@@ -12,9 +13,10 @@ import { Storage } from "../storage/storage"
 import { createCoalescer } from "../storage/coalescer"
 import { Log } from "../util/log"
 import { MessageV2 } from "./message-v2"
+import { SessionLoopState } from "./loop-state"
 import { Instance } from "../project/instance"
 import { SessionPrompt } from "./prompt"
-import { fn } from "@/util/fn"
+import { fn } from "@synsci/util/fn"
 import { Command } from "../command"
 import { Snapshot } from "@/snapshot"
 
@@ -26,13 +28,15 @@ import { Project } from "@/project/project"
 import { NamedError } from "@synsci/util/error"
 import { SessionFilesystem } from "./filesystem"
 import { SessionTraceStore } from "./trace-store"
+import { UsageLogging } from "./usage-logging"
 import { SessionResearch } from "./research"
 import { AuthoritySignal } from "@/project/authority-signal"
 import { FileLease } from "@/util/file-lease"
-import { OutboundTelemetry } from "@/telemetry/outbound"
 
 export namespace Session {
   const log = Log.create({ service: "session" })
+  export const Workspace = z.enum(["isolated", "project"])
+  export type Workspace = z.infer<typeof Workspace>
 
   const parentTitlePrefix = "New session - "
   const childTitlePrefix = "Child session - "
@@ -65,6 +69,9 @@ export namespace Session {
       slug: z.string(),
       projectID: z.string(),
       directory: z.string(),
+      workspace: Workspace.optional().describe(
+        "Default tool directory: owned scratch or the existing project directory.",
+      ),
       parentID: Identifier.schema("session").optional(),
       summary: z
         .object({
@@ -72,11 +79,6 @@ export namespace Session {
           deletions: z.number(),
           files: z.number(),
           diffs: Snapshot.FileDiff.array().optional(),
-        })
-        .optional(),
-      share: z
-        .object({
-          url: z.string(),
         })
         .optional(),
       title: z.string(),
@@ -95,6 +97,8 @@ export namespace Session {
           partID: z.string().optional(),
           snapshot: z.string().optional(),
           diff: z.string().optional(),
+          turns: z.number().int().nonnegative().optional(),
+          files: z.string().array().optional(),
         })
         .optional(),
     })
@@ -142,6 +146,15 @@ export namespace Session {
     }),
   )
 
+  export const WorkspaceMismatchError = NamedError.create(
+    "SessionWorkspaceMismatchError",
+    z.object({
+      sessionID: Identifier.schema("session"),
+      workspace: Workspace,
+      requested: Workspace,
+    }),
+  )
+
   export const DeletingError = NamedError.create(
     "SessionDeletingError",
     z.object({ sessionID: Identifier.schema("session") }),
@@ -180,16 +193,6 @@ export namespace Session {
     if (validated().has(id)) return
     bind(await load(id))
   }
-
-  export const ShareInfo = z
-    .object({
-      secret: z.string(),
-      url: z.string(),
-    })
-    .meta({
-      ref: "SessionShare",
-    })
-  export type ShareInfo = z.output<typeof ShareInfo>
 
   export const Event = {
     Created: BusEvent.define(
@@ -233,6 +236,10 @@ export namespace Session {
         parentID: Identifier.schema("session").optional(),
         title: z.string().optional(),
         permission: Info.shape.permission,
+        workspace: Workspace.optional(),
+        workingRoot: SessionFilesystem.WorkingRoot.optional().describe(
+          "Pin relative tool paths to a connected read/write folder, or to scratch. Omit for automatic.",
+        ),
       })
       .optional(),
     async (input) => {
@@ -242,6 +249,8 @@ export namespace Session {
         directory: Instance.directory,
         title: input?.title,
         permission: input?.permission,
+        workspace: input?.workspace,
+        workingRoot: input?.workingRoot,
       })
     },
   )
@@ -261,24 +270,42 @@ export namespace Session {
       })
       const msgs = await messages({ sessionID: input.sessionID })
       const idMap = new Map<string, string>()
+      const remap = (id: string) => idMap.get(id) ?? id
 
       for (const msg of msgs) {
         if (input.messageID && msg.info.id >= input.messageID) break
         const newID = Identifier.ascending("message")
         idMap.set(msg.info.id, newID)
 
-        const parentID = msg.info.role === "assistant" && msg.info.parentID ? idMap.get(msg.info.parentID) : undefined
-        const cloned = await updateMessage({
-          ...msg.info,
-          sessionID: session.id,
-          id: newID,
-          ...(parentID && { parentID }),
-        })
+        // Every message id the transcript refers to moves with the copy:
+        // the compaction tail anchor, the epoch/transaction ids the loop
+        // controller keys its state by, and the parts whose ids derive from
+        // them. Copying them verbatim made the fork drop its verbatim tail
+        // and re-finalize a compaction that was already settled.
+        const info: MessageV2.Info =
+          msg.info.role === "assistant"
+            ? {
+                ...msg.info,
+                sessionID: session.id,
+                id: newID,
+                ...(msg.info.parentID && idMap.has(msg.info.parentID)
+                  ? { parentID: idMap.get(msg.info.parentID)! }
+                  : {}),
+                ...(msg.info.tailStartId ? { tailStartId: remap(msg.info.tailStartId) } : {}),
+              }
+            : {
+                ...msg.info,
+                sessionID: session.id,
+                id: newID,
+                ...(msg.info.internal ? { internal: forkInternal(msg.info.internal, remap) } : {}),
+              }
+        const cloned = await updateMessage(info)
 
+        const transaction = msg.info.role === "user" ? forkTransaction(msg.info.internal) : undefined
         for (const part of msg.parts) {
           await updatePart({
             ...part,
-            id: Identifier.ascending("part"),
+            id: forkPartID(part.id, [msg.info.id, ...(transaction ? [transaction] : [])], remap),
             messageID: cloned.id,
             sessionID: session.id,
           })
@@ -288,10 +315,56 @@ export namespace Session {
     },
   )
 
+  const DERIVED_PART_SLOTS = [
+    "breaker",
+    "breaker-reset",
+    "continuation",
+    "finalization",
+    "carrier",
+    "contract-boundary",
+  ]
+
+  function forkTransaction(internal: MessageV2.User["internal"]) {
+    return internal && "transaction" in internal ? internal.transaction : undefined
+  }
+
+  function forkInternal(
+    internal: NonNullable<MessageV2.User["internal"]>,
+    remap: (id: string) => string,
+  ): NonNullable<MessageV2.User["internal"]> {
+    if (internal.type === "prompt") return { ...internal, epoch: remap(internal.epoch) }
+    if (internal.type === "continuation") {
+      return { ...internal, epoch: remap(internal.epoch), transaction: remap(internal.transaction) }
+    }
+    return {
+      ...internal,
+      epoch: remap(internal.epoch),
+      transaction: remap(internal.transaction),
+      ...(internal.continuationID ? { continuationID: remap(internal.continuationID) } : {}),
+      ...(internal.recovery
+        ? { recovery: { ...internal.recovery, continuationID: remap(internal.recovery.continuationID) } }
+        : {}),
+    }
+  }
+
+  /** A part whose id was derived from a message id keeps that derivation
+   * against the copied id; every other part gets a fresh id. */
+  function forkPartID(id: string, keys: string[], remap: (id: string) => string) {
+    for (const key of keys) {
+      for (const slot of DERIVED_PART_SLOTS) {
+        if (SessionLoopState.partID(key, slot) === id) return SessionLoopState.partID(remap(key), slot)
+      }
+    }
+    return Identifier.ascending("part")
+  }
+
   export const touch = fn(Identifier.schema("session"), async (sessionID) => {
-    await update(sessionID, (draft) => {
+    const session = await update(sessionID, (draft) => {
       draft.time.updated = Date.now()
     })
+    await Project.touchActivity(session.projectID, session.time.updated).catch((error) =>
+      log.warn("project activity update failed", { error }),
+    )
   })
 
   export async function createNext(input: {
@@ -300,6 +373,8 @@ export namespace Session {
     parentID?: string
     directory: string
     permission?: PermissionNext.Ruleset
+    workspace?: Workspace
+    workingRoot?: SessionFilesystem.WorkingRoot
   }) {
     const id = Identifier.descending("session", input.id)
     const directory = Project.canonicalize(input.directory)
@@ -314,7 +389,17 @@ export namespace Session {
           throw error
         })
       : undefined
-    if (existing) return bind(existing)
+    if (existing) {
+      bind(existing)
+      if (input.workspace) {
+        const filesystem = await SessionFilesystem.snapshot(id)
+        const workspace = filesystem.workspace.mode === "legacy" ? "project" : "isolated"
+        if (workspace !== input.workspace) {
+          throw new WorkspaceMismatchError({ sessionID: id, workspace, requested: input.workspace })
+        }
+      }
+      return existing
+    }
     if (input.parentID) await assertDirectory(input.parentID)
     if (directory !== Project.canonicalize(Instance.directory)) {
       throw new DirectoryMismatchError({
@@ -329,6 +414,7 @@ export namespace Session {
       version: Installation.VERSION,
       projectID: Instance.project.id,
       directory,
+      workspace: input.workspace ?? "isolated",
       parentID: input.parentID,
       title: input.title ?? createDefaultTitle(!!input.parentID),
       permission: input.permission,
@@ -344,19 +430,25 @@ export namespace Session {
     // or announced yet. Publishing its initial workspace as a "change" would
     // schedule a redundant revocation that can race the session's first job.
     // Lazy initialization of legacy sessions keeps the default revocation.
-    await SessionFilesystem.initialize(result.id, directory, { revokeExisting: false }).catch(async (error) => {
+    await SessionFilesystem.initialize(result.id, directory, {
+      revokeExisting: false,
+      workspace: result.workspace,
+      workingRoot: input.workingRoot,
+    }).catch(async (error) => {
       await SessionFilesystem.remove(result.id).catch(() => undefined)
       await Storage.remove(["session", Instance.project.id, result.id])
       throw error
     })
     validated().add(result.id)
+    await Project.touchActivity(result.projectID, result.time.created).catch((error) =>
+      log.warn("project activity update failed", { error }),
+    )
     Bus.publish(Event.Created, {
       info: result,
     })
     Bus.publish(Event.Updated, {
       info: result,
     })
-    void OutboundTelemetry.sessionStarted({ sessionID: result.id, session: result }).catch(() => undefined)
     return result
   }
 
@@ -370,16 +462,6 @@ export namespace Session {
   export const get = fn(Identifier.schema("session"), async (id) => {
     return bind(await load(id))
   })
-
-  export const getShare = fn(Identifier.schema("session"), async (id) => {
-    return Storage.read<ShareInfo>(["share", id])
-  })
-
-  export const share = fn(Identifier.schema("session"), async (_id) => {
-    return { id: "", url: "", secret: "" }
-  })
-
-  export const unshare = fn(Identifier.schema("session"), async (_id) => {})
 
   export async function update(id: string, editor: (session: Info) => void, options?: { touch?: boolean }) {
     const project = Instance.project
@@ -429,13 +511,20 @@ export namespace Session {
     },
   )
 
+  // Session files are independent: read them in bounded parallel windows and
+  // yield in directory order.
+  const LIST_WINDOW = 32
+
   export async function* list() {
     const project = Instance.project
-    for (const item of await Storage.list(["session", project.id])) {
-      const session = await loadOptional(item)
-      if (!session) continue
-      if (!current(session)) continue
-      yield session
+    const keys = await Storage.list(["session", project.id])
+    for (let i = 0; i < keys.length; i += LIST_WINDOW) {
+      const loaded = await Promise.all(keys.slice(i, i + LIST_WINDOW).map((key) => loadOptional(key)))
+      for (const session of loaded) {
+        if (!session) continue
+        if (!current(session)) continue
+        yield session
+      }
     }
   }
 
@@ -459,6 +548,7 @@ export namespace Session {
     return await lease.during(async () => {
       let pending = await deleting(project.id, sessionID)
       const session = pending?.info ?? (await get(sessionID))
+      await SubagentBudget.remove(sessionID)
       if (!current(session)) bind(session)
       try {
         if (!pending) {
@@ -475,13 +565,11 @@ export namespace Session {
           // Publish the recovery record before any destructive mutation. A
           // failed reaper or killed deleter can therefore retry by session id.
           await Storage.write(deletionKey(project.id, sessionID), pending)
-          await OutboundTelemetry.sessionCompleted({ sessionID, reason: "deleted", session }).catch(() => undefined)
         }
         // Cancellation must be visible before deletion waits for the authority
         // lease held by a booting kernel. Otherwise that boot can become ready,
         // run its first cell, and only then be reaped by filesystem teardown.
         KernelRuntime.cancelSession(sessionID)
-        await unshare(sessionID).catch(() => {})
         // Remove the routable session record before filesystem authority. A
         // process start that wins the authority lease first is subsequently
         // revoked; one that runs after filesystem removal cannot lazily recreate
@@ -528,6 +616,14 @@ export namespace Session {
   export const updateMessage = fn(MessageV2.Info, async (msg) => {
     await assertDirectory(msg.sessionID)
     await Storage.write(["message", msg.sessionID, msg.id], msg)
+    // Completing real provider work is activity. Replayed historical records
+    // keep their original timestamp; internal compaction/title bookkeeping is
+    // not a new user edit and must not reorder the project library.
+    if (msg.role === "assistant" && !msg.summary && msg.time.completed) {
+      await Project.touchActivity(Instance.project.id, msg.time.completed).catch((error) =>
+        log.warn("project activity update failed", { error }),
+      )
+    }
     Bus.publish(MessageV2.Event.Updated, {
       info: msg,
     })
@@ -559,6 +655,9 @@ export namespace Session {
     }),
     async (input) => {
       await assertDirectory(input.sessionID)
+      // A streamed text part may still have a coalesced write queued; left
+      // alone it would land after the unlink and bring the part back.
+      await partWriter.discard(input.sessionID + "/" + input.messageID + "/" + input.partID)
       await Storage.remove(["part", input.messageID, input.partID])
       Bus.publish(MessageV2.Event.PartRemoved, {
         sessionID: input.sessionID,
@@ -597,11 +696,57 @@ export namespace Session {
     // Only a streaming delta rides the 250ms timer plus the idle flush; whole/synthetic
     // parts (no delta) and the final text/reasoning-end part flush immediately.
     const streaming = delta !== undefined && (part.type === "text" || part.type === "reasoning")
-    if (!streaming) await partWriter.flushNow(key)
+    if (!streaming) {
+      await partWriter.flushNow(key)
+      await UsageLogging.part(part).catch(() => log.warn("could not persist trace part"))
+    }
     return part
   })
 
   export const flushPendingParts = (sessionID: string) => partWriter.flushWhere((k) => k.startsWith(sessionID + "/"))
+
+  /** Raw serving cost in USD, including the delivered tier. Older gateways
+   * need the verified route's fee; current ones report the calculated Wallet
+   * amount separately. Provider-key requests keep the raw amount. */
+  function reportedCost(metadata: ProviderMetadata | undefined): number | undefined {
+    const usage = metadata?.["openrouter"]?.["usage"]
+    if (!usage || typeof usage !== "object" || Array.isArray(usage)) return
+    const cost = usage["cost"]
+    if (typeof cost !== "number" || !Number.isFinite(cost) || cost < 0) return
+    return cost
+  }
+
+  function walletMetadata(metadata: ProviderMetadata | undefined) {
+    const usage = metadata?.["openrouter"]?.["usage"]
+    if (!usage || typeof usage !== "object" || Array.isArray(usage)) return
+    return z
+      .object({
+        calculatedWalletCostMicrousd: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
+        hostingProvider: z.enum(["openrouter", "azure", "openai", "anthropic", "gemini", "xai", "bedrock"]).optional(),
+        serviceTier: z.string().max(32).optional(),
+      })
+      .refine(
+        (value) => value.calculatedWalletCostMicrousd === undefined || value.hostingProvider !== undefined,
+        "Calculated Wallet cost requires its serving host",
+      )
+      .parse(usage)
+  }
+
+  export function pricing(model: Provider.Model, promptTokens: number, tier?: string) {
+    const modeCost = tier ? model.modes?.[tier]?.cost : undefined
+    const tierCost = model.cost?.tiers
+      ?.filter((tier) => promptTokens > tier.threshold)
+      .sort((a, b) => b.threshold - a.threshold)[0]
+    const catalogCost = model.cost?.tiers?.length
+      ? (tierCost ?? model.cost)
+      : model.cost?.experimentalOver200K && promptTokens > 200_000
+        ? model.cost.experimentalOver200K
+        : model.cost
+    const modeTier = modeCost?.tiers
+      ?.filter((tier) => promptTokens > tier.threshold)
+      .sort((a, b) => b.threshold - a.threshold)[0]
+    return modeTier ?? modeCost ?? catalogCost
+  }
 
   export const getUsage = fn(
     z.object({
@@ -609,35 +754,62 @@ export namespace Session {
       tier: z.string().optional(),
       usage: z.custom<LanguageModelUsage>(),
       metadata: z.custom<ProviderMetadata>().optional(),
+      /** Basis points the Wallet adds to a provider-reported cost on a
+       * managed route; absent on routes the provider bills directly. */
+      fundingFeeBps: z.number().int().min(0).max(9_999).optional(),
     }),
     (input) => {
-      const cacheReadInputTokens = input.usage.cachedInputTokens ?? 0
-      const cacheWriteInputTokens = (input.metadata?.["anthropic"]?.["cacheCreationInputTokens"] ??
-        // @ts-expect-error
-        input.metadata?.["bedrock"]?.["usage"]?.["cacheWriteInputTokens"] ??
-        // @ts-expect-error
-        input.metadata?.["venice"]?.["usage"]?.["cacheCreationInputTokens"] ??
-        0) as number
-
-      const excludesCachedTokens = !!(input.metadata?.["anthropic"] || input.metadata?.["bedrock"])
-      const adjustedInputTokens = excludesCachedTokens
-        ? (input.usage.inputTokens ?? 0)
-        : (input.usage.inputTokens ?? 0) - cacheReadInputTokens - cacheWriteInputTokens
+      const wallet = input.fundingFeeBps !== undefined ? walletMetadata(input.metadata) : undefined
+      const delivered = wallet?.serviceTier ?? input.metadata?.["openai"]?.["serviceTier"]
+      const tier =
+        delivered === "default" || delivered === "standard"
+          ? "standard"
+          : delivered === "priority" || delivered === "fast"
+            ? "fast"
+            : input.tier
       const safe = (value: number) => {
-        // Clamp non-finite AND negative values: for providers not in the
-        // excludes-cached set, `inputTokens - cacheRead - cacheWrite` can go
-        // negative when the provider already excludes cached tokens, which would
-        // otherwise flow a negative token count (and negative cost) downstream.
         if (!Number.isFinite(value) || value < 0) return 0
         return value
       }
+      // The SDK can use NaN for omitted cached usage. Sanitize before
+      // subtracting so an unknown cache count cannot erase known input.
+      const cacheReadInputTokens = safe(input.usage.cachedInputTokens ?? 0)
+      const observed = UsageLogging.reported(input.usage, input.metadata, input.model.providerID).usage
+      const cacheWriteInputTokens = observed.cache_creation_input_tokens ?? 0
 
+      const excludesCachedTokens = !!(input.metadata?.["anthropic"] || input.metadata?.["bedrock"])
+      const uncachedInputTokens = excludesCachedTokens
+        ? (input.usage.inputTokens ?? 0)
+        : (input.usage.inputTokens ?? 0) - cacheReadInputTokens - cacheWriteInputTokens
+      // Catalog cache-write pricing is an estimate when the provider omits
+      // the counter. An explicitly reported zero must win over that inference.
+      const implicitWrite =
+        input.model.providerID === "openai" &&
+        observed.cache_creation_input_tokens === null &&
+        (input.model.cost?.cache?.write ?? 0) > (input.model.cost?.input ?? 0) &&
+        /^gpt-(?:5\.[6-9]|[6-9])/.test(input.model.api.id.toLowerCase())
+      const adjustedInputTokens = implicitWrite ? 0 : uncachedInputTokens
+      const adjustedCacheWriteTokens = implicitWrite ? uncachedInputTokens : cacheWriteInputTokens
+      const outputTokens = safe(input.usage.outputTokens ?? 0)
+      const reasoningTokens = safe(input.usage?.reasoningTokens ?? 0)
+      // TokenUsage treats reasoning as a subset of output. Gemini
+      // (candidatesTokenCount beside thoughtsTokenCount) and xAI chat
+      // (completion_tokens beside reasoning_tokens) bill it outside
+      // `outputTokens`, while OpenAI and xAI Responses count it inside, on the
+      // same npm package. Only the provider's own total tells them apart; SDKs
+      // that compute a total sum input and output, which never passes. xAI can
+      // report cached tokens beside a smaller `inputTokens`, and its total
+      // covers both.
+      const reportedInput = safe(input.usage.inputTokens ?? 0)
+      const prompt = cacheReadInputTokens > reportedInput ? reportedInput + cacheReadInputTokens : reportedInput
+      const separate =
+        reasoningTokens > 0 && safe(input.usage.totalTokens ?? 0) >= prompt + outputTokens + reasoningTokens
       const tokens = {
         input: safe(adjustedInputTokens),
-        output: safe(input.usage.outputTokens ?? 0),
-        reasoning: safe(input.usage?.reasoningTokens ?? 0),
+        output: separate ? outputTokens + reasoningTokens : outputTokens,
+        reasoning: reasoningTokens,
         cache: {
-          write: safe(cacheWriteInputTokens),
+          write: safe(adjustedCacheWriteTokens),
           read: safe(cacheReadInputTokens),
         },
       }
@@ -646,21 +818,43 @@ export namespace Session {
       // cache-CREATION tokens too. Omitting cache.write meant a mostly-cache-write
       // request that really exceeded 200k was billed at the base tier (cost
       // under-report).
-      const modeCost = input.tier ? input.model.modes?.[input.tier]?.cost : undefined
-      const costInfo =
-        modeCost ??
-        (input.model.cost?.experimentalOver200K && tokens.input + tokens.cache.read + tokens.cache.write > 200_000
-          ? input.model.cost.experimentalOver200K
-          : input.model.cost)
+      const costInfo = pricing(input.model, tokens.input + tokens.cache.read + tokens.cache.write, tier)
+      // The calculated Wallet amount is request-specific and need not have
+      // posted yet. Older gateways provide raw cost plus the verified route fee;
+      // catalog estimates already include that fee and must never add it twice.
+      const reported = reportedCost(input.metadata)
+      const cost =
+        wallet?.calculatedWalletCostMicrousd !== undefined
+          ? new Decimal(wallet.calculatedWalletCostMicrousd).div(1_000_000)
+          : reported === undefined
+            ? new Decimal(0)
+                .add(new Decimal(tokens.input).mul(costInfo?.input ?? 0).div(1_000_000))
+                .add(new Decimal(tokens.output).mul(costInfo?.output ?? 0).div(1_000_000))
+                .add(new Decimal(tokens.cache.read).mul(costInfo?.cache?.read ?? 0).div(1_000_000))
+                .add(new Decimal(tokens.cache.write).mul(costInfo?.cache?.write ?? 0).div(1_000_000))
+            : input.fundingFeeBps === undefined
+              ? new Decimal(reported)
+              : new Decimal(reported)
+                  // Match the Wallet's per-request receipt and settlement rounding.
+                  .mul(1_000_000)
+                  .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
+                  .mul(10_000 + input.fundingFeeBps)
+                  .div(10_000)
+                  .ceil()
+                  .div(1_000_000)
       return {
-        cost: safe(
-          new Decimal(0)
-            .add(new Decimal(tokens.input).mul(costInfo?.input ?? 0).div(1_000_000))
-            .add(new Decimal(tokens.output).mul(costInfo?.output ?? 0).div(1_000_000))
-            .add(new Decimal(tokens.cache.read).mul(costInfo?.cache?.read ?? 0).div(1_000_000))
-            .add(new Decimal(tokens.cache.write).mul(costInfo?.cache?.write ?? 0).div(1_000_000))
-            .toNumber(),
-        ),
+        cost: safe(cost.toNumber()),
+        costSource:
+          wallet?.calculatedWalletCostMicrousd !== undefined
+            ? ("wallet_calculated" as const)
+            : reported !== undefined
+              ? input.fundingFeeBps === undefined
+                ? ("provider_response" as const)
+                : ("wallet_calculated" as const)
+              : costInfo
+                ? ("catalog_estimate" as const)
+                : ("unknown" as const),
+        tier,
         tokens,
       }
     },

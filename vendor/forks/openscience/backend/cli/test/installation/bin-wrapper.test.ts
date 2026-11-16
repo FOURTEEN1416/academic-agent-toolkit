@@ -8,10 +8,13 @@ import {
 } from "../../script/postinstall.mjs"
 
 const require = createRequire(import.meta.url)
+type Sysctl = (name: string) => { status: number | null; stdout: string }
 const wrapper = require("../../bin/openscience") as {
-  cpuSupportsAvx2(platform: string, arch: string, linuxInfo?: string): boolean | undefined
+  baselineSibling(prefix: string, entry: string): string | undefined
+  cpuSupportsAvx2(platform: string, arch: string, linuxInfo?: string, sysctl?: Sysctl): boolean | undefined
   exitCodeForResult(result: { status: number | null; signal: NodeJS.Signals | null }): number
   expectedPlatformPackages(platform: string, arch: string, musl: boolean): string[]
+  illegalInstruction(result: { status: number | null; signal: NodeJS.Signals | null }): boolean
   linuxArm64PageSizeProblem(platform: string, arch: string, pageSize?: string): string | undefined
   linuxKernelProblem(platform: string, release: string): string | undefined
   matchingVariants(prefix: string, entries: string[], preferMusl: boolean, preferBaseline?: boolean): string[]
@@ -19,12 +22,28 @@ const wrapper = require("../../bin/openscience") as {
 }
 
 describe("npm bin wrapper", () => {
-  test("rejects Linux kernels older than the bundled runtime supports", () => {
+  test("accepts Linux kernels from the documented 3.10 floor and rejects older ones", () => {
     expect(wrapper.parseKernelVersion("3.10.0-1160.el7.x86_64")).toEqual({ major: 3, minor: 10 })
-    expect(wrapper.linuxKernelProblem("linux", "3.10.0-1160.el7.x86_64")).toContain("requires kernel 5.1")
-    expect(wrapper.linuxKernelProblem("linux", "5.1.0")).toBeUndefined()
+
+    // 3.10 is the runtime floor docs/notes/linux-compatibility.md records for
+    // the pinned Bun release. The gate used to demand 5.1, so it refused to
+    // start on CentOS 7, CentOS 8 and every host below them (#772).
+    const accepted = ["3.10.0-1160.el7.x86_64", "4.18.0-348.7.1.el8_5.x86_64", "5.1.0", "6.8.0-generic"]
+    for (const release of accepted) {
+      expect(wrapper.linuxKernelProblem("linux", release)).toBeUndefined()
+      expect(postinstallKernelProblem("linux", release)).toBeUndefined()
+    }
+
+    const rejected = ["2.6.32-754.el6.x86_64", "3.9.0-40-generic"]
+    for (const release of rejected) {
+      expect(wrapper.linuxKernelProblem("linux", release)).toContain("requires kernel 3.10")
+      expect(postinstallKernelProblem("linux", release)).toContain("requires kernel 3.10")
+    }
+
     expect(wrapper.linuxKernelProblem("darwin", "23.0.0")).toBeUndefined()
-    expect(postinstallKernelProblem("linux", "3.10.0-1160.el7.x86_64")).toContain("requires kernel 5.1")
+    expect(postinstallKernelProblem("darwin", "23.0.0")).toBeUndefined()
+    // An unparseable release is not a reason to refuse to start.
+    expect(wrapper.linuxKernelProblem("linux", "not-a-kernel")).toBeUndefined()
   })
 
   test("reports signal exits using shell-compatible status codes", () => {
@@ -86,6 +105,47 @@ describe("npm bin wrapper", () => {
       "@synsci/openscience-linux-x64-baseline",
       "openscience-linux-x64-baseline",
     ])
+  })
+
+  test("detects macOS AVX2 through hw.optional.avx2_0 before the Intel-only leaf7 oid", () => {
+    const table = (answers: Record<string, string>): Sysctl => {
+      return (name) => (name in answers ? { status: 0, stdout: `${answers[name]}\n` } : { status: 1, stdout: "" })
+    }
+    expect(wrapper.cpuSupportsAvx2("darwin", "x64", undefined, table({ "hw.optional.avx2_0": "1" }))).toBe(true)
+    // x64 Node under Rosetta: leaf7_features is an unknown oid, avx2_0 answers 0
+    expect(wrapper.cpuSupportsAvx2("darwin", "x64", undefined, table({ "hw.optional.avx2_0": "0" }))).toBe(false)
+    expect(
+      wrapper.cpuSupportsAvx2(
+        "darwin",
+        "x64",
+        undefined,
+        table({ "machdep.cpu.leaf7_features": "RDWRFSGS TSC_THREAD_OFFSET SGX BMI1 AVX2 SMEP BMI2" }),
+      ),
+    ).toBe(true)
+    expect(
+      wrapper.cpuSupportsAvx2("darwin", "x64", undefined, table({ "machdep.cpu.leaf7_features": "RDWRFSGS SMEP" })),
+    ).toBe(false)
+    expect(wrapper.cpuSupportsAvx2("darwin", "x64", undefined, table({}))).toBeUndefined()
+    expect(wrapper.cpuSupportsAvx2("win32", "x64", undefined, table({}))).toBeUndefined()
+  })
+
+  test("recognises an illegal-instruction crash on POSIX and Windows", () => {
+    expect(wrapper.illegalInstruction({ status: null, signal: "SIGILL" })).toBe(true)
+    expect(wrapper.illegalInstruction({ status: 3221225501, signal: null })).toBe(true)
+    expect(wrapper.illegalInstruction({ status: -1073741795, signal: null })).toBe(true)
+    expect(wrapper.illegalInstruction({ status: null, signal: "SIGSEGV" })).toBe(false)
+    expect(wrapper.illegalInstruction({ status: 1, signal: null })).toBe(false)
+  })
+
+  test("names the baseline sibling package for a non-baseline build only", () => {
+    expect(wrapper.baselineSibling("openscience-linux-x64", "openscience-linux-x64")).toBe(
+      "openscience-linux-x64-baseline",
+    )
+    expect(wrapper.baselineSibling("openscience-linux-x64", "openscience-linux-x64-musl")).toBe(
+      "openscience-linux-x64-baseline-musl",
+    )
+    expect(wrapper.baselineSibling("openscience-linux-x64", "openscience-linux-x64-baseline")).toBeUndefined()
+    expect(wrapper.baselineSibling("openscience-linux-x64", "openscience-linux-arm64")).toBeUndefined()
   })
 
   test("names the native arm64 package in diagnostics and postinstall lookup", () => {

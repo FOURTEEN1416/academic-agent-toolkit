@@ -60,7 +60,7 @@ When dispatched by the engine, write the brief to the current action's declared 
    - Technical report → use executive summary structure
    - Documentation → use reference summary structure
 
-2. **Scaffold the brief** — `python3 scripts/format_summary.py --template academic` (or `article`/`report`/`executive` per source type), then fill in every section from the source:
+2. **Scaffold the brief** — 脚本 `scripts/format_summary.py` 未随本仓集成；直接按下方内联模板手写脚手架（按 source type 选 academic/article/report/executive 结构），再从源材料填入每一节:
    ```
    Title: [exact title]
    Author(s): [names]
@@ -133,7 +133,7 @@ When dispatched by the engine, write the brief to the current action's declared 
 
 ### Workflow 3 — Citation Extraction
 
-1. **Run the extractor** — `python3 scripts/extract_citations.py document.txt --output json` detects DOI/URL/author-year/numbered citations and deduplicates them
+1. **Run the extractor** — 脚本 `scripts/extract_citations.py` 未随本仓集成；人工按 DOI / URL / author-year / numbered 四类模式逐条识别引用并去重
 2. **Review and format** the extracted list in the requested style (APA 7 default); manually catch citations the regex missed
 3. **Classify citations** by type:
    - Primary sources (original research, data)
@@ -151,6 +151,8 @@ Supported citation formats:
 ---
 
 ## Tooling
+
+> **脚本未随本仓集成（2026-11-16）：** 下列 `scripts/extract_citations.py`、`scripts/format_summary.py` 均未随仓（已入 asset_gap_register.json）；usage 块仅作上游接口参考，实际按上文人工流程执行。
 
 ### `scripts/extract_citations.py`
 
@@ -259,7 +261,7 @@ Flag these without being asked:
 Before delivering any brief, check:
 
 1. Every Key Finding cites a location in the source (section, page, or quote) — no unanchored claims.
-2. `python3 scripts/extract_citations.py <file> --output json` exits 0 and its `total` matches the bibliography count in your output (investigate any gap).
+2. Citation count check — 脚本 `scripts/extract_citations.py` 未随仓时人工核对：输出参考文献条数与正文提取到的引用条数一致（发现缺口即排查）。
 3. Each source carries a 4-dimension quality rating (table above); weak sources are flagged, not silently included.
 4. For comparisons: the matrix has one row per dimension and one column per source — no source skipped.
 5. Nothing was invented: missing metadata is marked "not stated", never filled in.
@@ -268,7 +270,6 @@ Before delivering any brief, check:
 
 ## Related Skills
 
-- **product-analytics** — Quantitative analysis. Complementary — use research-summarizer for qualitative sources, product-analytics for metrics.
-- **competitive-teardown** — Competitive research. Complementary — use research-summarizer for individual source analysis, competitive-teardown for market landscape.
-- **content-production** — Content writing. Research-summarizer feeds content-production — summarize sources first, then write.
-- **product-discovery** — Discovery frameworks. Complementary — research-summarizer for desk research, product-discovery for user research.
+- **meta-entity-dossier** — Entity due-diligence from live web research. Complementary — use research-summarizer for digesting documents already in hand, meta-entity-dossier for building entity background from live sources.
+- **meta-topic-pulse** — Multi-source recency research. Complementary — use research-summarizer to condense sources you already have, meta-topic-pulse to gather what's currently being said.
+- **citation-check** — Citation compliance checking. Complementary — research-summarizer extracts and formats citations, citation-check verifies them against the source list.

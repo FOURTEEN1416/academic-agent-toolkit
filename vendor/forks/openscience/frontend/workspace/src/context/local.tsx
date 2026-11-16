@@ -8,7 +8,8 @@ import { useModels } from "@/context/models"
 import { foldedRouteMode, routableModelKey } from "@/context/model-catalog"
 import { modelTierOptions, normalizedTier, promptTier, resolvedTier } from "@/context/model-tier"
 import { resolveModelAccessRoute, type ModelAccessRoute, type ModelRouteAccess } from "@/context/model-route-resolution"
-import { modelVariantOptions, normalizedVariant, promptVariant } from "@/context/model-variant"
+import { modelVariantDefault, modelVariantOptions, normalizedVariant, promptVariant } from "@/context/model-variant"
+import { modelContextOptions, modelDefaultContext } from "@/context/model-context"
 
 export type ModelKey = { providerID: string; modelID: string }
 
@@ -50,10 +51,18 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
     }
 
     const agent = (() => {
-      // Planning is adaptive in the research agent, so the legacy read-only
-      // plan agent is not exposed as a picker entry.
+      // The picker offers the primary agents a person can talk to: research
+      // first, then any primary agent they configured. Planning is adaptive in
+      // the research agent, so the legacy plan agent stays hidden, as does any
+      // agent whose config says so.
       const agents = () => (Array.isArray(sync.data.agent) ? sync.data.agent : [])
-      const list = createMemo(() => agents().filter((x) => x.name === "research"), [])
+      const list = createMemo(
+        () =>
+          agents()
+            .filter((x) => x.mode !== "subagent" && !x.hidden && x.name !== "plan")
+            .sort((a, b) => (a.name === "research" ? -1 : b.name === "research" ? 1 : a.name.localeCompare(b.name))),
+        [],
+      )
       const all = createMemo(() => agents().filter((x) => x.mode !== "subagent"), [])
       const [store, setStore] = createStore<{
         current?: string
@@ -111,24 +120,41 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       })
 
       const fallbackModel = createMemo<ModelKey | undefined>(() => {
+        // The composer's last explicit choice outranks every default: it is the
+        // user's most recent intent, and it must survive leaving the project.
+        const chosen = models.selected.get()
+        if (chosen) {
+          if (isExactModelValid(chosen)) return chosen
+          const routed = resolveModel(chosen)
+          if (routed) return routed
+        }
+
         if (sync.data.config.model) {
           const [providerID, ...parts] = sync.data.config.model.split("/")
           const modelID = parts.join("/")
           const configured = { providerID, modelID }
           // Settings owns the exact default route. Never silently replace it
-          // with a managed/native route for the same logical model.
+          // with another provider route for the same logical model.
           return isExactModelValid(configured) ? configured : undefined
         }
 
+        // Earlier picks whose exact route is gone still beat the Sol default,
+        // which is only for installs that never chose.
+        for (const item of models.recent.list()) {
+          const resolved = resolveModel(item)
+          if (resolved) return resolved
+        }
+
         // Resolve one connected Sol route without treating provider identities
-        // as interchangeable. Automatic prefers ChatGPT (and therefore its
-        // advertised Fast tier), while explicit Credits and Accounts remain on
-        // the access surface the user selected.
+        // as interchangeable. The active access contract decides which route
+        // is eligible; Automatic still prefers the user's ChatGPT connection.
         const connected = new Map(providers.connected().map((provider) => [provider.id, provider]))
+        // GPT-6 Sol on the public API or Ace; the ChatGPT catalog still tops
+        // out at GPT-5.6 Sol.
         const candidates = [
-          { providerID: "openai", modelID: "gpt-5.6-sol" },
+          { providerID: "openai", modelID: "gpt-6-sol" },
           { providerID: "openai-codex", modelID: "gpt-5.6-sol" },
-          { providerID: "openrouter", modelID: "openai/gpt-5.6-sol" },
+          { providerID: "openrouter", modelID: "openai/gpt-6-sol" },
         ].flatMap((route): ModelAccessRoute[] => {
           const provider = connected.get(route.providerID)
           if (!provider?.models[route.modelID]) return []
@@ -145,11 +171,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           billing: sync.data.config.billing?.llm,
         })
         if (initial) return initial
-
-        for (const item of models.recent.list()) {
-          const resolved = resolveModel(item)
-          if (resolved) return resolved
-        }
 
         const defaults = providers.default()
         for (const p of providers.connected()) {
@@ -215,10 +236,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         const val = recentList[next]
         if (!val) return
 
-        model.set({
-          providerID: val.provider.id,
-          modelID: val.id,
-        })
+        model.set({ providerID: val.provider.id, modelID: val.id }, { remember: true })
       }
 
       return {
@@ -228,13 +246,16 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         pinned,
         list: models.list,
         cycle,
-        set(model: ModelKey | undefined, options?: { recent?: boolean }) {
+        set(model: ModelKey | undefined, options?: { recent?: boolean; remember?: boolean }) {
           batch(() => {
             const currentAgent = agent.current()
             const selected = model
             const next = selected ?? fallbackModel()
             if (currentAgent) setEphemeral("model", currentAgent.name, next)
             if (selected) models.setVisibility(selected, true)
+            // Only the user's own picks are remembered across projects; an
+            // agent's configured model applies to that agent alone.
+            if (selected && (options?.recent || options?.remember)) models.selected.set(selected)
             if (options?.recent && selected) models.recent.push(selected)
           })
         },
@@ -257,22 +278,26 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         variant: {
           current() {
             const m = current()
-            if (!m) return "standard"
+            if (!m) return "default"
             return normalizedVariant(
               models.variant.get({ providerID: m.provider.id, modelID: m.id }),
               Object.keys(m.variants ?? {}),
+              modelVariantDefault(m),
             )
           },
           list() {
             const m = current()
             if (!m) return []
-            return modelVariantOptions(Object.keys(m.variants ?? {}))
+            return modelVariantOptions(Object.keys(m.variants ?? {}), modelVariantDefault(m))
           },
           set(value: string | undefined) {
             const m = current()
             if (!m) return
             const variants = Object.keys(m.variants ?? {})
-            models.variant.set({ providerID: m.provider.id, modelID: m.id }, promptVariant(value, variants))
+            models.variant.set(
+              { providerID: m.provider.id, modelID: m.id },
+              promptVariant(value, variants, modelVariantDefault(m)),
+            )
           },
           cycle() {
             const variants = this.list()
@@ -283,7 +308,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           prompt() {
             const m = current()
             if (!m) return undefined
-            return promptVariant(this.current(), Object.keys(m.variants ?? {}))
+            return promptVariant(this.current(), Object.keys(m.variants ?? {}), modelVariantDefault(m))
           },
         },
         tier: {
@@ -316,6 +341,35 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             const m = current()
             if (!m) return undefined
             return promptTier(this.current(), Object.keys(m.modes ?? {}))
+          },
+        },
+        context: {
+          list() {
+            const m = current()
+            if (!m) return []
+            return modelContextOptions(m)
+          },
+          current() {
+            const m = current()
+            if (!m) return 0
+            const value = models.context.get({ providerID: m.provider.id, modelID: m.id })
+            return value && this.list().includes(value) ? value : modelDefaultContext(m)
+          },
+          set(value: number | undefined) {
+            const m = current()
+            if (!m) return
+            // The full window is stored too: a person who chose it past a
+            // pricing boundary must not fall back to the boundary default.
+            const selected = value && this.list().includes(value) ? value : undefined
+            models.context.set({ providerID: m.provider.id, modelID: m.id }, selected)
+          },
+          prompt() {
+            const m = current()
+            if (!m) return undefined
+            const value = models.context.get({ providerID: m.provider.id, modelID: m.id })
+            // No choice: the server applies the same boundary default.
+            if (!value || !this.list().includes(value)) return undefined
+            return value
           },
         },
       }

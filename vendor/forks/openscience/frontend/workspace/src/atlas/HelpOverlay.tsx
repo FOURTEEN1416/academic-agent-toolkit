@@ -1,6 +1,6 @@
 import { createEffect, type JSX, For, onCleanup } from "solid-js"
 import { Dialog as Kobalte } from "@kobalte/core/dialog"
-import { FONT_MONO, FONT_SANS } from "@/styles/tokens"
+import { FONT_SANS } from "@/styles/tokens"
 import { IconX } from "@/atlas/shared/Icon"
 import { AgentIcon } from "@/atlas/shared/AgentIcon"
 import { useCommand } from "@/context/command"
@@ -131,7 +131,7 @@ export function HelpOverlay(props: HelpOverlayProps): JSX.Element {
                 <section style={{ display: "flex", "flex-direction": "column", gap: "8px" }}>
                   <div
                     style={{
-                      "font-family": FONT_MONO,
+                      "font-family": FONT_SANS,
                       "font-size": "10px",
                       "letter-spacing": "normal",
                       color: "var(--color-text-faint)",
@@ -154,7 +154,7 @@ export function HelpOverlay(props: HelpOverlayProps): JSX.Element {
                             {(k) => (
                               <kbd
                                 style={{
-                                  "font-family": FONT_MONO,
+                                  "font-family": FONT_SANS,
                                   "font-size": "10px",
                                   padding: "2px 6px",
                                   border: "1px solid var(--color-border)",

@@ -1,98 +1,113 @@
-import { expect, test } from "bun:test"
-import { canSelectManaged, commitBilling, formatCreditBalance, walletBalanceLabel } from "./ManagedInference"
+import { describe, expect, test } from "bun:test"
+import {
+  accountUnavailable,
+  canSelectManaged,
+  formatCreditBalance,
+  withAccountDeadline,
+  walletBalanceLabel,
+} from "./ManagedInference"
 
-const source = await Bun.file(new URL("./ManagedInference.tsx", import.meta.url)).text()
+describe("Ace model access", () => {
+  test("waits for the server's one account deadline instead of racing its own short timeout", async () => {
+    const deadline = await import("./account-deadline")
+    // The server bounds account reads at 15 s and propagates that to its
+    // outbound fetches; the UI must never give up before that answer lands.
+    expect(deadline.ACCOUNT_DEADLINE_MS).toBeGreaterThanOrEqual(15_000)
+  })
 
-test("presents the two actual routing contracts", () => {
-  const accounts = source.indexOf('title: "BYOK / Subscription"')
-  const managed = source.indexOf('title: "Managed"')
+  test("shows only exact purchased-Wallet dollars", () => {
+    expect(formatCreditBalance(984)).toBe("$984.00")
+    expect(formatCreditBalance(984.6)).toBe("$984.60")
+    expect(walletBalanceLabel({ signedIn: true, balanceUsd: -1 })).toBe("$-1.00 balance")
+    expect(walletBalanceLabel({ signedIn: true, balanceUsd: null })).toBe("Balance unavailable")
+    expect(walletBalanceLabel({ signedIn: false, balanceUsd: 20 })).toBe("Not signed in")
+    // Holds for turns in flight come off what can be spent now.
+    expect(walletBalanceLabel({ signedIn: true, balanceUsd: 20, availableUsd: 12.5 })).toBe("$12.50 available")
+    expect(walletBalanceLabel({ signedIn: true, balanceUsd: 20, availableUsd: null })).toBe("$20.00 available")
+    expect(walletBalanceLabel({ signedIn: false, balanceUsd: 20, availableUsd: 12.5 })).toBe("Not signed in")
+  })
 
-  expect(accounts).toBeGreaterThan(-1)
-  expect(managed).toBeGreaterThan(accounts)
-  expect(source).toContain('value: "managed"')
-  expect(source).toContain('value: "byok"')
-  expect(source).not.toContain('title: "Automatic"')
-  expect(source).toContain("platform.openLink(URLS.dashboardBilling)")
-})
+  test("requires an authorized signed-in Wallet for managed routing", () => {
+    expect(canSelectManaged(undefined)).toBe(false)
+    expect(
+      canSelectManaged({
+        signedIn: true,
+        accessVerified: true,
+        managedSupported: true,
+        managedUnlocked: true,
+        aceEnabled: false,
+        balanceUsd: 20,
+        billingMode: null,
+      }),
+    ).toBe(true)
+    expect(
+      canSelectManaged({
+        signedIn: false,
+        managedSupported: true,
+        managedUnlocked: true,
+        aceEnabled: true,
+        balanceUsd: 20,
+        billingMode: null,
+      }),
+    ).toBe(false)
+  })
 
-test("keeps a real negative wallet balance distinct from an unavailable balance", () => {
-  expect(walletBalanceLabel({ signedIn: true, balanceUsd: -1 })).toBe("$-1.00 balance")
-  expect(walletBalanceLabel({ signedIn: true, balanceUsd: null })).toBe("Balance unavailable")
-  expect(walletBalanceLabel({ signedIn: false, balanceUsd: -1 })).toBe("Not signed in")
-})
+  test("retries incomplete account reads without treating redacted balances or denials as transient", () => {
+    const wallet = {
+      signedIn: true,
+      accessVerified: true,
+      balanceUsd: null,
+      billingMode: null,
+      managedSupported: true,
+      managedUnlocked: false,
+      aceEnabled: false,
+    } as const
+    expect(accountUnavailable(wallet)).toBe(true)
+    expect(accountUnavailable({ ...wallet, balanceRedacted: true })).toBe(false)
+    expect(accountUnavailable({ ...wallet, managedSupported: false })).toBe(false)
+    expect(accountUnavailable({ ...wallet, signedIn: false })).toBe(false)
+  })
 
-test("formats the purchased-credit balance to exact cents", () => {
-  expect(formatCreditBalance(984)).toBe("$984.00")
-  expect(formatCreditBalance(984.6)).toBe("$984.60")
-  expect(formatCreditBalance(0)).toBe("$0.00")
-})
+  test("a successful balance cannot enable Ace when the access check is unavailable", () => {
+    const wallet = {
+      signedIn: true,
+      balanceUsd: 20,
+      billingMode: null,
+      managedSupported: true,
+      managedUnlocked: true,
+      aceEnabled: true,
+      accessVerified: false,
+    } as const
+    expect(canSelectManaged(wallet)).toBe(false)
+    expect(accountUnavailable(wallet)).toBe(true)
+    expect(accountUnavailable({ ...wallet, balanceRedacted: true })).toBe(true)
+    expect(canSelectManaged({ ...wallet, accessVerified: undefined })).toBe(false)
+  })
 
-test("allows Managed whenever the server authorizes Wallet or reload access", () => {
-  expect(canSelectManaged(undefined)).toBe(false)
-  expect(
-    canSelectManaged({ signedIn: false, managedSupported: true, aceEnabled: true, balanceUsd: 20, billingMode: null }),
-  ).toBe(false)
-  expect(
-    canSelectManaged({ signedIn: true, managedSupported: false, aceEnabled: true, balanceUsd: 20, billingMode: null }),
-  ).toBe(false)
-  expect(
-    canSelectManaged({ signedIn: true, managedSupported: true, aceEnabled: false, balanceUsd: 20, billingMode: null }),
-  ).toBe(true)
-  expect(
-    canSelectManaged({ signedIn: true, managedSupported: true, aceEnabled: true, balanceUsd: 0, billingMode: null }),
-  ).toBe(true)
-})
+  test("a confirmed access denial stays disabled without an automatic retry loop", () => {
+    const wallet = {
+      signedIn: true,
+      balanceUsd: null,
+      billingMode: null,
+      managedSupported: false,
+      managedUnlocked: false,
+      aceEnabled: false,
+      accessVerified: true,
+    } as const
+    expect(canSelectManaged(wallet)).toBe(false)
+    expect(accountUnavailable(wallet)).toBe(false)
+  })
 
-// The provider catalog is intentionally not part of this helper. It is a
-// multi-megabyte follow-up synchronization; including it here used to keep all
-// three routing buttons disabled long after the small billing write had saved.
-test("resolves as soon as the billing write is applied", async () => {
-  const order: string[] = []
-  const applied: number[] = []
-
-  const ok = await commitBilling<{ llm: string }>(
-    async () => {
-      order.push("write")
-      return { data: { llm: "managed" } }
-    },
-    (data) => {
-      order.push("apply")
-      applied.push(data.llm.length)
-    },
-  )
-
-  expect(ok).toBe(true)
-  expect(order).toEqual(["write", "apply"])
-  expect(applied).toEqual(["managed".length])
-})
-
-test("does not apply when the write comes back without data", async () => {
-  const order: string[] = []
-  let applyCalls = 0
-
-  const ok = await commitBilling<{ llm: string }>(
-    async () => {
-      order.push("write")
-      return {}
-    },
-    () => applyCalls++,
-  )
-
-  expect(ok).toBe(false)
-  expect(order).toEqual(["write"])
-  expect(applyCalls).toBe(0)
-})
-
-test("propagates a write rejection without applying data", async () => {
-  let applyCalls = 0
-
-  const rejection = commitBilling<{ llm: string }>(
-    async () => {
-      throw new Error("network down")
-    },
-    () => applyCalls++,
-  )
-
-  await expect(rejection).rejects.toThrow("network down")
-  expect(applyCalls).toBe(0)
+  test("aborts a stalled Wallet read at the account deadline", async () => {
+    const state = { aborted: false }
+    const stalled = withAccountDeadline(
+      (signal) =>
+        new Promise<never>(() => {
+          signal.addEventListener("abort", () => (state.aborted = true), { once: true })
+        }),
+      5,
+    )
+    await expect(stalled).rejects.toThrow("Ace account refresh timed out. Try again.")
+    expect(state.aborted).toBe(true)
+  })
 })

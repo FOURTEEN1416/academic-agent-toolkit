@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine5.local/release/user-update-state.schema.json",
+  "title": "PaperSpine5 user update rollback state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "schema_version",
+    "product_id",
+    "install_kind",
+    "active_installations",
+    "history"
+  ],
+  "properties": {
+    "contract": {
+      "enum": [
+        "paperspine5.plugin-update-state",
+        "paperspine5.skill-update-state"
+      ]
+    },
+    "schema_version": {"const": "1.0"},
+    "product_id": {"const": "paperspine5"},
+    "install_kind": {"enum": ["plugin", "skill"]},
+    "active_installations": {"type": "array", "items": {"type": "object"}},
+    "history": {"type": "array", "items": {"type": "object"}}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"install_kind": {"const": "plugin"}}},
+      "then": {"properties": {"contract": {"const": "paperspine5.plugin-update-state"}}}
+    },
+    {
+      "if": {"properties": {"install_kind": {"const": "skill"}}},
+      "then": {"properties": {"contract": {"const": "paperspine5.skill-update-state"}}}
+    }
+  ]
+}

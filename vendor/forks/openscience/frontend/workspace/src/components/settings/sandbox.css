@@ -1,26 +1,6 @@
 /* Sandbox is deliberately quieter than the previous icon-per-row layout.
    One semantic mark communicates backend availability; policy, path, and test
    actions rely on proximity and a consistent 32px control rhythm. */
-.settings-preferences-panel--sandbox .settings-page-header__inner {
-  position: relative;
-}
-
-.settings-preferences-panel--sandbox .settings-sandbox-save-state {
-  position: absolute;
-  top: 2px;
-  right: 0;
-  min-width: 48px;
-  color: var(--text-weak);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  line-height: 18px;
-  text-align: right;
-}
-
-.settings-preferences-panel--sandbox .settings-preferences-card {
-  overflow: hidden;
-}
-
 .settings-preferences-panel--sandbox .settings-sandbox-control-row {
   min-height: 56px;
   display: grid;
@@ -37,55 +17,21 @@
 
 .settings-preferences-panel--sandbox .settings-sandbox-status-row {
   width: 100%;
-  min-height: 56px;
+  min-height: 48px;
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) max-content 16px;
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
   gap: var(--settings-space-3);
-  padding: 10px var(--settings-space-4);
+  padding: 8px var(--settings-space-3);
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: var(--text-strong);
+  color: var(--color-text);
   text-align: left;
-  transition: background-color 150ms ease;
-}
-
-.settings-preferences-panel--sandbox .settings-sandbox-status-row:hover {
-  background: var(--settings-surface-hover);
-}
-
-.settings-preferences-panel--sandbox .settings-sandbox-status-row:active {
-  background: var(--settings-selection);
-}
-
-.settings-preferences-panel--sandbox .settings-sandbox-status-mark {
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--settings-radius-control);
-  background: var(--settings-surface-muted);
-  color: var(--text-warning-base);
-}
-
-.settings-preferences-panel--sandbox .settings-sandbox-status-mark[data-tone="success"] {
-  background: color-mix(in srgb, var(--icon-success-base) 10%, transparent);
-  color: var(--icon-success-base);
-}
-
-.settings-preferences-panel--sandbox .settings-sandbox-disclosure-icon {
-  color: var(--icon-weak-base);
-  transition: transform 200ms ease;
-}
-
-.settings-preferences-panel--sandbox .settings-sandbox-disclosure-icon--open {
-  transform: rotate(180deg);
 }
 
 .settings-preferences-panel--sandbox .settings-sandbox-backend-details {
-  padding: 0 var(--settings-space-4) var(--settings-space-4) 60px;
+  padding: 0 var(--settings-space-3) var(--settings-space-3);
 }
 
 .settings-preferences-panel--sandbox .settings-sandbox-backend-details dl {
@@ -105,16 +51,16 @@
 
 .settings-preferences-panel--sandbox .settings-sandbox-backend-details dt {
   margin: 0 0 2px;
-  color: var(--text-weak);
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
   line-height: 16px;
 }
 
 .settings-preferences-panel--sandbox .settings-sandbox-backend-details dd {
   margin: 0;
-  color: var(--text-strong);
+  color: var(--color-text);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--font-size-x-small);
   line-height: 17px;
   overflow-wrap: anywhere;
   font-synthesis: none;
@@ -131,16 +77,15 @@
   padding: var(--settings-space-2) var(--settings-space-4);
 }
 
-.settings-preferences-panel--sandbox .settings-sandbox-path-row code {
+.settings-preferences-panel--sandbox .settings-sandbox-path {
   min-width: 0;
   overflow: hidden;
-  color: var(--text-strong);
-  font-size: 12px;
-  line-height: 18px;
+  color: var(--color-text);
+  font-size: var(--settings-type-row);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--settings-leading-body);
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-synthesis: none;
-  font-variant-numeric: slashed-zero;
 }
 
 .settings-preferences-panel--sandbox .settings-sandbox-path-editor {
@@ -165,8 +110,8 @@
   grid-template-columns: 8px minmax(0, 1fr) max-content;
   align-items: center;
   gap: var(--settings-space-2);
-  color: var(--text-strong);
-  font-size: 12px;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-medium);
   line-height: 18px;
 }
@@ -175,11 +120,11 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--text-danger);
+  background: var(--color-text-danger);
 }
 
 .settings-preferences-panel--sandbox .settings-sandbox-result__dot[data-tone="success"] {
-  background: var(--icon-success-base);
+  background: var(--color-icon-success);
 }
 
 .settings-preferences-panel--sandbox .settings-sandbox-checks {
@@ -197,15 +142,15 @@
   grid-template-columns: 16px minmax(120px, auto) minmax(0, 1fr);
   align-items: start;
   gap: var(--settings-space-2);
-  color: var(--text-strong);
-  font-size: 12px;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
   line-height: 18px;
 }
 
 .settings-preferences-panel--sandbox .settings-sandbox-check__detail {
   min-width: 0;
-  color: var(--text-weak);
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-x-small);
   line-height: 18px;
   overflow-wrap: anywhere;
   white-space: normal;
@@ -236,27 +181,11 @@
   }
 
   .settings-preferences-panel--sandbox .settings-sandbox-status-row {
-    grid-template-areas:
-      "mark copy disclosure"
-      ". state state";
-    grid-template-columns: 32px minmax(0, 1fr) 16px;
-  }
-
-  .settings-preferences-panel--sandbox .settings-sandbox-status-mark {
-    grid-area: mark;
-  }
-
-  .settings-preferences-panel--sandbox .settings-sandbox-status-row .settings-row-copy {
-    grid-area: copy;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .settings-preferences-panel--sandbox .settings-sandbox-status-row .settings-preference-status {
-    grid-area: state;
     justify-self: start;
-  }
-
-  .settings-preferences-panel--sandbox .settings-sandbox-disclosure-icon {
-    grid-area: disclosure;
   }
 
   .settings-preferences-panel--sandbox .settings-sandbox-backend-details {

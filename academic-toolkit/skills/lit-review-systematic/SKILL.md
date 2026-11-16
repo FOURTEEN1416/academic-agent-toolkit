@@ -16,7 +16,7 @@ metadata:
 
 Conduct systematic, comprehensive literature reviews following rigorous academic methodology. Search multiple literature databases, synthesize findings thematically, verify all citations for accuracy, and generate professional output documents in markdown and PDF formats.
 
-This skill uses the **parallel-web skill** (`parallel-cli search`) as the primary web search tool for broad academic literature discovery, supplemented by specialized database access skills (gget, bioservices, datacommons-client). It provides specialized tools for citation verification, result aggregation, and document generation.
+**Default primary web search channel**: the `lit-multi-db-search` skill's REST query templates, or executor-side `web_search` / `web_fetch` tools. If the `parallel-cli` tool (parallel-web) is installed locally, it may be used as an **optional accelerator** for broad search and URL extraction. Specialized database access skills (gget, bioservices, datacommons-client) may supplement coverage where available. This skill also provides specialized tools for citation verification, result aggregation, and document generation.
 
 ## When to Use This Skill
 
@@ -31,16 +31,15 @@ Use this skill when:
 
 ## Visual Enhancement with Scientific Schematics
 
-**⚠️ MANDATORY: Every literature review MUST include at least 1-2 AI-generated figures using the scientific-schematics skill.**
+**Recommended: include 1-2 figures when they add real value to the review** (e.g., a PRISMA flow diagram for systematic reviews). Figures are optional, not a completion requirement — add them only when they genuinely aid understanding.
 
-This is not optional. Literature reviews without visual elements are incomplete. Before finalizing any document:
-1. Generate at minimum ONE schematic or diagram (e.g., PRISMA flow diagram for systematic reviews)
-2. Prefer 2-3 figures for comprehensive reviews (search strategy flowchart, thematic synthesis diagram, conceptual framework)
+Suggested figures for comprehensive reviews:
+1. A PRISMA flow diagram (systematic reviews)
+2. A search strategy flowchart, thematic synthesis diagram, or conceptual framework
 
-**How to generate figures:**
-- Use the **scientific-schematics** skill to generate AI-powered publication-quality diagrams
-- Simply describe your desired diagram in natural language
-- Nano Banana Pro will automatically generate, review, and refine the schematic
+**How to generate figures (optional):**
+- Use the **scientific-schematics** skill where available to generate AI-powered publication-quality diagrams
+- Describe your desired diagram in natural language; the image backend available in the current environment generates and refines the schematic
 
 **How to generate schematics:**
 ```bash
@@ -85,7 +84,7 @@ Literature reviews follow a structured, multi-phase workflow:
    - List synonyms, abbreviations, and related terms for each concept
    - Plan Boolean operators (AND, OR, NOT) to combine terms
    - Select minimum 3 complementary databases
-   - **Use the parallel-web skill (`parallel-cli search`) for initial scoping** to quickly gauge the landscape before formal database searches
+   - **For initial scoping**, run a quick broad search (default: executor-side `web_search`; optional `parallel-cli search` when installed locally) to gauge the landscape before formal database searches
 
 4. **Set Inclusion/Exclusion Criteria**:
    - Date range (e.g., last 10 years: 2015-2024)
@@ -98,12 +97,16 @@ Literature reviews follow a structured, multi-phase workflow:
 
 1. **Multi-Database Search**:
 
-   Select databases appropriate for the domain. **Always start with parallel-web for broad academic coverage**, then supplement with domain-specific databases.
+   Select databases appropriate for the domain. **Start with broad web-based academic coverage** — default: the `lit-multi-db-search` skill's REST query templates, or executor-side `web_search` — then supplement with domain-specific databases.
 
-   **Web-Based Academic Search (parallel-web skill — START HERE):**
-   - Use `parallel-cli search` with academic domain filtering for broad scholarly coverage
+   **Web-Based Academic Search (default channel — START HERE):**
+   - Default: use the `lit-multi-db-search` REST query templates, or executor-side `web_search` with academic domain filtering, for broad scholarly coverage
+   - Optional accelerator: if `parallel-cli` is installed locally, `parallel-cli search` may substitute for the `web_search` calls below; if not installed, skip these commands and use the default channel
    - Run two searches: academic-focused + general to catch all relevant sources
    ```bash
+   # OPTIONAL ACCELERATOR — only when parallel-cli is installed locally.
+   # Default path: lit-multi-db-search REST templates or executor-side web_search/web_fetch.
+
    # Academic-focused search across scholarly sources
    parallel-cli search "your research topic" -q "keyword1" -q "keyword2" \
      --json --max-results 10 --excerpt-max-chars-total 27000 \
@@ -115,8 +118,9 @@ Literature reviews follow a structured, multi-phase workflow:
      --json --max-results 10 --excerpt-max-chars-total 27000 \
      -o sources/litreview_<topic>-general.json
    ```
-   - Use `parallel-cli extract` to fetch full content from specific paper URLs or PDFs found in search results
+   - Fetch full content from specific paper URLs or PDFs found in search results: default via executor-side `web_fetch`; optional `parallel-cli extract` when installed locally
    ```bash
+   # Optional accelerator (only when parallel-cli is installed locally)
    parallel-cli extract "https://arxiv.org/abs/XXXX.XXXXX" --json
    ```
 
@@ -199,6 +203,19 @@ Literature reviews follow a structured, multi-phase workflow:
    └─ Included in review: n = B
    ```
 
+6. **Screening log (筛选理由留痕，必填)**: every exclusion decision is recorded in
+   `screening_log.csv` so the PRISMA counts stay auditable:
+
+   ```csv
+   study_id,doi,title,stage,decision,reason_criterion,note,date
+   S001,10.1234/abc,"Example title",abstract_screen,exclude,"E3: no eligible outcome","reviewer judgement",2026-11-16
+   S002,10.1234/def,"Another title",full_text,include,,"",2026-11-16
+   ```
+
+   - `stage` ∈ {dedup, title_screen, abstract_screen, full_text}; `decision` ∈ {include, exclude}
+   - `reason_criterion` must cite the inclusion/exclusion criterion ID (e.g. I1–I3 / E1–E5); a bare "not relevant" is not a reason
+   - Keep this log beside the PRISMA counts; its `include` rows feed the evidence table in Phase 4.
+
 ### Phase 4: Data Extraction and Quality Assessment
 
 1. **Extract Key Data** from each included study:
@@ -209,14 +226,39 @@ Literature reviews follow a structured, multi-phase workflow:
    - Limitations noted by authors
    - Funding sources and conflicts of interest
 
-2. **Assess Study Quality**:
+2. **Evidence table (证据表，Markdown + CSV 双形态必产出)**: one row per included
+   study, structured by PICOS + effect measures. Save as `evidence_table.md`
+   (human-readable) and `evidence_table.csv` (machine-readable, same columns):
+
+   | Column | Meaning |
+   |---|---|
+   | `study_id` | ID carried over from the screening log (S001…) |
+   | `citation` | Authors, year, journal, DOI |
+   | `P` / `I` / `C` / `O` / `S` | PICOS: Population, Intervention, Comparator, Outcome, Study design |
+   | `n` | Sample size (per arm where applicable) |
+   | `population` | Population characteristics (age, condition, setting) |
+   | `effect_measure` | Effect-size type: RR / OR / SMD / HR / beta / mean diff … |
+   | `effect_value` | Point estimate with 95% CI (e.g. `0.72 [0.61-0.85]`) |
+   | `quality` | Risk-of-bias rating from step 3 (High/Moderate/Low/Very Low) |
+   | `theme` | Theme assignment(s) from step 4 |
+   | `notes` | Limitations, funding/COI, caveats |
+
+   ```csv
+   study_id,citation,P,I,C,O,S,n,population,effect_measure,effect_value,quality,theme,notes
+   S002,"Doe J, 2023, J Clin Epi, 10.1234/def","adults with X","drug A","placebo","mortality at 12m","RCT",450,"age>=18, hospitalized","RR","0.72 [0.61-0.85]","Moderate","theme-1","industry-funded"
+   ```
+
+   - Every `effect_value` must carry its measure type and CI; write `not reported` rather than guessing.
+   - Keep the CSV and Markdown in sync; the CSV is the audit source of truth.
+
+3. **Assess Study Quality**:
    - **For RCTs**: Use Cochrane Risk of Bias tool
    - **For observational studies**: Use Newcastle-Ottawa Scale
    - **For systematic reviews**: Use AMSTAR 2
    - Rate each study: High, Moderate, Low, or Very Low quality
    - Consider excluding very low-quality studies
 
-3. **Organize by Themes**:
+4. **Organize by Themes**:
    - Identify 3-5 major themes across studies
    - Group studies by theme (studies may appear in multiple themes)
    - Note patterns, consensus, and controversies
@@ -393,21 +435,21 @@ Use appropriate skills:
 Expand search via citation networks:
 
 1. **Forward citations** (papers citing key papers):
-   - Use `parallel-cli search` to find papers citing a specific work:
+   - Find papers citing a specific work — default: Semantic Scholar or OpenAlex APIs, executor-side `web_search`, or Google Scholar "Cited by"; optional `parallel-cli search` when installed locally:
      ```bash
+     # Optional accelerator (only when parallel-cli is installed locally)
      parallel-cli search "papers citing [Author et al. Year] [paper title]" \
        -q "citing" -q "[key author]" \
        --json --max-results 10 --excerpt-max-chars-total 27000 \
        --include-domains "scholar.google.com,semanticscholar.org,arxiv.org,pubmed.ncbi.nlm.nih.gov" \
        -o sources/litreview_forward_citations.json
      ```
-   - Use Google Scholar "Cited by"
-   - Use Semantic Scholar or OpenAlex APIs
    - Identifies newer research building on seminal work
 
 2. **Backward citations** (references from key papers):
-   - Use `parallel-cli extract` to fetch full text of key papers and extract their reference lists:
+   - Fetch full text of key papers and extract their reference lists — default: executor-side `web_fetch`; optional `parallel-cli extract` when installed locally:
      ```bash
+     # Optional accelerator (only when parallel-cli is installed locally)
      parallel-cli extract "https://doi.org/10.xxxx/yyyy" --json
      ```
    - Extract references from included papers
@@ -477,19 +519,13 @@ For any topic, identify foundational work by:
 ## Best Practices
 
 ### Search Strategy
-1. **Start with parallel-web**: Use `parallel-cli search` with academic domains for initial broad coverage before querying specialized databases
-2. **Use multiple databases** (minimum 3): Ensures comprehensive coverage — parallel-web counts as one source
+1. **Start with broad web coverage**: Use the `lit-multi-db-search` REST templates or executor-side `web_search` with academic domains for initial broad coverage before querying specialized databases (optional `parallel-cli search` when installed locally)
+2. **Use multiple databases** (minimum 3): Ensures comprehensive coverage
 3. **Include preprint servers**: Captures latest unpublished findings
-4. **Document everything**: Search strings, dates, result counts for reproducibility — save all parallel-cli output to `sources/`
+4. **Document everything**: Search strings, dates, result counts for reproducibility — save all search output to `sources/`
 5. **Test and refine**: Run pilot searches, review results, adjust search terms
 6. **Sort by citations**: When available, sort search results by citation count to surface influential work first
-7. **Use parallel-cli extract**: Fetch full content from promising URLs found during search to verify relevance before full-text screening
-
-### Screening and Selection
-1. **Use multiple databases** (minimum 3): Ensures comprehensive coverage
-2. **Include preprint servers**: Captures latest unpublished findings
-3. **Document everything**: Search strings, dates, result counts for reproducibility
-4. **Test and refine**: Run pilot searches, review results, adjust search terms
+7. **Fetch full content**: Use executor-side `web_fetch` (or optional `parallel-cli extract` when installed locally) on promising URLs found during search to verify relevance before full-text screening
 
 ### Screening and Selection
 1. **Use clear criteria**: Document inclusion/exclusion criteria before screening
@@ -536,7 +572,9 @@ Complete workflow for a biomedical literature review:
 # 1. Create review document from template
 cp assets/review_template.md crispr_sickle_cell_review.md
 
-# 2. Start with parallel-web for broad academic search
+# 2. Broad academic search — DEFAULT: lit-multi-db-search REST templates or
+#    executor-side web_search. The parallel-cli commands below are an OPTIONAL
+#    accelerator, only when parallel-cli is installed locally.
 parallel-cli search "CRISPR Cas9 sickle cell disease gene therapy efficacy" \
   -q "CRISPR" -q "sickle cell" -q "gene therapy" \
   --json --max-results 10 --excerpt-max-chars-total 27000 \
@@ -553,7 +591,7 @@ parallel-cli search "CRISPR sickle cell disease clinical trials treatment" \
 # - Use direct API access for arXiv, Semantic Scholar
 # - Export results in JSON format
 
-# 4. Aggregate and process results (combine parallel-cli + database results)
+# 4. Aggregate and process results (combine web search + database results)
 python scripts/search_databases.py combined_results.json \
   --deduplicate \
   --rank citations \
@@ -564,7 +602,7 @@ python scripts/search_databases.py combined_results.json \
   --summary
 
 # 5. Screen results and extract data
-# - Use parallel-cli extract to fetch full content from promising URLs
+# - Use web_fetch (or optional parallel-cli extract when installed locally) to fetch full content from promising URLs
 # - Manually screen titles, abstracts, full texts
 # - Extract key data into the review document
 # - Organize by themes
@@ -597,10 +635,12 @@ python scripts/generate_pdf.py crispr_sickle_cell_review.md \
 
 This skill works seamlessly with other scientific skills:
 
-### Web Search & Extraction (parallel-web skill — PRIMARY)
-- **parallel-cli search**: Broad academic and general web search with domain filtering — use for initial scoping, finding papers, citation chaining, and supplementary searches
-- **parallel-cli extract**: Fetch full content from paper URLs, journal websites, and preprint servers — use for reading abstracts, extracting reference lists, and verifying paper details
-- **parallel-cli search --include-domains**: Academic-focused search across scholarly domains (arxiv.org, pubmed, nature.com, etc.)
+### Web Search & Extraction (default: lit-multi-db-search REST templates / web_search / web_fetch)
+- **Default channel**: the `lit-multi-db-search` skill's REST query templates and executor-side `web_search` / `web_fetch` — use for initial scoping, finding papers, citation chaining, fetching full content, and supplementary searches
+- **Optional accelerator — `parallel-cli`, only when installed locally:**
+  - `parallel-cli search`: broad academic and general web search with domain filtering — an optional substitute for the default `web_search` channel
+  - `parallel-cli extract`: fetch full content from paper URLs, journal websites, and preprint servers — an optional substitute for the default `web_fetch` channel
+  - `parallel-cli search --include-domains`: academic-focused search across scholarly domains (arxiv.org, pubmed, nature.com, etc.)
 
 ### Database Access Skills
 - **gget**: PubMed, bioRxiv, COSMIC, AlphaFold, Ensembl, UniProt
@@ -658,10 +698,11 @@ This skill works seamlessly with other scientific skills:
 
 ### Required CLI Tools
 ```bash
-# parallel-cli (PRIMARY — for web search and URL extraction)
-curl -fsSL https://parallel.ai/install.sh | bash
-# Or: uv tool install "parallel-web-tools[cli]"
-# Authenticate: parallel-cli auth
+# No CLI installation is required for the default search channel:
+# lit-multi-db-search REST templates + executor-side web_search/web_fetch.
+#
+# Optional accelerator (only if you choose to install it locally):
+# parallel-cli — see https://parallel.ai for official installation instructions.
 ```
 
 ### Required Python Packages
@@ -690,7 +731,7 @@ python scripts/generate_pdf.py --check-deps
 This literature-review skill provides:
 
 1. **Systematic methodology** following academic best practices
-2. **Parallel-web powered search** using `parallel-cli search` for fast, broad academic literature discovery with scholarly domain filtering
+2. **Broad academic search** via the `lit-multi-db-search` REST templates or executor-side `web_search` / `web_fetch`, with optional `parallel-cli` acceleration when installed locally, and scholarly domain filtering
 3. **Multi-database integration** via existing scientific skills (gget, bioservices, datacommons-client)
 4. **Citation verification** ensuring accuracy and credibility
 5. **Professional output** in markdown and PDF formats

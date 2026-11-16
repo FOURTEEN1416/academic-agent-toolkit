@@ -4,7 +4,13 @@ description: Complete mass spectrometry analysis platform. Use for proteomics wo
 category: chemistry
 license: 3 clause BSD license
 metadata:
-    skill-author: Synthetic Sciences
+    upstream: K-Dense-AI/scientific-agent-skills
+    upstream-url: https://github.com/K-Dense-AI/scientific-agent-skills
+    upstream-path: scientific-skills/pyopenms
+    upstream-license: MIT
+    upstream-relationship: derived
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # PyOpenMS

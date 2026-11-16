@@ -12,7 +12,7 @@ metadata:
 Use this skill for **novel experimental research papers** after the topic and
 contribution have already been framed.
 
-This skill is the empirical counterpart to `../arxiv-paper-writer`.
+This skill is the empirical counterpart to `../latex-paper-survey-writer`.
 It reuses the same high-value paper-engine pieces—citation discipline, LaTeX
 compilation, source policy, and QA—but changes the paper logic from review to
 experiment-driven writing.
@@ -29,7 +29,7 @@ experiment-driven writing.
 
 ## Inputs
 - Topic / research direction
-- Handoff artifacts from `../paper-from-zero` when available:
+- Handoff artifacts from `../latex-paper-from-zero` when available:
   - `brief/topic-brief.md`
   - `brief/contribution-map.yaml`
   - `brief/evidence-matrix.csv`
@@ -308,7 +308,7 @@ For each `experiment-matrix.csv` row with `result_status=verified`:
 - Conclusion contains specific numbers from verified results.
 
 ### Phase 2.7: Rhythm Refinement
-After all writing issues are `DONE`, refine prose section-by-section using the `latex-rhythm-refiner` skill. This step varies sentence/paragraph lengths and removes filler phrases while preserving all citations.
+After all writing issues are `DONE`, refine prose section-by-section using the `latex-paper-prose-rhythm` skill. This step varies sentence/paragraph lengths and removes filler phrases while preserving all citations.
 
 ### Phase 3: QA Gate
 1. Run internal QA checklist (see `../latex-paper-survey-writer/references/quality-report.md`).

@@ -1,5 +1,5 @@
 import { createSignal, onCleanup, onMount, type JSX, Show } from "solid-js"
-import { FONT_MONO } from "@/styles/tokens"
+import { FONT_SANS } from "@/styles/tokens"
 
 const BRAILLE_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 
@@ -20,7 +20,7 @@ export function AsciiSpinner(props: AsciiSpinnerProps): JSX.Element {
   return (
     <span
       style={{
-        "font-family": FONT_MONO,
+        "font-family": FONT_SANS,
         "font-size": `${props.size ?? 11}px`,
         color: props.color ?? "var(--color-text-muted)",
         display: "inline-flex",
@@ -32,60 +32,6 @@ export function AsciiSpinner(props: AsciiSpinnerProps): JSX.Element {
       <Show when={props.label}>
         <span>{props.label}</span>
       </Show>
-    </span>
-  )
-}
-
-interface BlockProgressProps {
-  progress: number
-  width?: number
-  label?: string
-}
-
-export function BlockProgress(props: BlockProgressProps): JSX.Element {
-  const filled = () => {
-    const w = props.width ?? 12
-    const p = Math.max(0, Math.min(1, props.progress))
-    return Math.round(p * w)
-  }
-  const total = () => props.width ?? 12
-  const bar = () => "▓".repeat(filled()) + "░".repeat(total() - filled())
-  return (
-    <span
-      style={{
-        "font-family": FONT_MONO,
-        "font-size": "11px",
-        color: "var(--color-text-muted)",
-        display: "inline-flex",
-        "align-items": "center",
-        gap: "8px",
-      }}
-    >
-      <span style={{ "letter-spacing": "0.04em" }}>[{bar()}]</span>
-      <Show when={props.label}>
-        <span style={{ color: "var(--color-text-faint)", "font-size": "10px" }}>{props.label}</span>
-      </Show>
-    </span>
-  )
-}
-
-interface BlinkCursorProps {
-  char?: string
-}
-
-export function BlinkCursor(props: BlinkCursorProps): JSX.Element {
-  return (
-    <span
-      class="atlas-blink"
-      style={{
-        "font-family": FONT_MONO,
-        "font-size": "inherit",
-        color: "currentColor",
-        display: "inline-block",
-        "margin-left": "2px",
-      }}
-    >
-      {props.char ?? "_"}
     </span>
   )
 }

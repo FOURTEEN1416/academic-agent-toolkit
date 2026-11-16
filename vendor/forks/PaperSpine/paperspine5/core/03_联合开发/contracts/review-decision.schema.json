@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "project_id", "review_scope", "status", "figures"],
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {"const": "1.1"},
     "project_id": {"type": "string", "minLength": 1},
     "review_scope": {"const": "all_figures"},
     "status": {"const": "confirmed"},
@@ -18,11 +18,16 @@
         "required": ["figure_id", "selected_candidate", "confirmed", "panel_decisions"],
         "properties": {
           "figure_id": {"type": "string", "minLength": 1},
-          "selected_candidate": {"enum": ["A", "B", "C", "existing"]},
+          "selected_candidate": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
           "panel_count": {"type": "integer", "minimum": 0},
           "layout": {"type": "string"},
           "confirmed": {"const": true},
           "notes": {"type": "string"},
+          "explicit_override": {"type": "boolean"},
+          "selection_authority": {"type": "string"},
+          "comparison_receipt": {"type": ["string", "null"]},
+          "fallback_reason": {"type": ["string", "null"]},
+          "comparison_validation": {"type": ["object", "null"]},
           "panel_decisions": {"type": "array", "items": {"type": "object", "required": ["panel_id", "action"], "properties": {"panel_id": {"type": "string", "minLength": 1}, "action": {"enum": ["keep", "lock", "revise"]}}, "additionalProperties": false}}
         }
       }

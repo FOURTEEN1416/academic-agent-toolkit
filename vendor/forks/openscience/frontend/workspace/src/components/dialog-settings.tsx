@@ -1,26 +1,27 @@
-import { Component, For, Show, batch, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js"
+import { Component, For, batch, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js"
 import { Dialog } from "@synsci/ui/dialog"
 import { Icon } from "@synsci/ui/icon"
 import { IconButton } from "@synsci/ui/icon-button"
 import { useDialog } from "@synsci/ui/context/dialog"
 import { usePlatform } from "@/context/platform"
 import {
-  SETTINGS_PRIMARY_PANELS,
+  SETTINGS_PANELS,
   SETTINGS_SECTIONS,
   DEFAULT_PANEL,
   findPanel,
-  panelChildren,
-  panelRoot,
   preloadPanel,
   type SettingsPanelId,
 } from "./settings/registry"
 import { SettingsNavContext } from "./settings/nav"
 import { SettingsPanelStack } from "./settings/panel-stack"
+import { settingsApi } from "./settings/api"
+import { useLanguage } from "@/context/language"
+import { useGlobalSDK } from "@/context/global-sdk"
 
 // Scoped to the settings dialog only. Gives shared primitives and legacy
 // panels one calm OpenScience hierarchy, grid, and surface stack without
 // changing global component CSS or tokens.
-const SETTINGS_STYLES = `
+export const SETTINGS_STYLES = `
 .settings-dialog,
 [data-component="dialog"]:has([data-slot="dialog-content"].settings-dialog) {
   --settings-space-1: 4px;
@@ -31,34 +32,35 @@ const SETTINGS_STYLES = `
   --settings-space-6: 32px;
   --settings-space-7: 48px;
   --settings-radius-control: var(--radius-xs, 8px);
-  --settings-radius-card: var(--radius-md, 12px);
+  --settings-radius-card: 8px;
   --settings-radius-modal: var(--radius-lg, 16px);
   --settings-radius-pill: 999px;
-  --settings-canvas: var(--background-base);
-  --settings-rail: var(--background-weak);
-  --settings-surface: var(--surface-raised-stronger-non-alpha);
-  --settings-surface-muted: var(--input-base);
-  --settings-surface-hover: var(--surface-base-hover);
-  --settings-surface-active: var(--surface-base-active);
-  --settings-selection: color-mix(in srgb, var(--text-strong) 8%, transparent);
-  --settings-border: var(--border-base);
-  --settings-border-strong: var(--border-strong-base);
-  --settings-accent: var(--border-selected);
-  --settings-accent-muted: color-mix(in srgb, var(--text-interactive-base) 10%, transparent);
-  --settings-accent-strong: var(--text-interactive-base);
+  --settings-canvas: var(--color-bg);
+  --settings-rail: var(--color-bg-subtle);
+  --settings-surface: var(--color-surface-solid);
+  --settings-surface-muted: var(--color-input);
+  --settings-surface-hover: var(--color-hover);
+  --settings-surface-active: var(--color-active);
+  --settings-selection: color-mix(in srgb, var(--color-text) 8%, transparent);
+  --settings-border: var(--color-border);
+  --settings-border-strong: var(--color-border-strong);
+  --settings-accent: var(--color-focus);
+  --settings-accent-muted: color-mix(in srgb, var(--color-text-interactive) 10%, transparent);
+  --settings-accent-strong: var(--color-text-interactive);
   /* Settings actions stay warm and tonal. Dark ink belongs to labels, not
      large filled controls; compact active states carry the product color. */
-  --settings-primary: var(--surface-interactive-base);
-  --settings-primary-hover: var(--surface-interactive-hover);
-  --settings-on-primary: var(--text-interactive-base);
-  --settings-toggle-active: var(--surface-brand-base);
+  --settings-primary: var(--color-interactive);
+  --settings-primary-hover: var(--color-interactive-hover);
+  --settings-on-primary: var(--color-text-interactive);
+  --settings-toggle-active: var(--color-brand);
   --settings-shadow-modal: var(--atlas-shadow-md, var(--shadow-lg));
   --settings-shadow-card: none;
-  --settings-type-title: 18px;
-  --settings-type-heading: 13px;
+  --settings-type-title: 16px;
+  --settings-type-heading: 12px;
   --settings-type-body: 13px;
+  --settings-type-row: 12px;
   --settings-type-helper: 12px;
-  --settings-leading-title: 24px;
+  --settings-leading-title: 22px;
   --settings-leading-body: 20px;
   --settings-leading-helper: 18px;
 }
@@ -71,7 +73,7 @@ const SETTINGS_STYLES = `
   min-width: 0;
   min-height: 0;
   background: var(--settings-canvas);
-  color: var(--text-base);
+  color: var(--color-text-secondary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-synthesis: none;
@@ -92,9 +94,17 @@ const SETTINGS_STYLES = `
 .settings-dialog textarea {
   font-family: inherit;
 }
+/* A control that opts into the monospace utility (Storage's data-directory
+   path, Connectors' SSH/host fields via FormField's mono prop) keeps it:
+   .font-mono is a Tailwind utility in the low-priority utilities layer, so
+   the dialog's own unlayered font-family: inherit reset above otherwise
+   always wins over it regardless of specificity. */
+.settings-dialog .font-mono {
+  font-family: var(--font-mono);
+}
 .settings-dialog .atlas-section-label,
 .settings-section-label {
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   font-family: inherit;
   font-size: 12px;
   font-weight: var(--font-weight-medium);
@@ -117,7 +127,7 @@ const SETTINGS_STYLES = `
 .settings-dialog [data-component="button"][data-variant="secondary"] {
   border: 1px solid transparent;
   background: var(--settings-surface-muted);
-  color: var(--text-strong);
+  color: var(--color-text);
 }
 .settings-dialog [data-component="button"][data-variant="secondary"]:hover:not(:disabled),
 .settings-dialog [data-component="button"][data-variant="secondary"]:focus:not(:disabled) {
@@ -125,14 +135,14 @@ const SETTINGS_STYLES = `
   background: var(--settings-surface-hover);
 }
 .settings-dialog [data-component="button"][data-variant="primary"] {
-  border-color: var(--border-weak-base);
+  border-color: var(--color-border-weak);
   background: var(--settings-primary);
   color: var(--settings-on-primary);
   box-shadow: var(--shadow-xs-border);
 }
 .settings-dialog [data-component="button"][data-variant="primary"]:hover:not(:disabled),
 .settings-dialog [data-component="button"][data-variant="primary"]:focus:not(:disabled) {
-  border-color: var(--border-hover);
+  border-color: var(--color-border-hover);
   background: var(--settings-primary-hover);
 }
 .settings-dialog [data-component="button"]:is(:disabled, [data-disabled], [aria-disabled="true"]) {
@@ -217,9 +227,9 @@ const SETTINGS_STYLES = `
   overflow: hidden;
 }
 .settings-nav {
-  width: 208px;
+  width: 200px;
   min-height: 0;
-  flex: 0 0 208px;
+  flex: 0 0 200px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -231,11 +241,11 @@ const SETTINGS_STYLES = `
 .settings-nav__title {
   flex: 0 0 auto;
   padding: var(--settings-space-1) var(--settings-space-2) var(--settings-space-4);
-  color: var(--text-strong);
-  font-size: 15px;
+  color: var(--color-text);
+  font-size: var(--settings-type-title);
   font-weight: var(--font-weight-medium);
-  line-height: 22px;
-  letter-spacing: -0.012em;
+  line-height: var(--settings-leading-title);
+  letter-spacing: -0.015em;
 }
 .settings-nav__scroll-button {
   display: none;
@@ -249,7 +259,7 @@ const SETTINGS_STYLES = `
   flex: 1;
   flex-direction: column;
   gap: var(--settings-space-4);
-  padding-top: 2px;
+  padding-top: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
@@ -257,44 +267,30 @@ const SETTINGS_STYLES = `
 .settings-nav__sections::-webkit-scrollbar {
   display: none;
 }
+/* Each group is named once, in the section-label voice, above its rows. This
+   is the project sidebar's own group label (.session-sidebar__group-label /
+   .session-sidebar__label) down to its metrics: same colour, size, weight,
+   tracking, line height and padding, and no text-transform — the design
+   contract forbids forcing ordinary interface copy into a different case.
+   settings-labels.test.ts holds the two rules to the same computed values. */
+.settings-nav__label {
+  padding: 0 var(--settings-space-2) 1px;
+  color: var(--color-text-faint);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
 .settings-nav__section {
   display: flex;
   flex-direction: column;
-  gap: var(--settings-space-1);
-}
-.settings-nav__group {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
   gap: 2px;
-}
-.settings-nav__children {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 2px;
-  margin: 1px 0 3px 28px;
-  padding-left: 8px;
-  border-left: 1px solid var(--settings-border);
-}
-.settings-nav__item[data-secondary="true"] {
-  min-height: 32px;
-  display: flex;
-  padding-inline: 8px;
-  font-size: 12px;
-}
-.settings-nav__label {
-  padding: 0 var(--settings-space-2) var(--settings-space-1);
-  color: var(--text-weak);
-  font-size: 11px;
-  font-weight: var(--font-weight-regular);
-  letter-spacing: 0;
 }
 .settings-nav__item {
   min-width: 0;
-  min-height: 32px;
+  min-height: 28px;
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr);
+  grid-template-columns: 16px minmax(0, 1fr);
   align-items: center;
   gap: var(--settings-space-2);
   padding: 4px var(--settings-space-2);
@@ -305,7 +301,7 @@ const SETTINGS_STYLES = `
   font-size: 13px;
   font-weight: var(--font-weight-regular);
   line-height: 18px;
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   text-align: left;
   transition:
     background 140ms ease,
@@ -313,21 +309,21 @@ const SETTINGS_STYLES = `
     transform 120ms ease;
 }
 .settings-nav__item:hover {
-  background: var(--settings-surface-hover);
-  color: var(--text-strong);
+  background: color-mix(in srgb, var(--color-text) 4%, transparent);
+  color: var(--color-text);
 }
 .settings-nav__item[data-active="true"] {
   background: var(--settings-selection);
-  color: var(--text-strong);
+  color: var(--color-text);
   font-weight: var(--font-weight-medium);
   box-shadow: none;
 }
 .settings-nav__item [data-component="icon"] {
-  color: var(--icon-weak-base);
+  color: var(--color-icon-muted);
 }
 .settings-nav__item:hover [data-component="icon"],
 .settings-nav__item[data-active="true"] [data-component="icon"] {
-  color: var(--text-base);
+  color: var(--color-text-secondary);
 }
 .settings-nav__item[data-pending="true"] [data-component="icon"] {
   opacity: 0.55;
@@ -340,15 +336,56 @@ const SETTINGS_STYLES = `
   outline-offset: 1px;
 }
 .settings-nav__footer {
-  display: flex;
+  display: grid;
   flex: 0 0 auto;
-  flex-direction: column;
-  gap: 1px;
-  padding: 12px 8px 0;
-  color: var(--text-weak);
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--settings-space-2);
+  margin-top: var(--settings-space-3);
+  padding: 6px var(--settings-space-2);
+  border: 0;
+  border-radius: var(--settings-radius-control);
+  background: transparent;
+  color: var(--color-text-muted);
+  text-align: left;
 }
-.settings-nav__footer > span {
+.settings-nav__footer:hover {
+  background: var(--settings-surface-hover);
+}
+.settings-nav__footer:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+.settings-nav__avatar {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--settings-accent-muted);
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+.settings-nav__identity {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.settings-nav__identity-name {
   overflow: hidden;
+  color: var(--color-text);
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-nav__identity-meta {
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -385,7 +422,7 @@ const SETTINGS_STYLES = `
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: var(--font-weight-regular);
   line-height: 18px;
@@ -421,40 +458,15 @@ const SETTINGS_STYLES = `
 .settings-panel-loading {
   width: 100%;
   height: 100%;
+  display: grid;
+  place-items: center;
   background: var(--settings-canvas);
 }
-.settings-panel-loading__header {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  padding: 28px 44px 22px;
-  border-bottom: 1px solid var(--settings-border);
-}
-.settings-panel-loading__body {
-  display: flex;
-  max-width: 900px;
-  flex-direction: column;
-  gap: 14px;
-  margin-inline: auto;
-  padding: 28px 44px 64px;
-}
-.settings-panel-loading__line,
+/* Section skeletons keep the rows' geometry so a section resolves in place. */
 .settings-panel-loading__rows span {
   display: block;
   border-radius: var(--settings-radius-control);
   background: var(--settings-surface-muted);
-}
-.settings-panel-loading__line[data-size="title"] {
-  width: 132px;
-  height: 20px;
-}
-.settings-panel-loading__line[data-size="copy"] {
-  width: min(420px, 72%);
-  height: 13px;
-}
-.settings-panel-loading__line[data-size="label"] {
-  width: 84px;
-  height: 14px;
 }
 .settings-panel-loading__rows {
   overflow: hidden;
@@ -475,6 +487,62 @@ const SETTINGS_STYLES = `
 .settings-panel-loading__rows span + span {
   border-top: 0;
 }
+/* A skeleton nested inside a card borrows the card's surface instead of
+   stacking a second one. */
+.settings-card > .settings-panel-loading__rows {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.settings-card-empty {
+  margin: 0;
+  padding: 14px var(--settings-space-3);
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
+  text-align: center;
+  text-wrap: pretty;
+}
+.settings-inline-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.settings-inline-link:hover,
+.settings-inline-link:focus-visible {
+  color: var(--color-text);
+}
+/* An inline link is text: it does not take a control's height. */
+.settings-dialog .settings-inline-link,
+.settings-dialog .settings-inline-link:not(:disabled) {
+  min-height: 0;
+  height: auto;
+  display: inline;
+  line-height: inherit;
+  vertical-align: baseline;
+  color: var(--color-text-muted);
+  transform: none;
+}
+.settings-dialog .settings-inline-link:hover {
+  color: var(--color-text);
+}
+[data-login-approval] {
+  margin: var(--settings-space-2) 0 0;
+}
+.settings-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--settings-space-3);
+}
+.settings-form-grid > [data-span="full"] {
+  grid-column: 1 / -1;
+}
 
 .settings-page-header {
   position: sticky;
@@ -490,7 +558,9 @@ const SETTINGS_STYLES = `
 }
 .settings-page-header__inner {
   display: flex;
-  width: min(100%, 900px);
+  /* The body is a 900px box with 32px padding; its content is 836px wide
+     and the title sits on the same left edge. */
+  width: min(100%, 836px);
   flex-direction: column;
   gap: var(--settings-space-1);
   margin-inline: auto;
@@ -498,18 +568,18 @@ const SETTINGS_STYLES = `
 .settings-page-header h2 {
   display: block;
   margin: 0;
-  color: var(--text-strong);
+  color: var(--color-text);
   font-size: var(--settings-type-title);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold, 600);
   line-height: var(--settings-leading-title);
   letter-spacing: -0.015em;
 }
 .settings-page-header p {
   max-width: 700px;
-  color: var(--text-weak);
-  font-size: var(--settings-type-body);
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
   font-weight: var(--font-weight-regular);
-  line-height: var(--settings-leading-body);
+  line-height: var(--settings-leading-helper);
 }
 .settings-page-body {
   display: flex;
@@ -524,7 +594,7 @@ const SETTINGS_STYLES = `
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: var(--settings-space-3);
+  gap: var(--settings-space-2);
 }
 .settings-section-heading {
   display: flex;
@@ -537,22 +607,21 @@ const SETTINGS_STYLES = `
 }
 .settings-section-heading h3 {
   margin: 0;
-  color: var(--text-strong);
+  padding-inline: 2px;
+  color: var(--color-text-muted);
   font-size: var(--settings-type-heading);
   font-weight: var(--font-weight-medium);
-  line-height: 1.35;
+  line-height: 16px;
 }
 .settings-section-heading p {
   max-width: 640px;
   margin: var(--settings-space-1) 0 0;
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   font-size: var(--settings-type-helper);
   line-height: var(--settings-leading-helper);
 }
 .settings-section-heading > span {
-  flex: 0 0 auto;
-  color: var(--text-weak);
-  font-size: 12px;
+  display: none;
 }
 .settings-section-heading--compact {
   min-height: 20px;
@@ -560,29 +629,21 @@ const SETTINGS_STYLES = `
   gap: 8px;
   padding-inline: 2px;
 }
-.settings-error {
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--text-danger) 35%, var(--border-base));
-  border-radius: var(--settings-radius-control);
-  color: var(--text-danger);
-  font-size: 12px;
-  line-height: 1.5;
-}
 .credential-services {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 .settings-list-item + .settings-list-item {
-  border-top: 0;
+  border-top: 1px solid var(--settings-border);
 }
 .settings-list-row {
-  min-height: 56px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   gap: var(--settings-space-3);
-  padding: 10px var(--settings-space-3);
-  border-radius: var(--settings-radius-control);
+  padding: 8px var(--settings-space-3);
+  border-radius: 0;
 }
 .settings-list-copy {
   min-width: 0;
@@ -592,13 +653,13 @@ const SETTINGS_STYLES = `
   gap: 2px;
 }
 .settings-list-copy strong {
-  color: var(--text-strong);
-  font-size: var(--settings-type-body);
+  color: var(--color-text);
+  font-size: var(--settings-type-row);
   font-weight: var(--font-weight-medium);
   line-height: var(--settings-leading-body);
 }
 .settings-list-copy span {
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   font-size: 12px;
   line-height: var(--settings-leading-helper);
   text-wrap: pretty;
@@ -629,7 +690,7 @@ const SETTINGS_STYLES = `
   gap: 5px;
 }
 .credential-form label > span {
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 .credential-form input,
@@ -641,7 +702,7 @@ const SETTINGS_STYLES = `
   border-radius: var(--settings-radius-control);
   outline: none;
   background: var(--settings-surface-muted);
-  color: var(--text-strong);
+  color: var(--color-text);
   font-size: 13px;
 }
 .credential-form textarea {
@@ -650,12 +711,12 @@ const SETTINGS_STYLES = `
 }
 .credential-form input:focus,
 .credential-form textarea:focus {
-  border-color: var(--focus-lit-ring);
-  box-shadow: var(--focus-lit-halo);
+  border-color: var(--color-focus-ring);
+  box-shadow: var(--color-focus-halo);
 }
 .credential-form > p {
   margin: -2px 0 0;
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 .settings-add-row {
@@ -663,13 +724,13 @@ const SETTINGS_STYLES = `
   align-self: flex-start;
   padding: 0 11px;
   border-radius: var(--settings-radius-control);
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: var(--font-weight-medium);
 }
 .settings-add-row:hover {
   background: var(--settings-surface-hover);
-  color: var(--text-strong);
+  color: var(--color-text);
 }
 
 /* Shared panel primitives follow the same 24px page grid and restrained
@@ -679,28 +740,44 @@ const SETTINGS_STYLES = `
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 4px;
-  border: 0;
+  gap: 0;
+  padding: 0;
+  border: 1px solid var(--settings-border);
   border-radius: var(--settings-radius-card);
   background: var(--settings-surface);
   box-shadow: none;
 }
+/* Rows inside one card are separated by hairlines, not by padding. */
+.settings-card > .settings-row + .settings-row,
+.settings-card > .settings-list-item + .settings-list-item,
+.settings-card > .settings-preference-row + .settings-preference-row,
+.settings-card > .settings-row + .settings-card-empty,
+.settings-card > .settings-row + .settings-list-item,
+.settings-card > .settings-list-item + .settings-row {
+  border-top: 1px solid var(--settings-border);
+}
+/* A field inside a row is the same height as the row's button. */
+.settings-card .settings-row .settings-field:not(.settings-field--multiline) {
+  min-height: 28px;
+  height: 28px;
+  padding-block: 0;
+  font-size: var(--settings-type-helper);
+}
 .settings-form-card {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: var(--settings-space-5);
+  gap: var(--settings-space-4);
+  padding: var(--settings-space-4);
 }
 .settings-row {
-  min-height: 56px;
+  min-height: 48px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--settings-space-3);
-  padding: 10px var(--settings-space-3);
+  padding: 8px var(--settings-space-3);
   border: 0;
-  border-radius: var(--settings-radius-control);
+  border-radius: 0;
 }
 .settings-row[data-interactive="true"] {
   cursor: pointer;
@@ -725,7 +802,7 @@ const SETTINGS_STYLES = `
   border: 0;
   border-radius: var(--settings-radius-card);
   background: var(--settings-surface-muted);
-  color: var(--icon-weak-base);
+  color: var(--color-icon-muted);
 }
 .settings-alert {
   min-height: 42px;
@@ -736,7 +813,7 @@ const SETTINGS_STYLES = `
   padding: 10px 14px;
   border: 0;
   border-radius: var(--settings-radius-control);
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   background: var(--settings-surface-muted);
 }
 .settings-alert[data-tone="critical"] {
@@ -744,90 +821,22 @@ const SETTINGS_STYLES = `
   background: color-mix(in srgb, var(--color-error) 6%, transparent);
 }
 .settings-alert[data-tone="warning"] {
-  color: var(--text-warning-base);
-  background: var(--surface-warning-weak);
+  color: var(--color-text-warning);
+  background: var(--color-warning-muted);
 }
 .settings-alert[data-stacked="true"] {
   align-items: stretch;
   flex-direction: column;
   justify-content: flex-start;
 }
-.settings-inline-action {
-  min-height: 32px;
-  padding: 4px 9px;
-  border: 1px solid transparent;
-  border-radius: var(--settings-radius-control);
-  color: var(--text-weak);
-  background: transparent;
-  font-size: 12px;
-  font-weight: var(--font-weight-medium);
-}
-.settings-inline-action:hover {
-  color: var(--text-strong);
-  background: var(--settings-surface-hover);
-}
-.settings-inline-action[data-quiet="true"] {
-  border-color: transparent;
-}
-.settings-choice-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-.settings-choice {
-  min-height: 88px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: var(--settings-space-3);
-  border: 1px solid transparent;
-  border-radius: var(--settings-radius-card);
-  color: var(--text-weak);
-  background: var(--settings-surface-muted);
-  text-align: left;
-  transition:
-    background 140ms ease,
-    border-color 140ms ease,
-    color 140ms ease;
-}
-.settings-choice:hover:not(:disabled) {
-  background: var(--settings-surface-hover);
-}
-.settings-choice[aria-pressed="true"] {
-  border-color: var(--settings-border-strong);
-  color: var(--text-strong);
-  background: var(--settings-surface);
-}
-.settings-choice:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-.settings-filter-pill {
-  min-height: 32px;
-  padding: 4px 10px;
-  border: 1px solid transparent;
-  border-radius: var(--settings-radius-pill);
-  color: var(--text-weak);
-  background: transparent;
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
-}
-.settings-filter-pill:hover,
-.settings-filter-pill[aria-pressed="true"] {
-  color: var(--text-strong);
-  background: var(--settings-surface-hover);
-}
-.settings-filter-pill[aria-pressed="true"] {
-  border-color: transparent;
-}
 .settings-list-header {
-  min-height: 34px;
+  min-height: 30px;
   display: flex;
   align-items: center;
-  padding: 0 18px;
+  padding: 0 var(--settings-space-3);
   border-bottom: 0;
   border-radius: var(--settings-radius-control);
-  background: var(--settings-surface-muted);
+  background: transparent;
 }
 .settings-model-row {
   flex-wrap: nowrap;
@@ -841,24 +850,18 @@ const SETTINGS_STYLES = `
   align-items: center;
   justify-content: center;
   border-radius: var(--settings-radius-control);
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   background: transparent;
 }
 .settings-icon-action:hover,
 .settings-icon-action[data-pinned="true"] {
-  color: var(--text-strong);
+  color: var(--color-text);
   background: var(--settings-surface-hover);
 }
 .settings-provider-key {
   min-height: 32px;
   padding-block: 5px;
   font-family: var(--font-family-mono);
-}
-
-@media (max-width: 640px) {
-  .settings-choice-grid {
-    grid-template-columns: 1fr;
-  }
 }
 .settings-avatar {
   width: 32px;
@@ -870,7 +873,7 @@ const SETTINGS_STYLES = `
   border: 0;
   border-radius: var(--settings-radius-control);
   background: var(--settings-surface-muted);
-  color: var(--icon-strong-base);
+  color: var(--color-icon-strong);
   font-size: var(--settings-type-body);
   font-weight: var(--font-weight-medium);
   line-height: 1;
@@ -890,7 +893,7 @@ const SETTINGS_STYLES = `
   border: 0;
   border-radius: var(--settings-radius-control);
   background: var(--settings-surface-muted);
-  color: var(--text-strong);
+  color: var(--color-text);
 }
 .settings-provider-logo[data-size="small"] {
   width: 24px;
@@ -906,7 +909,7 @@ const SETTINGS_STYLES = `
   border: 0;
   border-radius: var(--settings-radius-pill);
   background: var(--settings-surface-muted);
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: var(--font-weight-medium);
   line-height: 15px;
@@ -918,26 +921,40 @@ const SETTINGS_STYLES = `
   gap: 8px;
   flex-wrap: wrap;
 }
+/* One segmented control recipe (shared with Models' access-mode options):
+   borderless muted track, quiet selected segment, no shadow. */
 .settings-segmented-control {
   min-height: 32px;
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
   border: 0;
   border-radius: var(--settings-radius-control);
   background: var(--settings-surface-muted);
 }
 .settings-segmented-control__option {
+  min-width: 0;
   min-height: 28px;
+  padding: 0 10px;
+  border: 0;
   border-radius: calc(var(--settings-radius-control) - 2px);
-  color: var(--text-weak);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
 }
 .settings-segmented-control__option:hover,
 .settings-segmented-control__option[data-selected="true"] {
-  color: var(--text-strong);
-  background: var(--settings-surface-active);
+  color: var(--color-text);
+  background: var(--settings-surface-hover);
 }
 .settings-control {
   min-width: 0;
-  min-height: 32px;
-  height: 32px;
+  min-height: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -945,7 +962,7 @@ const SETTINGS_STYLES = `
   border: 1px solid transparent;
   border-radius: var(--settings-radius-control);
   background: var(--settings-surface-muted);
-  color: var(--text-strong);
+  color: var(--color-text);
   font-size: var(--settings-type-body);
   font-weight: var(--font-weight-regular);
   line-height: var(--settings-leading-body);
@@ -960,8 +977,8 @@ const SETTINGS_STYLES = `
   cursor: text;
 }
 .settings-control--search:focus-within {
-  border-color: var(--focus-lit-ring);
-  box-shadow: var(--focus-lit-halo);
+  border-color: var(--color-focus-ring);
+  box-shadow: var(--color-focus-halo);
 }
 .settings-control--menu,
 .settings-control--primary {
@@ -973,12 +990,16 @@ const SETTINGS_STYLES = `
   background: var(--settings-surface-active);
 }
 .settings-control--primary {
-  border-color: var(--border-weak-base);
-  background: var(--settings-primary);
-  color: var(--settings-on-primary);
+  border-color: transparent;
+  background: var(--settings-surface-muted);
+  color: var(--color-text);
 }
-.settings-control--primary:hover {
-  background: var(--settings-primary-hover);
+.settings-control--primary:hover,
+.settings-control--primary[data-expanded] {
+  background: var(--settings-surface-hover);
+}
+.settings-control--primary [data-component="icon"] {
+  color: currentColor;
 }
 .settings-field {
   width: 100%;
@@ -988,29 +1009,30 @@ const SETTINGS_STYLES = `
   border-radius: var(--settings-radius-control);
   outline: none;
   background: var(--settings-surface-muted);
-  color: var(--text-strong);
+  color: var(--color-text);
   font-size: var(--settings-type-body);
   font-weight: var(--font-weight-regular);
   line-height: var(--settings-leading-body);
 }
 .settings-field:focus {
-  border-color: var(--focus-lit-ring);
-  box-shadow: var(--focus-lit-halo);
+  border-color: var(--color-focus-ring);
+  box-shadow: var(--color-focus-halo);
 }
 .settings-field::placeholder {
-  color: var(--text-weak);
+  color: var(--color-text-muted);
 }
 .settings-field--multiline {
   min-height: 96px;
   resize: vertical;
 }
 .settings-button {
-  min-height: 32px;
-  padding: 0 12px;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 10px;
   border: 1px solid transparent;
   border-radius: var(--settings-radius-control);
-  color: var(--text-strong);
-  font-size: var(--settings-type-body);
+  color: var(--color-text);
+  font-size: var(--settings-type-helper);
   font-weight: var(--font-weight-medium);
   transition:
     background 140ms ease,
@@ -1019,7 +1041,7 @@ const SETTINGS_STYLES = `
     opacity 140ms ease;
 }
 .settings-button[data-variant="primary"] {
-  border-color: var(--border-weak-base);
+  border-color: var(--color-border-weak);
   background: var(--settings-primary);
   color: var(--settings-on-primary);
   box-shadow: var(--shadow-xs-border);
@@ -1029,16 +1051,16 @@ const SETTINGS_STYLES = `
 }
 .settings-button[data-variant="ghost"] {
   border-color: transparent;
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   background: transparent;
 }
 .settings-button[data-variant="ghost"]:hover {
-  color: var(--text-strong);
+  color: var(--color-text);
   background: var(--settings-surface-hover);
 }
 .settings-button[data-variant="danger"] {
-  color: var(--text-on-critical-base);
-  background: var(--surface-critical-weak);
+  color: var(--color-text-on-error);
+  background: var(--color-error-muted);
 }
 .settings-button:disabled {
   cursor: not-allowed;
@@ -1057,75 +1079,88 @@ const SETTINGS_STYLES = `
   justify-content: center;
   border: 0;
   border-radius: var(--settings-radius-control);
-  background: var(--surface-base-hover);
-  color: var(--icon-strong-base);
+  background: var(--color-hover);
+  color: var(--color-icon-strong);
 }
 .settings-alert__icon {
   width: 28px;
   height: 28px;
 }
 .settings-status {
-  min-height: 24px;
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
+  padding: 0;
   border: 0;
-  border-radius: var(--settings-radius-pill);
-  color: var(--text-weak);
-  background: var(--settings-surface-muted);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
-}
-.settings-status[data-tone="ready"] {
-  color: var(--text-strong);
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: var(--settings-type-helper);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--settings-leading-helper);
+  white-space: nowrap;
 }
 .settings-status__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--icon-success-base);
+  display: none;
+}
+/* The status and control slots of a grammar row. */
+.settings-row-status {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  line-height: var(--settings-leading-helper);
+  white-space: nowrap;
+}
+.settings-row-control {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--settings-space-2);
+  max-width: 100%;
+}
+.settings-row-status + .settings-row-control {
+  margin-left: 0;
+}
+.settings-row-control:first-child,
+.settings-list-copy + .settings-row-control {
+  margin-left: auto;
+}
+.settings-row-chevron {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--color-icon-muted);
+}
+.settings-row-status + .settings-row-chevron,
+.settings-row-control + .settings-row-chevron {
+  margin-left: 0;
+}
+.settings-row--grammar {
+  flex-wrap: nowrap;
+  width: 100%;
+  text-align: left;
+}
+.settings-row--grammar .settings-list-copy {
+  flex: 1 1 220px;
 }
 .settings-panel-action {
   border-radius: var(--settings-radius-control);
 }
 .settings-panel-action--quiet {
-  color: var(--text-weak);
+  color: var(--color-text-muted);
 }
 .settings-panel-action--danger-quiet {
   border-color: transparent;
-  color: var(--text-danger);
+  color: var(--color-text-danger);
   background: transparent;
 }
 .settings-panel-action--danger-quiet:hover:not(:disabled) {
-  border-color: var(--border-critical-base);
-  background: var(--surface-critical-weak);
+  border-color: var(--color-border-error);
+  background: var(--color-error-muted);
 }
-.settings-inference-choice {
-  min-height: 88px;
-  justify-content: flex-start;
-}
-.settings-inference-choice__heading {
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) 18px;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-.settings-inference-choice__check {
-  color: var(--text-interactive-base);
-}
-.settings-account-summary,
-.settings-connection-card,
 .settings-provider-key-form,
 .settings-defaults-card,
 .settings-model-catalog {
   background: var(--settings-surface);
-}
-.settings-boundary-note {
-  align-items: flex-start;
-  background: var(--settings-surface-muted);
 }
 
 /* Panels use the shared type utility names, but the shell owns their semantic
@@ -1196,18 +1231,14 @@ const SETTINGS_STYLES = `
 .settings-dialog :where(button, [role="button"], [data-slot="select-select-trigger"]) {
   min-height: 32px;
 }
-.settings-dialog :where(.settings-choice, .settings-inference-choice) {
-  height: auto;
-  min-height: 88px;
-}
 .settings-dialog :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
   min-height: 32px;
 }
 .settings-dialog :where(.text-text-weaker, [class*="text-text-weak/"]) {
-  color: var(--text-weak);
+  color: var(--color-text-muted);
 }
 .settings-dialog :where(input, textarea)::placeholder {
-  color: var(--text-weak);
+  color: var(--color-text-muted);
   opacity: 1;
 }
 .settings-dialog [data-slot="select-select-trigger"] span {
@@ -1263,8 +1294,13 @@ const SETTINGS_STYLES = `
 /* Generic panels respond to the Settings column rather than the browser.
    Panels with bespoke layouts own their intrinsic breakpoints locally. */
 @container settings-main (max-width: 600px) {
-  .settings-choice-grid,
   .credential-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@container settings-main (max-width: 520px) {
+  .settings-form-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -1309,7 +1345,7 @@ const SETTINGS_STYLES = `
     display: block;
     padding: 0;
     border-right: 0;
-    border-bottom: 1px solid var(--border-base);
+    border-bottom: 1px solid var(--color-border);
     overflow: visible;
   }
   .settings-nav__title {
@@ -1325,7 +1361,7 @@ const SETTINGS_STYLES = `
     border: 0;
     border-radius: 0;
     background: var(--settings-rail);
-    color: var(--text-strong);
+    color: var(--color-text);
     font-size: 13px;
     font-weight: var(--font-weight-medium);
     text-align: left;
@@ -1343,7 +1379,7 @@ const SETTINGS_STYLES = `
   .settings-nav__mobile-trigger small {
     min-width: 0;
     overflow: hidden;
-    color: var(--text-weak);
+    color: var(--color-text-muted);
     font-size: 11px;
     font-weight: var(--font-weight-regular);
     text-overflow: ellipsis;
@@ -1365,7 +1401,7 @@ const SETTINGS_STYLES = `
     overscroll-behavior: contain;
     border-bottom: 1px solid var(--settings-border);
     background: var(--settings-rail);
-    box-shadow: 0 14px 28px color-mix(in srgb, var(--background-strongest) 20%, transparent);
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--color-bg-strongest) 20%, transparent);
   }
   .settings-nav[data-mobile-open="true"] .settings-nav__sections {
     display: flex;
@@ -1390,13 +1426,6 @@ const SETTINGS_STYLES = `
     border-radius: var(--settings-radius-control);
     font-size: 13px;
   }
-  .settings-nav__children {
-    margin-left: 28px;
-  }
-  .settings-nav__item[data-secondary="true"] {
-    min-height: 36px;
-    font-size: 12px;
-  }
   .settings-nav__item:hover {
     background: var(--settings-surface-hover);
   }
@@ -1410,12 +1439,6 @@ const SETTINGS_STYLES = `
     padding: 20px 20px 16px;
   }
   .settings-page-body {
-    padding: 16px 20px 36px;
-  }
-  .settings-panel-loading__header {
-    padding: 20px 20px 16px;
-  }
-  .settings-panel-loading__body {
     padding: 16px 20px 36px;
   }
   .credential-form-grid {
@@ -1448,6 +1471,130 @@ const SETTINGS_STYLES = `
   }
 }
 
+/* ── One grammar for every panel ───────────────────────────────────────────
+   Status is plain muted text, never a pill or a dot. Logos and glyphs sit
+   flat on the row at one size. Quiet actions are text links; primary row
+   actions are the small secondary button. */
+.settings-dialog .settings-preference-status,
+.settings-dialog .settings-status,
+.settings-dialog .settings-chip,
+.settings-dialog .connectors-status,
+.settings-dialog .scientific-tool-status,
+.settings-dialog .models-provider-source {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--settings-type-helper);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--settings-leading-helper);
+}
+.settings-dialog .settings-preference-status::before,
+.settings-dialog .settings-status__dot,
+.settings-dialog .scientific-tool-status__dot,
+.settings-dialog .connectors-status > span,
+.settings-dialog .models-provider-source::before {
+  display: none;
+}
+.settings-dialog .settings-preference-status[data-tone="success"],
+.settings-dialog .settings-status[data-tone="ready"],
+.settings-dialog .scientific-tool-status[data-tone="success"],
+.settings-dialog .connectors-status[data-tone="active"] {
+  color: var(--color-text-secondary);
+}
+.settings-dialog .settings-preference-status[data-tone="warning"],
+.settings-dialog .scientific-tool-status[data-tone="warning"],
+.settings-dialog .scientific-tool-status[data-tone="danger"] {
+  color: var(--color-text-warning);
+}
+.settings-dialog .settings-preference-icon,
+.settings-dialog .settings-provider-logo,
+.settings-dialog .settings-avatar,
+.settings-dialog .settings-empty-state__icon,
+.settings-dialog .models-provider-key-heading__icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+}
+.settings-dialog .settings-provider-logo[data-size="small"] {
+  width: 20px;
+  height: 20px;
+}
+/* The leading slot of a row: a brand mark or a glyph, 20px, flat, the same
+   in every list. Glyphs are muted; brand marks keep their colors. */
+.settings-row-logo {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  overflow: hidden;
+  color: var(--color-icon-muted);
+}
+.settings-row-logo img,
+.settings-row-logo svg,
+.settings-row-logo .settings-provider-logo,
+.settings-row-logo .scientific-tool-logo {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+.settings-row-logo .scientific-tool-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.settings-row-logo [data-component="icon"] {
+  width: 16px;
+  height: 16px;
+}
+.settings-dialog .settings-provider-logo img,
+.settings-dialog .settings-provider-logo svg,
+.settings-dialog .scientific-tool-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.settings-dialog .settings-preference-icon[data-tone="success"] {
+  color: var(--color-icon-success);
+}
+.settings-dialog .settings-preference-icon[data-tone="warning"] {
+  color: var(--color-text-warning);
+}
+.settings-dialog .settings-preference-action {
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: var(--settings-radius-control);
+  background: var(--settings-surface-muted);
+  color: var(--color-text);
+  font-size: var(--settings-type-helper);
+  font-weight: var(--font-weight-medium);
+}
+.settings-dialog .settings-preference-action[data-variant="quiet"] {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+.settings-dialog [data-component="button"][data-size="small"] {
+  min-height: 28px;
+  height: 28px;
+  padding: 0 10px;
+  font-size: var(--settings-type-helper);
+}
+.settings-dialog .settings-row-copy strong,
+.settings-dialog .settings-list-copy strong {
+  font-size: var(--settings-type-row);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--settings-leading-body);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .settings-dialog *,
   .settings-dialog *::before,
@@ -1460,7 +1607,39 @@ const SETTINGS_STYLES = `
 }
 `
 
+type FooterAccount = { session: boolean; user?: { email?: string } }
+
+/** The signed-in person and the app version, as the rail's last row. */
+const SettingsAccountFooter: Component<{ version?: string; onOpen: () => void }> = (props) => {
+  const sdk = useGlobalSDK()
+  const platform = usePlatform()
+  const [account, setAccount] = createSignal<FooterAccount>()
+  const load = () =>
+    settingsApi<FooterAccount>(sdk.url, platform.fetch ?? fetch, "/account")
+      .then(setAccount)
+      .catch(() => undefined)
+  onMount(() => {
+    void load()
+    window.addEventListener("openscience:account-changed", load)
+  })
+  onCleanup(() => window.removeEventListener("openscience:account-changed", load))
+  const email = () => (account()?.session ? account()?.user?.email || "Signed in" : undefined)
+  const initial = () => (email() ?? "O").trim().charAt(0).toUpperCase()
+  return (
+    <button type="button" class="settings-nav__footer" onClick={() => props.onOpen()} aria-label="Open Ace account">
+      <span class="settings-nav__avatar" aria-hidden="true">
+        {initial()}
+      </span>
+      <span class="settings-nav__identity">
+        <span class="settings-nav__identity-name">{email() ?? "Not signed in"}</span>
+        <span class="settings-nav__identity-meta">OpenScience{props.version ? ` v${props.version}` : ""}</span>
+      </span>
+    </button>
+  )
+}
+
 export const DialogSettings: Component<{ initial?: SettingsPanelId }> = (props) => {
+  const language = useLanguage()
   const platform = usePlatform()
   const dialog = useDialog()
   const initial = findPanel(props.initial ?? DEFAULT_PANEL)
@@ -1468,6 +1647,11 @@ export const DialogSettings: Component<{ initial?: SettingsPanelId }> = (props) 
   // Browser-style history so back/forward chevrons are real navigation.
   const [history, setHistory] = createSignal<SettingsPanelId[]>([initial.id])
   const [cursor, setCursor] = createSignal(0)
+  // Keep the active panel plus the two most recent destinations. Retaining
+  // every panel forever leaves large catalogs, subscriptions, and resources
+  // alive after they disappear, so Customize gets slower the longer it stays
+  // open. A small LRU keeps normal back-and-forth state without accumulating a
+  // hidden settings application behind the visible panel.
   const [mounted, setMounted] = createSignal([initial])
   const [pending, setPending] = createSignal<SettingsPanelId>()
   const [expanded, setExpanded] = createSignal(false)
@@ -1533,7 +1717,7 @@ export const DialogSettings: Component<{ initial?: SettingsPanelId }> = (props) 
     // module or its first data request is still settling.
     batch(() => {
       const panel = findPanel(id)
-      setMounted((panels) => (panels.some((item) => item.id === id) ? panels : [...panels, panel]))
+      setMounted((panels) => [...panels.filter((item) => item.id !== id), panel].slice(-3))
       setHistory(next)
       setCursor(next.length - 1)
       setPending(id)
@@ -1550,6 +1734,8 @@ export const DialogSettings: Component<{ initial?: SettingsPanelId }> = (props) 
   const moveHistory = (next: number) => {
     navigationRequest += 1
     batch(() => {
+      const panel = findPanel(history()[next])
+      setMounted((panels) => [...panels.filter((item) => item.id !== panel.id), panel].slice(-3))
       setPending(undefined)
       setCursor(next)
     })
@@ -1561,7 +1747,7 @@ export const DialogSettings: Component<{ initial?: SettingsPanelId }> = (props) 
     <>
       <style>{SETTINGS_STYLES}</style>
       <Dialog
-        title="Settings"
+        title={language.t("settings.shell.title")}
         action={<span aria-hidden="true" />}
         size="x-large"
         class="settings-dialog"
@@ -1572,11 +1758,11 @@ export const DialogSettings: Component<{ initial?: SettingsPanelId }> = (props) 
           <nav
             ref={nav}
             class="settings-nav"
-            aria-label="Settings sections"
+            aria-label={language.t("settings.shell.sections")}
             data-mobile-open={navOpen() ? "true" : undefined}
             data-dialog-escape-scope={navOpen() ? "true" : undefined}
           >
-            <div class="settings-nav__title">Settings</div>
+            <div class="settings-nav__title">{language.t("settings.shell.title")}</div>
             <button
               type="button"
               ref={navTrigger}
@@ -1585,68 +1771,44 @@ export const DialogSettings: Component<{ initial?: SettingsPanelId }> = (props) 
               aria-controls="settings-section-menu"
               onClick={() => setNavOpen((value) => !value)}
             >
-              <Icon name={panelRoot(current().id).icon} size="small" />
-              <span>{panelRoot(current().id).title}</span>
-              <Show when={current().parent}>
-                <small>· {current().title}</small>
-              </Show>
+              <Icon name={current().icon} size="small" />
+              <span>{language.t(`settings.shell.panel.${current().id}`)}</span>
               <Icon name="chevron-down" size="small" classList={{ "rotate-180": navOpen() }} />
             </button>
             <div id="settings-section-menu" class="settings-nav__sections" ref={navSections}>
               <For each={SETTINGS_SECTIONS}>
                 {(section) => (
-                  <div class="settings-nav__section">
-                    <span class="settings-nav__label">{section.label}</span>
-                    <For each={SETTINGS_PRIMARY_PANELS.filter((p) => p.section === section.id)}>
+                  <div
+                    class="settings-nav__section"
+                    role="group"
+                    aria-label={language.t(`settings.shell.group.${section.id}`)}
+                  >
+                    <div class="settings-nav__label" aria-hidden="true">
+                      {language.t(`settings.shell.group.${section.id}`)}
+                    </div>
+                    <For each={SETTINGS_PANELS.filter((p) => p.section === section.id)}>
                       {(panel) => (
-                        <div class="settings-nav__group">
-                          <button
-                            type="button"
-                            class="settings-nav__item"
-                            data-active={current().id === panel.id ? "true" : "false"}
-                            data-pending={pending() === panel.id ? "true" : undefined}
-                            onPointerEnter={() => void preloadPanel(panel.id).catch(() => undefined)}
-                            onFocus={() => void preloadPanel(panel.id).catch(() => undefined)}
-                            onClick={() => void navigate(panel.id)}
-                            aria-busy={pending() === panel.id ? "true" : undefined}
-                            aria-current={current().id === panel.id ? "page" : undefined}
-                          >
-                            <Icon name={panel.icon} size="normal" class="flex-shrink-0" />
-                            <span class="truncate">{panel.title}</span>
-                          </button>
-                          <Show when={panelRoot(current().id).id === panel.id && panelChildren(panel.id).length > 0}>
-                            <div class="settings-nav__children">
-                              <For each={panelChildren(panel.id)}>
-                                {(child) => (
-                                  <button
-                                    type="button"
-                                    class="settings-nav__item"
-                                    data-secondary="true"
-                                    data-active={current().id === child.id ? "true" : "false"}
-                                    data-pending={pending() === child.id ? "true" : undefined}
-                                    onPointerEnter={() => void preloadPanel(child.id).catch(() => undefined)}
-                                    onFocus={() => void preloadPanel(child.id).catch(() => undefined)}
-                                    onClick={() => void navigate(child.id)}
-                                    aria-busy={pending() === child.id ? "true" : undefined}
-                                    aria-current={current().id === child.id ? "page" : undefined}
-                                  >
-                                    <span class="truncate">{child.title}</span>
-                                  </button>
-                                )}
-                              </For>
-                            </div>
-                          </Show>
-                        </div>
+                        <button
+                          type="button"
+                          class="settings-nav__item"
+                          data-active={current().id === panel.id ? "true" : "false"}
+                          data-pending={pending() === panel.id ? "true" : undefined}
+                          onPointerEnter={() => void preloadPanel(panel.id).catch(() => undefined)}
+                          onFocus={() => void preloadPanel(panel.id).catch(() => undefined)}
+                          onClick={() => void navigate(panel.id)}
+                          aria-busy={pending() === panel.id ? "true" : undefined}
+                          aria-current={current().id === panel.id ? "page" : undefined}
+                        >
+                          <Icon name={panel.icon} size="normal" class="flex-shrink-0" />
+                          <span class="truncate">{language.t(`settings.shell.panel.${panel.id}`)}</span>
+                        </button>
                       )}
                     </For>
                   </div>
                 )}
               </For>
             </div>
-            <div class="settings-nav__footer">
-              <span class="text-12-medium">OpenScience</span>
-              <span class="text-11-regular">v{platform.version}</span>
-            </div>
+            <SettingsAccountFooter version={platform.version} onOpen={() => void navigate("ace")} />
           </nav>
 
           {/* ── Right column ── */}
@@ -1654,26 +1816,37 @@ export const DialogSettings: Component<{ initial?: SettingsPanelId }> = (props) 
             {/* Header */}
             <header class="settings-main__header">
               <div class="flex items-center gap-1 min-w-0">
-                <IconButton icon="arrow-left" variant="ghost" disabled={!canBack()} onClick={back} aria-label="Back" />
+                <IconButton
+                  icon="arrow-left"
+                  variant="ghost"
+                  disabled={!canBack()}
+                  onClick={back}
+                  aria-label={language.t("settings.shell.back")}
+                />
                 <IconButton
                   icon="arrow-right"
                   variant="ghost"
                   disabled={!canForward()}
                   onClick={forward}
-                  aria-label="Forward"
+                  aria-label={language.t("settings.shell.forward")}
                 />
               </div>
               <div class="settings-main__context" aria-live="polite">
-                <span>{current().title}</span>
+                <span>{language.t(`settings.shell.panel.${current().id}`)}</span>
               </div>
               <div class="flex items-center gap-1 flex-shrink-0">
                 <IconButton
                   icon={expanded() ? "collapse" : "expand"}
                   variant="ghost"
                   onClick={() => setExpanded((v) => !v)}
-                  aria-label={expanded() ? "Collapse" : "Expand"}
+                  aria-label={language.t(expanded() ? "settings.shell.collapse" : "settings.shell.expand")}
                 />
-                <IconButton icon="close" variant="ghost" onClick={() => dialog.close()} aria-label="Close" />
+                <IconButton
+                  icon="close"
+                  variant="ghost"
+                  onClick={() => dialog.close()}
+                  aria-label={language.t("common.close")}
+                />
               </div>
             </header>
 

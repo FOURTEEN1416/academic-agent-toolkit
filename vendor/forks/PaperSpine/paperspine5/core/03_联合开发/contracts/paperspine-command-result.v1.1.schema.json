@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperspine.local/contracts/paperspine-command-result.v1.1.schema.json",
+  "title": "PaperSpine discriminated CommandResult",
+  "x-contract-status": "additive-v1.1-task-inputs",
+  "type": "object",
+  "required": [
+    "contract",
+    "schema_version",
+    "result_type",
+    "task_id",
+    "task_version"
+  ],
+  "properties": {
+    "contract": {
+      "const": "paperspine.command-result"
+    },
+    "schema_version": {
+      "const": "1.1"
+    },
+    "result_type": {
+      "enum": [
+        "accepted",
+        "completed",
+        "decision_required",
+        "conflict",
+        "failed"
+      ]
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "task_version": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "result_type": {
+          "const": "accepted"
+        },
+        "operation_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_id"
+      ]
+    },
+    {
+      "properties": {
+        "result_type": {
+          "const": "completed"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "paperspine-domain-events.v1.1.schema.json"
+          }
+        },
+        "projection": {
+          "type": "object"
+        },
+        "replayed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "events",
+        "projection",
+        "replayed"
+      ]
+    },
+    {
+      "properties": {
+        "result_type": {
+          "const": "decision_required"
+        },
+        "decision_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision_id"
+      ]
+    },
+    {
+      "properties": {
+        "result_type": {
+          "const": "conflict"
+        },
+        "error": {
+          "$ref": "paperspine-domain-error.schema.json"
+        }
+      },
+      "required": [
+        "error"
+      ]
+    },
+    {
+      "properties": {
+        "result_type": {
+          "const": "failed"
+        },
+        "error": {
+          "$ref": "paperspine-domain-error.schema.json"
+        }
+      },
+      "required": [
+        "error"
+      ]
+    }
+  ],
+  "unevaluatedProperties": false
+}

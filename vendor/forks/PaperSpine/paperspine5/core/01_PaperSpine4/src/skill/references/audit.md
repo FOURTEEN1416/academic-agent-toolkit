@@ -1,10 +1,26 @@
 # Audit Stage
 
-This file is the canonical stage playbook for the paper-spine orchestrator.
+For the current host, apply review-policy.md to the real current manuscript,
+sources and PDF/DOCX renders. Check scientific support, editorial completeness,
+citation identity/context and final cited coverage, template/layout fidelity,
+and portable requested packages. Use citation.md, manuscript-format.md and
+submission.md at their actual work points. Repair located failures and reuse
+valid checks of unaffected content; initial clean review needs no fictitious
+revision. Missing author facts limit submission, not safe local improvement.
+
+The remaining ordered commands, named artifacts and progress gate document the
+legacy orchestrator. Use them only when that actual tool consumes the old tree;
+they do not create a second current-task completion authority.
 
 ## Purpose
 
 Audit all PaperSpine outputs before declaring the workflow complete.
+
+Read `execution-efficiency.md`. During repair, rerun checks whose bound inputs
+changed. When the manuscript, bibliography, figures, configuration, and target
+are frozen, run the complete command set below once. An exact execution receipt
+may reuse deterministic computation, but cannot waive a readiness or inspection
+receipt.
 
 ## Required Checks
 
@@ -16,9 +32,10 @@ Audit all PaperSpine outputs before declaring the workflow complete.
    requires an ordered `writing_rationale_matrix.md`.
 5. `results_validation.md` passed during planning for journal, conference, and
    competition scenes.
-6. `structured_review.md` contains a completed editor synthesis before LaTeX
-   assembly; balanced mode accepts free-form editorial judgment, while strict
-   mode also requires `reviewer_audit.md` and its checker.
+6. `structured_review.md` contains a completed, manuscript-grounded editor
+   synthesis before LaTeX assembly. Strict mode also requires a passing
+   `evidence_review.json`/`evidence_review_check.md`, then `reviewer_audit.md`
+   and its checker. Provider failure is never treated as a literature no-hit.
 7. No append-only or shallow revision for substantive rewrite tasks.
 8. Logic transfer from original draft or materials.
 9. Claim support from user evidence.
@@ -43,6 +60,9 @@ Audit all PaperSpine outputs before declaring the workflow complete.
     `final_paper/paper.zh.docx` and `word_report.zh.md` exist and pass. The
     `translation_zh/` folder is an audit/intermediate package, not the final
     Chinese Word deliverable.
+20. If the opt-in adaptive shadow ran, its receipt may certify only one
+    hash-bound `claim_surface_audited`. It cannot substitute for any canonical
+    check, whole-manuscript completion, target-bundle READY, or authorization.
 
 ## Scripts
 
@@ -60,12 +80,14 @@ python scripts/revision_audit.py <original> <revised> --markdown
 python scripts/structured_review.py paper_rewriting_output --markdown --write
 # strict mode only:
 python scripts/structured_review.py paper_rewriting_output --dispatch
+python scripts/evidence_grounded_review.py validate paper_rewriting_output/evidence_review.json --manuscript paper_rewriting_output/final_paper/main.tex --markdown --write
 python scripts/citation_quality_audit.py paper_rewriting_output --write
 python scripts/latex_guard.py <main.tex> --bib <references.bib> --markdown
 python scripts/word_guard.py paper_rewriting_output/final_paper/paper.docx --tex paper_rewriting_output/final_paper/main.tex --markdown --output paper_rewriting_output/word_report.md
 python scripts/word_guard.py paper_rewriting_output/final_paper/paper.zh.docx --tex paper_rewriting_output/final_paper/main.tex --markdown --output paper_rewriting_output/word_report.zh.md
 # when a target-specific publication cycle is in scope:
 python scripts/publication_cycle.py profile-check <profile.json> --markdown --write
+python scripts/publication_cycle.py rules-check <profile.json> <manuscript.tex> --phase writing --markdown --write
 python scripts/publication_cycle.py assemble <profile.json> <plan.json> <bundle-dir> --markdown
 python scripts/publication_cycle.py rebuttal-check <review_round.json> --markdown --write
 python scripts/publication_cycle.py transfer-plan <origin-profile.json> <destination-profile.json> <transfer-request.json> <delta-dir> --markdown
@@ -75,12 +97,15 @@ python scripts/publication_cycle.py transfer-plan <origin-profile.json> <destina
 
 - `integrity_audit.md`, `artifact_check.md`, `revision_audit.md`
 - `structured_review.md` and `citation_quality_audit.md`; strict mode also
-  requires `reviewer_audit.md`; `logic_transfer_audit.md`
+  requires `evidence_review.json`, `evidence_review_check.md`, and
+  `reviewer_audit.md`; `logic_transfer_audit.md`
 - `scientific_evidence_check.md`, `visual_audit_manifest.json`,
   `visual_readiness_check.md`, `publication_surface_check.md`
 - `submission_metadata.json`, `metadata_readiness_check.md`,
   `usage_ledger.jsonl`, `token_budget_by_stage.md`
-- A passed `target_profile_check.md`; a READY `bundle_manifest.json`,
+- A passed `target_profile_check.md` and writing-stage
+  `journal_rules_precheck.json/.md`; a READY `bundle_manifest.json`, final
+  `journal_rules_final.json/.md`,
   `submission_bundle.zip`, and matching `submission_bundle.sha256` (when applicable)
 - A passed `rebuttal_check.md` and rendered response/change artifacts (when applicable)
 - `transfer_delta.json` plus the newly rendered destination paper and READY
@@ -96,15 +121,10 @@ blocked target package, rebuttal, or transfer rebuild.
 
 ## Output Directory Rules
 
-The workflow root is `paper_rewriting_output/`. All artifacts must live inside
-it. The following are hard errors that prevent completion:
+For the current host, keep outputs under the existing task's `paper/` directory and retain valid prior versions. The historical `paper_rewriting_output/` layout may be read in place; it is not a reason to relocate or delete user work.
 
-- **No nested directories:** Do not create `paper_rewriting_output/` inside
-  `paper_rewriting_output/`. If a nested inner directory is detected, move all
-  contents up one level and remove the inner directory.
-- **No sibling final_paper:** `final_paper/` must exist only inside
-  `paper_rewriting_output/`, never as a sibling next to it. If both exist,
-  remove the sibling copy outside `paper_rewriting_output/`.
+- **Accidental nesting:** verify which files belong to which version and repair only genuinely incorrect references or placement. Preserve all unique content and resolve filename collisions before a justified move; do not automatically flatten directories.
+- **Multiple final-paper directories:** determine the current version from the task and file identities, preserve previous versions, and correct the selected paths. Do not delete a sibling directory merely because its name is `final_paper`.
 - **No misplaced artifacts:** `writing_rationale_matrix.md`,
   `citation_support_bank.md`, `research_dossier.md`, and other workflow
   artifacts belong inside `paper_rewriting_output/`, not outside it.
@@ -178,6 +198,19 @@ no unresolved BLOCKER, and all five independent readiness dimensions are true:
 offset a failure in another. Word output must be present and valid unless the
 user explicitly opted out. If pandoc is unavailable, write BLOCKED/FAIL in
 `latex_report.md`; do not silently skip Word or claim the workflow is complete.
+
+If the full pass fails, repair the owning input, rerun its affected checks, and
+then perform one new final full pass. For the same command and unchanged input
+hashes, allow only one corrected retry; a third materially identical attempt is
+a blocker, not progress.
+
+For a ProductRunner task, this hard gate consumes the single layered readiness
+verdict rather than treating submission metadata as part of every local job.
+`manuscript` and `local_delivery` scopes may complete with
+`submission_ready=false` when their own blocker lists are empty; author-only
+facts remain visible only under `submission_package` and external-action
+layers. A `submission_package` request still requires all five non-compensatory
+tiers. `external_action_authorized` remains false in every readiness verdict.
 
 ## Anti-Pass-Through Rule
 

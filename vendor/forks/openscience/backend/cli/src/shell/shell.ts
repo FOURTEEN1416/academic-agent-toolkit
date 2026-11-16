@@ -1,5 +1,5 @@
 import { Flag } from "@/flag/flag"
-import { lazy } from "@/util/lazy"
+import { lazy } from "@synsci/util/lazy"
 import path from "path"
 import fs from "fs"
 import { spawn, spawnSync, type ChildProcess } from "child_process"
@@ -219,16 +219,49 @@ export namespace Shell {
     }
   }
 
+  /** Git Bash exposes different git.exe directories depending on its entry
+   * point. Search within that installation, never System32's WSL bash.exe. */
+  export function windowsGitBash(git: string | null, available: (file: string) => boolean = exists) {
+    if (!git) return
+    const directory = path.win32.dirname(git)
+    const name = path.win32.basename(directory).toLowerCase()
+    const parent = path.win32.dirname(directory)
+    const nested = ["mingw64", "mingw32", "ucrt64", "usr"].includes(path.win32.basename(parent).toLowerCase())
+    const root = name === "cmd" ? parent : name === "bin" ? (nested ? path.win32.dirname(parent) : parent) : undefined
+    if (!root) return
+    return [path.win32.join(root, "bin", "bash.exe"), path.win32.join(root, "usr", "bin", "bash.exe")].find(available)
+  }
+
+  export function requirePosix(shell: string, platform: NodeJS.Platform = process.platform) {
+    if (platform !== "win32") return shell
+    const name = path.win32.basename(shell).toLowerCase()
+    if (
+      ["bash", "bash.exe", "sh", "sh.exe", "zsh", "zsh.exe"].includes(name) &&
+      !/[\\/](?:system32|sysnative|syswow64)[\\/]/i.test(shell)
+    )
+      return shell
+    throw new Error(
+      "Local compute jobs require Git Bash on Windows. Install Git for Windows or set OPENSCIENCE_GIT_BASH_PATH to its bash.exe; cmd.exe and PowerShell cannot execute the generated POSIX job script.",
+    )
+  }
+
+  export function posix() {
+    // A terminal may prefer cmd or PowerShell. Compute emits POSIX scripts
+    // and must select Git Bash independently of that terminal preference.
+    const shell = requirePosix(process.platform === "win32" ? fallback() : acceptable())
+    if (process.platform === "win32" && !exists(shell)) {
+      throw new Error(
+        `Configured Git Bash was not found at ${shell}. Set OPENSCIENCE_GIT_BASH_PATH to an installed bash.exe.`,
+      )
+    }
+    return shell
+  }
+
   function fallback() {
     if (process.platform === "win32") {
       if (Flag.OPENSCIENCE_GIT_BASH_PATH) return Flag.OPENSCIENCE_GIT_BASH_PATH
-      const git = Bun.which("git")
-      if (git) {
-        // git.exe is typically at: C:\Program Files\Git\cmd\git.exe
-        // bash.exe is at: C:\Program Files\Git\bin\bash.exe
-        const bash = path.join(git, "..", "..", "bin", "bash.exe")
-        if (Bun.file(bash).size) return bash
-      }
+      const bash = windowsGitBash(Bun.which("git"))
+      if (bash) return bash
       return process.env.COMSPEC || "cmd.exe"
     }
     if (process.platform === "darwin") {
@@ -250,5 +283,15 @@ export namespace Shell {
     const s = process.env.SHELL
     if (s && !BLACKLIST.has(process.platform === "win32" ? path.win32.basename(s) : path.basename(s))) return s
     return fallback()
+  })
+
+  /** The shell behind the model's `bash` tool. Models write bash, and zsh
+   * (the login shell on macOS) is close but not the same: `status` is a
+   * read-only variable there, so `status=$?` fails a script that runs
+   * everywhere else. Bash when it is installed; the person's shell otherwise. */
+  export const forTool = lazy(() => {
+    if (process.platform === "win32") return acceptable()
+    const bash = Bun.which("bash") ?? (exists("/bin/bash") ? "/bin/bash" : undefined)
+    return bash ?? acceptable()
   })
 }

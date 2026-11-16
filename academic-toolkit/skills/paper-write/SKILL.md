@@ -33,7 +33,9 @@ Draft a LaTeX paper based on: **$ARGUMENTS**
 
 - **CUSTOM_REQUIREMENTS** — Highest priority.
 
-- **REVIEWER_SCRIPT** — External reviewer script
+- **REVIEWER_SCRIPT** — External reviewer script（以当前环境评审桥工具为准；未配置时跳过外审，由当前 Agent 自审降级）
+
+- **SCHOLAR_SCRIPT = `tools/scholar_fetch.py`** — Scholar fetch client for real BibTeX retrieval (AMiner/Semantic Scholar/DBLP/CrossRef/OpenAlex); path relative to the `academic-toolkit/` repo root.
 
 
 
@@ -393,7 +395,7 @@ If a planned claim has no evidence in the data, write an honest statement like "
 
 
 
-### Step 1.5: Pre-fetch verified reference pool (BEFORE writing any text)
+### Step 1.6: Pre-fetch verified reference pool (BEFORE writing any text)
 
 
 
@@ -777,57 +779,13 @@ bash _utils/writing_check.sh paper/ 2>/dev/null || bash skills/shared-scripts/wr
 
 
 
-**Figure embedding verification (must pass before finishing)**:
+**Figure embedding verification (must pass before finishing)** — run the shared audit script (single source shared by all paper-write skills):
 
 ```bash
-
-echo "=== Figure embedding check ==="
-
-missing=0
-
-# Check every PDF in figures/ is referenced in sections
-
-for pdf in figures/*.pdf; do
-
-    [ -f "$pdf" ] || continue
-
-    bn=$(basename "$pdf")
-
-    if ! grep -rq "$bn" paper/sections/*.tex paper/main.tex 2>/dev/null; then
-
-        echo "MISSING: $bn not embedded in any section"
-
-        missing=$((missing + 1))
-
-    fi
-
-done
-
-# Check every label in figures/*.tex is in sections
-
-for fig_tex in figures/*.tex; do
-
-    [ -f "$fig_tex" ] || continue
-
-    for lbl in $(grep -oh '\\label{[^}]*}' "$fig_tex" 2>/dev/null); do
-
-        if ! grep -rq "$lbl" paper/sections/*.tex paper/main.tex 2>/dev/null; then
-
-            echo "MISSING: $lbl (from $(basename $fig_tex)) not in any section"
-
-            missing=$((missing + 1))
-
-        fi
-
-    done
-
-done
-
-echo "Total missing: $missing"
-
+bash _utils/paper_write_audit.sh --mode latex   # 本目录无 _utils 时: bash skills/shared-scripts/paper_write_audit.sh --mode latex
 ```
 
-If any figures are missing, go back and embed them into the appropriate sections before finishing. **⛔ Do NOT finish until missing = 0.**
+**怎么读结果**：任何 `MISSING:` / `❌` 行或 `Total missing embeddings > 0` 都表示有图未嵌入或缺件——逐项补齐后重跑至 0。**⛔ Do NOT finish until missing = 0.** 该脚本同时执行下方 FIGURE_MANIFEST audit 与 universal paper audit；审计留痕由程序采集，不再手写 AUDIT_REPORT 审计文件；有引擎 finish 时以 output_contract/`paper_write_gate` 自动核验为准，本脚本为无引擎合同场景的兜底预检。
 
 
 
@@ -893,101 +851,13 @@ If total chars < MAX_PAGES × 2000, expand the thinnest sections before finishin
 
 ## ⛔ FIGURE_MANIFEST audit (run before finishing — must produce + embed every planned figure)
 
-
-
-```bash
-
-echo "=== FIGURE_MANIFEST audit ==="
-
-PLAN_FILE=""
-
-for f in PROBLEM_ANALYSIS.md PAPER_PLAN.md MODELING_REPORT.md TOPIC_PLAN.md; do
-
-  [ -f "$f" ] && grep -q "<!-- BEGIN FIGURE_MANIFEST -->" "$f" && { PLAN_FILE="$f"; break; }
-
-done
-
-if [ -n "$PLAN_FILE" ]; then
-
-    START=$(grep -n "<!-- BEGIN FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
-
-    END=$(grep -n "<!-- END FIGURE_MANIFEST -->" "$PLAN_FILE" | head -1 | cut -d: -f1)
-
-    EXPECTED_FIGS=$(sed -n "${START},${END}p" "$PLAN_FILE" | grep -oE "^[[:space:]]*-[[:space:]]+(fig_[a-zA-Z0-9_]+|tikz_[a-zA-Z0-9_]+)" | sed "s/^[[:space:]]*-[[:space:]]*//")
-
-    manifest_missing=0
-
-    for name in $EXPECTED_FIGS; do
-
-        if ! ls figures/${name}.pdf figures/${name}.png 2>/dev/null | head -1 | grep -q .; then
-
-            echo "❌ MANIFEST: $name file missing"
-
-            manifest_missing=$((manifest_missing + 1))
-
-        elif ! grep -rqE "${name}\.(pdf|png)" paper/sections/ paper/main.tex 2>/dev/null; then
-
-            echo "❌ MANIFEST: $name exists but not referenced in paper"
-
-            manifest_missing=$((manifest_missing + 1))
-
-        fi
-
-    done
-
-    if [ "$manifest_missing" -gt 0 ]; then
-
-        echo "⛔ FIGURE_MANIFEST audit failed ($manifest_missing missing): produce + embed every planned figure before ending"
-
-    else
-
-        echo "✅ FIGURE_MANIFEST fully embedded"
-
-    fi
-
-else
-
-    echo "(no FIGURE_MANIFEST in plan docs, skip audit)"
-
-fi
-
-```
+已并入共享脚本 `paper_write_audit.sh`（见上节，随 `bash _utils/paper_write_audit.sh --mode latex` 一并执行）。**怎么读结果**：`✅ FIGURE_MANIFEST fully embedded` = 通过；`❌ MANIFEST: ...` / `⛔ FIGURE_MANIFEST audit failed (N missing)` = 计划图缺文件或未嵌入正文——补产/补嵌后重跑。判据与原内联版逐项一致（计划图清单取自 PROBLEM_ANALYSIS/PAPER_PLAN/MODELING_REPORT/TOPIC_PLAN 的 FIGURE_MANIFEST 块，检查 .pdf/.png 存在且被 paper/sections/ 或 paper/main.tex 引用）。
 
 
 
 ## ⛔ Universal paper-stage audit (shared across all writing steps)
 
-
-
-Before finishing writing / compiling, run the universal audit. Works without `PROBLEM_FACTS.json`:
-
-
-
-```bash
-
-# Universal paper audit:
-
-#   [13] Conclusion consistency: paper text ↔ results.json (prevent "optimal=X but paper says Y")
-
-#   [14] Event source attribution (prevent "guessing source from variable name")
-
-# Falls back to simplified mode if no PROBLEM_FACTS.json (general academic / course / humanities).
-
-if [ -f _utils/facts_audit.py ]; then
-
-    python3 _utils/facts_audit.py --stage paper 2>&1 | tee -a AUDIT_REPORT.md
-
-    PRC=$?
-
-    if [ "$PRC" = "1" ]; then
-
-        echo "❌ Universal paper-stage audit failed — fix paper text / results.json before finishing"
-
-    fi
-
-fi
-
-```
+已并入共享脚本 `paper_write_audit.sh`（见上节，随 `bash _utils/paper_write_audit.sh --mode latex` 一并执行；内部调 `_utils/facts_audit.py --stage paper`，无 `PROBLEM_FACTS.json` 时自动走简化模式）。检查项：[13] 正文结论与 results.json 一致（防"最优解 X 但正文写 Y"）；[14] 事件源归属（防凭变量名脑补）。**怎么读结果**：输出 `❌ Universal paper-stage audit failed` = 修正正文/results.json 后重跑。审计输出由程序采集留痕，不再手写 AUDIT_REPORT 审计文件（对齐 AGENTS.md 硬规则：审计由程序留痕、finish 统一核验）。
 
 
 

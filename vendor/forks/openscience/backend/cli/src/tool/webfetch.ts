@@ -150,25 +150,100 @@ export function normalizeDownloadOutputPath(args: unknown) {
   return result
 }
 
+/** Inline JSON past this is cut, with the top-level keys named so the next
+ * call can select. */
+const MAX_INLINE_JSON_CHARS = 40_000
+
+/** Read one selection path: dots for keys, [n] for an index, [-1] for the last. */
+export function pick(value: unknown, selector: string): unknown {
+  const steps = selector.match(/[^.[\]]+|\[-?\d+\]/g) ?? []
+  // A selector made only of separators (".", "..", "[") tokenizes to nothing, so
+  // the walk below would have no step to take and return the whole document.
+  // That reads to the caller as a narrow selection that succeeded, and it is
+  // the one note that would have told the model to retry with a real path.
+  if (!steps.length) return undefined
+  let current: unknown = value
+  for (const step of steps) {
+    if (current === undefined || current === null) return undefined
+    const index = /^\[(-?\d+)\]$/.exec(step)
+    if (index) {
+      if (!Array.isArray(current)) return undefined
+      const at = Number(index[1])
+      current = current[at < 0 ? current.length + at : at]
+      continue
+    }
+    if (typeof current !== "object") return undefined
+    current = (current as Record<string, unknown>)[step]
+  }
+  return current
+}
+
+export function shapeJson(content: string, select: string[] | undefined) {
+  const parsed = (() => {
+    try {
+      return { value: JSON.parse(content) as unknown }
+    } catch {
+      return undefined
+    }
+  })()
+  if (!parsed) return undefined
+  if (select?.length) {
+    const picked = Object.fromEntries(select.map((selector) => [selector, pick(parsed.value, selector)]))
+    const missing = select.filter((selector) => picked[selector] === undefined)
+    const output = JSON.stringify(picked, null, 2)
+    const note = `selected ${select.length} path${select.length === 1 ? "" : "s"} from ${content.length.toLocaleString()} characters${
+      missing.length ? `; not found: ${missing.join(", ")}` : ""
+    }`
+    return {
+      output:
+        output.length > MAX_INLINE_JSON_CHARS
+          ? `${output.slice(0, MAX_INLINE_JSON_CHARS)}\n\n(Selection truncated at ${MAX_INLINE_JSON_CHARS.toLocaleString()} characters; select narrower paths.)`
+          : output,
+      note,
+    }
+  }
+  if (content.length <= MAX_INLINE_JSON_CHARS) return undefined
+  const keys =
+    parsed.value && typeof parsed.value === "object" && !Array.isArray(parsed.value)
+      ? Object.keys(parsed.value as Record<string, unknown>)
+      : []
+  const shape = Array.isArray(parsed.value)
+    ? `an array of ${parsed.value.length}`
+    : `an object with keys ${keys.join(", ")}`
+  return {
+    output: `${content.slice(0, MAX_INLINE_JSON_CHARS)}\n\n(JSON truncated at ${MAX_INLINE_JSON_CHARS.toLocaleString()} of ${content.length.toLocaleString()} characters; the document is ${shape}. Call again with select, e.g. ["info.version"], to keep only the paths you need.)`,
+    note: `truncated ${content.length.toLocaleString()} characters; ${shape}`,
+  }
+}
+
 const parameters = z
   .object({
     url: z.string().describe("The URL to fetch content from"),
     format: z
       .enum(["text", "markdown", "html"])
       .default("markdown")
-      .describe("The format to return the content in (text, markdown, or html). Defaults to markdown."),
+      .describe(
+        "Inline format (default markdown). Omit output_path to read or convert pages; downloads save raw bytes.",
+      ),
     timeout: z
       .number()
       .positive()
       .describe("Optional timeout in seconds (max 120 for text, 1800 for explicit or automatically detected downloads)")
       .optional(),
+    select: z
+      .array(z.string().trim().min(1).max(200))
+      .max(20)
+      .optional()
+      .describe('JSON only: paths to keep, e.g. ["info.version", "urls[-1].filename"]; the rest is dropped.'),
     output_path: z
       .string()
       .min(1)
       .refine((value) => value === value.trim(), "output_path must not be blank or have surrounding whitespace")
       .optional()
       .describe(
-        "Optional destination. Absolute and folder paths are reduced to a new filename at the root of this session's workspace, " +
+        "Optional raw-download destination. Omit this field entirely to read a webpage or API response inline; do not fill it with a dummy filename, empty string, or null. " +
+          "Setting it saves raw response bytes, so format does not convert HTML into Markdown or text. Use an .html filename to save an HTML page. " +
+          "Absolute and folder paths are reduced to a new filename at the root of this session's workspace, " +
           "so mutable intermediate directories can never redirect a brokered write. For papers/foo.pdf, the broker downloads " +
           'to output_path:"foo.pdf"; only after ' +
           "success run sandboxed Bash: mkdir -p -- 'papers' && test ! -e 'papers/foo.pdf' && mv -- 'foo.pdf' 'papers/foo.pdf'. " +
@@ -427,14 +502,23 @@ export const WebFetchTool = Tool.define("webfetch", {
       }
 
       const body = await collectBoundedBody(response, MAX_RESPONSE_SIZE)
-      const content = new TextDecoder().decode(body)
+      const content = decodeBody(body, contentType, mime)
 
       const title = `${params.url} (${contentType})`
+
+      // A registry or API answer is a document, and a large one: PyPI returns
+      // megabytes of release metadata for a version number. Selected paths
+      // keep what was asked for; an unselected JSON body past the inline cap
+      // is cut with the paths that would have kept it small.
+      if (mime === "application/json" || /^application\/[\w.+-]*\+json$/.test(mime) || params.select?.length) {
+        const shaped = shapeJson(content, params.select)
+        if (shaped) return { output: shaped.output, title, metadata: { ...responseMetadata, json: shaped.note } }
+      }
 
       // Handle content based on requested format and actual content type
       switch (params.format) {
         case "markdown":
-          if (contentType.includes("text/html")) {
+          if (mime === "text/html" || mime === "application/xhtml+xml") {
             const markdown = convertHTMLToMarkdown(content)
             return {
               output: markdown,
@@ -449,7 +533,7 @@ export const WebFetchTool = Tool.define("webfetch", {
           }
 
         case "text":
-          if (contentType.includes("text/html")) {
+          if (mime === "text/html" || mime === "application/xhtml+xml") {
             const text = await extractTextFromHTML(content)
             return {
               output: text,
@@ -507,6 +591,34 @@ export const WebFetchTool = Tool.define("webfetch", {
   },
 })
 
+/** The charset the response declares, falling back to a `<meta charset>` or
+ *  http-equiv declaration in the first 2 KiB of an HTML body. Exported for tests. */
+export function responseCharset(contentType: string, mime: string, body: Uint8Array): string | undefined {
+  const header = /;\s*charset\s*=\s*"?([A-Za-z0-9._:-]+)"?/i.exec(contentType)?.[1]
+  if (header) return header
+  if (mime !== "text/html" && mime !== "application/xhtml+xml") return
+  const head = new TextDecoder("latin1").decode(body.subarray(0, 2048))
+  return (
+    /<meta[^>]+charset\s*=\s*["']?\s*([A-Za-z0-9._:-]+)/i.exec(head)?.[1] ??
+    /<\?xml[^>]+encoding\s*=\s*["']([A-Za-z0-9._:-]+)["']/i.exec(head)?.[1]
+  )
+}
+
+/** Decode a text body in its declared charset; anything unknown or absent
+ *  is UTF-8. A wrong label would otherwise turn every accented or CJK
+ *  character into U+FFFD before the page reaches the model. */
+export function decodeBody(body: Uint8Array, contentType: string, mime: string): string {
+  const charset = responseCharset(contentType, mime, body)
+  if (charset) {
+    try {
+      return new TextDecoder(charset).decode(body)
+    } catch {
+      // Unknown label: fall through to UTF-8.
+    }
+  }
+  return new TextDecoder().decode(body)
+}
+
 function parseContentLength(value: string | null) {
   if (!value) return undefined
   const parsed = Number.parseInt(value, 10)
@@ -522,6 +634,10 @@ function isTextualMime(mime: string) {
     mime === "application/xml" ||
     mime.endsWith("+xml") ||
     mime === "application/xhtml+xml" ||
+    mime === "application/x-bibtex" ||
+    mime === "application/bibtex" ||
+    mime === "application/x-research-info-systems" ||
+    mime === "application/ris" ||
     mime === "application/javascript" ||
     mime === "application/x-javascript"
   )
@@ -640,8 +756,10 @@ function storageCapacityCode(error: unknown) {
 
 async function availableDownloadBytes(target: DownloadTarget) {
   const disk = await fs.statfs(target.root)
-  const available = disk.bavail * disk.bsize
-  if (!Number.isSafeInteger(available) || available < 0) {
+  // A sandbox overlay can report more free space than 2^53 bytes; an
+  // unbounded disk is not a hazard, so clamp rather than refuse.
+  const available = Math.min(disk.bavail * disk.bsize, Number.MAX_SAFE_INTEGER)
+  if (!Number.isFinite(available) || available < 0) {
     throw new Error("Workspace disk capacity could not be represented safely; the download was not started")
   }
   return Math.max(0, available - DOWNLOAD_DISK_RESERVE_BYTES)
@@ -837,6 +955,14 @@ function validateDownloadedFormat(target: DownloadTarget, response: Response, pr
   const html = looksLikeHTML(prefix) || contentType === "text/html" || contentType === "application/xhtml+xml"
   const htmlTarget = [".html", ".htm", ".xhtml"].includes(extension)
   if (html && !htmlTarget) {
+    if (!extension || [".md", ".markdown", ".txt"].includes(extension)) {
+      throw new Error(
+        "The server returned HTML, but output_path selected a raw download; format does not convert downloaded bytes. " +
+          'No destination file was created. To read this page, retry the same URL with format:"markdown" or format:"text" ' +
+          "and omit output_path entirely; it is optional. To save the raw HTML, use an .html output_path. " +
+          "This format mismatch alone does not establish an access block; inspect the returned page before making that claim.",
+      )
+    }
     throw new Error(
       `Downloaded response is HTML, not the requested ${extension || "data"} file. ` +
         "The URL may be a landing page, an expired redirect, or a login/consent/access interstitial. " +
@@ -988,28 +1114,26 @@ async function streamDownload(response: Response, target: DownloadTarget, initia
   }
 }
 
-async function extractTextFromHTML(html: string) {
+export async function extractTextFromHTML(html: string) {
   let text = ""
-  let skipContent = false
+  // Depth of the skipped elements currently open. Counting depth rather than
+  // holding a boolean keeps text flowing once a skipped element closes, and
+  // keeps nested markup such as <noscript><p>..</p></noscript> skipped.
+  let skipped = 0
 
   const rewriter = new HTMLRewriter()
     .on("script, style, noscript, iframe, object, embed", {
-      element() {
-        skipContent = true
-      },
-      text() {
-        // Skip text content inside these elements
+      element(element) {
+        if (element.tagName === "embed") return
+        skipped++
+        element.onEndTag(() => {
+          skipped--
+        })
       },
     })
-    .on("*", {
-      element(element) {
-        // Reset skip flag when entering other elements
-        if (!["script", "style", "noscript", "iframe", "object", "embed"].includes(element.tagName)) {
-          skipContent = false
-        }
-      },
+    .onDocument({
       text(input) {
-        if (!skipContent) {
+        if (skipped === 0) {
           text += input.text
         }
       },

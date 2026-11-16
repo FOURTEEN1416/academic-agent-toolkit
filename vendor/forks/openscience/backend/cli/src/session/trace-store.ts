@@ -1,7 +1,8 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 import { Global } from "@/global"
-import { JsonStore } from "@/util/jsonstore"
+import { UsageEvidence } from "./usage-evidence"
+import { Storage } from "@/storage/storage"
 import { Log } from "@/util/log"
 import { SessionHarness } from "./harness"
 import z from "zod"
@@ -38,26 +39,77 @@ export namespace SessionTraceStore {
   export const Harness = SessionHarness.Entry
   export type Harness = z.infer<typeof Harness>
 
+  export const ModelCall = z.object({
+    id: z.string(),
+    sessionID: z.string(),
+    messageID: z.string(),
+    route: z.enum(["managed", "byok", "chatgpt", "subscription", "local", "custom"]),
+    provider: z.string(),
+    model: z.string(),
+    occurredAt: z.number(),
+    providerRequest: z.string().optional(),
+    hold: z.string().optional(),
+    reportedCostUSD: z.number().finite().nonnegative().nullable().optional(),
+    reported: UsageEvidence.Reported.optional(),
+    outcome: z.enum(["pending", "transport_completed", "completed", "failed", "cancelled", "timed_out"]).optional(),
+    attempt: z.number().int().nonnegative().optional(),
+    completedAt: z.number().optional(),
+    httpStatus: z.number().int().min(0).max(599).optional(),
+  })
+  export type ModelCall = z.infer<typeof ModelCall>
+
+  /** This session's details as first sent on the first user message (`sent`,
+   * kept so the conversation's cached prefix never changes), the message they
+   * ride (`head`), and as last told to the agent (`latest`); see
+   * SystemPrompt.withSessionContext. */
+  export const SessionContext = z.object({ sent: z.string(), latest: z.string(), head: z.string().optional() })
+
   const State = z.object({
     approvals: z.record(z.string(), Approval).default({}),
     retries: z.array(Retry).default([]),
     harness: z.array(Harness).default([]),
+    modelCalls: z.array(ModelCall).default([]),
+    sessionContext: SessionContext.optional(),
   })
   export type State = z.infer<typeof State>
 
-  const empty = (): State => ({ approvals: {}, retries: [], harness: [] })
+  const empty = (): State => ({ approvals: {}, retries: [], harness: [], modelCalls: [] })
   const file = (sessionID: string) => path.join(Global.Path.data, "trace", `${encodeURIComponent(sessionID)}.json`)
 
+  async function migrate(sessionID: string) {
+    const database = await Storage.research()
+    const name = `legacy-trace:${sessionID}`
+    if (await database.migrated(name)) return database
+    const source = Bun.file(file(sessionID))
+    const state = State.parse((await source.exists()) ? await source.json() : {})
+    await database.importRecords(name, [
+      { key: ["trace", sessionID], value: { ...state, modelCalls: [] } },
+      ...state.modelCalls.map((call) => ({ key: ["model_call", sessionID, call.id], value: call })),
+    ])
+    return database
+  }
+
   async function update(sessionID: string, fn: (state: State) => State) {
-    await JsonStore.update(file(sessionID), (data) => fn(State.parse({ ...empty(), ...data }))).catch((error) => {
-      log.error("failed to persist local session trace", { sessionID, error })
-    })
+    const database = await migrate(sessionID)
+    await database
+      .upsert<State>(["trace", sessionID], (data) => fn(State.parse(data ?? empty())))
+      .catch((error) => {
+        log.error("failed to persist local session trace", { sessionID, error })
+      })
   }
 
   export async function read(sessionID: string): Promise<State> {
-    const data = await JsonStore.read(file(sessionID))
-    const parsed = State.safeParse({ ...empty(), ...data })
-    return parsed.success ? parsed.data : empty()
+    const database = await migrate(sessionID)
+    return database.query((db) => {
+      const row = db.query<{ data: string }, [string]>("SELECT data FROM trace WHERE id=?").get(sessionID)
+      const state = State.parse(row ? JSON.parse(row.data) : empty())
+      const calls = db
+        .query<{ data: string }, [string]>(
+          "SELECT data FROM model_call WHERE session_id=? ORDER BY json_extract(data,'$.occurredAt'),id",
+        )
+        .all(sessionID)
+      return { ...state, modelCalls: calls.map((row) => ModelCall.parse(JSON.parse(row.data))) }
+    })
   }
 
   export function approvalAsked(input: {
@@ -133,10 +185,28 @@ export namespace SessionTraceStore {
     return update(input.sessionID, (state) => ({ ...state, harness: [...state.harness, item] }))
   }
 
+  export function recordSessionContext(sessionID: string, value: z.infer<typeof SessionContext>) {
+    return update(sessionID, (state) => ({ ...state, sessionContext: SessionContext.parse(value) }))
+  }
+
+  /** Durable, content-free identity for every completed provider call,
+   * including internal title/summary calls that do not create message parts. */
+  export async function recordModelCall(input: ModelCall) {
+    const item = ModelCall.parse(input)
+    const database = await migrate(input.sessionID)
+    await database.upsert<ModelCall>(["model_call", input.sessionID, item.id], (previous) => ({ ...previous, ...item }))
+  }
+
   export async function remove(sessionID: string) {
+    const database = await migrate(sessionID)
+    await database.transaction((db) => {
+      db.query("DELETE FROM model_call WHERE session_id=?").run(sessionID)
+      db.query("DELETE FROM trace WHERE id=?").run(sessionID)
+      db.query("DELETE FROM trace_binding WHERE session_id=?").run(sessionID)
+      db.query("DELETE FROM task_receipt WHERE id=?").run(sessionID)
+    })
     await fs.unlink(file(sessionID)).catch((error: NodeJS.ErrnoException) => {
-      if (error.code === "ENOENT") return
-      throw error
+      if (error.code !== "ENOENT") throw error
     })
   }
 }
