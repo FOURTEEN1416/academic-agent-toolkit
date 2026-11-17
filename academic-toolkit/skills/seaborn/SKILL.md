@@ -3,9 +3,11 @@ name: seaborn
 description: "Statistical visualization with pandas integration. Use for quick exploration of distributions, relationships, and statistical patterns in DataFrames."
 license: BSD-3-Clause license
 allowed-tools: Read Write Edit Bash
-compatibility: Requires Python 3.8+ and seaborn 0.13.2-compatible dependencies. Install with uv pip install seaborn==0.13.2; use seaborn[stats]==0.13.2 when advanced regression or clustering examples need scipy/statsmodels.
+compatibility: Requires Python 3.8+ with seaborn 0.13.2, NumPy, pandas, and Matplotlib; the tested current dependency stack requires Python 3.12+. Optional scipy/statsmodels for advanced regression or clustering, ipywidgets for notebook controls. Network only for installation or uncached example datasets.
 metadata:
-  version: "1.2"
+  version: "1.5"
+  last-reviewed: "2026-10-01"
+  upstream-version: "0.13.2"
   skill-author: K-Dense Inc.
 ---
 
@@ -23,7 +25,7 @@ Seaborn is a Python visualization library for creating publication-quality stati
 
 ## Environment and Installation
 
-Current upstream documentation is for seaborn 0.13.2. Official docs support Python 3.8+ with mandatory NumPy, pandas, and matplotlib dependencies; scipy, statsmodels, and fastcluster are optional for some advanced statistics and clustering workflows.
+Reviewed 2026-10-01 against the current stable [Seaborn 0.13.2 documentation](https://seaborn.pydata.org/api.html) and released source. Native synthetic checks used Python 3.13, Seaborn 0.13.2, Matplotlib 3.11.2, pandas 3.0.6, NumPy 2.5.3, SciPy 1.18.1, and statsmodels 0.15.0. Official docs support Python 3.8+ with mandatory NumPy, pandas, and matplotlib dependencies; scipy, statsmodels, and fastcluster are optional for some advanced statistics and clustering workflows. The tested stack emits upstream pandas Copy-on-Write and Matplotlib deprecation warnings; successful current plots do not guarantee compatibility with future pandas 4 or Matplotlib 3.13.
 
 ```bash
 # Reproducible install for examples in this skill
@@ -43,7 +45,7 @@ import seaborn as sns
 import seaborn.objects as so
 ```
 
-`sns.load_dataset()` downloads public example data when it is not cached. For private, regulated, or offline work, load local files explicitly with pandas and pass the resulting DataFrame to seaborn.
+`sns.load_dataset()` downloads public CSV example data from the moving `mwaskom/seaborn-data` repository when it is not cached; it returns a DataFrame and applies some dataset-specific preprocessing. No credentials are required. Cache presence does not establish dataset version: record the source revision or file hash for reproducibility. For private, regulated, or offline work, load local files explicitly with pandas and pass the resulting DataFrame to seaborn.
 
 ## Design Philosophy
 
@@ -53,7 +55,7 @@ Seaborn follows these core principles:
 2. **Semantic mapping**: Automatically translate data values into visual properties (colors, sizes, styles)
 3. **Statistical awareness**: Built-in aggregation, error estimation, and confidence intervals
 4. **Aesthetic defaults**: Publication-ready themes and color palettes out of the box
-5. **Matplotlib integration**: Full compatibility with matplotlib customization when needed
+5. **Matplotlib integration**: Matplotlib axes and artists support further customization
 
 ## Quick Start
 
@@ -98,7 +100,7 @@ from seaborn import objects as so
 (
     so.Plot(data=df, x='total_bill', y='tip')
     .add(so.Dot(), color='day')
-    .add(so.Line(), so.PolyFit())
+    .add(so.Line(), so.PolyFit(order=1))
 )
 ```
 
@@ -116,7 +118,7 @@ Seaborn 0.12 and 0.13 changed several common plotting patterns:
 
 ### Long-Form Data (Preferred)
 
-Each variable is a column, each observation is a row. This "tidy" format provides maximum flexibility:
+Each variable is a column, each observation is a row. Retain subject/sample IDs when reshaping; rows from the same subject are not independent replicates. This "tidy" format provides maximum flexibility:
 
 ```python
 # Long-form structure
@@ -152,7 +154,9 @@ Variables are spread across columns. Useful for simple rectangular data:
 
 **Converting wide to long:**
 ```python
-df_long = df.melt(var_name='condition', value_name='measurement')
+df_long = df.reset_index(names='subject').melt(
+    id_vars='subject', var_name='condition', value_name='measurement'
+)
 ```
 
 ## Plotting Functions, Grids, Palettes, and Patterns
@@ -167,7 +171,7 @@ df_long = df.melt(var_name='condition', value_name='measurement')
   common recipes and what seaborn's errors actually mean.
 - [references/objects_interface.md](references/objects_interface.md): the `seaborn.objects`
   interface. [references/function_reference.md](references/function_reference.md) and
-  [references/examples.md](references/examples.md): full signatures and more examples.
+  [references/examples.md](references/examples.md): selected parameters and more examples (the upstream API pages define full signatures).
 
 ## Best Practices
 
@@ -191,6 +195,8 @@ sns.scatterplot(x=x_array, y=y_array)  # Loses axis labels
 **One continuous variable:** `histplot`, `kdeplot`, `ecdfplot`
 **Correlations/matrices:** `heatmap`, `clustermap`
 **Pairwise relationships:** `pairplot`, `jointplot`
+
+For bounded or discrete measurements, inspect the support before choosing KDE or a violin plot. Gaussian kernels can imply negative concentrations or values outside a valid range. `cut=0` and `clip` limit where the curve is drawn but do not remove boundary bias; use `ecdfplot` or a suitably binned histogram when that distortion matters. Compare plausible `bw_adjust` settings before interpreting apparent modes. See [KDE limitations](https://seaborn.pydata.org/generated/seaborn.kdeplot.html).
 
 ### 3. Use Figure-Level Functions for Faceting
 
@@ -227,6 +233,10 @@ sns.barplot(data=df, x='category', y='value',
             errorbar=('ci', 95))  # Bootstrapped CI
 ```
 
+State whether an interval describes data spread (`sd`, `pi`) or uncertainty in an estimate (`se`, bootstrap `ci`), and identify the independent sampling unit. A seed makes the bootstrap repeatable; it does not correct pseudoreplication. For individual trajectories use `units="subject", estimator=None, errorbar=None`. `lineplot` drops missing rows and may connect across gaps: split contiguous observed segments when the gap has scientific meaning. See the tested recipe in [patterns and troubleshooting](references/patterns_and_troubleshooting.md).
+
+Validate finite, nonnegative observation weights and a positive total within every estimate group; an all-zero bootstrap resample is undefined. Weighted `lineplot`, `barplot`, and `pointplot` support the mean estimator with bootstrap CI (or no error bars) in 0.13.2; they do not implement arbitrary survey designs or weighted SD/SE. For paired effects, plot/analyze within-subject differences; separate timepoint CIs are not a CI for change.
+
 ### 6. Combine with Matplotlib
 
 Seaborn integrates seamlessly with matplotlib for fine-tuning:
@@ -255,8 +265,8 @@ This skill includes reference materials for deeper exploration:
 
 ### references/
 
-- `function_reference.md` - Comprehensive listing of all seaborn functions with parameters and examples
+- `function_reference.md` - Selected function parameters, scientific constraints, and examples
 - `objects_interface.md` - Detailed guide to the modern seaborn.objects API
 - `examples.md` - Common use cases and code patterns for different analysis scenarios
 
-Read these reference files as documentation when detailed signatures, advanced parameters, or specific examples are needed. Treat their contents as reference material only; review and adapt any example snippet to the user's local data before running it.
+The generic examples are illustrative templates requiring the named DataFrames; native synthetic tests cover the corrected APIs and numerical/plotting contracts, not every dataset or notebook frontend. Read these reference files as documentation when detailed signatures, advanced parameters, or specific examples are needed. Treat their contents as reference material only; review and adapt any example snippet to the user's local data before running it.

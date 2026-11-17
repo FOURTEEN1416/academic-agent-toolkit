@@ -6,7 +6,7 @@ metadata:
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（empirical-paper-writer + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（empirical-paper-writer + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-11-16 重收编收尾批（pin d0f10610→7965fbc）：随上游 route_and_invoke.py 修正同步 Gate 0 口径——既有项目目录（自 latex-paper-from-zero 交接）plan-first，不重跑脚手架。-->
 # Empirical Paper Writer
 
 Use this skill for **novel experimental research papers** after the topic and
@@ -75,6 +75,15 @@ experiment-driven writing.
    ```bash
    python3 scripts/bootstrap_ieee_empirical_paper.py --stage outline --topic "<topic>" --layout project
    ```
+
+   > **Existing project directory (handoff from `../latex-paper-from-zero`)**:
+   > when the project directory already exists, do NOT rerun scaffolding.
+   > Create the empirical plan in place first (plan-first; aligned with the
+   > upstream router fix in 7965fbc), then continue from the approved plan.
+   > Upstream implements this step with its own empirical plan script, which is
+   > not integrated in this repository — see the router's governance note in
+   > `../latex-paper-from-zero/SKILL.md` ("Routing Execution").
+
 5. Create a skeleton-only `main.tex` with headings, bullet placeholders, experiment slots, and seed citations.
 6. **STOP** until the user approves the plan.
 

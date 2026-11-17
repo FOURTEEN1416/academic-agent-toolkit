@@ -10,7 +10,7 @@ is the current fully verified baseline.
 
 ## Verified V1 routes
 
-The registry exposes 41 public plotting routes. Some table rows group closely related candidates,
+The registry exposes 45 public plotting routes. Some table rows group closely related candidates,
 so the number of rows is not the route count.
 我已验证 `density_ridgeline3d` 的完整 Origin 路线；它仍只接受冻结的六角色表，并遵守下面的
 数据与焦点边界。
@@ -51,6 +51,10 @@ so the number of rows is not the route count.
 | UV–Vis spectrum with optional Tauc evidence | `uv_vis` | Wavelength + one or more comparable Absorbance or Transmittance series; optional Photon energy + Tauc value/fit/Eg | Do not mix signal definitions without an explicit axis contract; never calculate photon energy, exponent, fit, or band gap |
 | Multi-condition 3D Nyquist trajectory | `trajectory3d` | Long table: explicit Zreal + real third variable with meaning/unit + explicit -Zimag + Series; 1–6 groups | Never create decorative depth, fit circuits, or infer the third variable |
 | Ordered 3D dual-density comparison with supplied baseline locators | `density_ridgeline3d` | Mixed-wide six-role table: Condition ID + unit-bearing Condition Position + unit-bearing Density X + paired nonnegative Solid/Dashed Density + one Focal X per group; 2–6 groups | Density profiles and focal values must be supplied upstream; never run KDE, infer peaks/intersections/thresholds, or lift focal markers off Z=0 |
+| FLIM phasor distribution | `flim_phasor` | supplied G + S + explicit Group; 1–8 groups | Equal physical G/S scale; mathematical semicircle only; preserve outside points; no lifetime inversion, fitting or unmixing |
+| Supplied time–frequency field | `time_frequency` | complete uniform Time + Frequency + Power/Value long table, units in headers | Numeric physical axes, all cells, detached scale; no signal analysis or interpolation; negative dB is not automatically a signed change |
+| Multichannel signal comparison | `signal_stack` | Time + Channel/ROI + Amplitude/Intensity long table with explicit units | Preserve all samples, channel order and common amplitude units; confirm display offsets and unit ruler; no filtering, alignment, centering or normalization |
+| Supplied event timing across trials | `event_raster` | Time/unit + Trial + Condition long table; blank Time may declare inventory | Keep every event/empty trial and source-first order; confirm ordinal display positions; no event detection, PSTH/rates or response-based sorting |
 
 ## Verified materials routes
 

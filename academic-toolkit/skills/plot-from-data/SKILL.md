@@ -28,11 +28,12 @@ Generate a paper-quality figure by picking a style template and filling it with 
 ## Style Samples（examples/）
 
 `examples/` 收录 20 张风格样例（10 原图 + 10 复现图），来自只读 vendor 快照
-`vendor/forks/paper-plot-skills/{originals,repro}/`。**分发状态勘误（2026-11-16）**：
-本目录当前实际被 git 跟踪（`git ls-files` 实测 44 个文件，含 `examples/*.png` 20 张
-样例图），旧表述「样例仅本地使用、不再分发，本技能整体 gitignored」与实况不符——
-公开仓 clone 即会分发样例。样例公开分发授权须 owner 复核裁决（见 DEF-21）；裁决前
-对外产物不得引用或携带这些样例。
+`vendor/forks/paper-plot-skills/{originals,repro}/`。**分发状态（2026-11-16 owner
+裁决落定）**：本目录被 git 跟踪（`git ls-files` 实测 44 个文件，含 `examples/*.png`
+20 张样例图），随公开仓分发——owner 已于 2026-11-16 裁决确认样例 PNG **可随公开仓
+分发**，旧表述「样例仅本地使用、不再分发，本技能整体 gitignored」作废。上游
+paper-plot-skills 代码本身仍无 License，维持仅本地对照使用、不得再分发（见
+dev-docs/vendor-asset-index.md #20 行）。
 2026-09-22 风格卡扩编批（V3）新增上表后 5 张卡片。
 
 ## Workflow

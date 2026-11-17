@@ -18,3 +18,9 @@
 
 - vendor/forks/PaperSpine 已镜像同步至实测 HEAD（1648 文件更新、9 项上游旧版发布残留清理）；上游 2 个月更新含 v4.0.0 大版本（多语言 README、portable suites/release v6 工作流、INSTALL 文档族等）。
 - 本仓 spine 系 11 技能为上游单一 paper-spine 技能的拆分重组编排（脚本/资产只读引用），上游 v4.0.0 技能包结构变化须经逐件 diff 评估后按收编规程重放，本单仅完成 vendor 同步与台账刷新，技能侧重收编待专项。
+
+## 重收编施工记录（2026-11-16，PKG-07 spine 系批）
+
+- references/latex-source-control.md：吸收保护区分级措辞（普通散文编辑保护、受权结构任务可改并验证）、最终编译后逐页/逐图视觉检查（守卫通过≠视觉有效，不可豁免）、Rendered Visual Receipt 清单。
+- 套件级 `spine/references/latex.md` 同步吸收模板采用验证、图最终物理尺寸、Word 独立读者面（Pandoc 警告=构建失败、PDF 图栅格化、纯文本回读）、venue 字体优先。
+- 未吸收（记入 skipped）：visual_readiness_check.py / word_surface_repair.py / manuscript-format.md 等 v6 资产引用（本仓无对应脚本/文件，相关精神以自包含表述融入）；上游对 `\cite` 硬规则的软化（本仓 latex_guard.py 仍强制，保持一致）。

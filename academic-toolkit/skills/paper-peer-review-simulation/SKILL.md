@@ -14,7 +14,7 @@ metadata:
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 franklee16/academic-research-skills@5debcd2efb68（academic-paper-reviewer），正文未改；上游 research-lookup 类 API 依赖以执行环境的网页检索/抓取工具（web_search/web_fetch 类）替代。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 Imbad0202/academic-research-skills@5debcd2efb68（academic-paper-reviewer；2026-11-16 订正：原记 franklee16 系同名异构误记，无 LICENSE），正文未改；上游 research-lookup 类 API 依赖以执行环境的网页检索/抓取工具（web_search/web_fetch 类）替代。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 
 <!-- ==================== 本仓适配块（Academic Agent Toolkit, 2026-11-16 评审族修复批 C-review-1） ==================== -->
 ## 本仓适配：资产缺口与最小可用评审模板

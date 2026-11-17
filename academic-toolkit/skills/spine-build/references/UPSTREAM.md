@@ -18,3 +18,9 @@
 
 - vendor/forks/PaperSpine 已镜像同步至实测 HEAD（1648 文件更新、9 项上游旧版发布残留清理）；上游 2 个月更新含 v4.0.0 大版本（多语言 README、portable suites/release v6 工作流、INSTALL 文档族等）。
 - 本仓 spine 系 11 技能为上游单一 paper-spine 技能的拆分重组编排（脚本/资产只读引用），上游 v4.0.0 技能包结构变化须经逐件 diff 评估后按收编规程重放，本单仅完成 vendor 同步与台账刷新，技能侧重收编待专项。
+
+## 重收编施工记录（2026-11-16，PKG-07 spine 系批）
+
+- references/writing-rationale-matrix.md：与 spine-rewrite 单源同步（贡献承诺语义、深度软化、第四墙按功能判断、F1 行改写），两副本 `diff` 验证逐字节一致。
+- 本技能正文编排不变；上游 build 侧增量（资产选择、渲染前守卫、真实引擎编译、Word 独立读者面）已吸收进套件级 `spine/references/build.md` 与 `spine/references/latex.md`。
+- 未吸收（记入 skipped）：author_voice_* / asset_selection_receipt 等 v6 资产与产物链（本仓无对应阶段与脚本，收编待裁决）。

@@ -1,11 +1,52 @@
 # Bundled Script Reference
 
 Purpose, arguments, and usage examples for each script in `scripts/`:
-`search_google_scholar.py`, `search_pubmed.py`, `extract_metadata.py`,
-`validate_citations.py`, `format_bibtex.py`, `doi_to_bibtex.py`,
-`validate_citations.py`.
+`search_openalex.py`, `search_pubmed.py`, `search_google_scholar.py`,
+`extract_metadata.py`, `validate_citations.py`, `format_bibtex.py`, and
+`doi_to_bibtex.py`.
+
+`_common.py` is not a command. It holds the brace-aware BibTeX parser, the
+entry renderer, the page-range normaliser, and the citation-key scheme that
+every script above shares — which is what lets entries found through different
+databases deduplicate against each other.
 
 ## Tools and Scripts
+
+### search_openalex.py
+
+Search OpenAlex. No API key; ~250 million works across every discipline.
+
+**Features**:
+- Keyless REST API with cursor pagination
+- Year range and work-type filtering
+- Sort by relevance or citation count
+- Abstracts reconstructed from OpenAlex's inverted index
+- Open-access status on every record
+- Export to JSON or BibTeX
+
+**Usage**:
+```bash
+# Basic search
+python scripts/search_openalex.py "quantum computing"
+
+# Most-cited work in a window
+python scripts/search_openalex.py "quantum computing" \
+  --year-start 2020 \
+  --year-end 2024 \
+  --limit 100 \
+  --sort-by citations \
+  --output quantum_papers.json
+
+# Reviews only, straight to BibTeX
+python scripts/search_openalex.py "CRISPR gene editing" \
+  --type review \
+  --limit 50 \
+  --format bibtex \
+  --output crispr_reviews.bib
+```
+
+Set `OPENALEX_EMAIL` (or pass `--email`) to join OpenAlex's polite pool, which
+is faster and more reliably available.
 
 ### search_google_scholar.py
 
@@ -176,6 +217,12 @@ python scripts/format_bibtex.py references.bib \
   --deduplicate \
   --sort year \
   --output final_refs.bib
+
+# Merge several search exports: one key scheme, then drop duplicates
+python scripts/format_bibtex.py references.bib \
+  --rekey \
+  --deduplicate \
+  --output merged_refs.bib
 ```
 
 This script formats only — it does not validate. For error/duplicate reporting

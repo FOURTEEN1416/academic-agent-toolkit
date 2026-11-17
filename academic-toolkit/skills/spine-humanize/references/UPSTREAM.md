@@ -19,3 +19,9 @@
 
 - vendor/forks/PaperSpine 已镜像同步至实测 HEAD（1648 文件更新、9 项上游旧版发布残留清理）；上游 2 个月更新含 v4.0.0 大版本（多语言 README、portable suites/release v6 工作流、INSTALL 文档族等）。
 - 本仓 spine 系 11 技能为上游单一 paper-spine 技能的拆分重组编排（脚本/资产只读引用），上游 v4.0.0 技能包结构变化须经逐件 diff 评估后按收编规程重放，本单仅完成 vendor 同步与台账刷新，技能侧重收编待专项。
+
+## 重收编施工记录（2026-11-16，PKG-07 spine 系批）
+
+- SKILL.md：新增「Boundaries And Honest No-Op」节——吸收上游 Authorial Voice Restoration 定位中的诚实边界（不承诺检测器通过/不伪造 AI 率、模式匹配不强制改写、清晰文本 no-op 是精准性证据、禁多跳翻译回译作最终改写、保留作者含义与术语）。
+- 保持本仓 D1–D5 检测维度、tier 指令与 humanize_check.py 闸门（本仓裁决：pipeline 内 tier 驱动 humanize 步骤，与 paper-humanize / anti-ai-detection 分工不变）。
+- 未吸收（记入 skipped）：author_voice_profile/author-voice contracts 等 v6 资产链、humanize_tier→author_voice_restoration 的字段更替（本仓 config 与脚本仍以 humanize_tier 为准）。

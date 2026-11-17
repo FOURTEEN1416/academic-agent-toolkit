@@ -38,7 +38,9 @@ the decision — never silently claim PASS while core files are missing.
 ### Phase 1 — Inventory
 
 Read `paper_spine_config.json` to determine `workflow`.  List every file that
-must be translated.  Write the inventory to `translation_zh/manifest.md` with
+must be translated.  The tables below are the baseline guard set: if the run
+produced additional stage artifacts, add them to the inventory and translate
+them too.  Write the inventory to `translation_zh/manifest.md` with
 status `pending` for each entry.
 
 **Common files (both workflows):** (`core` = always required; `optional` =

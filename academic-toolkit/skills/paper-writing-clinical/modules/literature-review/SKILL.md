@@ -4,7 +4,7 @@ description: Conduct comprehensive, systematic literature reviews using multiple
 allowed-tools: Read Write Edit Bash
 license: MIT license
 metadata:
-  version: "1.5"
+  version: "1.8"
   skill-author: K-Dense Inc.
   openclaw:
     primaryEnv: OPENROUTER_API_KEY
@@ -15,7 +15,7 @@ metadata:
 ---
 
 
-<!--ACAT-ADAPTED: 上游 K-Dense-AI/claude-scientific-writer@0c72606 pinned 原文（正文未改）。本仓库适配口径——兄弟模块替代映射、API 依赖门（parallel-cli/OPENROUTER_API_KEY 等不可直接运行）、能力对照——见本目录 ADAPTATION.md 与技能根 SKILL.md 头部适配块。2026-09-09 适应性改造。-->
+<!--ACAT-ADAPTED: 上游 K-Dense-AI/claude-scientific-writer@9820740（v2.23.0 线；初版 0c72606，2026-11-16 重收编融合）。本仓库适配口径——兄弟模块替代映射、API 依赖门（parallel-cli/OPENROUTER_API_KEY 等不可直接运行）、能力对照——见本目录 ADAPTATION.md 与技能根 SKILL.md 头部适配块。2026-09-09 适应性改造，2026-11-16 跟随上游增量融合。-->
 # Literature Review
 
 ## Overview

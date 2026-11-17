@@ -3,6 +3,11 @@
 Use this reference when the user requests submission materials, cover letter,
 highlights, journal submission package, or final files for a target journal.
 
+A local delivery package is not an upload-ready submission request. Preserve
+unknown author/ethics facts and submission restrictions without blocking safe
+local work; neither an archive nor a reader-review PASS establishes full
+journal compliance.
+
 ## Output Directory
 
 Write all submission materials under:
@@ -77,6 +82,32 @@ reviewer contact details. Use explicit placeholders such as:
 
 End both cover letters with a fill-in checklist listing every remaining
 placeholder.
+
+## Portable Package Build
+
+When the request includes a portable source/upload bundle, build it from the
+current semantic source and selected assets, not from a loose file grab:
+
+1. Create a clean package copy that preserves the source-relative directory
+   structure, or deliberately rewrites its dependency paths in that copy.
+   Include the bibliography, used class/style files, layout filters, editable
+   figures, permitted plotting inputs/scripts, and a build command stating the
+   required working directory and tool versions. Original private materials are
+   not automatically package dependencies.
+2. Build from the package copy, then extract the actual archive into a new
+   temporary directory and run the documented build there. Verify that local
+   inputs resolve inside the extracted package and that no absolute or parent
+   paths reach back into the working project. A TeX `-recorder` run reveals the
+   files the build actually reads; installed engine packages and fonts are
+   runtime dependencies to document, not private files to collect
+   indiscriminately.
+3. Compare the rebuilt manuscript with the reviewed source/output. ZIP
+   membership, file hashes, or a successful build in the old working directory
+   do not prove portability.
+4. After a revision, regenerate the affected PDF/DOCX and both requested
+   packages from the same revised source; reuse unchanged valid assets and
+   checks. A metadata/ethics limitation affects submission claims, whereas a
+   broken source path is a local deliverability defect to repair.
 
 ## Highlights Format
 

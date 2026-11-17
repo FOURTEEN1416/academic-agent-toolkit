@@ -8,7 +8,7 @@
 
 [![Release](https://img.shields.io/badge/release-v2.1.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-1356_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
-[![Capabilities](https://img.shields.io/badge/capabilities-319-0ea5e9?style=flat-square)](capabilities/catalog.json)
+[![Capabilities](https://img.shields.io/badge/capabilities-317-0ea5e9?style=flat-square)](capabilities/catalog.json)
 [![Skills](https://img.shields.io/badge/skills-259_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#-快速开始)

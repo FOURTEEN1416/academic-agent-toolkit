@@ -5,6 +5,32 @@ This file is the canonical stage playbook for the paper-spine orchestrator.
 ## Purpose
 
 Collect workflow options and write validated configuration before any substantive work.
+When resuming, reuse a confirmed configuration; switching to a new `workflow`
+label does not erase valid earlier choices — carry them forward unless the user
+revises them.
+
+## Research Scope Discipline
+
+Research scope is a promise about what analysis the paper may rely on:
+
+- `required`: the requested research/analysis is performed with real tools and
+  evidence; a literature dossier or analysis plan alone does not complete it.
+- `agent_decide`: assess what evidence the scientific question needs and what
+  the inputs support, state the rationale briefly, then perform the justified
+  work. This mode never silently means `materials_only`.
+- `materials_only`: use the supplied analyses, tables, images and reported
+  results without new EDA, tests, modelling or reruns; literature study,
+  faithful extraction, plotting supplied results and consistency checks remain
+  available. Supplying materials or asking for a draft first does not
+  automatically select this mode.
+
+## Deliverable Invariance
+
+`tier` selects research/example breadth and optional process depth only. It
+never changes the requested deliverable type, the necessary scientific
+argument, venue structure, or manuscript length: a `flash` journal run still
+produces a full journal manuscript; it simply researches fewer examples than
+`pro`.
 
 ## Required Output
 

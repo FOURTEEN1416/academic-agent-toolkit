@@ -2,7 +2,7 @@
 
 - Upstream: https://github.com/yunshenwuchuxun/latex-paper-skills（技能目录 `.codex/skills/empirical-paper-writer`，共享资产 `_shared/` `_orchestration/`）
 - Pinned commit: 7965fbc06cd2c34ef7a0a3a566c089f4757c3de5（2026-11-16 实测上游 main HEAD；原 d0f10610，fork FOURTEEN1416/latex-paper-skills 2026-09-09 拉取）
-- License: 见上游仓库 LICENSE
+- License: MIT（Copyright (c) 2026 renocrypt；2026-11-16 实测上游 LICENSE）；内嵌 IEEEtran 模板为 LPPL 1.3（见上游 THIRD_PARTY_NOTICES.md）
 
 ## 适配说明
 
@@ -13,4 +13,4 @@
 ## 同步记录（2026-11-16，d0f10610→7965fbc，UP-6）
 
 - vendor/forks/latex-paper-skills 已镜像同步至实测 HEAD：上游更新 route_and_invoke.py（shlex 安全引用与 plan 脚本路径修正）、collaborating-with-claude/gemini SKILL.md、README 双语，新增顶层 skills/、distribution/、bin/、scripts/、tests/、package.json、THIRD_PARTY_NOTICES.md。
-- 本仓 8 件 latex-paper-* 技能 references 为适应性改写蒸馏件，来源内容未受本次上游更新影响，无需重收编；上游新增顶层结构属其组织调整，vendor 原样保留备查。
+- 2026-11-16 收尾批重收编：上游 route_and_invoke.py 将 empirical 既有项目路由由 kickoff 重脚手架改为 plan-first（上游 create_empirical_plan.py --stage plan）；本仓 SKILL.md Gate 0 已补「Existing project directory」注记对齐该口径。上游 .codex/skills/empirical-paper-writer/SKILL.md 本区间未变；上游 empirical plan 脚本未随本仓集成（见 latex-paper-from-zero SKILL.md 治理注记）。

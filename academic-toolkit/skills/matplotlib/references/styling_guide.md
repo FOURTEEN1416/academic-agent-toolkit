@@ -1,6 +1,6 @@
 # Matplotlib Styling Guide
 
-Comprehensive guide for styling and customizing matplotlib visualizations.
+Styling patterns for Matplotlib 3.11.2. Fragments assume NumPy/pyplot imports and named inputs. Style settings control presentation; verify scientific scales and uncertainty independently.
 
 ## Colormaps
 
@@ -53,6 +53,9 @@ import matplotlib as mpl
 # 分类数据正解：基线 cycler（色板定版理由见 academic.mplstyle 文件头）
 plt.style.use(r"<repo>/academic-toolkit/skills/_utils/academic.mplstyle")
 colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
+# 定性色板容量有限（基线 8 色、tab10 亦仅 10 色）：类别数超过容量时
+# 换编码（线型/面板/标注）或换更大可分辨色板，不要靠插值/循环复用硬撑——
+# 颜色重复会让读者把不同类别误读成同一类。
 for i, category in enumerate(categories):
     ax.plot(x, y[i], color=colors[i % len(colors)], label=category)
 ```
@@ -61,7 +64,7 @@ for i, category in enumerate(categories):
 Best for cyclic data (e.g., phase, angle).
 - `twilight`
 - `twilight_shifted`
-- `hsv`
+- `hsv`（非感知均匀，明度伪影需人工检查）
 
 ### Colormap Best Practices
 
@@ -72,7 +75,30 @@ Best for cyclic data (e.g., phase, angle).
    - Sequential: increasing/decreasing data
    - Diverging: data with meaningful center
    - Qualitative: categories
-5. **Reverse colormaps** - Add `_r` suffix: `viridis_r`, `coolwarm_r`
+5. **Reverse colormaps** - Add `_r` suffix: `viridis_r`, `coolwarm_r`（自定义色板用 `cmap.reversed()`）
+
+### Shared Scales and Missing Values
+
+可比面板共用一把色标：用**一个显式 norm**（基于有依据的公共值域）。只选 diverging
+色板并不会让零点居中——极限不对称时中心会偏。
+
+```python
+from matplotlib.colors import TwoSlopeNorm
+import matplotlib as mpl
+
+norm = TwoSlopeNorm(vmin=-2, vcenter=0, vmax=5)
+cmap = mpl.colormaps['RdBu_r'].with_extremes(bad='lightgray')
+fig, axes = plt.subplots(1, 2, layout='constrained')
+for ax, values in zip(axes, [data1, data2]):
+    im = ax.imshow(np.ma.masked_invalid(values), cmap=cmap, norm=norm,
+                   interpolation='nearest')
+fig.colorbar(im, ax=axes, label='Change (data units)', extend='both')
+```
+
+缺失值颜色、值域边界、单位与越界行为都要在图注写明。norm 对象已携带极限，
+不要再传 `vmin`/`vmax`。`LogNorm` 只接受正值：零/负值要显式计数并掩膜，
+或有依据地改用 `SymLogNorm`。设置越界/缺失色用 `with_extremes`，
+不用即将废弃的原地 setter（`set_bad` 等）。
 
 ### Creating Custom Colormaps
 
@@ -202,6 +228,10 @@ savefig.dpi: 300
 savefig.bbox: standard   # ⛔ 勿写 tight：axes 外文字会撑爆 PDF mediabox（基线护栏即为此）
 savefig.facecolor: white
 ```
+
+mplstyle 文件把未加引号的 `#` 当注释开头：hex 颜色必须带引号写作
+`axes.facecolor: "#1e1e1e"`，否则该行被截断。文件按 UTF-8 保存。样式文件只管
+呈现层，不担保科学有效性；换环境时复核字体可用性与最终尺寸下的可读性。
 
 Load and use:
 ```python

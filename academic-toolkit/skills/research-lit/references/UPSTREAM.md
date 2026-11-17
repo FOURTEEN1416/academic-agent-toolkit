@@ -12,4 +12,4 @@
 
 - vendor/forks/Auto-claude-code-research-in-sleep 已镜像同步至实测 HEAD（768 文件更新、0 删除）。
 - 上游区间 skills/ 变更 177 文件（+11563/-1014），主要为止(install/SSH 同步修复与文档扩充)。本件对应上游目录 skills/research-lit：上游区间内有变更。
-- 技能侧重收编待专项按改写融入规程执行：上游新版技能正文 allowed-tools 含 Codex MCP 评审桥类宿主特征词（host_dep_scan 词表项，字面量此处不复写以维持登记外零命中棘轮），本仓技能侧 SKILL.md 为中性化改写版，不盲目覆盖。
+- 改写融入（2026-11-16，PKG-01 研究实验环批）：已融入证据纪律——只基于已读证据（摘要/原文片段/本地 PDF/笔记）提取，仅有标题无证据者记 UNPROCESSABLE_NO_LOCAL_EVIDENCE 并保持未覆盖，不凭标题推断、不静默剔除，覆盖率如实记录。有界扇出（aris-fanout-leaf）绑定上游叶子 Agent 基建，不融入。

@@ -4,12 +4,12 @@ description: "Conduct comprehensive, systematic literature reviews using multipl
 allowed-tools: Read Write Edit Bash
 license: MIT license
 metadata:
-  version: "1.0"
+  version: "1.1"
   skill-author: K-Dense Inc.
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以执行侧 web_search/web_fetch 工具替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以执行侧 web_search/web_fetch 工具替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-11-16 重收编：融入上游 2d2065f（v2.72.0，目录已重组为 literature-review）增量——11 个参考件/脚本/资产文件按上游补丁更新、五脚本 py_compile 通过；正文补 PRISMA 2020 流程与 records/reports/studies 三分计数、引用量不参与资格判定、双人资格判定与分歧留痕、AI 示意图新契约（OpenRouter 端点/模型/1-2 轮迭代、success≠科学准确、禁在 prompt 编造研究计数）与"DOI 存在≠论断有据"核验边界。-->
 # Literature Review
 
 ## Overview
@@ -34,7 +34,7 @@ Use this skill when:
 **Recommended: include 1-2 figures when they add real value to the review** (e.g., a PRISMA flow diagram for systematic reviews). Figures are optional, not a completion requirement — add them only when they genuinely aid understanding.
 
 Suggested figures for comprehensive reviews:
-1. A PRISMA flow diagram (systematic reviews)
+1. A PRISMA flow diagram (systematic reviews) — 使用 [PRISMA 2020 flow template](https://www.prisma-statement.org/prisma-2020-flow-diagram) 与核对后的筛选计数：区分 records / reports / studies，含"报告未获取"与全文排除原因；精确数字优先用表格或确定性绘图，不用 AI 生图编造计数
 2. A search strategy flowchart, thematic synthesis diagram, or conceptual framework
 
 **How to generate figures (optional):**
@@ -43,14 +43,10 @@ Suggested figures for comprehensive reviews:
 
 **How to generate schematics:**
 ```bash
-python scripts/generate_schematic.py "your diagram description" -o figures/output.png
+python scripts/generate_schematic.py "your diagram description" -o figures/output.png --doc-type journal --iterations 2
 ```
 
-The AI will automatically:
-- Create publication-quality images with proper formatting
-- Review and refine through multiple iterations
-- Ensure accessibility (colorblind-friendly, high contrast)
-- Save outputs in the figures/ directory
+助手契约（上游 v2.72.0 更新）：生成走 OpenRouter `POST /api/v1/images`（`google/gemini-3.1-flash-image`），评审走 `POST /api/v1/chat/completions`（`google/gemini-3.7-flash`）；需 `OPENROUTER_API_KEY`，输出路径须以 `.png` 结尾，迭代上限 1-2 次，精修失败保留前一张草稿。日志中的 `success` 只表示"存了图"，`quality_met`/`final_reviewed`/`termination_reason` 只描述自动评审——都不证明科学准确性；标签、计数、箭头与无障碍性须人工核查。运行付费生成前确认模型可用性；**不得在图像 prompt 里编造研究计数**。
 
 **When to add schematics:**
 - PRISMA flow diagrams for systematic reviews
@@ -216,6 +212,9 @@ Literature reviews follow a structured, multi-phase workflow:
    - `reason_criterion` must cite the inclusion/exclusion criterion ID (e.g. I1–I3 / E1–E5); a bare "not relevant" is not a reason
    - Keep this log beside the PRISMA counts; its `include` rows feed the evidence table in Phase 4.
 
+7. **Records、reports 与 studies 要分开计数（上游 v2.72.0 增补）**: DOI/标题去重只去掉重复检索命中，不等于识别"同一研究"的全部论文——预印本、期刊版、协议与后续随访报告要用试验登记号、队列描述、站点与招募日期关联。维护 study-to-report 映射并注明每个结局取自哪份报告，meta-analysis 不对重叠参与者重复计数。PRISMA 各级计数（records screened / reports sought / not retrieved / assessed / excluded with reasons / included studies）分别核对，报告数可以多于研究数（参见 [Cochrane Handbook ch.4](https://www.cochrane.org/authors/handbooks-and-manuals/handbook/current/chapter-04)）。系统性评审的最终全文资格判定尽量双人独立进行并记录分歧解决方式；单人评审须如实披露。
+8. **引用量不参与资格判定（上游 v2.72.0 增补）**: 引用数可用于探索性阅读排序，但不得决定入选与否，也不能替代偏倚风险评诂；检索与筛选阶段获取的每条合格记录都要保留。
+
 ### Phase 4: Data Extraction and Quality Assessment
 
 1. **Extract Key Data** from each included study:
@@ -328,6 +327,8 @@ Literature reviews follow a structured, multi-phase workflow:
    - Common styles: APA, Nature, Vancouver, Chicago, IEEE
    - Use verification script output to format citations correctly
    - Ensure in-text citations match reference list format
+
+4. **核对"引用是否支持论断"（上游 v2.72.0 增补）**: `verify_citations.py` 只验证 DOI 可解析与元数据一致——**DOI 存在不等于证据成立**：注册 DOI 仍可能指向别的论文。逐条把参考文献与被引论断对照原文，检查身份一致、论断有据、更正与撤稿状态；无法获取原文的标注"未获取"而不臆断。
 
 ### Phase 7: Document Generation
 

@@ -14,10 +14,10 @@ metadata:
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 franklee16/academic-research-skills@5debcd2efb68（academic-paper），正文未改；上游 research-lookup 类 API 依赖以当前会话可用的网页检索/抓取能力替代（工具名以实际环境为准）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 Imbad0202/academic-research-skills@5debcd2efb68（academic-paper；2026-11-16 订正：原记 franklee16 系同名异构误记，无 LICENSE），正文未改；上游 research-lookup 类 API 依赖以当前会话可用的网页检索/抓取能力替代（工具名以实际环境为准）。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
 # Academic Paper — Academic Paper Writing Agent Team
 
-> **本仓运行口径（2026-11-16 写作族治理批）**：本文的 12-agent 编排、Material Passport、Bucket A/B、v3.9.2 Routing Discipline、v3.6.6 Generator-Evaluator 契约均为上游（franklee16/academic-research-skills）架构叙事，**不是本仓执行指令**。本仓由单一执行 Agent + 引擎（engine/ 会话编排与 finish 统一核验）承担全部阶段，下文 agent 分工表仅作职责参考。Mode A 所依赖的 `academic-pipeline`，以及 `academic-paper-reviewer`、`tw-hei-intelligence`、`report-to-website`、`notebooklm-slides-generator` 等技能**本仓未收编**（目录不存在）：文中涉及这些技能的跳转与协议均按上游语境理解，在本仓内不执行；上游内部路径（`AGENTS.md`、`shared/`、`docs/`、`agents/`、`templates/`、`examples/`）未随仓集成（见 ASSET-GAP.md）。
+> **本仓运行口径（2026-11-16 写作族治理批）**：本文的 12-agent 编排、Material Passport、Bucket A/B、v3.9.2 Routing Discipline、v3.6.6 Generator-Evaluator 契约均为上游（Imbad0202/academic-research-skills，2026-11-16 订正：原记 franklee16 系同名异构误记）架构叙事，**不是本仓执行指令**。本仓由单一执行 Agent + 引擎（engine/ 会话编排与 finish 统一核验）承担全部阶段，下文 agent 分工表仅作职责参考。Mode A 所依赖的 `academic-pipeline`，以及 `academic-paper-reviewer`、`tw-hei-intelligence`、`report-to-website`、`notebooklm-slides-generator` 等技能**本仓未收编**（目录不存在）：文中涉及这些技能的跳转与协议均按上游语境理解，在本仓内不执行；上游内部路径（`AGENTS.md`、`shared/`、`docs/`、`agents/`、`templates/`、`examples/`）未随仓集成（见 ASSET-GAP.md）。
 
 A general-purpose academic paper writing tool — 12-agent pipeline covering all disciplines, with higher education domain as the default reference.
 

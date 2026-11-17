@@ -3,9 +3,10 @@ name: matplotlib
 description: "Low-level plotting library for full customization. Use when you need fine-grained control over every plot element, axes, and layout."
 allowed-tools: Read Write Bash
 license: https://github.com/matplotlib/matplotlib/tree/main/LICENSE
-compatibility: Requires Python 3.10+ and Matplotlib 3.10.x. Use `uv add matplotlib` in projects; interactive Jupyter widgets require `ipympl`.
+compatibility: Requires Python 3.11+ and Matplotlib 3.11.2. Bundled examples also use NumPy and SciPy; pandas examples need pandas, and Jupyter widgets need ipympl. Installation needs network access; local plotting needs no credentials.
 metadata:
-  version: "1.1"
+  version: "1.4"
+  last-reviewed: "2026-10-01"
   skill-author: K-Dense Inc.
 ---
 
@@ -38,18 +39,20 @@ This skill should be used when:
 For project work, install Matplotlib with uv:
 
 ```bash
-uv add matplotlib
+uv add "matplotlib==3.11.2" numpy scipy
 ```
 
 For notebook interactivity:
 
 ```bash
-uv add matplotlib ipympl
+uv add "matplotlib==3.11.2" ipympl
 ```
 
 Then enable the widget backend in Jupyter with `%matplotlib widget` or `%matplotlib ipympl`.
 
-Matplotlib 3.10 requires Python 3.10+ and NumPy 1.23+. Non-interactive file output works through backends such as Agg, PDF, and SVG. For GUI windows, Matplotlib auto-selects an available backend; if `TkAgg` fails in a uv-managed Python, update uv and Python builds with `uv self update` and `uv python upgrade --reinstall`, or install a Qt backend with `uv add pyside6`.
+Targets Matplotlib 3.11.2 (Python 3.11+), reviewed 2026-10-01. The bundled scripts and representative examples were executed using Agg and PNG/PDF/SVG output. GUI windows, Jupyter widgets, and external LaTeX are environment-dependent and were not exercised. Fragment examples assume imports and named data; adapt and validate them before use. Check the [3.11 API changes](https://matplotlib.org/stable/api/prev_api_changes/api_changes_3.11.0.html) when migrating older code: use `tick_labels` and `orientation` for box plots, `mpl.colormaps[name]` for colormaps, and label contour lines rather than `contourf`.
+
+File output needs no GUI. Use `MPLBACKEND=Agg` for batch scripts, or select Agg before importing pyplot. Interactive output requires an installed GUI toolkit such as PySide6 (`QtAgg`) or working Tk (`TkAgg`); `plt.ioff()` does not remove GUI thread requirements. See [backends](https://matplotlib.org/stable/users/explain/figure/backends.html).
 
 ## Core Concepts
 
@@ -173,7 +176,7 @@ ax.hist(data, bins=30, edgecolor='black', alpha=0.7)
 
 **Heatmaps** - Matrix data, correlations
 ```python
-im = ax.imshow(matrix, cmap='coolwarm', aspect='auto')
+im = ax.imshow(matrix, cmap='viridis', aspect='auto', interpolation='nearest')
 plt.colorbar(im, ax=ax)
 ```
 
@@ -253,10 +256,16 @@ fig.savefig('figure.png', dpi=300, transparent=True)
 ```
 
 **Important parameters:**
-- `dpi`: Resolution (300 for publications, 150 for web, 72 for screen)
-- `bbox_inches='tight'`: Removes excess whitespace — ⛔ 交付链路禁用（mediabox 撑爆风险），基线护栏为 standard
+- `dpi`: Raster pixels per inch; choose from required pixel size and final print size（300 dpi 是印刷常用起点，不是通用 publication 要求）
+- `bbox_inches='tight'`: Crops to artist bounds, changing final physical/pixel dimensions — ⛔ 交付链路禁用（mediabox 撑爆风险），基线护栏为 standard
 - `facecolor='white'`: Ensures white background (useful for transparent themes)
-- `transparent=True`: Transparent background
+- `transparent=True`: Makes axes/figure backgrounds transparent; explicit facecolors can override this
+
+固定尺寸出图：用 constrained layout 并省去 tight 裁剪（若所用 style 设了
+`savefig.bbox`，在 `mpl.rc_context` 里临时设回 `savefig.bbox=None`）。PNG 像素尺寸
+≈ `figsize * dpi`；PDF/SVG 保持矢量（除非含图像或栅格化 artist）。DPI 不会给源数据
+增加信息量。批量脚本在 `show` 之前 `fig.savefig(...)`，循环内每个图 `plt.close(fig)`。
+导出后按最终使用尺寸检查：裁切、缺字形、对比度、图例可读性。
 
 ### 6. Working with 3D Plots
 
@@ -288,20 +297,18 @@ ax.set_zlabel('Z Label')
 
 ### 2. Figure Size and DPI
 - Set figsize at creation: `fig, ax = plt.subplots(figsize=(10, 6))`
-- Use appropriate DPI for output medium:
-  - Screen/notebook: 72-100 dpi
-  - Web: 150 dpi
-  - Print/publications: 300 dpi
+- Choose DPI and final dimensions together; 300 dpi is a common starting point for print, not a universal publication requirement.
 
 ### 3. Layout Management
-- Use `constrained_layout=True` or `tight_layout()` to prevent overlapping elements
-- `fig, ax = plt.subplots(constrained_layout=True)` is recommended for automatic spacing
+- Prefer `fig, ax = plt.subplots(layout="constrained")` for automatic spacing.
+- Do not combine layout engines: `tight_layout()` disables constrained layout. Neither engine replaces visual inspection of the exported figure.
 
 ### 4. Colormap Selection
 - **Sequential** (viridis, plasma, inferno): Ordered data with consistent progression
 - **Diverging** (coolwarm, RdBu): Data with meaningful center point (e.g., zero)
 - **Qualitative**: Categorical/nominal data — ⛔ 禁用 `tab10`/`Set3` 等默认定性色环（matplotlib 出厂色，"AI 味"来源）；分类数据用 `academic.mplstyle` 定版 cycler，高可及性需求用 Okabe-Ito
 - Avoid rainbow colormaps (jet) - they are not perceptually uniform
+- 可比的热图/图像面板使用**同一归一化与显式极限**：只共用 `cmap` 不代表颜色有相同数值含义。colorbar 标注单位并披露截断（`extend`）。diverging 数据用有意义的中心（必要时 `TwoSlopeNorm`）；`LogNorm` 只接受正值——零/负/缺失值要显式处理，不得静默替换。
 
 ### 5. Accessibility
 - Use colorblind-friendly colormaps (viridis, cividis)
@@ -310,11 +317,17 @@ ax.set_zlabel('Z Label')
 - Include descriptive labels and legends
 
 ### 6. Performance
-- For large datasets, use `rasterized=True` in plot calls to reduce file size
+- For dense artists in PDF/SVG, use `rasterized=True`; PNG is already raster. Rasterization mainly reduces vector file size, not the number of input points.
 - Use appropriate data reduction before plotting (e.g., downsample dense time series)
-- For animations, use blitting for better performance
+- Use blitting only when the backend supports it and return all changed artists.
 
-### 7. Code Organization
+### 7. Scientific Checks
+- 校验单位、形状、成对缺失值处理与 x 值排序；被剔除的观测要保留断口，不得跨缺口静默连线。
+- `errorbar` 接受的是非负误差**尺寸**（标量、`(N,)` 或 `(2, N)` 先下后上），不是区间端点；`fill_between` 接收的才是下/上端点。SD、SEM、CI 在上游算好并声明种类、样本量、抽样单元与方法——Matplotlib 不会替你推断不确定性。
+- 箱线图须默认 1.5 IQR；离群点（fliers）不等于数据错误。小提琴形状依赖带宽；3.11 会忽略 masked/nonfinite 观测——排除量要统计并披露，画前逐组校验（空组/单点组先行处理）。
+- 共享 colorbar 要求共享 norm 与单位。科学图像的朝向、像素范围与空间长宽比必须服从数据，而不是服从美观。
+
+### 8. Code Organization
 ```python
 # Good practice: Clear structure
 def create_analysis_plot(data, title):
@@ -342,11 +355,11 @@ fig.savefig('analysis.png', dpi=300)
 This skill includes helper scripts in the `scripts/` directory:
 
 ### `plot_template.py`
-Template script demonstrating various plot types with best practices. Use this as a starting point for creating new visualizations.
+Template script using reproducible synthetic data. Bar errors are sample SD across 12 synthetic replicates; box and violin plots use supplied groups. Replace these with actual data and declared uncertainty. Commands below run from the skill root.
 
 **Usage:**
 ```bash
-uv run python scripts/plot_template.py
+MPLBACKEND=Agg uv run --isolated --with "matplotlib==3.11.2" --with numpy --with scipy python scripts/plot_template.py --no-show --output plot.png
 ```
 
 ### `style_configurator.py`
@@ -354,7 +367,7 @@ Interactive utility to configure matplotlib style preferences and generate custo
 
 **Usage:**
 ```bash
-uv run python scripts/style_configurator.py
+MPLBACKEND=Agg uv run --isolated --with "matplotlib==3.11.2" --with numpy python scripts/style_configurator.py --preset dark --output dark.mplstyle --preview --no-show
 ```
 
 ## Detailed References
@@ -376,10 +389,10 @@ Matplotlib integrates well with:
 
 ## Common Gotchas
 
-1. **Overlapping elements**: Use `constrained_layout=True` or `tight_layout()`
+1. **Overlapping elements**: Use one layout engine, then inspect the export
 2. **State confusion**: Use OO interface to avoid pyplot state machine issues
 3. **Memory issues with many figures**: Close figures explicitly with `plt.close(fig)`
-4. **Font warnings**: Install fonts or suppress warnings with `plt.rcParams['font.sans-serif']`
+4. **Font warnings**: Install the requested font or choose an available fallback; do not hide missing-glyph warnings
 5. **DPI confusion**: Remember that figsize is in inches, not pixels: `pixels = dpi * inches`
 
 ## Additional Resources

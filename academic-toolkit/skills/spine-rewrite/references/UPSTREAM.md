@@ -18,3 +18,12 @@
 
 - vendor/forks/PaperSpine 已镜像同步至实测 HEAD（1648 文件更新、9 项上游旧版发布残留清理）；上游 2 个月更新含 v4.0.0 大版本（多语言 README、portable suites/release v6 工作流、INSTALL 文档族等）。
 - 本仓 spine 系 11 技能为上游单一 paper-spine 技能的拆分重组编排（脚本/资产只读引用），上游 v4.0.0 技能包结构变化须经逐件 diff 评估后按收编规程重放，本单仅完成 vendor 同步与台账刷新，技能侧重收编待专项。
+
+## 重收编施工记录（2026-11-16，PKG-07 spine 系批）
+
+- writing-rationale-matrix.md：吸收贡献承诺语义（推进/验证/解释/约束四类、动机对齐不越声明边界）、深度要求软化（行数≠深度）、第四墙规则按科学/透明功能判断（保留必需 AI 披露）、F1 框架行改写；保持本仓 9 列表头为单一真源。
+- rewrite-matrix.md：吸收贡献任务/声明 ID 与动机对齐列、红线推导读贡献+动机、草稿暗示更强声明回确认而非静默改约、closed-book 适用条件精化、unchanged ratio 诊断化。
+- deep-imitation-protocol.md：吸收「按观察到的推理与写作变化判断学习」、no-op 精准证据、KEEP/ADD 比例诊断化、revision_audit 相似度仅为诊断、Results 保留用户已报告结果并区分复现、Discussion 允许已验证公共文献检索。
+- motivation-thread-writing.md：吸收「贡献契约治理动机线」、确认前锁贡献、未决时继续安全工作、confirmed_motivation 增 governing contribution 字段与声明边界约束。
+- logic-transfer-audit.md：吸收重写判据精化（未解决论证缺陷才是重写理由，段落功能未变不是）。
+- 未吸收（记入 skipped）：上游对 rationale matrix 的 strict-only 降级（本仓裁决 matrix 为执行计划，保持必需）；author_voice_* 与 results-validation/scientific-evidence-ledger 等 v6 产物链（本仓无对应阶段与脚本，收编待裁决）。

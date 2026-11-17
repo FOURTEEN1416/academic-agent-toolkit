@@ -15,11 +15,22 @@ Learning is not copying phrases and not loosely "sounding academic." It is extra
 | Sentence architecture | sentence roles and slots, not copied sentences | skeleton bank |
 | Reader contract | what the paper assumes, explains, and omits | audience rule |
 
-The output of learning is `style_profile.md` plus `section_blueprints.md`. If these artifacts do not exist, no deep imitation has happened.
+The output of learning is `style_profile.md` plus `section_blueprints.md`. If
+these artifacts do not exist, no deep imitation has happened. Judge deep
+imitation by the observed reasoning and writing changes, not by the existence
+of particular filenames alone.
 
 ## Three-Table Method
 
-For each target section, create three tables.
+For each target section needing structural revision, compare exemplar moves,
+current draft moves and the intended evidence-led outline. The three tables
+below are one way to record that comparison; existing notes can carry it. The
+scientific work is the same either way: read the selected original sections,
+locate their paragraph functions and evidence, compare those functions with the
+draft, and apply the suitable pattern in an actual revised section. Reopen both
+texts to judge whether the diagnosed argument problem was repaired while the
+study's facts and claim boundary were preserved. A list of paper titles or a
+completed profile alone does not do this.
 
 ### Table 1: Exemplar Move Table
 
@@ -64,18 +75,20 @@ Allowed operations:
 - `ADD`: new connective or explanatory text is added from existing evidence.
 - `KEEP`: paragraph is retained nearly as-is, with explicit justification.
 
-`KEEP` should be rare in style imitation. `ADD` should be secondary.
+Choose the operation that repairs the actual weakness. `KEEP` should be rare in
+style imitation and `ADD` secondary, but retaining already-effective text is
+correct; an operation ratio is not a measure of learning.
 
 ## Closed-Book Section Rewrite
 
 Use this procedure for each important section:
 
 1. Read the original section and extract facts, claims, citations, figure references, and numbers into notes.
-2. Read the exemplar move table and section blueprint.
+2. Read the exemplar move table and section blueprint (or the equivalent notes).
 3. Stop looking at the original prose.
 4. Draft the new section from notes and blueprint.
 5. Reopen the original only to verify that claims, numbers, citations, and figure references are preserved.
-6. Run `revision_audit.py` to detect near-identical paragraphs.
+6. Compare the original and revised argument against the diagnosed weakness; run `revision_audit.py` to locate near-identical paragraphs. Its similarity ratio is a diagnostic, not the verdict on scientific or writing quality.
 
 This prevents the common failure mode where the model simply edits one sentence, adds one sentence, and leaves the rest untouched.
 
@@ -85,9 +98,9 @@ For substantive revision, the output should usually satisfy:
 
 | Metric | Target |
 |---|---|
-| Near-identical paragraph ratio | below 35% for revised sections |
+| Near-identical paragraph ratio | Diagnostic: assess whether the identified weaknesses were repaired; retain justified valid text |
 | Dominant operation | not `ADD` |
-| `KEEP` rows | below 25% unless the user requested minor polish |
+| `KEEP` rows | No quota: keep valid, unaffected content and justify it when substantive restructuring was requested |
 | Missing obligatory moves | 0 |
 | Unsupported new claims | 0 |
 | Numbers without source | 0 |
@@ -106,13 +119,14 @@ Each blueprint must answer:
 6. What evidence from the user's materials supports each target paragraph?
 7. What style constraints apply: sentence length, citation density, claim strength, opening/closing style?
 
-**Section economy is a budget, not a wish.** Record the exemplars' consensus
-top-level section count (applied journal/conference papers run 4-6 sections) and
-make the blueprint match it. Do not emit one section per idea or one section per
-reviewer comment: a 2-paragraph "Experimental Setup" or a "Discussion" split off
-from "Conclusion" must be merged into a neighbor. `section_economy_check.py`
-hard-fails a top-level section count above the budget, so a bloated blueprint
-will not pass the final gate.
+**Section economy is a budget, not a wish.** Section structure follows the
+article's argument and target requirements: read the exemplars' section
+functions and proportions as orientation, then choose the structure the present
+evidence needs. Combine short or redundant sections only when their
+intellectual jobs remain clear. Applied journal/conference papers commonly run
+4-6 top-level sections; `section_economy_check.py` hard-fails a top-level
+section count above the budget, so a bloated blueprint will not pass the final
+gate — and the count warning is never a reason to remove required content.
 
 ## Results and Discussion Discipline
 
@@ -121,12 +135,19 @@ For Results:
 - Do not borrow results from exemplar papers.
 - Do not infer numerical values from figures unless the user permits visual estimation.
 - Prefer exact values from tables/logs/source draft.
-- If a figure exists but the data are not available, describe only visually supported qualitative patterns and mark `[AUTHOR VERIFY]`.
+- If raw arrays are unavailable, retain the supported values and findings
+  explicitly reported in the user's materials, and distinguish those reported
+  results from independent reproduction. Describe only what the figure itself
+  supports when no numeric source exists, and flag specific ambiguities rather
+  than marking all supplied work unverified.
 
 For Discussion:
 
 - Resolve the Introduction's gap using the user's results.
-- Compare to prior work only with citations already present or supplied.
+- Compare to relevant prior work whose cited point has actually been verified,
+  including justified public-literature retrieval. Honor explicit offline
+  instructions; a materials-only research scope excludes new analyses, not
+  normal public citation checks.
 - Limit future work and limitations to claims supported by the study design.
 
 ## Failure Pattern: Patch Writing
@@ -140,4 +161,6 @@ Patch writing looks like:
 - No section blueprint exists.
 - No audit compares original and revised text.
 
-When this happens, discard the patch pass and redo the section with the closed-book method.
+When this happens, repair the affected section with the closed-book method.
+Preserve effective changes and unaffected prose rather than discarding work to
+satisfy an operation ratio.

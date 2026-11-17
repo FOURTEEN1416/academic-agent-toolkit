@@ -1,6 +1,6 @@
 ---
 name: fig-plot-edit
-description: "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实验表格（CSV/TXT/XLS/XLSX）画成可编辑 OPJU + PNG/PDF/TIF 出版级科研图。材料光谱（XPS/XRD/GSAS/XAS/FTIR/NMR/DSC/PL/UV-Vis/EIS/CV/LSV）、通用统计、医学与深度学习（ROC/PR/DCA/SHAP）专用模板；逐列确认数据用途、方案哈希冻结、Origin 对象反读校验。本机无 Origin 时如实降级，不伪造通过。"
+description: "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实验表格（CSV/TXT/XLS/XLSX）画成可编辑 OPJU + PNG/PDF/TIF 出版级科研图。材料光谱（XPS/XRD/GSAS/XAS/FTIR/NMR/DSC/PL/UV-Vis/EIS/CV/LSV）、时序信号（FLIM 相量/预计算时频场/多通道信号/事件栅格）、通用统计、医学与深度学习（ROC/PR/DCA/SHAP）专用模板；逐列确认数据用途、方案哈希冻结、Origin 对象反读校验。本机无 Origin 时如实降级，不伪造通过。"
 ---
 
 # EditaPlot · 艾迪图（Origin 可编辑科研绘图）
@@ -10,7 +10,8 @@ description: "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实
 > **runtime 引擎不在本技能内**：引擎与启动器在 `vendor/forks/editaplot/`（仓库根相对路径，
 > `editaplot.cmd` 在该目录根）。上游原文 SKILL.md 保留在
 > `vendor/forks/editaplot/skill/editaplot/SKILL.md`，与本文件冲突时**以本文件为准**（本仓适配层）。
-> **硬前提**：仅物理 Windows 10/11 x64 + CPython 3.10–3.12 + 本地 Origin/OriginPro 2021+
+> **硬前提**：仅物理 Windows 10/11 x64 + CPython 3.11–3.12（推荐 3.12；依赖锁 Pillow 13.0.0，
+> 3.10 已退役、其历史验证记录仅作证据）+ 本地 Origin/OriginPro 2021+
 >（验证基线 2024b）。**本机未装 Origin 时本技能不可用——如实报告缺口，不伪造通过**
 >（TOOL_GAP 纪律）。Origin 的安装永远是用户手动完成的系统级变更，本技能不代装。
 
@@ -49,12 +50,17 @@ vendor\forks\editaplot\editaplot.cmd doctor --repair
   **绝不启动 Origin**；`ready_for_render` 只代表技术就绪，不代表实时连接成功。
 - 缺 Origin / 缺 Python / 缺依赖时：报告缺口与安装前置，**停止**，等待用户自行解决后重跑。
   平台不支持（macOS/Linux/WSL/VM）直接拒绝并说明。
+- 老环境升级（上游 2026-11 更新）：先刷新完整 vendor 仓库再重跑 `setup`；迁移必须选兼容解释器
+  （3.11/3.12），不得往 3.10 里装 Pillow 13.0.0。迁移成功把旧环境归档为 `.editaplot-venv.retained-*`；
+  后续修复不清这些档案，发现/恢复也绝不自动选中它们。分阶段安装失败即停并给诊断，可把旧环境还原
+  原位，但**不得把旧脆弱依赖集当 fallback 执行**；无兼容解释器则停在环境替换之前，走显式同意的
+  Python 安装流程。绝不借迁移改全局包、PATH、注册表、Origin 或权限策略。
 
 ## 三、核心流程（8 步）
 
 1. **读取与推荐**：`editaplot.cmd start <数据文件> [--intent "<用户意图>"]`。inspect/recommend 载荷是内部工作态；对新手只说：识别出了什么、最佳 1–3 种图及理由、还差哪个最小科学决策。附件只有临时副本时，先问一次真实源/输出目录，不猜。
 2. **逐列理解**：选定候选模板后 `editaplot.cmd understand <数据文件> --template-id <id>`。把结果整理成清单：数据类型；要画的列；仅辅助/校验的列；保留不画的列；将出现的图形元素；**不会自动做的计算**。每个源列恰好出现一次；任何 `uncertain` 项＝追问，不得替用户确认或规划。
-3. **科学确认（哈希冻结）**：请用户确认一句话科学目的＋元素清单后，`plan` 冻结 `proposal_hash`、已批准派生项与歧义选择到 `--semantic-confirmation-json`。**源文件、列映射、目的或 proposal_hash 任一变化，确认即失效重做**。
+3. **科学确认（哈希冻结）**：请用户确认一句话科学目的＋元素清单后，`plan` 冻结 `proposal_hash`、已批准派生项与歧义选择到 `--semantic-confirmation-json`。**源文件、列映射、目的或 proposal_hash 任一变化，确认即失效重做**。上游更新后旧冻结 plan 可能报 `analysis_changed`：重跑 `understand`、取新确认、重新生成 plan；**不手改 JSON 绕闸门**。
 4. **配色**：颜色可自选时 `editaplot.cmd palettes`，展示 `assets/palettes/palette-selector-public.zh-CN.png`，推荐 ≤2 个兼容 `palette_id`；冻结前读 `references/palettes.md`。
 5. **精确样式（可选）**：XPS 等路线支持 `--visual-style-json` 冻结用户精确值，合法字段仅：`series_colors`、`line_width_pt`、`fill_transparency_percent`、`page_size_cm`、`legend_visible`、`legend_position`、`legend_frame`。非法值**快速失败请用户修正**，不静默回退默认。
 6. **Origin 预检烟测（强制）**：`editaplot.cmd origin-smoke --output-dir <独立空目录>`（`launch_isolated`：启动并独占专用 Origin 实例＋版本握手＋模板能力判定）。**计划之后、正式渲染之前必须通过**。激活失败按上游有界重试策略（清理成功才允许一次全新隔离实例重试）；`origin_com_class_not_registered`/`origin_com_activation_access_denied` 直接停止不重试；不因 Python worker 运行久就强杀（它可能持有隐藏 Origin 实例）。
@@ -70,12 +76,27 @@ vendor\forks\editaplot\editaplot.cmd doctor --repair
 - **科学分析与显示变换分离**：绝不静默归一化、平滑、拟合、剔异常点、算误差棒、认物相、指认峰。SHAP 只接受上游预计算的逐样本贡献表，绝不训练模型或调用 SHAP。
 - GSAS/GSAS-II：区分 Observed/Calculated/可选 Background/上游自带 Difference/显式 Phase 刻线与控制列；上游 Publication 的 `Diff` 按源值画，**不做第二次偏移**。
 - XPS：外观偏好与科学合同分离；结合能轴高→低方向、组分身份、残差处置、已验证的单区域填充实现**不可**被样式请求或参考图改写。
+- FLIM：`flim_phasor` 只接受上游 `G`/`S` 坐标（可带 1–8 组分组列）。保留全部点——参考半圆外与
+  负 S 点不是离群点，不自动剔除；确认数学参考半圆 helper（圆心 (0.5,0)、半径 0.5）；保持 G/S 等物理
+  比例。不推断寿命、不拟合衰减、不解混、不聚类。
+- 事件栅格：`event_raster` 用显式 Time/单位、Trial、Condition 长表。按源序确认 trial 序数；空 Time
+  是 inventory 声明，不是零点事件。保留每个事件与空 lane，零事件条件保留在无边框外置图例中。不做
+  事件检测、不算 PSTH/速率、不按响应重排 trial。详见 `references/data-contracts.md` 事件表一节；
+  仅条件兼容的 palette 可替换默认配色。
 - 医学数据/参考图检查前，要求用户确认已脱敏并去除烧录文字；`panel-plan` 是布局门禁，不是 PHI 检测器。
 - 3D 必须有真实科学含义的第三轴，拒绝装饰性 3D；新 3D 路线保持 experimental 直到全套门禁通过。
 - 模板路线状态（verified/experimental/unsupported）与主机兼容状态分开陈述，不把 `compatible_unverified` 说成 verified。
 - 图表必须能辩护一个明确结论；技术上画得出来但会误导的图，**拒绝**。
 
 ## 五、出版图形合同
+
+时序信号新路线（上游 2026-11）：时频表仅在时间/频率/值三列都显式给单位且构成完整均匀网格时选
+`time_frequency`；保留两个坐标方向与全部格子，走数值物理轴路线而非分类 `heatmap`；顺序色标
+detached scale；不做 FFT/STFT/小波、滤波、插值、基线或 dB 换算；原始 EEG 电压表需要上游预处理，
+本路线不发明频率列。多通道 EEG/荧光轨迹已给表时选 `signal_stack`：要求显式 Time/Channel/Amplitude
+角色与单位，保留全部观测与通道顺序，确认加性显示偏移与公共单位标尺；通道/ROI 身份保持文本（含
+前导零）。不滤波、不对齐、不居中、不归一化、不推断事件、不解码采集文件；通道名与单位标尺位于真
+时间轴数据范围之外。
 
 白底、Arial、克制配色（拒绝彩虹色与装饰性 3D）；物理尺寸由图型/数据密度/系列数/标签长度推导；单位换算正确，小字号期刊值不直接塞进 Origin API；同条件跨面板颜色一致，palette ID 与 HEX 冻结进 plan；用户显式样式 > 参考图风格建议，但都要过能力门禁并归类 applied/retained/rejected；优先可编辑 Origin 对象与标签——Python 预览或内嵌位图不是 Origin 交付物。成果只能称 **"publication-informed"**，不得称 "Nature compliant" 或期刊认可。
 

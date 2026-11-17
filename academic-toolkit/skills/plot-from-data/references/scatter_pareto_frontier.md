@@ -2,7 +2,7 @@
 
 **类型**：散点图：主方法前沿用大星标 + 粉色虚线连接，非前沿运行点作淡色背景云
 **样例图**：`examples/scatter_break.png`（原图，取左面板前沿语法）、`examples/scatter_break_repro.png`（复现）
-**样例来源**：`vendor/forks/paper-plot-skills/originals/scatter_break.png`（只读 vendor 快照，仅本地使用、不再分发）
+**样例来源**：`vendor/forks/paper-plot-skills/originals/scatter_break.png`（只读 vendor 快照；owner 已于 2026-11-16 裁决确认样例 PNG 可随公开仓分发）
 **复现脚本**：`scripts/scatter_break.py`（该脚本的折断轴语法见 `scatter_broken_axis`；本卡抽出其中独立可复用的前沿语法）
 
 ## 适用场景

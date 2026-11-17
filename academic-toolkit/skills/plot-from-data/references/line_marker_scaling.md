@@ -2,7 +2,7 @@
 
 **类型**：折线图，x 轴为离散模型参数量（0.6/1.7/4/8），每个数据点大圆标记 + 细置信带
 **样例图**：`examples/line_selfdistill_scale.png`（原图）、`examples/line_selfdistill_scale_repro.png`（复现）
-**样例来源**：`vendor/forks/paper-plot-skills/originals/line_selfdistill_scale.png`（只读 vendor 快照，仅本地使用、不再分发）
+**样例来源**：`vendor/forks/paper-plot-skills/originals/line_selfdistill_scale.png`（只读 vendor 快照；owner 已于 2026-11-16 裁决确认样例 PNG 可随公开仓分发）
 **复现脚本**：`scripts/line_selfdistill.py`（image3 分支；连续训练曲线版见 `line_band_baseline`，umbrella 卡 `line_confidence_band` 的 Type B 在本卡原子化）
 
 ## 适用场景

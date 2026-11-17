@@ -3,12 +3,12 @@ name: data-statistics-report
 description: Guided statistical analysis with test selection and reporting. Use when you need help choosing appropriate tests for your data, assumption checking, power analysis, and APA-formatted results. Best for academic research reporting, test selection guidance. For implementing specific models programmatically use statsmodels.
 license: MIT license
 metadata:
-  version: "1.0"
+  version: "1.1"
   skill-author: K-Dense Inc.
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以当前 Agent 的联网检索/网页抓取能力替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以当前 Agent 的联网检索/网页抓取能力替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-11-16 重收编：融入上游 2d2065f（v2.72.0，目录已重组为 statistical-analysis）增量——Pingouin 0.7/SciPy 1.18.1/statsmodels 0.15.0/PyMC 6.3.2/ArviZ 1.3.0 口径与行为变更警示、correction='auto' 语义、绝对值 Cohen's d 纠偏、Welch 预指定与 Games-Howell 路径、PyMC 6 DataTree/ArviZ ci_prob、假设筛查"非判定"语义；assumption_checks.py 与五份 references 按上游补丁更新。-->
 # Statistical Analysis
 
 ## Overview
@@ -30,21 +30,28 @@ This skill should be used when:
 
 ## Installation
 
-Use **uv** to install the libraries used in this skill. Pin versions in production; unpinned installs are fine for exploration.
+Use **uv** in a dedicated environment — do not add mutually incompatible scientific stacks to a shared project environment. Pin versions in production; unpinned installs are fine for exploration.
 
 ```bash
-# Core frequentist stack (Python 3.10+; 3.12+ recommended for latest SciPy/ArviZ)
-uv pip install "pingouin>=0.6" "scipy>=1.11" "statsmodels>=0.14.6" pandas matplotlib seaborn
+# Core frequentist stack (Python 3.12+ for the reviewed snapshot)
+uv venv --python 3.12 .venv-statistics
+uv pip install --python .venv-statistics/bin/python "pingouin==0.7.0" "scipy==1.18.1" "statsmodels==0.15.0" pandas matplotlib seaborn
 
-# Bayesian modeling (PyMC 5 + ArviZ; ArviZ 0.23+ requires Python 3.12+)
-uv pip install "pymc>=5.0" "arviz>=0.17"
+# Bayesian modeling (optional; PyMC 6 + ArviZ 1)
+uv pip install --python .venv-statistics/bin/python "pymc==6.3.2" "arviz==1.3.0"
 ```
+
+On Windows use `.venv-statistics/Scripts/python.exe`. Lock the resolved environment for reproduction.
 
 **Compatibility notes (2025–2026):**
 
 - **Pingouin 0.5+** renamed output columns (`p_val`, `cohen_d`, `CI95`, `p_unc`) — examples below use the current names.
+- **Pingouin 0.7** fixes erroneous mixed/repeated-measures corrections, categorical ANOVA, and other results; do not reproduce an old analysis by merely changing its reported version. See the [official changelog](https://pingouin-stats.org/changelog.html).
+- **`ttest` reports the absolute Cohen's d**; calculate a signed estimate explicitly (e.g. `pg.compute_effsize(a, b, eftype='cohen')`). Its `power` column is observed power and should not be used to interpret a null result.
+- **`correction='auto'`** chooses Welch by unequal *sample sizes*, not by variance evidence. Set `correction=True` for prespecified Welch inference.
 - **statsmodels + SciPy**: use `statsmodels>=0.14.6` with `scipy>=1.11` to avoid `_lazywhere` import errors on SciPy 1.16+.
-- **Pingouin Bayes Factors**: one-sided BF for t-tests was removed in 0.5+; use dedicated packages (e.g. JASP, BayesFactor via R) or PyMC for hypothesis testing.
+- **PyMC 6** returns an xarray `DataTree`; **ArviZ 1** uses `ci_prob` in `summary`/`plot_dist` and `prob` in `hdi` — specify 95% intervals explicitly. See `references/bayesian_statistics.md`.
+- **Pingouin Bayes Factors**: one-sided BF for t-tests was removed in 0.5+ (posterior directional probabilities are not Bayes factors); use dedicated packages (e.g. JASP, BayesFactor via R) or PyMC for hypothesis testing.
 
 For model-specific APIs (OLS, GLM, ARIMA), use the **statsmodels library** and refer to its official documentation (本仓未集成 statsmodels 技能). For PyMC workflows, see the **pymc** skill.
 
@@ -164,6 +171,16 @@ This performs:
 3. **Homogeneity of variance** (Levene's test + box plots)
 4. **Interpretation and recommendations**
 
+These screens are diagnostics, not verdicts: a non-significant Shapiro/Levene
+result does not *verify* normality or equal variance, and you should not switch
+tests automatically at a diagnostic p-value threshold. The helper rejects
+infinities, undersized or degenerate samples, reports omitted NaNs, retains
+original outlier positions, and rejects missing group labels. Grouped output
+uses `outliers_per_group`; the legacy `is_normal`/`is_homogeneous` fields (and
+the `Normal` table label) mean only "not rejected". No binary Shapiro verdict is
+returned above 5000 observations, where its p-value may be inaccurate.
+Independence is established through design review, never this helper.
+
 ### Individual Assumption Checks
 
 For targeted checks, use individual functions:
@@ -191,14 +208,15 @@ print(result['recommendation'])
 ### What to Do When Assumptions Are Violated
 
 **Normality violated:**
-- Mild violation + n > 30 per group → Proceed with parametric test (robust)
-- Moderate violation → Use non-parametric alternative
-- Severe violation → Transform data or use non-parametric test
+- There is no universal "n > 30 makes it fine" rule: tails, skewness, imbalance, dependence and the target estimator all matter. Judge against the design and estimand.
+- Mild skew with balanced designs → parametric test is usually defensible; report a sensitivity analysis
+- Marked violation → transform data or use a non-parametric/rank or robust alternative (rank tests change the question and retain their own assumptions)
+- For paired t-tests diagnose the *differences*; for regression inspect *residuals*
 
 **Homogeneity of variance violated:**
-- For t-test → Use Welch's t-test
-- For ANOVA → Use Welch's ANOVA or Brown-Forsythe ANOVA
-- For regression → Use robust standard errors or weighted least squares
+- For t-test → Use Welch's t-test (prespecify `correction=True`; `correction='auto'` keys on unequal sample sizes, not variance evidence)
+- For ANOVA → Use Welch's ANOVA with Games-Howell pairwise comparisons, or Brown-Forsythe ANOVA
+- For regression → HC3 robust standard errors address heteroscedasticity (not clustering, confounding or a wrong mean model)
 
 **Linearity violated (regression):**
 - Add polynomial terms
@@ -228,19 +246,21 @@ Primary libraries for statistical analysis:
 import pingouin as pg
 import numpy as np
 
-# Run independent t-test
-result = pg.ttest(group_a, group_b, correction='auto')
+# Prespecified independent mean comparison (Welch); arrays must contain finite observations
+result = pg.ttest(group_a, group_b, correction=True)
 
 # Extract results (Pingouin 0.5+ column names)
 t_stat = result['T'].values[0]
 df = result['dof'].values[0]
 p_value = result['p_val'].values[0]
-cohens_d = result['cohen_d'].values[0]
+# ttest's cohen_d column is absolute; compute the signed A - B estimate explicitly
+cohens_d = pg.compute_effsize(group_a, group_b, eftype='cohen')
 ci = result['CI95'].values[0]
 ci_lower, ci_upper = ci[0], ci[1]
 
-# Report
-print(f"t({df:.0f}) = {t_stat:.2f}, p = {p_value:.3f}")
+# Report (APA: exact p, three decimals; p < .001 in the tail)
+p_text = "p < .001" if p_value < .001 else f"p = {p_value:.3f}"
+print(f"t({df:.2f}) = {t_stat:.2f}, {p_text}")
 print(f"Cohen's d = {cohens_d:.2f}, 95% CI [{ci_lower:.2f}, {ci_upper:.2f}]")
 ```
 
@@ -255,12 +275,18 @@ print(aov)
 
 # If significant, conduct post-hoc tests
 if aov['p_unc'].values[0] < 0.05:
+    # A prespecified all-pairs family: Tukey HSD controls family-wise error
+    # (its effect-size column is Hedges' g, not Cohen's d)
     posthoc = pg.pairwise_tukey(dv='score', between='group', data=df)
     print(posthoc)
 
 # Effect size
 eta_squared = aov['np2'].values[0]  # Partial eta-squared
 print(f"Partial η² = {eta_squared:.3f}")
+
+# Prespecified unequal-variance workflow (heteroscedastic one-way design):
+# welch = pg.welch_anova(dv='score', between='group', data=df)
+# games_howell = pg.pairwise_gameshowell(dv='score', between='group', data=df)
 ```
 
 #### Linear Regression with Diagnostics
@@ -338,19 +364,25 @@ with pm.Model() as model:
     # Derived quantity
     diff = pm.Deterministic('difference', mu1 - mu2)
 
-    # Sample
-    trace = pm.sample(2000, tune=1000, return_inferencedata=True)
+    # Sample (record the seed; PyMC 6 returns an xarray DataTree)
+    trace = pm.sample(2000, tune=1000, chains=4, cores=1, random_seed=42, return_inferencedata=True)
 
-# Summarize
-print(az.summary(trace, var_names=['difference']))
+# Summarize (ArviZ 1: pass ci_prob explicitly for a 95% interval)
+print(az.summary(trace, var_names=['difference'], ci_prob=0.95))
 
 # Probability that group1 > group2
 prob_greater = np.mean(trace.posterior['difference'].values > 0)
 print(f"P(μ₁ > μ₂ | data) = {prob_greater:.3f}")
 
 # Plot posterior
-az.plot_posterior(trace, var_names=['difference'], ref_val=0)
+az.plot_posterior(trace, var_names=['difference'], ref_val=0, ci_prob=0.95)
 ```
+
+**Interpretation caveats:** this is a shared-variance normal model, not Welch's
+model or a Bayes-factor calculation. Choose priors in meaningful units, inspect
+prior predictions and prior sensitivity, and check finite R-hat/ESS/MCSE,
+divergences and posterior predictive fits before reporting — short synthetic
+smoke tests do not establish convergence.
 
 ---
 
@@ -358,7 +390,7 @@ az.plot_posterior(trace, var_names=['difference'], ref_val=0)
 
 ### Always Calculate Effect Sizes
 
-**Effect sizes quantify magnitude, while p-values only indicate existence of an effect.**
+**Effect sizes quantify magnitude; p-values measure incompatibility with a specified null model under its assumptions.** A p-value does not prove that an effect exists or measure its practical importance — report an effect estimate and its uncertainty for every test.
 
 See `references/effect_sizes_and_power.md` for comprehensive guidance.
 

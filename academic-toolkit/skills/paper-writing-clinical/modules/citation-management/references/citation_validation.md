@@ -547,30 +547,43 @@ Examine validation report:
 1. Standardize formatting
 2. Add URLs for accessibility
 
-### Step 4: Generate a JSON Report (No Auto-Fix)
+### Step 4: Apply the Safe Corrections
 
-**Note**: The `--auto-fix` flag exists but is not implemented — the script cannot rewrite your BibTeX file for you. Generate a JSON report instead and use it to guide manual revisions:
+`validate_citations.py` only reports; `format_bibtex.py` is what rewrites.
+Send the result to a new file so the original survives a bad run:
 
 ```bash
-python scripts/validate_citations.py references.bib \
-  --report validation_report.json
+python scripts/format_bibtex.py references.bib \
+  --output fixed_references.bib
 ```
 
-The report records, per entry:
-- Missing required fields
-- Invalid year or DOI formats
-- Page range format issues
-- Author separator problems
-- Duplicate DOIs, keys, and identical titles
+**It can**:
+- Fix page range format (- to --), and expand abbreviated ranges (1123-30)
+- Remove "pp." from pages
+- Standardize author separators
+- Strip URL prefixes from DOIs
+- Normalize field order
+- Rewrite citation keys to one scheme (`--rekey`)
+- Drop duplicates by DOI or key (`--deduplicate`)
 
-All corrections must be made manually in the BibTeX file using this report as the worklist.
+**It cannot**:
+- Add missing information
+- Find correct DOIs
+- Determine which duplicate to keep — it keeps the first
+- Fix semantic errors
+
+The validator's JSON report (`--report validation_report.json`) remains the
+worklist for everything the formatter cannot fix; those need manual edits.
 
 ### Step 5: Manual Review
 
-Fix the issues listed in the report directly in `references.bib`:
+Review the formatted file and fix what the formatter could not:
 ```bash
+# Check what changed
+diff references.bib fixed_references.bib
+
 # Review specific entries that had errors
-grep -A 10 "Smith2024" references.bib
+grep -A 10 "Smith2024" fixed_references.bib
 ```
 
 ### Step 6: Re-Validate
@@ -578,7 +591,7 @@ grep -A 10 "Smith2024" references.bib
 Validate after fixes:
 
 ```bash
-python scripts/validate_citations.py references.bib --verbose
+python scripts/validate_citations.py fixed_references.bib --verbose
 ```
 
 Should show:
@@ -641,8 +654,7 @@ python scripts/validate_citations.py refs.bib
 python scripts/validate_citations.py refs.bib
 
 # Before submission
-python scripts/validate_citations.py refs.bib --verbose \
-  --report submission_check_report.json
+python scripts/validate_citations.py refs.bib --check-dois
 ```
 
 ### 2. Use Automated Tools
@@ -653,17 +665,19 @@ Don't validate manually - use scripts:
 - Catches errors humans miss
 - Generates reports
 
-### 3. Keep Backup
+### 3. Write to a New File and Diff Before Replacing
 
-The validator never writes to your BibTeX file (auto-fix is not implemented), so manual edits are the correction path — keep a backup before editing:
+`format_bibtex.py` writes only where you tell it to: with neither `--output`
+nor `--in-place` it prints to stdout and leaves the input alone. Keep a backup
+before manual edits regardless:
 
 ```bash
+# Reformat into a separate file
+python scripts/format_bibtex.py references.bib \
+  --output references_fixed.bib
+
 # Before manual corrections
 cp references.bib references_backup.bib
-
-# Generate the validation report
-python scripts/validate_citations.py references.bib \
-  --report validation_report.json
 
 # Fix issues by hand in references.bib, then re-validate
 python scripts/validate_citations.py references.bib --verbose

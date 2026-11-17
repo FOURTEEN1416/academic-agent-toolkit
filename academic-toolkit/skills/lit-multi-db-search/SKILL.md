@@ -1,16 +1,16 @@
 ---
 name: lit-multi-db-search
-description: "Search 10 academic paper databases via REST APIs for research papers, preprints, and scholarly articles. Covers PubMed, OpenAlex, arXiv, Semantic Scholar, and more."
+description: "Search 18 scholarly APIs (PubMed, PMC, Europe PMC, bioRxiv, medRxiv, arXiv, OpenAlex, Crossref, Semantic Scholar, CORE, Unpaywall, OpenCitations, PubTator3, Zenodo, Figshare, ROR, BioStudies, DOAJ) for papers, preprints, citations, open-access full text, repository records, journal OA status; reproducible provenance."
 metadata:
-  version: "1.0"
+  version: "1.1"
   skill-author: K-Dense Inc.
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以执行侧 web_search/web_fetch 工具替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以执行侧 web_search/web_fetch 工具替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-11-16 重收编：融入上游 2d2065f（v2.72.0，目录已重组为 paper-lookup）增量——22 个参考件/脚本文件按上游补丁更新并新增 7 份数据库参考件（OpenCitations/PubTator3/Zenodo/Figshare/ROR/BioStudies/DOAJ），四个脚本 py_compile 通过；正文补"HTTP 200 也会说谎"危害清单、18 库选型与标识符表扩容、限速/重试纪律（Retry-After、只跨不同主机并行）。-->
 # Paper Lookup
 
-You have access to 10 academic paper databases through their REST APIs. Your job is to figure out which database(s) best serve the user's query, call them, and return the results.
+You have access to 18 scholarly APIs through their REST endpoints. Your job is to figure out which database(s) best serve the user's query, call them in a bounded and rate-limited way, and return results with enough provenance (endpoints, parameters, identifiers, access date) that the retrieval can be repeated.
 
 ## Core Workflow
 
@@ -43,7 +43,14 @@ Match the user's intent to the right database(s).
 | Papers across all fields | OpenAlex | Semantic Scholar, Crossref |
 | A specific paper by DOI | Crossref | Unpaywall, Semantic Scholar |
 | Open access PDF for a paper | Unpaywall | CORE, PMC |
-| Citation graph (who cites whom) | Semantic Scholar | OpenAlex |
+| Citation graph (who cites whom) | Semantic Scholar | OpenAlex, Europe PMC, OpenCitations |
+| Open citation edges / OCI | OpenCitations | Semantic Scholar, Europe PMC |
+| Is this paper retracted? | Crossref (`update-type:retraction`, inspect `update-to`) | PubMed publication types / publisher notices |
+| Genes/diseases/chemicals in a paper | PubTator3 | Europe PMC Annotations API |
+| Institution / affiliation → ROR ID | ROR | OpenAlex (already-linked ROR) |
+| Deposited dataset, software, or poster | Zenodo | Figshare, BioStudies |
+| EBI study package / supplementary archive | BioStudies | Zenodo |
+| Is this *journal* in DOAJ? | DOAJ | OpenAlex (`sources.is_in_doaj`) for the yes/no; Unpaywall (article-level OA) |
 | Author's publications | Semantic Scholar | OpenAlex |
 | Paper recommendations | Semantic Scholar | -- |
 | Full text (any field) | CORE | PMC (biomedical only) |
@@ -73,11 +80,15 @@ Different databases use different identifier systems. If a query fails, the iden
 | DOI | `10.xxxx/xxxxx` | `10.1038/nature12373` | All databases |
 | PMID | Integer | `34567890` | PubMed, PMC, Semantic Scholar |
 | PMCID | `PMC` + digits | `PMC7029759` | PMC, Europe PMC |
-| arXiv ID | `YYMM.NNNNN` | `2103.15348` | arXiv, Semantic Scholar |
+| arXiv ID | `YYMM.NNNNN` or legacy `archive/YYMMNNN` | `2103.15348`, `hep-th/9901001` | arXiv, Semantic Scholar |
 | OpenAlex ID | `W` + digits | `W2741809807` | OpenAlex |
 | Semantic Scholar ID | 40-char hex | `649def34f8be...` | Semantic Scholar |
 | ORCID | `0000-XXXX-XXXX-XXXX` | `0000-0001-6187-6610` | OpenAlex, Crossref |
-| ISSN | `XXXX-XXXX` | `0028-0836` | Crossref, OpenAlex |
+| ISSN | `XXXX-XXXX` | `0028-0836` | Crossref, OpenAlex, DOAJ |
+| ROR ID | `https://ror.org/` + 9 chars | `https://ror.org/05a0ya142` | ROR, OpenAlex, Crossref |
+| OCI | `{citing}-{cited}` omid suffixes | `06101801781-06180334099` | OpenCitations |
+| Zenodo record | integer; concept record ≠ version record | `3246411` (version of `3246410`) | Zenodo |
+| BioStudies accession | `S-` / `E-` prefix | `S-BSST12345`, `E-MTAB-1234` | BioStudies |
 
 **Cross-referencing IDs:** Semantic Scholar accepts DOI, PMID, PMCID, and arXiv ID via prefixes (e.g., `DOI:10.1038/nature12373`, `PMID:34567890`, `ARXIV:2103.15348`). OpenAlex accepts DOI and PMID via prefixes (`doi:10.1038/...`, `pmid:34567890`). Use the PMC ID Converter to translate between PMID, PMCID, and DOI.
 
@@ -111,6 +122,17 @@ Most of these databases are fully open. A few benefit from API keys for higher r
 
 ## Making API Calls
 
+**⚠️ These APIs can fail with HTTP 200（上游 v2.72.0 增补的核心危害清单）.** Verify the *shape* of what you got, not just the status code:
+
+- PMC eFetch returns a well-formed article with **no `<body>`** when the publisher forbids redistribution.
+- arXiv returns `totalResults: 1` and one entry titled `Error` for a malformed parameter, and silently rewrites an unknown field prefix to `all:`.
+- Europe PMC puts `errCode` in a 200 body.
+- bioRxiv treats cursors as absolute offsets — an incorrect step silently skips records.
+- Figshare `GET /articles?search_for=` ignores the query and still 200s.
+- OpenCitations answers an unknown DOI with `[{"count": "0"}]`.
+
+None of these raise; every one produces a confident, wrong answer. Check counts against the query, inspect returned titles/errors, and record the endpoint + parameters + access date as provenance.
+
 Use your execution environment's HTTP fetch capability to call REST endpoints:
 
 1. If a dedicated HTTP fetch tool is available, use it to call REST endpoints.
@@ -127,9 +149,10 @@ Use your execution environment's HTTP fetch capability to call REST endpoints:
 
 - For **NCBI APIs** (PubMed, PMC): max 3 req/sec without key, 10 with key. Make requests sequentially.
 - For **arXiv**: max 1 request every 3 seconds. Be patient.
-- For **Crossref**: 5 req/sec (public), 10 req/sec (polite pool with `mailto`).
-- For other APIs with no strict limits, you can query multiple databases in parallel.
-- If you get HTTP 429 (rate limit), wait briefly and retry once.
+- For **Crossref** list queries: 1 req/sec public, 3 with `mailto`; single records 5/10. The bundled paginator conservatively uses 1 req/s.
+- **PubTator3**: 3 req/s — serialize. **OpenCitations**: 180 req/min/IP. **Zenodo** public search: 30 req/min. **Figshare** public records: ~1 req/s. **ROR**: 2000 req / 5 min. **DOAJ** search: 2 req/s. **Unpaywall**: requires a real `email` parameter — placeholders like `test@example.com` are rejected with HTTP 422.
+- **Parallelize across *different* open APIs only** (OpenAlex, Crossref, Semantic Scholar, Europe PMC, Unpaywall, OpenCitations, Zenodo, ROR, BioStudies, DOAJ may run concurrently); keep only a handful of requests in flight, and never parallelize against the same rate-limited host. Serialize PubTator3 and NCBI.
+- On **HTTP 429/503**, honor `Retry-After` or service reset headers and retry once when allowed. A depleted daily budget needs a reset, not a short retry. Semantic Scholar without a key hits this often — one retry, then tell the user a key would help.
 
 ### Error recovery
 
@@ -167,6 +190,7 @@ Read the relevant reference file before making any API call.
 |---|---|---|
 | PubMed | `references/pubmed.md` | 37M+ biomedical citations, abstracts, MeSH terms |
 | PMC | `references/pmc.md` | 10M+ full-text biomedical articles (JATS XML), ID conversion |
+| Europe PMC | `references/europepmc.md` | Biomedical literature with annotations API and citation data |
 
 ### Preprint Servers
 | Database | Reference File | What it covers |
@@ -187,6 +211,21 @@ Read the relevant reference file before making any API call.
 |---|---|---|
 | CORE | `references/core.md` | 37M+ full texts from OA repositories worldwide |
 | Unpaywall | `references/unpaywall.md` | OA status and PDF links for any DOI |
+
+### Citations & Biomedical Entities（上游 v2.72.0 新增）
+| Database | Reference File | What it covers |
+|---|---|---|
+| OpenCitations | `references/opencitations.md` | Open citation edges (OCI) between COCI-indexed papers |
+| PubTator3 | `references/pubtator.md` | Genes/diseases/chemicals/species annotations for biomedical papers |
+
+### Repositories, Registries & Directories（上游 v2.72.0 新增）
+| Database | Reference File | What it covers |
+|---|---|---|
+| Zenodo | `references/zenodo.md` | Deposited datasets, software, posters; concept vs version records |
+| Figshare | `references/figshare.md` | Institutional/repository research outputs |
+| BioStudies | `references/biostudies.md` | EBI study packages and supplementary archives (`S-`/`E-` accessions) |
+| ROR | `references/ror.md` | Institution/affiliation → stable ROR ID resolution |
+| DOAJ | `references/doaj.md` | Journal-level open-access directory membership |
 
 ## Helper Scripts (in `scripts/`)
 

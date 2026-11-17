@@ -3,12 +3,12 @@ name: data-exploratory-analysis
 description: "Perform comprehensive exploratory data analysis on scientific data files across 200+ file formats, with format detection, quality assessment, and markdown reports."
 license: MIT license
 metadata:
-  version: "1.0"
+  version: "1.1"
   skill-author: K-Dense Inc.
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以当前 Agent 的联网检索/网页抓取能力替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以当前 Agent 的联网检索/网页抓取能力替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-11-16 重收编：融入上游 2d2065f（v2.72.0，目录已重组为 exploratory-data-analysis）增量——references/ 与 scripts/ 共享件按上游补丁更新（解析器健壮性与格式说明修订），正文补入"前缀扫描顺序陷阱/游程图"与"TIFF 通用页分组"两条解读边界；上游新版 SKILL.md 的"有界本地分析"体系为本仓另一代文本，未整篇照搬。-->
 # Exploratory Data Analysis
 
 ## Overview
@@ -147,6 +147,7 @@ For images (TIFF, ND2, CZI):
 - Analyze bit depth and value range
 - Extract metadata (channels, timestamps, spatial calibration)
 - Calculate intensity statistics
+- For TIFF/OME-TIFF, report generic page/series grouping only: the reported axes are not reconstructed OME XYZCT axes, and companion files are never opened
 
 For arrays (NPY, HDF5):
 - Check shape and dimensions
@@ -258,6 +259,8 @@ Reference files are large (10,000+ words each). To efficiently use them:
 2. **Handle errors gracefully:** Many scientific formats require specific libraries; provide clear installation instructions
 3. **Validate metadata:** Cross-check metadata consistency (e.g., stated dimensions vs actual data)
 4. **Consider data provenance:** Note instrument, software versions, processing steps
+5. **Mind prefix-scan ordering:** A row cap scans the *beginning* of a CSV/TSV, not a random sample of the file. Check whether rows are ordered by date, batch, site, outcome, or train/test split before generalizing missingness, leakage, or distribution summaries — a bounded prefix cannot recover unseen groups. Record the ordering and covered groups; if broader coverage is needed, inspect a documented stratified sample in a separate derived file under the same resource limits.
+6. **Plot run sequences for ordered measurements:** For time-ordered or process-ordered data, a run-sequence plot can reveal drift that a histogram hides (see [NIST run-sequence guidance](https://www.itl.nist.gov/div898/handbook/eda/section3/eda33p.htm)).
 
 ### Report Generation
 

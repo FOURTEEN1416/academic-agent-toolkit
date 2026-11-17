@@ -338,6 +338,12 @@ python scripts/format_bibtex.py references.bib \
   --deduplicate \
   --output clean_references.bib
 
+# Merge sources: one key scheme, then drop duplicates
+python scripts/format_bibtex.py references.bib \
+  --rekey \
+  --deduplicate \
+  --output merged_references.bib
+
 # Validate and report issues (separate tool — format_bibtex.py has no validation flags)
 python scripts/validate_citations.py references.bib \
   --report validation_report.json
@@ -508,7 +514,7 @@ python scripts/format_bibtex.py crispr_refs.bib \
   --descending \
   --output references.bib
 
-# 6. Validate all citations (auto-fix is not implemented; the script reports only)
+# 6. Validate all citations (the validator reports only; format_bibtex.py rewrites)
 python scripts/validate_citations.py references.bib \
   --report validation.json \
   --verbose

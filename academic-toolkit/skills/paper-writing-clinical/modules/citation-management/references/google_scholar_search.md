@@ -542,6 +542,19 @@ python scripts/search_google_scholar.py "topic" \
   --output open_access_papers.json
 ```
 
+Each Scholar result carries an `eprint_url` when a free copy exists, so you can
+also filter the JSON mechanically:
+
+```bash
+python -c "import json;d=json.load(open('open_access_papers.json'));print(json.dumps([r for r in d['results'] if r['eprint_url']],indent=2))" > oa_filtered.json
+```
+
+OpenAlex exposes open-access status directly as a field on every record:
+
+```bash
+python scripts/search_openalex.py "topic" --output papers.json   # each result has is_open_access
+```
+
 ### Tracking Research Impact
 
 **For a specific paper**:

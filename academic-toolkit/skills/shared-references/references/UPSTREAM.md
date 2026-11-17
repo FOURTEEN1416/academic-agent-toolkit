@@ -12,4 +12,4 @@
 
 - vendor/forks/Auto-claude-code-research-in-sleep 已镜像同步至实测 HEAD（768 文件更新、0 删除）。
 - 上游区间 skills/ 变更 177 文件（+11563/-1014），主要为止(install/SSH 同步修复与文档扩充)。本件对应上游目录 skills/shared-references：上游区间内有变更。
-- 技能侧重收编待专项按改写融入规程执行：上游新版技能正文 allowed-tools 含 Codex MCP 评审桥类宿主特征词（host_dep_scan 词表项，字面量此处不复写以维持登记外零命中棘轮），本仓技能侧 SKILL.md 为中性化改写版，不盲目覆盖。
+- 改写融入（2026-11-16，PKG-01 研究实验环批）：assurance-contract.md 融入 reviewer_model/reviewer_reasoning 实证语义收紧（实际回报模型为准、请求别名非证据、缺失 effort 不放宽身份核验）与 acceptance_status 判据细化（仅同族 provisional、跨族 accepted 需在范围内完成、失败/身份不明/不完整评审不得伪造成 PASS），示例模型名同步更替；writing-principles.md 新增 Launch Mindset 与 Who Writes 两节（写作分工中性化改写）。上游其余 11 个区间变更文件（reviewer-backends/reviewer-routing/review-tracing/compute-env-contract/fan-out-pattern 等）服务上游未收编技能或绑定宿主传输层，按既有子集裁剪裁决不新增。

@@ -6,7 +6,7 @@ metadata:
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（paper-from-zero + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 yunshenwuchuxun/latex-paper-skills@d0f106108cb0（paper-from-zero + _shared），正文未改。溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-11-16 重收编收尾批（pin d0f10610→7965fbc）：吸收上游 route_and_invoke.py 修正——按路由取下游 plan 脚本、既有项目目录 plan-first 不重脚手架、路径/主题参数安全引用，改写融入「Handoff Contract → Routing Execution」。-->
 # Paper-From-Zero
 
 Use this skill when the user already has a **topic/domain** and wants a
@@ -100,6 +100,27 @@ Before routing, create the following artifacts in the target project folder:
 - `plan/router-decision.md`: chosen mode and why
 
 The downstream writer must consume these artifacts rather than re-guessing user intent.
+
+### Routing Execution (Existing Project Directory)
+
+The handoff target directory usually already exists. In that case do **not**
+re-scaffold; continue in place with a plan-first pass (aligned with the
+upstream router fix in 7965fbc: each route now resolves its own downstream
+plan script instead of a hard-coded relative path):
+
+- `review`: use the survey writer's "Existing Paper Workflow (No Re-Scaffold)" —
+  `python3 ../latex-paper-survey-writer/scripts/create_paper_plan.py --stage plan --output-dir "<project_dir>"`,
+  then stop for approval before creating issues (see
+  `../latex-paper-survey-writer/SKILL.md`, section "Existing Paper Workflow").
+- `empirical`: create the empirical plan inside the existing project directory
+  (plan-first); never rerun Gate 0 scaffolding (`kickoff`) for a directory
+  that already exists.
+
+**Argument quoting**: whenever `<project_dir>` or a topic string is embedded
+in a shell command, always quote it — upstream switched to `shlex.quote` so
+paths containing spaces or shell metacharacters cannot break the command.
+
+<!--ACAT-GOVERNANCE: 上游 empirical 侧 plan 脚本（empirical-paper-writer/scripts/create_empirical_plan.py）未随本仓库集成，本仓 _shared/paper_utils 资产缺口亦影响 plan 脚本链（survey 侧 create_paper_plan.py 同此既有缺口）。本节吸收的是流程口径——既有目录 plan-first、不重脚手架、参数安全引用；脚本缺依赖时由当前 Agent 按下游 writer 的 Gate 0 / Phase 0.5 清单以文件形式补齐计划产物，不伪造脚本可跑。-->
 
 ## Validation (recommended)
 Before routing, validate the handoff artifacts:

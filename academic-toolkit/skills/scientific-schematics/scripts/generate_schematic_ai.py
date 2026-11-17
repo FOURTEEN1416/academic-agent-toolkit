@@ -36,12 +36,12 @@ except ImportError:
 
 
 def _byok_key(value: Optional[str]) -> Optional[str]:
-    """Return only a user-owned OpenRouter key, never a managed proxy token."""
-    return value if value and not value.startswith("thk_") else None
+    """Return only a user-owned OpenRouter key; reject managed/retired proxy tokens (thk_/osk_)."""
+    return value if value and not value.startswith(("thk_", "osk_")) else None
 
 
 def _byok_base_url() -> str:
-    """Keep BYOK off the Synthetic Sciences credits proxy if a stale base URL leaked in."""
+    """Keep a user key off any managed credits-proxy URL if a stale base URL leaked in."""
     value = (os.getenv("OPENROUTER_BASE_URL") or "https://openrouter.ai/api/v1").rstrip("/")
     return "https://openrouter.ai/api/v1" if "/api/llm/proxy/" in value else value
 

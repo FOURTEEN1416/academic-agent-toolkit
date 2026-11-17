@@ -1,6 +1,9 @@
 # Motivation-Thread Writing
 
-Use this when the user wants a strong paper rather than a polished draft. The motivation thread is the backbone and highest-priority organizing constraint of the manuscript.
+Use this when the user wants a strong paper rather than a polished draft. The
+confirmed contribution is the manuscript's governing contract; the motivation
+thread is its supporting problem-solution backbone — it explains why the
+contribution is needed without replacing or enlarging it.
 
 ## Core Idea
 
@@ -22,18 +25,20 @@ reorganized/restructured to address X". State the motivation as a fact about the
 work, not as a response to feedback. (A legitimate *analytical* arrow chain that
 describes content — a failure pathway or data flow such as
 `指代缺失 → 意图漂移 → 错误检索` — is fine; what is forbidden is narrating the
-plan or the review process.)
+plan or the review process. Judge a passage by its scientific or transparency
+function: real research-review procedures, necessary reproducibility details
+and required AI-use disclosures stay in the manuscript.)
 
 ## Motivation Confirmation Comes First
 
-Before building the motivation thread model, create or verify `paper_rewriting_output/confirmed_motivation.md`. The user's confirmed motivation is the spine. Exemplar papers may teach rhetorical moves, but they must not choose the paper's motivation for the user.
+Before building the motivation thread model, create or verify `paper_rewriting_output/confirmed_motivation.md`. The user's confirmed motivation is the spine, and it must stay inside the confirmed contribution's claim boundary. Exemplar papers may teach rhetorical moves, but they must not choose the paper's contribution or motivation for the user.
 
-There are two allowed intake paths:
+After the contribution is locked, there are two allowed motivation paths:
 
 1. If the user provides a clear motivation and confirms it, save it directly as `confirmed_motivation.md`.
-2. If the user does not provide one, infer 3-5 options from the draft and evidence, save `motivation_options.md`, and stop for user selection or editing.
+2. If motivation remains genuinely unresolved, infer 3-5 materially different, evidence-supported options from the draft and evidence, save `motivation_options.md`, and stop for user selection or editing.
 
-Do not proceed to section blueprints or manuscript rewriting while only `motivation_options.md` exists.
+Do not finalize claims that depend on an unresolved motivation choice; do not proceed to section blueprints or manuscript rewriting while only `motivation_options.md` exists. Independent evidence reading and diagnosis may continue in the meantime.
 
 ## Motivation Options Template
 
@@ -65,6 +70,7 @@ Save as `paper_rewriting_output/confirmed_motivation.md`.
 | Field | Content |
 |---|---|
 | Source | user-provided / selected option / edited option |
+| Governing contribution | the confirmed contribution promise this motivation supports (one sentence; the motivation may not exceed its claim boundary) |
 | Confirmed motivation statement | |
 | One-sentence red thread | |
 | Field problem | |
@@ -88,7 +94,7 @@ Save as `paper_rewriting_output/confirmed_motivation.md`.
 | Discussion | | |
 ```
 
-`confirmed_motivation.md` must say not only what the paper argues, but also what it should not argue. This prevents later sections from drifting into generic claims.
+`confirmed_motivation.md` must say not only why the contribution matters, but also what the paper should not argue. Its prioritized claims must stay within the confirmed contribution's claim boundary. This prevents later sections from drifting into generic or inflated claims.
 
 ## Required Output
 
@@ -162,7 +168,7 @@ Use motivation-led wording where it reads naturally and helps navigation. If a n
 
 ## How To Use It
 
-1. Derive the red thread from `confirmed_motivation.md` before writing any section.
+1. Lock the contribution contract, then derive the red thread from the aligned `confirmed_motivation.md` before writing any section.
 2. Convert the red thread into paragraph jobs.
 3. Convert the red thread into the visible manuscript surface: a few strategic headings, topic sentences, transitions, and callouts.
 4. Make the final Introduction paragraph a promise of what the Results will prove.

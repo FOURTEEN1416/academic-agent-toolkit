@@ -26,6 +26,42 @@ before the user confirms the controlling motivation.
 - `flash`: 3 target-scene examples + 3 recent high-quality field/SOTA examples.
 - `pro`: 6 target-scene examples + 6 recent high-quality field/SOTA examples.
 
+Learning depth guides how much literature and exemplar reading to do; it never
+authorizes data analysis. Never turn an exemplar's stylistic preference into a
+mandatory scientific rule.
+
+## Research Scope Modes
+
+The saved research scope decides what analysis this stage may rely on:
+
+- `materials_only`: develop the paper from supplied materials and existing
+  results. Extract text/tables, inspect the relevant pages, check units,
+  provenance and internal consistency, and identify which existing result
+  supports each claim. Rendering a supplied result as a figure is allowed;
+  computing a new statistical outcome, new EDA, tests, model fitting or reruns
+  are not. Missing reproduction inputs alone do not invalidate a reported
+  result; resolve real contradictions specifically, keep good figures, and
+  continue supported writing. Public literature learning, citation lookup and
+  venue-format research remain normal in this mode.
+- `required`: perform the requested research with real tools and evidence.
+  Start from the authorized material inventory; define the scientific question
+  and design before choosing analysis. Use the narrowest justified method,
+  check its assumptions, report effect sizes and uncertainty where
+  appropriate, and distinguish exploratory from confirmatory work. For
+  modelling, split before fitting, avoid leakage, and preserve reproducible
+  transformations and training/evaluation settings.
+- `agent_decide`: assess whether new local analysis will materially answer a
+  gap, state the rationale briefly, then perform the justified work — or
+  neither when existing results suffice. A saved refusal or explicit user
+  instruction takes precedence.
+
+## Evidence Handoff
+
+Keep a compact source/result → claim → figure mapping alongside the real
+paper. References teach method and visual communication and may support
+attributed background, methods and mechanisms; their empirical findings must
+never be presented as this study's results.
+
 ## Stage 1 — Index Local References
 
 Create `paper_rewriting_output/reference_materials/source_index.md`:

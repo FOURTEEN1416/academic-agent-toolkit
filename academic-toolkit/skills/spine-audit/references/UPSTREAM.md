@@ -18,3 +18,9 @@
 
 - vendor/forks/PaperSpine 已镜像同步至实测 HEAD（1648 文件更新、9 项上游旧版发布残留清理）；上游 2 个月更新含 v4.0.0 大版本（多语言 README、portable suites/release v6 工作流、INSTALL 文档族等）。
 - 本仓 spine 系 11 技能为上游单一 paper-spine 技能的拆分重组编排（脚本/资产只读引用），上游 v4.0.0 技能包结构变化须经逐件 diff 评估后按收编规程重放，本单仅完成 vendor 同步与台账刷新，技能侧重收编待专项。
+
+## 重收编施工记录（2026-11-16，PKG-07 spine 系批）
+
+- 本技能脚本闸门（integrity_audit/artifact_check/citation_quality_audit/structured_review 等）在 dist 零变化区间内与上游一致，未改动。
+- 上游 audit 阶段增量（检查失效重跑与确定性复用边界、editor synthesis 前置于 LaTeX、文献提供方故障≠无命中、同输入三振升级、五维度不互抵精神）已吸收进套件级 `spine/references/audit.md`。
+- 未吸收（记入 skipped）：scientific_evidence_check / publication_surface_check / visual_readiness_check / metadata_readiness_check / usage_ledger / publication_cycle 等 v6 新脚本引用（本仓未收编对应脚本，引入即悬空）。

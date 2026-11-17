@@ -1,6 +1,6 @@
 ---
 name: fig-spec
-description: "Generate deterministic publication-quality architecture, workflow, and pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Use when user says \"架构图\", \"workflow 图\", \"pipeline 图\", \"确定性矢量图\", \"figure spec\", \"draw architecture\", or needs precise, editable, publication-ready vector diagrams. Preferred over AI illustration for formal architecture/workflow figures."
+description: "Deterministic publication-quality architecture/workflow/pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Trigger: \"架构图\" \"workflow 图\" \"pipeline 图\" \"确定性矢量图\" \"figure spec\" \"draw architecture\"; preferred over AI illustration for formal figures."
 argument-hint: "[description-of-diagram]"
 allowed-tools: Bash(*), Read, Write, Edit
 ---

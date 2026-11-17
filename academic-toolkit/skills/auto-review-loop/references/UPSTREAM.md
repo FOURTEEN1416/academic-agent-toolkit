@@ -11,4 +11,4 @@
 
 - vendor/forks/Auto-claude-code-research-in-sleep 已镜像同步至实测 HEAD（768 文件更新、0 删除）。
 - 上游区间 skills/ 变更 177 文件（+11563/-1014），主要为止(install/SSH 同步修复与文档扩充)。本件对应上游目录 skills/auto-review-loop：上游区间内有变更。
-- 技能侧重收编待专项按改写融入规程执行：上游新版技能正文 allowed-tools 含 Codex MCP 评审桥类宿主特征词（host_dep_scan 词表项，字面量此处不复写以维持登记外零命中棘轮），本仓技能侧 SKILL.md 为中性化改写版，不盲目覆盖。
+- 改写融入（2026-11-16，PKG-01 研究实验环批）：上游增量为多后端评审路由（antigravity/grok/claude-code/copilot-native）与 gate 细节，绑定上游宿主传输层；本仓为引擎中介的独立评审设计（review-request/review-receive + verdict 文件），按既定裁决不融入；停止闸门本仓已含"无未决 fatal"硬条件，语义等价处不重复引入。

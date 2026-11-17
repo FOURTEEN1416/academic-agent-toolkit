@@ -108,9 +108,9 @@ User Input →
 - No existing paper draft (→ full mode)
 - Only need to check citation format (→ citation-check mode)
 
-**Expected Output**: Revised paper + revision notes (tracked changes)
+**Expected Output**: Patch document + deterministically applied revised draft + apply report + revision log (#390) + Citation Audit Report with proposed citation fixes (#1068)
 **Expected Duration**: Medium
-**Agents Used**: peer_reviewer → draft_writer → citation_compliance
+**Agents Used**: peer_reviewer → draft_writer → citation_compliance (proposes citation fixes; does not edit the applied draft, #1068)
 
 **Prerequisite**: User must provide existing paper content
 
@@ -126,7 +126,7 @@ User Input →
 **Not Applicable When**:
 - No paper content to summarize (→ full mode or plan mode)
 
-**Expected Output**: Bilingual abstract (zh-TW + EN) + keywords
+**Expected Output**: Bilingual abstract in the run's declared output language pair (`output_language_pair`; default zh-TW + EN) + keywords
 **Expected Duration**: Short
 **Agents Used**: intake → abstract_bilingual
 

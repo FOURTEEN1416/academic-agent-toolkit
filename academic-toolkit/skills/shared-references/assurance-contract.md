@@ -104,7 +104,7 @@ human-readable Markdown sibling). The JSON must contain at minimum:
   "thread_id":  "019dae73-fc12-4ab8-...",
   "executor_model": "claude-opus-4-8",
   "executor_family": "anthropic",
-  "reviewer_model": "gpt-5.6-sol",
+  "reviewer_model": "gpt-6-astra",
   "reviewer_family": "openai",
   "review_independence": "cross-family",
   "acceptance_status": "accepted",
@@ -132,18 +132,35 @@ Field semantics:
   pair, per `review-tracing.md`. Required for mandatory audits — not optional.
 - **`thread_id` or `agent_id`** — durable reviewer handle. MCP routes use a
   thread ID; Codex `spawn_agent` routes use an agent ID. At least one is required.
-- **`reviewer_model`** + **`reviewer_reasoning`** — proves cross-family review
-  invariant was honored.
+- **`reviewer_model`** — the model actually reported by the review backend, with
+  its evidence source preserved in the trace. A requested alias or bridge name
+  is not model evidence; derive executor/reviewer families from the returned
+  identities, because a bridge's name does not fix the family it carries.
+- **`reviewer_reasoning`** — the effort actually reported by the backend, or
+  `null` when the route does not expose one. The key stays required either
+  way; a missing effort value never relaxes the model-identity checks.
 - **`review_independence`** — `same-family`, `cross-family`, or `deterministic`.
   `deterministic` is valid ONLY for what a process can actually decide
   (compilation, schema validity, hash freshness, test suites) — the audit
   aggregator REJECTS a deterministic label on the four semantic paper audits
   (proof / claims / citations / attack), which only a cross-family model
   review can accept.
-  **`acceptance_status`** is `provisional` for same-family review and
-  `accepted` for cross-family/deterministic review; neither field rewrites the
+  **`acceptance_status`** stays `provisional` for same-family review. A
+  positive model review may be marked `accepted` only when the review
+  completed inside its required scope with two known, actually-different
+  executor/reviewer families — selecting a provider, raising effort, or
+  installing an overlay never confers acceptance by itself. Failed,
+  unknown-identity, or incomplete reviews never upgrade to a fabricated PASS.
+  A deterministic verifier accepts only what it actually checked, still
+  subject to the semantic-audit restriction above. Neither field rewrites the
   substantive verdict.
 - **`generated_at`** — UTC ISO-8601 timestamp.
+
+For `PASS`/`WARN` artifacts, cross-family review requires
+`acceptance_status: accepted` and same-family review requires `provisional`.
+For `FAIL`/`ERROR`/`BLOCKED` artifacts, either label is schema-readable — the
+artifact still blocks submission through its substantive verdict, and unknown
+model identity remains blocking regardless of the label.
 
 ## Verifier Contract
 

@@ -46,7 +46,7 @@ python scripts/format_bibtex.py combined.bib \
   --descending \
   --output references.bib
 
-# Step 7: Validate (auto-fix is not implemented — the validator reports only)
+# Step 7: Validate (the validator reports only; format_bibtex.py is what rewrites)
 python scripts/validate_citations.py references.bib \
   --report validation.json \
   --verbose
@@ -89,7 +89,7 @@ python scripts/format_bibtex.py step1_formatted.bib \
   --deduplicate \
   --output step2_deduplicated.bib
 
-# Step 3: Validate (auto-fix is not implemented — the validator reports only)
+# Step 3: Check what is still wrong before sorting (the validator reports only)
 python scripts/validate_citations.py step2_deduplicated.bib \
   --report step3_validation.json
 

@@ -321,7 +321,7 @@ If page count differs significantly from outline (>2 slides off), investigate.
 
 Send the slide outline + selected LaTeX frames to the external reviewer:
 
-**如果评审脚本不可用（API Key 未配置）**：跳过外部评审，使用自身分析能力完成评审。
+**如果评审脚本不可用（API Key 未配置）**：跳过外部评审，使用自身分析能力完成评审；在 `SLIDES_STATE.json` 记录 `review_status: REVIEW_UNAVAILABLE`。
 
 ```bash
 cat << 'REVIEW_EOF' > _review_prompt.txt
@@ -354,7 +354,7 @@ $PYTHON "$REVIEWER_SCRIPT" --prompt-file _review_prompt.txt --thread-file _revie
 
 Apply fixes. Recompile if LaTeX was changed.
 
-> **如果评审脚本不可用（API Key 未配置）**：跳过外部评审，使用自身分析能力完成评审。Proceed to Phase 6. Note the skip in `SLIDES_STATE.json`.
+> **如果评审脚本不可用（API Key 未配置）**：跳过外部评审，使用自身分析能力完成评审。Proceed to Phase 6. 在 `SLIDES_STATE.json` 记录 `review_status: REVIEW_UNAVAILABLE`；该轮结论按草稿期自评对待，后续阶段不得把它标注为"已外部评审"，也不得为此临时切换其他评审服务。
 
 Save review to `slides/SLIDES_REVIEW.md`.
 

@@ -2,7 +2,7 @@
 
 - Upstream: https://github.com/yunshenwuchuxun/latex-paper-skills（技能目录 `.codex/skills/latex-rhythm-refiner`，共享资产 `_shared/` `_orchestration/`）
 - Pinned commit: 7965fbc06cd2c34ef7a0a3a566c089f4757c3de5（2026-11-16 实测上游 main HEAD；原 d0f10610，fork FOURTEEN1416/latex-paper-skills 2026-09-09 拉取）
-- License: 见上游仓库 LICENSE
+- License: MIT（Copyright (c) 2026 renocrypt；2026-11-16 实测上游 LICENSE）；内嵌 IEEEtran 模板为 LPPL 1.3（见上游 THIRD_PARTY_NOTICES.md）
 
 ## 适配说明
 
@@ -13,4 +13,4 @@
 ## 同步记录（2026-11-16，d0f10610→7965fbc，UP-6）
 
 - vendor/forks/latex-paper-skills 已镜像同步至实测 HEAD：上游更新 route_and_invoke.py（shlex 安全引用与 plan 脚本路径修正）、collaborating-with-claude/gemini SKILL.md、README 双语，新增顶层 skills/、distribution/、bin/、scripts/、tests/、package.json、THIRD_PARTY_NOTICES.md。
-- 本仓 8 件 latex-paper-* 技能 references 为适应性改写蒸馏件，来源内容未受本次上游更新影响，无需重收编；上游新增顶层结构属其组织调整，vendor 原样保留备查。
+- 2026-11-16 收尾批复核：上游本区间对 latex-rhythm-refiner 仅改 rhythm-examples.md 内「SKILL.md」→「workflow.md」措辞（canonical 树重组改名），无实质内容变化，正文无需重收编。

@@ -2,6 +2,57 @@
 
 Used by `abstract_bilingual_agent`.
 
+## Abstract Length & Keyword Regime
+
+The table below is the **single source** for abstract length and keyword counts in this guide
+set: the workflow reference, the mode-selection guide, and the bilingual template reference these
+figures instead of restating their own. Three sibling references still carry a copy of the
+figures — `apa7_extended_guide.md`, `latex_template_reference.md`, and
+`journal_submission_guide.md` — and are recorded exceptions, reconciled with this table when
+each is next revised. The figures apply whether or not the run declares an output language pair:
+that choice selects which two languages the abstract surfaces use, not which figures apply.
+
+<!-- abstract-regime-table:start -->
+| Paper type | L1 abstract (`zh-TW`, CJK) | L2 abstract (`en`) | Keywords per language |
+|------------|---------------------------|--------------------|-----------------------|
+| Standard | 300–500 characters | 150–250 words | 5–7 |
+| Conference | 300–800 characters | 200–500 words | 5–7 |
+| Extended abstract | not declared | 500–1,000 words | not declared |
+| Dissertation | 500–1,000 characters | up to 350 words | 5–7 |
+<!-- abstract-regime-table:end -->
+
+Read the row for the run's paper type and the run's declared output language pair (default
+`zh-tw-en`): both the L1 and L2 columns apply, and the keyword count applies per language.
+Lengths are measured by whitespace splitting after ARS-marker removal, with the 3–5% buffer
+rule. A venue-declared limit (#394 venue profile) takes precedence over the table.
+
+**Paper-type lookup.** The rows above are deliverable regimes, not the Schema-4 `structure_type`
+enum, which declares six values: `IMRaD`, `literature_review`, `theoretical`, `case_study`,
+`policy_brief`, `conference`. `IMRaD`, `literature_review`, `theoretical`, and `case_study` read
+the **Standard** row; `conference` reads the **Conference** row. `policy_brief` has **no abstract
+row**: its deliverable is an Executive Summary, not an abstract, so no length or
+keyword figure applies to it. The **Extended abstract** and **Dissertation** rows have no
+`structure_type` producer — the first is declared by an extended-abstract submission, and the
+second is carried from the pre-#862 guide, since the Phase-1 paper-type enum declares no
+`dissertation` value. The Extended abstract row declares the L2 figure only: the pre-#862 guide
+carried no L1 figure and no keyword count for that deliverable, and the table declares none
+rather than inventing one. A conference *paper*'s abstract is the shorter **Conference** row.
+
+**Reconciliation.** The rows above are one table, not two per-language bullet lists. This guide's
+pre-#862 lists (English Standard 150–250, Conference 200–500, Dissertation up to 350 words;
+Traditional Chinese Standard 300–500, Conference 300–800, Dissertation 500–1,000 characters;
+keywords 5–7 per language) are folded into it, and so are two figures its own `Bilingual Abstract
+Quality Checklist` restated in conflict with the Standard row (English 150–300 words; a keywords
+5–7 restatement beside a keywords section that already said 5–7). The accumulated spread across
+the surfaces (150–250 vs 150–300 English words, a fixed 250 vs a range, 3–6 vs 5–7 keywords)
+resolves to this one table, not a vote among copies.
+
+The rows cover the default entry `zh-tw-en`. A run declaring a different output language pair
+ships its own regime rows with its pair registry, which carries the language roles and the field
+semantics — not these figures. The writing-pattern
+examples further down are English- and Traditional-Chinese-language guidance and therefore apply
+to the default pair.
+
 ## Abstract Types
 
 ### Structured Abstract
@@ -15,14 +66,15 @@ A single flowing paragraph without labels. Common in humanities and some social 
 **Flow**: Context → Problem → Purpose → Method → Key Findings → Implications
 
 ### Extended Abstract
-Longer (500-1,000 words), used for conference submissions. May include brief literature review and preliminary results.
+Longer, used for conference submissions — a conference *paper*'s abstract is the shorter
+**Conference** row of the table above; this guide restates no figure. An extended-abstract
+submission reads the **Extended abstract** row. May include brief literature review and preliminary results.
 
 ## English Abstract Guidelines
 
 ### Word Count
-- Standard: 150-300 words (check journal requirements)
-- Conference: 200-500 words (check CFP)
-- Dissertation: up to 350 words
+See the table above — row for the run's paper type, L2 column, for the run's declared pair. This
+guide restates no figure; a venue-declared limit (#394 venue profile) takes precedence.
 
 ### Structure (5-Component Model)
 
@@ -88,9 +140,8 @@ State the significance, practical implications, or recommendations.
 ## Traditional Chinese Abstract Guidelines
 
 ### Word Count
-- Standard: 300-500 characters
-- Conference: 300-800 characters
-- Dissertation: 500-1,000 characters
+Same table above — row for the run's paper type, L1 column, for the run's declared pair. No
+figure is restated here.
 
 ### Structure (5-Component Model)
 
@@ -139,7 +190,7 @@ State the significance, practical implications, or recommendations.
 - Lowercase (unless proper nouns)
 - Complement the title (don't repeat title words verbatim)
 - Use established terms (check journal's keyword list if available)
-- 5-7 keywords total
+- Keyword count per language: the keywords column of the table above (not restated here)
 
 ### Chinese Keywords
 1. **Core concepts** — main variables or constructs (2-3)
@@ -151,19 +202,19 @@ State the significance, practical implications, or recommendations.
 - Use formal academic terminology
 - Avoid completely duplicating the title
 - May reference the National Central Library Chinese Subject Headings
-- 5-7 keywords
+- The same declared keyword count as the other language (the keywords column of the table
+  above)
 
 ## Bilingual Abstract Quality Checklist
 
 | Check | ✓ |
 |-------|---|
 | Both abstracts cover all 5 components | |
-| English: 150-300 words | |
-| Chinese: 300-500 characters | |
+| Abstract lengths within the regime table above for the run's pair and paper type | |
 | Abstracts are independently written (not translated) | |
 | Key findings match between languages | |
 | Quantitative data consistent between versions | |
-| Keywords: 5-7 per language | |
+| Keyword count per language within the regime table above | |
 | Keywords complement (not duplicate) the title | |
 | No citations in the abstract | |
 | No abbreviations undefined in the abstract | |

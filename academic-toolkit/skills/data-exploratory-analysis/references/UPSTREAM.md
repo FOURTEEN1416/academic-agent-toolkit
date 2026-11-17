@@ -15,3 +15,9 @@
 
 - vendor/forks/scientific-agent-skills 已镜像同步至实测 HEAD。
 - ⚠️ 上游 v2.72.0 已移除/重组本技能来源目录 `skills/data-exploratory-analysis`（新址：exploratory-data-analysis）；本仓收编副本为存续快照，后续升级转本地维护为主，如需跟进新上游结构须按收编规程重新评估。
+
+## 重收编落地（2026-11-16，2d2065f 增量改写融入，UP-3）
+
+- scripts/ 与 references/、assets/ 共 13 个共享文件按上游增量补丁融入（路径映射 data-exploratory-analysis→exploratory-data-analysis，忽略行尾差异应用干净）：含 image_inspector 渲染健壮性、_tabular/_structured/_capabilities 解析修订、六份格式参考件与报告模板的说明修订。
+- SKILL.md 保留本仓另一代"200+ 格式 / eda_analyzer.py"文本体系不整篇照搬；择要融入上游增量：数据解读补"前缀扫描顺序陷阱（行数上限只扫文件开头，先查日期/批次/站点/结局/切分排序再外推）+ 游程图提示（NIST eda33p）"与"TIFF 仅报告通用 page/series 分组、不重建 OME XYZCT 轴、不打开伴生文件"两条边界。
+- 上游新增 "Citing Scientific Agent Skills" 段属上游自我引用话术，未收编。

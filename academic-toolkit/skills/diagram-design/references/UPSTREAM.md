@@ -16,4 +16,11 @@
 
 - vendor/forks/diagram-design 已镜像同步至实测 HEAD（763 文件，上游 skills/scripts/docs 大版本更新，本地无独有文件）。
 - 上游技能包变化：SKILL.md 重写（546 行 diff）、references 8 件更新（animation/doctor/export/import-drawio/import-mermaid/onboarding/output-spec/primitive-annotation，新增 print-a3-landscape 尺寸与窄屏画布规范等）、assets 新增 20+ HTML 示例（含 dark/full 变体）、scripts 新增 excalidraw_extract/export_png/export_svg 并更新 drawio/mermaid 提取器。
-- 技能侧重收编**待专项按改写融入规程执行**（AGENTS.md 上游资产收编规程）：①上游新版 onboarding.md 含宿主安装路径教学 5 处特征词（宿主用户级/项目级配置目录类词表项，host_dep_scan 登记外零命中棘轮会被打破，字面量此处不复写），须重放"随仓使用"中性化；②新增 HTML 示例须过主题中性化；③SKILL.md 546 行重写须与 references 版本配套收编，避免错配。本仓 2026-09-24 R1 批中性化成果在专项中重放。
+
+## 重收编落地（2026-11-16，PKG-13 改写融入批）
+
+- 方法：以 `20be6e0`（=旧 pin ac490fd）为 base、本仓工作树为 ours、`1228954`（=新 pin f6db0de）为 theirs 做**逐文件三方合并**（git merge-file），保留本仓全部既有适配（执行与产出节、R1 中性化、E3/E4 修复），在其上融入上游增量。
+- 结果：317 个上游文件——111 件新增（16 references + 5 scripts + 90 assets，含 50 型画廊补全：heatmap/waterfall/steps/exploded/axonometric-plan/service-blueprint/sbgn/requirement-traceability/event-modeling/unit-grid/architecture-delta 及 Excalidraw/PlantUML 导入与 SVG/PNG 导出链）、188 件快进、7 件无冲突合并、11 件冲突人工解决（6 assets 取上游中性新版；type-nested/type-process/type-high-level/SKILL.md description 取上游；doctor.md 维持本仓中性版，上游"插件布线节"针对 Claude commands/Pi prompts 维护者模式，不适用本仓分发形态，不收）。
+- 皮肤令牌升级随上游全量落位：accent `#eb6c36`→`#bf4520`（burnt-tangerine，对比度达标）、soft `#7a8399`→`#5a6580`；style-guide 增对比度合同、Font source（web/system）、韩/中/西里尔标签扩展。
+- 宿主中性化：合并引入的上游多宿主安装路径清单（Pi/Kiro/OpenCode/Cursor/Cline/Codex/Copilot/Droid）改写为宿主中性检索口径（用户级/项目级/运行时声明路径 + 本仓随仓使用），host_dep_scan 登记外零命中保持。
+- 验证：py_compile 8 件脚本通过；self_check/verify_geometry 抽测 OK；mermaid/drawio/excalidraw/plantuml 四提取器与 export_svg 以最小夹具实测出正确 IR/SVG；最小 pytest 集（host_dep_scan/查重/INNER_REF/中性化棘轮）通过。

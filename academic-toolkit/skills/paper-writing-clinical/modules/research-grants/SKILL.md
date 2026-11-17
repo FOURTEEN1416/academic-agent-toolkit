@@ -5,12 +5,12 @@ allowed-tools: Read Write Edit Bash
 license: MIT license
 compatibility: Works in Agent Skills-compatible hosts. Grant-writing guidance needs no network; optional figures via the scientific-schematics skill require OPENROUTER_API_KEY and outbound API access.
 metadata:
-  version: "1.2"
+  version: "1.3"
   skill-author: K-Dense Inc.
 ---
 
 
-<!--ACAT-ADAPTED: 上游 K-Dense-AI/claude-scientific-writer@0c72606 pinned 原文（正文未改）。本仓库适配口径——兄弟模块替代映射、API 依赖门（parallel-cli/OPENROUTER_API_KEY 等不可直接运行）、能力对照——见本目录 ADAPTATION.md 与技能根 SKILL.md 头部适配块。2026-09-09 适应性改造。-->
+<!--ACAT-ADAPTED: 上游 K-Dense-AI/claude-scientific-writer@9820740（v2.23.0 线；初版 0c72606，2026-11-16 重收编融合）。本仓库适配口径——兄弟模块替代映射、API 依赖门（parallel-cli/OPENROUTER_API_KEY 等不可直接运行）、能力对照——见本目录 ADAPTATION.md 与技能根 SKILL.md 头部适配块。2026-09-09 适应性改造，2026-11-16 跟随上游增量融合。-->
 # Research Grant Writing
 
 ## Overview
@@ -49,13 +49,9 @@ Strong proposals often include 1–3 figures (timelines, workflow diagrams, prel
 - **Preferred:** Use the **scientific-schematics** skill (`--doc-type grant`) for AI-generated diagrams from a natural-language description
 - **Alternative:** Build figures in your usual tools (matplotlib, Illustrator, PowerPoint, etc.)
 
-From the `scientific-schematics` skill directory, with `OPENROUTER_API_KEY` set:
+⛔ The bundled `generate_schematic` route was retired in the 2026-09-28 security redesign — use the executing environment's image-generation capability or the `scientific-schematics` skill (`skills/scientific-schematics/`) instead of a bundled script.
 
-```bash
-python scripts/generate_schematic.py "project timeline with Year 1-3 milestones" -o figures/timeline.png --doc-type grant
-```
-
-**Disclosure:** AI schematic generation sends your prompt to [OpenRouter](https://openrouter.ai/) (a third-party API). Do not include unpublished sensitive details unless that transmission is appropriate for your project.
+**Disclosure:** External AI schematic generation sends your prompt to a third-party API. Do not include unpublished sensitive details unless that transmission is appropriate for your project.
 
 ---
 

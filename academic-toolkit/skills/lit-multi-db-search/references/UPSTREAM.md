@@ -15,3 +15,9 @@
 
 - vendor/forks/scientific-agent-skills 已镜像同步至实测 HEAD。
 - ⚠️ 上游 v2.72.0 已移除/重组本技能来源目录 `skills/lit-multi-db-search`（新址：bgpt-paper-search / paper-lookup / exa-search）；本仓收编副本为存续快照，后续升级转本地维护为主，如需跟进新上游结构须按收编规程重新评估。
+
+## 重收编落地（2026-11-16，2d2065f 增量改写融入，UP-3）
+
+- references/ 十一份与 scripts/ 四份按上游增量补丁融入（22 个非正文文件与上游旧版全同，应用干净）；新增上游 7 份数据库参考件：opencitations.md、pubtator.md、zenodo.md、figshare.md、ror.md、biostudies.md、doaj.md。四个脚本 `python -I -m py_compile` 通过；新参考件宿主特征词 grep 无命中。
+- SKILL.md 保留本仓文本体系；融入上游增量：开头改"18 个学术 API + 可复现溯源"口径；选型表补 OpenCitations/PubTator3/ROR/Zenodo/Figshare/BioStudies/DOAJ 意图行；标识符表补 ROR/OCI/Zenodo/BioStudies 与 arXiv 旧式编号；新增"HTTP 200 也会说谎"危害清单（PMC 无 body、arXiv Error 条目与 all: 前缀改写、Europe PMC errCode、bioRxiv 游标绝对偏移、Figshare 忽略查询词、OpenCitations count:0）；限速与重试纪律按上游数据更新（Crossref 列表 1/3 req/s、Unpaywall 真实 email 否则 422、429/503 遵循 Retry-After 只重试一次、仅跨不同主机并行）；Available Databases 补 Europe PMC 与三组新库。
+- 上游新增 "Citing Scientific Agent Skills" 段属上游自我引用话术，未收编。

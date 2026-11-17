@@ -35,7 +35,7 @@ Generate figures and tables from data: **$ARGUMENTS**
 
 ## Evidence provenance
 
-For each actual figure, record in `FIGURE_REPORT.md` its question/scenario, generating script, data file and field, parameter conditions, sample count (when relevant), statistic and uncertainty definition. Reuse actual results; do not add a paid review round just to fill this record. Unknown provenance must be marked unknown, never guessed. A convergence trace for one parameter/scenario cannot establish another candidate's reliability; cross-question comparisons need explicit comparable conditions. Keep this metadata in the report, not as dense prose inside the figure.
+For each actual figure, record in `FIGURE_REPORT.md` its question/scenario, generating script, data file and field, parameter conditions, sample count (when relevant), statistic and uncertainty definition. Reuse actual results; do not add a paid review round just to fill this record. Unknown provenance must be marked unknown, never guessed. A convergence trace for one parameter/scenario cannot establish another candidate's reliability; cross-question comparisons need explicit comparable conditions. Keep this metadata in the report, not as dense prose inside the figure. The same provenance also belongs in each `gen_fig_*.py` docstring — name the data file/field, extraction date and any run assumptions (2026-11-16 收编自 figure_MACL @`0ddfbd3` 的脚本自溯源惯例)；scripts read real data from `figures/*.json`, never re-read planning docs at runtime.
 
 
 
@@ -79,7 +79,7 @@ For each actual figure, record in `FIGURE_REPORT.md` its question/scenario, gene
 
 **Color palette and recipes**: read `_utils/figure_style_guide.md` (color schemes) and `_utils/figure_recipes_*.md` (code examples).
 
-**Semantic roles & composition patterns**（多系列对比图/多指标面板出图前必读）: `references/semantic-palette.md`（颜色→数据角色语义映射：本队方法=蓝 `#0072B2`、基线=橙 `#E69F00`、改进=蓝绿 `#009E73`、红/红粉禁作数据系列色、高亮≤1处——详见 semantic-palette.md §〇仲裁链；含顶刊高对比 PALETTE 备选与消融 alpha 梯度；§五为外部交叉校验色板：Okabe-Ito 数据图组合 + 国赛概念图配色）+ `references/composition-patterns.md`（构图五模式：超宽面板/独立图例面板/分类柱隐藏刻度/动态y轴/边线+hatch 打印安全——多方法对比图规划阶段先选模式再写代码；**模式一有印刷宽度前置条件：仅当最终版面下每格 ≥45mm 才连排，否则改堆叠**）。来源 figures4papers @ `3c181f8`（CC BY-NC-4.0，见 references/UPSTREAM.md）。
+**Semantic roles & composition patterns**（多系列对比图/多指标面板出图前必读）: `references/semantic-palette.md`（颜色→数据角色语义映射：本队方法=蓝 `#0072B2`、基线=橙 `#E69F00`、改进=蓝绿 `#009E73`、红/红粉禁作数据系列色、高亮≤1处——详见 semantic-palette.md §〇仲裁链；含顶刊高对比 PALETTE 备选与消融 alpha 梯度；§五为外部交叉校验色板：Okabe-Ito 数据图组合 + 国赛概念图配色）+ `references/composition-patterns.md`（构图五模式：超宽面板/独立图例面板/分类柱隐藏刻度/动态y轴/边线+hatch 打印安全——多方法对比图规划阶段先选模式再写代码；**模式一有印刷宽度前置条件：仅当最终版面下每格 ≥45mm 才连排，否则改堆叠**；2026-11-16 增补：图级底部图例条/面板 y 轴外取整与跨面板统一范围/hatch 组判别/参考线分层/个体-聚合双线/统一标注行——见 composition-patterns.md §七）。来源 figures4papers @ `0ddfbd3`（2026-11-16 同步；原 `3c181f8`，CC BY-NC-4.0，见 references/UPSTREAM.md）。
 
 **Plot-choice gates（选图论证与避坑，规划每张数据图前必读）**: `references/pitfalls-and-intent.md`（决策三轴：变量结构×**论证意图**×样本量分级——FIGURE_MANIFEST 每张图的"选择理由"写轴 2 论证意图；十八坑拦截清单 P1-P18：均值柱/双Y轴/饼图/Y轴截断/rainbow/缺字乱码/图例遮盖等，出图后逐条自查，P16-P18 渲染类必须程序自检+vision 复核双兜底）。来源 SciPilot @ `43098dd`（MIT，见 references/UPSTREAM.md）。
 
@@ -1313,7 +1313,7 @@ setup_style()  # 默认 auto：版式/配色走仓库基线（academic.mplstyle 
 
 
 
-**⛔ 多图工作区建议抽公共引导模块 `figures/_figbase.py`**——各 `gen_fig_*.py` 统一 `from _figbase import ...`；模块名必须下划线开头（见 Step 10 计数检查的假失败说明）：
+**⛔ 多图工作区建议抽公共引导模块 `figures/_figbase.py`**——各 `gen_fig_*.py` 统一 `from _figbase import ...`；模块名必须下划线开头（见 Step 10 计数检查的假失败说明）。多图共用的**方法样式表**（每系列 color/linestyle/marker）、参考线样式与「数据键→展示名」映射也集中进 `_figbase.py`，同族图引用同一份，防止逐脚本手抄导致样式漂移（2026-11-16 收编自 figure_MACL @`0ddfbd3` 的跨脚本样式复用惯例）：
 
 ```python
 # figures/_figbase.py — 各 gen_fig_*.py 统一 from _figbase import ...

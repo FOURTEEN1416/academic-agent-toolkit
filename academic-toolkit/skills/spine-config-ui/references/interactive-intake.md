@@ -4,7 +4,9 @@ Use this reference when PaperSpine needs workflow configuration.
 
 ## Question Order
 
-Ask these fields in order:
+Read the saved configuration first. Ask only for missing decisions or an
+explicit change; the field list below is a checklist to interpret, not a
+mandatory questionnaire. Ask these fields in order:
 
 1. Workflow: `rewrite_existing` or `build_from_materials`.
 2. Scene: `journal`, `conference`, `report_review`, or `competition`.
@@ -80,3 +82,11 @@ translation_package:
 ```
 
 The JSON is the source of truth for later skills.
+
+## User Confirmation Boundary
+
+Ask only the precise question that is actually pending, and wait when user
+authority is required. Do not ask the user to paste or hand-author a
+configuration skeleton or academic JSON contract; the wizard (or the numbered
+fallback) writes the JSON for them, and that persisted JSON remains the single
+source of truth for later stages.

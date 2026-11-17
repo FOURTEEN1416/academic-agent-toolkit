@@ -18,3 +18,9 @@
 
 - vendor/forks/PaperSpine 已镜像同步至实测 HEAD（1648 文件更新、9 项上游旧版发布残留清理）；上游 2 个月更新含 v4.0.0 大版本（多语言 README、portable suites/release v6 工作流、INSTALL 文档族等）。
 - 本仓 spine 系 11 技能为上游单一 paper-spine 技能的拆分重组编排（脚本/资产只读引用），上游 v4.0.0 技能包结构变化须经逐件 diff 评估后按收编规程重放，本单仅完成 vendor 同步与台账刷新，技能侧重收编待专项。
+
+## 重收编施工记录（2026-11-16，PKG-07 spine 系批）
+
+- references/citation-support-bank.md：Default Counts 升级为 Scope-Aware Counts（基线 20/3x 保留但非完成证明、近期比例不搞一刀切、封闭语料如实登记耗尽）、[VERIFY] 语义软化（标注未决点、未验证候选不得支撑最终论断）、去重规则（DOI/arXiv ID/BibTeX key/URL/规范化引用，一源多用途计一次）、输出位置补「先用后建身份与支持关系」。
+- 保持本仓 11 列表格结构与 citation_quality_audit.py/artifact_check.py 既有闸门口径（上游 13 列 Source ID/Claim Use ID 为 legacy checker 兼容形态，本仓脚本未升级，暂不改列）。
+- 未吸收（记入 skipped）：journal-learning.md / manuscript-format.md 引用链（本仓无此资产，相关精神以自包含表述融入 spine/references/citation.md）。

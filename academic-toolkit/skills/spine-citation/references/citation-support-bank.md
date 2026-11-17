@@ -5,14 +5,20 @@ teach writing structure and target-scene rhetoric. Citation-support papers
 support concrete literature statements in the user's Introduction, Related Work,
 Discussion, limitations, applications, and background.
 
-## Default Counts
+## Scope-Aware Counts
 
-- `citation_target_count` defaults to `20`.
-- Generate at least `citation_target_count * 3` candidate rows before final
-  selection. The default candidate pool is therefore `60`.
-- About 80% of candidate rows should be recent. Use a simple rule:
-  `recent_threshold = current_year - 3`; in 2026, papers from 2023 onward are
-  recent.
+- `citation_target_count` defaults to `20`; generate at least
+  `citation_target_count * 3` candidate rows before final selection (default
+  pool `60`). Treat this as a baseline, not a completion proof: expand the
+  deduplicated pool whenever a concrete coverage gap remains (closest work,
+  methods, alternatives, or a claim with no anchor).
+- Recency is a property of the field, not a universal quota. Prefer recent work
+  where recency matters (`recent_threshold = current_year - 3` is a simple
+  default) and retain relevant foundational or longitudinal evidence regardless
+  of age. Explain material coverage gaps instead of padding rows to hit a
+  percentage.
+- When the user supplies a closed bibliography corpus, enumerate and deduplicate
+  it; record when the corpus is exhausted instead of inventing sources.
 
 ## Paper Types To Search
 
@@ -55,9 +61,13 @@ Rules:
   and `Verification Note` must record a **stable identifier** (DOI, arXiv ID, or
   URL) plus how it was checked. A `Verified=yes` flag with no identifier is
   treated as self-attestation only and will not reach `verified` status.
-- Mark uncertain sources as `[VERIFY]` and do not use them in final writing
-  until verified. Do not use `[VERIFY]`, `TODO`, `TBD`, `pending`, or empty
-  verification values for external-source rows.
+- Mark uncertain sources as `[VERIFY]` (or `pending`) with the unresolved point
+  stated; never let them support a final claim until verified. Final adopted
+  external-source rows must record a stable identifier and the actual
+  identity and claim-support checks.
+- Deduplicate candidates by DOI, PMID, arXiv ID, BibTeX key, URL, or normalized
+  citation; multiple claim uses of one source count once for coverage, recency,
+  and diversity. Never clone rows.
 - During drafting, select only the subset needed for coherent Introduction and
   Discussion paragraphs. Do not dump all candidates into the final paper.
 
@@ -70,4 +80,6 @@ paper_rewriting_output/citation_support_bank.md
 ```
 
 The bank is required before final writing in both `rewrite_existing` and
-`build_from_materials`.
+`build_from_materials`. Before any citation is used, establish its identity and
+what it supports; already-verified bibliographic notes may feed the bank, but
+they do not replace reconciling the final cited entries with the saved target.

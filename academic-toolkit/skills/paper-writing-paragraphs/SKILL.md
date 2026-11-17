@@ -4,12 +4,12 @@ description: "Core skill for the deep research and writing tool. Write scientifi
 allowed-tools: Read Write Edit Bash
 license: MIT license
 metadata:
-  version: "1.0"
+  version: "1.1"
   skill-author: K-Dense Inc.
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以当前会话可用的网页检索/抓取能力替代（具体工具名以实际环境为准）；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以当前会话可用的网页检索/抓取能力替代（具体工具名以实际环境为准）；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-11-16 重收编：融入上游 2d2065f（v2.72.0，目录已重组为 scientific-writing）增量——11 个参考件/脚本/资产文件按上游补丁更新、四脚本 py_compile 通过；正文补 CONSORT 2025/SPIRIT 2025 复核口径与二分类结局"绝对+相对效应并列、禁互改"规则、claim-evidence 台账哈希纪律（存哈希不存原文、改写后先重验再更新哈希）。-->
 # Scientific Writing
 
 ## Overview
@@ -177,6 +177,8 @@ Ensure completeness and transparency by following established reporting standard
 - **CHEERS**: Economic evaluations
 
 Each guideline provides checklists ensuring all critical methodological elements are reported.
+
+**版本与二分类结局口径（上游 v2.72.0 增补）**：主要路线已于 2026-10-01 复核——CONSORT 2025、SPIRIT 2025 在列。二分类试验结局按报告规范要求给出**各组的.events/分母**，并同时报告**绝对效应与相对效应**及其不确定性；区分 risk difference（百分点）、relative risk 与 odds ratio——三者不可互相改写，缺基线风险时不得推算绝对效应（见 [CONSORT 2025 explanation](https://www.bmj.com/content/389/bmj-2024-081124)）。
 
 ### 6. Writing Principles and Style
 
@@ -676,6 +678,8 @@ Load these references as needed when working on specific aspects of scientific w
 - `scripts/validate_authorship.py`: 作者贡献/署名校验（配合 `assets/authorship_template.json` 与 ICMJE 口径）
 - `scripts/select_reporting_guidelines.py`: 按研究类型选择报告规范（配合 `assets/reporting_coverage_template.json`）
 - `scripts/_common.py`: 上述脚本的共享工具模块（内部，不直接调用）
+
+**claim-evidence 台账哈希纪律（上游 v2.72.0 增补）**：CSV 中存主张文本的**哈希而非原文**；一条主张占一行物理 Markdown 行，哈希绑定去除 claim/evidence 标记并折叠空白后的整行（精确归一化见 `references/evidence_workflow.md`）。起草时逐条追加；改写措辞后必须**先重新核验该主张、再更新其哈希**——哈希对不上即视为未审计。
 
 **Additional references（按需加载）：**
 

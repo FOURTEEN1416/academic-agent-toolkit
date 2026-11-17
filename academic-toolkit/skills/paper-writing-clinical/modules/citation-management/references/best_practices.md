@@ -82,7 +82,7 @@ Search strategy, metadata extraction, BibTeX quality, and validation practices.
    - Broken DOIs: Find correct identifier
    - Missing fields: Extract from original source
    - Duplicates: Choose best version, remove others
-   - Format errors: Use auto-fix when safe
+   - Format errors: normalize with `format_bibtex.py` (write to a new file)
 
 3. **Manual review for critical citations**:
    - Verify key papers cited correctly

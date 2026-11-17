@@ -4,12 +4,12 @@ description: Build evidence-traceable market research reports and assumption-dri
 license: MIT
 compatibility: Python 3.11+ standard library for optional offline CLIs. The optional LaTeX template uses XeLaTeX or LuaLaTeX. Online research requires user-approved network access and source-specific terms; bundled scripts make no network, LLM, or image calls.
 metadata:
-  version: "1.1"
+  version: "1.3"
   skill-author: "K-Dense Inc."
 ---
 
 
-<!--ACAT-ADAPTED: 上游 K-Dense-AI/claude-scientific-writer@0c72606 pinned 原文（正文未改）。本仓库适配口径——兄弟模块替代映射、API 依赖门（parallel-cli/OPENROUTER_API_KEY 等不可直接运行）、能力对照——见本目录 ADAPTATION.md 与技能根 SKILL.md 头部适配块。2026-09-09 适应性改造。-->
+<!--ACAT-ADAPTED: 上游 K-Dense-AI/claude-scientific-writer@9820740（v2.23.0 线；初版 0c72606，2026-11-16 重收编融合）。本仓库适配口径——兄弟模块替代映射、API 依赖门（parallel-cli/OPENROUTER_API_KEY 等不可直接运行）、能力对照——见本目录 ADAPTATION.md 与技能根 SKILL.md 头部适配块。2026-09-09 适应性改造，2026-11-16 跟随上游增量融合。-->
 # Market Research Reports
 
 ## Purpose

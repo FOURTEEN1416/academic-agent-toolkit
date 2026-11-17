@@ -2,7 +2,7 @@
 
 **类型**：无坐标轴数值表（per-class 指标对比），单元格按数值深浅上红色底纹
 **样例图**：`examples/classwise_iou.png`（原图）、`examples/classwise_iou_repro.png`（复现）
-**样例来源**：`vendor/forks/paper-plot-skills/originals/classwise_iou.png`（只读 vendor 快照，仅本地使用、不再分发）
+**样例来源**：`vendor/forks/paper-plot-skills/originals/classwise_iou.png`（只读 vendor 快照；owner 已于 2026-11-16 裁决确认样例 PNG 可随公开仓分发）
 **复现脚本**：`scripts/table_classwise_iou.py`（改编自 `vendor/forks/paper-plot-skills/plot-from-image/scripts/classwise_iou_table.py`）
 
 ## 适用场景

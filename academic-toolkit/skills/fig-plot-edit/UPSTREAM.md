@@ -16,6 +16,12 @@
 - 同步记录（2026-11-16，0172103→d93cd31，4 commits）: 上游更新为 research figures 升级 +
   secure Python runtime（editaplot.cmd 新增 managed-runtime 指针，Python 探测收窄 3.11–3.12）+
   heatmap 行标签修复 + 双语 README。vendor/forks/editaplot 已整体同步至实测 HEAD（保留本机
-  runtime/.editaplot-venv 环境文件）。技能侧 references/scripts 适配层重放**待专项执行**：
-  本仓 SKILL.md 为深度改写适配层，上游 12 个 skill 文件变更（+301/−102）须逐件人工合并，
-  盲目覆盖会破坏中性化适配（fig-plot-edit 当前登记待用，不同步技能侧不影响既有功能）。
+  runtime/.editaplot-venv 环境文件）。技能侧适配层重放已于同日完成：SKILL.md 硬前提收窄
+  3.11–3.12（Pillow 13.0.0）并新增迁移/analysis_changed/FLIM/事件栅格/时频/多通道条款；
+  references 十件全部对齐（chart-selection 45 路由、data-contracts 新增 4 数据契约、
+  origin-safety AppContainer 与 secure-runtime 回归记录、verification 物理页尺寸与热图行标签
+  校验、runtime retained 环境迁移、figure-contract 热图行标签冻结、showcase 53/44 计数）；
+  scripts 同步 Pillow 13.0.0、4 新模板、_prepare_with_mapping、retained 归档策略
+  （_retain_managed_path，不再删除旧环境）与 launch_managed.ps1 指针启动器。本仓保留的适配：
+  SKILL.md 中文三段式边界、bootstrap --target 显式目标（无 CODEX_HOME 默认）、
+  skill/fig-plot-edit 路径、Codex→当前 Agent/driving agent 中性化。

@@ -49,6 +49,27 @@ Every humanization change must be recorded, not applied silently:
 - At least one row per term substitution (D5, heavy only)
 - Fill all 8 columns for every row — no empty cells
 
+## Boundaries And Honest No-Op
+
+The capability is restoring the author's own scholarly voice while preserving
+scientific meaning — removing empty framing, mechanical paragraph roles,
+unsupported evaluative language, false polish, and repeated scaffolding. It is
+not mechanical evasion, and its results are diagnostics, not verdicts:
+
+- Do not promise a pass on any specific AIGC detector or output a fabricated
+  "AI rate" / percentage.
+- Do not optimize prose against a classifier or a word blacklist; pattern
+  matches alone do not force a change.
+- Clear, accurate, section-appropriate text is a legitimate no-op even when it
+  uses a common connector, repeated procedural syntax, or low sentence-length
+  variance. Record a no-op row rather than inventing a change; a no-op is
+  precision evidence, not a missed opportunity to lower a score.
+- Do not add errors, slang, rhetorical questions, first person, or
+  sentence-length variation merely to look human.
+- Do not use multi-hop translation or back-translation as the final rewrite.
+- Preserve the author's meaning, terminology, evidence, and claim strength;
+  compare revised meaning against the original rather than chasing a metric.
+
 ## Instructions
 
 Read `references/humanize-tiers-{output_language}.md` for the complete

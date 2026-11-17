@@ -12,3 +12,9 @@
 - vendor/forks/Auto-claude-code-research-in-sleep 已镜像同步至实测 HEAD（768 文件更新、0 删除）。
 - 上游区间 skills/ 变更 177 文件（+11563/-1014），主要为止(install/SSH 同步修复与文档扩充)。本件对应上游目录 skills/paper-writing：上游区间内有变更。
 - 技能侧重收编待专项按改写融入规程执行：上游新版技能正文 allowed-tools 含 Codex MCP 评审桥类宿主特征词（host_dep_scan 词表项，字面量此处不复写以维持登记外零命中棘轮），本仓技能侧 SKILL.md 为中性化改写版，不盲目覆盖。
+
+## 重收编融入（2026-11-16，PKG-02，pin 94d8093→9f30e83）
+
+- 已吸收（语义级，融入本仓中文路由入口的"执行边界"）：① launch 心态——成稿按"发布"而非"进度汇报"组织，从最强且证据最足的贡献讲起、每个实验承担论证职责、不利数字保留在表格并仅在证据支持时解释为权衡；② 写手与评审角色分离——起草/润色人选独立于评审路由，配置互不覆盖，写手改动不得绕过评审与审计闸门。
+- 未吸收：上游 allowed-tools 扩充（antigravity/grok/claude-review/model-worker 等 MCP 桥）、reviewer-backends 槽位解析段、writer 会话跨技能透传机制（本仓写手与评审由引擎按技能分派，无 model-worker 通道）、REVIEWER_MODEL gpt-5.6-sol→gpt-6-astra 改名——均属宿主特征或本仓已由引擎编排覆盖，不跟随。
+- 自查：host_dep_scan 对本技能 SKILL.md 零命中（2026-11-16 实跑）。

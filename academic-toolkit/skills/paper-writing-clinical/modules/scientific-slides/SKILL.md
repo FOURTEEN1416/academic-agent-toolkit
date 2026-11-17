@@ -4,7 +4,7 @@ description: Build slide decks and presentations for research talks. Use this fo
 allowed-tools: Read Write Edit Bash
 license: MIT license
 metadata:
-  version: "1.5"
+  version: "1.8"
   skill-author: K-Dense Inc.
   openclaw:
     primaryEnv: OPENROUTER_API_KEY
@@ -15,7 +15,7 @@ metadata:
 ---
 
 
-<!--ACAT-ADAPTED: 上游 K-Dense-AI/claude-scientific-writer@0c72606 pinned 原文（正文未改）。本仓库适配口径——兄弟模块替代映射、API 依赖门（parallel-cli/OPENROUTER_API_KEY 等不可直接运行）、能力对照——见本目录 ADAPTATION.md 与技能根 SKILL.md 头部适配块。2026-09-09 适应性改造。-->
+<!--ACAT-ADAPTED: 上游 K-Dense-AI/claude-scientific-writer@9820740（v2.23.0 线；初版 0c72606，2026-11-16 重收编融合）。本仓库适配口径——兄弟模块替代映射、API 依赖门（parallel-cli/OPENROUTER_API_KEY 等不可直接运行）、能力对照——见本目录 ADAPTATION.md 与技能根 SKILL.md 头部适配块。2026-09-09 适应性改造，2026-11-16 跟随上游增量融合。-->
 # Scientific Slides
 
 ## Overview
@@ -180,7 +180,7 @@ When creating PowerPoint presentations, use Nano Banana Pro to generate images a
 **How it works:**
 1. **Plan the deck**: Create content plan for each slide
 2. **Generate visuals**: Use Nano Banana Pro with `--visual-only` flag to create images for slides
-3. **Build PPTX**: Use the PPTX skill (html2pptx or template-based) to create slides with generated visuals and separate text
+3. **Build PPTX**: Use the PPTX skill (PptxGenJS or template-based) to create slides with generated visuals and separate text
 
 **Step 1: Generate Visuals for Each Slide**
 
@@ -197,7 +197,7 @@ python scripts/generate_slide_image.py "Before and after comparison showing impr
 
 **Step 2: Build PowerPoint with PPTX Skill**
 
-Use the PPTX skill's html2pptx workflow to create slides that include:
+Use the PPTX skill's PptxGenJS workflow to create slides that include:
 - Generated images from step 1
 - Title and body text added separately
 - Professional layout and formatting
@@ -263,7 +263,7 @@ often sink a talk are catalogued in
 - Use for PowerPoint creation and editing
 - Leverage scripts for template workflows
 - Use thumbnail generation for validation
-- Reference html2pptx for programmatic creation
+- Reference the PPTX skill's `SKILL.md` for programmatic creation
 
 **Data Visualization**:
 - Create presentation-appropriate figures

@@ -1,6 +1,6 @@
 ---
 name: analyze-results
-description: Analyze ML experiment results, compute statistics, generate comparison tables and insights. Use when user says "analyze results", "compare", or needs to interpret experimental data. Lightweight numeric cross-checks and tabulation only; for strict statistical evidence bundles (significance/CI/effect size), use results-analysis.
+description: Analyze ML experiment results, compute statistics, generate comparison tables and insights. Trigger: "analyze results", "compare"; interpret experimental data. Numeric cross-checks and tabulation only; for significance/CI/effect-size evidence bundles use results-analysis.
 argument-hint: [results-path-or-description]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent
 ---

@@ -24,7 +24,10 @@ Chinese doc deliverable. The user-facing result is `paper.zh.docx`.
 
 List every file to translate. Write `translation_zh/manifest.md`. `translate_guard.py`
 demands the exact set below (every file lives under `translation_zh/`); a missing
-file is a BLOCKER.
+file is a BLOCKER. Inventory the text and files the user actually requested to
+translate: if the run produced additional stage artifacts beyond this baseline
+set, include them in the manifest and translate them too — the baseline below is
+the minimum guard set, not permission to skip real outputs.
 
 Common files (required for both workflows):
 
@@ -81,8 +84,11 @@ python scripts/word_guard.py paper_rewriting_output/final_paper/paper.zh.docx \
   --markdown --output paper_rewriting_output/word_report.zh.md
 ```
 
-If pandoc is unavailable while Word output is required, write BLOCKED/FAIL in
-the relevant report and do not claim the Chinese deliverable is complete.
+If the selected conversion backend is unavailable, use another available
+faithful Word pipeline; Pandoc is not the only acceptable backend. While the
+requested final Word document remains missing or fails its guard, write
+BLOCKED/FAIL in the relevant report and do not claim the Chinese deliverable is
+complete.
 
 ### Phase 4 - Verify
 

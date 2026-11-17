@@ -55,7 +55,7 @@ If none exist, generate plan from $ARGUMENTS description.
 
 
 
-Read `../shared-references/writing-principles.md` when framing contribution, Abstract, Introduction.
+Read `../shared-references/writing-principles.md` when framing the one-sentence contribution, Abstract, Introduction, Related Work, or hero figure. Plan the Claims-Evidence Matrix with a launch mindset: open with the strongest well-supported contribution, give every experiment an argumentative role, and attach each assumption to the claim it constrains instead of stacking a disclaimer list.
 
 Read `../shared-references/venue-checklists.md` before freezing outline.
 

@@ -1,6 +1,6 @@
 ---
 name: auto-review-loop
-description: "Autonomous multi-round research review loop: write review task cards, obtain an independent review (any isolated context - independent subagent / session / window / another model), implement fixes, re-review until positive assessment or max rounds; degrade to current-agent adversarial self-review only when no independent context is obtainable. 统一遵循独立评审手册（independent_review_manual，正文有指引），零 APIKey 零网络。Trigger with \"auto review loop\", \"review until it passes\"."
+description: "Autonomous multi-round review loop: independent review (isolated subagent/session/window/model), implement fixes, re-review until pass or max rounds; adversarial self-review only as fallback. Follows independent_review_manual; zero API key, zero network. Trigger: \"auto review loop\", \"review until it passes\"."
 argument-hint: [topic-or-scope]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent, Skill
 ---

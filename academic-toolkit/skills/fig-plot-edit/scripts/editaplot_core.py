@@ -22,7 +22,7 @@ from typing import Any, BinaryIO
 
 try:
     from importlib import metadata as importlib_metadata
-except ImportError:  # pragma: no cover - supported runtime is CPython 3.10-3.12
+except ImportError:  # pragma: no cover - supported runtime is CPython 3.11-3.12
     try:
         import importlib_metadata  # type: ignore[no-redef]
     except ImportError:  # pragma: no cover - lets doctor explain unsupported legacy Python
@@ -37,8 +37,9 @@ MANAGED_ENV_DIRECTORY = ".editaplot-venv"
 MANAGED_ENV_FINGERPRINT = ".editaplot-environment.json"
 MANAGED_ENV_BUILD_PREFIX = f"{MANAGED_ENV_DIRECTORY}.build-"
 MANAGED_ENV_STALE_PREFIX = f"{MANAGED_ENV_DIRECTORY}.stale-"
+MANAGED_ENV_RETAINED_PREFIX = f"{MANAGED_ENV_DIRECTORY}.retained-"
 MANAGED_ENV_LOCK = ".editaplot-environment.lock"
-PYTHON_MIN_VERSION = (3, 10)
+PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION_EXCLUSIVE = (3, 13)
 PYTHON_REQUIRED_BITS = 64
 RUNTIME_DEPENDENCIES = (
@@ -51,7 +52,7 @@ RUNTIME_DEPENDENCIES = (
     ("OriginExt", "OriginExt==1.2.5"),
     ("openpyxl", "openpyxl==3.1.5"),
     ("xlrd", "xlrd==2.0.2"),
-    ("PIL", "pillow==12.3.0"),
+    ("PIL", "pillow==13.0.0"),
 )
 VERIFIED_TEMPLATE_IDS = frozenset(
     {
@@ -87,6 +88,10 @@ VERIFIED_TEMPLATE_IDS = frozenset(
         "raincloud",
         "shap_summary",
         "shap_dashboard",
+        "flim_phasor",
+        "time_frequency",
+        "signal_stack",
+        "event_raster",
         "grouped_box",
         "pl",
         "dsc",
@@ -234,7 +239,7 @@ def python_compatibility(
         "version": ".".join(str(part) for part in selected_version[:3]),
         "version_info": list(selected_version[:3]),
         "architecture_bits": selected_bits,
-        "required": "64-bit CPython >=3.10,<3.13",
+        "required": "64-bit CPython >=3.11,<3.13",
         "host": host,
         "reasons": reasons,
     }
@@ -918,6 +923,12 @@ _INTENT_KEYWORDS: dict[str, tuple[str, ...]] = {
     "decision_curve": ("decisioncurve", "netbenefit", "dca", "决策曲线", "净获益"),
     "raincloud": ("raincloud", "raincloudplot", "halfviolin", "雨云图", "半小提琴"),
     "shap_dashboard": ("shap dashboard", "nested donut", "双层环图", "分栏 SHAP", "shap 分栏"),
+    "flim_phasor": ("flim phasor", "phasor plot", "相量图", "荧光相量", "荧光寿命相量"),
+    "time_frequency": ("time frequency", "spectrogram", "时频", "时间频率", "预计算时频"),
+    "signal_stack": (
+        "multichannel", "signal stack", "eeg traces", "fluorescence traces", "多通道", "脑电波形", "荧光轨迹",
+    ),
+    "event_raster": ("event raster", "spike raster", "trial events", "事件栅格", "试次事件", "已提供事件"),
     "shap_summary": (
         "shapsummary",
         "shapbeeswarm",
@@ -1466,6 +1477,26 @@ def _beginner_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _prepare_with_mapping(service: Any, path: str | Path, mapping: dict[str, Any] | None) -> Any:
+    """Honor explicit scientific roles before automatic inference can fail."""
+    if mapping is None:
+        return service.prepare(path)
+    assignments = mapping.get("assignments")
+    if not isinstance(assignments, dict):
+        raise EditaPlotError("mapping_invalid", "Mapping JSON needs an assignments object.")
+    assignments = {str(key): str(value) for key, value in assignments.items()}
+    context = str(mapping.get("energy_kind") or mapping.get("plot_mode") or "")
+    from origin_sciplot.scientific_workflow import ScientificColumnMapping
+    from origin_sciplot.template_service import ScientificTemplateService
+
+    if isinstance(service, ScientificTemplateService):
+        return service.prepare(path, column_mapping=ScientificColumnMapping(
+            assignments=tuple(assignments.items()), plot_mode=context or None,
+        ))
+    prepared = service.prepare(path)
+    return service.confirm_mapping(prepared, assignments=assignments, energy_kind=context)
+
+
 def _prepare_template_for_understanding(
     path: str | Path,
     *,
@@ -1484,17 +1515,7 @@ def _prepare_template_for_understanding(
     registry = TemplateServiceRegistry()
     try:
         service = registry.get(template_id)
-        prepared = service.prepare(path)
-        if mapping is not None:
-            assignments = mapping.get("assignments")
-            if not isinstance(assignments, dict):
-                raise EditaPlotError("mapping_invalid", "Mapping JSON needs an assignments object.")
-            context = str(mapping.get("energy_kind") or mapping.get("plot_mode") or "")
-            prepared = service.confirm_mapping(
-                prepared,
-                assignments={str(key): str(value) for key, value in assignments.items()},
-                energy_kind=context,
-            )
+        prepared = _prepare_with_mapping(service, path, mapping)
     except TemplateServiceError as exc:
         raise EditaPlotError(exc.code, str(exc)) from exc
     return service, prepared, root
@@ -2109,17 +2130,7 @@ def build_plan(
     registry = TemplateServiceRegistry()
     try:
         service = registry.get(template_id)
-        prepared = service.prepare(path)
-        if mapping is not None:
-            assignments = mapping.get("assignments")
-            if not isinstance(assignments, dict):
-                raise EditaPlotError("mapping_invalid", "Mapping JSON needs an assignments object.")
-            context = str(mapping.get("energy_kind") or mapping.get("plot_mode") or "")
-            prepared = service.confirm_mapping(
-                prepared,
-                assignments={str(key): str(value) for key, value in assignments.items()},
-                energy_kind=context,
-            )
+        prepared = _prepare_with_mapping(service, path, mapping)
     except TemplateServiceError as exc:
         raise EditaPlotError(exc.code, str(exc)) from exc
 
@@ -2362,11 +2373,14 @@ def build_plan(
         },
         "can_render": bool(
             template_id in VERIFIED_TEMPLATE_IDS
+            and service.manifest.status == "implemented"
             and not prepared.requires_confirmation
             and reference_renderer_ready
         ),
         "blocked_reasons": (
             (["column_mapping_confirmation_required"] if prepared.requires_confirmation else [])
+            + (["template_not_implemented"] if service.manifest.status != "implemented" else [])
+            + (["template_not_verified"] if template_id not in VERIFIED_TEMPLATE_IDS else [])
             + reference_blocked_reasons
         ),
     }
@@ -3048,6 +3062,7 @@ def _validated_managed_child(root: Path, path: Path) -> Path:
         candidate.name == MANAGED_ENV_DIRECTORY
         or candidate.name.startswith(MANAGED_ENV_BUILD_PREFIX)
         or candidate.name.startswith(MANAGED_ENV_STALE_PREFIX)
+        or candidate.name.startswith(MANAGED_ENV_RETAINED_PREFIX)
     )
     try:
         direct_child = candidate.parent.resolve() == resolved_root
@@ -3105,13 +3120,22 @@ def _managed_recovery_paths(root: Path, prefix: str) -> list[Path]:
     return sorted(paths, key=lambda item: item.name)
 
 
+def _retain_managed_path(root: Path, path: Path, actions: list[dict[str, Any]]) -> Path:
+    """Archive an owned environment without deleting or reusing its contents."""
+
+    source = _validated_managed_child(root, path)
+    retained = _next_managed_path(root, MANAGED_ENV_RETAINED_PREFIX)
+    os.replace(source, retained)
+    actions.append({"action": "retain_environment", "source": source.name, "path": retained.name})
+    return retained
+
+
 def _recover_managed_environment(root: Path, actions: list[dict[str, Any]]) -> None:
-    """Clean abandoned builds and restore the old env after an interrupted swap."""
+    """Preserve abandoned builds and restore an interrupted, verified old swap."""
 
     env_root = _validated_managed_child(root, root / MANAGED_ENV_DIRECTORY)
     for build in _managed_recovery_paths(root, MANAGED_ENV_BUILD_PREFIX):
-        _remove_managed_path(root, build)
-        actions.append({"action": "remove_abandoned_environment_build", "path": build.name})
+        _retain_managed_path(root, build, actions)
 
     stale_paths = _managed_recovery_paths(root, MANAGED_ENV_STALE_PREFIX)
     if not (env_root.exists() or env_root.is_symlink()):
@@ -3123,10 +3147,8 @@ def _recover_managed_environment(root: Path, actions: list[dict[str, Any]]) -> N
                 break
             os.replace(env_root, stale)
 
-    if managed_environment_status(root)["valid"]:
-        for stale in stale_paths:
-            _remove_managed_path(root, stale)
-            actions.append({"action": "remove_obsolete_stale_environment", "path": stale.name})
+    for stale in stale_paths:
+        _retain_managed_path(root, stale, actions)
 
 
 def _verify_managed_dependencies(python: Path) -> dict[str, Any]:
@@ -3182,7 +3204,7 @@ def repair_environment(*, engine_home: str | Path | None = None) -> dict[str, An
     if not compatibility["compatible"]:
         raise EditaPlotError(
             "python_version_unrepairable",
-            "Automatic repair requires 64-bit CPython 3.10, 3.11, or 3.12.",
+            "Automatic repair requires 64-bit CPython 3.11 or 3.12 (3.12 preferred).",
             compatibility=compatibility,
         )
     root = bootstrap_engine(engine_home)
@@ -3239,6 +3261,7 @@ def _repair_environment_transaction(
     build_python = _environment_python(build)
     backup: Path | None = None
     new_installed = False
+    activation_started = False
     try:
         command = [sys.executable, "-m", "venv", str(build)]
         try:
@@ -3335,6 +3358,7 @@ def _repair_environment_transaction(
         backup = _next_managed_path(root, MANAGED_ENV_STALE_PREFIX)
         if env_root.exists() or env_root.is_symlink():
             os.replace(env_root, backup)
+        activation_started = True
         os.replace(build, env_root)
         new_installed = True
         post_status = managed_environment_status(root)
@@ -3349,22 +3373,21 @@ def _repair_environment_transaction(
         actions.append({"action": "activate_verified_project_venv"})
     except BaseException:
         backup_exists = backup is not None and (backup.exists() or backup.is_symlink())
-        build_was_activated = not (build.exists() or build.is_symlink()) and (
+        build_was_activated = activation_started and not (build.exists() or build.is_symlink()) and (
             env_root.exists() or env_root.is_symlink()
         )
         if backup_exists and backup is not None:
             if env_root.exists() or env_root.is_symlink():
-                _remove_managed_path(root, env_root)
+                _retain_managed_path(root, env_root, actions)
             os.replace(backup, env_root)
         elif new_installed or build_was_activated:
-            _remove_managed_path(root, env_root)
+            _retain_managed_path(root, env_root, actions)
         if build.exists() or build.is_symlink():
-            _remove_managed_path(root, build)
+            _retain_managed_path(root, build, actions)
         raise
 
     if backup is not None and (backup.exists() or backup.is_symlink()):
-        _remove_managed_path(root, backup)
-        actions.append({"action": "remove_stale_environment_after_success"})
+        _retain_managed_path(root, backup, actions)
     _recover_managed_environment(root, actions)
     return {
         "schema_version": "1.0",

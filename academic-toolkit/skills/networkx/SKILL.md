@@ -8,12 +8,14 @@ metadata:
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以执行环境提供的 web_search/web_fetch 替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以执行环境提供的 web_search/web_fetch 替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-11-16 重收编：融入上游 2d2065f（v2.72.0）增量——NetworkX 3.7 口径、权重语义（距离 vs 强度）、Leiden 社区发现、邻接矩阵往返与 I/O 保真契约；上游新增的 review.md 自测记录（位于上游 references 目录）属上游验证留痕，未收编（避免声称未执行的验证），其"科学解释与互操作边界"要点已改写并入正文与参考件。-->
 # NetworkX
 
 ## Overview
 
 NetworkX is a Python package for creating, manipulating, and analyzing complex networks and graphs. Use this skill when working with network or graph data structures, including social networks, biological networks, transportation systems, citation networks, knowledge graphs, or any system involving relationships between entities.
+
+This skill targets the NetworkX 3.x API surface (examples aligned with NetworkX 3.7; Python >= 3.12). Several pre-3.0 APIs (`nx.info`, `nx.write_gpickle`, `nx.read_shp`) and the 3.4-era `nx.random_tree` no longer exist — current replacements are used throughout. Snippets are API patterns, not one sequential script: supply the stated graph type and input files.
 
 ## When to Use This Skill
 
@@ -62,10 +64,16 @@ G.add_edge(1, 4, weight=0.8, relation='interacts')
 NetworkX provides extensive algorithms for network analysis:
 
 **Shortest Paths**:
+
+For weighted paths, weights mean distances/costs: larger values make a route less favorable. Similarity, correlation, or interaction strength needs an explicit, scientifically justified conversion before use as distance. Validate the attribute on every edge; weighted betweenness requires strictly positive distances.
+
 ```python
-# Find shortest path
-path = nx.shortest_path(G, source=1, target=5)
-length = nx.shortest_path_length(G, source=1, target=5, weight='weight')
+# Same distance model for route and length
+G = nx.Graph()
+G.add_weighted_edges_from([(1, 2, 1), (2, 5, 1), (1, 5, 5)], weight='distance')
+path = nx.shortest_path(G, source=1, target=5, weight='distance')
+length = nx.shortest_path_length(G, source=1, target=5, weight='distance')
+assert path == [1, 2, 5] and length == 2
 ```
 
 **Centrality Measures**:
@@ -84,8 +92,12 @@ pagerank = nx.pagerank(G)
 ```python
 from networkx.algorithms import community
 
-# Detect communities
-communities = community.greedy_modularity_communities(G)
+# Greedy modularity (weight=None for unweighted topology)
+communities = community.greedy_modularity_communities(G, weight=None)
+
+# Leiden (native in NetworkX 3.7); defaults to the Constant Potts Model,
+# so set metric="modularity" when comparing with modularity methods
+leiden = community.leiden_communities(G, weight=None, metric="modularity", seed=42)
 ```
 
 **Connectivity**:
@@ -157,9 +169,10 @@ nx.write_graphml(G, 'graph.graphml')
 G = nx.read_gml('graph.gml')
 nx.write_gml(G, 'graph.gml')
 
-# JSON
-data = nx.node_link_data(G)
-G = nx.node_link_graph(data)
+# JSON (node-link format; the edge list lives under the "edges" key
+# since NetworkX 3.6 — older files may use "links", see references/io.md)
+data = nx.node_link_data(G, edges="edges")
+G = nx.node_link_graph(data, edges="edges")
 ```
 
 **Pandas Integration**:
@@ -178,13 +191,15 @@ df = nx.to_pandas_edgelist(G)
 ```python
 import numpy as np
 
-# Adjacency matrix
-A = nx.to_numpy_array(G)
-G = nx.from_numpy_array(A)
+# Simple-graph adjacency: preserve node ordering, direction and zero weights
+nodes = list(G)
+A = nx.to_numpy_array(G, nodelist=nodes, nonedge=np.nan)
+H = nx.from_numpy_array(A, nodelist=nodes, create_using=type(G), nonedge=np.nan)
 
-# Sparse matrix
-A = nx.to_scipy_sparse_array(G)
-G = nx.from_scipy_sparse_array(A)
+# Sparse adjacency sums parallel-edge weights; save labels separately
+A = nx.to_scipy_sparse_array(G, nodelist=nodes)
+H = nx.from_scipy_sparse_array(A, create_using=type(G))
+H = nx.relabel_nodes(H, dict(enumerate(nodes)))
 ```
 
 **Reference**: See `references/io.md` for complete documentation on all I/O formats including CSV, SQL databases, Cytoscape, DOT, and guidance on format selection for different use cases.
@@ -240,14 +255,14 @@ pos = nx.spectral_layout(G)
 
 **Publication Quality**:
 ```python
-plt.figure(figsize=(12, 8))
+fig, ax = plt.subplots(figsize=(12, 8))
 pos = nx.spring_layout(G, seed=42)
-nx.draw(G, pos=pos, node_color='lightblue', node_size=500,
+nx.draw(G, pos=pos, ax=ax, node_color='lightblue', node_size=500,
         edge_color='gray', with_labels=True, font_size=10)
-plt.title('Network Visualization', fontsize=16)
+ax.set_title('Network Visualization', fontsize=16)
 plt.axis('off')
 plt.tight_layout()
-plt.savefig('network.png', dpi=300)
+plt.savefig('network.png', dpi=300, bbox_inches='tight')
 plt.savefig('network.pdf')  # Vector format
 ```
 
@@ -263,9 +278,9 @@ Ensure NetworkX is installed:
 import networkx as nx
 print(nx.__version__)
 
-# Install if needed (via bash)
-# uv pip install networkx
-# uv pip install networkx[default]  # With optional dependencies
+# Install if needed (via bash); pin the version for reproducibility
+# uv pip install "networkx==3.7"
+# uv pip install "networkx[default]==3.7"  # With optional dependencies
 ```
 
 ### Common Workflow Pattern
@@ -325,6 +340,10 @@ Most NetworkX tasks follow this pattern:
 
 ### Important Considerations
 
+**Analysis contract**: specify node/edge meaning, sampling and missingness, weight units, and whether parallel observations should be retained or aggregated. All four graph classes allow self-loops. Repeated `Graph.add_edge` updates an existing edge; it does not sum observations. `nx.is_connected` is for nonempty undirected graphs; directed graphs require strong/weak connectivity. Report component sizes before choosing a subset.
+
+**Scientific interpretation**: centrality is conditional on the observed graph and weight model. Community partitions optimize a chosen objective; they are not significance tests. Test seed/resolution sensitivity and use a domain-justified null ensemble. Converting a configuration multigraph to a simple graph changes its degree sequence. A generated preferential-attachment graph does not demonstrate that empirical data follow a power law.
+
 **Floating Point Precision**: When graphs contain floating-point numbers, all results are inherently approximate due to precision limitations. This can affect algorithm outcomes, particularly in minimum/maximum computations.
 
 **Memory and Performance**: Each time a script runs, graph data must be loaded into memory. For large networks:
@@ -332,11 +351,12 @@ Most NetworkX tasks follow this pattern:
 - Consider loading only necessary subgraphs
 - Use efficient file formats (pickle for Python objects, compressed formats)
 - Leverage approximate algorithms for very large networks (e.g., `k` parameter in centrality calculations)
+- For heavy workloads, dispatchable functions accept `backend=` or a configured `nx.config.backend_priority`. Check the backend's function, graph-type and parameter coverage; conversion costs, supported weights, seeds and numerical results can differ.
 
 **Node and Edge Types**:
-- Nodes can be any hashable Python object (numbers, strings, tuples, custom objects)
+- Nodes can be any hashable Python object except `None` (numbers, strings, tuples, custom objects)
 - Use meaningful identifiers for clarity
-- When removing nodes, all incident edges are automatically removed
+- When removing nodes, all incident edges are automatically removed; remove an edge before deleting one of its endpoints
 
 **Random Seeds**: Always set random seeds for reproducibility in random graph generation and force-directed layouts:
 ```python
@@ -363,9 +383,9 @@ G.has_node(1)
 G.has_edge(1, 2)
 nx.is_connected(G)
 
-# Modify
-G.remove_node(1)
+# Modify: remove the edge before deleting its endpoint
 G.remove_edge(1, 2)
+G.remove_node(1)
 G.clear()
 ```
 
@@ -431,8 +451,8 @@ Extensive documentation on visualization techniques including layout algorithms,
 
 ## Additional Resources
 
-- **Official Documentation**: https://networkx.org/documentation/latest/
-- **Tutorial**: https://networkx.org/documentation/latest/tutorial.html
-- **Gallery**: https://networkx.org/documentation/latest/auto_examples/index.html
+- **Official Documentation**: https://networkx.org/documentation/stable/
+- **Tutorial**: https://networkx.org/documentation/stable/tutorial.html
+- **Gallery**: https://networkx.org/documentation/stable/auto_examples/index.html
 - **GitHub**: https://github.com/networkx/networkx
 

@@ -1,5 +1,8 @@
 # SymPy Physics and Mechanics
 
+Examples in this reference are ordered session fragments: run earlier imports and
+setup first. Tested with SymPy 1.14.0; exceptions are explicitly marked illustrative.
+
 This document covers SymPy's physics modules including classical mechanics, quantum mechanics, vector analysis, units, optics, continuum mechanics, and control systems.
 
 ## Vector Analysis
@@ -87,7 +90,7 @@ a = P.acc(N)
 ### Lagrangian Mechanics
 
 ```python
-from sympy import symbols, Function
+from sympy import symbols, Function, cos
 from sympy.physics.mechanics import dynamicsymbols, LagrangesMethod
 
 # Define generalized coordinates
@@ -251,7 +254,7 @@ from sympy import Rational
 psi = JzKet(Rational(1, 2), Rational(1, 2))  # |1/2, 1/2⟩
 
 # Apply operator
-result = Jz * psi
+result = qapply(Jz * psi)  # hbar/2 times this spin-up state
 ```
 
 ### Quantum Gates
@@ -267,7 +270,7 @@ from sympy.physics.quantum.gate import (
 # Apply gate to quantum state
 from sympy.physics.quantum.qubit import Qubit
 q = Qubit('01')
-result = H(0) * q  # Apply Hadamard to qubit 0
+result = qapply(H(0) * q)  # Apply Hadamard; qubit 0 is the rightmost bit
 ```
 
 ### Quantum Algorithms
@@ -323,8 +326,11 @@ c = speed_of_light
 from sympy.physics.units import Quantity, meter, second
 
 # Define custom unit
-parsec = Quantity('parsec')
-parsec.set_global_relative_scale_factor(3.0857e16 * meter, meter)
+from sympy import Rational
+survey_length = Quantity('survey_length')
+survey_length.set_global_relative_scale_factor(Rational('3.0857e16'), meter)
+# Scalar factor is dimensionless; reference quantity is a separate argument.
+# This is an example custom unit, not a precision definition of the parsec.
 ```
 
 ### Dimensional Analysis
@@ -525,6 +531,11 @@ from sympy.tensor.tensor import tensor_indices
 # LorentzIndex is an index type; indices are created with tensor_indices()
 gamma_mu = GammaMatrix(tensor_indices('mu', LorentzIndex))
 gamma_nu = GammaMatrix(tensor_indices('nu', LorentzIndex))
+
+# Explicit 4x4 Dirac representation matrices
+from sympy.physics.matrices import mgamma
+gamma0 = mgamma(0)
+gamma1 = mgamma(1)
 ```
 
 ## Common Physics Patterns
@@ -547,7 +558,9 @@ O = Point('O')
 P = Point('P')
 
 # 4. Set kinematics
-P.set_pos(O, length * N.x)
+length = symbols("length", positive=True)
+O.set_vel(N, 0)
+P.set_pos(O, length * q * N.x)
 P.set_vel(N, length * q_dot * N.x)
 
 # 5. Define forces and apply Lagrange or Kane method
@@ -614,7 +627,7 @@ deflection_at_mid = beam.deflection().subs(symbols('x'), 5)
 
 1. **Time-dependent variables:** Use `dynamicsymbols()` for time-varying quantities in mechanics problems.
 
-2. **Units:** Always specify units explicitly using the `sympy.physics.units` module for physics calculations.
+2. **Units:** Choose and record a consistent unit convention. Mechanics examples use symbolic or numeric coefficients in that convention; the mechanics classes do not automatically enforce dimensional consistency. Use `sympy.physics.units` for explicit checks and conversions.
 
 3. **Reference frames:** Clearly define reference frames and their relative orientations for vector analysis.
 

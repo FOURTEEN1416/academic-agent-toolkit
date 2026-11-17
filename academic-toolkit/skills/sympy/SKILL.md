@@ -3,14 +3,14 @@ name: sympy
 description: Use when you need exact symbolic math in Python — algebra, calculus, equation solving, symbolic linear algebra, or code generation via lambdify/LaTeX. Prefer NumPy or SciPy when floating-point approximations are sufficient.
 license: https://github.com/sympy/sympy/blob/master/LICENSE
 allowed-tools: Read Write Edit Bash
-compatibility: Requires Python 3.9+ and SymPy 1.14+. Optional NumPy/SciPy/Matplotlib for lambdify examples; C/Fortran compiler for autowrap/codegen.
+compatibility: Requires Python 3.9+ and SymPy 1.14.0 (mpmath>=1.1,<1.4). Optional NumPy/SciPy/Matplotlib for lambdify examples; C/Fortran compiler for autowrap/codegen.
 metadata:
-  version: "1.1"
+  version: "1.2"
   skill-author: K-Dense Inc.
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以驱动 Agent 的 web_search/web_fetch 能力替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以驱动 Agent 的 web_search/web_fetch 能力替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-11-16 重收编：融入上游 2d2065f（v2.72.0）增量——SymPy 1.14.0/mgensim 口径收敛、求解域与 ConditionSet 语义、输入信任边界（parse_expr/sympify/lambdify 非沙箱）、fsolve 收敛校验、force=True 误导性建议纠偏；上游新增的 review.md 自测记录（位于上游 references 目录）属上游验证留痕，未收编。-->
 # SymPy - Symbolic Mathematics in Python
 
 ## Overview
@@ -19,11 +19,11 @@ SymPy is a Python library for symbolic mathematics that enables exact computatio
 
 ## Installation
 
-Tested against **SymPy 1.14.0** (stable; April 2025). Requires **Python 3.9+**.
+Reference examples are aligned with **SymPy 1.14.0** (stable; April 2025). Core SymPy requires **Python 3.9+**; the tested NumPy/SciPy stack needs Python 3.12+. SymPy 1.14.0 requires `mpmath>=1.1,<1.4` — use the compatible 1.3.0, not the newer 1.4.x release.
 
 ```bash
-# Install SymPy using uv
-uv pip install "sympy>=1.14"
+# Install SymPy using uv; pin the version for reproducibility
+uv pip install "sympy==1.14.0"
 
 # Optional: for lambdify and plotting examples
 uv pip install numpy scipy matplotlib
@@ -262,7 +262,7 @@ from sympy import Rational, S
 expr = Rational(1, 2) * x
 expr = S(1)/2 * x
 
-# Incorrect (floating-point):
+# Approximate (appropriate for measured/numerical inputs):
 expr = 0.5 * x  # Creates approximate value
 ```
 
@@ -272,12 +272,17 @@ expr = 0.5 * x  # Creates approximate value
 from sympy import pi, sqrt
 result = sqrt(8) + pi
 result.evalf()    # 5.97001977833598
-result.evalf(50)  # 50 digits of precision
+result.evalf(50)  # Request 50 decimal digits; cannot recover precision lost in inputs
 ```
 
 ### 5. Convert to NumPy for Performance
 
 ```python
+from sympy import symbols, lambdify
+import numpy as np
+x = symbols("x")
+expr = x**2 + 1
+
 # Slow for many evaluations:
 for x_val in range(1000):
     result = expr.subs(x, x_val).evalf()
@@ -293,7 +298,15 @@ results = f(np.arange(1000))
 - `linsolve`: Linear systems
 - `nonlinsolve`: Nonlinear systems
 - `dsolve`: Differential equations
-- `solve`: General purpose (legacy, but flexible)
+- `solve`: General purpose; supports some problems `solveset` does not
+
+Declare the solution domain: `solveset` defaults to complex numbers, so pass `domain=S.Reals` for real-only questions. A returned `ConditionSet` means an unresolved solution condition, not that no solutions exist — distinguish it from `EmptySet`. A numerical `nsolve` result is a local root found from a starting point, not proof that every root was found.
+
+### 7. Preserve Mathematical Meaning and Input Trust
+
+Use assumptions only when justified by the problem. An unconstrained symbol is complex; `sqrt(x**2)` need not equal `x`, and logarithm/power identities depend on branches. Assumption predicates can return `None` (unknown). Keep excluded denominator zeros when cancelling factors, and verify candidate solutions in the original expression and requested domain. `==` compares symbolic structure; use `Eq` to build an equation and targeted simplification to verify an identity.
+
+`parse_expr`, string `sympify`, and `lambdify` can execute code. Accept only trusted expressions there. A regex, `local_dict`, or `evaluate=False` is not a security boundary; untrusted input needs a separately designed allowlisted grammar that constructs SymPy objects, plus resource limits. See `references/code-generation-printing.md`.
 
 ## Reference Files Structure
 
@@ -411,7 +424,10 @@ equation = x**3 - 2*x - 5
 f = lambdify(x, equation, 'numpy')
 
 # Solve numerically with initial guess
-solution = fsolve(f, 2)
+solution, info, status, message = fsolve(f, 2, full_output=True)
+assert status == 1, message
+assert abs(f(solution[0])) < 1e-10
+# A converged local root is not a complete root set.
 ```
 
 ## Quick Reference: Most Common Functions
@@ -441,7 +457,7 @@ from sympy import And, Or, Not, Implies, FiniteSet, Interval, Union
 from sympy import latex, pprint, lambdify, init_printing
 
 # Utilities
-from sympy import evalf, N, nsimplify
+from sympy import N, nsimplify  # expr.evalf() is a method
 ```
 
 ## Getting Started Examples
@@ -465,7 +481,7 @@ df_dx = diff(f, x)
 
 ### Example 3: Evaluate Integral
 ```python
-from sympy import symbols, integrate, exp
+from sympy import symbols, integrate, exp, oo
 x = symbols('x')
 integral = integrate(x * exp(-x**2), (x, 0, oo))
 # 1/2
@@ -510,8 +526,9 @@ f(np.array([1, 2, 3]))
 
 5. **Simplification not working as expected**
    - Try different simplification functions: `simplify`, `factor`, `expand`, `trigsimp`
-   - Add assumptions to symbols (e.g., `positive=True`)
-   - Use `simplify(expr, force=True)` for aggressive simplification
+   - State justified assumptions at symbol creation (e.g., `positive=True`)
+   - Prefer targeted `cancel`, `factor`, or `trigsimp`. `simplify` has no general
+     branch-safe `force=True` mode; forced power/log rewrites can change the result
 
 ## Additional Resources
 

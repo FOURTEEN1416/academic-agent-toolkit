@@ -214,7 +214,7 @@ Wait for completion. Verify:
 - GPU memory usage is within bounds
 - Output format matches expectations
 
-If sanity fails → fix the code, re-run. Do not proceed to full deployment with broken code.
+If sanity fails, classify the failure first. **Environment/preparation failures — missing access, authentication, networking, driver or dependency support — are not code bugs**: carry the same failure, attempted fixes and remaining budget across `/run-experiment` calls in the run notes/tracker; after two targeted repairs to the same environment problem make no new progress, stop repeating preparation and return the exact command and error to the main owner for takeover or an authorized alternative. Never "fix" them by rewriting the training script. Genuine code bugs enter the fix loop: fix the code, re-run, and do not proceed to full deployment with broken code.
 
 ### Phase 4: Deploy Full Experiments
 

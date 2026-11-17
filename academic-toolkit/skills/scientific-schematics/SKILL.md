@@ -1,8 +1,14 @@
 ---
 name: scientific-schematics
-description: "Create or refine publication-quality technical diagrams, scientific workflows, architectures, and biological schematics"
+description: "Create or refine publication-quality technical diagrams: method/architecture overviews, pipelines, CONSORT/PRISMA-style flows, experimental workflows, biological pathways, conceptual schematics. For structure-not-data figures; measured-number plots use plotting skills; never hand-drawn TikZ/SVG."
 category: visualization
 allowed-tools: [Read, Write, Edit, generate_image]
+license: MIT
+version: 2.0.0
+metadata:
+    origin: K-Dense-AI/scientific-agent-skills (skills/scientific-schematics, MIT)
+    adapted-by: Synthetic Sciences
+    skill-author: K-Dense Inc.
 ---
 
 # Scientific schematics
@@ -21,9 +27,12 @@ allowed-tools: [Read, Write, Edit, generate_image]
 ---
 
 
-Use this skill for technical figures whose scientific structure matters: model
-architectures, experimental workflows, study diagrams, biological pathways,
-mechanistic illustrations, and conceptual schematics.
+A methodology diagram carries the paper's central idea in one glance — and it is
+the figure most often faked: outdated palettes, boxes that say nothing, arrows
+that go the wrong way, components the text never mentions. Use this skill for
+technical figures whose scientific structure matters, and treat every figure as
+a loop: describe it precisely, render it under publication standards, score it
+against a rubric, and re-render once from the critique.
 
 ## 执行与产出
 
@@ -38,26 +47,127 @@ mechanistic illustrations, and conceptual schematics.
   first. Preserve the paper's claims and unaffected figures.
 - Do not expand a figure-editing request into literature review, citation audit,
   peer review, or new experiments unless the user asks for that work.
-- For plots derived from numeric data, use the local analysis/plotting tool that
+- For plots derived from numeric data, use the analysis/plotting skill that
   produced the data. Do not use an image model to invent measurements.
 
-## Native workflow
+## The medium
 
-1. Read the target manuscript, caption, or source figure when one exists.
-2. Identify the figure's scientific claim, required components, labels, reading
-   order, and output dimensions.
-3. Call `generate_image` directly. It resolves a connected OpenRouter BYOK or a
-   provider-managed route without exposing credentials to shell code.
-4. Inspect the generated file. If a concrete defect remains, make one focused
-   edit with `generate_image` using the existing image as the reference.
-5. Save the accepted figure in the active session or project workspace and
-   update the manuscript only when requested.
+- `generate_image` is the medium for every diagram in this skill. You supply the
+  content — components, connections, labels, emphasis, reading direction — and
+  the connected route applies the publication framing: white background, one
+  sans-serif face, restrained colorblind-safe palette, verbatim labels, no
+  invented parts, no figure numbers or captions baked into the image.
+- Iterate at draft resolution and render only the accepted figure at print
+  resolution. Set the aspect ratio from the page slot (16:9 or 21:9 for a
+  full-width overview, 4:3 or 1:1 for a column). Pass reference images when the
+  paper's earlier figures or a cited diagram set the style.
+- Do not hand-draw a schematic as TikZ, SVG, Graphviz, Mermaid, or matplotlib
+  shapes, and do not offer that as a fallback: language models draw these badly
+  and the result reads as an unfinished figure. Exact labels are handled by
+  giving the model the exact labels and checking them, not by switching medium.
+- Never generate plots of numbers with an image model (hallucinated values,
+  repeated elements). Route data plots to the plotting skills (matplotlib,
+  seaborn, plotly, scientific-visualization).
+- Credential discipline: generate through the connected `generate_image` route
+  or an environment-configured API key. Never ask the user to paste a key into
+  chat, and never write credentials into shell code or script arguments. If no
+  route is connected, say so once and stop (Step 0 above).
+- 具体图像模型与后端以 Step 0 检测结果和当前环境配置为准；文中出现的型号名均为示例，不预设。
 
-Do not invoke bundled Python or CLI image wrappers in place of the connected
-generation route. Do not
-ask the user to paste a key into chat. If `generate_image` reports that no route
-is connected, explain the connection requirement once and offer a deterministic
-local diagram only with the user's agreement.
+## Workflow
+
+Copy this checklist and work through it:
+
+- [ ] 1. Read the source and choose the document type.
+- [ ] 2. Write the description: type, components, flow, labels, emphasis.
+- [ ] 3. Render a draft with `generate_image` (`purpose: "schematic"`).
+- [ ] 4. Score the render on the rubric; stop if it meets the threshold.
+- [ ] 5. Otherwise re-render once from the critique; keep the better of the two.
+- [ ] 6. Render the accepted description at print resolution, trim the margins,
+      save, write the caption, and report open issues.
+
+**Step 1 — Read the source.** The method section, the caption slot, and any
+existing figure. Identify the claim the figure must make, every component the
+text names, the relationships and their direction, and what is input, learned,
+frozen, or compared. Note the document type: it sets the bar in Step 4. A figure
+that shows a component the text never mentions is wrong even if it is pretty.
+
+**Step 2 — Write the description.** The model draws what it is told and nothing
+it can infer, so the description is a specification, not a mood. Name, in this
+order:
+
+- **Type**: flowchart, architecture diagram, pipeline, pathway, circuit, block
+  diagram.
+- **Components**: every element with its exact label as it appears in the text,
+  and counts where they matter (`Screened (n = 500)`).
+- **Flow and direction**: left-to-right or top-to-bottom, and each connection as
+  `A -> B (meaning)`; name the labelled arrows (`RAF -> MEK, labelled
+  "phosphorylation"`).
+- **Emphasis**: the contribution in a single accent colour; standard parts in
+  grey; dashed borders for frozen or optional parts.
+- **Style constraints beyond the defaults**: panel letters, a legend, a scale
+  bar, the reference figures' palette.
+
+More than about twelve labelled elements needs a second figure or a zoomed
+inset, not smaller text. Good and bad descriptions with worked examples are in
+[references/review-loop.md](references/review-loop.md); the standards a figure
+is judged against are in
+[references/best-practices.md](references/best-practices.md) and
+[references/style-guide.md](references/style-guide.md).
+
+**Step 3 — Render.** Call `generate_image` with the description as the prompt,
+`purpose: "schematic"`, the chosen aspect ratio, draft resolution, and any
+reference images. Do not restate the publication framing — the route adds it.
+Do not ask for a title, caption, or figure number.
+
+**Step 4 — Score it.** Open the PNG and score it yourself on the rubric, 0–2
+points each:
+
+| Criterion | 2 points means |
+| --- | --- |
+| Scientific accuracy | every named component present and labelled exactly, every connection present and in the right direction, nothing invented |
+| Clarity and readability | the claim is legible at a glance, one visual hierarchy, no ambiguous element |
+| Label quality | every element labelled, no misspelling, sizes consistent and readable at column width |
+| Layout and composition | one reading direction, balanced whitespace, nothing overlapping or clipped |
+| Professional appearance | flat, crisp, white background, restrained colorblind-safe palette, no decoration |
+
+The threshold depends on where the figure goes: **journal 8.5**, conference,
+thesis, or grant **8.0**, preprint or report **7.5**, poster **7.0**, slides
+**6.5**. Write the score and the specific issues into the session record. A
+misspelled label or a wrong arrow is a failure regardless of the total.
+
+**Step 5 — Refine once.** If the score is below the threshold, re-render from
+the same description with the issues appended as constraints ("the arrow from
+Encoder to Decoder is reversed; remove the third block labelled 'Model'; the
+label 'Randomised' is misspelled"), or pass the failed render back with an edit
+intent when the layout is right and only details are wrong. Score again and keep
+the better of the two renders. Two renders at most: if connectivity still fails,
+simplify the description (fewer components, one panel, a stated reading order)
+and render that. A correct simple diagram beats a wrong detailed one.
+
+**Step 6 — Finalize.** Render the accepted description at print resolution into
+the working folder (`figs/<name>.png` beside a paper), then trim the uniform
+background margin the model painted around the content:
+`python scripts/trim_margins.py figs/<name>.png`（原位裁边，3% pad；`--out` 出副本）.
+Use the trimmed file's real aspect ratio when sizing it in the manuscript. Write
+the caption from the claim (bold phrase, then what the arrows and colours mean,
+every abbreviation defined), reference it in the text before it appears, and
+report anything the image could not do: a label the model kept misspelling, a
+component simplified, a panel dropped. Record the description that produced the
+accepted render so the figure can be regenerated.
+
+One figure is faster done in the current session than delegated: a worker starts
+without your context and re-reads the source. For two or more figures, hand each
+background worker the checklist above plus the component list, the document type
+and its threshold, and the output path, and ask it back for the score, the file,
+and what it changed.
+
+## Refining an existing diagram
+
+For a human-drawn figure that needs polish, keep the content and change only the
+style: pass the original as the reference image, describe the same components
+and connections with the new palette, typography, and spacing, and score it with
+the same rubric. A polish that adds or removes a box is a failure.
 
 ## Prompt contract
 
@@ -85,7 +195,21 @@ Example:
 
 ## Acceptance check
 
-Before finishing, confirm that labels are legible, arrows and causal direction
-are unambiguous, the caption matches the image, and the figure does not imply
-evidence stronger than the underlying study. Report any unresolved visual or
-scientific uncertainty plainly.
+Before finishing, confirm the render met the document-type threshold in Step 4,
+that labels are legible, arrows and causal direction are unambiguous, the caption
+matches the image, and the figure does not imply evidence stronger than the
+underlying study. An unscored figure counts as unscored, not as passed. Report
+any unresolved visual or scientific uncertainty plainly.
+
+## References
+
+- [references/best-practices.md](references/best-practices.md) — publication
+  standards, accessibility, and journal requirements (the judging criteria).
+- [references/style-guide.md](references/style-guide.md) — composition, colour,
+  typography, shape vocabulary, and arrow constraints for methodology diagrams.
+- [references/review-loop.md](references/review-loop.md) — the
+  generate–review–refine loop, the review log, prompt-engineering tips, and
+  four worked examples.
+- `scripts/generate_schematic.py` / `scripts/generate_schematic_ai.py` — CLI and
+  Python fallback implementing the same loop over an OpenRouter-compatible image
+  route; `scripts/trim_margins.py` — post-render margin trim.

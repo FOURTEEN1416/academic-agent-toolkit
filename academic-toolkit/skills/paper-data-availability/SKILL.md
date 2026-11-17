@@ -29,6 +29,8 @@ Do not use this skill for:
 
 ## Workflow
 
+Scope the depth before starting. The full inventory below is for a new data-sharing plan, a complete statement, or a submission audit. For a wording edit or a bounded audit of one existing statement, keep the supplied repository identifiers and access conditions fixed, check only the claims that statement makes, and report the gaps that affect it. Do not demand a study-wide dataset inventory or repository redesign from a single-statement edit, and do not treat one checked statement as evidence that the whole study is FAIR or submission-ready.
+
 1. Identify the target journal and article type.
 2. Inventory the datasets that support the main and supplementary claims:
    - raw data

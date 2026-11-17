@@ -3,11 +3,12 @@ name: simpy
 description: "离散事件仿真（DES）：事件、资源、中断、监控、重复运行与热身期、可复现输出分析。用于排队/流程/资源竞争类系统仿真（对应仿真建模赛事 B/C 赛道）。"
 license: MIT
 metadata:
-  version: "1.2"
+  version: "1.6"
+  last-reviewed: "2026-10-01"
   skill-author: K-Dense Inc.
 ---
 
-<!--ACAT-ADAPTED: 收编自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游兼容性声明与网络/凭据类依赖在本仓库不适用，执行以本机实装版本为准；溯源见 references/UPSTREAM.md。2026-10-16 仿真建模赛补齐批。-->
+<!--ACAT-ADAPTED: 收编自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游兼容性声明与网络/凭据类依赖在本仓库不适用，执行以本机实装版本为准；溯源见 references/UPSTREAM.md。2026-10-16 仿真建模赛补齐批。2026-11-16 重收编：融入上游 v2.72.0（2d2065f）增量——零延迟忙轮询护栏、紧急事件同刻排序说明、监控积分口径与 CLI 指标窗口、PriorityItem 平局语义、pytest 化测试命令；上游文末引用节按本仓惯例未收编。-->
 # SimPy
 
 ## Scope
@@ -23,7 +24,7 @@ methodology, not SimPy API behavior.
 
 ## Current release and installation
 
-Verified **2026-07-23**:
+Reviewed **2026-10-01** against current official documentation and the released source:
 
 - Latest stable: **SimPy 4.1.2**, released on PyPI 2026-05-24; source tag
   `4.1.2` points to commit `f4381649`.
@@ -56,6 +57,9 @@ unreleased development revision. Use the versioned 4.1.2 links in
    Register the generator object with `env.process(...)`.
 4. **Bound execution.** Give every production run explicit time, entity, event, and
    replication caps. Never call `env.run()` on a model containing an endless process.
+   A time horizon alone cannot stop an endless `yield env.timeout(0)` loop: events
+   keep running at the same simulation time. Add an event-count or no-time-progress
+   guard, and wait on state-change events instead of zero-delay busy polling.
 5. **Separate random streams.** Use local RNG instances for logically distinct
    stochastic sources; retain a seed manifest.
 6. **Instrument deliberately.** Observe state after the transition of interest,
@@ -116,6 +120,10 @@ completed observations.
 priority, then a strictly increasing event ID. Same-time, same-priority events are
 therefore processed FIFO in scheduling order. Model processes may represent
 concurrency, but callbacks execute sequentially and deterministically.
+
+This orders the events currently queued. A callback can insert an urgent event at
+the current time, so a valid processing trace need not have globally increasing
+priority or event IDs within a timestamp.
 
 - `env.now`: unitless simulation clock; choose and document one unit.
 - `env.peek()`: next event time or infinity.
@@ -210,7 +218,7 @@ Queue measurements are timing-sensitive:
 - A request method's pre-state, post-call state, grant callback, and release
   callback can all differ at the same simulation timestamp.
 - Sample averages weight event observations, not time. Compute area under the
-  left-continuous state path and divide by elapsed time.
+  post-transition state path and divide by elapsed time.
 - Add initial and final samples; close the last interval at the analysis horizon.
 - `env._queue`, resource `_env`, and monkey-patching are implementation details.
   Pin SimPy, isolate the instrumentation, and regression-test after upgrades.
@@ -255,6 +263,12 @@ The replication runner refuses one-replication intervals. Its intervals quantify
 Monte Carlo uncertainty under the configured model; they neither validate the model
 nor identify causal effects. See `references/cli-guide.md`.
 
+Schema 1.2 reports explicit metric windows: throughput counts all departures during
+`[warm_up, horizon)`, loss uses arrivals/rejections in that same window, and customer
+means use post-warm-up arrivals completed before the horizon. These customer means
+remain vulnerable to completion censoring. The scripts require the pinned SimPy
+version because tracing depends on its scheduler internals.
+
 ## Testing
 
 Use deterministic unit tests for ordering, boundary times, conditions, interrupts,
@@ -266,8 +280,8 @@ Run the skill's suite in the exact pinned environment without bytecode artifacts
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 uv run --isolated --no-project \
-  --python 3.13 --with "simpy==4.1.2" \
-  python -m unittest discover -s tests/simpy -v
+  --python 3.13 --with "simpy==4.1.2" --with pytest \
+  python -m pytest tests/simpy -q
 ```
 
 ## References

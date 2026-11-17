@@ -49,14 +49,6 @@
         "dev-code-frontend": {
           "references/styles/": "2026-12-31"
         },
-        "kaggle-learner": {
-          "references/knowledge/nlp/": "2026-12-31",
-          "references/knowledge/cv/": "2026-12-31",
-          "references/knowledge/time-series/": "2026-12-31",
-          "references/knowledge/tabular/": "2026-12-31",
-          "references/knowledge/multimodal/": "2026-12-31",
-          "references/knowledge/": "2026-12-31"
-        },
         "results-analysis": {
           "data/logs": "2026-12-31"
         },
@@ -233,14 +225,6 @@
       "references/gitignore-guide.md",
       "references/merge-strategies.md"
     ],
-    "kaggle-learner": [
-      "references/knowledge/nlp/",
-      "references/knowledge/cv/",
-      "references/knowledge/time-series/",
-      "references/knowledge/tabular/",
-      "references/knowledge/multimodal/",
-      "references/knowledge/"
-    ],
     "meta-mcp-integration": [
       "references/authentication.md",
       "references/server-types.md",
@@ -328,10 +312,6 @@
     "paper-self-review": [
       "references/FINAL-VERDICT.md",
       "references/SECTION-CHECKLIST.md"
-    ],
-    "doc-post-acceptance": [
-      "references/deliverable-checklists.md",
-      "references/design-guidelines.md"
     ],
     "fig-publication-chart": [
       "references/chart-selection.md",

@@ -17,6 +17,18 @@ mechanism — `\cite` + `\bibliographystyle`/`\bibliography` resolved by bibtex 
 which is exactly the linkage `latex_guard.py` now enforces (see the citation
 hard rule below).
 
+**Template adoption check:** before integrating manuscript content, read and
+compile the applicable official sample for the requested year, article type and
+output purpose, preserving its class, fonts and geometry. A generic document
+class that merely compiles does not demonstrate template adoption or learned
+publication design. Existing valid preambles, equations, labels and citation
+keys should survive conversion; adapt layout only where current official
+requirements call for it.
+
+**Figure cross-reference rule:** ensure the prose contains a real `\ref`,
+`\autoref`, or `\cref` to every assembled figure; a caption alone does not tie
+the figure into the argument.
+
 ## Required Outputs
 
 - `final_paper/main.tex`
@@ -63,14 +75,23 @@ checks the .docx.
 
 - Preserve citation keys and labels.
 - Copy approved images into `figures/` with stable labels.
+- Check every figure at its final physical PDF and Word sizes: the smallest
+  labels must be readable at placed size in both outputs. Neither an
+  image-count check nor keeping the caption on its page permits unreadable
+  labels. Fix placement, panel layout or lettering in the producing assets,
+  then inspect the affected renders.
+- A successful compile or a clean `latex_guard.py` report proves source
+  integrity, not reader-visible integrity; page cropping, blank or float-only
+  pages, and caption/figure mismatches still fail the work.
 - For Chinese: prefer XeLaTeX + CJK-capable template.
 - If no TeX engine: keep `.tex`, record skipped compilation.
 - If compilation fails: keep `.tex`, write first fatal error, do not claim pass.
 - Word output is mandatory by default. If `word_output` is missing, treat it as
   `docx`. Only explicit `word_output=none` opts out.
-- If pandoc is unavailable while Word is required, write BLOCKED/FAIL in
-  `latex_report.md`, keep the workflow incomplete, and do not silently skip
-  Word.
+- If the selected conversion backend is unavailable while Word is required, use
+  another available faithful document pipeline; report the Word deliverable as
+  incomplete only while no valid DOCX can be produced, and do not silently
+  skip Word.
 
 ## English Word Output
 
@@ -85,10 +106,31 @@ pandoc main.tex -o paper.docx --from latex --to docx \
 Flatten `\input`/`\include` with `latexpand` first. Expand or remove
 `\newcommand` macros. Verify tables, citations, figures after conversion.
 
+Treat the Word conversion as a separate reader surface: build it from a
+task-local Pandoc input without changing the canonical `main.tex`, replace
+custom citation macros with Pandoc-recognized citations bound to the actual
+`.bib`, and rewrite unsupported math into equivalent TeMath, a clear linear
+equation, or a genuinely rendered equation image. A Pandoc warning about
+citation or math conversion is a failed Word build, not a successful
+conversion.
+
+Scientific figures have a separate Word-media rule: deterministically
+rasterize each selected PDF figure to PNG for the Word-only intermediate
+source, recording the source and output hashes. The final DOCX must reference
+one real `word/media/*.png` object per selected figure; a bare PDF embedded in
+Word media may render as a blank frame.
+
+Round-trip the DOCX to plain text before review: require an explicit
+`References` heading with the reference entries after it, non-empty in-text
+citations, and no raw `\cite`, `$$\begin{equation}`, or related TeX
+environment text. Then render the DOCX to PDF and inspect every page; a
+complete PDF never excuses an incomplete Word artifact.
+
 After conversion, run `word_guard.py --fix-fonts` first, then run
 `word_guard.py --markdown --output ...` and require PASS before proceeding.
-English Word must use Times New Roman in the default/body/title styles and
-theme fonts; do not rely on pandoc's default Office theme.
+Use the current target venue's approved Word styles and fonts; treat Times New
+Roman as the fallback only when the target is unspecified, and do not rely on
+pandoc's default Office theme.
 
 ```bash
 python scripts/word_guard.py paper_rewriting_output/final_paper/paper.docx \

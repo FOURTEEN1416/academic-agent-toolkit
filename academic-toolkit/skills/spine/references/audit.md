@@ -6,19 +6,32 @@ This file is the canonical stage playbook for the paper-spine orchestrator.
 
 Audit all PaperSpine outputs before declaring the workflow complete.
 
+During repair, rerun every check whose bound inputs changed. When the
+manuscript, bibliography, figures, configuration and target are frozen, run the
+complete command set once. A deterministic check may be reused on unchanged
+inputs, but reuse never waives a readiness or inspection receipt, and one
+dimension's PASS cannot offset another dimension's failure.
+
 ## Required Checks
 
 1. Artifact completeness.
 2. Reference material workspace has `source_index.md`.
-3. Motivation was user-confirmed after research.
+3. Motivation was user-confirmed after research, together with the contribution
+   promise it supports and the claim boundary it respects.
 4. `writing_rationale_matrix.md` exists, is ordered, and covers whole-work
    framework + task-specific writing units.
 5. No append-only or shallow revision for substantive rewrite tasks.
 6. Logic transfer from original draft or materials.
 7. Claim support from user evidence.
 8. LaTeX citation, label, figure safety.
-9. `citation_support_bank.md` count, recency, quality, and Source Channel audit.
-10. Final LaTeX source; PDF when TeX available.
+9. `citation_support_bank.md` follows its literature contract: open-literature
+   breadth and recency, or closed-corpus exhaustive deduplication with the
+   actual corpus size disclosed; Source Channel and verification audit.
+10. `structured_review.md` contains a completed, manuscript-grounded editor
+    synthesis before LaTeX assembly; a literature-provider failure is never
+    treated as a "no hits" result.
+11. Final LaTeX source; PDF when TeX available, with rendered pages and figures
+    inspected — not merely built.
 11. Word output structurally valid by default; skip only when
     `word_output=none` is explicit in config.
 12. Submission materials pass `submission_check.py`.
@@ -56,7 +69,13 @@ python scripts/submission_check.py paper_rewriting_output/submission_package --f
 
 Do not declare the task complete if required artifacts are missing, claims are
 unsupported, translation is partial, the rationale matrix is generic, or the
-final Chinese Word document is missing.
+final Chinese Word document is missing. A green manuscript audit does not
+override a blocked submission package or a pending independent review.
+
+If the full pass fails, repair the owning input, rerun its affected checks, and
+then perform one new final full pass. For the same command on unchanged input
+hashes, allow only one corrected retry; a third materially identical attempt is
+a blocker to escalate, not progress.
 
 ## Output Directory Rules
 

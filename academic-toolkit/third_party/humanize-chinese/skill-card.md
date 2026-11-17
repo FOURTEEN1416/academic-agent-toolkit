@@ -7,7 +7,7 @@ This skill is ready for commercial/non-commercial use. <br>
 [swaylq](https://clawhub.ai/user/swaylq) <br>
 
 ### License/Terms of Use: <br>
-MIT-0 <br>
+MIT-0 <!--2026-11-16 本仓订正：此为 ClawHub 平台卡片误标；实际许可以上游 LICENSE 正文为准 = MIT License (Non-Commercial)（GitHub API NOASSERTION），详见 UPSTREAM.md。--> <br>
 
 
 ## Use Case: <br>
@@ -26,7 +26,7 @@ Mitigation: Run it only on intended files, choose output paths carefully, and in
 
 
 ## Reference(s): <br>
-- [ClawHub skill page](https://clawhub.ai/swaylq/humanize-chinese) <br>
+- [ClawHub skill page](https://clawhub.ai/swaylq/skills/humanize-chinese) <!--2026-11-16 本仓订正：原 URL .../swaylq/humanize-chinese 实测 404。--> <br>
 - [ClawHub publisher profile](https://clawhub.ai/user/swaylq) <br>
 
 

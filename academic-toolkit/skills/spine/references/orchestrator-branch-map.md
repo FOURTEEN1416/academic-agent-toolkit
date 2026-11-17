@@ -15,8 +15,10 @@ missing.
 3. `references/citation.md`: build `citation_support_bank.md` for literature
    statements in Introduction/Discussion/background. Gate: `citation`.
 4. User confirmation: write `confirmed_motivation.md` only after the user
-   chooses or revises the motivation. Gate: `motivation_confirmation`
-   (BLOCKED until user confirms).
+   chooses or revises the motivation. Confirm the motivation together with the
+   contribution promise it supports and its claim boundary — the motivation
+   explains why the contribution matters and may not inflate it. Gate:
+   `motivation_confirmation` (BLOCKED until user confirms).
 5. Humanize (conditional): apply tier-specific stylistic constraints when
    `humanize_tier` is `light`, `medium`, or `heavy`. No separate gate; applied
    during writing.
@@ -86,11 +88,21 @@ paper directly when the missing artifact should have been created earlier.
 Examples:
 
 - Missing local source paths: return to `references/research.md`.
+- A literature-provider failure reported as "no hits": repair the retrieval
+  path in `references/research.md` before concluding the field is empty.
 - Too few or unverified citation candidates: return to `references/citation.md`.
 - Shallow writing matrix: return to `references/rewrite.md` or
   `references/build.md`.
+- A Results unit with no contribution promise, evidence, or claim boundary:
+  return to planning (`references/rewrite.md` or `references/build.md`).
+- An unsupported primary claim: return to planning/drafting; do not soften the
+  wording and keep the claim.
 - Broken labels/citations in LaTeX: return to `references/latex.md`.
+- Page crop, blank page, or figure/legend/text conflict: return to the LaTeX
+  stage and re-render after every change.
 - Missing or corrupt Word output: return to `references/latex.md`.
+- A final-audit failure: return to the earliest owning upstream stage; never
+  patch only the final deliverable.
 
 ## Word Output
 

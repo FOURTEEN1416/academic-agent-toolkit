@@ -198,6 +198,8 @@ For each relevant paper (from all sources), extract:
 - **Relevance**: How does it relate to our work?
 - **Source**: Where we found it (Zotero/Obsidian/local/web) — helps user know what they already have vs what's new
 
+**Evidence discipline**: extract only from evidence actually read — an abstract, source excerpt, local PDF or existing note. A paper with only a title and no readable evidence is recorded as `UNPROCESSABLE_NO_LOCAL_EVIDENCE` and stays explicitly uncovered: do not infer its method or results from the title, and do not silently drop it from the analyzed set. When coverage falls short, record planned/completed/failed/uncovered papers truthfully in the report; absence of analysis is never evidence of irrelevance.
+
 ### Step 3: Synthesize
 - Group papers by approach/theme
 - Identify consensus vs disagreements in the field

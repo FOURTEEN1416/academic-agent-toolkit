@@ -23,4 +23,11 @@
 
 - vendor/forks/claude-scientific-writer 已镜像同步至实测 HEAD（1838 文件更新、12 项旧版残留清理）。上游 v2.23.0 结构重组：新增 skill-overrides/、skills.lock.json、commands/ 等机制。
 - ⚠️ 许可口径变化（实测核验）：上游主仓 LICENSE 仍为 MIT（K-Dense Inc.），但 `skills/docx|pdf|pptx|xlsx` 四个 Office 模块自本版起改源自 anthropics/skills（**Apache-2.0**，各模块自带 LICENSE.txt；上游 README.md:193 明示）。后续若吸收 Office 模块必须按 Apache-2.0 单独记账，不适用本技能现行的 MIT 口径。
-- 本仓 15 个收编模块（modules/）的正文合并**待专项逐件 diff 评估**后再定：上游 skills/ 已重组，模块对应关系与内容变化须逐件核对；本单仅完成 vendor 同步、重 pin 与本评估结论，不盲目合并。
+- ~~本仓 15 个收编模块（modules/）的正文合并**待专项逐件 diff 评估**后再定~~ → **已完成（2026-11-16 重收编施工包 PKG-06）**，逐件结论：
+  - **citation-management**（上游 15f）：`scripts/` 7 件取上游新版（新增 `_common.py` 标准库 BibTeX 解析/渲染/引文键、`search_openalex.py` 无钥 OpenAlex 客户端；`extract_metadata/format_bibtex/search_pubmed/search_google_scholar/validate_citations` 重构共享解析并修复 DOI URL 编码、PubMed 内联标题、结构化摘要、ESearch retmax 上限、arXiv entry_type 判定等）；`validate_citations.py` 移除未实现的 `--auto-fix`（报告与重写职责划界：validator 只报告，`format_bibtex.py --rekey/--deduplicate` 重写）；SKILL.md 与 5 个 references 按本仓口径融合（保留 ACAT 横幅、generate_schematic 退役声明、lit-zotero-obsidian 映射、GS 年份非运算符与两步提取法等既有裁决；融入 OpenAlex 优先的多库策略、`--rekey` 合并、`--check-dois`、报告 JSON 化）；`best_practices.md` 的 auto-fix 表述按新脚本事实修正。
+  - **scientific-slides**（上游 10f）：`SKILL.md` 版本 1.5→1.8、html2pptx→PptxGenJS 3 处事实修正；`assets/powerpoint_design_guide.md`、`references/slide_capabilities.md`、`scripts/generate_slide_image_ai.py` 取上游新版（评审解析健壮化：ReviewResult 显式区分"未测出分数"与"通过"，防默认分数伪造）。
+  - **research-grants / scientific-critical-thinking**：版本号同步；正文 `generate_schematic` 调用段按本仓退役裁决改写（上游仅改路径，本仓已于 2026-09-28 退役该路线，保留退役口径与第三方 API 披露）；`research-grants/references/README.md` 取上游新版（timeline_planning 并入 core_components 说明）。
+  - **market-research-reports**：版本号同步；`scripts/validate_evidence_ledger.py` 取上游新版（publication 日期 "not-stated" 先行判别，修复误 parse）。
+  - **latex-posters / literature-review / peer-review / hypothesis-generation / clinical-reports / clinical-decision-support / scholar-evaluation / scientific-writing / treatment-plans / venue-templates**：仅版本号元数据同步（上游其余变更为尾部新增 "Citing Scientific Agent Skills" 段与 pip→uv 工具链偏好，见下"未取用"）。
+  - **未取用**（有意决策）：① 上游各 SKILL.md 尾部 "Citing Scientific Agent Skills"（arXiv:2609.00065）引用段——本仓 attribution 由本台账统一承担，不在 15 个模块内重复上游自我引用；② `pip install`→`uv pip install` 替换——执行环境不绑定 uv，保留通用 `pip` 写法；③ office 四模块（docx/pdf/pptx/xlsx，改源 anthropics/skills Apache-2.0）与 skill-overrides/ 机制——本技能从未收编，维持不收编。
+- 上游新增/删除文件核对：`citation-management/scripts/generate_schematic.py`、`generate_schematic_ai.py` 上游已删除——本仓 modules 本就不含这两个文件，无动作；上游未新增本仓缺失的 references/assets。

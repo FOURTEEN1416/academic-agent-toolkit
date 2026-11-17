@@ -2,7 +2,7 @@
 
 **类型**：分组柱状图（每组 3 柱），主方法用红底白斜线 hatch 从灰阶中脱颖而出
 **样例图**：`examples/bar_spice.png`（原图，取 (b) 面板）、`examples/bar_spice_repro.png`（复现）
-**样例来源**：`vendor/forks/paper-plot-skills/originals/bar_spice.png`（只读 vendor 快照，仅本地使用、不再分发）
+**样例来源**：`vendor/forks/paper-plot-skills/originals/bar_spice.png`（只读 vendor 快照；owner 已于 2026-11-16 裁决确认样例 PNG 可随公开仓分发）
 **复现脚本**：`scripts/bar_spice.py`（同一原图 (a) 面板的暖色版见 `bar_grouped_hatch`，本卡是灰阶单强调色版）
 
 ## 适用场景

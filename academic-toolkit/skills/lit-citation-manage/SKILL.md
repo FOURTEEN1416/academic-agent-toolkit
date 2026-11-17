@@ -4,12 +4,12 @@ description: "Comprehensive citation management for academic research. Search Go
 allowed-tools: Read Write Edit Bash
 license: MIT License
 metadata:
-  version: "1.0"
+  version: "1.1"
   skill-author: K-Dense Inc.
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以执行侧 web_search/web_fetch 工具替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以执行侧 web_search/web_fetch 工具替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-11-16 重收编：融入上游 2d2065f（v2.72.0，目录已重组为 citation-management）增量——19 个参考件/脚本/资产文件按上游补丁更新，并新增 api_contracts.md 参考件（九类 API 端点/鉴权/分页/校验边界契约表），六个脚本 py_compile 通过；正文补 online-first 元数据"缺项不造假"规则与可选凭据矩阵（NCBI_EMAIL / OPENALEX_EMAIL / OPENALEX_API_KEY 各自独立、仅随对应请求发送；分页失败即报错退出，不把残缺导出当完整结果）。-->
 # Citation Management
 
 ## Overview
@@ -174,6 +174,8 @@ python scripts/extract_metadata.py --input identifiers.txt --output citations.bi
    - Version tracking
    - Author affiliations
    - Free, open access
+
+**元数据完整性纪律（上游 v2.72.0 增补）**：对照出版方记录核查缺失字段并记录其来源；online-first 文章可能尚无卷/页码（有的用文章号、有的暂无 DOI）——保留真实出版状态，按引用样式使用 article-number 字段，**绝不编造页码、卷号或 DOI**；不可用/不适用字段记入审计日志，仅在读者需要或样式要求时输出 `note`。共享 citation-key 方案下元数据差异仍可能产生不同 key——重复条目以 DOI + 书目信息一致性为准。
 
 4. **DataCite API**: Research datasets, software, other resources
    - Metadata for non-traditional scholarly outputs
@@ -1007,20 +1009,27 @@ python scripts/extract_metadata.py \
 ### Bundled Resources
 
 **References** (in `references/`):
+- `api_contracts.md`: Reviewed endpoints, authentication, pagination, and verification limits for OpenAlex / PubMed / PMC / Crossref / DataCite / DOI / arXiv（上游 v2.72.0 新增）
+- `core_workflow.md`: End-to-end citation workflow
+- `search_strategies.md`: Multi-database search strategy
 - `google_scholar_search.md`: Complete Google Scholar search guide
 - `pubmed_search.md`: PubMed and E-utilities API documentation
 - `metadata_extraction.md`: Metadata sources and field requirements
 - `citation_validation.md`: Validation criteria and quality checks
 - `bibtex_formatting.md`: BibTeX entry types and formatting rules
+- `best_practices.md` / `example_workflows.md` / `script_reference.md`: 治理、示例与脚本速查
 
 **Scripts** (in `scripts/`):
-- `search_google_scholar.py`: Google Scholar search automation
+- `search_google_scholar.py`: Google Scholar search automation (needs `scholarly`)
 - `search_pubmed.py`: PubMed E-utilities API client
-- `search_openalex.py`: OpenAlex API client (keyless scholarly search)
+- `search_openalex.py`: OpenAlex API client (keyless use supported; optional `OPENALEX_API_KEY` account quota)
 - `extract_metadata.py`: Universal metadata extractor
 - `validate_citations.py`: Citation validation and verification
-- `format_bibtex.py`: BibTeX formatter and cleaner
+- `format_bibtex.py`: BibTeX formatter and cleaner (no third-party packages)
 - `doi_to_bibtex.py`: Quick DOI to BibTeX converter
+- `_common.py`: Shared client helpers (batching, citation-key scheme)
+
+**可选凭据（上游 v2.72.0 契约）**：基础用法全部可免 key。每个凭据只随其对应服务的请求发送，脚本不捆绑环境变量——`NCBI_EMAIL`（eutils/pmc，NCBI 要求的调用方标识）、`OPENALEX_EMAIL`（联系方式标识，不等于配额提升）、`OPENALEX_API_KEY`（OpenAlex 账户配额，Authorization 头发送）。任一分页失败即报错退出，不把残缺导出冒充完整结果。
 
 **Assets** (in `assets/`):
 - `bibtex_template.bib`: Example BibTeX entries for all types

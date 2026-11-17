@@ -19,3 +19,8 @@
 
 - vendor/forks/PaperSpine 已镜像同步至实测 HEAD（1648 文件更新、9 项上游旧版发布残留清理）；上游 2 个月更新含 v4.0.0 大版本（多语言 README、portable suites/release v6 工作流、INSTALL 文档族等）。
 - 本仓 spine 系 11 技能为上游单一 paper-spine 技能的拆分重组编排（脚本/资产只读引用），上游 v4.0.0 技能包结构变化须经逐件 diff 评估后按收编规程重放，本单仅完成 vendor 同步与台账刷新，技能侧重收编待专项。
+
+## 重收编施工记录（2026-11-16，PKG-07 spine 系批）
+
+- references/interactive-intake.md：与 spine-intake 同步吸收「先读已保存配置、仅问缺失决策」与「用户确认边界」两节。
+- 未吸收（记入 skipped）：上游 Web-first intake 路线（同 spine-intake 口径，保持本仓终端向导裁决）。

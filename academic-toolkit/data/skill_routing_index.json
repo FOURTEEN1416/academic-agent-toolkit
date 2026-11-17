@@ -14,9 +14,9 @@
   },
   "counts": {
     "core": 52,
-    "ondemand": 209,
-    "resident_chars": 30441,
-    "full_chars": 60838
+    "ondemand": 207,
+    "resident_chars": 29730,
+    "full_chars": 60162
   },
   "skills": {
     "ablation-planner": {
@@ -46,8 +46,8 @@
     "analyze-results": {
       "tier": "core",
       "reason": "主链步骤的推荐/必用位",
-      "resident_description": "Analyze ML experiment results, compute statistics, generate comparison tables and insights. Use when user says \"analyze results\", \"compare\", or needs to interpret experimental data. Lightweight numeric cross-checks and tabulation only; for strict statistical evidence bundles (significance/CI/effect size), use results-analysis.",
-      "full_description": "Analyze ML experiment results, compute statistics, generate comparison tables and insights. Use when user says \"analyze results\", \"compare\", or needs to interpret experimental data. Lightweight numeric cross-checks and tabulation only; for strict statistical evidence bundles (significance/CI/effect size), use results-analysis.",
+      "resident_description": "Analyze ML experiment results, compute statistics, generate comparison tables and insights. Trigger: \"analyze results\", \"compare\"; interpret experimental data. Numeric cross-checks and tabulation only; for significance/CI/effect-size evidence bundles use results-analysis.",
+      "full_description": "Analyze ML experiment results, compute statistics, generate comparison tables and insights. Trigger: \"analyze results\", \"compare\"; interpret experimental data. Numeric cross-checks and tabulation only; for significance/CI/effect-size evidence bundles use results-analysis.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/analyze-results/SKILL.md"
     },
@@ -110,8 +110,8 @@
     "auto-review-loop": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Autonomous multi-round research review loop: write review task cards, obtain an independent review (any isolated context - independent subagent / session / window / another model), implement fixes, re-review until positive assessment or max rounds; degrade to current-agent adversarial self-review only when no independent context is obtainable. 统一遵循独立评审手册（independent_review_manual，正文有指引），零 APIKey 零网络。Trigger with \\\"auto review loop\\\", \\\"review until it passes\\\".",
-      "full_description": "Autonomous multi-round research review loop: write review task cards, obtain an independent review (any isolated context - independent subagent / session / window / another model), implement fixes, re-review until positive assessment or max rounds; degrade to current-agent adversarial self-review only when no independent context is obtainable. 统一遵循独立评审手册（independent_review_manual，正文有指引），零 APIKey 零网络。Trigger with \\\"auto review loop\\\", \\\"review until it passes\\\".",
+      "resident_description": "Autonomous multi-round review loop: independent review (isolated subagent/session/window/model), implement fixes, re-review until pass or max rounds; adversarial self-review only as fallback. Follows independent_review_manual; zero API key, zero network. Trigger: \\\"auto review loop\\\", \\\"review until it passes\\\".",
+      "full_description": "Autonomous multi-round review loop: independent review (isolated subagent/session/window/model), implement fixes, re-review until pass or max rounds; adversarial self-review only as fallback. Follows independent_review_manual; zero API key, zero network. Trigger: \\\"auto review loop\\\", \\\"review until it passes\\\".",
       "description_compacted": false,
       "path": "academic-toolkit/skills/auto-review-loop/SKILL.md"
     },
@@ -614,8 +614,8 @@
     "diagram-design": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "Create branded architecture, IT current-state, flowchart, sequence, state machine, ER/data model, timeline, swimlane,",
-      "full_description": "Create branded architecture, IT current-state, flowchart, sequence, state machine, ER/data model, timeline, swimlane, quadrant, radar/spider, polar chart (polar/radial lollipop), loop/flywheel, nested, tree, org chart, layer stack, Venn, pyramid/funnel, treemap, bar, line, Gantt and scatter charts, high-level, process, medallion, data flow, DP integration, DP security matrix, Sankey, fishbone, Wardley map, kanban, user journey, deployment, dependency graph, UML class, story map, or database schema diagrams as standalone HTML/SVG/PNG. Redraw .drawio/.drawio.png/.drawio.svg or Mermaid .mmd sources at a chosen size/detail; onboard brand tokens from a website; add semantic patterns, callouts, accessible motion, or sketchy/hand-drawn styling.",
+      "resident_description": "Create branded architecture, architecture delta, IT current-state, flowchart, sequence, state machine, ER/data model,",
+      "full_description": "Create branded architecture, architecture delta, IT current-state, flowchart, sequence, state machine, ER/data model, steps, timeline, swimlane, quadrant, radar/spider, polar chart (polar/radial lollipop), loop/flywheel, nested, tree, org chart, layer stack, exploded axonometric, axonometric plan, Venn, pyramid/funnel, treemap and marimekko, unit grid, heatmap, bar and dumbbell, waterfall, line (slopegraph, ridgeline, streamgraph, bump), Gantt and scatter charts (bubble, beeswarm, box plot), high-level, process, medallion, data flow, DP integration, DP security matrix, Sankey, fishbone, Wardley map, kanban, user journey, service blueprint, deployment, dependency graph (arc diagram), UML class, story map, database schema, SBGN, requirement traceability, or event modeling diagrams as HTML/SVG/PNG, with .drawio, Mermaid, .excalidraw, and PlantUML import, plus lifecycle phase maps, block decomposition trees, and onboarding guidance.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/diagram-design/SKILL.md"
     },
@@ -635,19 +635,11 @@
       "description_compacted": true,
       "path": "academic-toolkit/skills/doc-notebooklm-control/SKILL.md"
     },
-    "doc-post-acceptance": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”prepare conference presentation”, ”create presentation slides”, ”design",
-      "full_description": "This skill should be used when the user asks to \"prepare conference presentation\", \"create presentation slides\", \"design poster\", \"make academic poster\", \"write promotion content\", \"create Twitter thread\", or mentions post-acceptance conference preparation. Provides comprehensive workflow for presentation, poster, and promotion content creation.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/doc-post-acceptance/SKILL.md"
-    },
     "doc-poster-latex": {
       "tier": "core",
       "reason": "路由关键集（路由回归/歧义判别直接断言）",
-      "resident_description": "Create professional research posters in LaTeX using beamerposter, tikzposter, or baposter. Support for conference presentations, academic posters, and scientific communication. Includes layout design, color schemes, multi-column formats, figure integration, and poster-specific best practices for visual communication. Use when 用户说\\\"做学术海报\\\"\\\"会议海报\\\"\\\"LaTeX 海报\\\"或要求把论文改成一页海报时。从已成稿论文走流水线生成海报改用 paper-poster。",
-      "full_description": "Create professional research posters in LaTeX using beamerposter, tikzposter, or baposter. Support for conference presentations, academic posters, and scientific communication. Includes layout design, color schemes, multi-column formats, figure integration, and poster-specific best practices for visual communication. Use when 用户说\\\"做学术海报\\\"\\\"会议海报\\\"\\\"LaTeX 海报\\\"或要求把论文改成一页海报时。从已成稿论文走流水线生成海报改用 paper-poster。",
+      "resident_description": "Create professional research posters in LaTeX (beamerposter, tikzposter, baposter): layout design, color schemes, multi-column formats, figure integration, poster best practices. Use when 用户说\\\"做学术海报\\\"\\\"会议海报\\\"\\\"LaTeX 海报\\\"或要把论文改成一页海报；从已成稿论文走流水线生成海报改用 paper-poster。",
+      "full_description": "Create professional research posters in LaTeX (beamerposter, tikzposter, baposter): layout design, color schemes, multi-column formats, figure integration, poster best practices. Use when 用户说\\\"做学术海报\\\"\\\"会议海报\\\"\\\"LaTeX 海报\\\"或要把论文改成一页海报；从已成稿论文走流水线生成海报改用 paper-poster。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/doc-poster-latex/SKILL.md"
     },
@@ -775,7 +767,7 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实验表格（CSV/TXT/XLS/XLSX）画成可编辑 OPJU + PNG/PDF/TIF 出版级科研图。",
-      "full_description": "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实验表格（CSV/TXT/XLS/XLSX）画成可编辑 OPJU + PNG/PDF/TIF 出版级科研图。材料光谱（XPS/XRD/GSAS/XAS/FTIR/NMR/DSC/PL/UV-Vis/EIS/CV/LSV）、通用统计、医学与深度学习（ROC/PR/DCA/SHAP）专用模板；逐列确认数据用途、方案哈希冻结、Origin 对象反读校验。本机无 Origin 时如实降级，不伪造通过。",
+      "full_description": "在装有 Origin/OriginPro 2021+ 的 Windows 实体机上，把实验表格（CSV/TXT/XLS/XLSX）画成可编辑 OPJU + PNG/PDF/TIF 出版级科研图。材料光谱（XPS/XRD/GSAS/XAS/FTIR/NMR/DSC/PL/UV-Vis/EIS/CV/LSV）、时序信号（FLIM 相量/预计算时频场/多通道信号/事件栅格）、通用统计、医学与深度学习（ROC/PR/DCA/SHAP）专用模板；逐列确认数据用途、方案哈希冻结、Origin 对象反读校验。本机无 Origin 时如实降级，不伪造通过。",
       "description_compacted": true,
       "path": "academic-toolkit/skills/fig-plot-edit/SKILL.md"
     },
@@ -798,8 +790,8 @@
     "fig-spec": {
       "tier": "core",
       "reason": "主链步骤的推荐/必用位",
-      "resident_description": "Generate deterministic publication-quality architecture, workflow, and pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Use when user says \\\"架构图\\\", \\\"workflow 图\\\", \\\"pipeline 图\\\", \\\"确定性矢量图\\\", \\\"figure spec\\\", \\\"draw architecture\\\", or needs precise, editable, publication-ready vector diagrams. Preferred over AI illustration for formal architecture/workflow figures.",
-      "full_description": "Generate deterministic publication-quality architecture, workflow, and pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Use when user says \\\"架构图\\\", \\\"workflow 图\\\", \\\"pipeline 图\\\", \\\"确定性矢量图\\\", \\\"figure spec\\\", \\\"draw architecture\\\", or needs precise, editable, publication-ready vector diagrams. Preferred over AI illustration for formal architecture/workflow figures.",
+      "resident_description": "Deterministic publication-quality architecture/workflow/pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Trigger: \\\"架构图\\\" \\\"workflow 图\\\" \\\"pipeline 图\\\" \\\"确定性矢量图\\\" \\\"figure spec\\\" \\\"draw architecture\\\"; preferred over AI illustration for formal figures.",
+      "full_description": "Deterministic publication-quality architecture/workflow/pipeline diagrams from structured JSON (FigureSpec) into editable SVG. Trigger: \\\"架构图\\\" \\\"workflow 图\\\" \\\"pipeline 图\\\" \\\"确定性矢量图\\\" \\\"figure spec\\\" \\\"draw architecture\\\"; preferred over AI illustration for formal figures.",
       "description_compacted": false,
       "path": "academic-toolkit/skills/fig-spec/SKILL.md"
     },
@@ -930,14 +922,6 @@
       "full_description": "CodeSucker 软著源程序文档抽取器 — 集成技能——基于 [fanbuz/codesucker](https://github.com/fanbuz/codesucker) (Apache-2.0) vendored core 的稳定桥接入口。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/ip-source-extractor/SKILL.md"
-    },
-    "kaggle-learner": {
-      "tier": "ondemand",
-      "reason": "非主链、非常驻调用面",
-      "resident_description": "This skill should be used when the user asks to ”learn from Kaggle”, ”study Kaggle solutions”, ”analyze Kaggle",
-      "full_description": "This skill should be used when the user asks to \"learn from Kaggle\", \"study Kaggle solutions\", \"analyze Kaggle competitions\", or mentions Kaggle competition URLs. Provides access to extracted knowledge from winning Kaggle solutions across NLP, CV, time series, tabular, and multimodal domains.",
-      "description_compacted": true,
-      "path": "academic-toolkit/skills/kaggle-learner/SKILL.md"
     },
     "latex-bib-doi-toggle": {
       "tier": "ondemand",
@@ -1791,7 +1775,7 @@
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
       "resident_description": "Interactive visualization library. Use when you need hover info, zoom, pan, or web-embeddable charts. Best for",
-      "full_description": "Interactive visualization library. Use when you need hover info, zoom, pan, or web-embeddable charts. Best for dashboards, exploratory analysis, and presentations. For static publication figures use matplotlib or scientific-visualization.",
+      "full_description": "Interactive visualization library. Use when you need hover info, zoom, pan, or web-embeddable charts. Best for dashboards, exploratory analysis, and presentations; for static publication figures prefer the matplotlib or scientific-visualization skills.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/plotly/SKILL.md"
     },
@@ -1910,8 +1894,8 @@
     "scientific-schematics": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "Create or refine publication-quality technical diagrams, scientific workflows, architectures, and biological schematics",
-      "full_description": "Create or refine publication-quality technical diagrams, scientific workflows, architectures, and biological schematics with the native image-generation capability.",
+      "resident_description": "Create or refine publication-quality technical diagrams — method and architecture overviews, pipelines,",
+      "full_description": "Create or refine publication-quality technical diagrams — method and architecture overviews, pipelines, CONSORT/PRISMA-style flows, experimental workflows, biological pathways, and conceptual schematics. Use for figures whose content is structure rather than data; for plots of measured numbers use the plotting skills. Never hand-drawn as TikZ or SVG.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/scientific-schematics/SKILL.md"
     },

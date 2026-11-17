@@ -22,7 +22,10 @@ If a TeX engine is available, also compile the original project. Record whether 
 
 ## Step 1: Identify Protected Regions
 
-Do not edit these unless the task is specifically about LaTeX repair:
+Protect these regions during ordinary prose editing. Change them when the
+authorized task requires template adaptation, citation or cross-reference
+correction, figure layout repair, or another supported structural change, then
+verify the affected source and renders:
 
 - preamble,
 - document class and packages,
@@ -66,6 +69,9 @@ Use this order:
 3. Guard check.
 4. Continue section by section.
 5. Compile after all content edits, or earlier if guard warnings suggest structural damage.
+6. After the final compile, inspect the rendered PDF page by page and figure by
+   figure (visual readiness): a clean guard report proves source validity, not
+   visual validity, and cannot waive this inspection.
 
 If compilation fails, read the first fatal error in the log. Do not blindly rewrite surrounding content.
 
@@ -113,4 +119,13 @@ Save as `paper_rewriting_output/latex_report.md`:
 - Equations present:
 - Citations resolved:
 - Known author tasks:
+
+## Rendered Visual Receipt
+
+- Current final PDF identified (name/hash):
+- Every page inspected:
+- Every figure/panel inspected:
+- Boundary/crop/blank/float-only checks:
+- Figure method/panel/baseline/metric/dataset checks:
+- Unresolved conflicts:
 ```

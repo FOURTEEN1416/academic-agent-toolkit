@@ -26,6 +26,11 @@ Never fabricate data, metrics, p-values, datasets, citations, figures, or
 experimental claims. User materials are authoritative for this paper's results.
 External examples teach structure and rhetoric only.
 
+Tool success, hashes, and task status do not establish scientific, editorial,
+visual, or submission readiness; assess the actual paper. Tool names, file
+paths, and required manuscript text may stay literal, but progress and delivery
+reports use the user's language.
+
 ## Required Configuration
 
 Prefer reading `paper_rewriting_output/paper_spine_config.json`. If it is
@@ -80,10 +85,11 @@ Required fields:
    least `citation_target_count * 3` candidates; default target is 20, so the
    default candidate pool is 60. About 80% should be recent, using
    `current_year - 3` as the simple threshold.
-6. Stop for user confirmation of the controlling motivation. Do not write or
-   rewrite until `confirmed_motivation.md` records the user's chosen motivation.
-   The final motivation should be concise and specific. Do not inflate one
-   narrow contribution into a multi-claim motivation.
+6. Stop for user confirmation of the controlling motivation, together with the
+   contribution promise it supports and the claim boundary it respects. Do not
+   write or rewrite until `confirmed_motivation.md` records the user's chosen
+   motivation. The final motivation should be concise and specific. Do not
+   inflate one narrow contribution into a multi-claim motivation.
 7. If `workflow` is `rewrite_existing`, use `spine-rewrite`.
 8. If `workflow` is `build_from_materials`, use `spine-build`.
 9. Before drafting, both workflows must create `section_blueprints.md` and
@@ -206,6 +212,33 @@ reasoning that the user can learn why this writing move is better.
 
 A shallow matrix is a failure. If most rows say only "improve clarity" or
 "polish wording", stop and redo the research/blueprint stage.
+
+## Figure And Evidence Discipline
+
+Map actual results to the questions a reader will ask, and assign each useful
+job — primary finding, comparison, uncertainty/validation, robustness or
+subgroup, and mechanism explanation — to a figure, table, prose passage,
+supplement, or a justified omission. There is no figure quota: merge duplicated
+messages, but do not let a single omnibus plot define the story. If an
+explanatory mechanism figure is central and sourced, make an explicit decision
+to create one; a flowchart, ROC panel, or statistical summary is not a
+mechanism figure.
+
+Every substantive claim needs source or result support and a bounded
+uncertainty. Citation identity and citation context are both checked; no
+fabricated or inert references. Humanize and detector scores are diagnostics,
+not paper-quality verdicts. Keep internal workflow chatter out of the paper,
+but preserve real study methods, software/model names, citations, ethics
+statements, and factual venue-required disclosures.
+
+## Completion Contract
+
+Deliver the requested scope, not a publication guarantee. A local draft
+delivery is not submission readiness: report scientific limitations,
+submission readiness, and required external authorizations separately, and
+disclose missing author/ethics/venue facts instead of inventing them.
+Arranging independent review stays part of the route; without it, deliver a
+usable draft with review explicitly pending, not a reviewed final.
 
 ## Branch Map
 

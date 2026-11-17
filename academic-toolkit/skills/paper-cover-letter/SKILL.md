@@ -1,6 +1,6 @@
 ---
 name: paper-cover-letter
-description: Use when a manuscript is about to be submitted to a journal and the submission package needs its editor-facing pieces - a cover letter, a significance statement, and a highlights draft, plus a letter-versus-manuscript consistency checklist. Not for technical preflight (use paper-presubmit-checks) or full content audit (use paper-submission-audit).
+description: Use when a journal submission package needs editor-facing pieces: cover letter, significance statement, highlights draft, plus letter-versus-manuscript consistency checklist. Not for technical preflight (use paper-presubmit-checks) or full content audit (use paper-submission-audit).
 ---
 
 # Cover Letter Package（投稿信配套件）

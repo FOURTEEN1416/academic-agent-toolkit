@@ -13,3 +13,4 @@
 
 - vendor/forks/nature-skills 已镜像同步至实测 HEAD（上游新增 nature-paper-trans/nature-paper-xray/nature-paper2word/nature-social-science 四技能并更新既有技能正文）。
 - 本仓收编的两份 references（statement-patterns.md / repository-and-identifiers.md）与上游新版逐字一致，无需重收编；上游 nature-data 的 SKILL.md/manifest/workflow 变化不涉及本仓收编件（本仓 SKILL.md 为适应性改写版）。
+- 2026-11-16 重收编施工包 nature-skills：上游增量中的有界审计定界规则（单词句修改或单条声明审计不强制全研究数据清点与仓库重构，见上游 SKILL.md Routing protocol §3 与 static/core/workflow.md 新增段）已按改写融入规程并入本技能 SKILL.md Workflow 节；上游 manifest 将 chinese-mode 由 always_load 降级为按需加载，本技能无该文件、中文场景由驱动会话承担，不跟随。

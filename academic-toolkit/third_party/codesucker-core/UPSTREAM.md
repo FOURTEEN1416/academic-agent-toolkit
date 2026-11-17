@@ -36,6 +36,24 @@ self-referential digest; the manifest hashes all other source-materials files.
   tests/test_copyright_codesucker_integration.py tests/test_source_materials_gate.py`
   15 passed；`check_provenance.py` 全过。
 
+## 2026-11-16 收尾批：core 子包 test/ 与 package.json 补齐同步
+
+- 上一批 UP-12 的同步范围声明为 `packages/core/src`；本批把 vendor 补齐至 16fb1e3 全量：
+  `packages/core/package.json`（0.4.4→0.5.3，test 链新增 language-compat / third-party-risk /
+  scan-reliability / real-projects-isolation）与 `packages/core/test/` 对齐上游（更新 8 件、
+  新增 language-compat.ts / scan-reliability.ts / third-party-risk.ts / real-projects-isolation.ts /
+  helpers/temporary-directory.ts 共 5 件）。
+- `package-lock.json` 根版本字段 0.4.4→0.5.3（仅根包版本记录；依赖集合与 integrity 未动，
+  与外层 package.json 0.5.3 对齐）。
+- `packages/core/tsconfig.json` 保留本仓形态（不回退上游 `extends: ../../tsconfig.base.json`
+  ——vendor 树外无该文件，悬空 extends 已于 2026-09 深读批移除）。
+- 上游 core 冒烟实跑（Windows / Node v24.18.0）：11 项中 10 项 PASS；`third-party-risk.ts`
+  在 Windows 不可运行——夹具在 `test/third-party-risk.ts:287` 创建含双引号目录名
+  `vendor/go"quoted`，该字符为 Windows 文件系统非法字符，属上游测试夹具的平台兼容缺陷，
+  非核心逻辑缺陷；如实记档，不改上游测试、不伪造通过。Linux/macOS 上该项可正常执行。
+- 本仓最小回归复跑：UP-12 四件（materials / bridge / copyright-integration /
+  source-materials-gate）15 passed；vendor + host_dep_scan 8 passed；`check_provenance.py` 全过。
+
 ## 2026-09-26 local publication hardening
 
 - File: `codesucker-cli.mjs` (local adapter only; upstream core algorithms unchanged).

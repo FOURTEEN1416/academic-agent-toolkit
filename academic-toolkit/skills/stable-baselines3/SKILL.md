@@ -3,32 +3,38 @@ name: stable-baselines3
 description: "强化学习标准实现：PPO/SAC/DQN/TD3/DDPG/A2C，scikit-learn 风格 API。用于智能决策策略学习与仿真环境内的策略训练（仿真赛事 C 赛道）。"
 license: MIT
 metadata:
-  version: "1.1"
+  version: "2.0"
+  last-reviewed: "2026-10-01"
   skill-author: K-Dense Inc.
 ---
 
-<!--ACAT-ADAPTED: 收编自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游兼容性声明与网络/凭据类依赖在本仓库不适用，执行以本机实装版本为准；溯源见 references/UPSTREAM.md。2026-10-16 仿真建模赛补齐批。-->
+<!--ACAT-ADAPTED: 收编自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游兼容性声明与网络/凭据类依赖在本仓库不适用，执行以本机实装版本为准；溯源见 references/UPSTREAM.md。2026-10-16 仿真建模赛补齐批。2026-11-16 重收编：融入上游 v2.72.0（2d2065f）增量——SB3 2.9.0/PyTorch>=2.8 重审、示例补 device/seed 与 env.close() 卫生、VecNormalize 保存/加载配对与续训口径、评估环境分离与_episode 统计口径、自定义环境模板观测 (4,) 变更、gradient_steps=-1 语义、HER 前置条件与有界 demo 免责；上游文末引用节未收编。-->
 # Stable Baselines3
 
 ## Overview
 
 Stable Baselines3 (SB3) is a PyTorch-based library providing reliable implementations of reinforcement learning algorithms. This skill provides comprehensive guidance for training RL agents, creating custom environments, implementing callbacks, and optimizing training workflows using SB3's unified API.
 
-**Current upstream:** SB3 **2.8.0** (April 2026). Docs: [stable-baselines3.readthedocs.io](https://stable-baselines3.readthedocs.io/en/master/).
+**Current upstream:** SB3 **2.9.0** (June 15, 2026). Docs: [stable-baselines3.readthedocs.io](https://stable-baselines3.readthedocs.io/en/v2.9.0/).
 
 ## Installation
 
-Tested against **stable-baselines3 2.8.0**. Requires **Python 3.10+** (3.9 dropped in 2.8.0) and **PyTorch >= 2.3**.
+Tested against **stable-baselines3 2.9.0**. Requires **Python 3.10+** (3.9 dropped in 2.8.0) and **PyTorch >= 2.8**.
 
 ```bash
 # Basic installation
-uv pip install "stable-baselines3>=2.8"
+uv pip install "stable-baselines3==2.9.0"
 
 # With extra dependencies (TensorBoard, ale-py for Atari, etc.)
-uv pip install "stable-baselines3[extra]>=2.8"
+uv pip install "stable-baselines3[extra]==2.9.0"
 ```
 
-On zsh, quote brackets: `uv pip install 'stable-baselines3[extra]>=2.8'`.
+The 2.9.0 release supports Gymnasium >=0.29.1,<2.0; this review exercised
+Gymnasium 1.3.0, PyTorch 2.14.1 and Python 3.13 on CPU. pandas/matplotlib
+are now optional extras. Installation requires network unless packages are cached;
+local RL training needs no credentials or service endpoints.
+
+On zsh, quote brackets: `uv pip install 'stable-baselines3[extra]==2.9.0'`.
 
 For MuJoCo continuous-control benchmarks:
 
@@ -63,7 +69,7 @@ from stable_baselines3 import PPO
 env = gym.make("CartPole-v1")
 
 # Initialize agent (device="cpu" is often faster for MlpPolicy on small envs)
-model = PPO("MlpPolicy", env, verbose=1)
+model = PPO("MlpPolicy", env, verbose=1, device="cpu", seed=0)
 
 # Train the agent
 model.learn(total_timesteps=10000)
@@ -72,20 +78,21 @@ model.learn(total_timesteps=10000)
 model.save("ppo_cartpole")
 
 # Load the model (without prior instantiation)
-model = PPO.load("ppo_cartpole", env=env)
+model = PPO.load("ppo_cartpole", env=env, device="cpu")
+env.close()
 ```
 
 **Important Notes:**
 - `total_timesteps` is a lower bound; actual training may exceed this due to batch collection
-- Use `model.load()` as a static method, not on an existing instance
+- Call the class method `PPO.load(...)` and keep the returned new model
 - The replay buffer is NOT saved with the model to save space
 
 **Algorithm Selection:**
 Use `references/algorithms.md` for detailed algorithm characteristics and selection guidance. Quick reference:
-- **PPO/A2C**: General-purpose, supports all action space types, good for multiprocessing
+- **PPO/A2C**: General-purpose, supports Box, Discrete, flat MultiDiscrete and MultiBinary actions, good for multiprocessing
 - **SAC/TD3**: Continuous control, off-policy, sample-efficient
 - **DQN**: Discrete actions, off-policy
-- **HER**: Goal-conditioned tasks
+- **HER**: Replay-buffer strategy for goal-conditioned off-policy tasks
 
 See `scripts/train_rl_agent.py` for a complete training template with best practices.
 
@@ -100,10 +107,10 @@ Custom environments must inherit from `gymnasium.Env` and implement:
 - `close()`: Cleanup resources
 
 **Key Constraints:**
-- Image observations must be `np.uint8` in range [0, 255]
+- Default CNN image preprocessing expects `np.uint8` in range [0, 255]
 - Use channel-first format when possible (channels, height, width)
 - SB3 normalizes images automatically by dividing by 255
-- Set `normalize_images=False` in policy_kwargs if pre-normalized
+- For pre-normalized float images, use channel-first layout and `policy_kwargs={"normalize_images": False}`
 - SB3 does NOT support `Discrete` or `MultiDiscrete` spaces with `start!=0`
 
 **Validation:**
@@ -113,7 +120,11 @@ from stable_baselines3.common.env_checker import check_env
 check_env(env, warn=True)
 ```
 
-See `scripts/custom_env_template.py` for a complete custom environment template and `references/custom_environments.md` for comprehensive guidance.
+See [the template](scripts/custom_env_template.py) and [environment guide](references/custom_environments.md).
+The template now observes both agent and random goal coordinates, shape `(4,)`;
+old shape `(2,)` checkpoints require retraining. `gym.make("CustomEnv-v0")` adds
+the 100-step time limit; direct `CustomEnv()` does not. `check_env` checks API
+consistency, not Markov sufficiency, reward correctness or learnability.
 
 ### 3. Vectorized Environments
 
@@ -126,17 +137,23 @@ Vectorized environments run multiple environment instances in parallel, accelera
 
 **Quick Setup:**
 ```python
+from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
 
-# Create 4 parallel environments
-env = make_vec_env("CartPole-v1", n_envs=4, vec_env_cls=SubprocVecEnv)
-
-model = PPO("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=25000)
+# DummyVecEnv batches 4 lightweight environments sequentially.
+env = make_vec_env("CartPole-v1", n_envs=4, seed=0)
+try:
+    model = PPO("MlpPolicy", env, verbose=1, device="cpu")
+    model.learn(total_timesteps=25000)
+finally:
+    env.close()
 ```
 
 **Off-Policy Optimization:**
-When using multiple environments with off-policy algorithms (SAC, TD3, DQN), set `gradient_steps=-1` to perform one gradient update per environment step, balancing wall-clock time and sample efficiency.
+With step-based `train_freq`, `gradient_steps=-1` matches gradient updates to
+collected transitions (`train_freq * n_envs`) after warmup. This changes compute
+and reuse of data; benchmark it rather than assuming it is always faster.
+SubprocVecEnv creation belongs under a main guard in a Python file.
 
 **API Differences:**
 - `reset()` returns only observations (info available in `vec_env.reset_infos`)
@@ -195,18 +212,24 @@ See `references/callbacks.md` for comprehensive callback documentation.
 
 **Saving and Loading:**
 ```python
-# Save model
+from stable_baselines3.common.vec_env import VecNormalize
+
+# After training with VecNormalize, save a matching pair:
 model.save("model_name")
+model.get_vec_normalize_env().save("vec_normalize.pkl")
 
-# Save normalization statistics (if using VecNormalize)
-vec_env.save("vec_normalize.pkl")
-
-# Load model
-model = PPO.load("model_name", env=env)
-
-# Load normalization statistics
+# Build the same underlying environment and wrappers before loading:
+vec_env = make_vec_env("Pendulum-v1", n_envs=1, seed=20000)
 vec_env = VecNormalize.load("vec_normalize.pkl", vec_env)
+vec_env.training = False
+vec_env.norm_reward = False
+model = PPO.load("model_name", env=vec_env, device="cpu")
 ```
+
+This is a continuation fragment for a PPO/Pendulum run with normalization.
+Load only trusted model/statistics files. For off-policy training continuation,
+`save_replay_buffer()` / `load_replay_buffer()` are separate from `save()` / `load()`.
+Resume with a live environment and `learn(..., reset_num_timesteps=False)`.
 
 **Parameter Access:**
 ```python
@@ -223,12 +246,13 @@ state_dict = model.policy.state_dict()
 ### 6. Evaluation and Recording
 
 **Evaluation:**
+When training uses `VecNormalize`, load its saved training statistics into a separate evaluation environment with the same observation wrappers. Set `training=False` to freeze those statistics and `norm_reward=False` to report rewards in the original units; do not fit normalization on evaluation episodes. Save the normalization state alongside the model checkpoint.
 ```python
 from stable_baselines3.common.evaluation import evaluate_policy
 
 mean_reward, std_reward = evaluate_policy(
     model,
-    env,
+    eval_env,  # Separate Monitor-wrapped environment with held-out seeds
     n_eval_episodes=10,
     deterministic=True
 )
@@ -238,7 +262,9 @@ mean_reward, std_reward = evaluate_policy(
 ```python
 from stable_baselines3.common.vec_env import VecVideoRecorder
 
-# Wrap environment with video recorder
+# Requires moviepy, an FFmpeg encoder and the environment rendering dependency.
+env = make_vec_env("CartPole-v1", n_envs=1, env_kwargs={"render_mode": "rgb_array"})
+# Wrap before stepping, and close after recording to flush the clip.
 env = VecVideoRecorder(
     env,
     "videos/",
@@ -247,7 +273,16 @@ env = VecVideoRecorder(
 )
 ```
 
-See `scripts/evaluate_agent.py` for a complete evaluation and recording template.
+Use [evaluate_agent.py](scripts/evaluate_agent.py), passing `algorithm=SAC` etc.
+for the training algorithm and the normalization file from that exact checkpoint.
+The helper records one bounded clip. It raises on a missing requested statistics
+file. MaskablePPO requires the specialized contrib evaluator.
+
+Evaluate whole episodes on a separate Monitor-wrapped environment. Report the
+number of episodes, seeds, reward units, wrapper stack and deterministic/stochastic
+action choice. Episode SD is not a confidence interval across training runs. Use
+multiple independently trained seeds and a final held-out test after checkpoint
+selection; a short smoke run proves mechanics, not a good policy.
 
 ### 7. Advanced Features
 
@@ -268,10 +303,11 @@ model = PPO("MultiInputPolicy", env, verbose=1)
 ```
 Use when observations are dictionaries (e.g., combining images with sensor data).
 
-**Hindsight Experience Replay:**
+**Hindsight Experience Replay (illustrative; requires a goal environment):**
 ```python
 from stable_baselines3 import SAC, HerReplayBuffer
 
+# env must expose observation/achieved_goal/desired_goal and vectorized compute_reward.
 model = SAC(
     "MultiInputPolicy",
     env,
@@ -288,6 +324,10 @@ model = SAC(
 model = PPO("MlpPolicy", env, tensorboard_log="./tensorboard/")
 model.learn(total_timesteps=10000)
 ```
+
+The scripts and bounded CPU fixtures are executed in the repository suite. Long
+training budgets, HER/CNN/Atari/MuJoCo and unexecuted reference fragments are
+illustrative; retain the task-specific wrappers and validation described there.
 
 ## Workflow Guidance
 
@@ -307,7 +347,7 @@ model.learn(total_timesteps=10000)
 - **Memory errors**: Reduce `buffer_size` for off-policy algorithms or use fewer parallel environments
 - **Slow training**: Consider SubprocVecEnv for parallel environments
 - **Unstable training**: Try different algorithms, tune hyperparameters, or check reward scaling
-- **Import errors**: Ensure `stable_baselines3` is installed: `uv pip install 'stable-baselines3[extra]>=2.8'`
+- **Import errors**: Ensure `stable_baselines3` is installed: `uv pip install 'stable-baselines3[extra]==2.9.0'`
 
 ## Resources
 

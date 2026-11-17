@@ -125,11 +125,11 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 | spine-*（12） | spine 及其 11 个内部子技能 | 自媒体长文管线 |
 | latex-paper-*（8） | latex-paper-survey-writer 等 | arXiv/合作论文管线 |
 | meta-*（18） | meta-skill-* / meta-planning-files / meta-research-* 等 | 智能体配置与技能开发元域（2026-10-27 退役 4 件插件教学技能） |
-| lit-*（13） | lit-citation-verify / lit-obsidian-* / lit-daily-digest / lit-review-obsidian / lit-zotero-obsidian | 文献管理域（外域；kaggle-learner 亦此批具名） |
-| doc-*（2） | doc-coauthoring, doc-post-acceptance | 文档生产域 |
+| lit-*（13） | lit-citation-verify / lit-obsidian-* / lit-daily-digest / lit-review-obsidian / lit-zotero-obsidian | 文献管理域（外域） |
+| doc-*（1） | doc-coauthoring | 文档生产域 |
 | fig-*（1） | fig-publication-chart | 出版图表顾问（外域） |
 | paper-* 外域件（5） | paper-humanize, paper-polish-nature, paper-results-report, paper-sections-nature, paper-template-organizer | 期刊写作族未接入件（paper-self-review 在 §二 S13 推荐位，非外域） |
-| 散名（4） | idea-brainstorm, rebuttal, results-analysis, kaggle-learner | 单件外域 |
+| 散名（3） | idea-brainstorm, rebuttal, results-analysis | 单件外域 |
 | dev-*（21） | dev-requirement → dev-selfcheck | 毕设/软件项目管线 |
 | 知识产权（5） | copyright-build/draft/source-materials, patent-build/draft | 软著专利域 |
 | 课程/人文（9） | course-paper, course-plan, course-report, course-report-plan, humanities-plan/write/write-latex, grant-proposal, thesis-proposal | 课程论文/人文/基金开题域 |

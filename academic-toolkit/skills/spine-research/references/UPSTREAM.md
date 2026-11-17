@@ -18,3 +18,9 @@
 
 - vendor/forks/PaperSpine 已镜像同步至实测 HEAD（1648 文件更新、9 项上游旧版发布残留清理）；上游 2 个月更新含 v4.0.0 大版本（多语言 README、portable suites/release v6 工作流、INSTALL 文档族等）。
 - 本仓 spine 系 11 技能为上游单一 paper-spine 技能的拆分重组编排（脚本/资产只读引用），上游 v4.0.0 技能包结构变化须经逐件 diff 评估后按收编规程重放，本单仅完成 vendor 同步与台账刷新，技能侧重收编待专项。
+
+## 重收编施工记录（2026-11-16，PKG-07 spine 系批）
+
+- references/scenario-journal.md：吸收范例结构观察清单扩展（Discussion 回扣先验工作/备选/含义/局限、研究弧线收束方式、venue 篇幅与章节比例为 Results/Discussion 留空间而非机械配额）。
+- 套件级 `spine/references/research.md` 同步吸收研究范围三态（materials_only/required/agent_decide）执行边界、evidence handoff（来源/结果→论断→图映射；外部文献发现不得作为本研究结果）、tier 深度不授权分析、范例风格偏好不得变科学规则。
+- 未吸收（记入 skipped）：journal-learning.md / current-method-routing.md 等 v6 资产引用（本仓无此资产，精神以自包含表述融入）。

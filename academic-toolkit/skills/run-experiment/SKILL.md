@@ -20,6 +20,10 @@ Read the project's `AGENTS.md` to determine the experiment environment:
 
 If no server info is found in `AGENTS.md`, check environment variables (e.g., `$GPU_SERVER`). If still unavailable, log "No server configuration found — running locally if GPU is available, otherwise report the issue" and attempt local execution.
 
+**Environment reuse first.** Read the project's existing server notes before preparing anything: reuse the user's confirmed conda/venv, remote code directory and working invocation. A missing environment ledger is missing bookkeeping, not evidence of a broken environment — do not rebuild a working setup. When no relevant validation is recorded, run one small task-relevant smoke in that environment (exercise the needed imports/kernel, input paths and output writing) and record the command and observed output. Reuse that validation while the environment and execution path stay unchanged; require a fresh spec + import/kernel check + one verbatim documented-invocation pass only for new or rebuilt environments and after substantive install/invocation changes. Prose or log edits alone never trigger a rebuild or recheck, and passing the smoke does not certify the scientific result.
+
+**Preparation failures are not code bugs.** Carry the same failure, attempted fixes and remaining budget across child skills in the existing run notes/tracker. After two targeted repairs to the same environment problem make no new progress, stop repeating preparation and return the exact command and error to the main owner for takeover or an authorized alternative. Missing permissions, authentication, network access or a compatible driver are environment prerequisites — never reasons to rewrite the training script. The code-sanity retry budget and reviewer gates below stay intact.
+
 ### Step 2: Pre-flight Check
 
 Check GPU availability on the target machine:
@@ -44,10 +48,19 @@ Check the project's `AGENTS.md` for a `code_sync` setting. If not specified, def
 
 #### Option A: rsync (default)
 
-Only sync necessary files — NOT data, checkpoints, or large files:
+Prefer the project's existing deployment command or an explicit file list. Otherwise allow directory traversal and include the configuration/small resources the actual experiment command reads, alongside Python sources:
+
 ```bash
-rsync -avz --include='*.py' --exclude='*' <local_src>/ <server>:<remote_dst>/
+rsync -avz --prune-empty-dirs \
+  --exclude='.*' --exclude='__pycache__/' --exclude='/venv/' --exclude='/env/' \
+  --exclude='data/' --exclude='datasets/' --exclude='weights/' \
+  --exclude='checkpoints/' --exclude='outputs/' --exclude='wandb/' \
+  --include='*/' --include='*.py' \
+  --include='/configs/sanity.json' --include='/assets/vocab.json' \
+  --exclude='*' <local_src>/ <server>:<remote_dst>/
 ```
+
+Replace the two explicit config/resource paths with those your command needs and add other required small files explicitly. Keep exclusions before directory/file includes, and put project-specific private paths in the excludes. Hidden agent/config files, data, weights and outputs stay out; sync from the project source root, never the user's home directory, and never replace these rules with an unfiltered copy. A successful sync exit is not a launch check: run the smallest actual experiment from the configured remote code directory and inspect its log and result file.
 
 #### Option B: git (when `code_sync: git` is set in AGENTS.md)
 

@@ -42,7 +42,7 @@ Workflow 4:   rebuttal (post-submission external reviews)
 
 - **VENUE = `ICML`** — Default venue. Override if needed.
 - **RESPONSE_MODE = `TEXT_ONLY`** — v1 default.
-- **REVIEWER_MODEL** — 经评审桥用于内部压力测试；具体模型由当前环境/AGENTS.md 配置注入，本仓不预设。
+- **REVIEWER_MODEL** — 经评审桥用于内部压力测试；具体模型由当前环境/AGENTS.md 配置注入，本仓不预设。所选评审模型须来自与被评正文写作模型不同的模型家族（OpenAI / Anthropic / Google / DeepSeek / Moonshot·Kimi / Qwen 等之间互为跨族），避免同族自评偏置。
 - **MAX_INTERNAL_DRAFT_ROUNDS = 2** — draft → lint → revise.
 - **MAX_STRESS_TEST_ROUNDS = 1** — 一轮评审桥批评。
 - **MAX_FOLLOWUP_ROUNDS = 3** — per reviewer thread.

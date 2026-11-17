@@ -18,3 +18,9 @@
 
 - vendor/forks/PaperSpine 已镜像同步至实测 HEAD（1648 文件更新、9 项上游旧版发布残留清理）；上游 2 个月更新含 v4.0.0 大版本（多语言 README、portable suites/release v6 工作流、INSTALL 文档族等）。
 - 本仓 spine 系 11 技能为上游单一 paper-spine 技能的拆分重组编排（脚本/资产只读引用），上游 v4.0.0 技能包结构变化须经逐件 diff 评估后按收编规程重放，本单仅完成 vendor 同步与台账刷新，技能侧重收编待专项。
+
+## 重收编施工记录（2026-11-16，PKG-07 spine 系批）
+
+- SKILL.md：Phase 1 吸收「清单为守卫基线集合，实际产出的额外阶段产物一并纳入盘点与翻译」。
+- 套件级 `spine/references/translate.md` 同步吸收清单基线语义与 Word 多后端口径（Pandoc 非唯一忠实后端；Word 产出未过守卫前不得称完成）。
+- 保持本仓 translate_guard.py 闸门与 core/optional 分级口径（本仓裁决）；未吸收（记入 skipped）：上游 manuscript-format.md 多语契约引用链（本仓无此资产）。

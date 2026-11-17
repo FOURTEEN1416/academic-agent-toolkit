@@ -1,13 +1,13 @@
 ---
 name: doc-poster-latex
-description: "Create professional research posters in LaTeX using beamerposter, tikzposter, or baposter. Support for conference presentations, academic posters, and scientific communication. Includes layout design, color schemes, multi-column formats, figure integration, and poster-specific best practices for visual communication. Use when 用户说\"做学术海报\"\"会议海报\"\"LaTeX 海报\"或要求把论文改成一页海报时。从已成稿论文走流水线生成海报改用 paper-poster。"
+description: "Create professional research posters in LaTeX (beamerposter, tikzposter, baposter): layout design, color schemes, multi-column formats, figure integration, poster best practices. Use when 用户说\"做学术海报\"\"会议海报\"\"LaTeX 海报\"或要把论文改成一页海报；从已成稿论文走流水线生成海报改用 paper-poster。"
 allowed-tools: Read Write Edit Bash
 metadata:
-  version: "1.0"
+  version: "1.1"
 ---
 
 
-<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以当前 Agent 的联网检索/网页抓取能力替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。-->
+<!--ACAT-ADAPTED: 资产补齐自 K-Dense-AI/scientific-agent-skills@36d8f13a1e754618794bf42f417884940077b4ae（MIT，fork FOURTEEN1416）。上游 research-lookup/parallel-cli 等 API 依赖在本仓库不可直接运行，以当前 Agent 的联网检索/网页抓取能力替代；溯源见 references/UPSTREAM.md。2026-09-09 专项治理。2026-11-16 重收编：融入上游 2d2065f（v2.72.0，目录已重组为 latex-posters）增量——三份模板与九个参考件/脚本文件按上游补丁更新（ai_graphics_for_posters.md 与 poster_content_guide.md 采纳上游重写稿并保留本地去工具名适配），正文补 AI 生图准确性边界、SVG→PDF 转换、baposter 存档类来源与 generate_schematic 助手新契约（OpenRouter images 端点 + 评审模型 + 1-2 轮迭代不自动重试）。-->
 # LaTeX Research Posters
 
 ## Overview
@@ -21,6 +21,8 @@ Research posters are a critical medium for scientific communication at conferenc
 ## AI-Powered Visual Element Generation
 
 **STANDARD WORKFLOW: Generate ALL major visual elements using AI before creating the LaTeX poster.** 推荐流程：① 规划全部视觉元素（title/intro/methods/results/conclusions）→ ② 用 scientific-schematics 或 Nano Banana Pro 逐一生成 → ③ 在 LaTeX 模板中组装图片 → ④ 在视觉周围补文字。**Target: 60-70% poster area 为 AI 生成视觉、30-40% 文字。**
+
+**⚠️ 准确性边界（上游 v2.72.0 增补）：** AI 生图仅适合概念性示意图，不是必需工序、没有"AI 图占比"硬指标。数值图、统计汇总、显微/谱学/仪器数据必须来自分析代码与原始观测——**不得用图像模型编造数值图表、显微照片、谱图或结果**。精确通路/流程/架构图优先手写 TikZ 或矢量编辑器（可先出 AI 草稿再人工核校）。不要为迁就配图而取舍或压制对比方法；坐标轴、单位、图例、基线、分母与不确定性信息必须保留。标题、引文、数值与二维码保持 LaTeX/绘图代码可编辑。
 
 ---
 
@@ -322,7 +324,7 @@ Support for international and conference-specific poster dimensions:
 Optimize visual content for poster presentations:
 
 **Best Practices**:
-- Use vector graphics (PDF, SVG) when possible for scalability
+- Use vector graphics (PDF, SVG) when possible for scalability; **SVG 须先转 PDF 再 `\includegraphics`**——pdfLaTeX 不直接支持 SVG（上游 v2.72.0 增补）
 - Raster images: minimum 300 DPI at final print size
 - Consistent image styling (borders, captions, sizes)
 - Group related figures together
@@ -823,13 +825,54 @@ If your AI-generated graphics are overflowing or have small text:
 
 **Best Practices**: AI 图形按权威规范生成（3-4 elements / ≤10 words / GIANT fonts / ≥50% white space）；尺寸严格对齐会议要求、缩尺试印、高对比配色、正文极简可扫读、联系信息与二维码齐备、付印前逐字校对（错误在海报上会被放大）。
 
+## Post-Acceptance Promotion Content（会后宣传内容）
+
+> 迁移自 2026-11-16 退役并入裁决的原「会后宣传内容」技能（原技能目录已删除，溯源见 dev-docs/DELETION_LOG.md 2026-11-16 退役批）；以下内容逐字保留。
+
+Guidance for creating promotional content after paper acceptance:
+
+**Twitter/X Thread**
+- Thread structure: Hook -> Problem -> Method -> Key Result -> Link
+- First tweet: Attention-grabbing summary with emoji
+- Include 1-2 key figures
+- End with paper link and relevant hashtags
+- Tag co-authors and relevant accounts
+
+**LinkedIn Post**
+- Professional tone, 3-5 paragraphs
+- Highlight practical implications
+- Include key figure or diagram
+- Add relevant hashtags
+
+**Blog Post**
+- 800-1500 words
+- Non-technical summary for broader audience
+- Include figures with explanations
+- Link to paper, code, and demo
+
+**When to use**: Research promotion - Create social media and blog content after paper acceptance.
+
+**Promotion Workflow**
+```
+Paper accepted -> Write Twitter thread -> Create LinkedIn post -> Draft blog post -> Schedule posts around conference dates
+```
+
+**Promotion Best Practices**
+- Post within 1-2 weeks of acceptance notification
+- Coordinate timing with co-authors
+- Engage with comments and questions
+- Share across multiple platforms
+- Include accessible descriptions for figures
+
 ## Package Installation
 
-TeX Live（Linux/Mac）：`tlmgr install beamerposter tikzposter baposter`，推荐附加包 `tlmgr install qrcode graphics xcolor tcolorbox subcaption`；MiKTeX（Windows）通常首次使用自动安装。
+TeX Live（Linux/Mac）：`tlmgr install beamerposter tikzposter baposter`，推荐附加包 `tlmgr install qrcode graphics xcolor tcolorbox subcaption`；MiKTeX（Windows）通常首次使用自动安装。**baposter 注意**：其官方站点在 上游 2026-09-30 复核时已不可达，类文件以 v2.0（2011/11/26）存档源为 pinned 依据（见 `references/latex_poster_packages.md` 的存档镜像链接）；不要把"老的稳定包版本"当作"当前支持 tagged-PDF"的证明。
 
 ## Scripts and Automation
 
 `scripts/` 下：`review_poster.sh`（海报 PDF 质检）、`generate_schematic.py`（科研示意图生成）、`generate_schematic_ai.py`（AI 生图入口）。
+
+**generate_schematic 助手契约（上游 v2.72.0 更新）**：`generate_schematic.py` 委托 `generate_schematic_ai.py`，需 Python 3.10+、`requests`、网络与 `OPENROUTER_API_KEY`（从环境变量或项目 `.env` 读取，优先于命令行传入）。生成走 OpenRouter `POST /api/v1/images`（模型 `google/gemini-3.1-flash-image`，即 Nano Banana 2），校验 PNG 签名、仅接受 `.png` 输出路径；评审走 `POST /api/v1/chat/completions`（模型 `google/gemini-3.7-flash`）。`--doc-type poster` 启用 7/10 评审启发式——它不是外部验证过的质量标准；`--iterations` 上限 1-2，精修失败保留前一张已存草稿，失败请求不自动重试。生成与评审都消耗 API 额度：AI 分数或已存图都不等于科学正确或最终印刷合格，仍须走 Section 11 人工质检。
 
 ## References
 

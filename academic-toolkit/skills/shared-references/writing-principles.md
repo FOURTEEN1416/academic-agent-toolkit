@@ -8,6 +8,8 @@ This is the expanded English counterpart to the detailed Chinese version. It is 
 
 - [When to Read](#when-to-read)
 - [The Narrative Principle](#the-narrative-principle)
+- [Launch Mindset](#launch-mindset)
+- [Who Writes](#who-writes)
 - [Time Allocation and Reviewer Reading Order](#time-allocation-and-reviewer-reading-order)
 - [How to Write the Abstract](#how-to-write-the-abstract)
 - [Introduction Structure](#introduction-structure)
@@ -62,6 +64,34 @@ If the one-sentence contribution is hard to write, the usual causes are:
 - the contribution is still too vague,
 - the evidence is not yet tightly coupled to the claims,
 - or the paper does not yet know what story it is telling.
+
+## Launch Mindset
+
+Carry the narrative principle through planning, drafting, and revision,
+regardless of who is writing. Open with the strongest genuine contribution and
+the evidence that decides it. Put the assumptions and scope a claim depends on
+right where the claim is used, and gather the broader limitations in one
+place. Unfavorable results stay in the tables: explain the concrete tradeoff
+when the data supports one, and otherwise report them neutrally. Manuscript
+prose carries no prompts, revision history, or defensive disclaimers. Skip
+speculative edge-case machinery, gratuitous hashes, and mechanical rubrics.
+In a survey, the story comes from how the works connect — not from a chain of
+per-paper theorem lectures.
+
+## Who Writes
+
+Respect the writer configured by the user or the project. When an external
+writing assistant is available, delegate substantive drafting and prose
+revision to it; otherwise the executor writes directly. Writer settings are
+separate from reviewer settings and never change review independence or audit
+gates. The delegating party first prepares a compact factual brief (narrative
+spine, supported claims, assumptions, formulas, notation, verified citation
+keys, and the question each section must answer), then checks the returned
+draft's new claims, numbers, formulas, citations, and compilation against the
+source material — preserving good phrasing and sending concrete corrections
+back through the same channel. This check does not replace required reviews
+or audits. If a writer call fails, keep any produced draft, note the failure
+briefly, and continue as executor without an automatic retry.
 
 ## Time Allocation and Reviewer Reading Order
 

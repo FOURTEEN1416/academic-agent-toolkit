@@ -2,6 +2,15 @@
 
 This file is the canonical stage playbook for the paper-spine orchestrator.
 
+## Literature Scope Contract
+
+A rewrite workflow, a local material path, or a materials-only research scope
+does not by itself close public literature; only an explicit user restriction
+does. When the user explicitly restricts usable literature to supplied sources,
+treat the task as a closed corpus: deduplicate and exhaust the supplied
+bibliography, and record that the corpus is exhausted instead of inventing
+sources. Otherwise collect from open literature to cover the actual claims.
+
 ## Purpose
 
 Build a verified citation support bank that can support literature statements
@@ -26,8 +35,14 @@ in the user's manuscript. This is separate from exemplar learning.
 
 ## Rules
 
-- Generate at least `citation_target_count * 3` candidates (default: 60).
-- About 80% should be recent (2023 or later in 2026).
+- Generate at least `citation_target_count * 3` candidates (default: 60) as a
+  baseline pool; expand it whenever a concrete coverage gap remains. The saved
+  target is not an age quota: prefer recent work where recency matters
+  (`current_year - 3` is a simple threshold) and retain relevant foundational
+  evidence regardless of age. Explain material coverage gaps instead of padding.
+- One source may support several claims, but it counts once toward coverage,
+  recency, and diversity. Deduplicate by DOI, arXiv ID, BibTeX key, URL, or
+  normalized citation; never clone rows.
 - Each row pairs one paper with one or two support sentences.
 - Fill `Source Channel` for every row: `MCP-CNKI`, `MCP-IEEE`, `web`, `local`, `unknown`.
 - For external channels (`web`, `MCP-*`, `Crossref`, `PubMed`, `Scholar`,
@@ -52,7 +67,12 @@ in the user's manuscript. This is separate from exemplar learning.
 2. **Verification pass:** Verify every external-source row and fill `Verified`
    plus `Verification Note`. Run `citation_quality_audit.py` and
    `citation_verification_en.py` where applicable.
-3. **Curation:** Keep only rows that are usable for drafting. Do not proceed to
+3. **Coverage check:** distinguish distinct sources from claim uses. Resolve a
+   final-target shortfall by finding and integrating relevant, verified support;
+   do not silently reduce the requested coverage. If an explicit corpus
+   restriction or venue rule prevents it, report the conflict and the actual
+   coverage.
+4. **Curation:** Keep only rows that are usable for drafting. Do not proceed to
    planning/drafting while external-source rows still have blank or placeholder
    verification fields.
 
@@ -63,3 +83,13 @@ python scripts/citation_bank_check.py paper_rewriting_output/citation_support_ba
 python scripts/citation_quality_audit.py paper_rewriting_output --write
 python scripts/citation_verification_en.py paper_rewriting_output/citation_support_bank.md --markdown --write
 ```
+
+## Candidate-Bank Diagnostics
+
+Resolve the target from the saved `citation_target_count` (or a counted
+target-venue sample when available) and compare it with the distinct entries
+actually cited in the current manuscript — not with the bank size, the number
+of use rows, or uncited BibTeX entries. A bank check does not perform this
+final comparison. If the manuscript falls short, locate useful missing
+literature and integrate the supported points; report a genuine scope/venue
+conflict rather than treating a diagnostic PASS as meeting the preference.

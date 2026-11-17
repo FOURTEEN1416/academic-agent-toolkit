@@ -2,7 +2,7 @@
 
 **类型**：折线图，连续 step 训练曲线，半透明置信带，叠加一条灰色点线表示外部参照系统
 **样例图**：`examples/line_selfdistill_train.png`（原图）、`examples/line_selfdistill_train_repro.png`（复现）
-**样例来源**：`vendor/forks/paper-plot-skills/originals/line_selfdistill_train.png`（只读 vendor 快照，仅本地使用、不再分发）
+**样例来源**：`vendor/forks/paper-plot-skills/originals/line_selfdistill_train.png`（只读 vendor 快照；owner 已于 2026-11-16 裁决确认样例 PNG 可随公开仓分发）
 **复现脚本**：`scripts/line_selfdistill.py`（image2 分支；离散 scaling 版见 `line_marker_scaling`，umbrella 卡 `line_confidence_band` 的 Type A 在本卡原子化）
 
 ## 适用场景

@@ -15,10 +15,16 @@
 ## Supported environment
 
 Support the CLI and locked dependency layer on physical Windows 10/11 x64 computers with 64-bit
-CPython 3.10, 3.11, or 3.12. Target Origin/OriginPro 2021 and later; Origin 2020b and earlier are
-unsupported by the current external `originpro` route. The fully verified live baseline is
-CPython 3.10 with Origin 2024b / 10.15. Other 2021+ versions are capability-gated, and
-Python 3.11/3.12 rendering needs the same full-artifact verification before it is claimed.
+CPython 3.11 or 3.12; prefer 3.12 for new installations. The lock pins Pillow 13.0.0, and
+CPython 3.10 is no longer a supported runtime. Target Origin/OriginPro 2021 and later; Origin 2020b
+and earlier are unsupported by the current external `originpro` route. The complete CPython 3.10
+with Origin 2024b / 10.15 record is historical evidence only. The current CPython 3.12.14 +
+Pillow 13.0.0 + Origin 2024b / 10.15.132 regression covers six representative cases: XPS
+fit/comparison, error bars, time–frequency matrix, event raster, and 3D; smoke, complete artifacts,
+independent saved-project reopening, data/axes/physical geometry, and re-exported PNG pixel identity
+checks passed. This does not verify every route or Origin version; Python 3.11 has no live claim.
+Each workflow still requires live smoke and complete artifact/visual gates; other 2021+ hosts
+remain capability-gated.
 Do not attempt setup on macOS (Intel or Apple Silicon), Linux, WSL, Wine/CrossOver, Parallels,
 or other virtual machines. A local Origin/OriginPro application must expose a working Automation
 entry when rendering is requested.
@@ -45,7 +51,8 @@ specific repository/data folder or ask the user for an explicit writable destina
 A normal agent session may initially run under an isolated account even when inherited
 profile variables look like the signed-in user. The Origin worker checks its real Windows token and
 stops before COM with `origin_codex_sandbox_context` when the current process is the sandboxed
-execution context. The driving agent must then submit a formal, narrowly scoped local-execution
+execution context. This also covers AppContainer processes that retain the signed-in account name.
+The driving agent must then submit a formal, narrowly scoped local-execution
 request for the same exact `origin-smoke` or `render` command. Rerun it only if that exact request
 is approved by the user when prompted. Approval is not guaranteed. This is not a sandbox
 bypass. Do not send a beginner to a separate PowerShell window, request administrator rights, or
@@ -65,7 +72,12 @@ Do not ask a beginner to choose a Python executable or call `scripts/editaplot.p
 The launcher first honors an explicitly configured compatible interpreter, then reuses an existing
 valid EditaPlot managed environment. If neither is available, it probes Windows `py`, PATH, standard
 installation locations, and the Python registry entries together, then selects the highest compatible
-64-bit CPython from 3.10–3.12. It does not modify the selected base interpreter.
+64-bit CPython from 3.11–3.12. It does not modify the selected base interpreter.
+
+An installed Skill reads setup's external runtime pointer before searching for global Python.
+Its small local PowerShell helper preserves Unicode paths and forwards arguments directly; the
+Python bootstrap still validates the managed fingerprint and dependency lock. A missing or stale
+pointer continues normal discovery. No PATH, registry, or persistent PowerShell policy is changed.
 
 If no compatible candidate exists, explain that Python installation is a system-level change.
 Inspect the exact package first:
@@ -124,6 +136,16 @@ name from `USERNAME`, `USERPROFILE`, or other inherited environment variables.
 Use `.\editaplot.cmd doctor --repair` only when Doctor explicitly reports a missing or damaged
 project-managed Python dependency. It is not part of the ordinary per-workflow command sequence and
 does not repair, install, register, or modify Origin.
+
+After an upstream update, refresh the complete repository first and rerun `setup`. The migration
+must select a compatible interpreter instead of trying to install Pillow 13.0.0 into Python 3.10.
+A successful migration keeps the previous environment archived under `.editaplot-venv.retained-*`;
+later repairs never purge these archives, and discovery/recovery never selects them automatically.
+A failed staged installation stops with diagnostics and may restore the previous environment to its
+original location, but it must not run that older vulnerable dependency set as a fallback. If no
+compatible interpreter exists, stop before replacing the environment and use the explicit-consent
+Python installation flow above. Never edit global packages, PATH, registry, Origin, or the current
+permission/Origin-job-queue policy as part of this migration.
 
 ## Origin connection policy
 
@@ -203,6 +225,9 @@ command supports it. Render forwards the engine worker's JSON-lines progress pro
 `--engine-home <root>` only when an engine developer intentionally overrides runtime discovery.
 After `plan`, the required formal sequence is `origin-smoke → render → verify`; never skip the smoke
 because Doctor reported `ready_for_render`.
+
+After an update, an older frozen plan can report `analysis_changed`. Rerun `understand`, obtain a
+fresh confirmation, and generate a new plan rather than hand-editing JSON to bypass the gate.
 
 Reference-image adaptation uses three separate inputs at plan time: the local image, the reviewed
 strict ReferenceFigureSpec JSON, and its exact confirmation JSON. The driving agent constructs the declarative
