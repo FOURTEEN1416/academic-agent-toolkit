@@ -1,0 +1,27 @@
+// 模板：调用图（箭头 = "调用"）。
+// 适用：函数/服务调用关系、算法分发逻辑；菱形节点表示分发/判断。
+// 要点：rankdir=LR 横向展开；分支条件写在边 label 上；
+//       辅助调用（不参与分层）加 constraint=false。
+digraph callgraph {
+  rankdir = LR;
+  graph [fontname="Microsoft YaHei", nodesep=0.45, ranksep=0.7];
+  node  [fontname="Microsoft YaHei", fontsize=11];
+  edge  [color="#5B6B7A", fontsize=9, fontname="Microsoft YaHei"];
+
+  main  [label="main", shape=box, style="rounded,filled", fillcolor="#DCE9F7"];
+  parse [label="parse_args", shape=box];
+  load  [label="load_data", shape=box];
+  solve [label="solve", shape=diamond, style=filled, fillcolor="#FFF2CC", color="#C9A227"];
+  algo1 [label="greedy", shape=box];
+  algo2 [label="exact_search", shape=box];
+  out   [label="write_report", shape=box, style="rounded,filled", fillcolor="#E8F5E9", color="#6B9E6B"];
+
+  main  -> parse;
+  main  -> load;
+  main  -> solve [label="按规模分发"];
+  solve -> algo1  [label="n ≤ 20"];
+  solve -> algo2  [label="n > 20"];
+  algo1 -> out;
+  algo2 -> out;
+  load  -> parse [style=dotted, label="参数校验", constraint=false];
+}

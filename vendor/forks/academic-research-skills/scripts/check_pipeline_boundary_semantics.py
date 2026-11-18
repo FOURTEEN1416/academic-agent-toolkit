@@ -70,11 +70,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # reviewed against the #528 resolutions.
 # ---------------------------------------------------------------------------
 CONTENT_LOCKS = {
-    "academic-pipeline/SKILL.md": "5b9b92ad1df7a3a55c1f67f0d2d554af63e476c5019e0d3497b3f28ebacf9116",
-    "academic-pipeline/agents/pipeline_orchestrator_agent.md": "5ca2474cbf6e1ce1efe1211426575d60d0fd9b663b21f16418b928a4441abc4c",
-    "academic-pipeline/agents/state_tracker_agent.md": "2716bab5686a6129777f595ad86bf1e1cc01fa5d8d1ec192fa8880018dfe968a",
-    "academic-pipeline/references/pipeline_state_machine.md": "70872764d04a1cabdc1a342cbaf66ebed98a3764d506136d541c1880759510e7",
-    "academic-pipeline/references/process_summary_protocol.md": "1052d8cb8ee00c1cd0fcc70a18aee5a0f92db2ebe0a74930b04d4b05d888cfdf",
+    "academic-pipeline/SKILL.md": "4b5003834032de3f647c7c66d25f894311e3ea6e5dbbd3a5525b3d1524495733",
+    "academic-pipeline/agents/pipeline_orchestrator_agent.md": "8f7126803e8da0834d34ae7be3de2261d4fdab26ab930ade45a94ffb8c067320",
+    "academic-pipeline/agents/state_tracker_agent.md": "787b994b727235451ca885f5be51ce3590dca9fd7134c66f38ba6ac4287eca26",
+    "academic-pipeline/references/pipeline_state_machine.md": "50135e9240aa34b0e26362e7744c421dad754491024e63acd099b28f33987ef2",
+    "academic-pipeline/references/process_summary_protocol.md": "6d50369df1400bd43a0b8b8ff9805085ffac4e6059711a5b1095968410aa3f5d",
 }
 
 SKILL = "academic-pipeline/SKILL.md"
@@ -122,7 +122,7 @@ S5_AUTHORITY_LITERALS = {
     "entry-gate": "refers to exactly ONE checkpoint: the **Stage 5 entry gate**",
     "no-auto-advance": "- explicit confirmation to proceed to finalization (no auto-advance);",
     "gate-format-decision": 'the finalization-format decision: citation style (APA 7.0 / Chicago / IEEE, ...) — the "Stage 5 finalization format" pending decision the passport-reset machinery records at this boundary',
-    "latex-in-stage": 'the "Need LaTeX?" question (Step 3) and the content confirmation before the final PDF (Step 4) — are part of Stage 5 execution, not pipeline checkpoints',
+    "latex-in-stage": 'the question of which files to produce (Step 2) and the content confirmation before the final PDF (Step 4) — are part of Stage 5 execution, not pipeline checkpoints',
     "completion-full-never-slim": "FULL checkpoint — never SLIM",
     "completion-not-mandatory": "but it is not on the MANDATORY list",
 }
@@ -133,7 +133,7 @@ S6_AUTHORITY_LITERALS = {
     "acknowledgement-vocabulary": VOCAB_CANON,
     "change-requests-not-ack": "Change requests (the other language version, content corrections) keep Stage 6 `in_progress` — they are not acknowledgements",
     "ack-outcome": "On acknowledgement: state_tracker marks Stage 6 `completed` and sets the pipeline global state to `completed`",
-    "post-delivery-prompt": "After delivering the Process Record (MD + PDF per the user's language choice), the orchestrator prompts for a terminal acknowledgement",
+    "post-delivery-prompt": "After delivering the Process Record (MD, plus PDF when the user asked for it, per the user's language choice), the orchestrator prompts for a terminal acknowledgement",
     "no-transition-after-completed": "no stage transition is legal",
 }
 
@@ -260,11 +260,11 @@ TRACKER_GLOBAL_COMPLETED = "- `completed`"
 TRACKER_PREREQ_STAGE6_ROW = "| Stage 6 | None (Final Paper already delivered at Stage 5) |"
 # The skip-command validator only honors explicitly-skippable stages — the
 # decline path requires Stage 6 on the skippable list (codex round-8 P1).
-ORCH_SKIPPABLE_PIN = "- Skippable: Stage 1 (deep-research, if user provides own bibliography), Stage 3' (re-review, if only minor revisions), Stage 4' (re-revise, if accepted), Stage 6 (process summary — declined at the Stage 5 completion checkpoint; marked `skipped`, pipeline still terminates `completed`)"
+ORCH_SKIPPABLE_PIN = "- Skippable: Stage 1 (deep-research, if user provides own bibliography), Stage 4' (re-revise, if accepted), Stage 6 (process summary — declined at the Stage 5 completion checkpoint; marked `skipped`, pipeline still terminates `completed`)"
 # Both sides of the skip classification are pinned as complete lines — adding
 # Stage 6 to the non-skippable side would otherwise stay green while
 # contradicting the skippable declaration (codex round-9 P1).
-ORCH_NON_SKIPPABLE_LINE = "- Non-Skippable: Stage 2 (writing), Stage 2.5 (pre-review integrity), Stage 3 (initial review), Stage 4.5 (final integrity), Stage 5 (finalize)"
+ORCH_NON_SKIPPABLE_LINE = "- Non-Skippable: Stage 2 (writing), Stage 2.5 (pre-review integrity), Stage 3 (initial review), Stage 3' (re-review), Stage 4.5 (final integrity), Stage 5 (finalize)"
 # The SLIM engagement downgrade must not swallow the FULL-pinned Stage 5
 # completion checkpoint (codex round-9 P1).
 ORCH_ENGAGEMENT_FULL_EXCEPTION = "the Stage 5 completion checkpoint is FULL — never SLIM, regardless of the continue count"

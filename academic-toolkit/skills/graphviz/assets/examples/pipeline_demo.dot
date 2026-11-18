@@ -1,0 +1,22 @@
+// 示例：数模竞赛论文"模型求解与检验"流程图（本技能的机检样例）。
+// 配套 pipeline_demo.checks.json：用
+//   python ../../scripts/dot_check.py pipeline_demo.dot --render --expect pipeline_demo.checks.json
+// 可机检节点数/边数/关键文案是否与期望一致；pipeline_demo.reference.svg 为参考渲染
+// （Graphviz 16.0.0 生成，仅供人工对照，不做逐字节比较）。
+digraph solving_pipeline {
+  rankdir = LR;
+  graph [nodesep=0.5, ranksep=0.8, fontname="Microsoft YaHei"];
+  node  [shape=box, style="rounded,filled", fillcolor="#E8F0FE", color="#4A6FA5",
+         fontname="Microsoft YaHei", fontsize=12];
+  edge  [color="#5B6B7A", fontname="Microsoft YaHei", fontsize=10];
+
+  input [label="问题输入\n约束与数据"];
+  prep  [label="数据预处理\n缺失值/量纲"];
+  model [label="建立优化模型\n目标函数+约束"];
+  solve [label="模型求解\n分支定界"];
+  check [label="灵敏度分析\n与稳健性检验", fillcolor="#FFF2CC", color="#C9A227"];
+  out   [label="结果与讨论", shape=note, fillcolor="#FFF7E6"];
+
+  input -> prep -> model -> solve -> check -> out;
+  check -> model [style=dashed, color="#C0392B", label="参数不稳健\n回炉调整", constraint=false];
+}

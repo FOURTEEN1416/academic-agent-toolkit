@@ -6443,10 +6443,11 @@
         "Graphviz dot 二进制"
       ],
       "high_risk_confirmation": "覆盖 figures/ 同名文件需确认；外部 API 类技能需密钥确认",
-      "current_evidence": "C1 合同完整；溯源见 skills/graphviz/references/UPSTREAM.md；C2 真实验收未跑 C2 真实验收（2026-08-29）：Graphviz 16.0.0 实渲染 pipeline.svg（workspaces/runtime_verification）。",
+      "current_evidence": "C1 合同完整；溯源见 skills/graphviz/references/UPSTREAM.md；C2 真实验收（2026-08-29）：Graphviz 16.0.0 实渲染 pipeline.svg（workspaces/runtime_verification）；2026-11-18 增强批：技能自带 dot_check 门禁（DOT 静态 lint + 真渲染 + 结构化期望核对）内置自检通过，5 个模板与机检示例经 Graphviz 16.0.0 实渲染验证。",
       "current_gap": "C3/C4/C5 未跑（figures 域基准以 FIGURES-01 覆盖主干管线）",
       "promotion_history": [
-        "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实"
+        "2026-08-29: 新增技能映射条目（科研绘图扩展），C1 合同先行，验收状态如实",
+        "2026-11-18: graphviz 技能增强批（dot_check 机检门禁 + 5 个场景模板 + 机检示例），状态维持 experimental"
       ]
     },
     {

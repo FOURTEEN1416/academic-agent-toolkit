@@ -17,6 +17,10 @@ What it asserts, without any semantic analysis:
    itself must be present).
 3. Each hot-spot agent carries a backpoint citing the authoritative anchor
    (the file path + "§ 2A"), outside any code fence.
+4. Each prompt a model receives without the agent file around it (the
+   claim-audit unified judge prompt and the cross-model devil's advocate
+   prompt, #890; the cross-model reference verification prompt, #894)
+   carries the canonical sentences verbatim.
 
 Presence + a pointer alone is not enough: keeping the anchor while gutting the
 body must FAIL. So the lint compares the block body to a verbatim constant, and a
@@ -41,15 +45,101 @@ import re
 import sys
 from pathlib import Path
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+# The judge prompt region is the one #361 hashes; reusing its definition keeps
+# the copy required exactly where the hash applies.
+from check_judge_prompt_version import (  # noqa: E402
+    _AGENT_REL as JUDGE_PROMPT_REL,
+    _extract_prompt_section as extract_judge_prompt,
+)
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 AUTHORITATIVE_REL = "shared/ground_truth_isolation_pattern.md"
 
-# Agents that must inline the principle verbatim + carry a backpoint.
+# Files that must inline the principle verbatim + carry a backpoint.
 HOTSPOT_AGENTS = (
     "deep-research/agents/source_verification_agent.md",
     "deep-research/agents/bibliography_agent.md",
+    "academic-paper/agents/revision_coach_agent.md",  # #883
+    # #890: dispatch and passport-import surfaces; the inventory, ranking, and
+    # uncovered surfaces are in
+    # docs/design/2026-09-23-890-instruction-data-boundary-extension.md.
+    "academic-pipeline/agents/pipeline_orchestrator_agent.md",
+    "academic-pipeline/agents/integrity_verification_agent.md",
+    "academic-pipeline/agents/claim_ref_alignment_audit_agent.md",
+    "academic-paper/agents/literature_strategist_agent.md",
+    "academic-paper-reviewer/agents/field_analyst_agent.md",
+    "academic-paper-reviewer/agents/editorial_synthesizer_agent.md",
+    "deep-research/agents/risk_of_bias_agent.md",
+    "deep-research/agents/timeline_extraction_agent.md",
+    "deep-research/agents/editor_in_chief_agent.md",
+    "deep-research/agents/devils_advocate_agent.md",
+    "deep-research/agents/ethics_review_agent.md",
+    "shared/agents/compliance_agent.md",
+    # #894: receivers that fetch or read third-party text through their own tool
+    # calls; see docs/design/2026-09-24-894-instruction-data-boundary-tool-calls.md.
+    "academic-paper/agents/formatter_agent.md",
+    "academic-paper/agents/citation_compliance_agent.md",
+    "deep-research/agents/synthesis_agent.md",
+    "academic-paper/agents/draft_writer_agent.md",
+    "deep-research/agents/report_compiler_agent.md",
+    # #894: the main session's home. Every install path loads a skill's
+    # SKILL.md when the skill runs; .claude/CLAUDE.md loads only in a checkout.
+    "academic-paper/SKILL.md",
+    "academic-paper-reviewer/SKILL.md",
+    "academic-pipeline/SKILL.md",
+    "deep-research/SKILL.md",
+    # sr-screener: every screening call reads third-party record text
+    # (titles, abstracts, full-text PDFs). The reviewer subagent is the
+    # receiver; SKILL.md is the main session's home (quick mode).
+    "sr-screener/SKILL.md",
+    "sr-screener/agents/screening_reviewer_agent.md",
 )
+
+
+def _fenced_block_after(lead: str):
+    """An extractor for the code block that directly follows a line matching
+    ``lead``; it returns the block's body, or None. The closing fence must use
+    the opening fence's character and be at least as long, so a nested example
+    fence does not end the block."""
+    pattern = re.compile(
+        lead + r"\n"
+        r"[ \t]*(?P<fence>(?P<c>[`~])(?P=c){2,})[^\n]*\n"
+        r"(?P<body>.*?)\n[ \t]*(?P=fence)(?P=c)*[ \t]*$",
+        re.DOTALL | re.MULTILINE,
+    )
+
+    def extract(text: str) -> str | None:
+        m = pattern.search(text)
+        return m.group("body") if m else None
+    return extract
+
+
+# The cross-model receives these prompts and the reviewed material only: the
+# devil's advocate prompt (#890), and the single-reference verification prompt
+# the first-party API route sends at integrity-gate step 3 (#894; the Codex
+# transport builds its own request and is not this prompt).
+CROSS_MODEL_REL = "shared/cross_model_verification.md"
+_da_prompt_block = _fenced_block_after(r"a simplified DA prompt to the cross-model:[ \t]*")
+_reference_prompt_block = _fenced_block_after(r"Issue \*\*one API call per reference\*\*[^\n]*")
+
+
+# #890: prompts sent to a model as written, without the agent file around them.
+# Each copy carries the canonical sentences without the HTML markers or the
+# backpoint. Entries: (file, name, extract); extract returns the text the model
+# receives, or None when the prompt cannot be found. The check strips
+# blockquote prefixes and requires the canonical body verbatim inside that text.
+PROMPT_TEMPLATES = (
+    # The judge call may receive only this blockquote.
+    (JUDGE_PROMPT_REL, "unified judge prompt", extract_judge_prompt),
+    (CROSS_MODEL_REL, "cross-model devil's advocate prompt", _da_prompt_block),
+    (CROSS_MODEL_REL, "cross-model reference verification prompt", _reference_prompt_block),
+)
+_QUOTE_PREFIX_RE = re.compile(r"^[ \t]*>[ \t]?", re.MULTILINE)
 
 MARKER = "instruction-data-boundary"
 
@@ -162,6 +252,24 @@ def check_backpoint(text: str, rel: str, violations: list[str]) -> None:
         )
 
 
+def check_prompt_template(text: str, rel: str, name: str, extract,
+                          violations: list[str]) -> None:
+    """A prompt sent without its agent file must carry the canonical sentences."""
+    body = extract(text)
+    if body is None:
+        violations.append(
+            f"{rel}: {name} not found (start or end anchor missing) — the "
+            f"principle inside it cannot be checked"
+        )
+        return
+    template = _QUOTE_PREFIX_RE.sub("", body)
+    if _norm(CANONICAL_BODY) not in _norm(template):
+        violations.append(
+            f"{rel}: the {name} does not carry the canonical principle verbatim "
+            f"(the model receives that prompt without the agent file)"
+        )
+
+
 def check_auth_section(text: str, rel: str, violations: list[str]) -> None:
     """Authoritative file must carry exactly one '§ 2A' H2, with the canonical
     block inside it (between that heading and the next H2)."""
@@ -221,6 +329,14 @@ def main() -> int:
         check_canonical_blocks(text, rel, require_exactly_one=False,
                                violations=violations)
         check_backpoint(text, rel, violations)
+
+    for rel, name, extract in PROMPT_TEMPLATES:
+        path = root / rel
+        if not path.exists():
+            print(f"ERROR: prompt template file not found: {path}", file=sys.stderr)
+            return 2
+        check_prompt_template(path.read_text(encoding="utf-8"), rel, name,
+                              extract, violations)
 
     if violations:
         print("instruction-vs-data boundary lint FAILED:", file=sys.stderr)

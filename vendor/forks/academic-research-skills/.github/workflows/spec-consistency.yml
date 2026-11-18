@@ -46,6 +46,9 @@ jobs:
       - name: Run spec consistency check
         run: python3 scripts/check_spec_consistency.py
 
+      - name: Check skill description length (#864)
+        run: python3 scripts/check_skill_description_length.py
+
       - name: Lint CI pytest manifest (#156)
         # Drift guard for scripts/_ci_pytest_manifest.toml — verifies entry
         # path existence, id/(path,args) uniqueness, args shape, and that
@@ -89,6 +92,16 @@ jobs:
         env:
           PYTHONPATH: scripts
         run: python3 scripts/check_data_access_level.py
+
+      - name: Check skill-inventory parity (#809)
+        # Top-level <name>/SKILL.md dirs == plugin.json skills (no skills/ dir, #1035) == CLAUDE.md
+        # Skills Overview rows == marketplace.json plugins[].skills, plus the
+        # "N skills" count claims in plugin/marketplace descriptions. The pytest
+        # companion `test_check_skill_inventory_parity.py` runs via the unified
+        # manifest.
+        env:
+          PYTHONPATH: scripts
+        run: python3 scripts/check_skill_inventory_parity.py
 
       - name: Check instruction-vs-data boundary (#272 guidance layer)
         # Drift guard for the retrieved-content instruction/data principle:
@@ -380,6 +393,27 @@ jobs:
           PYTHONPATH: .
         run: python scripts/check_firm_rules_sync.py
 
+      - name: Routing-core sync lint (#892)
+        # Every copy of shared/references/routing_core.md (that file lists its
+        # carriers) must match it byte for byte.
+        env:
+          PYTHONPATH: .
+        run: python scripts/check_routing_core_sync.py
+
+      - name: Method-weaknesses sync lint (#916)
+        # Every surface listed in shared/references/per_source_method_weaknesses.md
+        # must carry its block byte for byte.
+        env:
+          PYTHONPATH: .
+        run: python scripts/check_method_weaknesses_sync.py
+
+      - name: Review-form note sync lint (#921)
+        # Every surface listed in shared/references/review_form_note.md must
+        # carry its block byte for byte, and the note's options stay unranked.
+        env:
+          PYTHONPATH: .
+        run: python scripts/check_review_form_note_sync.py
+
       - name: Judge-prompt-version drift guard (#361)
         # Recomputes the SHA-256 of the canonical judge-prompt section (between
         # the JUDGE-PROMPT-CANONICAL markers in claim_ref_alignment_audit_agent.md)
@@ -653,6 +687,12 @@ jobs:
           python3 scripts/check_reviewer_sprint_prompt_sync.py
           python3 scripts/check_reviewer_role_label.py
           python3 scripts/check_calibration_tiers.py
+
+      - name: Run #1030 reviewer card-confirmation lint
+        # Mutation companion runs through scripts/_ci_pytest_manifest.toml.
+        env:
+          PYTHONPATH: .
+        run: python3 scripts/check_reviewer_card_confirmation.py
 
       - name: Run #610 receipt closed-enum defrift lint
         # Pins the four receipt enums (procedure_id / status /

@@ -51,6 +51,7 @@ EXAMPLE = REPO / "examples/passport_with_experiment_provenance.yaml"
 # the same module reference.
 sys.path.insert(0, str(REPO / "scripts"))
 import check_claim_audit_consistency as _lint  # noqa: E402
+from _skill_lint import heading_section  # noqa: E402
 
 PROVENANCE_SCHEMA = PASSPORT / "experiment_provenance_entry.schema.json"
 ALIGNMENT_SCHEMA = PASSPORT / "experiment_alignment_result.schema.json"
@@ -58,6 +59,7 @@ MANIFEST_SCHEMA = PASSPORT / "claim_intent_manifest.schema.json"
 
 # Agent / writer prompts touched by #260.
 INTEGRITY_AGENT = REPO / "academic-pipeline/agents/integrity_verification_agent.md"
+ORCHESTRATOR = REPO / "academic-pipeline/agents/pipeline_orchestrator_agent.md"
 WRITER_PROMPTS = {
     "synthesis_agent": REPO / "deep-research/agents/synthesis_agent.md",
     "draft_writer_agent": REPO / "academic-paper/agents/draft_writer_agent.md",
@@ -458,6 +460,29 @@ class CrossArrayInvariantTests(_LintBase):
         )
         self.assertFinds(body, "EP-INV-5")
 
+    def test_ep_inv_5_empty_scholar_answer(self) -> None:
+        """#925: scholar_answer is optional, but when present it holds the
+        scholar's words, so an empty string is malformed."""
+        body = build_passport(
+            intake_declaration={**declaration(), "scholar_answer": ""},
+        )
+        self.assertFinds(body, "EP-INV-5")
+
+    def test_ep_inv_5_non_string_scholar_answer(self) -> None:
+        body = build_passport(
+            intake_declaration={**declaration(), "scholar_answer": True},
+        )
+        self.assertFinds(body, "EP-INV-5")
+
+    def test_ep_inv_5_scholar_answer_kept_verbatim_is_valid(self) -> None:
+        body = build_passport(
+            intake_declaration={
+                **declaration(),
+                "scholar_answer": "Yes, I ran the pruning runs myself.",
+            },
+        )
+        self.assertClean(body)
+
     def test_ep_inv_5_legacy_unknown_is_valid_status(self) -> None:
         """legacy_unknown is a valid declaration status (D7); it must not trip EP-INV-5.
 
@@ -761,11 +786,55 @@ class ReverseInvariantTests(unittest.TestCase):
         readme = (REPO / "README.md").read_text(encoding="utf-8")
         self.assertIn("experiment_intake_declaration", readme)
 
+    def test_orchestrator_asks_the_intake_question(self) -> None:
+        """#925: in pipeline runs the orchestrator produces the declaration by
+        asking the scholar, after Stage 1 or at a later entry point. Every
+        clause of the contract is read from the section itself."""
+        section = _intake_section(ORCHESTRATOR.read_text(encoding="utf-8"))
+        self.assertIsNotNone(section, "## Experiment Intake Question (#925) missing")
+        self.assertEqual(_intake_contract_gaps(section), [])
+
+    def test_intake_contract_detects_each_removed_clause(self) -> None:
+        section = _intake_section(ORCHESTRATOR.read_text(encoding="utf-8"))
+        for needle in INTAKE_CONTRACT:
+            with self.subTest(clause=needle):
+                self.assertIn(needle, _intake_contract_gaps(section.replace(needle, "")))
+
     def test_integrity_agent_carries_declaration_anti_skip(self) -> None:
         text = INTEGRITY_AGENT.read_text(encoding="utf-8")
         self.assertIn("experiment_intake_declaration", text)
         # The boundary non-goal wording must be carried verbatim (POSITIONING).
         self.assertIn("does not judge whether the experiment", text)
+
+
+# #925: the clauses the orchestrator's intake section must keep. Timing,
+# exemptions, the answer-only status rule, and dispatch ordering.
+INTAKE_CONTRACT = (
+    "the checkpoint after Stage 1 completes",
+    "the confirmation of any entry or resume point after Stage 1, before anything is dispatched",
+    "Do not ask when the run reaches no integrity gate",
+    "Do not ask when the passport already carries a declaration",
+    "from the scholar's own answer, never from the manuscript",
+    "Does this paper report experiments or data analyses that you ran yourself",
+    "`scholar_answer` holding the scholar's words unchanged",
+    "never choose a status for the scholar",
+    "never set `legacy_unknown` from this question",
+    "before the first Stage 2 writer dispatch",
+    "before the first integrity gate",
+    "Stage 2 writers are not dispatched until this intake is sealed",
+    "`repro_lock: null`",
+    "says why in `repro_lock_reason`",
+    "never fill the fields with placeholders",
+)
+
+
+def _intake_section(text: str) -> str | None:
+    """Body of `## Experiment Intake Question (#925)`, up to the next H1/H2."""
+    return heading_section(text, "## Experiment Intake Question (#925)")
+
+
+def _intake_contract_gaps(section: str) -> list[str]:
+    return [needle for needle in INTAKE_CONTRACT if needle not in section]
 
 
 # ===========================================================================
@@ -909,6 +978,165 @@ class D4cCarveoutBoundaryTests(unittest.TestCase):
             REPO / "academic-pipeline/agents/claim_ref_alignment_audit_agent.md"
         ).read_text(encoding="utf-8")
         self.assertIn("planned_experiment_ids", agent)
+
+
+class NoApplicableLockTests(_LintBase):
+    """#1049: an experiment with no honest repro_lock values records null and why."""
+
+    REASON = "Human survey responses; no LLM or ARS session produced this data."
+
+    def _errors(self, entry: dict[str, Any]) -> list[Any]:
+        v = build_schema_validator(load_json_schema(PROVENANCE_SCHEMA))
+        return list(v.iter_errors(entry))
+
+    def _null_entry(self) -> dict[str, Any]:
+        entry = provenance_entry()
+        entry["repro_lock"] = None
+        entry["repro_lock_reason"] = self.REASON
+        return entry
+
+    def test_null_with_reason_is_well_formed(self) -> None:
+        errors = self._errors(self._null_entry())
+        self.assertEqual(errors, [], msg=f"{errors}")
+
+    def test_null_without_reason_fails(self) -> None:
+        entry = self._null_entry()
+        del entry["repro_lock_reason"]
+        self.assertNotEqual(self._errors(entry), [])
+
+    def test_blank_reason_fails(self) -> None:
+        for blank in ("", "   ", "\n\t"):
+            with self.subTest(reason=blank):
+                entry = self._null_entry()
+                entry["repro_lock_reason"] = blank
+                self.assertNotEqual(self._errors(entry), [])
+
+    def test_omitted_key_still_fails_even_with_reason(self) -> None:
+        """A reason does not stand in for the key: a forgotten lock stays visible."""
+        entry = self._null_entry()
+        del entry["repro_lock"]
+        self.assertNotEqual(self._errors(entry), [])
+
+    def test_partial_object_still_fails(self) -> None:
+        entry = provenance_entry()
+        entry["repro_lock"] = {
+            "schema_version": "1.0",
+            "stochasticity_declaration": "Human responses; no model involved.",
+        }
+        self.assertNotEqual(self._errors(entry), [])
+
+    def test_full_object_with_reason_fails(self) -> None:
+        entry = provenance_entry()
+        entry["repro_lock_reason"] = self.REASON
+        self.assertNotEqual(self._errors(entry), [])
+
+    def test_passes_the_cross_array_lint(self) -> None:
+        self.assertClean(build_passport(provenance=[self._null_entry()]))
+
+    def test_reference_docs_name_the_field(self) -> None:
+        for path in (
+            REPO / "shared/handoff_schemas.md",
+            REPO / "shared/artifact_reproducibility_pattern.md",
+        ):
+            with self.subTest(surface=path.name):
+                self.assertIn("repro_lock_reason", path.read_text(encoding="utf-8"))
+
+    def test_gate_keeps_null_out_of_the_legacy_boundary_and_the_verdict(self) -> None:
+        text = INTEGRITY_AGENT.read_text(encoding="utf-8")
+        self.assertIn("passport-level repro_lock.ars_version", text)
+        self.assertIn("A null repro_lock with its repro_lock_reason is well-formed", text)
+        self.assertIn("a null repro_lock with a missing or blank reason", text)
+        self.assertIn("a populated\n      repro_lock with a repro_lock_reason", text)
+        self.assertIn("a populated repro_lock missing a field the entry", text)
+        self.assertIn("not by itself PROVENANCE_INSUFFICIENT", text)
+
+
+class ReproLockAlignmentTests(unittest.TestCase):
+    """The shipped example, gate text, docs, and schema agree on repro_lock (#1050)."""
+
+    STANDALONE_VALIDATOR = REPO / "scripts/check_repro_lock.py"
+    VERBATIM_DECLARATION = (
+        "LLM outputs are not byte-reproducible. This lockfile documents configuration, "
+        "not a deterministic replay guarantee."
+    )
+
+    def setUp(self) -> None:
+        self.example = yaml.safe_load(EXAMPLE.read_text(encoding="utf-8"))
+
+    def _d7(self) -> str:
+        text = INTEGRITY_AGENT.read_text(encoding="utf-8")
+        start = text.index("(D7) Declaration-anchored anti-skip")
+        return text[start : text.index("For each referenced experiment_provenance[] entry", start)]
+
+    def test_example_passes_the_standalone_validator(self) -> None:
+        proc = run_script(self.STANDALONE_VALIDATOR, str(EXAMPLE), extra_env={"PYTHONPATH": str(REPO)})
+        self.assertEqual(proc.returncode, 0, msg=f"{proc.stdout}\n{proc.stderr}")
+        self.assertNotIn("WARN", proc.stderr)
+
+    def test_example_passport_lock_follows_the_pattern(self) -> None:
+        lock = self.example["repro_lock"]
+        self.assertEqual(lock["stochasticity_declaration"], self.VERBATIM_DECLARATION)
+        self.assertIs(lock["model"]["weight_stable"], False)
+        self.assertEqual(lock["prompts"]["hash_timing"], "skill-load")
+        for digest in (
+            lock["prompts"]["skill_md_hash"],
+            lock["prompts"]["agents_bundle_hash"],
+            lock["materials"]["list_hash"],
+        ):
+            self.assertRegex(digest, r"^sha256:[0-9a-f]{64}$")
+
+    def test_example_is_on_the_post_260_side_of_the_boundary(self) -> None:
+        version = tuple(int(part) for part in self.example["repro_lock"]["ars_version"].split("."))
+        self.assertGreaterEqual(version, (3, 12, 0))
+
+    def test_example_entries_disclose_instead_of_placeholders(self) -> None:
+        """Both experiments train their own model, so #1049 calls for null plus a reason."""
+        for entry in self.example["experiment_provenance"]:
+            with self.subTest(experiment_id=entry["experiment_id"]):
+                self.assertIsNone(entry["repro_lock"])
+                self.assertTrue(entry["repro_lock_reason"].strip())
+
+    def test_d7_names_the_release_that_shipped_260(self) -> None:
+        self.assertIn("< 3.12.0", self._d7())
+        self.assertNotIn("release constant", self._d7())
+        changelog = (REPO / "CHANGELOG.md").read_text(encoding="utf-8")
+        section = changelog[changelog.index("## [3.12.0]") : changelog.index("## [3.11.1]")]
+        self.assertIn("Experiment Provenance Intake", section)
+        self.assertIn("(#260", section)
+
+    def test_d7_fails_a_post_260_legacy_unknown_declaration(self) -> None:
+        d7 = self._d7()
+        self.assertIn("Five FAIL conditions", d7)
+        self.assertRegex(d7, r"5\. treated-as-post-#260 AND status == legacy_unknown")
+
+    def test_no_surface_shows_the_incomplete_declaration(self) -> None:
+        """EP-INV-5 needs declared_by and declared_at, so the bare form would fail if copied."""
+        for path in (
+            INTEGRITY_AGENT,
+            REPO / "shared/handoff_schemas.md",
+            REPO / "docs/design/2026-06-08-260-experiment-provenance-intake-spec.md",
+        ):
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertNotIn("{status: no_experiments_declared}", text)
+                self.assertNotIn("{ status: no_experiments_declared }", text)
+
+    def test_docs_state_what_the_gate_and_checker_do(self) -> None:
+        pattern = (REPO / "shared/artifact_reproducibility_pattern.md").read_text(encoding="utf-8")
+        self.assertNotIn("will not flag", pattern)
+        architecture = (REPO / "docs/ARCHITECTURE.md").read_text(encoding="utf-8")
+        self.assertNotIn("**not** read by the Stage 2.5 / 4.5 integrity gate", architecture)
+
+    def test_planned_vs_executed_value_is_a_number_or_string(self) -> None:
+        validator = build_schema_validator(load_json_schema(PROVENANCE_SCHEMA))
+        for good in (0.81, 3, "0.1937 / 0.249"):
+            entry = provenance_entry()
+            entry["planned_vs_executed"][0]["value"] = good
+            self.assertEqual(list(validator.iter_errors(entry)), [], msg=repr(good))
+        for bad in (None, True, [0.81], {"f1": 0.81}):
+            entry = provenance_entry()
+            entry["planned_vs_executed"][0]["value"] = bad
+            self.assertTrue(list(validator.iter_errors(entry)), msg=repr(bad))
 
 
 if __name__ == "__main__":

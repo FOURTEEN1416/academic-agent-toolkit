@@ -1,0 +1,36 @@
+// 模板：流水线 DAG（左→右），带阶段分组框与质检回边。
+// 适用：数据处理/建模/审批等单向流程；替换节点 label 与连线即可。
+// 要点：cluster 子图名以 cluster 开头；跨组边用 ltail/lhead 时必须 compound=true；
+//       回边加 constraint=false 防止把分层拽乱。
+digraph pipeline {
+  rankdir  = LR;
+  compound = true;
+  graph    [nodesep=0.5, ranksep=0.8, fontname="Microsoft YaHei"];
+  node     [shape=box, style="rounded,filled", fillcolor="#E8F0FE", color="#4A6FA5",
+            fontname="Microsoft YaHei", fontsize=12];
+  edge     [color="#5B6B7A", fontname="Microsoft YaHei", fontsize=10];
+
+  subgraph cluster_data {
+    label="数据侧"; fontname="Microsoft YaHei"; fontsize=12;
+    style="rounded,filled"; fillcolor="#F7F9FC"; color="#B8C4D0";
+    raw; clean; feat;
+  }
+  subgraph cluster_model {
+    label="建模侧"; fontname="Microsoft YaHei"; fontsize=12;
+    style="rounded,filled"; fillcolor="#FBF7F0"; color="#D0C0A8";
+    train; eval;
+  }
+
+  raw   [label="原始数据\n采集"];
+  clean [label="清洗\n与对齐"];
+  feat  [label="特征\n构造"];
+  train [label="模型\n训练"];
+  eval  [label="评估\n调参"];
+  rpt   [label="结论\n报告", shape=note, fillcolor="#FFF7E6"];
+
+  raw -> clean -> feat;
+  feat -> train [ltail=cluster_data, lhead=cluster_model, label="交接"];
+  train -> eval;
+  eval -> rpt;
+  eval -> clean [style=dashed, color="#C0392B", label="数据问题\n回溯", constraint=false];
+}

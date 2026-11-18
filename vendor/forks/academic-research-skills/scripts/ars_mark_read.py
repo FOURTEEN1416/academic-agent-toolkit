@@ -36,12 +36,9 @@ Behavior summary:
 from __future__ import annotations
 
 import argparse
-import errno
-import fcntl
 import os
 import sys
 import tempfile
-import time
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -50,17 +47,24 @@ from typing import Any, Iterator
 
 import yaml
 
+try:  # Dual-path import: sibling module on sys.path vs package import.
+    import file_lock
+except ImportError:  # pragma: no cover - package-import path
+    from scripts import file_lock  # type: ignore[no-redef]
+
 try:
     from scripts.human_read_attestation_resolver import (
         LedgerValidationError,
-        _UniqueKeySafeLoader,
+        UniqueKeySafeLoader,
         _validated_rows,
+        parse_error_where,
     )
 except ModuleNotFoundError:  # direct ``python scripts/ars_mark_read.py`` use
     from human_read_attestation_resolver import (  # type: ignore[no-redef]
         LedgerValidationError,
-        _UniqueKeySafeLoader,
+        UniqueKeySafeLoader,
         _validated_rows,
+        parse_error_where,
     )
 
 ERR_PREFIX = "[ARS-MARK-READ ERROR:"
@@ -74,7 +78,6 @@ READ_SCOPE_LEVELS = ("full_text", "sections", "abstract_only", "toc_only", "unkn
 LOCATOR_MAX_LEN = 200
 NOTE_MAX_LEN = 1000
 LEDGER_LOCK_TIMEOUT_SECONDS = 10.0
-LEDGER_LOCK_POLL_SECONDS = 0.05
 
 
 class LedgerLockError(RuntimeError):
@@ -104,7 +107,7 @@ def _ledger_lock_path(log_path: Path) -> Path:
 
 
 @contextmanager
-def _ledger_lock(
+def ledger_lock(
     log_path: Path,
     *,
     timeout_seconds: float | None = None,
@@ -136,26 +139,15 @@ def _ledger_lock(
 
     acquired = False
     try:
-        deadline = time.monotonic() + timeout
-        while True:
-            try:
-                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                acquired = True
-                break
-            except InterruptedError:
-                continue
-            except OSError as exc:
-                if exc.errno in (errno.EACCES, errno.EAGAIN):
-                    remaining = deadline - time.monotonic()
-                    if remaining <= 0:
-                        raise LedgerLockError(
-                            f"timed out after {timeout:g}s waiting for peer lock"
-                        ) from exc
-                    time.sleep(min(LEDGER_LOCK_POLL_SECONDS, remaining))
-                    continue
-                raise LedgerLockError(
-                    f"cannot acquire peer lock: {exc}"
-                ) from exc
+        try:
+            file_lock.acquire(fd, exclusive=True, timeout=timeout)
+        except file_lock.LockTimeout as exc:
+            raise LedgerLockError(
+                f"timed out after {timeout:g}s waiting for peer lock"
+            ) from exc
+        except OSError as exc:
+            raise LedgerLockError(f"cannot acquire peer lock: {exc}") from exc
+        acquired = True
 
         yield
     finally:
@@ -163,7 +155,7 @@ def _ledger_lock(
         release_error: OSError | None = None
         if acquired:
             try:
-                fcntl.flock(fd, fcntl.LOCK_UN)
+                file_lock.release(fd)
             except OSError as exc:
                 release_error = exc
         try:
@@ -262,13 +254,13 @@ def _load_log(log_path: Path) -> dict[str, Any]:
         text = raw.decode("utf-8")
     except (OSError, UnicodeDecodeError) as exc:
         raise LedgerValidationError(
-            f"existing ledger cannot be read as UTF-8: {exc}"
+            f"existing ledger cannot be read as UTF-8: {parse_error_where(exc)}"
         ) from exc
     try:
-        data = yaml.load(text, Loader=_UniqueKeySafeLoader)
-    except yaml.YAMLError as exc:
+        data = yaml.load(text, Loader=UniqueKeySafeLoader)
+    except Exception as exc:  # any read or parse failure; see parse_error_where
         raise LedgerValidationError(
-            f"existing ledger is not duplicate-safe valid YAML: {exc}"
+            f"existing ledger is not duplicate-safe valid YAML: {parse_error_where(exc)}"
         ) from exc
 
     # This is the same closed runtime contract used by the resolver.  Calling
@@ -278,23 +270,20 @@ def _load_log(log_path: Path) -> dict[str, Any]:
     return data
 
 
-def _save_log(log_path: Path, data: dict[str, Any]) -> None:
-    """Validate and atomically replace the ledger from a same-dir temp file.
+def atomic_replace(path: Path, payload: bytes) -> None:
+    """Replace ``path`` with ``payload`` from a same-directory temp file.
 
-    The destination is never opened with ``"w"``.  A serialization, flush,
-    fsync, or replace failure therefore leaves an existing ledger untouched;
-    an owned temporary file is removed on failure.
+    The destination is never opened with ``"w"``.  A write, flush, fsync, or
+    replace failure therefore leaves an existing file untouched; an owned
+    temporary file is removed on failure.  Shared by every ledger writer
+    (``run_ledger`` too, #898) so a fix to the write path lands once.
     """
-    _validated_rows(data)
-    payload = yaml.safe_dump(
-        data, sort_keys=False, allow_unicode=True
-    ).encode("utf-8")
     temp_path: Path | None = None
     try:
         with tempfile.NamedTemporaryFile(
             mode="wb",
-            dir=log_path.parent,
-            prefix=f".{log_path.name}.",
+            dir=path.parent,
+            prefix=f".{path.name}.",
             suffix=".tmp",
             delete=False,
         ) as temp_file:
@@ -302,7 +291,7 @@ def _save_log(log_path: Path, data: dict[str, Any]) -> None:
             temp_file.write(payload)
             temp_file.flush()
             os.fsync(temp_file.fileno())
-        os.replace(temp_path, log_path)
+        os.replace(temp_path, path)
         temp_path = None
     finally:
         if temp_path is not None:
@@ -310,6 +299,18 @@ def _save_log(log_path: Path, data: dict[str, Any]) -> None:
                 temp_path.unlink()
             except FileNotFoundError:
                 pass
+
+
+def _save_log(log_path: Path, data: dict[str, Any]) -> None:
+    """Validate, then atomically replace the ledger (see ``atomic_replace``).
+
+    A serialization failure happens before any file is touched.
+    """
+    _validated_rows(data)
+    payload = yaml.safe_dump(
+        data, sort_keys=False, allow_unicode=True
+    ).encode("utf-8")
+    atomic_replace(log_path, payload)
 
 
 def _mark(log: dict, citation_key: str, read_scope: dict | None = None) -> None:
@@ -403,7 +404,7 @@ def _update_log_locked(
     Returning missing active marks keeps batch unmark all-or-nothing: the
     in-memory partial mutation is discarded and no replacement occurs.
     """
-    with _ledger_lock(log_path):
+    with ledger_lock(log_path):
         log = _load_log(log_path)
         if unmark:
             not_found = [

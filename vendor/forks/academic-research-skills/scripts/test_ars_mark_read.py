@@ -648,7 +648,7 @@ class TestExistingLedgerFailClosed(unittest.TestCase):
 
     def _assert_rejected_unchanged(
         self, raw: bytes, *, unmark: bool = False
-    ) -> None:
+    ) -> str:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
             passport = root / "passport.yaml"
@@ -683,6 +683,7 @@ class TestExistingLedgerFailClosed(unittest.TestCase):
                 [],
                 "validation failure must happen before a temp write",
             )
+            return combined
 
     def test_duplicate_keys_at_each_mapping_depth_are_rejected(self) -> None:
         cases = {
@@ -701,6 +702,28 @@ class TestExistingLedgerFailClosed(unittest.TestCase):
         }.items():
             with self.subTest(label=label):
                 self._assert_rejected_unchanged(raw)
+
+    def test_rejection_quotes_none_of_the_ledger_text(self) -> None:
+        head = b"session_id: s\ncreated_at: '2026-08-15T00:00:00Z'\nhuman_read:\n"
+        cases = {
+            "unterminated quote in note": head
+            + b"  - citation_key: smith2024\n    note: \"I read it closely\n",
+            "duplicate key": head + b"  - I read it closely: 1\n    I read it closely: 2\n",
+            "unexpected key": head
+            + b"  - citation_key: smith2024\n    marked_at: '2026-08-15T00:00:01Z'\n"
+            + b"    I read it closely: true\n",
+            "invalid UTF-8": b"session_id: \xff I read it closely\n",
+            **{
+                f"bad !!{tag}": head
+                + f"  - citation_key: smith2024\n    note: !!{tag} closely\n".encode()
+                for tag in ("int", "float", "bool", "timestamp")
+            },
+            "impossible date": head + b"  - citation_key: smith2024\n    closely: 2026-13-45\n",
+        }
+        for label, raw in cases.items():
+            with self.subTest(label=label):
+                combined = self._assert_rejected_unchanged(raw)
+                self.assertNotIn("closely", combined)
 
     def test_closed_root_and_row_contract_is_enforced(self) -> None:
         cases = {
@@ -807,17 +830,17 @@ class TestLockedLedgerTransaction(unittest.TestCase):
             log_path = Path(tmp) / "passport_human_read_log.yaml"
             lock_path = ars_mark_read._ledger_lock_path(log_path)
             lock_fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
-            ars_mark_read.fcntl.flock(lock_fd, ars_mark_read.fcntl.LOCK_EX)
+            ars_mark_read.file_lock.acquire(lock_fd, exclusive=True, timeout=0)
             try:
                 with self.assertRaisesRegex(
                     ars_mark_read.LedgerLockError, "timed out"
                 ):
-                    with ars_mark_read._ledger_lock(
+                    with ars_mark_read.ledger_lock(
                         log_path, timeout_seconds=0.01
                     ):
                         self.fail("contended lock must not be acquired")
             finally:
-                ars_mark_read.fcntl.flock(lock_fd, ars_mark_read.fcntl.LOCK_UN)
+                ars_mark_read.file_lock.release(lock_fd)
                 os.close(lock_fd)
 
     def test_cli_lock_failure_is_visible_without_traceback(self) -> None:

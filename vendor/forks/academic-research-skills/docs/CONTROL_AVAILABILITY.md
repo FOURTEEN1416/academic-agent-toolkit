@@ -17,10 +17,11 @@ anchors to ISO/IEC 42001) — not an ISO-mandated artifact.
 | Channel | Documented in | Channel-wide limitation |
 |---|---|---|
 | **Plugin** — Claude Code plugin install | [SETUP Method 0](SETUP.md#method-0-claude-code-plugin-v370-recommended-for-claude-code-cli--ide-users) | None — the reference channel. |
+| **claude.ai plugin** — the same plugin installed from the account marketplace on claude.ai or Claude Desktop, read in two columns: plain chat, and work in a project or a local folder on Claude Desktop | [SETUP Method 0](SETUP.md#install-from-claudeai-or-claude-desktop-account-marketplace) | Plain chat runs no hooks and no plugin agents, as Anthropic documents. In both columns the skill scripts run in Claude's cloud environment, not on your machine. Checked on Claude Desktop (macOS) on 2026-11-02; several mechanisms are untested (note 11). |
 | **Skills copy** — skill folders copied into a project's `.claude/skills/` or the global `~/.claude/skills/` | [SETUP Method 1](SETUP.md#method-1-as-project-skills-recommended) | Nothing wired by the plugin manifest runs (note 3). |
 | **Repo clone** — Claude Code run inside a clone of this repository | [SETUP Method 2](SETUP.md#method-2-as-a-standalone-project) | Nothing wired by the plugin manifest runs (note 3). |
-| **Cowork** — skills uploaded to Claude Cowork (desktop) | [SETUP Method 3](SETUP.md#method-3-claude-cowork-desktop) | Each skill runs standalone: no Task-tool subagent dispatch, so the coordinated pipeline — and its staged checkpoints — does not run as designed. |
-| **claude.ai Project** — repo attached to a claude.ai Project as retrievable knowledge | [SETUP Method 4](SETUP.md#method-4-use-with-claudeai-web) | Read-only knowledge: Claude can read and cite the skill bodies, but nothing executes — no activation, routing, hooks, scripts, or orchestration. (The Method 4a upload path is documented but not recommended; see SETUP § Method 4a.) |
+| **Cowork** — skills uploaded to Claude Cowork (desktop) | [SETUP Method 3](SETUP.md#method-3-claude-cowork-desktop) | Each skill is uploaded on its own; the upload registers none of ARS's agents, commands or hooks, and `deep-research` is uploaded as `ars-deep-research` (note 12). Two checks saw a built-in sub-agent dispatched; whether the coordinated pipeline and its staged checkpoints run as designed has not been tested. |
+| **claude.ai Project** — repo attached to a claude.ai Project as retrievable knowledge | [SETUP Method 4](SETUP.md#method-4-use-with-claudeai-web) | Read-only knowledge: Claude can read and cite the skill bodies, but nothing executes — no activation, routing, hooks, scripts, or orchestration. (The Method 4a upload path is documented but not recommended; see SETUP § Method 4a.) Anthropic lists "Add from GitHub" as not yet supported in the merged chat and Cowork experience. |
 | **Claude Science** — skills imported via "Import from GitHub" | [SETUP Method 5](SETUP.md#method-5-claude-science-import-v3140) | Methodology layer only; Claude Code-specific machinery does not transfer, and Claude Science substitutes its own agent system (details: SETUP Method 5). Imports are point-in-time snapshots. |
 | **Pi port** — community-maintained wrapper for the Pi coding agent | [`pi/README.md`](../pi/README.md) | Two documented boundaries: the wrapper itself supplies no agent isolation or orchestration — an installed Pi orchestration capability is used when available, otherwise roles run sequentially (degraded execution, disclosed, not independent multi-agent review) — and no Claude hooks (write-scope enforcement stays prompt-level). `/ars-pi-doctor` reports what the local environment supplies. |
 
@@ -28,22 +29,24 @@ anchors to ISO/IEC 42001) — not an ISO-mandated artifact.
 
 Legend: **Active** = operates as documented · **Conditional** = operates only under the
 noted conditions, with a defined degraded state otherwise · **Absent** = does not operate
-in this channel. Read down your channel's column: a claim about a mechanism holds only
+in this channel · **Untested** = not yet run in this channel; do not rely on it. Read down your channel's column: a claim about a mechanism holds only
 where its row says Active — or Conditional with the linked note's conditions met — after
 applying your channel's channel-wide limitation above.
 
-| Mechanism | Plugin | Skills copy | Repo clone | Cowork | claude.ai Project | Claude Science | Pi port |
-|---|---|---|---|---|---|---|---|
-| Methodology layer (the four skills' `SKILL.md` protocols) | Active | Active | Active | Active | Conditional | Active | Active |
-| Skill auto-routing (trigger keywords → skill activation) | Active | Active | Active | Active | Absent | Conditional | Conditional |
-| `/ars-*` slash commands | Active ⁽¹⁾ | Absent | Absent | Absent | Absent | Absent | Conditional |
-| SessionStart announce + update reminder | Conditional ⁽⁸⁾ | Absent ⁽³⁾ | Absent ⁽³⁾ | Absent | Absent | Absent | Absent |
-| Write-scope guard (`PreToolUse` hook) | Conditional ⁽²⁾ | Absent ⁽³⁾ | Absent ⁽³⁾ | Absent | Absent | Absent | Absent |
-| Plugin agents with tools allowlist (#514) ⁽⁴⁾ | Active | Absent ⁽³⁾ | Absent ⁽³⁾ | Absent | Absent | Absent | Absent |
-| Subagent orchestration (Task-tool multi-agent dispatch) | Active | Active | Active | Absent | Absent | Absent | Conditional |
-| Python-backed opt-in features (repo `scripts/`) | Conditional ⁽⁵⁾ | Conditional ⁽⁵⁾ | Conditional ⁽⁵⁾ | Absent | Absent | Absent | Conditional ⁽⁵⁾ |
-| Cross-model verification (consent-gated second model) | Conditional ⁽⁶⁾ | Conditional ⁽⁶⁾ | Conditional ⁽⁶⁾ | Absent | Absent | Absent | Absent |
-| Prompt-level checkpoints and integrity gates | Active ⁽⁷⁾ | Active ⁽⁷⁾ | Active ⁽⁷⁾ | Conditional | Absent | Conditional | Conditional |
+| Mechanism | Plugin | Plain chat | Desktop project/folder | Skills copy | Repo clone | Cowork | claude.ai Project | Claude Science | Pi port |
+|---|---|---|---|---|---|---|---|---|---|
+| Methodology layer (the five skills' `SKILL.md` protocols) | Active | Active | Active | Active | Active | Active | Conditional | Active | Active ⁽¹⁰⁾ |
+| Skill auto-routing (trigger keywords → skill activation) | Active | Active | Active | Active | Active | Active | Absent | Conditional | Conditional |
+| Cross-skill routing discipline (routing core: route directly or ask which workflow, #133 / #892) | Conditional ⁽⁸⁾ ⁽⁹⁾ | Conditional ⁽⁹⁾ | Conditional ⁽⁸⁾ ⁽⁹⁾ | Conditional ⁽⁹⁾ | Active ⁽⁹⁾ | Conditional ⁽⁹⁾ | Absent | Conditional ⁽⁹⁾ | Conditional ⁽⁹⁾ |
+| `/ars-*` slash commands | Active ⁽¹⁾ | Active ⁽¹⁾ | Active ⁽¹⁾ | Absent | Absent | Absent | Absent | Absent | Conditional |
+| SessionStart announce, update reminder, and compaction handoff reminder | Conditional ⁽⁸⁾ | Absent ⁽¹¹⁾ | Announce: Active; reminders: Untested ⁽¹¹⁾ | Absent ⁽³⁾ | Absent ⁽³⁾ | Absent | Absent | Absent | Absent |
+| Write-scope guard (`PreToolUse` hook) | Conditional ⁽²⁾ | Absent ⁽¹¹⁾ | Untested ⁽¹¹⁾ | Absent ⁽³⁾ | Absent ⁽³⁾ | Absent | Absent | Absent | Absent |
+| Plugin agents with tools allowlist (#514) ⁽⁴⁾ | Active | Absent ⁽¹¹⁾ | Untested ⁽¹¹⁾ | Absent ⁽³⁾ | Absent ⁽³⁾ | Absent | Absent | Absent | Absent |
+| Subagent orchestration (Task-tool multi-agent dispatch) | Active | Untested ⁽¹¹⁾ | Active ⁽¹¹⁾ | Active | Active | Untested ⁽¹²⁾ | Absent | Absent | Conditional |
+| Python-backed opt-in features (repo `scripts/`) | Conditional ⁽⁵⁾ | Conditional ⁽⁵⁾ ⁽¹¹⁾ | Conditional ⁽⁵⁾ ⁽¹¹⁾ | Conditional ⁽⁵⁾ | Conditional ⁽⁵⁾ | Absent | Absent | Absent | Conditional ⁽⁵⁾ |
+| Cross-model verification (consent-gated second model) | Conditional ⁽⁶⁾ | Untested ⁽¹¹⁾ | Untested ⁽¹¹⁾ | Conditional ⁽⁶⁾ | Conditional ⁽⁶⁾ | Absent | Absent | Absent | Absent |
+| Prompt-level checkpoints and integrity gates | Active ⁽⁷⁾ | Active ⁽⁷⁾ | Active ⁽⁷⁾ | Active ⁽⁷⁾ | Active ⁽⁷⁾ | Conditional | Absent | Conditional | Conditional |
+| sr-screener dual blinded screening (two reviewer subagents + adjudicator) | Active ⁽¹⁰⁾ | Untested ⁽¹⁰⁾ | Untested ⁽¹⁰⁾ | Conditional ⁽¹⁰⁾ | Conditional ⁽¹⁰⁾ | Untested ⁽¹⁰⁾ | Absent | Absent ⁽¹⁰⁾ | Absent ⁽¹⁰⁾ |
 
 CI-side checks (mutation-tested lints, content locks, changelog gates) are deliberately
 not a matrix row: they run in this repository's GitHub Actions, protecting the
@@ -64,7 +67,10 @@ runtime graceful-degradation mechanisms is
    launcher; missing either produces a *defined degraded state*, never a block — see
    the [environment degradations](#environment-degradations-within-a-channel) table.
    The guard is optional subagent hardening; core skills are unaffected when it is
-   inactive (README Requirements).
+   inactive (README Requirements). It fences a Bucket A role only when that role runs as
+   a subagent dispatched under its own agent type, which today means the plugin agents
+   `synthesis-agent` and `research-architect-agent`; roles that run inline in the main
+   session, the default for most, are not fenced (#973).
 3. Hooks and plugin agents are wired by the **plugin manifest** (`hooks/hooks.json`,
    `agents/`, resolved via `CLAUDE_PLUGIN_ROOT`). A skills-copy or repo-clone install
    does not wire them: the `PreToolUse` write-scope guard and the SessionStart announce
@@ -82,6 +88,8 @@ runtime graceful-degradation mechanisms is
    the plugin channel (the plugin root is the repo snapshot) and repo clones; for a
    skills-copy install, keep the original clone — the copied skill folders alone cannot
    run them. On Pi, they work if Python and the repo are present (`pi/README.md`).
+   The pipeline's run ledger (`scripts/run_ledger.py`, #887) has the same conditions;
+   where they are not met, the orchestrator says that no ledger is kept.
 6. Note-5 conditions, plus a transport: provider API credentials and `curl` for the
    general transports, or — for the citation-only calls — a Codex CLI
    ChatGPT-subscription login (`ARS_CROSS_MODEL_TRANSPORT=codex`). All transports sit
@@ -101,13 +109,86 @@ runtime graceful-degradation mechanisms is
 8. The SessionStart hook is launched through `bash`, so on Windows it needs Git Bash
    (the same PowerShell limitation as the guard launcher); its update-reminder path
    additionally needs `curl`, stays silent on any failure, and is disabled entirely by
-   `ARS_UPDATE_CHECK=0` (SETUP Method 0).
+   `ARS_UPDATE_CHECK=0` (SETUP Method 0). After a compaction or a resume, the announce
+   adds one sentence asking the session to run the pipeline's handoff check against the
+   run ledger (#887); the sentence is a reminder and runs no check itself.
+9. The routing core (Routing Discipline Steps 0-3 and the #133 anti-pattern; canonical
+   file [`shared/references/routing_core.md`](../shared/references/routing_core.md))
+   decides whether a request goes straight to a skill or the user is first asked which
+   workflow they want. Claude Code loads this repository's `.claude/CLAUDE.md` only for
+   sessions started inside the checkout, so the core also rides in the SessionStart
+   announce and in each skill's `SKILL.md` (#892). **Plugin:** before any skill loads,
+   through the announce (note-8 conditions), and again once a skill loads. **Repo clone:**
+   from `.claude/CLAUDE.md` at session start, and from `SKILL.md`. **Skills copy:** at
+   session start from the project's `.claude/CLAUDE.md` when it carries the merged ARS
+   text, as SETUP Method 1 instructs for a project install (a merged copy does not update
+   with ARS). **Skills copy without that text (a global install, or the step skipped),
+   Cowork, Claude Science, Pi port:** only after a skill has loaded, from its `SKILL.md`: a
+   request that no skill picks up gets no routing guard, and a clarifying question can
+   come only after a skill call. As with note 7, these are prompt-level instructions, not
+   runtime enforcement. The #133 routing fixtures were run with the plugin loaded, in
+   sessions started inside and outside the checkout. Outside it, Claude Fable 5.1 still
+   honored a mid-message `[direct-mode]` token in some sessions after the routing core
+   gained a sentence against it (#892), single cells of other fixtures failed (#960), and
+   fixture 05 passed on both models only under two scoring readings
+   ([`CALIBRATION_LOG.md`](../tests/fixtures/issue_133_routing/CALIBRATION_LOG.md)). On
+   Claude Fable 5.2 the 2026-11-10 pass scored 21 of 21 in each kind of session under the
+   recorded scoring rules (20 of 21 in the plugin install when fixture 01 is read strictly),
+   at one session per fixture. The
+   other channels are covered only by the copy check (`scripts/check_routing_core_sync.py`).
+10. sr-screener's dual review needs subagents plus its own Python scripts, which live
+   inside the skill folder (`sr-screener/scripts/`, standard library only), so a copied
+   skill folder carries them. **Plugin:** the `screening-reviewer-agent` (tools: Read,
+   Grep) is wired from `agents/`. **Skills copy / repo clone:** active once
+   `sr-screener/agents/screening_reviewer_agent.md` is copied into `.claude/agents/`
+   and named in `screening_config.json`; with an empty `agent_type` the default
+   workflow subagent runs the reviewers, which works but carries more tools than
+   Read and Grep. **Cowork:** the upload does not install the reviewer agent; whether the
+   reviewers run on a built-in subagent (note 12) has not been tested. **Claude Science:**
+   no Task-tool subagent dispatch of this skill's reviewer, so only `quick` mode runs,
+   disclosed as single-reviewer triage (one model reading twice is not two independent
+   reviewers). **claude.ai plugin:** plain chat
+   does not list the plugin's reviewer agent; whether the reviewers run on a general
+   subagent there, and whether the dual review runs in project or folder work, has not
+   been tested. **Pi port:** the community-maintained wrapper does
+   not yet package this skill.
+11. The two claude.ai plugin columns rest on Anthropic's
+   [Use plugins in Claude](https://support.claude.com/en/articles/13837440-use-plugins-in-claude)
+   (skills and commands work in chat; hooks and sub-agents run in Cowork and Claude Code,
+   not in chat) and on checks on Claude Desktop (macOS) on 2026-11-02, before and after
+   #1037 renamed the plugin agents for claude.ai. Chat in a browser on claude.ai is covered
+   by Anthropic's article only. **Plain chat:** one skill loaded, `/ars-lit-review` ran, a
+   skill script ran in Claude's cloud environment, and the SessionStart announce did not
+   appear. After #1037 the session listed only built-in subagent types (`general-purpose`,
+   `Explore`, `Plan` and others) and no plugin agents. Whether the skills' multi-agent
+   stages run on those general subagents was not tested. **Project or folder work:** in a
+   local folder before #1037, the SessionStart announce appeared, and a skill script ran on
+   a cloud copy of the plugin and wrote its output to the folder. In a project after #1037,
+   the session listed the four plugin agents and dispatched
+   `academic-research-skills:synthesis-agent` directly. Not exercised in either column: the
+   write-scope guard, the tools allowlist, the update reminder, the compaction handoff
+   reminder, cross-model verification, sr-screener's dual review, a full pipeline run, and
+   projects on claude.ai in a browser.
+12. The Cowork column rests on two checks on Claude Desktop (macOS) on 2026-11-02, with
+   chat merged with Cowork and the ARS plugin removed (#1040). Claude Desktop refused
+   an upload named `deep-research` because Anthropic already provides a skill with that
+   name, so the skill was uploaded as `ars-deep-research`, the name SETUP Method 3 now
+   uses. One check used a zip built with SETUP's commands (the skill folder at the top),
+   the other a zip with `SKILL.md` at the top. In both, the skill dispatched a built-in
+   `Explore` sub-agent in a conversation, which read `agents/synthesis_agent.md` from the
+   uploaded skill and returned its first heading; each time the first dispatch did not
+   run and a retry did. The upload registers no ARS agent; these checks used the built-in
+   `Explore` type. A single dispatch is not multi-agent orchestration, so the subagent
+   row stays Untested. Not exercised: the skills'
+   multi-agent stages, sr-screener's dual review, a full pipeline run, and whether a
+   reference to `deep-research` in another ARS skill reaches the uploaded copy or
+   Anthropic's skill.
 
 ## Environment degradations within a channel
 
 Independent of install channel, the write-scope guard has documented degraded states.
 None of them *introduces* a block: launcher failure paths resolve to **pass-through**,
-and a missing `timeout` binary is a bounding-mechanism swap under which the guard keeps
+and a missing or unusable `timeout` binary is a bounding-mechanism swap under which the guard keeps
 operating normally — its real decisions (including deny) still apply, with only an
 overrun resolving to pass-through. The guard is an optional
 hardening layer, and a broken guard must not lock a user out of their own files
@@ -124,4 +205,4 @@ accepted, untested case with no pinned outcome):
 |---|---|
 | No real Python found (Git Bash / POSIX shell present) | Guard silently no-ops (pass-through); core skills unaffected. On Windows, the 0-byte Microsoft Store `python3` stub is rejected, not mistaken for Python. |
 | Windows without Git Bash | Claude Code falls back to PowerShell, which cannot run the `.sh` launcher: guard inactive, and the `PreToolUse` hook logs an error per call (accepted degradation — noisy, never blocking). |
-| No `timeout` binary | Portable background-watchdog fallback with the same wall-clock bound and the same pass-through-on-overrun posture. |
+| No usable `timeout` binary (none on PATH, or one that rejects the GNU `timeout <N>s cmd` form, such as the Windows built-in `timeout.exe` under Git for Windows) | Portable background-watchdog fallback with the same wall-clock bound and the same pass-through-on-overrun posture. Before #970 a foreign `timeout` was trusted, and the guard passed every write through. |

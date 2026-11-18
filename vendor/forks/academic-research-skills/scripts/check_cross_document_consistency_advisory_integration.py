@@ -19,7 +19,7 @@ import re
 import stat
 import sys
 import tomllib
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Any
 
 from jsonschema import Draft202012Validator
@@ -78,8 +78,12 @@ LEGACY_HASHES = {
         "02f4fc4e32658249e7065724f1cb5c2f9dcec3f599f86a1a7ffee726ae422f5a",
     Path("shared/contracts/evidence/evidence_row_v1_1.schema.json"):
         "ab7fdb15b8845bcf898fef5177c636b8ca43f2785c3b79bf284fa04a4ede14b9",
+    # Re-pinned for #933: the CLI gained --source-dir and reaches contract
+    # validation for malformed row fields; and for #947: the CLI refuses
+    # evidence-row/1.1 rows. The replay, build, validate, and render
+    # functions this advisory reproduces are unchanged.
     Path("scripts/evidence_rows.py"):
-        "eccfa0a5cfe9b438aac9c4ec85cd6c2ca07052de7eb521cfc1e7f799a971d7e3",
+        "b3510133914b23115d7cd285f657450ff8de75f3ea678d843e4101634b6b8e9e",
     Path("shared/contracts/passport/claim_intent_manifest.schema.json"):
         "d6c4fd060812dc2a2b2dd73b6d9e77e366fcc0803486d5f38b4def6893d70cec",
     Path("shared/contracts/revision/claim_surface_manifest.schema.json"):
@@ -390,113 +394,122 @@ FUNCTION_SCOPED_RUNTIME_MARKERS: dict[str, tuple[str, ...]] = {
     ),
 }
 
-REQUIRED_POINTERS: dict[Path, tuple[str, ...]] = {
-    DESIGN_SPEC: (
-        "DESIGN-FROZEN / UNMEASURED",
-        "evidence-row/1.2",
-        "build-preregistration-artifact",
-        "#660 first and #672 second",
-        "ADVISORY_UNAVAILABLE:<CODE>",
-    ),
-    PROTOCOL: (
-        "preregistration-artifact/1.0",
-        "evidence-row/1.2",
-        "cross-document-source-manifest/1.0",
-        "cross-document-consistency-advisory-draft/1.0",
-        "cross-document-consistency-advisory/1.0",
-        "LLM-ADVISORY",
-        "UNMEASURED",
-        "ADVISORY_UNAVAILABLE:<CODE>",
-    ),
-    CONTRACT_README: (
-        "Cross-document consistency advisory (#672)",
-        "preregistration-artifact/1.0",
-        str(EVIDENCE_SCHEMA),
-        "#660 runs first and #672 second",
-        "ADVISORY_UNAVAILABLE:<CODE>",
-    ),
-    EVIDENCE_PROTOCOL: (
-        str(EVIDENCE_SCHEMA),
-        "cross_document_consistency",
-        "disclosure_scope",
-        "UNMEASURED",
-    ),
-    CLAIM_LADDER: ("#672", "LLM-ADVISORY", "UNMEASURED"),
-    PREREG_GUIDE: (
-        "build-preregistration-artifact",
-        "preregistration-artifact/1.0",
-        "UNMEASURED",
-    ),
-    HANDOFF_SCHEMAS: (
-        "preregistration-artifact/1.0",
-        "digest-check",
-        "byte-for-byte",
-    ),
-    DEEP_SKILL: (
-        "preregistration-artifact/1.0",
-        "build-preregistration-artifact",
-        "research_architect_agent",
-    ),
-    ARCHITECT: (
-        "preregistration-artifact/1.0",
-        "build-preregistration-artifact",
-        "must not",
-    ),
-    ARCHITECT_MIRROR: (
-        "preregistration-artifact/1.0",
-        "build-preregistration-artifact",
-        "must not",
-    ),
-    HANDOFF_EXAMPLE: (
-        "preregistration-artifact/1.0",
-        "agreement",
-        "record_digest",
-    ),
-    PAPER_SKILL: (
-        "preregistration-artifact/1.0",
-        str(PROTOCOL),
-    ),
-    INTAKE_AGENT: (
-        "preregistration-artifact/1.0",
-        "record_digest",
-        "companion",
-    ),
-    PIPELINE_SKILL: (
-        "#660 first and #672 second",
-        "ADVISORY_UNAVAILABLE:<CODE>",
-        "LLM-ADVISORY",
-        "UNMEASURED",
-    ),
-    PIPELINE_ORCHESTRATOR: (
-        "#660",
-        "#672",
-        "ADVISORY_UNAVAILABLE:<CODE>",
-        "accepted_draft_artifact_id",
-        "accepted_draft_sha256",
-    ),
-    INTEGRITY_PROTOCOL: (
-        "#660",
-        "#672",
-        "Stage 4.5",
-        "Stage 5",
-    ),
-    STATE_MACHINE: (
-        "#660",
-        "#672",
-        "ADVISORY_UNAVAILABLE:<CODE>",
-        "Stage 5",
-    ),
-    HELDOUT_STATUS: (
-        "UNMEASURED",
-        "no `measurement-*.json`",
-        "not proof of agreement",
-    ),
-    CHANGELOG: (
-        "cross-document consistency advisory",
-        "#672",
-        "UNMEASURED",
-    ),
-}
+
+def _required_pointers(
+    evidence_schema: PurePath = EVIDENCE_SCHEMA,
+    protocol: PurePath = PROTOCOL,
+) -> dict[Path, tuple[str, ...]]:
+    """Build Markdown tokens from repository paths using portable separators."""
+    return {
+        DESIGN_SPEC: (
+            "DESIGN-FROZEN / UNMEASURED",
+            "evidence-row/1.2",
+            "build-preregistration-artifact",
+            "#660 first and #672 second",
+            "ADVISORY_UNAVAILABLE:<CODE>",
+        ),
+        PROTOCOL: (
+            "preregistration-artifact/1.0",
+            "evidence-row/1.2",
+            "cross-document-source-manifest/1.0",
+            "cross-document-consistency-advisory-draft/1.0",
+            "cross-document-consistency-advisory/1.0",
+            "LLM-ADVISORY",
+            "UNMEASURED",
+            "ADVISORY_UNAVAILABLE:<CODE>",
+        ),
+        CONTRACT_README: (
+            "Cross-document consistency advisory (#672)",
+            "preregistration-artifact/1.0",
+            evidence_schema.as_posix(),
+            "#660 runs first and #672 second",
+            "ADVISORY_UNAVAILABLE:<CODE>",
+        ),
+        EVIDENCE_PROTOCOL: (
+            evidence_schema.as_posix(),
+            "cross_document_consistency",
+            "disclosure_scope",
+            "UNMEASURED",
+        ),
+        CLAIM_LADDER: ("#672", "LLM-ADVISORY", "UNMEASURED"),
+        PREREG_GUIDE: (
+            "build-preregistration-artifact",
+            "preregistration-artifact/1.0",
+            "UNMEASURED",
+        ),
+        HANDOFF_SCHEMAS: (
+            "preregistration-artifact/1.0",
+            "digest-check",
+            "byte-for-byte",
+        ),
+        DEEP_SKILL: (
+            "preregistration-artifact/1.0",
+            "build-preregistration-artifact",
+            "research_architect_agent",
+        ),
+        ARCHITECT: (
+            "preregistration-artifact/1.0",
+            "build-preregistration-artifact",
+            "must not",
+        ),
+        ARCHITECT_MIRROR: (
+            "preregistration-artifact/1.0",
+            "build-preregistration-artifact",
+            "must not",
+        ),
+        HANDOFF_EXAMPLE: (
+            "preregistration-artifact/1.0",
+            "agreement",
+            "record_digest",
+        ),
+        PAPER_SKILL: (
+            "preregistration-artifact/1.0",
+            protocol.as_posix(),
+        ),
+        INTAKE_AGENT: (
+            "preregistration-artifact/1.0",
+            "record_digest",
+            "companion",
+        ),
+        PIPELINE_SKILL: (
+            "#660 first and #672 second",
+            "ADVISORY_UNAVAILABLE:<CODE>",
+            "LLM-ADVISORY",
+            "UNMEASURED",
+        ),
+        PIPELINE_ORCHESTRATOR: (
+            "#660",
+            "#672",
+            "ADVISORY_UNAVAILABLE:<CODE>",
+            "accepted_draft_artifact_id",
+            "accepted_draft_sha256",
+        ),
+        INTEGRITY_PROTOCOL: (
+            "#660",
+            "#672",
+            "Stage 4.5",
+            "Stage 5",
+        ),
+        STATE_MACHINE: (
+            "#660",
+            "#672",
+            "ADVISORY_UNAVAILABLE:<CODE>",
+            "Stage 5",
+        ),
+        HELDOUT_STATUS: (
+            "UNMEASURED",
+            "no `measurement-*.json`",
+            "not proof of agreement",
+        ),
+        CHANGELOG: (
+            "cross-document consistency advisory",
+            "#672",
+            "UNMEASURED",
+        ),
+    }
+
+
+REQUIRED_POINTERS = _required_pointers()
 
 
 class DuplicateKeyError(ValueError):
@@ -1139,7 +1152,7 @@ def _ci_errors(root: Path) -> list[str]:
         for marker in (
             "672-cross-document-consistency-advisory",
             "672-cross-document-consistency-integration",
-            str(RUNTIME_TEST),
+            RUNTIME_TEST.as_posix(),
             "scripts/test_check_cross_document_consistency_advisory_integration.py",
         ):
             if marker not in serialized:

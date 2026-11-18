@@ -1,0 +1,37 @@
+// 模板：分层架构（cluster 分层 + compound 跨层连线）。
+// 适用：系统架构图、论文方法章节的模块分层示意。
+// 要点：每层一个 cluster；层间主链路用 ltail/lhead 挂到整框（需 compound=true）；
+//       层内细节边正常连接即可。
+digraph layers {
+  rankdir  = TB;
+  compound = true;
+  graph [fontname="Microsoft YaHei", nodesep=0.5, ranksep=0.7];
+  node  [shape=box, style="rounded,filled", fontname="Microsoft YaHei", fontsize=11];
+  edge  [color="#5B6B7A", arrowsize=0.8];
+
+  subgraph cluster_present {
+    label="表现层"; fontname="Microsoft YaHei";
+    style="rounded,filled"; fillcolor="#F7F9FC"; color="#B8C4D0";
+    ui  [label="可视化面板", fillcolor="#DCE9F7"];
+    cli [label="命令行入口", fillcolor="#DCE9F7"];
+  }
+  subgraph cluster_biz {
+    label="业务层"; fontname="Microsoft YaHei";
+    style="rounded,filled"; fillcolor="#FBF7F0"; color="#D0C0A8";
+    svc  [label="服务编排"];
+    rule [label="规则引擎"];
+  }
+  subgraph cluster_data {
+    label="数据层"; fontname="Microsoft YaHei";
+    style="rounded,filled"; fillcolor="#F3F7F1"; color="#A8C0A8";
+    repo  [label="仓储/DAO"];
+    cache [label="缓存"];
+  }
+
+  ui   -> svc   [ltail=cluster_present, lhead=cluster_biz, label="调用"];
+  cli  -> svc;
+  svc  -> rule;
+  svc  -> repo  [ltail=cluster_biz, lhead=cluster_data, label="读写"];
+  svc  -> cache;
+  rule -> repo;
+}

@@ -15,8 +15,8 @@
   "counts": {
     "core": 52,
     "ondemand": 209,
-    "resident_chars": 29864,
-    "full_chars": 60296
+    "resident_chars": 29877,
+    "full_chars": 60422
   },
   "skills": {
     "ablation-planner": {
@@ -846,9 +846,9 @@
     "graphviz": {
       "tier": "ondemand",
       "reason": "非主链、非常驻调用面",
-      "resident_description": "Draw dependency trees, call graphs, pipeline DAGs, state machines and module hierarchies from DOT text.",
-      "full_description": "Draw dependency trees, call graphs, pipeline DAGs, state machines and module hierarchies from DOT text.",
-      "description_compacted": false,
+      "resident_description": "Draw dependency trees, call graphs, pipeline DAGs, state machines and module hierarchies from DOT text. Ships with a",
+      "full_description": "Draw dependency trees, call graphs, pipeline DAGs, state machines and module hierarchies from DOT text. Ships with a self-contained dot_check lint/render gate, five ready-to-use DOT templates and a machine-checked worked example.",
+      "description_compacted": true,
       "path": "academic-toolkit/skills/graphviz/SKILL.md"
     },
     "humanities-plan": {

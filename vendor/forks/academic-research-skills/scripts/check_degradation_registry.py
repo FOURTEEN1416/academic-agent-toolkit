@@ -91,6 +91,18 @@ _EXPECTED_MECHANISMS = frozenset({
     "write_scope_guard_no_timeout_binary",
     "write_scope_guard_subprocess_misbehaves",
     "write_scope_guard_payload_capacity_edge",
+    # #849: acronym check coverage (scripts/check_acronyms.py). Advisory;
+    # a degraded report is never a clean result and never blocks.
+    "acronym_check_not_checked",
+    "acronym_check_partial_coverage",
+    # #1001: suggested-reference check (scripts/verify_panel_recommendations.py).
+    # Advisory; a degraded report is never a clean result and never blocks.
+    "panel_reference_check_not_checked",
+    "panel_reference_check_partial",
+    # #1002: reviewer claim check (scripts/audit_panel_claims.py).
+    # Advisory; a degraded report is never a clean result and never blocks.
+    "panel_claim_check_not_run",
+    "panel_claim_check_partial",
 })
 
 

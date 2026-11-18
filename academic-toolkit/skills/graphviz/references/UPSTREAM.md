@@ -33,3 +33,16 @@
 - pin 维持 a3afd45：镜像 vendor/forks/skills/graphviz/ 快照与上游 a3afd45 原件逐字节一致（仅行尾 CRLF 差异），仍是"上游最后包含 graphviz"的忠实快照。
 - 前置澄清结论（PKG-17"许可冲突"）：GitHub 现检出的 CC-BY-4.0 与本台账 GPL-3.0 并非矛盾——GPL-3.0 为 pin 时点（2026-05-26~2026-09-22）历史口径，现值 CC-BY-4.0；本仓文本为独立创作，两者均不约束现行正文。
 - 遗留：vendor/forks/skills 整镜像是否跟进上游 documd-visuals/ 新结构（fork 同步）属独立基建决策，超出本包范围；dev-docs/vendor-asset-index.md:39 的同一 fork URL 笔误与 LICENSE"待核"注记留待台账批统一订正。
+
+## 2026-11-18 增强批（本仓独立创作，无上游对应物）
+
+- 新增 `scripts/dot_check.py`（DOT 静态检查 + 渲染门禁 + 自检）、`assets/templates/`
+  （pipeline_dag / dependency_tree / call_graph / state_machine / module_hierarchy 共
+  5 个模板）、`assets/examples/`（机检示例 pipeline_demo.dot + 结构化期望
+  pipeline_demo.checks.json + 参考渲染 pipeline_demo.reference.svg）：均为独立创作，
+  未参考、未复制任何上游文本。
+- 上游 fc70465（2026-09-22）已删除 graphviz 技能，本批资产不存在上游同步对象；
+  clean-room 口径沿用上文裁决，许可状态不受影响。
+- SKILL.md frontmatter description 同步扩展（提及门禁、模板与示例）；能力索引
+  （data/skill_routing_index.json、data/skill_tiers.json）已按
+  `python tools/build_skill_index.py --emit` 重建。

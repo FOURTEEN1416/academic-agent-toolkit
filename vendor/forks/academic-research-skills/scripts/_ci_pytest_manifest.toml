@@ -25,6 +25,14 @@
 #      locally before opening a PR.
 
 [[pytest]]
+id = "857-command-skill-dispatch"
+path = "scripts/test_check_command_skill_dispatch.py"
+
+[[pytest]]
+id = "864-skill-description-length"
+path = "scripts/test_check_skill_description_length.py"
+
+[[pytest]]
 id = "v3.7.1-sha-gate"
 path = "scripts/test_check_v3_6_8_pattern_protection.py"
 
@@ -51,6 +59,26 @@ path = "scripts/test_check_v3_9_0_triangulation.py"
 [[pytest]]
 id = "v3.10-firm-rules-sync"
 path = "scripts/test_check_firm_rules_sync.py"
+
+[[pytest]]
+id = "892-routing-core-sync"
+path = "scripts/test_check_routing_core_sync.py"
+
+[[pytest]]
+id = "916-method-weaknesses-sync"
+path = "scripts/test_check_method_weaknesses_sync.py"
+
+[[pytest]]
+id = "921-review-form-note-sync"
+path = "scripts/test_check_review_form_note_sync.py"
+
+[[pytest]]
+id = "923-shared-marker-block"
+path = "scripts/test_skill_lint_marker_block.py"
+
+[[pytest]]
+id = "915-experiment-alignment-overclaim-fixtures"
+path = "scripts/test_experiment_alignment_overclaim_fixtures.py"
 
 [[pytest]]
 id = "v3.10-policy-layer"
@@ -203,6 +231,10 @@ path = "scripts/test_check_risk_register.py"
 [[pytest]]
 id = "756-data-access-level-pins"
 path = "scripts/test_check_data_access_level.py"
+
+[[pytest]]
+id = "809-skill-inventory-parity"
+path = "scripts/test_check_skill_inventory_parity.py"
 
 [[pytest]]
 id = "v3.10-182-verification-cache"
@@ -397,6 +429,10 @@ id = "574-phase-conformance-checker"
 path = "scripts/test_check_phase_conformance.py"
 
 [[pytest]]
+id = "1077-unspaced-script-table"
+path = "scripts/test_unspaced_scripts.py"
+
+[[pytest]]
 id = "574-role-scoped-contract-lint"
 path = "scripts/test_check_role_scoped_contract.py"
 
@@ -483,6 +519,10 @@ path = "scripts/test_check_reviewer_role_label.py"
 [[pytest]]
 id = "611-calibration-tiers"
 path = "scripts/test_check_calibration_tiers.py"
+
+[[pytest]]
+id = "1030-reviewer-card-confirmation"
+path = "scripts/test_check_reviewer_card_confirmation.py"
 
 [[pytest]]
 id = "619-disclosure-closeout"
@@ -613,6 +653,10 @@ id = "656-evidence-row-integration"
 path = "scripts/test_check_evidence_row_integration.py"
 
 [[pytest]]
+id = "1006-phase-e-cited-version"
+path = "scripts/test_phase_e_cited_version.py"
+
+[[pytest]]
 id = "630-codex-subscription-transport"
 path = "scripts/test_cross_model_codex_transport.py"
 
@@ -659,3 +703,67 @@ path = "scripts/test_inquiry_branch_ledger.py"
 [[pytest]]
 id = "789-sealed-promotion-bakeoff"
 path = "scripts/test_check_promotion_bakeoff_preregistration.py"
+
+[[pytest]]
+id = "653-calibration-corpus-assembler"
+path = "scripts/test_assemble_calibration_corpus.py"
+
+[[pytest]]
+id = "653-calibration-dispatcher"
+path = "scripts/test_dispatch_calibration_panel.py"
+
+[[pytest]]
+id = "653-calibration-scorer"
+path = "scripts/test_score_calibration_run.py"
+
+[[pytest]]
+id = "653-calibration-measurement-row"
+path = "scripts/test_build_calibration_measurement_row.py"
+
+[[pytest]]
+id = "845-shared-file-lock"
+path = "scripts/test_file_lock.py"
+
+[[pytest]]
+id = "862-output-language-pair-contract"
+path = "scripts/test_output_language_pair.py"
+
+[[pytest]]
+id = "887-run-ledger"
+path = "scripts/test_run_ledger.py"
+
+[[pytest]]
+id = "849-acronym-check"
+path = "scripts/test_check_acronyms.py"
+
+[[pytest]]
+id = "1001-panel-suggested-references"
+path = "scripts/test_verify_panel_recommendations.py"
+
+[[pytest]]
+id = "1002-panel-claim-check"
+path = "scripts/test_audit_panel_claims.py"
+
+[[pytest]]
+id = "927-standing-constraint-entry-schema"
+path = "scripts/test_standing_constraint_entry_schema.py"
+
+[[pytest]]
+id = "936-excluded-source-entry-schema"
+path = "scripts/test_excluded_source_entry_schema.py"
+
+[[pytest]]
+id = "sr-screener-pipeline"
+path = "scripts/test_sr_screener_pipeline.py"
+
+[[pytest]]
+id = "1002-extract-panel-claims"
+path = "scripts/test_extract_panel_claims.py"
+
+[[pytest]]
+id = "1002-dispatch-panel-claim-audit"
+path = "scripts/test_dispatch_panel_claim_audit.py"
+
+[[pytest]]
+id = "1078-author-letter"
+path = "scripts/test_check_author_letter.py"

@@ -1,0 +1,27 @@
+// 模板：状态机（椭圆 = 状态，箭头 = 转移）。
+// 适用：任务/订单/流程生命周期、审批状态流转。
+// 要点：实心圆点 = 起点，双圈 = 终态；自环与回退转移用虚线区分。
+digraph states {
+  rankdir = LR;
+  graph [fontname="Microsoft YaHei", nodesep=0.5, ranksep=0.9];
+  node  [shape=ellipse, style=filled, fillcolor="#EEF3F8", color="#7A8CA0",
+         fontname="Microsoft YaHei", fontsize=11];
+  edge  [color="#5B6B7A", fontname="Microsoft YaHei", fontsize=9];
+
+  start  [label="开始", shape=circle, width=0.28, style=filled,
+          fillcolor="#333333", color="#333333", fontcolor=white, fontsize=8];
+  draft  [label="草稿"];
+  review [label="评审中", fillcolor="#FFF2CC", color="#C9A227"];
+  ok     [label="已通过", fillcolor="#E8F5E9", color="#6B9E6B"];
+  reject [label="已驳回", fillcolor="#FDECEA", color="#C0392B"];
+  finish [label="结束", shape=doublecircle, width=0.28,
+          fillcolor="#333333", color="#333333"];
+
+  start  -> draft;
+  draft  -> draft  [label="反复修改", style=dotted];
+  draft  -> review [label="提交"];
+  review -> ok     [label="通过"];
+  review -> reject [label="不通过"];
+  reject -> draft  [label="修改后重提", style=dashed];
+  ok     -> finish;
+}

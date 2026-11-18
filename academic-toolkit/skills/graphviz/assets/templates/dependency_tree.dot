@@ -1,0 +1,26 @@
+// 模板：依赖树（模块/包依赖，箭头 = "依赖于"）。
+// 适用：import/继承/包结构、技术栈依赖盘点；被依赖的基础件放底层并换色。
+// 要点：rankdir=TB 自上而下；基础库用绿色系与业务层区分。
+digraph deps {
+  graph [fontname="Microsoft YaHei", nodesep=0.4, ranksep=0.6];
+  node  [shape=box, style=filled, fillcolor="#EEF3F8", color="#7A8CA0",
+         fontname="Microsoft YaHei", fontsize=11];
+  edge  [color="#7A8CA0", arrowsize=0.8];
+
+  app    [label="应用入口\napp", fillcolor="#DCE9F7"];
+  api    [label="接口层\napi"];
+  svc    [label="业务服务\nservices"];
+  da     [label="数据访问\nda"];
+  models [label="数据模型\nmodels", fillcolor="#E8F5E9", color="#6B9E6B"];
+  utils  [label="工具库\nutils", fillcolor="#E8F5E9", color="#6B9E6B"];
+  conf   [label="配置\nconfig", fillcolor="#E8F5E9", color="#6B9E6B"];
+
+  app -> api;
+  app -> conf;
+  api -> svc;
+  svc -> da;
+  svc -> utils;
+  svc -> models;
+  da  -> models;
+  da  -> conf;
+}

@@ -22,8 +22,15 @@ boundaries around that scope:
   platform, not by this repo.
 - **Maintainer/evaluation harnesses are not user paths.** A few repo scripts exist
   only for maintainers running measurements (e.g. `scripts/dispatch_e4_panel.py`
-  through `claude -p`, `scripts/run_review_criteria_constructive_value.py` through
-  the Codex CLI, `scripts/check_ranking_lift.py` through `gh api`). They send
+  and `scripts/dispatch_calibration_panel.py` through `claude -p` — the latter
+  also sends the operator's own `ANTHROPIC_API_KEY` to the Anthropic API's
+  `GET /v1/models` as a zero-cost credential preflight before the first billed
+  call — `scripts/run_review_criteria_constructive_value.py` through
+  the Codex CLI, `scripts/check_ranking_lift.py` through `gh api`,
+  `scripts/dispatch_panel_claim_audit.py` (#1002) through the Codex CLI, the
+  agy CLI, the Gemini API with the operator's own `GEMINI_API_KEY`, which
+  goes only into the request header, and the Claude CLI with the operator's
+  own subscription token, which goes only into that call's environment). They send
   content through locally authenticated CLIs when a maintainer invokes them, are
   never triggered by any user-facing feature, and are deliberately excluded from
   the touchpoint tables below.
@@ -46,6 +53,12 @@ used locally for matching, not transmitted — and all four work
 without any account or key; keeping the gate key-free is a deliberate reproducibility
 choice. Off switch: don't run script-backed verification; prompt-only modes make no
 calls.
+
+After a review, `scripts/verify_panel_recommendations.py` (#1001) sends the same
+payload class for the works that Reviewer 2 and Reviewer 3 suggest: titles and any DOI or
+arXiv ID they give, through the same four clients. It runs live and does not read or write
+the verification cache. Off switch: don't run it; the letter's attachment then says the
+check did not run.
 
 | Resolver | Endpoint | Credentials (optional) | Per-index note |
 |---|---|---|---|
@@ -88,7 +101,10 @@ Notes:
 | Citation-verification cache | `~/.cache/ars/verification.db` (override: `ARS_VERIFICATION_CACHE_PATH`) | Per-citation resolver outcomes (SQLite) | 90-day TTL per entry — expiry means a cache miss, not deletion; expired rows persist on disk until overwritten by a later re-verification, invalidated, or the file is deleted. Staleness advisory after `ARS_CACHE_STALE_ADVISORY_DAYS` (default 30), live re-validation via `ARS_CACHE_REVALIDATE=1` | `/ars-cache-invalidate <citation_key>` per key, or delete the file |
 | Update-check state | `~/.cache/ars/` (override: `ARS_UPDATE_CHECK_STATE_DIR`) | A state label (`UP_TO_DATE` / `UPDATE_AVAILABLE`) plus installed and remote version strings | Re-fetched when older than 24 h | Delete the directory; `ARS_UPDATE_CHECK=0` stops new writes |
 | Retraction-status cache (`scripts/retraction_status.py`) | A caller-supplied SQLite path (no default location) | DOI-keyed resolver observations with timestamps | No automatic expiry; observations older than the 30-day threshold are marked stale, not deleted | Delete the file |
-| Material Passport + project ledgers | The passport path **you** name per run (never a hidden global location) | Your research content: corpus entries, read-attestation ledger, reset boundaries, compliance history, claim-standing consent receipts / transmission ledgers, rejection logs | No TTL — user-owned project files | Delete with your project |
+| Material Passport + project ledgers | The passport path **you** name per run (never a hidden global location) | Your research content: corpus entries, the run-wide constraints you confirmed, in your words (`standing_constraints[]`, #927), references an integrity gate judged `NOT_FOUND` (`excluded_sources[]`, #936), read-attestation ledger, reset boundaries, compliance history, claim-standing consent receipts / transmission ledgers, rejection logs | No TTL — user-owned project files | Delete with your project |
+| Run ledger (`scripts/run_ledger.py`, #887) | `<passport-stem>_run_ledger.yaml` beside the passport you name, with an empty peer lock file named after it | Your initial instructions and checkpoint answers **in your exact words**, checkpoint questions, partly collected answers, receipts for tool steps, progress counters, and hashes of transient input files. The whole file is never put into a dispatch; a dispatch that relays one decision quotes that decision's words, and the session model reads the file over your Claude platform connection | No TTL — user-owned project file | Delete the file and its lock file; during a run, deleting it means earlier decisions are asked again. Do not name it as a supporting file for the Codex audit wrapper, which sends the contents of the files it is given |
+| Evidence source folder (#933) | The folder the pipeline names for each integrity gate: `<passport-stem>_evidence_sources/stage-2.5/` or `stage-4.5/` beside the passport you name, or run-local storage outside the repository when the run has no passport file | One `.txt` file per cited source the integrity check matched a claim against: the source text it retrieved during verification, which can be a whole article. The checkpoint reads only the files its evidence rows name, to check the displayed excerpts against them; the files are not put into other dispatches | No TTL — user-owned project files; a correction round at the same gate rewrites the files for the sources it re-checks and rebuilds every row that names them | Delete the folder; the evidence rows of that gate's report then cannot be rendered again, and the gate's verdict is unchanged. Do not name the files as supporting files for the Codex audit wrapper, which sends the contents of the files it is given |
+| sr-screener work and output folders (`sr-screener/scripts/`) | The `--work` and `--out` folders **you** name per review | Parsed and de-duplicated records (titles, abstracts, keywords), batch files, generated run scripts, reviewer decisions with reasons, merged decisions, QC candidates, your overrides; outputs: screening log, RIS groups, PRISMA counts, methods draft, `literature_corpus[]` file (no abstracts). The scripts make no network calls; reviewer subagents read the batch files over your Claude platform connection | No TTL — user-owned project files | Delete the folders |
 | Codex transport working dir | A per-call `ars-codex-citation-*` temporary directory | Auth-only ephemeral home, empty working root | Removed automatically when the call returns | Automatic |
 
 The tunable numbers above (TTLs, thresholds) are documented where they are set —

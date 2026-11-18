@@ -1,0 +1,16 @@
+{
+  "comment": "pipeline_demo.dot 的结构化期望：dot_check.py --render --expect 本文件时逐项核对。nodes/edges 与 graphviz SVG 的 class=node/edge 计数精确匹配；must_contain 为必须出现在 SVG 文本中的节点文案；reference_svg 仅供人工对照，不做逐字节比较。",
+  "format": "svg",
+  "nodes": 6,
+  "edges": 6,
+  "must_contain": [
+    "问题输入",
+    "数据预处理",
+    "建立优化模型",
+    "模型求解",
+    "灵敏度分析",
+    "结果与讨论"
+  ],
+  "must_not_contain": [],
+  "reference_svg": "pipeline_demo.reference.svg"
+}

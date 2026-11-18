@@ -18,8 +18,8 @@ This is acceptable for **routing discipline** (which is a calibration target, no
 
 ## Acceptance criterion (v3.9.2 ship gate)
 
-- **100% pass on the current primary model** — the inherited Claude Code session model (Opus 4.7 at the v3.9.2 ship; Fable 5 at the 2026-06 recalibration)
-- **≥ 75% pass on Sonnet 4.6 and GPT-5.5** (degradation flagged but non-blocking ship)
+- **100% pass on the current primary model** — the inherited Claude Code session model (Opus 4.7 at the v3.9.2 ship; Fable 5 at the 2026-06 recalibration; Claude Opus 5.5 and Claude Fable 5.1, the two supported session models, at the 2026-09-23 calibration in `CALIBRATION_LOG.md`, #889, repo-clone install only; at the 2026-09-24 pass, #892, also the plugin install, where Claude Fable 5.1 still fails fixture 06 and fixture 05 passes on both models only under two scoring readings the log records; the 2026-10 pass ran all 21 fixtures in both installs, and its open gaps, #892 and #960, are in the log; the 2026-11-10 pass ran all 21 fixtures on Claude Fable 5.2 in both installs: 21 of 21 in each under the recorded scoring rules, and 20 of 21 in the plugin install when fixture 01 is read strictly)
+- **≥ 75% pass on Claude Sonnet 5 and GPT-6 Astra** (degradation flagged but non-blocking ship; not run at the 2026-09-23 calibration)
 - Cross-model divergence > 1 fixture between primary and Sonnet/GPT → recalibrate routing prose
 
 If you cannot reach 100% on the current primary model, the routing prose in CLAUDE.md / protocol doc needs tightening — fix the prose, not the test.
@@ -38,6 +38,19 @@ If you cannot reach 100% on the current primary model, the routing prose in CLAU
 | 08 | `08_full_draft_plus_abstract_plus_lit/` | Full draft + abstract + literature, no clear intent | **Clarify** (cross-phase, multiple plausible workflows) |
 | 09 | `09_korean_revision_not_review/` | Korean 수정 (revise) request + draft (#452) | **Proceed** → `academic-paper:revision` (not reviewer) |
 | 10 | `10_korean_review_not_revision/` | Korean 심사 (referee) request + manuscript (#452) | **Proceed** → `academic-paper-reviewer:full` (not paper) |
+| 11 | `11_spanish_revision_not_review/` | Spanish enmendar (revise) request + draft (#856 es-ES) | **Proceed** → `academic-paper:revision` (not reviewer) |
+| 12 | `12_spanish_review_not_revision/` | Spanish revisar (referee) request + manuscript (#856 es-ES) | **Proceed** → `academic-paper-reviewer:full` (not paper) |
+| 13 | `13_lit_review_request_descriptive_question/` | "Help me write the literature review" on a descriptive question (#921) | **Proceed** → a `lit-review` mode, not `systematic-review` or screening; review-form note shown |
+| 14 | `14_lit_review_request_effect_question/` | Same request on an effect question (#921, content-independence pair of 13) | **Proceed** → same as 13; same note |
+| 15 | `15_systematic_review_named/` | "Run a systematic review" on the question of 14 (#921) | **Proceed** → `deep-research:systematic-review`; review-form note not shown |
+| 16 | `16_broader_synthesis_not_systematic/` | After a three-way scan, "a broader evidence matrix and a thematic synthesis" (#921) | **Proceed** → a `lit-review` mode, not `systematic-review`; review-form note shown |
+| 17 | `17_screening_abstracts_to_sr_screener/` | Pasted abstracts + criteria, "screen these" | **Proceed** → `sr-screener:quick` |
+| 18 | `18_persian_screening_to_sr_screener/` | Persian screening request + exports + proposal | **Proceed** → `sr-screener` (protocol step first) |
+| 19 | `19_literature_review_not_screening/` | "Write a literature review" + collected papers | **Proceed** → `academic-paper:lit-review` (not sr-screener) |
+| 20 | `20_systematic_review_not_screening/` | "Do a systematic review with PRISMA" | **Proceed** → `deep-research:systematic-review` (not sr-screener) |
+| 21 | `21_no_automatic_handover_to_screening/` | Finished search exports, "what next?" | **Clarify** (no automatic handover to sr-screener) |
+
+Fixtures 13-21 were first run in the 2026-10 pass in `CALIBRATION_LOG.md`.
 
 ## Fixture file format
 
@@ -59,18 +72,28 @@ expected_destination: <skill_name> | <agent_name> | clarification_only
 escape_hatch_applied: true | false
 direct_mode_stripped_message: <string, only when escape_hatch_applied: true>
 notes: <optional free-text>
+accepted_destinations: [<skill>:<mode>, ...]   # optional; any listed destination passes
+excluded_destinations: [<skill>:<mode>, ...]   # optional; entering any listed destination fails
+review_form_note: shown | not_shown            # optional (#921)
 ```
+
+Scoring the #921 fields (added after the 2026-09-24 pass; the rules in `CALIBRATION_LOG.md` stay as they were fixed for that pass):
+
+- **`review_form_note: shown`** passes when the response shows the review-form note text from `shared/references/review_form_note.md` verbatim in the conversation's language (English for every language other than Traditional Chinese), adds nothing that favours one form, and does not start the review before the author replies. The note is not a workflow clarification: showing it does not turn a `proceed` into a `clarify`.
+- **`review_form_note: not_shown`** passes when the note does not appear.
+- A fixture pair that differs only in the content of the question (13 and 14) passes only when both members pass; a note shown for one and not the other fails both.
 
 ### Running the smoke test (manual)
 
 Until v3.10 conductor brings deterministic dispatch, these fixtures are run **manually against a live ARS session**:
 
-1. Start a fresh Claude Code session in a clean workspace
+1. Start a fresh Claude Code session for each fixture in a standalone clone of this repository, outside your home directory, with ARS loaded from that clone through `--plugin-dir`, no user-level configuration (an empty `CLAUDE_CONFIG_DIR` and an environment allowlist), and the write and network tools disallowed; `CALIBRATION_LOG.md` (the 2026-09-23 Condition section) lists each setting and why it is needed
+   - For the plugin-install condition, start the session in an empty folder outside the clone instead, so `.claude/CLAUDE.md` does not load (the 2026-09-24 Condition section)
 2. Paste the `input.md` content as the first message
-3. Observe whether the response classifies as `expected_routing_class`
-4. Record pass/fail in a calibration log
+3. Score every field of `expected.yaml`: routing class, destination, escape-hatch behavior, and the stripped message where one is expected (scoring rules in `CALIBRATION_LOG.md`)
+4. Record the model id, effort, date, the deciding part of each response, and pass or fail per field in `CALIBRATION_LOG.md`
 
-For cross-model spot-check, run the same fixtures against Opus / Sonnet / GPT-5.5 and compare.
+Fixture 04 runs on the model its command pins (`/ars-lit-review` pins Sonnet), not on the session model. For cross-model spot-check, run the same fixtures against the secondary targets above and compare.
 
 ## v3.10 forward note
 
