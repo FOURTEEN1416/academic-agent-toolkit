@@ -13,17 +13,18 @@ A reference guide for citation verification in academic paper writing, providing
 
 ## Citation-Verification Family Guide (this repository)
 
-Five citation-verification skills coexist in this repo. Use this guide to pick the right one:
+Six citation-verification skills coexist in this repo. Use this guide to pick the right one:
 
 | Skill | Use it for |
 |---|---|
 | `lit-citation-verify` (this skill) | Verification **principles** and canonical-source order; guidance, not batch checking |
 | `lit-citation-verify-latex` | **Batch existence checking** of LaTeX `.tex` + `.bib` references (bibsleuth) |
 | `check-citations` | `.bib` **multi-source verification** (CrossRef / Semantic Scholar / OpenAlex) for AI-hallucinated citations |
+| `citation-crosscheck` | **Double-blind field-level diff** of `.bib` entries against independently re-fetched records (author order / year / venue / DOI), with a deterministic verifier gate and a side-by-side xlsx; no context-fit |
 | `citation-check` | CUMCM（国赛）**GB/T 7714 格式与完整性**检查，面向中文竞赛论文 |
 | `paper-citation-verify` | **Pre-submission citation completeness** checklist before journal/conference submission |
 
-Routing hint: 原则/口径 → 本技能；LaTeX 批量核验 → `lit-citation-verify-latex`；`.bib` 三源分诊 → `check-citations`；国赛 GB/T 终检 → `citation-check`；投稿前清单 → `paper-citation-verify`。
+Routing hint: 原则/口径 → 本技能；LaTeX 批量核验 → `lit-citation-verify-latex`；`.bib` 三源分诊 → `check-citations`；字段级双盲核对（存疑条目/投稿终检） → `citation-crosscheck`；国赛 GB/T 终检 → `citation-check`；投稿前清单 → `paper-citation-verify`。
 
 ## Core Problems
 

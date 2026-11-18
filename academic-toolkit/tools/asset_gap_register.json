@@ -2,8 +2,8 @@
   "_meta": {
     "purpose": "skill_library_audit 棘轮登记册：SKILL.md 内部引用断链的 2026-09-09 基线",
     "rule": "登记册内条目=已知存量(不FAIL)；新断链=FAIL。处置一批删一批条目即可收紧防线",
-    "baseline_count": 321,
-    "baseline_skills": 72,
+    "baseline_count": 292,
+    "baseline_skills": 63,
     "created": "2026-09-09",
     "cause": "大量技能集成时只收 SKILL.md 未收上游资产；处置方案见 dev-docs/AUDIT_2026-09-09.md A18",
     "disposal_log": [
@@ -20,7 +20,8 @@
       "2026-09-22 主窗收编处置: 批次四领地 3 条销账（auto-review-loop/-minimax「external data/models」、paper-write-nature-docx「data/comparison/literature」均为正文词组伪引用；收编后改写为 data or models / data, comparison, literature 消除误报，收紧棘轮 338→335）；paper-framework-figure-studio-pro 2 条目录形态补过期台账",
       "2026-09-23 v2.0 收尾：销账 dev-code-frontend/references/styles（文件已在库）；删 meta-agent-harness 自重复 1 条；baseline_count 校正为实测值。",
       "2026-10-27 宿主清洗收口批：销账 3 条（meta-agent-config / meta-command-development / meta-hook-development 整件退役，条目与技能一并移除）。",
-      "2026-11-16 dev 簇修复批：入册 6 条（dev-code-review-guide Resources 节 6 项断链资产，2026-09-28 深读批已在技能 ASSET-GAP.md 显性化，此次按登记册口径补录棘轮）。"
+      "2026-11-16 dev 簇修复批：入册 6 条（dev-code-review-guide Resources 节 6 项断链资产，2026-09-28 深读批已在技能 ASSET-GAP.md 显性化，此次按登记册口径补录棘轮）。",
+      "2026-11-17 裁决第二批: dev-code-review 销账 4 条（19 项资产自 alirezarezvani/claude-skills@4680893d91f2aee6f77ca1519fd1b86b7a104c87 原样收编：3 脚本+13 语言规则+universal+Java 夹具+期望输出；期望输出 file 字段改本仓相对路径；ASSET-GAP.md 转销账台账；UPSTREAM.md 新建并注册 provenance）"
     ],
     "dir_entry_expiry": {
       "policy": "B3-6 ④：目录形态条目=正文仅引用目录本身、无可枚举具体文件；到期未枚举/销账须重新审计",
@@ -90,12 +91,6 @@
     "dev-ai-security": [
       "references/atlas-coverage.md",
       "scripts/ai_threat_scanner.py"
-    ],
-    "dev-code-review": [
-      "assets/sample_java_smells.java",
-      "scripts/code_quality_checker.py",
-      "scripts/pr_analyzer.py",
-      "scripts/review_report_generator.py"
     ],
     "dev-code-review-guide": [
       "references/code-review-best-practices.md",

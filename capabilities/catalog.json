@@ -715,7 +715,7 @@
       "capability_id": "problem-selection",
       "name": "problem-selection",
       "domain": "math_modeling_competition",
-      "description": "数学建模竞赛 选题决策专家。拿到 6 道题后 30 分钟内给出 TOP3 排序 + 每题利弊清单 + 推荐模型方向。 基于 5 维客观打分（数据可得性/创新空间/工作量/历史获奖率/卡壳风险）。 【国一权重】30%——开赛第一道坎，选对题 = 一半成功 【国赛时间】4 天 96 小时（2026-09-10 18:00 ~ 09-13 20:00）",
+      "description": "数学建模竞赛 选题决策专家。拿到 6 道题后 30 分钟内给出 TOP3 排序 + 每题利弊清单 + 推荐模型方向。 基于 5 维客观打分（数据可得性/创新空间/工作量/历史获奖率/卡壳风险）。 【国一权重】30%——开赛第一道坎，选对题 = 一半成功 【国赛时间】4 天 96 小时（2026-09-10 18:00 ~ 09-13 20:00）。【选题串联】idea-discovery（方向发现）→ problem-selection（30 分钟快筛）→ math-modeling-contest-route-selection（深度路线选择），上游环节产出可直接作为本技能输入。",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -781,7 +781,7 @@
       "capability_id": "math-modeling-contest-route-selection",
       "name": "竞赛选题与路线选择（Contest Route Selection）",
       "domain": "math_modeling_competition",
-      "description": "CUMCM/MCM 选题与建模路线两层比较：模型选择锦标赛（baseline/被拒方案/决定性测试/翻盘条件）、Refutation ledger、撞车逃逸机制、binding constraints 清单、角色化逐问链、评分脚本（标准库零依赖）。防 AI 同质化选题（13 条判据+7 问工程门禁）。上游 y3519712124-ui/math-modeling-contest-route-selection (MIT, pinned 2026-09-03)",
+      "description": "CUMCM/MCM 选题与建模路线两层比较：模型选择锦标赛（baseline/被拒方案/决定性测试/翻盘条件）、Refutation ledger、撞车逃逸机制、binding constraints 清单、角色化逐问链、评分脚本（标准库零依赖）。防 AI 同质化选题（13 条判据+7 问工程门禁）。上游 y3519712124-ui/math-modeling-contest-route-selection (MIT, pinned 2026-09-03)。【选题串联】上承 problem-selection（30 分钟快筛）的 TOP3 结果做深度路线选择，更上游为 idea-discovery（方向发现）。",
       "input_contract": "题面文本 或 选题评分 JSON（schema 分键强制）",
       "output_contract": "A/B/C 选题 12 段 / 单题 9 段 / 深度规划 +4 项；Method Route Card 17 字段；score_topics.py 排名表",
       "status": "experimental",
@@ -1058,6 +1058,7 @@
       "status": "experimental",
       "associated_skills": [
         "check-citations",
+        "citation-crosscheck",
         "lit-citation-manage",
         "paper-citation-verify",
         "doi-bibtex",
@@ -2178,6 +2179,53 @@
       "disposition": "routed"
     },
     {
+      "capability_id": "lean-formalize",
+      "name": "lean-formalize",
+      "domain": "academic_papers",
+      "description": "在 Lean 中开发、续写或审计数学证明并交付机器验证。触发词：Lean、形式化证明、formal proof。",
+      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "lean-formalize"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [
+        "Lean toolchain (elan/lake, external)"
+      ],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需由当前驱动 Agent 向用户确认",
+      "current_evidence": "2026-11-17 收编批：技能与接线机检证据见 dev-docs/audits/2026-11-17-裁决第二批/absorb-lean-formalize.md；Lean 工具链为外部前置，环境缺失时停在 TOOL_GAP 报告",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
+      "status": "experimental",
+      "promotion_history": [
+        "2026-11-17: 收编批新建（上游 Auto-claude-code-research-in-sleep pin 9f30e83，MIT）"
+      ],
+      "disposition": "routed"
+    },
+    {
+      "capability_id": "citation-crosscheck",
+      "name": "citation-crosscheck",
+      "domain": "academic_papers",
+      "description": "双盲 .bib 字段级交叉核对：盲提取、独立重查、机械 diff，裁决 MATCH/MINOR/MISMATCH。触发词：引用交叉核对、bib audit。",
+      "input_contract": "用户提供论文目录或 .bib 文件（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "citation-crosscheck"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [
+        "CrossRef/Semantic Scholar/OpenAlex API（外部；不可用/限流时降级为通用 web 检索并置 degraded_search 旗标）",
+        "openpyxl（仅批量 CSV 路径需要；缺失时 CSV 兜底不可用，走逐条核验）"
+      ],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需由当前驱动 Agent 向用户确认",
+      "current_evidence": "2026-11-17 收编批：scripts/cx_verify.py --selftest 121/121 实测通过；机检证据见 dev-docs/audits/2026-11-17-裁决第二批/absorb-citation-crosscheck.md",
+      "current_gap": "C3/C4 基准未建；单技能试点级验收（非管线级）",
+      "status": "experimental",
+      "promotion_history": [
+        "2026-11-17: 收编批新建（上游 Auto-claude-code-research-in-sleep pin 9f30e83，MIT）"
+      ],
+      "disposition": "routed"
+    },
+    {
       "capability_id": "proof-writer",
       "name": "proof-writer",
       "domain": "academic_papers",
@@ -2185,7 +2233,8 @@
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
-        "proof-writer"
+        "proof-writer",
+        "lean-formalize"
       ],
       "associated_tools": [],
       "external_dependencies": [],
@@ -2577,6 +2626,26 @@
       "promotion_history": [
         "2026-11-16: 新建（生态对标补强 G1）"
       ],
+      "disposition": "external"
+    },
+    {
+      "capability_id": "latex-paper-collab-breadth",
+      "name": "collaborating-with-gemini",
+      "domain": "academic_papers",
+      "description": "Use the Gemini CLI as a breadth-exploration co-pilot for paper-from-zero. Primary role: candidate direction expansion, adjacent work scanning, keyword cluster generation, and alternative framing proposals. Also supports generic code collaboration as fallback.",
+      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "latex-paper-collab-breadth"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需由当前驱动 Agent 向用户确认",
+      "current_evidence": [],
+      "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：对应外部协作 CLI 不在 PATH，请求模板已产出——凭证/外部服务需用户侧提供，不伪造验收",
+      "status": "experimental",
+      "promotion_history": [],
+      "current_gap_class": "blocked-by-dependency",
       "disposition": "external"
     }
   ],
@@ -3150,7 +3219,7 @@
       "capability_id": "idea-discovery",
       "name": "idea-discovery",
       "domain": "literature_research",
-      "description": "找研究方向/深度调研入口：按目标选择 idea_discovery（选题→提案与实验计划）或 deep_research（多源证据汇总与独立评审调研报告）工作流。Use when user says \"找idea全流程\", \"深度调研\", \"从零开始找方向\".",
+      "description": "找研究方向/深度调研入口：按目标选择 idea_discovery（选题→提案与实验计划）或 deep_research（多源证据汇总与独立评审调研报告）工作流。Use when user says \"找idea全流程\", \"深度调研\", \"从零开始找方向\"。【选题串联】产出候选方向后，竞赛选题场景可接 problem-selection（30 分钟快筛）→ math-modeling-contest-route-selection（深度路线选择）。",
       "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
       "output_contract": "技能 SKILL.md 定义的交付物",
       "associated_skills": [
@@ -3493,6 +3562,71 @@
       "high_risk_confirmation": false,
       "current_evidence": "2026-09-23 v2.0 W4 新增：固化本仓已跑通一届样本（2021-2025 共 62 篇）的挖掘流水线；产物接线 data/award_paper_exemplars.json。2026-09-23 版面蒸馏升级：新增步骤 6 全量版面蒸馏管线（作业标准 references/layout-distillation-schema.md），目标=自有内容套国奖版面外壳。",
       "current_gap": "抓取脚本未随库（源站结构可能变化，需按当下页面重写选择器）；版面蒸馏 62 篇尚未执行（schema 已备，待分批跑卡）。",
+      "disposition": "external"
+    },
+    {
+      "capability_id": "grant-nih",
+      "name": "grants",
+      "domain": "literature_research",
+      "description": "NIH grant research for clinical researchers: grant discovery, funding overview. Use when pursuing NIH funding.",
+      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "grant-nih"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需由当前驱动 Agent 向用户确认",
+      "current_evidence": "blocked-by-dependency（2026-08-30 如实登记）：NIH 专属 RePORTER/Consensus MCP 本环境不可达；NSFC 需求已由 grant_proposal_c2 覆盖。",
+      "current_gap": "管线级验收覆盖；C3/C4 未建",
+      "status": "experimental",
+      "promotion_history": [
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
+        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
+      ],
+      "disposition": "external"
+    },
+    {
+      "capability_id": "grant-proposal",
+      "name": "grant-proposal",
+      "domain": "literature_research",
+      "description": "Draft a structured grant proposal from research ideas and literature. Supports KAKENHI (Japan), NSF (US), NSFC (China), and more.",
+      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "grant-proposal"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需由当前驱动 Agent 向用户确认",
+      "current_evidence": "C2 通过（2026-08-30，作为 grant_proposal 管线核心执行步骤）：workspaces/grant_proposal_c2 工作流 062b95a2 step 2 真实执行（STEP_MANIFEST + 6 条校验命令：NSFC 8 节结构/无绝对化断言/PI 占位/future-work 口径/引用子集约束/时间维局限披露），产出 GRANT_PROPOSAL.md；round-1 独立评审 PASS（0/0/3）。",
+      "current_gap": "C3/C4/C5 未建；NIH 专属的 grant-nih 技能未验收（重 MCP 依赖，保持 experimental）",
+      "status": "experimental",
+      "promotion_history": [
+        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
+        "2026-08-30: C2 通过（P3 管线级验收，round-1 独立评审 PASS）"
+      ],
+      "disposition": "evidence-bound"
+    },
+    {
+      "capability_id": "idea-discovery-robotics",
+      "name": "idea-discovery-robotics",
+      "domain": "literature_research",
+      "description": "Workflow 1 adaptation for robotics and embodied AI. Orchestrates robotics-aware literature survey, idea generation, novelty check, and review in one pipeline.",
+      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
+      "output_contract": "技能 SKILL.md 定义的交付物",
+      "associated_skills": [
+        "idea-discovery-robotics"
+      ],
+      "associated_tools": [],
+      "external_dependencies": [],
+      "high_risk_confirmation": "使用外部 API 或覆盖文件前需由当前驱动 Agent 向用户确认",
+      "current_evidence": "管线级覆盖映射（idea-discovery 管线 round-4 PASS）；",
+      "current_gap": "管线级验收覆盖；C3/C4 未建",
+      "status": "experimental",
+      "promotion_history": [
+        "2026-08-30: 单技能 C2 批次22（真实执行留档 skill_c2_batch18）"
+      ],
       "disposition": "external"
     }
   ],
@@ -4416,27 +4550,6 @@
       "disposition": "external"
     },
     {
-      "capability_id": "idea-discovery-robotics",
-      "name": "idea-discovery-robotics",
-      "domain": "course_research_materials",
-      "description": "Workflow 1 adaptation for robotics and embodied AI. Orchestrates robotics-aware literature survey, idea generation, novelty check, and review in one pipeline.",
-      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
-      "output_contract": "技能 SKILL.md 定义的交付物",
-      "associated_skills": [
-        "idea-discovery-robotics"
-      ],
-      "associated_tools": [],
-      "external_dependencies": [],
-      "high_risk_confirmation": "使用外部 API 或覆盖文件前需由当前驱动 Agent 向用户确认",
-      "current_evidence": "管线级覆盖映射（idea-discovery 管线 round-4 PASS）；",
-      "current_gap": "管线级验收覆盖；C3/C4 未建",
-      "status": "experimental",
-      "promotion_history": [
-        "2026-08-30: 单技能 C2 批次22（真实执行留档 skill_c2_batch18）"
-      ],
-      "disposition": "external"
-    },
-    {
       "capability_id": "comp-latex-writing",
       "name": "comp-latex-writing",
       "domain": "course_research_materials",
@@ -5303,28 +5416,6 @@
       ]
     },
     {
-      "capability_id": "grant-nih",
-      "name": "grants",
-      "domain": "intellectual_property_materials",
-      "description": "NIH grant research for clinical researchers: grant discovery, funding overview. Use when pursuing NIH funding.",
-      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
-      "output_contract": "技能 SKILL.md 定义的交付物",
-      "associated_skills": [
-        "grant-nih"
-      ],
-      "associated_tools": [],
-      "external_dependencies": [],
-      "high_risk_confirmation": "使用外部 API 或覆盖文件前需由当前驱动 Agent 向用户确认",
-      "current_evidence": "blocked-by-dependency（2026-08-30 如实登记）：NIH 专属 RePORTER/Consensus MCP 本环境不可达；NSFC 需求已由 grant_proposal_c2 覆盖。",
-      "current_gap": "管线级验收覆盖；C3/C4 未建",
-      "status": "experimental",
-      "promotion_history": [
-        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
-        "2026-08-30: 单技能 C2 批次21（真实执行留档 skill_c2_batch17）"
-      ],
-      "disposition": "external"
-    },
-    {
       "capability_id": "ip-patent-search",
       "name": "patent",
       "domain": "intellectual_property_materials",
@@ -5391,48 +5482,6 @@
       ],
       "current_gap_class": "blocked-by-scope",
       "disposition": "evidence-bound"
-    },
-    {
-      "capability_id": "grant-proposal",
-      "name": "grant-proposal",
-      "domain": "intellectual_property_materials",
-      "description": "Draft a structured grant proposal from research ideas and literature. Supports KAKENHI (Japan), NSF (US), NSFC (China), and more.",
-      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
-      "output_contract": "技能 SKILL.md 定义的交付物",
-      "associated_skills": [
-        "grant-proposal"
-      ],
-      "associated_tools": [],
-      "external_dependencies": [],
-      "high_risk_confirmation": "使用外部 API 或覆盖文件前需由当前驱动 Agent 向用户确认",
-      "current_evidence": "C2 通过（2026-08-30，作为 grant_proposal 管线核心执行步骤）：workspaces/grant_proposal_c2 工作流 062b95a2 step 2 真实执行（STEP_MANIFEST + 6 条校验命令：NSFC 8 节结构/无绝对化断言/PI 占位/future-work 口径/引用子集约束/时间维局限披露），产出 GRANT_PROPOSAL.md；round-1 独立评审 PASS（0/0/3）。",
-      "current_gap": "C3/C4/C5 未建；NIH 专属的 grant-nih 技能未验收（重 MCP 依赖，保持 experimental）",
-      "status": "experimental",
-      "promotion_history": [
-        "2026-08-28: private_extension → experimental（用户裁定：项目所有能力公开发布，不再设私有扩展边界；验收状态不变，未跑 C2-C5 者仍为实验性）",
-        "2026-08-30: C2 通过（P3 管线级验收，round-1 独立评审 PASS）"
-      ],
-      "disposition": "evidence-bound"
-    },
-    {
-      "capability_id": "latex-paper-collab-breadth",
-      "name": "collaborating-with-gemini",
-      "domain": "intellectual_property_materials",
-      "description": "Use the Gemini CLI as a breadth-exploration co-pilot for paper-from-zero. Primary role: candidate direction expansion, adjacent work scanning, keyword cluster generation, and alternative framing proposals. Also supports generic code collaboration as fallback.",
-      "input_contract": "用户提供任务描述、相关材料或数据（详见技能 SKILL.md 输入契约）",
-      "output_contract": "技能 SKILL.md 定义的交付物",
-      "associated_skills": [
-        "latex-paper-collab-breadth"
-      ],
-      "associated_tools": [],
-      "external_dependencies": [],
-      "high_risk_confirmation": "使用外部 API 或覆盖文件前需由当前驱动 Agent 向用户确认",
-      "current_evidence": [],
-      "current_gap": "blocked-by-dependency（2026-08-30 定性留档）：对应外部协作 CLI 不在 PATH，请求模板已产出——凭证/外部服务需用户侧提供，不伪造验收",
-      "status": "experimental",
-      "promotion_history": [],
-      "current_gap_class": "blocked-by-dependency",
-      "disposition": "external"
     },
     {
       "capability_id": "patent-build",

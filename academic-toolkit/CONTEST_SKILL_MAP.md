@@ -76,7 +76,7 @@
 功能多已被主技能合同、内建脚本（data_check/constraint_audit/facts_audit/ai_tell_check）或
 其他步骤承接；赛时确需使用时按情境技能对待并照常留痕：
 
-- 拆题/建模（6）：`comp-problem-analysis`（五段拆题已被主流程覆盖）、`comp-modeling`、`comp-model-innovation`、`math-modeling-contest-route-selection`（选题在开引擎前完成）、`sympy-verify-math`（数值核验已由 facts_audit 承担）、`proof-writer`
+- 拆题/建模（7）：`comp-problem-analysis`（五段拆题已被主流程覆盖）、`comp-modeling`、`comp-model-innovation`、`math-modeling-contest-route-selection`（选题在开引擎前完成）、`sympy-verify-math`（数值核验已由 facts_audit 承担）、`proof-writer`、`lean-formalize`（Lean 形式化证明路由，依赖外部工具链，仅归类不入赛时主流程）
 - 数据/统计（4）：`data-processing`（内建 data_check.py）、`data-exploratory-analysis`（S1 data_profile 建档）、`networkx`（图论题低频）、`meta-design-space-exploration`（灵敏度由 S3 合同规划）
 - 文献检索（5）：`check-citations`（无执行器，功能由 scholar_fetch 等效承担）、`research-lit`、`literature-review`、`paper-search`、`lit-multi-db-search`（S2 契约为台账三查非综述）
 - 绘图（8）：`fig-visualization-advisor`（图型已由 S1 FIGURE_MANIFEST 前置定案）、`agent-figure-gallery`、`fig-academic`（精修档位，S11 视觉审查可升级）、`plot-from-data`、`plot-from-image`、`scientific-visualization`、`paper-figure-html`、`eco-community-plots`（生态群落特化）
@@ -135,7 +135,7 @@ deep_research 等域）的 companion 或 mandatory 槽位，届时方可升为 e
 | 课程/人文（9） | course-paper, course-plan, course-report, course-report-plan, humanities-plan/write/write-latex, grant-proposal, thesis-proposal | 课程论文/人文/基金开题域 |
 | 科研选题与实验（10） | idea-discovery, idea-discovery-robotics, research-pipeline, research-refine, research-refine-pipeline, research-review, experiment-plan, experiment-bridge, monitor-experiment, run-experiment | 长周期科研管线，赛时 3 天用不上 |
 | 英文/期刊写作变体（5） | paper-write, paper-write-docx, paper-write-nature, paper-write-nature-docx, paper-compile | 国赛中文链已有 comp-paper-zh/comp-compile-zh |
-| scholar 期刊投稿系（6） | arxiv-metadata, arxiv-submission-package, latex-bib-doi-toggle, lit-citation-verify-latex, doi-bibtex, openalex-search | arXiv/DOI 投稿工具 |
+| scholar 期刊投稿系（7） | arxiv-metadata, arxiv-submission-package, latex-bib-doi-toggle, lit-citation-verify-latex, doi-bibtex, openalex-search, citation-crosscheck | arXiv/DOI 投稿工具 |
 | 基础设施（6 + shared-scripts 目录） | meta-skill-creator, meta-doc-governance, ip-source-extractor, agent-bootstrap, tool-forge, candidate-reproduction, shared-scripts(目录，非技能) | 仓库治理/技能开发/宿主无关自举与工具铸造/候选交付复现/软著，非解题用 |
 | 其他（1） | pixel-art | 像素画风，与学术图规范冲突 |
 | Origin 可编辑绘图（1） | fig-plot-edit | 需本机 Origin/OriginPro 2021+ 商业软件 + Windows COM 自动化，非赛时工具；学术科研域按需（整技能收编自 hang-jin/editaplot，Apache-2.0；本机 Origin 未装、登记待用；runtime 引擎在 `vendor/forks/editaplot/`（仓库根入库，不随 academic-toolkit 套件目录分发；溯源见 `tools/check_provenance.py`）） |

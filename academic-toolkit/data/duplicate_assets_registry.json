@@ -1214,6 +1214,15 @@
     },
     {
       "paths": [
+        "academic-toolkit/skills/lit-citation-manage/scripts/_common.py",
+        "academic-toolkit/skills/paper-writing-clinical/modules/citation-management/scripts/_common.py"
+      ],
+      "size": 11243,
+      "wasted_bytes": 11243,
+      "reason": "paper-writing-clinical 技能族自带模块的多技能复用（上游形态保持，不就地重构）；2026-11-17 裁决第二批补登：同模块 5 对兄弟件均已登记，本对此前漏登被 strict 机检点名"
+    },
+    {
+      "paths": [
         "academic-toolkit/skills/lit-citation-manage/scripts/doi_to_bibtex.py",
         "academic-toolkit/skills/paper-writing-clinical/modules/citation-management/scripts/doi_to_bibtex.py"
       ],

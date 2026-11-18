@@ -11,7 +11,7 @@ Use this skill when citation integrity is the bottleneck. It is narrower and mor
 
 Use this skill together with `paper-writing-scientific` (drafting-phase writing rules) or `paper-submission-audit` (whole-manuscript submission audit), not instead of them.
 
-分工（citation-verification family）：`lit-citation-verify` 提供引用核验**原则**与 canonical 源顺序（guidance）；本技能是投稿前的**操作性清单**（placeholder 清理、BibTeX 卫生、DOI/PMID 完整性）；LaTeX `.tex`+`.bib` **批量**核验走 `lit-citation-verify-latex`；中文国赛 GB/T 口径走 `citation-check`。
+分工（citation-verification family）：`lit-citation-verify` 提供引用核验**原则**与 canonical 源顺序（guidance）；本技能是投稿前的**操作性清单**（placeholder 清理、BibTeX 卫生、DOI/PMID 完整性）；LaTeX `.tex`+`.bib` **批量**核验走 `lit-citation-verify-latex`；中文国赛 GB/T 口径走 `citation-check`；`.bib` 字段级**双盲 diff**（作者顺序/年份/venue/DOI，含确定性门与主源复核、对照 xlsx）走 `citation-crosscheck`。
 
 ## When To Use
 

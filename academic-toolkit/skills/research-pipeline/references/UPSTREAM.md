@@ -12,3 +12,4 @@
 - vendor/forks/Auto-claude-code-research-in-sleep 已镜像同步至实测 HEAD（768 文件更新、0 删除）。
 - 上游区间 skills/ 变更 177 文件（+11563/-1014），主要为止(install/SSH 同步修复与文档扩充)。本件对应上游目录 skills/research-pipeline：上游区间内有变更。
 - 改写融入（2026-11-16，PKG-01 研究实验环批）：上游新增 Optional formal proof route 依赖未收编技能 lean-formalize（上游新增件收编待裁决），本批不融入；其余为评审路由块与模型名更替，本仓评审桥设计不融入。
+- 补记（2026-11-17 裁决第二批）：lean-formalize 已收编入库，Optional formal proof route 已以「可选形式化证明路由」节接入本技能正文（`SKILL.md` 执行清单之后；见 dev-docs/audits/2026-11-17-裁决第二批/absorb-lean-formalize.md），原「本批不融入」悬空状态撤销。

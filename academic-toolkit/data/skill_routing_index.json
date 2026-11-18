@@ -14,9 +14,9 @@
   },
   "counts": {
     "core": 52,
-    "ondemand": 207,
-    "resident_chars": 29730,
-    "full_chars": 60162
+    "ondemand": 209,
+    "resident_chars": 29864,
+    "full_chars": 60296
   },
   "skills": {
     "ablation-planner": {
@@ -146,6 +146,14 @@
       "full_description": "引用检查（CUMCM 参考文献质量检查）：格式一致性、GB/T 7714 规范性、引用完整性、来源可信度。触发词：引用检查、参考文献格式、GB/T 7714 规范、citation check；交付前引用终检时使用。",
       "description_compacted": false,
       "path": "academic-toolkit/skills/citation-check/SKILL.md"
+    },
+    "citation-crosscheck": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "双盲 .bib 字段级交叉核对：盲提取、独立重查、机械 diff，裁决 MATCH/MINOR/MISMATCH。触发词：引用交叉核对、bib audit。",
+      "full_description": "双盲 .bib 字段级交叉核对：盲提取、独立重查、机械 diff，裁决 MATCH/MINOR/MISMATCH。触发词：引用交叉核对、bib audit。",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/citation-crosscheck/SKILL.md"
     },
     "comp-code": {
       "tier": "core",
@@ -1026,6 +1034,14 @@
       "full_description": "Make a LaTeX document produce accessible tagged PDFs (PDF/UA-1, PDF/A-2b). Creates a non-destructive copy and Makefile target. Use when the user needs accessible or tagged PDFs.",
       "description_compacted": true,
       "path": "academic-toolkit/skills/latex-pdf-accessible/SKILL.md"
+    },
+    "lean-formalize": {
+      "tier": "ondemand",
+      "reason": "非主链、非常驻调用面",
+      "resident_description": "在 Lean 中开发、续写或审计数学证明并交付机器验证。触发词：Lean、形式化证明、formal proof。",
+      "full_description": "在 Lean 中开发、续写或审计数学证明并交付机器验证。触发词：Lean、形式化证明、formal proof。",
+      "description_compacted": false,
+      "path": "academic-toolkit/skills/lean-formalize/SKILL.md"
     },
     "lit-citation-manage": {
       "tier": "ondemand",

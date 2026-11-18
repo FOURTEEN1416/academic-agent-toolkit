@@ -134,6 +134,10 @@ UPSTREAM_REGISTRY: list[Path] = [
     ROOT / "skills" / "pymoo" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "simpy" / "references" / "UPSTREAM.md",
     ROOT / "skills" / "stable-baselines3" / "references" / "UPSTREAM.md",
+    # 2026-11-17 裁决第二批：dev-code-review 19 件资产自 alirezarezvani/claude-skills@4680893 收编
+    ROOT / "skills" / "dev-code-review" / "UPSTREAM.md",
+    # 2026-11-17 裁决第二批：citation-crosscheck 自 ARS fork@9f30e83 新建收编（cx_verify.py 原样收编）
+    ROOT / "skills" / "citation-crosscheck" / "references" / "UPSTREAM.md",
 ]
 
 # 【全部吸收】批 F4：ARS#2（Auto-claude-code-research-in-sleep）V1.1 同名整采 34 件

@@ -4,12 +4,12 @@
 
 ### 让 Agent 像科研人员一样工作
 
-*259 个随仓技能 · 6 大能力域 · 宿主无关引擎 · 每一步产物可审计*
+*261 个随仓技能 · 6 大能力域 · 宿主无关引擎 · 每一步产物可审计*
 
 [![Release](https://img.shields.io/badge/release-v2.1.0-6C63FF?style=flat-square&logo=github)](./CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-1356_collected-22c55e?style=flat-square&logo=pytest)](academic-toolkit/tests)
-[![Capabilities](https://img.shields.io/badge/capabilities-317-0ea5e9?style=flat-square)](capabilities/catalog.json)
-[![Skills](https://img.shields.io/badge/skills-259_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
+[![Capabilities](https://img.shields.io/badge/capabilities-319-0ea5e9?style=flat-square)](capabilities/catalog.json)
+[![Skills](https://img.shields.io/badge/skills-261_tracked-8b5cf6?style=flat-square)](academic-toolkit/skills)
 [![License](https://img.shields.io/badge/license-CC--BY--NC--4.0-f59e0b?style=flat-square)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](#-快速开始)
 [![Hosts](https://img.shields.io/badge/hosts-Any_Agent-1f2937?style=flat-square)](#-快速开始)
@@ -20,7 +20,7 @@
 
 > [!TIP]
 > **一句话**：把一件事交给它——一道数模赛题、一个研究课题、一份课程作业、一篇待投稿论文、一批待出图的资料，
-> 或一份软著／专利／基金申请材料——它按专业作业规程（259 个随仓技能）自主走完
+> 或一份软著／专利／基金申请材料——它按专业作业规程（261 个随仓技能）自主走完
 > **检索 → 建模／实验 → 编码 → 绘图 → 写作 → 自评 → 审稿 → 编译 → 交付审计**；
 > 每一步的产物可复现、可审计、可追溯，并按真实评分维度被测量。
 
